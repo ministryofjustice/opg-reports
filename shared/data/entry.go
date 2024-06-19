@@ -5,9 +5,9 @@ import "encoding/json"
 // IEntry used to represent an item within the data store
 // and result from a report
 type IEntry interface {
-	// IdX() returns the unique index
-	UID() string
 	Valid() bool
+	// UID() returns the unique index
+	UID() string
 }
 
 // ToMap uses json marshaling to convert from the struct to map.

@@ -1,6 +1,7 @@
 package cost
 
 import (
+	"opg-reports/shared/data"
 	"testing"
 )
 
@@ -50,4 +51,14 @@ func TestSharedAwsCostValid(t *testing.T) {
 		t.Errorf("complete, should not be valid")
 	}
 
+}
+
+func testIsI[V data.IEntry](i V) bool {
+	return i.UID() != ""
+}
+func TestSharedAwsCostInterface(t *testing.T) {
+	c := &Cost{}
+	if testIsI[*Cost](c) {
+		t.Errorf("should not be nil")
+	}
 }

@@ -26,22 +26,13 @@ func (a *Api[V, F]) Response() server.IApiResponse {
 }
 
 func (a *Api[V, F]) Register(mux *http.ServeMux) {
-	mux.HandleFunc("/aws/costs/{version}/monthly", a.Index)
+	mux.HandleFunc("/aws/costs/{version}/monthly/{$}", a.Index)
+	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/{$}", a.Totals)
 }
 
 func (a *Api[V, F]) Write(w http.ResponseWriter, response server.IApiResponse) {
 	w.WriteHeader(response.Status())
 	w.Write(response.Body())
-}
-
-func (a *Api[V, F]) Index(w http.ResponseWriter, r *http.Request) {
-	res := a.Response()
-	res.Start()
-
-	res.Set(a.store.List(), http.StatusOK, nil)
-
-	res.End()
-	a.Write(w, res)
 }
 
 func New[V data.IEntry, D data.IStore[V], F files.IReadFS](store D, fS F) *Api[V, F] {

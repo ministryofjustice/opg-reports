@@ -55,7 +55,10 @@ func TestServicesApiAwsCostMonthlyStatusCode(t *testing.T) {
 	api.Register(mux)
 
 	routes := map[string]int{
-		"/aws/costs/v1/monthly": http.StatusOK,
+		"/aws/costs/v1/monthly/":                 http.StatusOK,
+		"/aws/costs/v1/monthly/2024-01/2024-02/": http.StatusOK,
+		"/aws/costs/v1/monthly":                  http.StatusMovedPermanently,
+		"/aws/costs/v1/monthly/2024-01/2024-02":  http.StatusMovedPermanently,
 	}
 	for route, status := range routes {
 		w, r := testWRGet(route)
@@ -63,8 +66,6 @@ func TestServicesApiAwsCostMonthlyStatusCode(t *testing.T) {
 		if w.Result().StatusCode != status {
 			t.Errorf("http status mismtach [%s] expected [%d], actual [%v]", route, status, w.Result().StatusCode)
 		}
-		// tmp := decode[*ApiResponse](w.Result().Body)
-		// fmt.Printf("%+v\n", tmp.Results())
 	}
 
 }
