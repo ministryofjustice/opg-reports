@@ -26,7 +26,7 @@ func (f *WriteFS) BaseDir() string {
 	return f.dir
 }
 
-func NewFS(f IReadFS, dir string) IWriteFS {
+func NewFS(f IReadFS, dir string) *WriteFS {
 	return &WriteFS{
 		IReadFS: f,
 		dir:     dir,

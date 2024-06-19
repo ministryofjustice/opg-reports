@@ -78,7 +78,7 @@ func (s *Store[T]) Length() int {
 //
 // To allow *AND* filters this returns a new Store[T] with matches, allowing
 // Filter calls to be chained together
-func (s *Store[T]) Filter(filters ...IStoreFilter[T]) (store IStore[T]) {
+func (s *Store[T]) Filter(filters ...IStoreFilter[T]) (store *Store[T]) {
 	found := map[string]T{}
 
 	for key, item := range s.All() {

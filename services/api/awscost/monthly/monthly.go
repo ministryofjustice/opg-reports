@@ -2,41 +2,42 @@ package monthly
 
 import (
 	"net/http"
+	"opg-reports/shared/aws/cost"
 	"opg-reports/shared/data"
 	"opg-reports/shared/files"
 	"opg-reports/shared/server"
 )
 
 // Api is a concreate version
-type Api[V data.IEntry, F files.IReadFS] struct {
-	store    data.IStore[V]
-	fs       F
+type Api struct {
+	store    *data.Store[*cost.Cost]
+	fs       *files.WriteFS
 	response *ApiResponse
 }
 
-func (a *Api[V, F]) Store() data.IStore[V] {
+func (a *Api) Store() *data.Store[*cost.Cost] {
 	return a.store
 }
 
-func (a *Api[V, F]) FS() F {
+func (a *Api) FS() *files.WriteFS {
 	return a.fs
 }
-func (a *Api[V, F]) Response() server.IApiResponse {
+func (a *Api) Response() server.IApiResponse {
 	return a.response
 }
 
-func (a *Api[V, F]) Register(mux *http.ServeMux) {
+func (a *Api) Register(mux *http.ServeMux) {
 	mux.HandleFunc("/aws/costs/{version}/monthly/{$}", a.Index)
 	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/{$}", a.Totals)
 }
 
-func (a *Api[V, F]) Write(w http.ResponseWriter, response server.IApiResponse) {
+func (a *Api) Write(w http.ResponseWriter, response server.IApiResponse) {
 	w.WriteHeader(response.Status())
 	w.Write(response.Body())
 }
 
-func New[V data.IEntry, D data.IStore[V], F files.IReadFS](store D, fS F) *Api[V, F] {
-	return &Api[V, F]{
+func New(store *data.Store[*cost.Cost], fS *files.WriteFS) *Api {
+	return &Api{
 		store:    store,
 		fs:       fS,
 		response: &ApiResponse{},

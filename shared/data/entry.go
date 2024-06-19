@@ -6,7 +6,6 @@ import "encoding/json"
 // and result from a report
 type IEntry interface {
 	Valid() bool
-	// UID() returns the unique index
 	UID() string
 }
 

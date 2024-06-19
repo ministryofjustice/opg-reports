@@ -61,4 +61,5 @@ func TestSharedAwsCostInterface(t *testing.T) {
 	if testIsI[*Cost](c) {
 		t.Errorf("should not be nil")
 	}
+	data.NewStore[*Cost]()
 }
