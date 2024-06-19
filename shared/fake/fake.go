@@ -7,10 +7,10 @@ import (
 	"time"
 )
 
+const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
 // String generates a random string of `length“ from a fixed set of characters
 func String(length int) string {
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
 	result := make([]byte, length)
 	l := len(charset)
 	for i := range result {
@@ -22,26 +22,26 @@ func String(length int) string {
 }
 
 // Int generates an int64 whose value is beetween min and max
-func Int(min uint64, max uint64) int64 {
-	seed := rand.NewPCG(min, max)
-	r := rand.New(seed)
-	return r.Int64()
+func Int(min int, max int) int {
+	return rand.IntN(max-min) + min
 }
 
 // IntAsStr generates a random int (via Int) between min and & max and converts
 // that to a string
-func IntAsStr(min uint64, max uint64) string {
+func IntAsStr(min int, max int) string {
 	i := Int(min, max)
 	return strconv.Itoa(int(i))
 }
 
 // Float creates a float between the min & max
-func Float(min uint64, max uint64) float64 {
-	return rand.Float64()
+func Float(min float64, max float64) float64 {
+	return min + rand.Float64()*(max-min)
+	// return​ ​min​ ​+​ ​rand​.​Float64​()​*​(​fr​.​max​-​fr​.​min​)
+	// return rand.Float64()
 }
 
 // FloatAsStr generates a string version of a randomised float
-func FloatAsStr(min uint64, max uint64) string {
+func FloatAsStr(min float64, max float64) string {
 	f := Float(min, max)
 	return fmt.Sprintf("%f", f)
 }
