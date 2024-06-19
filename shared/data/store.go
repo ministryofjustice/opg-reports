@@ -3,7 +3,7 @@ package data
 import "errors"
 
 var (
-	ErrStoreItemNotFoundViaIdx error = errors.New("store item not found via index") // Flag that the request index is not present in the store
+	ErrStoreItemNotFound error = errors.New("store item not found via index") // Flag that the request index is not present in the store
 )
 
 // IStore is the common interface for all stores so we can always change the underlying
@@ -13,7 +13,7 @@ type IStore[T IEntry] interface {
 	Add(item T) error
 	// Get looks for the primary index for the item within the dataset. If it cant
 	// be found, it returns an error
-	Get(idx string) (T, error)
+	Get(uid string) (T, error)
 	// Filter will return items that match *ANY* of the filters, acting as *OR* logic
 	// Chain multiple Filter calls together for AND logic
 	Filter(filters ...IStoreFilter[T]) IStore[T]
@@ -31,22 +31,22 @@ type Store[T IEntry] struct {
 	items map[string]T
 }
 
-// Add uses the item.Idx() as the key for this item and inserts
+// Add uses the item.UID() as the key for this item and inserts
 // item into the data store.
 // This will overwrite items that are already present without error
 func (s *Store[T]) Add(item T) error {
-	s.items[item.Idx()] = item
+	s.items[item.UID()] = item
 	return nil
 }
 
 // Get returns the item from the iternal map whose index matches
 // the passed value.
 // If it cant be found an error is returned
-func (s *Store[T]) Get(idx string) (i T, err error) {
-	if value, ok := s.items[idx]; ok {
+func (s *Store[T]) Get(uid string) (i T, err error) {
+	if value, ok := s.items[uid]; ok {
 		i = value
 	} else {
-		err = ErrStoreItemNotFoundViaIdx
+		err = ErrStoreItemNotFound
 	}
 	return
 }

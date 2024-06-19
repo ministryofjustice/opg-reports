@@ -20,7 +20,7 @@ func TestSharedDataStoreNewFromMap(t *testing.T) {
 	items := map[string]*testEntry{}
 	for i := 0; i < 200; i++ {
 		e := &testEntry{Id: fmt.Sprintf("%d", i+1)}
-		items[e.Idx()] = e
+		items[e.UID()] = e
 	}
 	s := NewStoreFromMap[*testEntry](items)
 	if s.Length() != len(items) {
@@ -32,7 +32,7 @@ func BenchmarkSharedDataStoreNewFromMap(b *testing.B) {
 	items := map[string]*testEntry{}
 	for i := 0; i < 2000; i++ {
 		e := &testEntry{Id: fmt.Sprintf("%d", i+1)}
-		items[e.Idx()] = e
+		items[e.UID()] = e
 	}
 	NewStoreFromMap[*testEntry](items)
 
