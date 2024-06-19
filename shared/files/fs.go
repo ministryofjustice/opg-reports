@@ -17,17 +17,17 @@ type IWriteFS interface {
 	BaseDir() string
 }
 
-type ReadFS struct {
+type WriteFS struct {
 	IReadFS
 	dir string
 }
 
-func (f *ReadFS) BaseDir() string {
+func (f *WriteFS) BaseDir() string {
 	return f.dir
 }
 
-func NewFS(f IReadFS, dir string) *ReadFS {
-	return &ReadFS{
+func NewFS(f IReadFS, dir string) IWriteFS {
+	return &WriteFS{
 		IReadFS: f,
 		dir:     dir,
 	}

@@ -79,8 +79,12 @@ func TestSharedDataStoreAll(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		store.Add(&testEntry{Id: fmt.Sprintf("%d", i+1)})
 	}
-	list := store.All()
+	all := store.All()
 
+	if len(all) != 100 || len(all) != store.Length() {
+		t.Errorf("length mismatch")
+	}
+	list := store.List()
 	if len(list) != 100 || len(list) != store.Length() {
 		t.Errorf("length mismatch")
 	}
@@ -93,6 +97,7 @@ func BenchmarkSharedDataStoreAll(b *testing.B) {
 	}
 	store := NewStoreFromList[*testEntry](items)
 	store.All()
+	store.List()
 }
 
 func TestSharedDataStoreGet(t *testing.T) {

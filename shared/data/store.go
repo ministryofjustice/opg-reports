@@ -19,6 +19,8 @@ type IStore[T IEntry] interface {
 	Filter(filters ...IStoreFilter[T]) IStore[T]
 	// All returns all of the items within the store
 	All() map[string]T
+	// List returns all things as a slice
+	List() []T
 	// Length returns the number of items within the store
 	Length() int
 }
@@ -51,9 +53,18 @@ func (s *Store[T]) Get(uid string) (i T, err error) {
 	return
 }
 
-// List returns all items from the store
+// All returns all items from the store
 func (s *Store[T]) All() map[string]T {
 	return s.items
+}
+
+// List returns all items from the store as a slice
+func (s *Store[T]) List() (l []T) {
+	l = []T{}
+	for _, item := range s.All() {
+		l = append(l, item)
+	}
+	return
 }
 
 // Length returns the count of items in the store
@@ -67,7 +78,7 @@ func (s *Store[T]) Length() int {
 //
 // To allow *AND* filters this returns a new Store[T] with matches, allowing
 // Filter calls to be chained together
-func (s *Store[T]) Filter(filters ...IStoreFilter[T]) (store *Store[T]) {
+func (s *Store[T]) Filter(filters ...IStoreFilter[T]) (store IStore[T]) {
 	found := map[string]T{}
 
 	for key, item := range s.All() {
