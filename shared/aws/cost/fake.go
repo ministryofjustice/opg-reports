@@ -3,12 +3,18 @@ package cost
 import (
 	"opg-reports/shared/fake"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // Fake returns a generated Cost item using fake data
+// If you pass an existing cost item in, it will fill in blank fields only
 func Fake(c *Cost, minDate time.Time, maxDate time.Time, dFormat string) (f *Cost) {
 	if c == nil {
 		c = New(nil)
+	}
+	if c.UUID == "" {
+		c.UUID = uuid.NewString()
 	}
 	if c.AccountEnvironment == "" {
 		c.AccountEnvironment = fake.String(3)

@@ -6,6 +6,12 @@ import (
 	"github.com/google/uuid"
 )
 
+// Cost struct captures data for a cost explorer item in a flat structure that
+// is easier to search and store
+//
+// UUID is generates and used as a unique index for usage in the a data store.
+//
+// Impliments data.IEntry
 type Cost struct {
 	UUID                string `json:"uuid"`
 	AccountOrganisation string `json:"account_organsiation"`
@@ -20,10 +26,14 @@ type Cost struct {
 	Cost                string `json:"cost"`
 }
 
+// UID is the unique id (UUID) for this Cost item
 func (i *Cost) UID() string {
 	return i.UUID
 }
 
+// Valid returns true only if all fields are present with a non-empty
+// value
+// Uses json marshal to a map to check this
 func (i *Cost) Valid() (valid bool) {
 	mapped, _ := data.ToMap(i)
 
@@ -35,6 +45,8 @@ func (i *Cost) Valid() (valid bool) {
 	return true
 }
 
+// New creates a Cost with the uid passed or
+// c=a new uuid if that is nil
 func New(uid *string) *Cost {
 	c := &Cost{}
 

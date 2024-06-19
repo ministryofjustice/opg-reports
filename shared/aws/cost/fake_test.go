@@ -19,4 +19,20 @@ func TestSharedAwsCostFake(t *testing.T) {
 	if d.Before(min) || d.After(max) {
 		t.Errorf("date setting failed")
 	}
+	if c.UUID == "" || c.UID() == "" {
+		t.Errorf("empty uid")
+	}
+
+	c = New(nil)
+	fc := Fake(c, min, max, f)
+	if fc.UUID != c.UUID {
+		t.Errorf("uuid was not reused")
+	}
+
+	c = &Cost{}
+	fc = Fake(c, min, max, f)
+	if fc.UUID == "" {
+		t.Errorf("uuid should not be empty")
+	}
+
 }
