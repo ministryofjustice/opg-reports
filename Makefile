@@ -32,6 +32,7 @@ tests:
 	@clear && env LOG_LEVEL="warn" LOG_TO="stdout" go test -cover -covermode=count -v ./...
 
 coverage:
+	@rm -Rf ./coverage.out
 	@clear && env LOG_LEVEL="warn" LOG_TO="stdout" go test -covermode=count -coverprofile=coverage.out -cover -v ./...
 	@go tool cover -html=coverage.out
 
