@@ -50,7 +50,7 @@ func TestSharedFilesReadFromEmbedded(t *testing.T) {
 	tDir := "testdata"
 	fSys := NewFS(testFS, tDir)
 
-	text := `{"id": "001"}`
+	text := `{"id": "001"}` + "\n"
 	all := All(fSys, true)
 	first := all[0]
 	content, err := ReadFile(fSys, first)
@@ -58,7 +58,7 @@ func TestSharedFilesReadFromEmbedded(t *testing.T) {
 		t.Errorf("error reading file: %v", err.Error())
 	}
 	if string(content) != text {
-		t.Errorf("content mismtach")
+		t.Errorf("content mismtach [%v] [%v]", content, text)
 	}
 
 	err = SaveFile(fSys, first, []byte(text))
