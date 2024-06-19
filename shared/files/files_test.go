@@ -71,7 +71,7 @@ func TestSharedFilesReadFromEmbedded(t *testing.T) {
 func TestSharedFilesAllFromDir(t *testing.T) {
 	td := os.TempDir()
 	tDir, _ := os.MkdirTemp(td, "files-all-*")
-	dfSys := os.DirFS(tDir).(Reader)
+	dfSys := os.DirFS(tDir).(IReadFS)
 	defer os.RemoveAll(tDir)
 	for i := 0; i < 8; i++ {
 		os.CreateTemp(tDir, "dummy-*.json")
@@ -95,7 +95,7 @@ func TestSharedFilesAllFromDir(t *testing.T) {
 func TestSharedFilesWriteReadFromDir(t *testing.T) {
 	td := os.TempDir()
 	tDir, _ := os.MkdirTemp(td, "files-write-read-*")
-	dfSys := os.DirFS(tDir).(Reader)
+	dfSys := os.DirFS(tDir).(IReadFS)
 	defer os.RemoveAll(tDir)
 
 	os.CreateTemp(tDir, "dummy-*.json")

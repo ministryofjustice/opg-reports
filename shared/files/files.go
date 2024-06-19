@@ -10,7 +10,7 @@ import (
 // All returns all files recursively from the base of the filesystem
 // Setting jsonOnly to true will limit the returned files to those
 // with a .json extension
-func All[T Reader](f T, jsonOnly bool) (files []*PathFile) {
+func All[T IReadFS](f T, jsonOnly bool) (files []*PathFile) {
 	var jsonExt string = ".json"
 
 	files = []*PathFile{}
@@ -30,7 +30,7 @@ func All[T Reader](f T, jsonOnly bool) (files []*PathFile) {
 }
 
 // ReadFile wraps the ReadFS ReadFile
-func ReadFile[T Reader](fS T, file *PathFile) ([]byte, error) {
+func ReadFile[T IReadFS](fS T, file *PathFile) ([]byte, error) {
 	return fS.ReadFile(file.Path)
 }
 
@@ -51,7 +51,7 @@ func WriteFile(dir string, filename string, content []byte) (err error) {
 
 // SaveFile presumes the directory path described in f.Path exists and is
 // writable. Wraps os.WriteFile otherwise
-func SaveFile[T ReaderWithDir](fS T, f *PathFile, content []byte) (err error) {
+func SaveFile[T IWriteFS](fS T, f *PathFile, content []byte) (err error) {
 	dir := fS.BaseDir()
 	name := strings.ReplaceAll(f.Path, dir, "")
 	return WriteFile(dir, name, content)
