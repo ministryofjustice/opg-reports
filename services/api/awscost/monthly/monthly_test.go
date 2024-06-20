@@ -46,15 +46,20 @@ func TestServicesApiAwsCostMonthlyStatusCode(t *testing.T) {
 	min, max, df := testDates()
 	store := data.NewStore[*cost.Cost]()
 	store.Add(cost.Fake(nil, min, max, df))
-	// New[*cost.Cost, data.IStore[*cost.Cost], files.IWriteFS](store, fs)
+
 	api := New(store, fs)
 	api.Register(mux)
 
 	routes := map[string]int{
-		"/aws/costs/v1/monthly/":                 http.StatusOK,
-		"/aws/costs/v1/monthly/2024-01/2024-02/": http.StatusOK,
-		"/aws/costs/v1/monthly":                  http.StatusMovedPermanently,
-		"/aws/costs/v1/monthly/2024-01/2024-02":  http.StatusMovedPermanently,
+		"/aws/costs/v1/monthly/":                    http.StatusOK,
+		"/aws/costs/v1/monthly/2024-01/2024-02/":    http.StatusOK,
+		"/aws/costs/v1/monthly/-/-/":                http.StatusOK,
+		"/aws/costs/v1/monthly":                     http.StatusMovedPermanently,
+		"/aws/costs/v1/monthly/2024-01/2024-02":     http.StatusMovedPermanently,
+		"/aws/costs/v1/monthly/not-a-date/-/":       http.StatusConflict,
+		"/aws/costs/v1/monthly/not-a-date/2024-02/": http.StatusConflict,
+		"/aws/costs/v1/monthly/not-a-date/invalid/": http.StatusConflict,
+		"/aws/costs/v1/monthly/2024-04/invalid/":    http.StatusConflict,
 	}
 	for route, status := range routes {
 		w, r := testWRGet(route)

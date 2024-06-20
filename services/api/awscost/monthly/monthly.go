@@ -32,7 +32,7 @@ func (a *Api[V, F]) Register(mux *http.ServeMux) {
 }
 
 func (a *Api[V, F]) Write(w http.ResponseWriter, response server.IApiResponse) {
-	w.WriteHeader(response.Status())
+	w.WriteHeader(response.GetStatus())
 	w.Write(response.Body())
 }
 
@@ -40,7 +40,7 @@ func New[V *cost.Cost, F files.WriteFS](store *data.Store[*cost.Cost], fS *files
 	return &Api[V, F]{
 		store:    store,
 		fs:       fS,
-		response: &ApiResponse{},
+		response: &ApiResponse{Status: http.StatusOK},
 	}
 
 }

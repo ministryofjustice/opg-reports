@@ -9,9 +9,17 @@ type IResponse interface {
 type IApiResponse interface {
 	Start()
 	End()
-	Set(results interface{}, status int, errors []error)
-	Results() interface{}
-	Status() int
-	Errors() []error
+
+	SetResults(results interface{})
+	GetResults() interface{}
+
+	SetStatus(status int)
+	GetStatus() int
+
+	SetErrors(errors []error)
+	AddError(err error)
+	AddStatusError(status int, err error)
+	GetErrors() []error
+
 	Body() []byte
 }

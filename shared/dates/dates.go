@@ -28,7 +28,13 @@ func StringToDate(value string) (t time.Time, err error) {
 		t = t.UTC()
 	}
 	return t, err
+}
 
+func StringToDateDefault(value string, comp string, defaultV string) (t time.Time, err error) {
+	if value == comp {
+		value = defaultV
+	}
+	return StringToDate(value)
 }
 
 func Strings(dates []time.Time, dateFormat string) []string {

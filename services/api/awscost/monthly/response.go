@@ -9,9 +9,9 @@ type ApiResponse struct {
 	RequestStart    time.Time     `json:"request_start"`
 	RequestEnd      time.Time     `json:"request_end"`
 	RequestDuration time.Duration `json:"request_duration"`
-	Errs            []error       `json:"errors"`
-	StatusCode      int           `json:"status"`
-	Res             interface{}   `json:"result"`
+	Errors          []error       `json:"errors"`
+	Status          int           `json:"status"`
+	Result          interface{}   `json:"result"`
 }
 
 func (r *ApiResponse) Body() []byte {
@@ -27,19 +27,35 @@ func (r *ApiResponse) End() {
 	r.RequestEnd = time.Now().UTC()
 	r.RequestDuration = r.RequestEnd.Sub(r.RequestStart)
 }
-func (r *ApiResponse) Set(results interface{}, status int, errors []error) {
-	r.Res = results
-	r.StatusCode = status
-	r.Errs = errors
-}
-func (r *ApiResponse) Results() interface{} {
-	return r.Res
+
+func (r *ApiResponse) SetResults(results interface{}) {
+	r.Result = results
 }
 
-func (r *ApiResponse) Status() int {
-	return r.StatusCode
+func (r *ApiResponse) GetResults() interface{} {
+	return r.Result
 }
 
-func (r *ApiResponse) Errors() []error {
-	return r.Errs
+func (r *ApiResponse) SetStatus(status int) {
+	r.Status = status
+}
+func (r *ApiResponse) GetStatus() int {
+	return r.Status
+}
+
+func (r *ApiResponse) SetErrors(errors []error) {
+	r.Errors = errors
+}
+
+func (r *ApiResponse) AddError(err error) {
+	r.Errors = append(r.Errors, err)
+}
+
+func (r *ApiResponse) AddStatusError(status int, err error) {
+	r.Errors = append(r.Errors, err)
+	r.SetStatus(status)
+}
+
+func (r *ApiResponse) GetErrors() []error {
+	return r.Errors
 }
