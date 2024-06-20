@@ -5,14 +5,12 @@ import (
 	"opg-reports/shared/aws/cost"
 	"opg-reports/shared/data"
 	"opg-reports/shared/files"
-	"opg-reports/shared/server"
 )
 
 // Api is a concreate version
 type Api[V *cost.Cost, F files.WriteFS] struct {
-	store    *data.Store[*cost.Cost]
-	fs       *files.WriteFS
-	response *ApiResponse
+	store *data.Store[*cost.Cost]
+	fs    *files.WriteFS
 }
 
 func (a *Api[V, F]) Store() data.IStore[*cost.Cost] {
@@ -22,30 +20,22 @@ func (a *Api[V, F]) Store() data.IStore[*cost.Cost] {
 func (a *Api[V, F]) FS() files.IWriteFS {
 	return a.fs
 }
-func (a *Api[V, F]) NewResponse() server.IApiResponse {
-	a.response = &ApiResponse{Status: http.StatusOK}
-	return a.Response()
-}
-func (a *Api[V, F]) Response() server.IApiResponse {
-	return a.response
-}
 
 func (a *Api[V, F]) Register(mux *http.ServeMux) {
 	mux.HandleFunc("/aws/costs/{version}/monthly/{$}", a.Index)
 	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/{$}", a.Totals)
 }
 
-func (a *Api[V, F]) Write(w http.ResponseWriter, response server.IApiResponse) {
-	w.WriteHeader(response.GetStatus())
-	w.Write(response.Body())
+func (a *Api[V, F]) Write(w http.ResponseWriter, status int, content []byte) {
+	w.WriteHeader(status)
+	w.Write(content)
 }
 
 func New[V *cost.Cost, F files.WriteFS](store *data.Store[*cost.Cost], fS *files.WriteFS) *Api[V, F] {
 
 	return &Api[V, F]{
-		store:    store,
-		fs:       fS,
-		response: &ApiResponse{Status: http.StatusOK},
+		store: store,
+		fs:    fS,
 	}
 
 }

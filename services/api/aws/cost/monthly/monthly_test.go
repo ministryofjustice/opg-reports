@@ -1,7 +1,6 @@
 package monthly
 
 import (
-	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -40,31 +39,11 @@ func TestServicesApiAwsCostMonthlyStatusCode(t *testing.T) {
 		w, r := testWRGet(route)
 		mux.ServeHTTP(w, r)
 		if w.Result().StatusCode != status {
-			r := decode[*ApiResponse](w.Result().Body)
+			r, _ := strResponse(w.Result())
 			t.Errorf("http status mismtach [%s] expected [%d], actual [%v]\n---\n%+v\n---\n", route, status, w.Result().StatusCode, r)
 		}
 	}
 
-}
-
-func TestServicesApiAwsCostMonthlyResponse(t *testing.T) {
-	fs := testFs()
-	store := data.NewStore[*cost.Cost]()
-	api := New(store, fs)
-
-	re := api.Response()
-	if re.GetStatus() != http.StatusOK {
-		t.Errorf("status mismatch")
-	}
-	re.SetStatus(http.StatusForbidden)
-	if re.GetStatus() != http.StatusForbidden {
-		t.Errorf("status mismatch")
-	}
-
-	re = api.NewResponse()
-	if re.GetStatus() != http.StatusOK {
-		t.Errorf("status mismatch")
-	}
 }
 
 func TestServicesApiAwsCostMonthlyFSMatch(t *testing.T) {
@@ -125,8 +104,8 @@ func testDates() (min time.Time, max time.Time, df string) {
 	min = time.Date(2023, 12, 1, 0, 0, 0, 0, time.UTC)
 	return
 }
-func decode[T server.IApiResponse](c io.Reader) T {
-	var i T
-	json.NewDecoder(c).Decode(&i)
-	return i
+
+func strResponse(r *http.Response) (string, []byte) {
+	b, _ := io.ReadAll(r.Body)
+	return string(b), b
 }

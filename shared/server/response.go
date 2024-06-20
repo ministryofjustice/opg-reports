@@ -1,7 +1,6 @@
 package server
 
 import (
-	"encoding/json"
 	"net/http"
 	"opg-reports/shared/data"
 	"time"
@@ -23,15 +22,10 @@ type IApiResponseErrors interface {
 	GetErrors() []error
 }
 
-type IApiResponseBody interface {
-	Body() []byte
-}
-
 type IApiResponseBase interface {
 	IApiResponseTimes
 	IApiResponseStatus
 	IApiResponseErrors
-	IApiResponseBody
 	AddErrorWithStatus(err error, status int)
 }
 
@@ -90,20 +84,11 @@ func (r *ApiResponseErrors) GetErrors() []error {
 	return r.Errors
 }
 
-// ApiResponseBody
-type ApiResponseBody struct{}
-
-func (r *ApiResponseBody) Body() []byte {
-	body, _ := json.Marshal(r)
-	return body
-}
-
 // IApiResponseBase
 type ApiResponseBase struct {
 	ApiResponseTimings
 	ApiResponseStatus
 	ApiResponseErrors
-	ApiResponseBody
 }
 
 func (i *ApiResponseBase) AddErrorWithStatus(err error, status int) {
@@ -116,7 +101,6 @@ func NewApiSimpleResponse() *ApiResponseBase {
 		ApiResponseTimings: ApiResponseTimings{},
 		ApiResponseStatus:  ApiResponseStatus{Status: http.StatusOK},
 		ApiResponseErrors:  ApiResponseErrors{Errors: []error{}},
-		ApiResponseBody:    ApiResponseBody{},
 	}
 }
 
@@ -138,29 +122,3 @@ func NewApiResponseWithResult[R data.IEntry, C IApiResponseResultConstraint[R]](
 		ApiResponseBase: *NewApiSimpleResponse(),
 	}
 }
-
-// type ApiResponseResultIsMapSlice[R data.IEntry, C map[string][]R] struct {
-// 	ApiResponseBase
-// 	Result C `json:"result"`
-// }
-
-// func (i *ApiResponseResultIsMapSlice[R, C]) SetResult(result C) {
-// 	i.Result = result
-// }
-
-// func (i *ApiResponseResultIsMapSlice[R, C]) GetResult() C {
-// 	return i.Result
-// }
-
-// type ApiResponseResultIsSlice[R data.IEntry, C []R] struct {
-// 	ApiResponseBase
-// 	Result C `json:"result"`
-// }
-
-// func (i *ApiResponseResultIsSlice[R, C]) SetResult(result C) {
-// 	i.Result = result
-// }
-
-// func (i *ApiResponseResultIsSlice[R, C]) GetResult() C {
-// 	return i.Result
-// }

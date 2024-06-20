@@ -2,7 +2,6 @@ package server
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"opg-reports/shared/dates"
 	"testing"
@@ -82,7 +81,6 @@ func TestSharedServerApiResponseWithResult(t *testing.T) {
 		t.Errorf("set / get failed to match")
 	}
 
-	fmt.Printf("%+v\n", res.GetResult())
 }
 
 func TestSharedServerApiResponseBase(t *testing.T) {

@@ -1,6 +1,7 @@
 package monthly
 
 import (
+	"encoding/json"
 	"net/http"
 	"opg-reports/shared/aws/cost"
 	"opg-reports/shared/data"
@@ -11,19 +12,18 @@ import (
 
 // Index: /aws/costs/v1/monthly
 func (a *Api[V, F]) Index(w http.ResponseWriter, r *http.Request) {
-	res := a.NewResponse()
+	res := server.NewApiSimpleResponse()
 	res.Start()
-
 	res.SetStatus(http.StatusOK)
-
 	res.End()
-	a.Write(w, res)
+	content, _ := json.Marshal(res)
+	a.Write(w, res.GetStatus(), content)
 }
 
 // Totals: /aws/costs/{version}/monthly/{start}/{end}/{$}
 // Note: if {start} or {end} are "-" it uses current month
 func (a *Api[V, F]) Totals(w http.ResponseWriter, r *http.Request) {
-	res := a.NewResponse()
+	res := server.NewApiResponseWithResult[*cost.Cost, map[string][]*cost.Cost]()
 	res.Start()
 
 	store := a.store
@@ -47,31 +47,32 @@ func (a *Api[V, F]) Totals(w http.ResponseWriter, r *http.Request) {
 			return data.ToIdxF(item, ym)
 		}
 
-		items := map[string][]V{}
+		items := map[string][]*cost.Cost{}
 		for k, g := range store.Group(byMonth) {
 			for _, v := range g.List() {
 				items[k] = append(items[k], v)
 			}
 		}
-		res.SetResults(items)
+		res.SetResult(items)
 
 	}
 
 	res.End()
-	a.Write(w, res)
+	content, _ := json.Marshal(res)
+	a.Write(w, res.GetStatus(), content)
 }
 
-func startAndEndDates(r *http.Request, res server.IApiResponse) (startDate time.Time, endDate time.Time) {
+func startAndEndDates(r *http.Request, res server.IApiResponseBase) (startDate time.Time, endDate time.Time) {
 	var err error
 	now := time.Now().UTC().Format(dates.FormatYM)
 	// Get the dates
 	startDate, err = dates.StringToDateDefault(r.PathValue("start"), "-", now)
 	if err != nil {
-		res.AddStatusError(http.StatusConflict, err)
+		res.AddErrorWithStatus(err, http.StatusConflict)
 	}
 	endDate, err = dates.StringToDateDefault(r.PathValue("end"), "-", now)
 	if err != nil {
-		res.AddStatusError(http.StatusConflict, err)
+		res.AddErrorWithStatus(err, http.StatusConflict)
 	}
 	return
 

@@ -3,15 +3,18 @@ package monthly
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"opg-reports/shared/aws/cost"
 	"opg-reports/shared/data"
 	"opg-reports/shared/dates"
+	"opg-reports/shared/server"
+	"slices"
 	"testing"
 	"time"
 )
 
+// Index is empty and returns simple api response without a result
+// so just check status and errors
 func TestServicesApiAwsCostMonthlyHandlerIndex(t *testing.T) {
 	fs := testFs()
 	mux := testMux()
@@ -24,14 +27,18 @@ func TestServicesApiAwsCostMonthlyHandlerIndex(t *testing.T) {
 
 	mux.ServeHTTP(w, r)
 
-	res := decode[*ApiResponse](w.Result().Body)
+	_, b := strResponse(w.Result())
+	res := server.NewApiSimpleResponse()
+	json.Unmarshal(b, &res)
 
+	if res.GetStatus() != http.StatusOK {
+		t.Errorf("status error")
+	}
 	if len(res.Errors) != 0 {
 		t.Errorf("found error when not expected")
 	}
-
-	if res.Result != nil || res.GetResults() != nil {
-		t.Errorf("result should be empty")
+	if res.Times.Duration.String() == "" {
+		t.Errorf("duration error")
 	}
 
 }
@@ -40,16 +47,18 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 	fs := testFs()
 	mux := testMux()
 	min, max, df := testDates()
-	l := 5
+	months := dates.Strings(dates.Months(min, max), dates.FormatYM)
 	// out of bounds
 	overm := time.Date(max.Year()+1, 1, 1, 0, 0, 0, 0, time.UTC)
 	overmx := time.Date(max.Year()+2, 1, 1, 0, 0, 0, 0, time.UTC)
-
 	store := data.NewStore[*cost.Cost]()
+	l := 500
+	x := 100
+
 	for i := 0; i < l; i++ {
 		store.Add(cost.Fake(nil, min, max, df))
 	}
-	for i := 0; i < 10; i++ {
+	for i := 0; i < x; i++ {
 		store.Add(cost.Fake(nil, overm, overmx, df))
 	}
 
@@ -61,22 +70,35 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 	mux.ServeHTTP(w, r)
 
 	_, b := strResponse(w.Result())
-	// fmt.Println(str)
-	res := map[string]interface{}{}
+	res := server.NewApiResponseWithResult[*cost.Cost, map[string][]*cost.Cost]()
 	json.Unmarshal(b, &res)
 
-	fmt.Printf("%+v\n", res)
+	if res.GetStatus() != http.StatusOK {
+		t.Errorf("status error")
+	}
+	if len(res.Errors) != 0 {
+		t.Errorf("found error when not expected")
+	}
+	if res.Times.Duration.String() == "" {
+		t.Errorf("duration error")
+	}
 
-	// is := res.Result.([]interface{})
-	// items, _ := data.FromInterfaces[*cost.Cost](is)
+	if len(res.Result) <= 0 {
+		t.Errorf("result not returned correctly")
+	}
 
-	// if len(items) != 100 {
-	// 	t.Errorf("incorrect number of items returned.")
-	// }
+	total := 0
+	for key, list := range res.GetResult() {
+		fv := data.FromIdx(key)
+		m := fv["month"]
+		if !slices.Contains(months, m) {
+			t.Errorf("month out of range: %s", m)
+		}
+		total += len(list)
+	}
 
-}
+	if total != l {
+		t.Errorf("found extra data!")
+	}
 
-func strResponse(r *http.Response) (string, []byte) {
-	b, _ := io.ReadAll(r.Body)
-	return string(b), b
 }
