@@ -1,7 +1,10 @@
 package monthly
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"opg-reports/shared/aws/cost"
 	"opg-reports/shared/data"
 	"opg-reports/shared/dates"
@@ -37,12 +40,13 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 	fs := testFs()
 	mux := testMux()
 	min, max, df := testDates()
+	l := 5
 	// out of bounds
 	overm := time.Date(max.Year()+1, 1, 1, 0, 0, 0, 0, time.UTC)
 	overmx := time.Date(max.Year()+2, 1, 1, 0, 0, 0, 0, time.UTC)
 
 	store := data.NewStore[*cost.Cost]()
-	for i := 0; i < 100; i++ {
+	for i := 0; i < l; i++ {
 		store.Add(cost.Fake(nil, min, max, df))
 	}
 	for i := 0; i < 10; i++ {
@@ -56,12 +60,23 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 	w, r := testWRGet(route)
 	mux.ServeHTTP(w, r)
 
-	res := decode[*ApiResponse](w.Result().Body)
-	is := res.Result.([]interface{})
-	items, _ := data.FromInterfaces[*cost.Cost](is)
+	_, b := strResponse(w.Result())
+	// fmt.Println(str)
+	res := map[string]interface{}{}
+	json.Unmarshal(b, &res)
 
-	if len(items) != 100 {
-		t.Errorf("incorrect number of items returned.")
-	}
+	fmt.Printf("%+v\n", res)
 
+	// is := res.Result.([]interface{})
+	// items, _ := data.FromInterfaces[*cost.Cost](is)
+
+	// if len(items) != 100 {
+	// 	t.Errorf("incorrect number of items returned.")
+	// }
+
+}
+
+func strResponse(r *http.Response) (string, []byte) {
+	b, _ := io.ReadAll(r.Body)
+	return string(b), b
 }

@@ -34,6 +34,19 @@ func ToIdx[T IEntry](item T, fields ...string) string {
 	return str
 }
 
+func ToIdxF[T IEntry](item T, funcs ...IStoreIdxer[T]) string {
+	str := ""
+	for _, f := range funcs {
+		key, value := f(item)
+		if value == "" {
+			value = "-"
+		}
+		str += fmt.Sprintf("%s%s%s%s", key, endOfKey, value, endOfField)
+	}
+
+	return str
+}
+
 // FromIdx converts a string from ToIdx to a map of field:value
 func FromIdx(idx string) (fieldsAndValues map[string]string) {
 	fieldsAndValues = map[string]string{}

@@ -30,6 +30,15 @@ func StringToDate(value string) (t time.Time, err error) {
 	return t, err
 }
 
+func Reformat(value string, outFormat string) string {
+	d, err := StringToDate(value)
+	if err != nil {
+		return ""
+	}
+	return d.Format(outFormat)
+
+}
+
 func StringToDateDefault(value string, comp string, defaultV string) (t time.Time, err error) {
 	if value == comp {
 		value = defaultV

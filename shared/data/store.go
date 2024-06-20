@@ -20,6 +20,8 @@ type IStore[T IEntry] interface {
 	// Filter will return items that match *ANY* of the filters, acting as *OR* logic
 	// Chain multiple Filter calls together for AND logic
 	Filter(filters ...IStoreFilter[T]) IStore[T]
+	// Group merges parts of data into chunks
+	Group(group IStoreGrouper[T]) (stores map[string]IStore[T])
 	// All returns all of the items within the store
 	All() map[string]T
 	// List returns all things as a slice
@@ -30,6 +32,7 @@ type IStore[T IEntry] interface {
 
 type IStoreFilter[T IEntry] func(item T) bool
 type IStoreGrouper[T IEntry] func(item T) string
+type IStoreIdxer[T IEntry] func(item T) (string, string)
 
 // Store is memory based store that operates from the items map.
 // Impliments: IStore

@@ -31,33 +31,6 @@ func ToJsonList[T IEntry](items []T) (content []byte, err error) {
 	return json.Marshal(items)
 }
 
-// ToInterface converts an instance of T into a map interface - generally
-// used to test conversion back and forth in result handling
-func ToInterface[T IEntry](item T) (iItem map[string]interface{}, err error) {
-	iItem = map[string]interface{}{}
-
-	if mapped, err := ToMap(item); err == nil {
-		for key, value := range mapped {
-			iItem[key] = value
-		}
-	}
-	return
-}
-
-// ToInterfaces converts a list of T into a slice of interfaces - generally
-// used to test conversion back and forth in result handling
-func ToInterfaces[T IEntry](items []T) (iItems []interface{}, err error) {
-	iItems = []interface{}{}
-	for _, item := range items {
-		if iItem, e := ToInterface[T](item); err == nil {
-			iItems = append(iItems, iItem)
-		} else {
-			err = e
-		}
-	}
-	return
-}
-
 // FromMap uses json marshaling to convert from a map back to a struct.
 // Requires the struct to be tagged correctly to match fields etc
 func FromMap[T IEntry](m map[string]string) (item T, err error) {
@@ -99,22 +72,4 @@ func FromInterface[T IEntry](inter interface{}) (item T, err error) {
 	}
 	return
 
-}
-
-// FromInterfaces converts a series of interfaces (likely from an apiresponse.Results() )
-// into a slice of T
-// Presumes that each element within the interItems is a map[string]interface{}
-// and should be converted to a map[string]string
-func FromInterfaces[T IEntry](interItems []interface{}) (items []T, err error) {
-	items = []T{}
-
-	for _, interItem := range interItems {
-		tItem, e := FromInterface[T](interItem)
-		if e != nil {
-			return nil, e
-		}
-		items = append(items, tItem)
-
-	}
-	return
 }
