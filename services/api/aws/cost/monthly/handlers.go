@@ -56,7 +56,7 @@ func (a *Api[V, F]) Totals(w http.ResponseWriter, r *http.Request) {
 		res.SetResult(items)
 
 	}
-
+	res.SetType()
 	res.End()
 	content, _ := json.Marshal(res)
 	a.Write(w, res.GetStatus(), content)

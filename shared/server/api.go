@@ -6,6 +6,7 @@ import (
 	"opg-reports/shared/files"
 )
 
+// IApi is common interface for setting up a standard data driven api
 type IApi[V data.IEntry, F files.IReadFS] interface {
 	// Store returns the configured data store
 	Store() data.IStore[V]
