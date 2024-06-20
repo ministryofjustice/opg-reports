@@ -15,12 +15,16 @@ type Api[V *cost.Cost, F files.WriteFS] struct {
 	response *ApiResponse
 }
 
-func (a *Api[V, F]) Store() data.IStore[*cost.Cost] { //*data.Store[*cost.Cost]
+func (a *Api[V, F]) Store() data.IStore[*cost.Cost] {
 	return a.store
 }
 
 func (a *Api[V, F]) FS() files.IWriteFS {
 	return a.fs
+}
+func (a *Api[V, F]) NewResponse() server.IApiResponse {
+	a.response = &ApiResponse{Status: http.StatusOK}
+	return a.Response()
 }
 func (a *Api[V, F]) Response() server.IApiResponse {
 	return a.response
@@ -37,6 +41,7 @@ func (a *Api[V, F]) Write(w http.ResponseWriter, response server.IApiResponse) {
 }
 
 func New[V *cost.Cost, F files.WriteFS](store *data.Store[*cost.Cost], fS *files.WriteFS) *Api[V, F] {
+
 	return &Api[V, F]{
 		store:    store,
 		fs:       fS,

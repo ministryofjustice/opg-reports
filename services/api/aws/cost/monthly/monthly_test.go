@@ -65,7 +65,8 @@ func TestServicesApiAwsCostMonthlyStatusCode(t *testing.T) {
 		w, r := testWRGet(route)
 		mux.ServeHTTP(w, r)
 		if w.Result().StatusCode != status {
-			t.Errorf("http status mismtach [%s] expected [%d], actual [%v]", route, status, w.Result().StatusCode)
+			r := decode[*ApiResponse](w.Result().Body)
+			t.Errorf("http status mismtach [%s] expected [%d], actual [%v]\n---\n%+v\n---\n", route, status, w.Result().StatusCode, r)
 		}
 	}
 

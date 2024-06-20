@@ -9,7 +9,7 @@ import (
 
 // Index: /aws/costs/v1/monthly
 func (a *Api[V, F]) Index(w http.ResponseWriter, r *http.Request) {
-	res := a.Response()
+	res := a.NewResponse()
 	res.Start()
 
 	res.SetStatus(http.StatusOK)
@@ -23,7 +23,7 @@ func (a *Api[V, F]) Index(w http.ResponseWriter, r *http.Request) {
 func (a *Api[V, F]) Totals(w http.ResponseWriter, r *http.Request) {
 	items := []*cost.Cost{}
 	store := a.store
-	res := a.Response()
+	res := a.NewResponse()
 	res.Start()
 	now := time.Now().UTC().Format(dates.FormatYM)
 	// Get the dates
