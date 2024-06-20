@@ -1,6 +1,9 @@
 package dates
 
-import "time"
+import (
+	"slices"
+	"time"
+)
 
 func Months(start time.Time, end time.Time) []time.Time {
 	// reset the days to be the first day of each
@@ -12,6 +15,13 @@ func Months(start time.Time, end time.Time) []time.Time {
 		months = append(months, d)
 	}
 	return months
+}
+
+func InMonth(dateStr string, months []string) bool {
+	if d, e := StringToDate(dateStr); e == nil && slices.Contains(months, d.Format(FormatYM)) {
+		return true
+	}
+	return false
 }
 
 func Days(start time.Time, end time.Time) []time.Time {

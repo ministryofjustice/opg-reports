@@ -26,15 +26,19 @@ build_reports: ${REPORTS_DIR}/*
     done
 
 test:
-	@clear && env LOG_LEVEL="warn" LOG_TO="stdout" go test -v ./... -run="$(name)"
+	@go clean -testcache
+	@clear && env LOG_LEVEL="warn" LOG_TO="stdout" go test -count=1  -v ./... -run="$(name)"
 
 tests:
-	@clear && env LOG_LEVEL="warn" LOG_TO="stdout" go test -cover -covermode=count -v ./...
+	@go clean -testcache
+	@clear && env LOG_LEVEL="warn" LOG_TO="stdout" go test -count=1 -cover -covermode=count -v ./...
 
 coverage:
-	@rm -Rf ./coverage.out
-	@clear && env LOG_LEVEL="warn" LOG_TO="stdout" go test -covermode=count -coverprofile=coverage.out -cover -v ./...
-	@go tool cover -html=coverage.out
+	@rm -Rf ./code-coverage.out
+	@go clean -testcache
+	@clear && env LOG_LEVEL="warn" LOG_TO="stdout" go test -count=1 -covermode=count -coverprofile=code-coverage.out -cover -v ./...
+	@go tool cover -html=code-coverage.out
 
 benchmarks:
-	@clear && env LOG_LEVEL="warn" LOG_TO="stdout" go test -v ./... -bench=. -run=xxx -benchmem
+	@go clean -testcache
+	@clear && env LOG_LEVEL="warn" LOG_TO="stdout" go test -count=1  -v ./... -bench=. -run=xxx -benchmem

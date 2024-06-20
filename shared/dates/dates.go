@@ -15,7 +15,7 @@ func GetFormat(value string) string {
 	max := len(Format)
 	l := len(value)
 	if l > max {
-		l = max
+		return Format
 	}
 
 	return Format[:l]

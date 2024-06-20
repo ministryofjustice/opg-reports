@@ -89,15 +89,15 @@ func TestServicesApiAwsCostMonthlyStoreMatch(t *testing.T) {
 	}
 }
 
-// func testIsI[V data.IEntry, F files.IReadFS](i server.IApi[V, F]) bool {
-// 	return i == nil
-// }
-// func TestServicesApiAwsCostMonthlyInterface(t *testing.T) {
-// 	fs := testFs()
-// 	store := data.NewStore[*cost.Cost]()
-// 	api := New(store, fs)
+func testIsI[V data.IEntry, F files.IReadFS](i server.IApi[V, F]) bool {
+	return i == nil
+}
+func TestServicesApiAwsCostMonthlyInterface(t *testing.T) {
+	fs := testFs()
+	store := data.NewStore[*cost.Cost]()
+	api := New(store, fs)
 
-// 	if testIsI[*cost.Cost, files.IWriteFS](api) {
-// 		t.Errorf("should not be nil")
-// 	}
-// }
+	if testIsI[*cost.Cost, files.IWriteFS](api) {
+		t.Errorf("should not be nil")
+	}
+}
