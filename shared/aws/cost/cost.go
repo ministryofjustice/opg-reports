@@ -35,6 +35,7 @@ func (i *Cost) UID() string {
 // value
 // Uses json marshal to a map to check this
 func (i *Cost) Valid() (valid bool) {
+
 	mapped, _ := data.ToMap(i)
 
 	for _, val := range mapped {

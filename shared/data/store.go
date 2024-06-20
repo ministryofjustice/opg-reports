@@ -1,6 +1,9 @@
 package data
 
-import "errors"
+import (
+	"errors"
+	"opg-reports/shared/files"
+)
 
 var (
 	ErrStoreItemNotFound error = errors.New("store item not found via index") // Flag that the request index is not present in the store
@@ -122,4 +125,23 @@ func NewStoreFromList[T IEntry](items []T) *Store[T] {
 		s.Add(i)
 	}
 	return s
+}
+
+// NewStoreFromFS loads all data files from a filesystem into the store.
+// It unmarshals each file into a slice of T
+// Note: errors with either loading the file or unmarshaling are
+// ignored
+func NewStoreFromFS[T IEntry, F files.IWriteFS](fS F) *Store[T] {
+	allFiles := files.All(fS, true)
+	allItems := []T{}
+
+	for _, f := range allFiles {
+		if content, err := files.ReadFile(fS, f); err == nil {
+			if items, err := FromJsonList[T](content); err == nil {
+				allItems = append(allItems, items...)
+			}
+		}
+	}
+
+	return NewStoreFromList(allItems)
 }

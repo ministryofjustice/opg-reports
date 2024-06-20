@@ -2,9 +2,39 @@ package data
 
 import (
 	"fmt"
+	"opg-reports/shared/files"
+	"os"
 	"strconv"
 	"testing"
 )
+
+func TestSharedDataStoreNewFromFS(t *testing.T) {
+	td := os.TempDir()
+	tDir, _ := os.MkdirTemp(td, "data-store-fs-*")
+	dfSys := os.DirFS(tDir).(files.IReadFS)
+	f := files.NewFS(dfSys, tDir)
+
+	defer os.RemoveAll(tDir)
+	// create 2 files, each with 100 items in for testing loading from a filesystem
+	for x := 0; x < 2; x++ {
+		fn, _ := os.CreateTemp(tDir, "dummy-*.json")
+		defer os.Remove(fn.Name())
+
+		items := []*testEntry{}
+		for i := 0; i < 100; i++ {
+			items = append(items, &testEntry{Id: fmt.Sprintf("%d000%d", x, i)})
+		}
+		j, _ := ToJsonList(items)
+		files.WriteFile(tDir, fn.Name(), j)
+	}
+
+	store := NewStoreFromFS[*testEntry, *files.WriteFS](f)
+
+	if store.Length() != 200 {
+		t.Errorf("error loading store")
+	}
+
+}
 
 func TestSharedDataStoreNew(t *testing.T) {
 	s := NewStore[*testEntry]()

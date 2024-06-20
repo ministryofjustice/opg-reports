@@ -19,6 +19,15 @@ func ToMap[T IEntry](item T) (m map[string]string, err error) {
 	return
 }
 
+// ToJson converts item T to a []byte via json marshaling
+func ToJson[T IEntry](item T) (content []byte, err error) {
+	return json.Marshal(item)
+}
+
+func ToJsonList[T IEntry](item []T) (content []byte, err error) {
+	return json.Marshal(item)
+}
+
 // FromMap uses json marshaling to convert from a map back to a struct.
 // Requires the struct to be tagged correctly to match fields etc
 func FromMap[T IEntry](m map[string]string) (item T, err error) {
@@ -34,5 +43,11 @@ func FromMap[T IEntry](m map[string]string) (item T, err error) {
 // Does required corect tagging on the struct.
 func FromJson[T IEntry](content []byte) (item T, err error) {
 	err = json.Unmarshal(content, &item)
+	return
+}
+
+// FromJsonList returns a slice of T ([]T) rather than a single T
+func FromJsonList[T IEntry](content []byte) (items []T, err error) {
+	err = json.Unmarshal(content, &items)
 	return
 }

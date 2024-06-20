@@ -41,8 +41,9 @@ func WriteFile(dir string, filename string, content []byte) (err error) {
 	if e := os.MkdirAll(dir, os.ModePerm); e != nil {
 		err = e
 	} else {
+
+		filename = strings.ReplaceAll(filename, dir, "")
 		path := filepath.Join(dir, filename)
-		// fmt.Printf("saving: %s\n", path)
 		err = os.WriteFile(path, content, os.ModePerm)
 	}
 

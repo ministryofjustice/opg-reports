@@ -44,10 +44,32 @@ func TestSharedDataMapConversion(t *testing.T) {
 		t.Errorf("error converting back from map")
 	}
 
-	content := `{"id": "100"}`
+	content := `{"id":"100"}`
 	i, _ := FromJson[*testEntry]([]byte(content))
 	if i.Id != "100" {
 		t.Errorf("error converting from json")
+	}
+
+	b, _ := ToJson(i)
+	if string(b) != content {
+		t.Errorf("error converting to json: [%s]==[%s]", string(b), content)
+	}
+
+	list := []*testEntry{
+		te, {Id: "002"},
+	}
+	by, err := ToJsonList(list)
+	if err != nil {
+		t.Errorf("unexpected error")
+	}
+	asStr := `[{"id":"001"},{"id":"002"}]`
+	if string(by) != asStr {
+		t.Errorf("error, value doesnt match")
+	}
+
+	j, _ := FromJsonList[*testEntry]([]byte(asStr))
+	if len(j) != len(list) {
+		t.Errorf("lists dont match")
 	}
 
 }

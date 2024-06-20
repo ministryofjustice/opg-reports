@@ -12,6 +12,7 @@ type IApi[V data.IEntry, F files.IReadFS] interface {
 	// FS will return the configure filesystem
 	FS() F
 	//
+	NewResponse() IApiResponse
 	Response() IApiResponse
 	// Register the routes this api handles to the mux
 	Register(mux *http.ServeMux)
