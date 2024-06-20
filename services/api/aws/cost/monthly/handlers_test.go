@@ -43,6 +43,9 @@ func TestServicesApiAwsCostMonthlyHandlerIndex(t *testing.T) {
 
 }
 
+// Generates a series of date in and out of date bounds and then
+// triggers the api to get that data.
+// Checks the number of items returned matches expectations
 func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 	fs := testFs()
 	mux := testMux()
