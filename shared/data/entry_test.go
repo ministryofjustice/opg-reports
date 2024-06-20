@@ -16,6 +16,20 @@ func (i *testEntry) Valid() bool {
 	return true
 }
 
+type testEntryExt struct {
+	Id       string `json:"id"`
+	Tag      string `json:"tag"`
+	Category string `json:"category"`
+}
+
+func (i *testEntryExt) UID() string {
+	return i.Id
+}
+
+func (i *testEntryExt) Valid() bool {
+	return true
+}
+
 func TestSharedDataEntryComparable(t *testing.T) {
 	t1 := &testEntry{Id: "t1"}
 	t2 := &testEntry{Id: "t2"}

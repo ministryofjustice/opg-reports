@@ -2,11 +2,104 @@ package data
 
 import (
 	"fmt"
+	"opg-reports/shared/fake"
 	"opg-reports/shared/files"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 )
+
+// TestSharedDataStoreGroup generates a series of test data that is grouped
+// by Tag, Category & then both. These are then compared to the counters of
+// each to make sure grouping is working
+func TestSharedDataStoreGroup(t *testing.T) {
+	items := []*testEntryExt{}
+	tags := []string{"t1", "t2", "t3"}
+	cats := []string{"c1", "c2"}
+
+	tcounts := map[string]int{}
+	ccounts := map[string]int{}
+	mcount := map[string]int{}
+	l := 100
+	for i := 0; i < l; i++ {
+		tg := fake.Choice(tags)
+		ct := fake.Choice(cats)
+		mk := fmt.Sprintf("%s:%s", tg, ct)
+
+		if _, ok := tcounts[tg]; !ok {
+			tcounts[tg] = 0
+		}
+		if _, ok := ccounts[ct]; !ok {
+			ccounts[ct] = 0
+		}
+		if _, ok := mcount[mk]; !ok {
+			mcount[mk] = 0
+		}
+		tcounts[tg]++
+		ccounts[ct]++
+		mcount[mk]++
+
+		te := &testEntryExt{
+			Id:       fmt.Sprintf("%d", i+1),
+			Tag:      tg,
+			Category: ct,
+		}
+		items = append(items, te)
+
+	}
+	s := NewStoreFromList[*testEntryExt](items)
+	if s.Length() != l {
+		t.Error("error with length")
+	}
+
+	// check the tag grouping matches the random data
+	tg := func(item *testEntryExt) string {
+		return ToIdx(item, "tag")
+	}
+	tstores := s.Group(tg)
+	if len(tstores) != len(tcounts) {
+		t.Errorf("tag grouping falied")
+	}
+	for tag, count := range tcounts {
+		tkey := "tag^" + tag + "."
+		if tstores[tkey].Length() != count {
+			t.Errorf("counts dont match - expected [%d] actual [%d]", count, tstores[tkey].Length())
+		}
+	}
+
+	// check the category grouping matches the data
+	cg := func(item *testEntryExt) string {
+		return ToIdx(item, "category")
+	}
+	cstores := s.Group(cg)
+	if len(cstores) != len(ccounts) {
+		t.Errorf("cat grouping falied")
+	}
+	for cat, count := range ccounts {
+		ckey := "category^" + cat + "."
+		if cstores[ckey].Length() != count {
+			t.Errorf("counts dont match - expected [%d] actual [%d]", count, cstores[ckey].Length())
+		}
+	}
+	mg := func(item *testEntryExt) string {
+		return ToIdx(item, "tag", "category")
+	}
+	mstores := s.Group(mg)
+	// check tag -> cat grouping is working
+	for mk, count := range mcount {
+		sp := strings.Split(mk, ":")
+		k := fmt.Sprintf("tag^%s.category^%s.", sp[0], sp[1])
+		st, ok := mstores[k]
+		if !ok {
+			t.Errorf("store does not exist")
+		} else if st.Length() != count {
+			t.Errorf("counts dont match - expected [%d] actual [%d]", count, st.Length())
+		}
+
+	}
+
+}
 
 func TestSharedDataStoreNewFromFS(t *testing.T) {
 	td := os.TempDir()

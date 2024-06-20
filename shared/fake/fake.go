@@ -61,3 +61,12 @@ func DateAsStr(min time.Time, max time.Time, f string) string {
 	d := Date(min, max)
 	return d.Format(f)
 }
+
+type IChoice interface {
+	string | int | time.Time | float32 | float64
+}
+
+func Choice[T IChoice](choices []T) T {
+	i := Int(0, len(choices))
+	return choices[i]
+}

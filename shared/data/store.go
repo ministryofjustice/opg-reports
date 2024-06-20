@@ -29,6 +29,7 @@ type IStore[T IEntry] interface {
 }
 
 type IStoreFilter[T IEntry] func(item T) bool
+type IStoreGrouper[T IEntry] func(item T) string
 
 // Store is memory based store that operates from the items map.
 // Impliments: IStore
@@ -73,6 +74,20 @@ func (s *Store[T]) List() (l []T) {
 // Length returns the count of items in the store
 func (s *Store[T]) Length() int {
 	return len(s.items)
+}
+
+func (s *Store[T]) Group(group IStoreGrouper[T]) (stores map[string]IStore[T]) {
+	stores = map[string]IStore[T]{}
+
+	for _, item := range s.List() {
+		key := group(item)
+		if _, ok := stores[key]; !ok {
+			stores[key] = NewStore[T]()
+		}
+		stores[key].Add(item)
+	}
+
+	return
 }
 
 // Filter compares each item in the data store against each filter. If the item

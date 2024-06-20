@@ -1,6 +1,7 @@
 package fake
 
 import (
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -84,4 +85,23 @@ func TestSharedFakeDateAsStr(t *testing.T) {
 		t.Errorf("date is out of range")
 	}
 
+}
+
+func TestSharedFakeChoices(t *testing.T) {
+	single := []string{"one"}
+	item := Choice(single)
+	if item != single[0] {
+		t.Errorf("failed to pick single choice")
+	}
+
+	many := []int{}
+	for i := 0; i < 100; i++ {
+		many = append(many, i)
+	}
+	for x := 0; x < 1000; x++ {
+		picked := Choice(many)
+		if !slices.Contains(many, picked) {
+			t.Errorf("picked out of range")
+		}
+	}
 }
