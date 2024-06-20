@@ -21,10 +21,12 @@ func (a *Api[V, F]) Index(w http.ResponseWriter, r *http.Request) {
 // Totals: /aws/costs/{version}/monthly/{start}/{end}/{$}
 // Note: if {start} or {end} are "-" it uses current month
 func (a *Api[V, F]) Totals(w http.ResponseWriter, r *http.Request) {
-	items := []*cost.Cost{}
-	store := a.store
 	res := a.NewResponse()
 	res.Start()
+
+	items := []*cost.Cost{}
+	store := a.store
+
 	now := time.Now().UTC().Format(dates.FormatYM)
 	// Get the dates
 	startDate, err := dates.StringToDateDefault(r.PathValue("start"), "-", now)
@@ -45,7 +47,6 @@ func (a *Api[V, F]) Totals(w http.ResponseWriter, r *http.Request) {
 			return dates.InMonth(item.Date, months)
 		}
 		store := store.Filter(f)
-
 		// set items to be from the store for now
 		items = store.List()
 	}

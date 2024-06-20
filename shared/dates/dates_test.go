@@ -62,3 +62,14 @@ func TestSharedDatesStrings(t *testing.T) {
 		t.Errorf("second date incorrect")
 	}
 }
+
+func TestSharedDatestringToDateDefault(t *testing.T) {
+
+	ds := time.Now().UTC().Format(FormatYMD)
+
+	d, _ := StringToDateDefault("-", "-", ds)
+	if d.Format(FormatYMD) != ds {
+		t.Errorf("default date failed")
+	}
+
+}

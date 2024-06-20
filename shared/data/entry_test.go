@@ -72,4 +72,20 @@ func TestSharedDataMapConversion(t *testing.T) {
 		t.Errorf("lists dont match")
 	}
 
+	inters, err := ToInterfaces(list)
+	if err != nil {
+		t.Errorf("error converting list to interfaces")
+	}
+	if len(inters) != len(list) {
+		t.Errorf("error converting list to interfaces")
+	}
+
+	items, err := FromInterfaces[*testEntry](inters)
+	if err != nil {
+		t.Errorf("error converting back from interface")
+	}
+	if len(items) != len(list) {
+		t.Errorf("length mismatch")
+	}
+
 }

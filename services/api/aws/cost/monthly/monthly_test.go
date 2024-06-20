@@ -14,31 +14,6 @@ import (
 	"time"
 )
 
-func testFs() *files.WriteFS {
-	td := os.TempDir()
-	tDir, _ := os.MkdirTemp(td, "files-all-*")
-	dfSys := os.DirFS(tDir).(files.IReadFS)
-	return files.NewFS(dfSys, tDir)
-}
-
-func testMux() *http.ServeMux {
-	return http.NewServeMux()
-}
-func testWRGet(route string) (*httptest.ResponseRecorder, *http.Request) {
-	return httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, route, nil)
-}
-func testDates() (min time.Time, max time.Time, df string) {
-	df = time.RFC3339
-	max = time.Now().UTC()
-	min = time.Date(max.Year()-2, max.Month(), 1, 0, 0, 0, 0, time.UTC)
-	return
-}
-func decode[T server.IApiResponse](c io.Reader) T {
-	var i T
-	json.NewDecoder(c).Decode(&i)
-	return i
-}
-
 func TestServicesApiAwsCostMonthlyStatusCode(t *testing.T) {
 
 	fs := testFs()
@@ -71,6 +46,27 @@ func TestServicesApiAwsCostMonthlyStatusCode(t *testing.T) {
 	}
 
 }
+
+func TestServicesApiAwsCostMonthlyResponse(t *testing.T) {
+	fs := testFs()
+	store := data.NewStore[*cost.Cost]()
+	api := New(store, fs)
+
+	re := api.Response()
+	if re.GetStatus() != http.StatusOK {
+		t.Errorf("status mismatch")
+	}
+	re.SetStatus(http.StatusForbidden)
+	if re.GetStatus() != http.StatusForbidden {
+		t.Errorf("status mismatch")
+	}
+
+	re = api.NewResponse()
+	if re.GetStatus() != http.StatusOK {
+		t.Errorf("status mismatch")
+	}
+}
+
 func TestServicesApiAwsCostMonthlyFSMatch(t *testing.T) {
 	fs := testFs()
 	store := data.NewStore[*cost.Cost]()
@@ -81,6 +77,7 @@ func TestServicesApiAwsCostMonthlyFSMatch(t *testing.T) {
 		t.Errorf("base dir mismatch")
 	}
 }
+
 func TestServicesApiAwsCostMonthlyStoreMatch(t *testing.T) {
 	fs := testFs()
 	min, max, df := testDates()
@@ -95,9 +92,6 @@ func TestServicesApiAwsCostMonthlyStoreMatch(t *testing.T) {
 	}
 }
 
-func testIsI[V data.IEntry, F files.IReadFS](i server.IApi[V, F]) bool {
-	return i == nil
-}
 func TestServicesApiAwsCostMonthlyInterface(t *testing.T) {
 	fs := testFs()
 	store := data.NewStore[*cost.Cost]()
@@ -106,4 +100,33 @@ func TestServicesApiAwsCostMonthlyInterface(t *testing.T) {
 	if testIsI[*cost.Cost, files.IWriteFS](api) {
 		t.Errorf("should not be nil")
 	}
+}
+
+func testIsI[V data.IEntry, F files.IReadFS](i server.IApi[V, F]) bool {
+	return i == nil
+}
+
+func testFs() *files.WriteFS {
+	td := os.TempDir()
+	tDir, _ := os.MkdirTemp(td, "files-all-*")
+	dfSys := os.DirFS(tDir).(files.IReadFS)
+	return files.NewFS(dfSys, tDir)
+}
+
+func testMux() *http.ServeMux {
+	return http.NewServeMux()
+}
+func testWRGet(route string) (*httptest.ResponseRecorder, *http.Request) {
+	return httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, route, nil)
+}
+func testDates() (min time.Time, max time.Time, df string) {
+	df = time.RFC3339
+	max = time.Date(2024, 7, 1, 0, 0, 0, 0, time.UTC)
+	min = time.Date(2023, 12, 1, 0, 0, 0, 0, time.UTC)
+	return
+}
+func decode[T server.IApiResponse](c io.Reader) T {
+	var i T
+	json.NewDecoder(c).Decode(&i)
+	return i
 }
