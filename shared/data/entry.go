@@ -54,22 +54,3 @@ func FromJsonList[T IEntry](content []byte) (items []T, err error) {
 	err = json.Unmarshal(content, &items)
 	return
 }
-
-// FromInterface converts an interfaces (likely from an apiresponse.Results() )
-// into a T
-// Presumes that the intem passed can be swapped to map[string]interface{}
-// and should be converted to a map[string]string before T
-func FromInterface[T IEntry](inter interface{}) (item T, err error) {
-	mappedI := inter.(map[string]interface{})
-	mapped := map[string]string{}
-	for key, val := range mappedI {
-		mapped[key] = val.(string)
-	}
-	if tItem, e := FromMap[T](mapped); e == nil {
-		item = tItem
-	} else {
-		err = e
-	}
-	return
-
-}

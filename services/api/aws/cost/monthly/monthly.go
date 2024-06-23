@@ -24,6 +24,9 @@ func (a *Api[V, F]) FS() files.IWriteFS {
 func (a *Api[V, F]) Register(mux *http.ServeMux) {
 	mux.HandleFunc("/aws/costs/{version}/monthly/{$}", a.Index)
 	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/{$}", a.Totals)
+	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/units/{$}", a.Units)
+	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/units/envs/{$}", a.UnitEnvironments)
+	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/units/envs/services/{$}", a.UnitEnvironmentServices)
 }
 
 func (a *Api[V, F]) Write(w http.ResponseWriter, status int, content []byte) {

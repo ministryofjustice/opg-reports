@@ -41,12 +41,12 @@ type IApiResponseBase interface {
 // IApiResponseResultConstraint is used as a constraint on IApiResponseResult to determine
 // what form the response data is in, allowing different endpoints to send data back
 // is a mix of types.
-// For now, we support map[string]R, map[string][]R and []R so the "result" field will
+// For now, we support map[string]R, map[string][]R, map[string]map[string][]R and []R so the "result" field will
 // always be either a map or a slice
 // Used to differ between a data sequence that is grouped by a key (such as costs) versus
 // uptime data which is just a list
 type IApiResponseResultConstraint[R data.IEntry] interface {
-	map[string]R | map[string][]R | []R
+	map[string]R | map[string][]R | map[string]map[string][]R | []R
 }
 
 // IApiResponseResult providers a response interface whose result type can vary between
