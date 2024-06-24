@@ -63,7 +63,7 @@ func TestSharedDatesStrings(t *testing.T) {
 	}
 }
 
-func TestSharedDatestringToDateDefault(t *testing.T) {
+func TestSharedDatesStringToDateDefault(t *testing.T) {
 
 	ds := time.Now().UTC().Format(FormatYMD)
 
@@ -72,4 +72,21 @@ func TestSharedDatestringToDateDefault(t *testing.T) {
 		t.Errorf("default date failed")
 	}
 
+}
+
+func TestSharedDatesReformat(t *testing.T) {
+
+	full := "2024-02-29"
+	expected := "2024-02"
+	actual := Reformat(full, FormatYM)
+
+	if actual != expected {
+		t.Errorf("error reformatting")
+	}
+
+	full = "not-date"
+
+	if Reformat(full, FormatYM) != "" {
+		t.Errorf("format should have failed")
+	}
 }
