@@ -4,7 +4,11 @@
 // a StringToDate func to easily convert a string into a time.Time
 package dates
 
-import "time"
+import (
+	"fmt"
+	"log/slog"
+	"time"
+)
 
 const Format string = time.RFC3339
 const FormatYMD string = "2006-01-02"
@@ -22,8 +26,9 @@ func GetFormat(value string) string {
 	if l > max {
 		return Format
 	}
-
-	return Format[:l]
+	f := Format[:l]
+	slog.Debug("[dates] GetFormat", slog.String("format", f))
+	return f
 }
 
 // StringToDate tries to convert the string value passed into a time.Time,
@@ -34,6 +39,7 @@ func StringToDate(value string) (t time.Time, err error) {
 	if err == nil {
 		t = t.UTC()
 	}
+	slog.Debug("[dates] StringToDate", slog.String("t", t.String()), slog.String("err", fmt.Sprintf("%v", err)))
 	return t, err
 }
 
@@ -45,8 +51,9 @@ func Reformat(value string, outFormat string) string {
 	if err != nil {
 		return ""
 	}
-	return d.Format(outFormat)
-
+	out := d.Format(outFormat)
+	slog.Debug("[dates] Reformat", slog.String("out", out))
+	return out
 }
 
 // StringToDateDefault checks if the date string passed matches a known value, if so it uses

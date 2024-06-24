@@ -2,6 +2,8 @@ package data
 
 import (
 	"encoding/json"
+	"fmt"
+	"log/slog"
 )
 
 // IEntry used to represent an item within the data store
@@ -18,17 +20,22 @@ func ToMap[T IEntry](item T) (m map[string]string, err error) {
 	if err == nil {
 		err = json.Unmarshal(jBytes, &m)
 	}
+	slog.Debug("[data/entry] ToMap", slog.String("UID", item.UID()), slog.String("err", fmt.Sprintf("%v", err)))
 	return
 }
 
 // ToJson converts item T to a []byte via json marshaling
 func ToJson[T IEntry](item T) (content []byte, err error) {
-	return json.Marshal(item)
+	content, err = json.Marshal(item)
+	slog.Debug("[data/entry] ToJson", slog.String("UID", item.UID()), slog.String("err", fmt.Sprintf("%v", err)))
+	return
 }
 
 // ToJsonList converts a series of T into a []byte string via marshalling
 func ToJsonList[T IEntry](items []T) (content []byte, err error) {
-	return json.Marshal(items)
+	content, err = json.Marshal(items)
+	slog.Debug("[data/entry] ToJsonList", slog.String("err", fmt.Sprintf("%v", err)))
+	return
 }
 
 // FromMap uses json marshaling to convert from a map back to a struct.
@@ -36,8 +43,9 @@ func ToJsonList[T IEntry](items []T) (content []byte, err error) {
 func FromMap[T IEntry](m map[string]string) (item T, err error) {
 	jBytes, err := json.Marshal(m)
 	if err == nil {
-		json.Unmarshal(jBytes, &item)
+		err = json.Unmarshal(jBytes, &item)
 	}
+	slog.Debug("[data/entry] FromMap", slog.String("UID", item.UID()), slog.String("err", fmt.Sprintf("%v", err)))
 	return
 }
 
@@ -46,11 +54,13 @@ func FromMap[T IEntry](m map[string]string) (item T, err error) {
 // Does required corect tagging on the struct.
 func FromJson[T IEntry](content []byte) (item T, err error) {
 	err = json.Unmarshal(content, &item)
+	slog.Debug("[data/entry] FromJson", slog.String("UID", item.UID()), slog.String("err", fmt.Sprintf("%v", err)))
 	return
 }
 
 // FromJsonList returns a slice of T ([]T) rather than a single T
 func FromJsonList[T IEntry](content []byte) (items []T, err error) {
 	err = json.Unmarshal(content, &items)
+	slog.Debug("[data/entry] FromJsonList", slog.String("err", fmt.Sprintf("%v", err)))
 	return
 }

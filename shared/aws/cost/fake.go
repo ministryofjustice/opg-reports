@@ -1,6 +1,7 @@
 package cost
 
 import (
+	"log/slog"
 	"opg-reports/shared/fake"
 	"time"
 
@@ -48,5 +49,6 @@ func Fake(c *Cost, minDate time.Time, maxDate time.Time, dFormat string) (f *Cos
 	}
 
 	f = c
+	slog.Debug("[aws/cost] fake", slog.String("UID", f.UID()))
 	return
 }

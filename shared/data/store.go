@@ -2,6 +2,8 @@ package data
 
 import (
 	"errors"
+	"fmt"
+	"log/slog"
 	"opg-reports/shared/files"
 )
 
@@ -30,8 +32,18 @@ type IStore[T IEntry] interface {
 	Length() int
 }
 
+// IStoreFilter is used to enforce a signature on functions that are used to filter the
+// data store. Each IStoreFilter is called against and item, those that return true
+// are added to the result
 type IStoreFilter[T IEntry] func(item T) bool
+
+// IStoreGrouper enforces a signature for functions used to group the data store items.
+// These functions should return a string used as index for the data store - something
+// like YYYY-MM from a timestamp field etc
 type IStoreGrouper[T IEntry] func(item T) string
+
+// IStoreIdxer are used by ToIdxF to generate a field & value string that is then used
+// as an index - typically for grouping the data together
 type IStoreIdxer[T IEntry] func(item T) (string, string)
 
 // Store is memory based store that operates from the items map.
@@ -45,6 +57,7 @@ type Store[T IEntry] struct {
 // This will overwrite items that are already present without error
 func (s *Store[T]) Add(item T) error {
 	s.items[item.UID()] = item
+	slog.Debug("[data/store] Add", slog.String("UID", item.UID()))
 	return nil
 }
 
@@ -57,11 +70,13 @@ func (s *Store[T]) Get(uid string) (i T, err error) {
 	} else {
 		err = ErrStoreItemNotFound
 	}
+	slog.Debug("[data/store] Get", slog.String("UID", uid), slog.String("err", fmt.Sprintf("%v", err)))
 	return
 }
 
 // All returns all items from the store
 func (s *Store[T]) All() map[string]T {
+	slog.Debug("[data/store] All")
 	return s.items
 }
 
@@ -71,25 +86,32 @@ func (s *Store[T]) List() (l []T) {
 	for _, item := range s.All() {
 		l = append(l, item)
 	}
+	slog.Debug("[data/store] list")
 	return
 }
 
 // Length returns the count of items in the store
 func (s *Store[T]) Length() int {
+	slog.Debug("[data/store] length")
 	return len(s.items)
 }
 
-func (s *Store[T]) Group(group IStoreGrouper[T]) (stores map[string]IStore[T]) {
+// Group iterates over all items in the data store, runs the groupF func for each
+// and then creates a new store for each key returned from the group func and Adds
+// each relevant item to it
+//
+// Used to group data into chunks, like YYYY-MM out of a timestamp field
+func (s *Store[T]) Group(groupF IStoreGrouper[T]) (stores map[string]IStore[T]) {
 	stores = map[string]IStore[T]{}
 
 	for _, item := range s.List() {
-		key := group(item)
+		key := groupF(item)
 		if _, ok := stores[key]; !ok {
 			stores[key] = NewStore[T]()
 		}
 		stores[key].Add(item)
 	}
-
+	slog.Debug("[data/store] group")
 	return
 }
 
@@ -122,6 +144,7 @@ func (s *Store[T]) Filter(filters ...IStoreFilter[T]) (store IStore[T]) {
 	} else {
 		store = NewStore[T]()
 	}
+	slog.Debug("[data/store] filter")
 	return
 }
 

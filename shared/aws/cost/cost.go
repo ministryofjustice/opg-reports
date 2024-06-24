@@ -1,6 +1,7 @@
 package cost
 
 import (
+	"log/slog"
 	"opg-reports/shared/data"
 
 	"github.com/google/uuid"
@@ -28,6 +29,7 @@ type Cost struct {
 
 // UID is the unique id (UUID) for this Cost item
 func (i *Cost) UID() string {
+	slog.Debug("[aws/cost] UID()", slog.String("UID", i.UUID))
 	return i.UUID
 }
 
@@ -38,11 +40,13 @@ func (i *Cost) Valid() (valid bool) {
 
 	mapped, _ := data.ToMap(i)
 
-	for _, val := range mapped {
+	for k, val := range mapped {
 		if val == "" {
+			slog.Debug("[aws/cost] invalid", slog.String("UID", i.UID()), slog.String(k, val))
 			return false
 		}
 	}
+	slog.Debug("[aws/cost] valid", slog.String("UID", i.UID()))
 	return true
 }
 
@@ -56,5 +60,6 @@ func New(uid *string) *Cost {
 	} else {
 		c.UUID = uuid.NewString()
 	}
+	slog.Debug("[aws/cost] new", slog.String("UID", c.UUID))
 	return c
 }
