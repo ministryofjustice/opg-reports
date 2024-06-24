@@ -23,11 +23,16 @@ func (a *Api[V, F]) FS() files.IWriteFS {
 }
 
 func (a *Api[V, F]) Register(mux *http.ServeMux) {
-	mux.HandleFunc("/aws/costs/{version}/monthly/{$}", server.Middleware(a.Index, server.LoggingMW, server.SecurityHeadersMW))
-	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/{$}", server.Middleware(a.Totals, server.LoggingMW, server.SecurityHeadersMW))
-	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/units/{$}", server.Middleware(a.Units, server.LoggingMW, server.SecurityHeadersMW))
-	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/units/envs/{$}", server.Middleware(a.UnitEnvironments, server.LoggingMW, server.SecurityHeadersMW))
-	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/units/envs/services/{$}", server.Middleware(a.UnitEnvironmentServices, server.LoggingMW, server.SecurityHeadersMW))
+	mux.HandleFunc("/aws/costs/{version}/monthly/{$}",
+		server.Middleware(a.Index, server.LoggingMW, server.SecurityHeadersMW))
+	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/{$}",
+		server.Middleware(a.Totals, server.LoggingMW, server.SecurityHeadersMW))
+	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/units/{$}",
+		server.Middleware(a.Units, server.LoggingMW, server.SecurityHeadersMW))
+	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/units/envs/{$}",
+		server.Middleware(a.UnitEnvironments, server.LoggingMW, server.SecurityHeadersMW))
+	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/units/envs/services/{$}",
+		server.Middleware(a.UnitEnvironmentServices, server.LoggingMW, server.SecurityHeadersMW))
 }
 
 func (a *Api[V, F]) Write(w http.ResponseWriter, status int, content []byte) {
