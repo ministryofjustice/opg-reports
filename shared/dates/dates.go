@@ -14,6 +14,7 @@ const Format string = time.RFC3339
 const FormatYMD string = "2006-01-02"
 const FormatYM string = "2006-01"
 const FormatY string = "2006"
+const ErrYear string = "0000"
 
 // GetFormat will return the format to use for the date string passed, using
 // time.RFC3339 as base.
