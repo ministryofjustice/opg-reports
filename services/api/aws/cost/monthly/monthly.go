@@ -5,6 +5,7 @@ import (
 	"opg-reports/shared/aws/cost"
 	"opg-reports/shared/data"
 	"opg-reports/shared/files"
+	"opg-reports/shared/server"
 )
 
 // Api is a concreate version
@@ -22,11 +23,11 @@ func (a *Api[V, F]) FS() files.IWriteFS {
 }
 
 func (a *Api[V, F]) Register(mux *http.ServeMux) {
-	mux.HandleFunc("/aws/costs/{version}/monthly/{$}", a.Index)
-	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/{$}", a.Totals)
-	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/units/{$}", a.Units)
-	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/units/envs/{$}", a.UnitEnvironments)
-	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/units/envs/services/{$}", a.UnitEnvironmentServices)
+	mux.HandleFunc("/aws/costs/{version}/monthly/{$}", server.Middleware(a.Index, server.LoggingMW, server.SecurityHeadersMW))
+	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/{$}", server.Middleware(a.Totals, server.LoggingMW, server.SecurityHeadersMW))
+	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/units/{$}", server.Middleware(a.Units, server.LoggingMW, server.SecurityHeadersMW))
+	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/units/envs/{$}", server.Middleware(a.UnitEnvironments, server.LoggingMW, server.SecurityHeadersMW))
+	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/units/envs/services/{$}", server.Middleware(a.UnitEnvironmentServices, server.LoggingMW, server.SecurityHeadersMW))
 }
 
 func (a *Api[V, F]) Write(w http.ResponseWriter, status int, content []byte) {
