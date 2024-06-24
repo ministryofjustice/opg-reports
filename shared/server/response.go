@@ -38,21 +38,21 @@ type IApiResponseBase interface {
 	AddErrorWithStatus(err error, status int)
 }
 
-// IApiResponseResultConstraint is used as a constraint on IApiResponseResult to determine
+// IApiResponseConstraint is used as a constraint on IApiResponseResult to determine
 // what form the response data is in, allowing different endpoints to send data back
 // is a mix of types.
 // For now, we support map[string]R, map[string][]R, map[string]map[string][]R and []R so the "result" field will
 // always be either a map or a slice
 // Used to differ between a data sequence that is grouped by a key (such as costs) versus
 // uptime data which is just a list
-type IApiResponseResultConstraint[R data.IEntry] interface {
+type IApiResponseConstraint[R data.IEntry] interface {
 	map[string]R | map[string][]R | map[string]map[string][]R | []R
 }
 
 // IApiResponseResult providers a response interface whose result type can vary between
 // slice, a map or a map of slices.
 // This allows api respsones to adapt to the most useful data type for the endpoint
-type IApiResponseResult[R data.IEntry, C IApiResponseResultConstraint[R]] interface {
+type IApiResponseResult[R data.IEntry, C IApiResponseConstraint[R]] interface {
 	IApiResponseBase
 	SetResult(result C)
 	GetResult() C
@@ -131,9 +131,9 @@ func (i *ApiResponseBase) AddErrorWithStatus(err error, status int) {
 	i.SetStatus(status)
 }
 
-// NewApiSimpleResponse returns a fresh ApiResponseBase with
+// NewSimpleApiResponse returns a fresh ApiResponseBase with
 // status set as OK and errors empty
-func NewApiSimpleResponse() *ApiResponseBase {
+func NewSimpleApiResponse() *ApiResponseBase {
 	return &ApiResponseBase{
 		ApiResponseTimings: ApiResponseTimings{},
 		ApiResponseStatus:  ApiResponseStatus{Status: http.StatusOK},
@@ -141,7 +141,7 @@ func NewApiSimpleResponse() *ApiResponseBase {
 	}
 }
 
-// ApiResponseWithResults impliments [IApiResponseWithResults].
+// ApiResponse impliments [IApiResponse].
 // It allows a response to return with variable (C) data type. This is currently
 // constrained to map[string]R, map[string][]R and []R.
 // This means various enpoints can return differing ways collecting the data.IEntry
@@ -149,32 +149,32 @@ func NewApiSimpleResponse() *ApiResponseBase {
 //
 // This struct and interface allows you to easily decode a response as long as you know
 // its return type
-type ApiResponseWithResults[R data.IEntry, C IApiResponseResultConstraint[R]] struct {
+type ApiResponse[R data.IEntry, C IApiResponseConstraint[R]] struct {
 	ApiResponseBase
 	Type   string `json:"result_type"`
 	Result C      `json:"result"`
 }
 
 // SetResult updates the internal result data
-func (i *ApiResponseWithResults[R, C]) SetResult(result C) {
+func (i *ApiResponse[R, C]) SetResult(result C) {
 	i.Result = result
 }
 
 // GetResult returns the result
-func (i *ApiResponseWithResults[R, C]) GetResult() C {
+func (i *ApiResponse[R, C]) GetResult() C {
 	return i.Result
 }
 
 // SetType updates the Type field to a name for easier tracking / decoding
 // for the response
-func (i *ApiResponseWithResults[R, C]) SetType() {
+func (i *ApiResponse[R, C]) SetType() {
 	var x C
 	i.Type = fmt.Sprintf("%T", x)
 }
 
-// NewApiResponseWithResult returns an ApiResponse that handles results of the types set
-func NewApiResponseWithResult[R data.IEntry, C IApiResponseResultConstraint[R]]() *ApiResponseWithResults[R, C] {
-	return &ApiResponseWithResults[R, C]{
-		ApiResponseBase: *NewApiSimpleResponse(),
+// NewApiResponse returns an ApiResponse that handles results of the types set
+func NewApiResponse[R data.IEntry, C IApiResponseConstraint[R]]() *ApiResponse[R, C] {
+	return &ApiResponse[R, C]{
+		ApiResponseBase: *NewSimpleApiResponse(),
 	}
 }

@@ -24,7 +24,7 @@ func (i *testI) Valid() bool {
 
 func TestSharedServerApiResponseWithResult(t *testing.T) {
 
-	res := NewApiResponseWithResult[*testI, map[string]*testI]()
+	res := NewApiResponse[*testI, map[string]*testI]()
 	res.Start()
 	res.End()
 	now := time.Now().UTC()
@@ -50,7 +50,7 @@ func TestSharedServerApiResponseWithResult(t *testing.T) {
 		t.Errorf("set / get failed to match")
 	}
 
-	res2 := NewApiResponseWithResult[*testI, []*testI]()
+	res2 := NewApiResponse[*testI, []*testI]()
 	sliceItems := []*testI{
 		{Id: "001", Tag: "t1", Category: "cat1"},
 		{Id: "002", Tag: "t1", Category: "cat2"},
@@ -62,7 +62,7 @@ func TestSharedServerApiResponseWithResult(t *testing.T) {
 		t.Errorf("set / get failed to match")
 	}
 
-	res3 := NewApiResponseWithResult[*testI, map[string][]*testI]()
+	res3 := NewApiResponse[*testI, map[string][]*testI]()
 	mapSliceItems := map[string][]*testI{
 		"tag^t1.": {
 			{Id: "001", Tag: "t1", Category: "cat1"},
@@ -81,11 +81,16 @@ func TestSharedServerApiResponseWithResult(t *testing.T) {
 		t.Errorf("set / get failed to match")
 	}
 
+	res3.SetType()
+	if res3.Type != "map[string][]*server.testI" {
+		t.Errorf("set type failed: %v", res3.Type)
+	}
+
 }
 
 func TestSharedServerApiResponseBase(t *testing.T) {
 
-	res := NewApiSimpleResponse()
+	res := NewSimpleApiResponse()
 
 	// test timings
 	now := time.Now().UTC()

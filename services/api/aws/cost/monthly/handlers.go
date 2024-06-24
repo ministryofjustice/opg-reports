@@ -44,7 +44,7 @@ var byMonthAccountService = func(item *cost.Cost) string {
 
 // Index: /aws/costs/v1/monthly
 func (a *Api[V, F]) Index(w http.ResponseWriter, r *http.Request) {
-	res := server.NewApiSimpleResponse()
+	res := server.NewSimpleApiResponse()
 	res.Start()
 	res.SetStatus(http.StatusOK)
 	res.End()
@@ -55,7 +55,7 @@ func (a *Api[V, F]) Index(w http.ResponseWriter, r *http.Request) {
 // Unit, Env & Service costs: /aws/costs/{version}/monthly/{start}/{end}/units/envs/services/{$}
 // Previously "Detailed breakdown" sheet
 func (a *Api[V, F]) UnitEnvironmentServices(w http.ResponseWriter, r *http.Request) {
-	res := server.NewApiResponseWithResult[*cost.Cost, map[string][]*cost.Cost]()
+	res := server.NewApiResponse[*cost.Cost, map[string][]*cost.Cost]()
 	res.Start()
 	store := a.store
 	startDate, endDate := startAndEndDates(r, res)
@@ -88,7 +88,7 @@ func (a *Api[V, F]) UnitEnvironmentServices(w http.ResponseWriter, r *http.Reque
 // Unit & Env costs: /aws/costs/{version}/monthly/{start}/{end}/units/envs/{$}
 // Previously "Service And Environment" sheet
 func (a *Api[V, F]) UnitEnvironments(w http.ResponseWriter, r *http.Request) {
-	res := server.NewApiResponseWithResult[*cost.Cost, map[string][]*cost.Cost]()
+	res := server.NewApiResponse[*cost.Cost, map[string][]*cost.Cost]()
 	res.Start()
 	store := a.store
 	startDate, endDate := startAndEndDates(r, res)
@@ -121,7 +121,7 @@ func (a *Api[V, F]) UnitEnvironments(w http.ResponseWriter, r *http.Request) {
 // Unit costs: /aws/costs/{version}/monthly/{start}/{end}/units/{$}
 // Previously "Service" sheet
 func (a *Api[V, F]) Units(w http.ResponseWriter, r *http.Request) {
-	res := server.NewApiResponseWithResult[*cost.Cost, map[string][]*cost.Cost]()
+	res := server.NewApiResponse[*cost.Cost, map[string][]*cost.Cost]()
 	res.Start()
 	store := a.store
 	startDate, endDate := startAndEndDates(r, res)
@@ -156,7 +156,7 @@ func (a *Api[V, F]) Units(w http.ResponseWriter, r *http.Request) {
 // Previously "Totals" sheet
 // Note: if {start} or {end} are "-" it uses current month
 func (a *Api[V, F]) Totals(w http.ResponseWriter, r *http.Request) {
-	res := server.NewApiResponseWithResult[*cost.Cost, map[string]map[string][]*cost.Cost]()
+	res := server.NewApiResponse[*cost.Cost, map[string]map[string][]*cost.Cost]()
 	res.Start()
 	store := a.store
 	startDate, endDate := startAndEndDates(r, res)

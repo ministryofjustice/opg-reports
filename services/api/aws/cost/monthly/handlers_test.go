@@ -29,7 +29,7 @@ func TestServicesApiAwsCostMonthlyHandlerIndex(t *testing.T) {
 	mux.ServeHTTP(w, r)
 
 	_, b := strResponse(w.Result())
-	res := server.NewApiSimpleResponse()
+	res := server.NewSimpleApiResponse()
 	json.Unmarshal(b, &res)
 
 	if res.GetStatus() != http.StatusOK {
@@ -79,7 +79,7 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 	mux.ServeHTTP(w, r)
 
 	_, b := strResponse(w.Result())
-	res := server.NewApiResponseWithResult[*cost.Cost, map[string]map[string][]*cost.Cost]()
+	res := server.NewApiResponse[*cost.Cost, map[string]map[string][]*cost.Cost]()
 	json.Unmarshal(b, &res)
 
 	if res.GetStatus() != http.StatusOK {
@@ -148,7 +148,7 @@ func TestServicesApiAwsCostMonthlyHandlerUnits(t *testing.T) {
 	mux.ServeHTTP(w, r)
 
 	_, b := strResponse(w.Result())
-	res := server.NewApiResponseWithResult[*cost.Cost, map[string][]*cost.Cost]()
+	res := server.NewApiResponse[*cost.Cost, map[string][]*cost.Cost]()
 	json.Unmarshal(b, &res)
 
 	total := 0
@@ -202,9 +202,8 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvs(t *testing.T) {
 	w, r := testWRGet(route)
 	mux.ServeHTTP(w, r)
 
-	str, b := strResponse(w.Result())
-	fmt.Println(str)
-	res := server.NewApiResponseWithResult[*cost.Cost, map[string][]*cost.Cost]()
+	_, b := strResponse(w.Result())
+	res := server.NewApiResponse[*cost.Cost, map[string][]*cost.Cost]()
 	json.Unmarshal(b, &res)
 
 	total := 0
@@ -258,9 +257,8 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvServices(t *testing.T) {
 	w, r := testWRGet(route)
 	mux.ServeHTTP(w, r)
 
-	str, b := strResponse(w.Result())
-	fmt.Println(str)
-	res := server.NewApiResponseWithResult[*cost.Cost, map[string][]*cost.Cost]()
+	_, b := strResponse(w.Result())
+	res := server.NewApiResponse[*cost.Cost, map[string][]*cost.Cost]()
 	json.Unmarshal(b, &res)
 
 	total := 0
