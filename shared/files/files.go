@@ -4,6 +4,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -27,6 +28,34 @@ func All[T IReadFS](f T, jsonOnly bool) (files []*PathFile) {
 	})
 
 	return files
+}
+
+// Filter uses a list of files passed and returns those that match *all* filterPatterns
+// that are passed along
+func Filter(all []*PathFile, filterPatterns ...string) []*PathFile {
+	fSet := []*PathFile{}
+
+	// a file can only be added to the final set if it matches all filter patterns passed along
+	for _, file := range all {
+		add := false
+		matchesAll := true
+
+		for _, pattern := range filterPatterns {
+			add = true
+			reg, err := regexp.Compile(pattern)
+			// if theres an error, or this is file is a dir, or it doesnt match the pattern
+			// then it should not be added
+			if err != nil || file.IsDir() || !reg.MatchString(file.Name()) {
+				matchesAll = false
+			}
+		}
+		if add && matchesAll {
+			fSet = append(fSet, file)
+		}
+
+	}
+	return fSet
+
 }
 
 // ReadFile wraps the ReadFS ReadFile
