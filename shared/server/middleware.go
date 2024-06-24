@@ -50,21 +50,17 @@ var securityHeaders = map[string]string{
 	"Pragma":                    "no-cache",
 }
 
-// SecurityHeaders attachs standard headers to the response
+// SecurityHeadersMW attaches standard headers to the response
 func SecurityHeadersMW(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("headers")
 	for header, value := range securityHeaders {
 		w.Header().Add(header, value)
 	}
-
 }
 
 func LoggingMW(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("logging")
 	slog.Info(
 		fmt.Sprintf(""),
 		slog.String("request_method", r.Method),
 		slog.String("request_uri", r.URL.String()),
 	)
-
 }
