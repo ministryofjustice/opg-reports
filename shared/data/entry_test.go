@@ -46,6 +46,8 @@ func TestSharedDataEntryComparable(t *testing.T) {
 }
 
 func TestSharedDataMapConversion(t *testing.T) {
+	indent = false
+
 	te := &testEntry{Id: "001"}
 
 	m, _ := ToMap(te)
@@ -66,7 +68,7 @@ func TestSharedDataMapConversion(t *testing.T) {
 
 	b, _ := ToJson(i)
 	if string(b) != content {
-		t.Errorf("error converting to json: [%s]==[%s]", string(b), content)
+		t.Errorf("error converting to json: (%s)=(%s)", string(b), content)
 	}
 
 	list := []*testEntry{

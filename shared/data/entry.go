@@ -13,6 +13,8 @@ type IEntry interface {
 	UID() string
 }
 
+var indent bool = true
+
 // ToMap uses json marshaling to convert from the struct to map.
 // Does require struct to be tagged correctly to do this neatly
 func ToMap[T IEntry](item T) (m map[string]string, err error) {
@@ -26,14 +28,22 @@ func ToMap[T IEntry](item T) (m map[string]string, err error) {
 
 // ToJson converts item T to a []byte via json marshaling
 func ToJson[T IEntry](item T) (content []byte, err error) {
-	content, err = json.MarshalIndent(item, "", "  ")
+	if indent {
+		content, err = json.MarshalIndent(item, "", "  ")
+	} else {
+		content, err = json.Marshal(item)
+	}
 	slog.Debug("[data/entry] ToJson", slog.String("UID", item.UID()), slog.String("err", fmt.Sprintf("%v", err)))
 	return
 }
 
 // ToJsonList converts a series of T into a []byte string via marshalling
 func ToJsonList[T IEntry](items []T) (content []byte, err error) {
-	content, err = json.MarshalIndent(items, "", "  ")
+	if indent {
+		content, err = json.MarshalIndent(items, "", "  ")
+	} else {
+		content, err = json.Marshal(items)
+	}
 	slog.Debug("[data/entry] ToJsonList", slog.String("err", fmt.Sprintf("%v", err)))
 	return
 }
