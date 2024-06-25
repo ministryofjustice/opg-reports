@@ -15,6 +15,7 @@ endif
 
 .PHONY: test tests benchmarks coverage govuk-frontend
 
+# get the gov uk front end assets and move them into local folders
 govuk-frontend:
 	@rm -Rf ./builds/govuk-frontend
 	@rm -Rf ./services/front/assets/css/

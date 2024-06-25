@@ -1,7 +1,6 @@
 package server
 
 import (
-	"io"
 	"net/http"
 	"net/http/httptest"
 )
@@ -104,8 +103,4 @@ func testMux() *http.ServeMux {
 }
 func testWRGet(route string) (*httptest.ResponseRecorder, *http.Request) {
 	return httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, route, nil)
-}
-func strResponse(r *http.Response) (string, []byte) {
-	b, _ := io.ReadAll(r.Body)
-	return string(b), b
 }

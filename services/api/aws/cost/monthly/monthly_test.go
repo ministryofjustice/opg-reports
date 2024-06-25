@@ -1,7 +1,6 @@
 package monthly
 
 import (
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"opg-reports/shared/aws/cost"
@@ -39,7 +38,7 @@ func TestServicesApiAwsCostMonthlyStatusCode(t *testing.T) {
 		w, r := testWRGet(route)
 		mux.ServeHTTP(w, r)
 		if w.Result().StatusCode != status {
-			r, _ := strResponse(w.Result())
+			r, _ := server.ResponseAsStrings(w.Result())
 			t.Errorf("http status mismtach [%s] expected [%d], actual [%v]\n---\n%+v\n---\n", route, status, w.Result().StatusCode, r)
 		}
 	}
@@ -103,9 +102,4 @@ func testDates() (min time.Time, max time.Time, df string) {
 	max = time.Date(2024, 7, 1, 0, 0, 0, 0, time.UTC)
 	min = time.Date(2023, 12, 1, 0, 0, 0, 0, time.UTC)
 	return
-}
-
-func strResponse(r *http.Response) (string, []byte) {
-	b, _ := io.ReadAll(r.Body)
-	return string(b), b
 }

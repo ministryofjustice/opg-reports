@@ -28,7 +28,7 @@ func TestServicesApiAwsCostMonthlyHandlerIndex(t *testing.T) {
 
 	mux.ServeHTTP(w, r)
 
-	_, b := strResponse(w.Result())
+	_, b := server.ResponseAsStrings(w.Result())
 	res := server.NewSimpleApiResponse()
 	json.Unmarshal(b, &res)
 
@@ -78,7 +78,7 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 	w, r := testWRGet(route)
 	mux.ServeHTTP(w, r)
 
-	_, b := strResponse(w.Result())
+	_, b := server.ResponseAsStrings(w.Result())
 	res := server.NewApiResponse[*cost.Cost, map[string]map[string][]*cost.Cost]()
 	json.Unmarshal(b, &res)
 
@@ -147,7 +147,7 @@ func TestServicesApiAwsCostMonthlyHandlerUnits(t *testing.T) {
 	w, r := testWRGet(route)
 	mux.ServeHTTP(w, r)
 
-	_, b := strResponse(w.Result())
+	_, b := server.ResponseAsStrings(w.Result())
 	res := server.NewApiResponse[*cost.Cost, map[string][]*cost.Cost]()
 	json.Unmarshal(b, &res)
 
@@ -163,7 +163,7 @@ func TestServicesApiAwsCostMonthlyHandlerUnits(t *testing.T) {
 	// as items may appear in both top level segements if they are
 	// not tax, the total should always be at least l, but can be higher
 	if total != l {
-		t.Errorf("data mis match")
+		t.Errorf("data mismatch")
 	}
 
 }
@@ -202,9 +202,11 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvs(t *testing.T) {
 	w, r := testWRGet(route)
 	mux.ServeHTTP(w, r)
 
-	_, b := strResponse(w.Result())
-	res := server.NewApiResponse[*cost.Cost, map[string][]*cost.Cost]()
-	json.Unmarshal(b, &res)
+	_, b := server.ResponseAsStrings(w.Result())
+
+	res, _ := server.NewApiResponseFromJson[*cost.Cost, map[string][]*cost.Cost](b)
+	// res := server.NewApiResponse[*cost.Cost, map[string][]*cost.Cost]()
+	// json.Unmarshal(b, &res)
 
 	total := 0
 	for key, list := range res.GetResult() {
@@ -257,7 +259,7 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvServices(t *testing.T) {
 	w, r := testWRGet(route)
 	mux.ServeHTTP(w, r)
 
-	_, b := strResponse(w.Result())
+	_, b := server.ResponseAsStrings(w.Result())
 	res := server.NewApiResponse[*cost.Cost, map[string][]*cost.Cost]()
 	json.Unmarshal(b, &res)
 

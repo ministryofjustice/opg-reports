@@ -1,11 +1,16 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"opg-reports/shared/data"
+	"strings"
 	"time"
 )
+
+const ResponseTypeHeader string = "X-API-RES-TYPE"
 
 // IApiResponseTimes handles simple start, end and duration elements of the interface.
 type IApiResponseTimes interface {
@@ -57,6 +62,30 @@ type IApiResponseResult[R data.IEntry, C IApiResponseConstraint[R]] interface {
 	SetResult(result C)
 	GetResult() C
 	SetType()
+}
+
+// ApiResponseConstraintString takes a string version of a contract
+// IApiResponseResult constraints for an ApiResponse such as
+// map[string][]*cost.Cost and will return them in parts
+type ApiResponseConstraintString string
+
+func (r ApiResponseConstraintString) Parts() []string {
+	str := string(r)
+	return strings.Split(str, "*")
+}
+func (r ApiResponseConstraintString) C() (g string) {
+	parts := r.Parts()
+	if len(parts) > 0 {
+		g = parts[0]
+	}
+	return
+}
+func (r ApiResponseConstraintString) R() (g string) {
+	parts := r.Parts()
+	if len(parts) > 1 {
+		g = parts[1]
+	}
+	return
 }
 
 // ApiResponseTimings impliments [IApiResponseTimes]
@@ -177,4 +206,17 @@ func NewApiResponse[R data.IEntry, C IApiResponseConstraint[R]]() *ApiResponse[R
 	return &ApiResponse[R, C]{
 		ApiResponseBase: *NewSimpleApiResponse(),
 	}
+}
+
+// NewApiResponseFromJson unmarshals the content into a response of types set
+func NewApiResponseFromJson[R data.IEntry, C IApiResponseConstraint[R]](content []byte) (response *ApiResponse[R, C], err error) {
+	err = json.Unmarshal(content, &response)
+	return
+}
+
+// ResponseAsStrings takes a http.Response and returns string & []byte
+// values of the response body
+func ResponseAsStrings(r *http.Response) (string, []byte) {
+	b, _ := io.ReadAll(r.Body)
+	return string(b), b
 }

@@ -1,8 +1,8 @@
 package server
 
 import (
-	"fmt"
 	"html/template"
+	"log/slog"
 	"net/http"
 	"opg-reports/services/front/cnf"
 )
@@ -17,7 +17,12 @@ func (s *FrontWebServer) Write(w http.ResponseWriter, status int, tmpl *template
 	w.WriteHeader(status)
 	w.Header().Set("Content-Type", "text/html")
 	err := tmpl.ExecuteTemplate(w, name, data)
-	fmt.Println(err)
+	if err != nil {
+		slog.Error("front template execute failed",
+			slog.String("templateName", name),
+			slog.String("error", err.Error()),
+		)
+	}
 }
 
 func New(conf *cnf.Config, templates []string) *FrontWebServer {

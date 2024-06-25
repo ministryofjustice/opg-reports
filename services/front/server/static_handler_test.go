@@ -5,6 +5,7 @@ import (
 	"opg-reports/services/front/cnf"
 	"opg-reports/services/front/tmpl"
 	"opg-reports/shared/files"
+	"opg-reports/shared/server"
 	"os"
 	"strings"
 	"testing"
@@ -30,7 +31,7 @@ func TestFrontServerStaticHandler(t *testing.T) {
 		t.Errorf("should return 200")
 	}
 
-	str, _ := strResponse(w.Result())
+	str, _ := server.ResponseAsStrings(w.Result())
 
 	if !strings.Contains(str, "OPG Report") {
 		t.Errorf("org not rendered")

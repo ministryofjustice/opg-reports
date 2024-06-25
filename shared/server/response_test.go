@@ -142,3 +142,52 @@ func TestSharedServerApiResponseBase(t *testing.T) {
 		t.Errorf("status not set properly")
 	}
 }
+
+func TestSharedServerApiResponseConstraintString(t *testing.T) {
+	var con ApiResponseConstraintString
+
+	con = "map[string]*cost.Cost"
+	if len(con.Parts()) != 2 {
+		t.Errorf("parts failed")
+	}
+	if con.R() != "cost.Cost" {
+		t.Errorf("R failed")
+	}
+	if con.C() != "map[string]" {
+		t.Errorf("C failed")
+	}
+
+	con = "map[string][]*cost.Cost"
+	if len(con.Parts()) != 2 {
+		t.Errorf("parts failed")
+	}
+	if con.R() != "cost.Cost" {
+		t.Errorf("R failed")
+	}
+	if con.C() != "map[string][]" {
+		t.Errorf("C failed")
+	}
+
+	con = "map[string]map[string][]*cost.Cost"
+	if len(con.Parts()) != 2 {
+		t.Errorf("parts failed")
+	}
+	if con.R() != "cost.Cost" {
+		t.Errorf("R failed")
+	}
+	if con.C() != "map[string]map[string][]" {
+		t.Errorf("C failed")
+	}
+
+	con = "[]*cost.Cost"
+	if len(con.Parts()) != 2 {
+		t.Errorf("parts failed")
+	}
+	if con.R() != "cost.Cost" {
+		t.Errorf("R failed")
+	}
+	if con.C() != "[]" {
+		t.Errorf("C failed")
+	}
+
+}

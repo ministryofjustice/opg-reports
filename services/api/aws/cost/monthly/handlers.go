@@ -115,7 +115,7 @@ func (a *Api[V, F]) UnitEnvironments(w http.ResponseWriter, r *http.Request) {
 	res.SetType()
 	res.End()
 	content, _ := json.Marshal(res)
-	w.Header().Set("X-API-RES-TYPE", res.Type)
+	w.Header().Set(server.ResponseTypeHeader, res.Type)
 	a.Write(w, res.GetStatus(), content)
 
 }
@@ -149,7 +149,8 @@ func (a *Api[V, F]) Units(w http.ResponseWriter, r *http.Request) {
 	res.SetType()
 	res.End()
 	content, _ := json.Marshal(res)
-	w.Header().Set("X-API-RES-TYPE", res.Type)
+
+	w.Header().Set(server.ResponseTypeHeader, res.Type)
 	a.Write(w, res.GetStatus(), content)
 
 }
@@ -207,7 +208,7 @@ func (a *Api[V, F]) Totals(w http.ResponseWriter, r *http.Request) {
 	res.SetType()
 	res.End()
 	content, _ := json.Marshal(res)
-	w.Header().Set("X-API-RES-TYPE", res.Type)
+	w.Header().Set(server.ResponseTypeHeader, res.Type)
 	a.Write(w, res.GetStatus(), content)
 }
 

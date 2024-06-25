@@ -7,6 +7,7 @@ import (
 	"opg-reports/services/front/cnf"
 	"opg-reports/services/front/server"
 	"opg-reports/services/front/tmpl"
+	"opg-reports/shared/env"
 	"opg-reports/shared/files"
 	"opg-reports/shared/logger"
 )
@@ -31,7 +32,7 @@ func main() {
 	serve := server.New(conf, templateFiles)
 	serve.Register(mux)
 
-	addr := ":8080" // env.Get("FRONT_ADDR", ":8080")
+	addr := env.Get("FRONT_ADDR", ":8080")
 	server := &http.Server{
 		Addr:    addr,
 		Handler: mux,
