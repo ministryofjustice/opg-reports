@@ -2,6 +2,7 @@ package files
 
 import (
 	"embed"
+	"fmt"
 	"os"
 	"testing"
 )
@@ -86,10 +87,17 @@ func TestSharedFilesAllFromDir(t *testing.T) {
 		t.Errorf("incorrect number of files found")
 	}
 
+	filtered := Filter(all, `txt$`)
+	if len(filtered) != 2 {
+		t.Errorf("failed to filter")
+		fmt.Printf("%+v\n", filtered)
+	}
+
 	all = All(fSys, true)
 	if len(all) != 8 {
 		t.Errorf("incorrect number of json files found")
 	}
+
 }
 
 func TestSharedFilesWriteReadFromDir(t *testing.T) {

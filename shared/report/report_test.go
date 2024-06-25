@@ -33,6 +33,12 @@ func TestSharedReportOK(t *testing.T) {
 	if hasRun != true {
 		t.Errorf("did not run")
 	}
+
+	fname := rep.Filename()
+	if fname != "account^test00.month^2024-01.json" {
+		t.Errorf("filename error: %s", fname)
+	}
+
 }
 
 func TestSharedReportPanics(t *testing.T) {

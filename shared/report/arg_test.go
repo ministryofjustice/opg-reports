@@ -46,7 +46,7 @@ func TestSharedReportArgs(t *testing.T) {
 	}
 	val := "input"
 	arg.FlagP = &val
-	if v, err := arg.Value(); err != nil || v != val {
+	if v, err := arg.Value(); err != nil || v != val || v != arg.Val() {
 		t.Errorf("incorrect value")
 	}
 	if arg.GetFlag() != &val {
@@ -62,7 +62,7 @@ func TestSharedReportArgs(t *testing.T) {
 	mrg := NewMonthArg("monthtest", true, "my help", "default")
 	mval := "2024-04"
 	mrg.FlagP = &mval
-	if v, err := mrg.Value(); err != nil || v != mval {
+	if v, err := mrg.Value(); err != nil || v != mval || mrg.Val() != mval {
 		t.Errorf("incorrect value: %v", v)
 	}
 	if mrg.GetFlag() != &mval {
