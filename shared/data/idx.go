@@ -35,6 +35,10 @@ func ToIdx[T IEntry](item T, fields ...string) string {
 	return str
 }
 
+func ToIdxKV(key string, value string) string {
+	return fmt.Sprintf("%s%s%s%s", key, endOfKey, value, endOfField)
+}
+
 // ToIdxF generates a striung index for grouping that merges the field name and the field value.
 // This allows a 1 depth map (map[string][]T) that is grouped by multiple fields
 //

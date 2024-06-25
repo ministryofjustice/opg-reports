@@ -8,11 +8,13 @@ type SiteSection struct {
 	Header   bool           `json:"header"`
 	Sections []*SiteSection `json:"sections"`
 
-	Api string `json:"api"`
+	Exclude bool `json:"exclude"`
 
-	Exclude      bool   `json:"exclude"`
-	TemplateName string `json:"template"`
-	Registered   bool   `json:"-"`
+	Api             string `json:"api"`
+	ResponseHandler string `json:"handler"`
+	TemplateName    string `json:"template"`
+
+	Registered bool `json:"-"`
 }
 type Config struct {
 	Organisation string         `json:"organisation"`

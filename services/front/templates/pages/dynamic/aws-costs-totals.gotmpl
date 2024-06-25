@@ -1,0 +1,39 @@
+{{ define "dynamic-aws-costs-totals" }}
+    {{ template "head" . }}
+
+    <h1 class="govuk-heading-l">Totals</h1>
+    <p class="govuk-body">Displaying AWS Costs between <strong>[{{ .StartDate.Format "2006-01" }}]</strong> and <strong>[{{ .EndDate.Format "2006-01" }}]</strong>.</p>
+
+    {{if .Result }}
+    {{ $months := .Months }}
+    <table class="dataframe govuk-table">
+        <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+                <th scope="col" class="govuk-table__header"></th>
+                {{ range $month := $months }}
+                    <th scope="col" class="govuk-table__header">{{ $month.Format "2006-01"  }}</th>
+                {{ end }}
+            </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+            {{ range $with, $values := .Result }}
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">{{ heading $with }}</th>
+                {{ range $m := $months }}
+                    {{ $idx := toIdx "month" ($m.Format "2006-01") }}
+                    <td class="govuk-table__cell" data-month="{{ $idx }}">
+                        {{ $total := getIdx $idx $values 0.0 }}
+                        {{ dollars $total }}
+                    </td>
+                {{ end }}
+
+            </tr>
+            {{ end }}
+        </tbody>
+    </table>
+
+    {{end}}
+
+    {{ template "foot" . }}
+
+{{ end }}

@@ -9,7 +9,7 @@ func TestFrontServerRegister(t *testing.T) {
 
 	mux := testMux()
 	conf, _ := cnf.Load([]byte(testCfg))
-	s := New(conf, nil)
+	s := New(conf, nil, "", "")
 	s.Register(mux)
 
 	home := s.Nav.Get("/")

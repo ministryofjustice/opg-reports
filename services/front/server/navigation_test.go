@@ -10,7 +10,7 @@ import (
 
 func TestFrontServerNavigationTop(t *testing.T) {
 	conf, _ := cnf.Load([]byte(testCfg))
-	s := New(conf, nil)
+	s := New(conf, nil, "", "")
 
 	r := httptest.NewRequest(http.MethodGet, "/s1/2/", nil)
 	active, all := s.Nav.Top(r)
@@ -39,7 +39,7 @@ func TestFrontServerNavigationTop(t *testing.T) {
 
 func TestFrontServerNavigationSide(t *testing.T) {
 	conf, _ := cnf.Load([]byte(testCfg))
-	s := New(conf, nil)
+	s := New(conf, nil, "", "")
 
 	r := httptest.NewRequest(http.MethodGet, "/s2/2/1/", nil)
 	activeT, _ := s.Nav.Top(r)
@@ -59,7 +59,7 @@ func TestFrontServerNavigationSide(t *testing.T) {
 
 func TestFrontServerNavigationActive(t *testing.T) {
 	conf, _ := cnf.Load([]byte(testCfg))
-	s := New(conf, nil)
+	s := New(conf, nil, "", "")
 
 	r := httptest.NewRequest(http.MethodGet, "/s2/2/1/", nil)
 	active := s.Nav.Active(r)

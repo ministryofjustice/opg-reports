@@ -77,3 +77,18 @@
 #main-content {
     padding: 30px;
 }
+
+
+/* tables */
+.dataframe.govuk-table{
+    font-size: 0.9rem;
+}
+.dataframe .govuk-table__header,
+.dataframe .govuk-table__cell{
+    padding: 5px;
+}
+
+.dataframe .govuk-table__head .govuk-table__header,
+.dataframe .govuk-table__body .govuk-table__cell{
+    text-align: right;
+}

@@ -1,40 +1,38 @@
 package server
 
 import (
-	"net/http"
+	"fmt"
 	"opg-reports/services/front/cnf"
 	"opg-reports/services/front/tmpl"
 	"opg-reports/shared/files"
 	"opg-reports/shared/server"
 	"os"
-	"strings"
 	"testing"
 )
 
-func TestFrontServerStaticHandler(t *testing.T) {
+func TestFrontServerDynamicHandlerMocked(t *testing.T) {
+	ms := mockServerAWSCostTotals()
+	defer ms.Close()
+
 	tDir := "../templates/"
 	dfSys := os.DirFS(tDir).(files.IReadFS)
 	f := files.NewFS(dfSys, tDir)
 	templates := tmpl.Files(f, tDir)
 
-	mux := testMux()
+	route := "/costs/aws/totals/"
 	conf, _ := cnf.Load([]byte(testRealisticCfg))
+	// create new
 	s := New(conf, templates, "", "")
+	// point the totals route to look at the test api
+	s.Nav.Get(route).Api = ms.URL
+	//
+	mux := testMux()
 	s.Register(mux)
-
-	route := "/costs/"
+	// now we fetch the local route, which should them call the mocked
+	// server
 	w, r := testWRGet(route)
-
 	mux.ServeHTTP(w, r)
 
-	if w.Result().StatusCode != http.StatusOK {
-		t.Errorf("should return 200")
-	}
-
 	str, _ := server.ResponseAsStrings(w.Result())
-
-	if !strings.Contains(str, "OPG Report") {
-		t.Errorf("org not rendered")
-	}
-
+	fmt.Println(str)
 }

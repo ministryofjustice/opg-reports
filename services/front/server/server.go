@@ -10,6 +10,8 @@ import (
 type FrontWebServer struct {
 	templateFiles []string
 	Config        *cnf.Config
+	ApiAddr       string
+	ApiScheme     string
 	Nav           *Navigation
 }
 
@@ -25,11 +27,13 @@ func (s *FrontWebServer) Write(w http.ResponseWriter, status int, tmpl *template
 	}
 }
 
-func New(conf *cnf.Config, templates []string) *FrontWebServer {
+func New(conf *cnf.Config, templates []string, apiAddr string, apiScheme string) *FrontWebServer {
 	nav := &Navigation{tree: conf.Sections}
 	return &FrontWebServer{
 		templateFiles: templates,
 		Config:        conf,
 		Nav:           nav,
+		ApiAddr:       apiAddr,
+		ApiScheme:     apiScheme,
 	}
 }

@@ -3,6 +3,7 @@ package cost
 import (
 	"log/slog"
 	"opg-reports/shared/data"
+	"strconv"
 
 	"github.com/google/uuid"
 )
@@ -48,6 +49,16 @@ func (i *Cost) Valid() (valid bool) {
 	}
 	slog.Debug("[aws/cost] valid", slog.String("UID", i.UID()))
 	return true
+}
+
+func Total(items []*Cost) (total float64) {
+	total = 0.0
+	for _, c := range items {
+		if v, err := strconv.ParseFloat(c.Cost, 10); err == nil {
+			total += v
+		}
+	}
+	return
 }
 
 // New creates a Cost with the uid passed or

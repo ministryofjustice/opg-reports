@@ -20,22 +20,27 @@
                         {
                             "name": "Totals",
                             "href": "/costs/aws/totals/",
-                            "api": "/aws/costs/{apiVersion}/monhtly/{startDate}/{endDate}/"
+                            "api": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/",
+                            "handler": "MapMapSlice",
+                            "template": "dynamic-aws-costs-totals"
                         },
                         {
                             "name": "By Unit",
                             "href": "/costs/aws/units/",
-                            "api": "/aws/costs/{apiVersion}/monhtly/{startDate}/{endDate}/units/"
+                            "api": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/units/",
+                            "handler": "MapSlice"
                         },
                         {
                             "name": "By Unit & Environment",
                             "href": "/costs/aws/units-envs/",
-                            "api": "/aws/costs/{apiVersion}/monhtly/{startDate}/{endDate}/units/envs/"
+                            "api": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/units/envs/",
+                            "handler": "MapSlice"
                         },
                         {
                             "name": "Detailed Breakdown",
                             "href": "/costs/aws/detailed/",
-                            "api": "/aws/costs/{apiVersion}/monhtly/{startDate}/{endDate}/units/envs/services/"
+                            "api": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/units/envs/services/",
+                            "handler": "MapSlice"
                         }
                     ]
                 }
