@@ -1,0 +1,45 @@
+{
+    "organisation": "OPG",
+    "sections": [
+        {
+            "name": "Home",
+            "href": "/",
+            "exclude": true,
+            "template": "static-home"
+        },
+        {
+            "name": "Costs",
+            "template": "static-costs-home",
+            "href": "/costs/",
+            "sections": [
+                {
+                    "name": "AWS Costs",
+                    "href": "/costs/aws/",
+                    "header": true,
+                    "sections": [
+                        {
+                            "name": "Totals",
+                            "href": "/costs/aws/totals/",
+                            "api": "/aws/costs/{apiVersion}/monhtly/{startDate}/{endDate}/"
+                        },
+                        {
+                            "name": "By Unit",
+                            "href": "/costs/aws/units/",
+                            "api": "/aws/costs/{apiVersion}/monhtly/{startDate}/{endDate}/units/"
+                        },
+                        {
+                            "name": "By Unit & Environment",
+                            "href": "/costs/aws/units-envs/",
+                            "api": "/aws/costs/{apiVersion}/monhtly/{startDate}/{endDate}/units/envs/"
+                        },
+                        {
+                            "name": "Detailed Breakdown",
+                            "href": "/costs/aws/detailed/",
+                            "api": "/aws/costs/{apiVersion}/monhtly/{startDate}/{endDate}/units/envs/services/"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
