@@ -1,0 +1,12 @@
+{{ define "top-navigation" }}
+{{ if not ( eq (len .NavigationTop) 0) }}
+<nav id="app-navigation" class="app-navigation js-app-navigation govuk-clearfix" role="navigation" aria-labelledby="app-navigation-heading">
+    <h2 class="govuk-visually-hidden" id="app-navigation-heading">Menu</h2>
+    <ul class="app-navigation__list app-width-container">
+      {{ range .NavigationTop }}
+        {{ template "top-navigation-item" . }}
+      {{ end }}
+    </ul>
+</nav>
+{{ end }}
+{{ end }}

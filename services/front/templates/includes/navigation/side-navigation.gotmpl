@@ -1,0 +1,15 @@
+{{ define "side-navigation" }}
+{{ if not ( eq (len .NavigationSide) 0) }}
+<div class="app-split-pane__nav">
+    <nav class="app-subnav" aria-labelledby="app-subnav-heading">
+        <h2 class="govuk-visually-hidden" id="app-subnav-heading">Pages in this section</h2>
+        <ul class="app-subnav__section">
+            {{ range .NavigationSide }}
+                {{ template "side-navigation-item" . }}
+            {{ end }}
+        </ul>
+    </nav>
+
+</div>
+{{ end }}
+{{ end }}

@@ -1,0 +1,9 @@
+{{ define "top-navigation-item" }}
+{{ if not .Exclude }}
+<li class="app-navigation__list-item ">
+    <a class="govuk-link govuk-link--no-visited-state govuk-link--no-underline app-navigation__link" href="{{ .Href }}">
+    {{ .Name }}
+    </a>
+</li>
+{{ end }}
+{{ end }}

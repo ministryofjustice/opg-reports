@@ -1,0 +1,28 @@
+{{ define "head" }}
+  <!DOCTYPE html>
+  <html lang="en" class="govuk-template app-html-class">
+    <head>
+      <meta charset="utf-8">
+      <title>{{ .PageTitle }}{{ .Organisation }} Reports</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+      <link rel="icon" sizes="48x48" href="/assets/images/favicon.ico">
+      <link rel="icon" sizes="any" href="/assets/images/favicon.svg" type="image/svg+xml">
+      <link rel="mask-icon" href="/assets/images/govuk-icon-mask.svg" color="#0b0c0c">
+      <link rel="apple-touch-icon" href="/assets/images/govuk-icon-180.png">
+      <link rel="manifest" href="/assets/manifest.json">
+
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <link href="/assets/css/govuk-frontend-5.4.0.min.css" rel="stylesheet" media="all">
+      <link href="/assets/local.css" rel="stylesheet" media="all">
+    </head>
+
+    <body class="govuk-template__body org-reporting">
+        {{ template "banner" . }}
+        {{ template "top-navigation" . }}
+
+        <div class="app-split-pane app-width-container">
+          {{ template "side-navigation" . }}
+          <div class="app-split-pane__content">
+            <main id="main-content" class="app-content" role="main">
+{{ end }}
