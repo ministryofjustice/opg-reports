@@ -19,8 +19,6 @@ func main() {
 	// configure the logger
 	logger.LogSetup()
 
-	// mwMux := middleware.NewMiddlewareServerMux(http.NewServeMux())
-
 	mux := http.NewServeMux()
 
 	awsCostMonthlyF := files.NewFS(awsCostMonthlyFs, "data/aws/cost/monthly/")
@@ -28,7 +26,7 @@ func main() {
 	awsCostMonthlyApi := monthly.New(awsCostMonthlyS, awsCostMonthlyF)
 	awsCostMonthlyApi.Register(mux)
 
-	addr := env.Get("ADDR", ":8080")
+	addr := env.Get("API_ADDR", ":8081")
 	server := &http.Server{
 		Addr:    addr,
 		Handler: mux,
