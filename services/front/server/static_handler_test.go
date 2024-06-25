@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
 	"opg-reports/services/front/cnf"
 	"opg-reports/services/front/tmpl"
@@ -16,8 +15,6 @@ func TestFrontServerStaticHandler(t *testing.T) {
 	dfSys := os.DirFS(tDir).(files.IReadFS)
 	f := files.NewFS(dfSys, tDir)
 	templates := tmpl.Files(f, tDir)
-
-	fmt.Println(templates)
 
 	mux := testMux()
 	conf, _ := cnf.Load([]byte(testRealisticCfg))
@@ -38,6 +35,5 @@ func TestFrontServerStaticHandler(t *testing.T) {
 	if !strings.Contains(str, "OPG Report") {
 		t.Errorf("org not rendered")
 	}
-	fmt.Println(str)
 
 }
