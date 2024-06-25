@@ -21,9 +21,9 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	awsCostMonthlyF := files.NewFS(awsCostMonthlyFs, "data/aws/cost/monthly/")
-	awsCostMonthlyS := data.NewStoreFromFS[*cost.Cost, *files.WriteFS](awsCostMonthlyF)
-	awsCostMonthlyApi := monthly.New(awsCostMonthlyS, awsCostMonthlyF)
+	awsCostMonthlyFs := files.NewFS(awsCostMonthlyFs, "data/aws/cost/monthly/")
+	awsCostMonthlyStore := data.NewStoreFromFS[*cost.Cost, *files.WriteFS](awsCostMonthlyFs)
+	awsCostMonthlyApi := monthly.New(awsCostMonthlyStore, awsCostMonthlyFs)
 	awsCostMonthlyApi.Register(mux)
 
 	addr := env.Get("API_ADDR", ":8081")
