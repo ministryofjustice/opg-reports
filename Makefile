@@ -2,8 +2,9 @@ SHELL := $(shell which bash)
 OS := $(shell uname | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m)
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
-BUILD_FOLDER := ${ROOT_DIR}builds
-REPORTS_DIR := ${ROOT_DIR}cmd/report
+VERSION_UK_GOV_FRONT := "v5.4.0"
+# BUILD_FOLDER := ${ROOT_DIR}builds
+# REPORTS_DIR := ${ROOT_DIR}cmd/report
 
 # check and set the correct goarch
 ifeq (${ARCH}, 'x86_64')
@@ -12,18 +13,23 @@ else
 	BUILD_ARCH := ${ARCH}
 endif
 
-.PHONY: test tests benchmarks coverage
-# clean out any build files
-clean:
-	@rm -Rf ${BUILD_FOLDER}
-	@mkdir -p ${BUILD_FOLDER} ${BUILD_FOLDER}/report
+.PHONY: test tests benchmarks coverage govuk-frontend
 
-# Builds all the commands in the report folder into the builds folder
-build_reports: ${REPORTS_DIR}/*
-	@for f in $^; do  \
-        echo "building: " $${f##*/} && \
-		env GOOS=${OS} GOARCH=${BUILD_ARCH} go build -o ${BUILD_FOLDER}/report/$${f##*/} $${f}/main.go ; \
-    done
+govuk-frontend:
+	@rm -Rf ./builds/govuk-frontend
+	@rm -Rf ./services/front/assets/css/
+	@rm -Rf ./services/front/assets/fonts/
+	@rm -Rf ./services/front/assets/images/
+	@rm -Rf ./services/front/assets/manifest.json
+	@mkdir -p ./builds/govuk-frontend
+	@cd ./builds/govuk-frontend && gh release download ${VERSION_UK_GOV_FRONT} -R alphagov/govuk-frontend
+	@cd ./builds/govuk-frontend && unzip -qq release-${VERSION_UK_GOV_FRONT}.zip
+	@cd ./builds/govuk-frontend && mkdir -p ./assets/css/ && mv govuk-frontend-*.css* ./assets/css/
+	@mv ./builds/govuk-frontend/assets/css/ ./services/front/assets/
+	@mv ./builds/govuk-frontend/assets/fonts/ ./services/front/assets/
+	@mv ./builds/govuk-frontend/assets/images/ ./services/front/assets/
+	@mv ./builds/govuk-frontend/assets/manifest.json ./services/front/assets/
+	@rm -Rf ./builds/govuk-frontend
 
 test:
 	@go clean -testcache

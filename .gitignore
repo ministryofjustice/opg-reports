@@ -1,5 +1,11 @@
+#
 **/data/*.json
+# build dir
 builds/*
+# code coverage output file
 code-coverage.out
-static*
-assets*
+# assets pulled over from govuk via make
+**/assets/css*
+**/assets/fonts*
+**/assets/images*
+**/assets/manifest.json
