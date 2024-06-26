@@ -3,376 +3,792 @@ package server
 import (
 	"net/http"
 	"net/http/httptest"
-	"opg-reports/shared/server"
 )
 
-var testRealisticCfg = `{
-    "organisation": "OPG",
-    "sections": [
-        {
-            "name": "Home",
-            "href": "/",
-            "exclude": true,
-            "template": "static-home"
-        },
-        {
-            "name": "Costs",
-            "template": "static-costs-home",
-            "href": "/costs/",
-            "sections": [
-                {
-                    "name": "AWS Costs",
-                    "href": "/costs/aws/",
-                    "header": true,
-                    "sections": [
-                        {
-                            "name": "Totals",
-                            "href": "/costs/aws/totals/",
-                            "api": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/",
-                            "handler": "MapMapSlice",
-                            "template": "dynamic-aws-costs-totals"
-                        },
-                        {
-                            "name": "By Unit",
-                            "href": "/costs/aws/units/",
-                            "api": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/units/",
-                            "handler": "MapSlice"
-                        },
-                        {
-                            "name": "By Unit & Environment",
-                            "href": "/costs/aws/units-envs/",
-                            "api": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/units/envs/",
-                            "handler": "MapSlice"
-                        },
-                        {
-                            "name": "Detailed Breakdown",
-                            "href": "/costs/aws/detailed/",
-                            "api": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/units/envs/services/",
-                            "handler": "MapSlice"
-                        }
-                    ]
-                }
-            ]
-        }
-    ]
-}`
-
-var testCfg = `{
-	"organisation": "test-org",
-	"sections": [
-		{
-			"name": "Home",
-			"href": "/",
-			"exclude": true,
-			"template": "static-home"
-		},
-		{
-			"name": "Section 1",
-			"href": "/s1/",
-			"template": "static-home",
-			"sections": [
-				{
-					"Name": "S1.1",
-					"href": "/s1/1/"
-				},
-				{
-					"Name": "S1.2",
-					"href": "/s1/2/"
-				}
-			]
-		},
-		{
-			"name": "Section 2",
-			"href": "/s2/",
-			"sections": [
-				{
-					"Name": "S2.1",
-					"href": "/s2/1/"
-				},
-				{
-					"Name": "S2.2",
-					"href": "/s2/2/",
-					"sections": [
-						{
-							"Name": "S2.2.1",
-							"href": "/s2/2/1/"
-						}
-					]
-				}
-			]
-		}
-	]
-}`
-var mockServerType server.ApiResponseConstraintString = "map[string]map[string][]*cost.Cost"
-var mockServerResponse string = `{
+const mockAwsCostTotalsResponse string = `{
     "timings": {
-        "start": "2024-06-25T17:13:54.516722Z",
-        "end": "2024-06-25T17:13:54.516773Z",
-        "duration": 51000
+        "start": "2024-06-26T16:26:04.226572Z",
+        "end": "2024-06-26T16:26:04.232055Z",
+        "duration": 5483000
     },
     "status": 200,
     "errors": [],
-    "result_type": "map[string]map[string][]*cost.Cost",
     "result": {
-        "with_tax": {
-            "month^2023-12.": [
+        "headings": {
+            "cells": [
                 {
-                    "uuid": "c911b825-9be8-43ea-83c8-8fb5b7d3e1d4",
-                    "account_organsiation": "Cn3",
-                    "account_id": "244002",
-                    "account_environment": "DKb",
-                    "account_name": "gkYWi6PXWs",
-                    "account_unit": "gMIV",
-                    "account_label": "K82RR",
-                    "service": "ecs",
-                    "region": "1gZC",
-                    "date": "2023-12-22T01:24:12Z",
-                    "cost": "5464.788727"
-                }
-            ],
-            "month^2024-01.": [
-                {
-                    "uuid": "61392250-18ea-4323-aaf6-00b37be881c2",
-                    "account_organsiation": "pm7",
-                    "account_id": "386289",
-                    "account_environment": "bcX",
-                    "account_name": "fxYOfS5Pmn",
-                    "account_unit": "mPIb",
-                    "account_label": "4hGmO",
-                    "service": "ec2",
-                    "region": "RaNf",
-                    "date": "2024-01-12T19:11:55Z",
-                    "cost": "5096.116557"
+                    "name": "",
+                    "value": ""
                 },
                 {
-                    "uuid": "ff41b2a4-c669-49fa-a8c4-841897999345",
-                    "account_organsiation": "gpP",
-                    "account_id": "794712",
-                    "account_environment": "CSn",
-                    "account_name": "JOORuHI3Is",
-                    "account_unit": "GgqT",
-                    "account_label": "5ZaNx",
-                    "service": "ec2",
-                    "region": "wb1z",
-                    "date": "2024-01-22T08:59:34Z",
-                    "cost": "7397.055649"
+                    "name": "2023-12",
+                    "value": ""
                 },
                 {
-                    "uuid": "a53a79af-1fa5-45c8-910a-77c7d9075f4c",
-                    "account_organsiation": "9Ly",
-                    "account_id": "129324",
-                    "account_environment": "N8M",
-                    "account_name": "aJlYMsuoKd",
-                    "account_unit": "FyKY",
-                    "account_label": "YrM59",
-                    "service": "ecs",
-                    "region": "UlG2",
-                    "date": "2024-01-10T21:45:37Z",
-                    "cost": "5327.629128"
-                }
-            ],
-            "month^2024-02.": [
-                {
-                    "uuid": "54b8846e-9272-40fb-85d9-c04da9c29ba4",
-                    "account_organsiation": "nU0",
-                    "account_id": "821882",
-                    "account_environment": "gzF",
-                    "account_name": "eeZwO5L5Oy",
-                    "account_unit": "N4O1",
-                    "account_label": "LjB3R",
-                    "service": "r53",
-                    "region": "ShdA",
-                    "date": "2024-02-27T11:12:21Z",
-                    "cost": "3116.061929"
-                }
-            ],
-            "month^2024-03.": [
-                {
-                    "uuid": "fcc75cb0-317a-4f56-8881-911011430bfa",
-                    "account_organsiation": "tO5",
-                    "account_id": "847563",
-                    "account_environment": "CXB",
-                    "account_name": "nTC1xYD8Nl",
-                    "account_unit": "PGyT",
-                    "account_label": "f6ntN",
-                    "service": "rds",
-                    "region": "BieP",
-                    "date": "2024-03-20T11:08:45Z",
-                    "cost": "3696.366160"
-                }
-            ],
-            "month^2024-05.": [
-                {
-                    "uuid": "5558cb54-6bf7-4f79-ab49-4b273fa3dff3",
-                    "account_organsiation": "NTw",
-                    "account_id": "385018",
-                    "account_environment": "DbO",
-                    "account_name": "LefPLZeTRx",
-                    "account_unit": "3Ys0",
-                    "account_label": "giX9P",
-                    "service": "tax",
-                    "region": "duWW",
-                    "date": "2024-05-15T19:09:24+01:00",
-                    "cost": "1258.826527"
-                }
-            ],
-            "month^2024-06.": [
-                {
-                    "uuid": "6a15f37f-9882-400e-a04b-2fee41f7ef01",
-                    "account_organsiation": "09A",
-                    "account_id": "415612",
-                    "account_environment": "Kra",
-                    "account_name": "BCkUqTQNB1",
-                    "account_unit": "4k7M",
-                    "account_label": "fAW3f",
-                    "service": "r53",
-                    "region": "YOAd",
-                    "date": "2024-06-23T05:25:24+01:00",
-                    "cost": "9596.483581"
+                    "name": "2024-01",
+                    "value": ""
                 },
                 {
-                    "uuid": "1a05cb54-7997-4559-8857-f126d5350671",
-                    "account_organsiation": "ulA",
-                    "account_id": "628321",
-                    "account_environment": "n1O",
-                    "account_name": "2K7odlcLzl",
-                    "account_unit": "cQLk",
-                    "account_label": "qppYs",
-                    "service": "r53",
-                    "region": "QepB",
-                    "date": "2024-06-30T02:12:43+01:00",
-                    "cost": "5000.559594"
+                    "name": "2024-02",
+                    "value": ""
+                },
+                {
+                    "name": "2024-03",
+                    "value": ""
                 }
             ]
         },
-        "without_tax": {
-            "month^2023-12.": [
+        "rows": [
+            {
+                "cells": [
+                    {
+                        "name": "Without Tax",
+                        "value": "Without Tax"
+                    },
+                    {
+                        "name": "2023-12",
+                        "value": "1329101.583654"
+                    },
+                    {
+                        "name": "2024-01",
+                        "value": "1252176.507914"
+                    },
+                    {
+                        "name": "2024-02",
+                        "value": "1117055.982422"
+                    },
+                    {
+                        "name": "2024-03",
+                        "value": "0.000000"
+                    }
+                ]
+            },
+            {
+                "cells": [
+                    {
+                        "name": "With Tax",
+                        "value": "With Tax"
+                    },
+                    {
+                        "name": "2023-12",
+                        "value": "1664994.069984"
+                    },
+                    {
+                        "name": "2024-01",
+                        "value": "1481791.853741"
+                    },
+                    {
+                        "name": "2024-02",
+                        "value": "1414703.158002"
+                    },
+                    {
+                        "name": "2024-03",
+                        "value": "0.000000"
+                    }
+                ]
+            }
+        ]
+    }
+}`
+const mockAwsCostUnitsResponse string = `{
+    "timings": {
+        "start": "2024-06-26T16:25:27.264395Z",
+        "end": "2024-06-26T16:25:27.268054Z",
+        "duration": 3659000
+    },
+    "status": 200,
+    "errors": [],
+    "result": {
+        "headings": {
+            "cells": [
                 {
-                    "uuid": "c911b825-9be8-43ea-83c8-8fb5b7d3e1d4",
-                    "account_organsiation": "Cn3",
-                    "account_id": "244002",
-                    "account_environment": "DKb",
-                    "account_name": "gkYWi6PXWs",
-                    "account_unit": "gMIV",
-                    "account_label": "K82RR",
-                    "service": "ecs",
-                    "region": "1gZC",
-                    "date": "2023-12-22T01:24:12Z",
-                    "cost": "5464.788727"
-                }
-            ],
-            "month^2024-01.": [
-                {
-                    "uuid": "ff41b2a4-c669-49fa-a8c4-841897999345",
-                    "account_organsiation": "gpP",
-                    "account_id": "794712",
-                    "account_environment": "CSn",
-                    "account_name": "JOORuHI3Is",
-                    "account_unit": "GgqT",
-                    "account_label": "5ZaNx",
-                    "service": "ec2",
-                    "region": "wb1z",
-                    "date": "2024-01-22T08:59:34Z",
-                    "cost": "7397.055649"
+                    "name": "Unit",
+                    "value": ""
                 },
                 {
-                    "uuid": "a53a79af-1fa5-45c8-910a-77c7d9075f4c",
-                    "account_organsiation": "9Ly",
-                    "account_id": "129324",
-                    "account_environment": "N8M",
-                    "account_name": "aJlYMsuoKd",
-                    "account_unit": "FyKY",
-                    "account_label": "YrM59",
-                    "service": "ecs",
-                    "region": "UlG2",
-                    "date": "2024-01-10T21:45:37Z",
-                    "cost": "5327.629128"
+                    "name": "2023-12",
+                    "value": ""
                 },
                 {
-                    "uuid": "61392250-18ea-4323-aaf6-00b37be881c2",
-                    "account_organsiation": "pm7",
-                    "account_id": "386289",
-                    "account_environment": "bcX",
-                    "account_name": "fxYOfS5Pmn",
-                    "account_unit": "mPIb",
-                    "account_label": "4hGmO",
-                    "service": "ec2",
-                    "region": "RaNf",
-                    "date": "2024-01-12T19:11:55Z",
-                    "cost": "5096.116557"
-                }
-            ],
-            "month^2024-02.": [
-                {
-                    "uuid": "54b8846e-9272-40fb-85d9-c04da9c29ba4",
-                    "account_organsiation": "nU0",
-                    "account_id": "821882",
-                    "account_environment": "gzF",
-                    "account_name": "eeZwO5L5Oy",
-                    "account_unit": "N4O1",
-                    "account_label": "LjB3R",
-                    "service": "r53",
-                    "region": "ShdA",
-                    "date": "2024-02-27T11:12:21Z",
-                    "cost": "3116.061929"
-                }
-            ],
-            "month^2024-03.": [
-                {
-                    "uuid": "fcc75cb0-317a-4f56-8881-911011430bfa",
-                    "account_organsiation": "tO5",
-                    "account_id": "847563",
-                    "account_environment": "CXB",
-                    "account_name": "nTC1xYD8Nl",
-                    "account_unit": "PGyT",
-                    "account_label": "f6ntN",
-                    "service": "rds",
-                    "region": "BieP",
-                    "date": "2024-03-20T11:08:45Z",
-                    "cost": "3696.366160"
-                }
-            ],
-            "month^2024-06.": [
-                {
-                    "uuid": "1a05cb54-7997-4559-8857-f126d5350671",
-                    "account_organsiation": "ulA",
-                    "account_id": "628321",
-                    "account_environment": "n1O",
-                    "account_name": "2K7odlcLzl",
-                    "account_unit": "cQLk",
-                    "account_label": "qppYs",
-                    "service": "r53",
-                    "region": "QepB",
-                    "date": "2024-06-30T02:12:43+01:00",
-                    "cost": "5000.559594"
+                    "name": "2024-01",
+                    "value": ""
                 },
                 {
-                    "uuid": "6a15f37f-9882-400e-a04b-2fee41f7ef01",
-                    "account_organsiation": "09A",
-                    "account_id": "415612",
-                    "account_environment": "Kra",
-                    "account_name": "BCkUqTQNB1",
-                    "account_unit": "4k7M",
-                    "account_label": "fAW3f",
-                    "service": "r53",
-                    "region": "YOAd",
-                    "date": "2024-06-23T05:25:24+01:00",
-                    "cost": "9596.483581"
+                    "name": "2024-02",
+                    "value": ""
+                },
+                {
+                    "name": "2024-03",
+                    "value": ""
                 }
             ]
-        }
+        },
+        "rows": [
+            {
+                "cells": [
+                    {
+                        "name": "teamTwo",
+                        "value": "teamTwo"
+                    },
+                    {
+                        "name": "2023-12",
+                        "value": "463581.575155"
+                    },
+                    {
+                        "name": "2024-01",
+                        "value": "399935.015446"
+                    },
+                    {
+                        "name": "2024-02",
+                        "value": "446120.042567"
+                    },
+                    {
+                        "name": "2024-03",
+                        "value": "0.000000"
+                    }
+                ]
+            },
+            {
+                "cells": [
+                    {
+                        "name": "teamThree",
+                        "value": "teamThree"
+                    },
+                    {
+                        "name": "2023-12",
+                        "value": "606809.650879"
+                    },
+                    {
+                        "name": "2024-01",
+                        "value": "537143.712587"
+                    },
+                    {
+                        "name": "2024-02",
+                        "value": "488254.288767"
+                    },
+                    {
+                        "name": "2024-03",
+                        "value": "0.000000"
+                    }
+                ]
+            },
+            {
+                "cells": [
+                    {
+                        "name": "teamOne",
+                        "value": "teamOne"
+                    },
+                    {
+                        "name": "2023-12",
+                        "value": "547004.109814"
+                    },
+                    {
+                        "name": "2024-01",
+                        "value": "446731.122453"
+                    },
+                    {
+                        "name": "2024-02",
+                        "value": "446662.885689"
+                    },
+                    {
+                        "name": "2024-03",
+                        "value": "0.000000"
+                    }
+                ]
+            }
+        ]
+    }
+}`
+const mockAwsCostUnitEnvsResponse string = `{
+    "timings": {
+        "start": "2024-06-26T16:24:49.149363Z",
+        "end": "2024-06-26T16:24:49.149415Z",
+        "duration": 52000
+    },
+    "status": 200,
+    "errors": [],
+    "result": {
+        "headings": {
+            "cells": [
+                {
+                    "name": "Unit",
+                    "value": ""
+                },
+                {
+                    "name": "Environment",
+                    "value": ""
+                },
+                {
+                    "name": "2023-12",
+                    "value": ""
+                },
+                {
+                    "name": "2024-01",
+                    "value": ""
+                },
+                {
+                    "name": "2024-02",
+                    "value": ""
+                },
+                {
+                    "name": "2024-03",
+                    "value": ""
+                }
+            ]
+        },
+        "rows": [
+            {
+                "cells": [
+                    {
+                        "name": "teamTwo",
+                        "value": "teamTwo"
+                    },
+                    {
+                        "name": "dev",
+                        "value": "dev"
+                    },
+                    {
+                        "name": "2023-12",
+                        "value": "3111.488494"
+                    },
+                    {
+                        "name": "2024-01",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-02",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-03",
+                        "value": "0.000000"
+                    }
+                ]
+            },
+            {
+                "cells": [
+                    {
+                        "name": "teamOne",
+                        "value": "teamOne"
+                    },
+                    {
+                        "name": "prod",
+                        "value": "prod"
+                    },
+                    {
+                        "name": "2023-12",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-01",
+                        "value": "2704.267815"
+                    },
+                    {
+                        "name": "2024-02",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-03",
+                        "value": "0.000000"
+                    }
+                ]
+            },
+            {
+                "cells": [
+                    {
+                        "name": "teamTwo",
+                        "value": "teamTwo"
+                    },
+                    {
+                        "name": "prod",
+                        "value": "prod"
+                    },
+                    {
+                        "name": "2023-12",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-01",
+                        "value": "2820.031982"
+                    },
+                    {
+                        "name": "2024-02",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-03",
+                        "value": "0.000000"
+                    }
+                ]
+            },
+            {
+                "cells": [
+                    {
+                        "name": "teamThree",
+                        "value": "teamThree"
+                    },
+                    {
+                        "name": "dev",
+                        "value": "dev"
+                    },
+                    {
+                        "name": "2023-12",
+                        "value": "2042.579808"
+                    },
+                    {
+                        "name": "2024-01",
+                        "value": "8825.299206"
+                    },
+                    {
+                        "name": "2024-02",
+                        "value": "3119.397026"
+                    },
+                    {
+                        "name": "2024-03",
+                        "value": "0.000000"
+                    }
+                ]
+            },
+            {
+                "cells": [
+                    {
+                        "name": "teamThree",
+                        "value": "teamThree"
+                    },
+                    {
+                        "name": "prod",
+                        "value": "prod"
+                    },
+                    {
+                        "name": "2023-12",
+                        "value": "9073.416082"
+                    },
+                    {
+                        "name": "2024-01",
+                        "value": "6504.427462"
+                    },
+                    {
+                        "name": "2024-02",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-03",
+                        "value": "0.000000"
+                    }
+                ]
+            },
+            {
+                "cells": [
+                    {
+                        "name": "teamOne",
+                        "value": "teamOne"
+                    },
+                    {
+                        "name": "dev",
+                        "value": "dev"
+                    },
+                    {
+                        "name": "2023-12",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-01",
+                        "value": "8449.203764"
+                    },
+                    {
+                        "name": "2024-02",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-03",
+                        "value": "0.000000"
+                    }
+                ]
+            }
+        ]
+    }
+}`
+const mockAwsCostUnitEnvServicesResponse string = `{
+    "timings": {
+        "start": "2024-06-26T16:23:59.882394Z",
+        "end": "2024-06-26T16:23:59.88246Z",
+        "duration": 66000
+    },
+    "status": 200,
+    "errors": [],
+    "result": {
+        "headings": {
+            "cells": [
+                {
+                    "name": "Account",
+                    "value": ""
+                },
+                {
+                    "name": "Unit",
+                    "value": ""
+                },
+                {
+                    "name": "Environment",
+                    "value": ""
+                },
+                {
+                    "name": "Service",
+                    "value": ""
+                },
+                {
+                    "name": "2023-12",
+                    "value": ""
+                },
+                {
+                    "name": "2024-01",
+                    "value": ""
+                },
+                {
+                    "name": "2024-02",
+                    "value": ""
+                },
+                {
+                    "name": "2024-03",
+                    "value": ""
+                }
+            ]
+        },
+        "rows": [
+            {
+                "cells": [
+                    {
+                        "name": "515146",
+                        "value": "515146"
+                    },
+                    {
+                        "name": "teamOne",
+                        "value": "teamOne"
+                    },
+                    {
+                        "name": "dev",
+                        "value": "dev"
+                    },
+                    {
+                        "name": "VlHuY9Yh",
+                        "value": "VlHuY9Yh"
+                    },
+                    {
+                        "name": "2023-12",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-01",
+                        "value": "7206.463369"
+                    },
+                    {
+                        "name": "2024-02",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-03",
+                        "value": "0.000000"
+                    }
+                ]
+            },
+            {
+                "cells": [
+                    {
+                        "name": "783083",
+                        "value": "783083"
+                    },
+                    {
+                        "name": "teamThree",
+                        "value": "teamThree"
+                    },
+                    {
+                        "name": "dev",
+                        "value": "dev"
+                    },
+                    {
+                        "name": "eZGddgAY",
+                        "value": "eZGddgAY"
+                    },
+                    {
+                        "name": "2023-12",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-01",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-02",
+                        "value": "7699.819039"
+                    },
+                    {
+                        "name": "2024-03",
+                        "value": "0.000000"
+                    }
+                ]
+            },
+            {
+                "cells": [
+                    {
+                        "name": "322933",
+                        "value": "322933"
+                    },
+                    {
+                        "name": "teamThree",
+                        "value": "teamThree"
+                    },
+                    {
+                        "name": "preprod",
+                        "value": "preprod"
+                    },
+                    {
+                        "name": "Tj5ELRYC",
+                        "value": "Tj5ELRYC"
+                    },
+                    {
+                        "name": "2023-12",
+                        "value": "1337.020225"
+                    },
+                    {
+                        "name": "2024-01",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-02",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-03",
+                        "value": "0.000000"
+                    }
+                ]
+            },
+            {
+                "cells": [
+                    {
+                        "name": "683652",
+                        "value": "683652"
+                    },
+                    {
+                        "name": "teamOne",
+                        "value": "teamOne"
+                    },
+                    {
+                        "name": "dev",
+                        "value": "dev"
+                    },
+                    {
+                        "name": "tXlnSCF6",
+                        "value": "tXlnSCF6"
+                    },
+                    {
+                        "name": "2023-12",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-01",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-02",
+                        "value": "5493.534212"
+                    },
+                    {
+                        "name": "2024-03",
+                        "value": "0.000000"
+                    }
+                ]
+            },
+            {
+                "cells": [
+                    {
+                        "name": "128316",
+                        "value": "128316"
+                    },
+                    {
+                        "name": "teamTwo",
+                        "value": "teamTwo"
+                    },
+                    {
+                        "name": "preprod",
+                        "value": "preprod"
+                    },
+                    {
+                        "name": "eJw5raua",
+                        "value": "eJw5raua"
+                    },
+                    {
+                        "name": "2023-12",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-01",
+                        "value": "9382.370540"
+                    },
+                    {
+                        "name": "2024-02",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-03",
+                        "value": "0.000000"
+                    }
+                ]
+            },
+            {
+                "cells": [
+                    {
+                        "name": "368206",
+                        "value": "368206"
+                    },
+                    {
+                        "name": "teamThree",
+                        "value": "teamThree"
+                    },
+                    {
+                        "name": "prod",
+                        "value": "prod"
+                    },
+                    {
+                        "name": "7f0BQzZV",
+                        "value": "7f0BQzZV"
+                    },
+                    {
+                        "name": "2023-12",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-01",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-02",
+                        "value": "8675.389262"
+                    },
+                    {
+                        "name": "2024-03",
+                        "value": "0.000000"
+                    }
+                ]
+            },
+            {
+                "cells": [
+                    {
+                        "name": "173261",
+                        "value": "173261"
+                    },
+                    {
+                        "name": "teamOne",
+                        "value": "teamOne"
+                    },
+                    {
+                        "name": "dev",
+                        "value": "dev"
+                    },
+                    {
+                        "name": "ifoX4hVV",
+                        "value": "ifoX4hVV"
+                    },
+                    {
+                        "name": "2023-12",
+                        "value": "7247.300916"
+                    },
+                    {
+                        "name": "2024-01",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-02",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-03",
+                        "value": "0.000000"
+                    }
+                ]
+            },
+            {
+                "cells": [
+                    {
+                        "name": "768978",
+                        "value": "768978"
+                    },
+                    {
+                        "name": "teamOne",
+                        "value": "teamOne"
+                    },
+                    {
+                        "name": "dev",
+                        "value": "dev"
+                    },
+                    {
+                        "name": "yecSR2eo",
+                        "value": "yecSR2eo"
+                    },
+                    {
+                        "name": "2023-12",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-01",
+                        "value": "1131.035523"
+                    },
+                    {
+                        "name": "2024-02",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-03",
+                        "value": "0.000000"
+                    }
+                ]
+            },
+            {
+                "cells": [
+                    {
+                        "name": "292724",
+                        "value": "292724"
+                    },
+                    {
+                        "name": "teamTwo",
+                        "value": "teamTwo"
+                    },
+                    {
+                        "name": "dev",
+                        "value": "dev"
+                    },
+                    {
+                        "name": "MmeEB0xG",
+                        "value": "MmeEB0xG"
+                    },
+                    {
+                        "name": "2023-12",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-01",
+                        "value": "2414.480628"
+                    },
+                    {
+                        "name": "2024-02",
+                        "value": "0.000000"
+                    },
+                    {
+                        "name": "2024-03",
+                        "value": "0.000000"
+                    }
+                ]
+            }
+        ]
     }
 }`
 
-func mockServerAWSCostTotals() *httptest.Server {
+func mockServer(resp string, status int) *httptest.Server {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add(server.ResponseTypeHeader, string(mockServerType))
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(mockServerResponse))
+		w.WriteHeader(status)
+		w.Write([]byte(resp))
 	}))
 	return server
 }
-
 func testMux() *http.ServeMux {
 	return http.NewServeMux()
 }

@@ -39,7 +39,7 @@
 }
 
 .app-split-pane__nav {
-    width:260px;
+    width:180px;
 }
 
 .app-split-pane__content {
@@ -69,6 +69,7 @@
 .app-subnav__section h3{
     margin-bottom: 0;
     font-weight: 400;
+    font-size: 1.1rem;
 }
 
 .app-content{
@@ -88,7 +89,10 @@
     padding: 5px;
 }
 
-.dataframe .govuk-table__head .govuk-table__header,
-.dataframe .govuk-table__body .govuk-table__cell{
+.dataframe.govuk-table .data-cell{
     text-align: right;
+}
+
+.dataframe.govuk-table .govuk-table__header.last-header{
+    border-right: 1px solid #b1b4b6;
 }

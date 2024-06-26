@@ -35,10 +35,6 @@ func ToIdx[T IEntry](item T, fields ...string) string {
 	return str
 }
 
-func ToIdxKV(key string, value string) string {
-	return fmt.Sprintf("%s%s%s%s", key, endOfKey, value, endOfField)
-}
-
 // ToIdxF generates a striung index for grouping that merges the field name and the field value.
 // This allows a 1 depth map (map[string][]T) that is grouped by multiple fields
 //
@@ -49,6 +45,8 @@ func ToIdxF[T IEntry](item T, funcs ...IStoreIdxer[T]) string {
 	str := ""
 	for _, f := range funcs {
 		key, value := f(item)
+		key = strings.ToLower(key)
+
 		if value == "" {
 			value = "-"
 		}
@@ -56,18 +54,4 @@ func ToIdxF[T IEntry](item T, funcs ...IStoreIdxer[T]) string {
 	}
 	slog.Debug("[data/entry] ToIdx", slog.String("UID", item.UID()), slog.String("idx", str))
 	return str
-}
-
-// FromIdx converts a string from ToIdx to a map of field:value
-func FromIdx(idx string) (fieldsAndValues map[string]string) {
-	fieldsAndValues = map[string]string{}
-
-	for _, fv := range strings.Split(idx, endOfField) {
-		chunks := strings.Split(fv, endOfKey)
-		if len(chunks) == 2 {
-			fieldsAndValues[chunks[0]] = chunks[1]
-		}
-	}
-	slog.Debug("[data/entry] FromIdx", slog.String("idx", idx), slog.String("fieldsAndValues", fmt.Sprintf("%+v", fieldsAndValues)))
-	return
 }

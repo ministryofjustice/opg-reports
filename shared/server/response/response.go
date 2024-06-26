@@ -195,17 +195,17 @@ func (i *Base) AddErrorWithStatus(err error, status int) {
 // its return type
 type Result[C ICell, R IRow[C], D ITableData[C, R]] struct {
 	Base
-	Result D `json:"result"`
+	Res D `json:"result"`
 }
 
 // SetResult updates the internal result data
 func (i *Result[C, R, D]) SetResult(result D) {
-	i.Result = result
+	i.Res = result
 }
 
 // GetResult returns the result
 func (i *Result[C, R, D]) GetResult() D {
-	return i.Result
+	return i.Res
 }
 
 // NewSimpleResult returns a fresh Base with
@@ -218,15 +218,19 @@ func NewSimpleResult() *Base {
 	}
 }
 
-func NewResult() *Result[*Cell, *Row[*Cell], *TableData[*Cell, *Row[*Cell]]] {
+func NewResponse() *Result[*Cell, *Row[*Cell], *TableData[*Cell, *Row[*Cell]]] {
 	return &Result[*Cell, *Row[*Cell], *TableData[*Cell, *Row[*Cell]]]{
 		Base: *NewSimpleResult(),
 	}
 }
 
-func NewResultFromJson[C ICell, R IRow[C], D ITableData[C, R]](content []byte, i *Result[C, R, D]) (response *Result[C, R, D], err error) {
+func NewResponseFromJson[C ICell, R IRow[C], D ITableData[C, R]](content []byte, i *Result[C, R, D]) (response *Result[C, R, D], err error) {
 	err = json.Unmarshal(content, i)
 	return i, err
+}
+func NewResponseFromHttp[C ICell, R IRow[C], D ITableData[C, R]](r *http.Response, i *Result[C, R, D]) (response *Result[C, R, D], err error) {
+	_, by := Stringify(r)
+	return NewResponseFromJson(by, i)
 }
 
 // Stringify takes a http.Response and returns string & []byte

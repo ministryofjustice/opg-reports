@@ -5,7 +5,7 @@ import (
 	"opg-reports/services/front/cnf"
 	"opg-reports/services/front/tmpl"
 	"opg-reports/shared/files"
-	"opg-reports/shared/server"
+	"opg-reports/shared/server/response"
 	"os"
 	"strings"
 	"testing"
@@ -18,7 +18,7 @@ func TestFrontServerStaticHandler(t *testing.T) {
 	templates := tmpl.Files(f, tDir)
 
 	mux := testMux()
-	conf, _ := cnf.Load([]byte(testRealisticCfg))
+	conf, _ := cnf.Load([]byte(testRealisticServerCnf))
 	s := New(conf, templates, "", "")
 	s.Register(mux)
 
@@ -31,7 +31,7 @@ func TestFrontServerStaticHandler(t *testing.T) {
 		t.Errorf("should return 200")
 	}
 
-	str, _ := server.ResponseAsStrings(w.Result())
+	str, _ := response.Stringify(w.Result())
 
 	if !strings.Contains(str, "OPG Report") {
 		t.Errorf("org not rendered")

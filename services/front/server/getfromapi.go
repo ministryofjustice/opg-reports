@@ -3,24 +3,24 @@ package server
 import (
 	"net/http"
 	"net/url"
-	"opg-reports/shared/server"
+	"opg-reports/shared/server/response"
 	"strings"
 	"time"
 )
 
-func GetFromApi(url string) (resultType server.ApiResponseConstraintString, result *http.Response, err error) {
+// *response.TableData[*response.Cell, *response.Row[*response.Cell]]
+func GetFromApi(url string) (resp *response.Result[*response.Cell, *response.Row[*response.Cell], *response.TableData[*response.Cell, *response.Row[*response.Cell]]], err error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return
 	}
 	apiClient := http.Client{Timeout: time.Second * 3}
-	res, err := apiClient.Do(req)
+	apiResp, err := apiClient.Do(req)
 	if err != nil {
 		return
 	}
-	rt := res.Header.Get(server.ResponseTypeHeader)
-	resultType = server.ApiResponseConstraintString(rt)
-	result = res
+	resp = response.NewResponse()
+	response.NewResponseFromHttp(apiResp, resp)
 	return
 }
 

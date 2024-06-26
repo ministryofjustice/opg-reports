@@ -8,7 +8,7 @@ import (
 func TestFrontServerRegister(t *testing.T) {
 
 	mux := testMux()
-	conf, _ := cnf.Load([]byte(testCfg))
+	conf, _ := cnf.Load([]byte(testServerCfg))
 	s := New(conf, nil, "", "")
 	s.Register(mux)
 

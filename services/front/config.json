@@ -21,26 +21,25 @@
                             "name": "Totals",
                             "href": "/costs/aws/totals/",
                             "api": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/",
-                            "handler": "MapMapSlice",
                             "template": "dynamic-aws-costs-totals"
                         },
                         {
                             "name": "By Unit",
                             "href": "/costs/aws/units/",
                             "api": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/units/",
-                            "handler": "MapSlice"
+                            "template": "dynamic-aws-costs-units"
                         },
                         {
-                            "name": "By Unit & Environment",
+                            "name": "By Unit & Env",
                             "href": "/costs/aws/units-envs/",
                             "api": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/units/envs/",
-                            "handler": "MapSlice"
+                            "template": "dynamic-aws-costs-units-envs"
                         },
                         {
-                            "name": "Detailed Breakdown",
+                            "name": "Detailed",
                             "href": "/costs/aws/detailed/",
                             "api": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/units/envs/services/",
-                            "handler": "MapSlice"
+                            "template": "dynamic-aws-costs-units-envs-services"
                         }
                     ]
                 }

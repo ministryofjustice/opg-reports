@@ -1,0 +1,36 @@
+{{ define "dynamic-currency-table" }}
+    {{ $hc := .HeadingCounter }}
+    <table class="dataframe govuk-table">
+        <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+                {{ range $i, $cell := .Headings }}
+                    {{ $n := addi $i 1}}
+                    {{ if lt $n $hc }}
+                    <th scope="col" class="govuk-table__header">{{ $cell.GetName }}</th>
+                    {{ else if eq $n $hc}}
+                    <th scope="col" class="govuk-table__header last-header">{{ $cell.GetName }}</th>
+                    {{ else }}
+                    <th scope="col" class="govuk-table__header data-cell">{{ $cell.GetName }}</th>
+                    {{ end }}
+                {{ end }}
+            </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+            {{ range $row := .Result }}
+                <tr class="govuk-table__row">
+                    {{ $cells := $row.GetCells }}
+                    {{ range $i, $cell := $cells }}
+                        {{ $n := addi $i 1}}
+                        {{ if lt $n $hc }}
+                        <th scope="row" class="govuk-table__header" data-hc="{{ $hc }}" data-i="{{ $i }}">{{ $cell.GetValue }}</th>
+                        {{ else if eq $n $hc}}
+                        <th scope="row" class="govuk-table__header last-header" data-hc="{{ $hc }}" data-i="{{ $i }}">{{ $cell.GetValue }}</th>
+                        {{ else }}
+                        <td class="govuk-table__cell data-cell" data-hc="{{ $hc }}" data-i="{{ $i }}">{{ dollars $cell.GetValue }}</td>
+                        {{ end }}
+                    {{ end }}
+                </tr>
+            {{ end }}
+        </tbody>
+    </table>
+{{ end }}

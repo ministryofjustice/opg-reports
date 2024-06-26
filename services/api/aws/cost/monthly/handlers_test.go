@@ -77,10 +77,10 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 	mux.ServeHTTP(w, r)
 
 	str, b := response.Stringify(w.Result())
-	resp := response.NewResult()
-	response.NewResultFromJson(b, resp)
+	resp := response.NewResponse()
+	response.NewResponseFromJson(b, resp)
 
-	fmt.Println(str)
+	// fmt.Println(str)
 
 	if resp.Status.Code != http.StatusOK {
 		t.Errorf("status code failed")
@@ -120,8 +120,8 @@ func TestServicesApiAwsCostMonthlyHandlerUnits(t *testing.T) {
 	mux.ServeHTTP(w, r)
 
 	str, b := response.Stringify(w.Result())
-	resp := response.NewResult()
-	response.NewResultFromJson(b, resp)
+	resp := response.NewResponse()
+	response.NewResponseFromJson(b, resp)
 	// fmt.Println(str)
 
 	if resp.Status.Code != http.StatusOK {
@@ -165,8 +165,8 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvs(t *testing.T) {
 	mux.ServeHTTP(w, r)
 
 	str, b := response.Stringify(w.Result())
-	resp := response.NewResult()
-	response.NewResultFromJson(b, resp)
+	resp := response.NewResponse()
+	response.NewResponseFromJson(b, resp)
 
 	if resp.Status.Code != http.StatusOK {
 		t.Errorf("status code failed")
@@ -209,8 +209,8 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvServices(t *testing.T) {
 	mux.ServeHTTP(w, r)
 
 	str, b := response.Stringify(w.Result())
-	resp := response.NewResult()
-	response.NewResultFromJson(b, resp)
+	resp := response.NewResponse()
+	response.NewResponseFromJson(b, resp)
 
 	if resp.Status.Code != http.StatusOK {
 		t.Errorf("status code failed")

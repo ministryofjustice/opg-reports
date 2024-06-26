@@ -23,7 +23,7 @@ func (i *testI) Valid() bool {
 }
 
 func TestSharedServerResultWithResult(t *testing.T) {
-	res := NewResult()
+	res := NewResponse()
 	res.Start()
 	res.End()
 	now := time.Now().UTC()

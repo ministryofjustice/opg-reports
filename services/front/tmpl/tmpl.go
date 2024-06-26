@@ -1,10 +1,14 @@
 package tmpl
 
 import (
-	"fmt"
-	"opg-reports/shared/data"
+	"opg-reports/shared/dates"
 	"opg-reports/shared/files"
+	"strconv"
 	"strings"
+	"time"
+
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 func Files(fS *files.WriteFS, prefix string) []string {
@@ -23,23 +27,24 @@ func Files(fS *files.WriteFS, prefix string) []string {
 }
 
 func Funcs() map[string]interface{} {
+
 	return map[string]interface{}{
-		"heading": func(s string) string {
-			s = strings.ReplaceAll(s, "_", " ")
-			s = strings.ReplaceAll(s, "-", " ")
-			return strings.Title(strings.ToLower(s))
+		"append": func(slice []string, value string) []string {
+			return append(slice, value)
 		},
-		"toIdx": func(k string, v string) string {
-			return data.ToIdxKV(k, v)
+		"join": func(sep string, s ...string) string {
+			return strings.Join(s, sep)
 		},
-		"getIdx": func(i string, data map[string]any, def any) any {
-			if v, ok := data[i]; ok {
-				return v
-			}
-			return def
+		"dollars": func(s string) string {
+			p := message.NewPrinter(language.English)
+			f, _ := strconv.ParseFloat(s, 10)
+			return p.Sprintf("$%.2f", f)
 		},
-		"dollars": func(s float64) string {
-			return fmt.Sprintf("$%.2f", s)
+		"month": func(d time.Time) string {
+			return d.Format(dates.FormatYM)
+		},
+		"addi": func(a int, b int) any {
+			return a + b
 		},
 	}
 

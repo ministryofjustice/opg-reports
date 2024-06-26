@@ -1,18 +1,16 @@
 package server
 
 import (
+	"net/http"
 	"testing"
 )
 
 func TestFrontServerGetFromApiMockedDetails(t *testing.T) {
-	ms := mockServerAWSCostTotals()
+	ms := mockServer(mockAwsCostTotalsResponse, http.StatusOK)
 	defer ms.Close()
 	url := ms.URL
-	resType, _, err := GetFromApi(url)
+	_, err := GetFromApi(url)
 
-	if resType != mockServerType {
-		t.Errorf("res type failed")
-	}
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}

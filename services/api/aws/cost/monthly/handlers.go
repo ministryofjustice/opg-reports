@@ -62,7 +62,7 @@ func (a *Api[V, F]) Index(w http.ResponseWriter, r *http.Request) {
 // Unit, Env & Service costs: /aws/costs/{version}/monthly/{start}/{end}/units/envs/services/{$}
 // Previously "Detailed breakdown" sheet
 func (a *Api[V, F]) UnitEnvironmentServices(w http.ResponseWriter, r *http.Request) {
-	resp := response.NewResult()
+	resp := response.NewResponse()
 	resp.Start()
 	store := a.store
 	startDate, endDate := startAndEndDates(r, resp)
@@ -91,10 +91,10 @@ func (a *Api[V, F]) UnitEnvironmentServices(w http.ResponseWriter, r *http.Reque
 		for _, g := range withinMonths.Group(byAccountService) {
 			first := g.List()[0]
 			cells := []*response.Cell{
-				response.NewCell(first.AccountId, ""),
-				response.NewCell(first.AccountUnit, ""),
-				response.NewCell(first.AccountEnvironment, ""),
-				response.NewCell(first.Service, ""),
+				response.NewCell(first.AccountId, first.AccountId),
+				response.NewCell(first.AccountUnit, first.AccountUnit),
+				response.NewCell(first.AccountEnvironment, first.AccountEnvironment),
+				response.NewCell(first.Service, first.Service),
 			}
 			for _, m := range months {
 				inM := func(item *cost.Cost) bool {
@@ -123,7 +123,7 @@ func (a *Api[V, F]) UnitEnvironmentServices(w http.ResponseWriter, r *http.Reque
 // Unit & Env costs: /aws/costs/{version}/monthly/{start}/{end}/units/envs/{$}
 // Previously "Service And Environment" sheet
 func (a *Api[V, F]) UnitEnvironments(w http.ResponseWriter, r *http.Request) {
-	resp := response.NewResult()
+	resp := response.NewResponse()
 	resp.Start()
 	store := a.store
 	startDate, endDate := startAndEndDates(r, resp)
@@ -148,8 +148,8 @@ func (a *Api[V, F]) UnitEnvironments(w http.ResponseWriter, r *http.Request) {
 		for _, g := range withinMonths.Group(byUnitEnv) {
 			first := g.List()[0]
 			cells := []*response.Cell{
-				response.NewCell(first.AccountUnit, ""),
-				response.NewCell(first.AccountEnvironment, ""),
+				response.NewCell(first.AccountUnit, first.AccountUnit),
+				response.NewCell(first.AccountEnvironment, first.AccountEnvironment),
 			}
 			for _, m := range months {
 				inM := func(item *cost.Cost) bool {
@@ -178,7 +178,7 @@ func (a *Api[V, F]) UnitEnvironments(w http.ResponseWriter, r *http.Request) {
 // Unit costs: /aws/costs/{version}/monthly/{start}/{end}/units/{$}
 // Previously "Service" sheet
 func (a *Api[V, F]) Units(w http.ResponseWriter, r *http.Request) {
-	resp := response.NewResult()
+	resp := response.NewResponse()
 	resp.Start()
 	store := a.store
 	startDate, endDate := startAndEndDates(r, resp)
@@ -203,7 +203,7 @@ func (a *Api[V, F]) Units(w http.ResponseWriter, r *http.Request) {
 		for _, g := range withinMonths.Group(byUnit) {
 			first := g.List()[0]
 			cells := []*response.Cell{
-				response.NewCell(first.AccountUnit, ""),
+				response.NewCell(first.AccountUnit, first.AccountUnit),
 			}
 			for _, m := range months {
 				inM := func(item *cost.Cost) bool {
@@ -234,7 +234,7 @@ func (a *Api[V, F]) Units(w http.ResponseWriter, r *http.Request) {
 // Previously "Totals" sheet
 // Note: if {start} or {end} are "-" it uses current month
 func (a *Api[V, F]) Totals(w http.ResponseWriter, r *http.Request) {
-	resp := response.NewResult()
+	resp := response.NewResponse()
 	resp.Start()
 	store := a.store
 	startDate, endDate := startAndEndDates(r, resp)
@@ -271,7 +271,7 @@ func (a *Api[V, F]) Totals(w http.ResponseWriter, r *http.Request) {
 
 func withoutTaxR(withoutTax data.IStore[*cost.Cost], months []string) *response.Row[*response.Cell] {
 	withoutTaxCells := []*response.Cell{
-		response.NewCell("Without Tax", ""),
+		response.NewCell("Without Tax", "Without Tax"),
 	}
 	for _, m := range months {
 		inM := func(item *cost.Cost) bool {
@@ -287,7 +287,7 @@ func withoutTaxR(withoutTax data.IStore[*cost.Cost], months []string) *response.
 func withTaxR(withTax data.IStore[*cost.Cost], months []string) *response.Row[*response.Cell] {
 
 	withTaxCells := []*response.Cell{
-		response.NewCell("With Tax", ""),
+		response.NewCell("With Tax", "With Tax"),
 	}
 	for _, m := range months {
 		inM := func(item *cost.Cost) bool {

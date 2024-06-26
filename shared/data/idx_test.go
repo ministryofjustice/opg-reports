@@ -37,16 +37,3 @@ func TestSharedDataToIdx(t *testing.T) {
 		t.Errorf("idxf failed")
 	}
 }
-
-func TestSharedDataFromIdx(t *testing.T) {
-	idx := fmt.Sprintf("%s^%s.%s^%s.", "tag", "test-tag", "category", "cat1")
-
-	from := FromIdx(idx)
-
-	if v, ok := from["tag"]; !ok || v != "test-tag" {
-		t.Errorf("tag not matched")
-	}
-	if v, ok := from["category"]; !ok || v != "cat1" {
-		t.Errorf("cat not matched")
-	}
-}
