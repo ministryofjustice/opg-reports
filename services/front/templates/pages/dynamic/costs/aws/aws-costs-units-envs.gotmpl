@@ -1,7 +1,7 @@
 {{ define "dynamic-aws-costs-units-envs" }}
     {{ template "head" . }}
     {{ $hc := .HeadingCounter }}
-    <h1 class="govuk-heading-l">Total Per Unit &amp; Environment</h1>
+    <h1 class="govuk-heading-l">Costs Per Unit &amp; Environment</h1>
     <p class="govuk-body">Displaying AWS Costs between <strong>[{{ .StartDate.Format "2006-01" }}]</strong> and <strong>[{{ .EndDate.Format "2006-01" }}]</strong>.</p>
     <p class="govuk-body">Cost data is segmented based on the unit and its environment.</p>
     <p class="govuk-body">Unit is analogous to a team which maintains multiple products.</p>

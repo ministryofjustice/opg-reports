@@ -21,7 +21,7 @@ func (s *FrontWebServer) Dynamic(w http.ResponseWriter, r *http.Request) {
 	data := s.Nav.Data(r)
 	now := time.Now().UTC()
 	end := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
-	start := end.AddDate(0, -9, 0)
+	start := end.AddDate(0, -11, 0)
 
 	active := s.Nav.Active(r)
 	if active == nil {
