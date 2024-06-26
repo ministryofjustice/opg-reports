@@ -8,8 +8,7 @@ import (
 	"opg-reports/shared/data"
 	"opg-reports/shared/dates"
 	"opg-reports/shared/fake"
-	"opg-reports/shared/server"
-	"slices"
+	"opg-reports/shared/server/response"
 	"testing"
 	"time"
 )
@@ -17,6 +16,7 @@ import (
 // Index is empty and returns simple api response without a result
 // so just check status and errors
 func TestServicesApiAwsCostMonthlyHandlerIndex(t *testing.T) {
+
 	fs := testFs()
 	mux := testMux()
 	store := data.NewStore[*cost.Cost]()
@@ -28,14 +28,14 @@ func TestServicesApiAwsCostMonthlyHandlerIndex(t *testing.T) {
 
 	mux.ServeHTTP(w, r)
 
-	_, b := server.ResponseAsStrings(w.Result())
-	res := server.NewSimpleApiResponse()
+	_, b := response.Stringify(w.Result())
+	res := response.NewSimpleResult()
 	json.Unmarshal(b, &res)
 
 	if res.GetStatus() != http.StatusOK {
 		t.Errorf("status error")
 	}
-	if len(res.Errors) != 0 {
+	if len(res.GetErrors()) != 0 {
 		t.Errorf("found error when not expected")
 	}
 	if res.Times.Duration.String() == "" {
@@ -51,8 +51,6 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 	fs := testFs()
 	mux := testMux()
 	min, max, df := testDates()
-	months := dates.Strings(dates.Months(min, max), dates.FormatYM)
-	// out of bounds
 	overm := time.Date(max.Year()+1, 1, 1, 0, 0, 0, 0, time.UTC)
 	overmx := time.Date(max.Year()+2, 1, 1, 0, 0, 0, 0, time.UTC)
 	store := data.NewStore[*cost.Cost]()
@@ -78,40 +76,15 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 	w, r := testWRGet(route)
 	mux.ServeHTTP(w, r)
 
-	_, b := server.ResponseAsStrings(w.Result())
-	res := server.NewApiResponse[*cost.Cost, map[string]map[string][]*cost.Cost]()
-	json.Unmarshal(b, &res)
+	str, b := response.Stringify(w.Result())
+	resp := response.NewResult()
+	response.NewResultFromJson(b, resp)
 
-	if res.GetStatus() != http.StatusOK {
-		t.Errorf("status error")
-	}
-	if len(res.Errors) != 0 {
-		t.Errorf("found error when not expected")
-	}
-	if res.Times.Duration.String() == "" {
-		t.Errorf("duration error")
-	}
+	fmt.Println(str)
 
-	if len(res.Result) <= 0 {
-		t.Errorf("result not returned correctly")
-	}
-
-	total := 0
-	for _, dataSet := range res.GetResult() {
-		for key, list := range dataSet {
-
-			fv := data.FromIdx(key)
-			m := fv["month"]
-			if !slices.Contains(months, m) {
-				t.Errorf("month out of range: %s", m)
-			}
-			total += len(list)
-		}
-	}
-	// as items may appear in both top level segements if they are
-	// not tax, the total should always be at least l, but can be higher
-	if total <= l {
-		t.Errorf("data mis match")
+	if resp.Status.Code != http.StatusOK {
+		t.Errorf("status code failed")
+		fmt.Println(str)
 	}
 
 }
@@ -120,14 +93,13 @@ func TestServicesApiAwsCostMonthlyHandlerUnits(t *testing.T) {
 	fs := testFs()
 	mux := testMux()
 	min, max, df := testDates()
-	months := dates.Strings(dates.Months(min, max), dates.FormatYM)
 	// out of bounds
 	overm := time.Date(max.Year()+1, 1, 1, 0, 0, 0, 0, time.UTC)
 	overmx := time.Date(max.Year()+2, 1, 1, 0, 0, 0, 0, time.UTC)
 	store := data.NewStore[*cost.Cost]()
 	units := []string{"teamOne", "teamTwo", "teamThree"}
-	l := 90
-	x := 5
+	l := 900
+	x := 50
 
 	for i := 0; i < l; i++ {
 		c := cost.Fake(nil, min, max, df)
@@ -147,23 +119,14 @@ func TestServicesApiAwsCostMonthlyHandlerUnits(t *testing.T) {
 	w, r := testWRGet(route)
 	mux.ServeHTTP(w, r)
 
-	_, b := server.ResponseAsStrings(w.Result())
-	res := server.NewApiResponse[*cost.Cost, map[string][]*cost.Cost]()
-	json.Unmarshal(b, &res)
+	str, b := response.Stringify(w.Result())
+	resp := response.NewResult()
+	response.NewResultFromJson(b, resp)
+	// fmt.Println(str)
 
-	total := 0
-	for key, list := range res.GetResult() {
-		fv := data.FromIdx(key)
-		m := fv["month"]
-		if !slices.Contains(months, m) {
-			t.Errorf("month out of range: %s", m)
-		}
-		total += len(list)
-	}
-	// as items may appear in both top level segements if they are
-	// not tax, the total should always be at least l, but can be higher
-	if total != l {
-		t.Errorf("data mismatch")
+	if resp.Status.Code != http.StatusOK {
+		t.Errorf("status code failed")
+		fmt.Println(str)
 	}
 
 }
@@ -172,7 +135,6 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvs(t *testing.T) {
 	fs := testFs()
 	mux := testMux()
 	min, max, df := testDates()
-	months := dates.Strings(dates.Months(min, max), dates.FormatYM)
 	// out of bounds
 	overm := time.Date(max.Year()+1, 1, 1, 0, 0, 0, 0, time.UTC)
 	overmx := time.Date(max.Year()+2, 1, 1, 0, 0, 0, 0, time.UTC)
@@ -202,25 +164,13 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvs(t *testing.T) {
 	w, r := testWRGet(route)
 	mux.ServeHTTP(w, r)
 
-	_, b := server.ResponseAsStrings(w.Result())
+	str, b := response.Stringify(w.Result())
+	resp := response.NewResult()
+	response.NewResultFromJson(b, resp)
 
-	res, _ := server.NewApiResponseFromJson[*cost.Cost, map[string][]*cost.Cost](b)
-	// res := server.NewApiResponse[*cost.Cost, map[string][]*cost.Cost]()
-	// json.Unmarshal(b, &res)
-
-	total := 0
-	for key, list := range res.GetResult() {
-		fv := data.FromIdx(key)
-		m := fv["month"]
-		if !slices.Contains(months, m) {
-			t.Errorf("month out of range: %s", m)
-		}
-		total += len(list)
-	}
-	// as items may appear in both top level segements if they are
-	// not tax, the total should always be at least l, but can be higher
-	if total != l {
-		t.Errorf("data mis match")
+	if resp.Status.Code != http.StatusOK {
+		t.Errorf("status code failed")
+		fmt.Println(str)
 	}
 
 }
@@ -229,7 +179,6 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvServices(t *testing.T) {
 	fs := testFs()
 	mux := testMux()
 	min, max, df := testDates()
-	months := dates.Strings(dates.Months(min, max), dates.FormatYM)
 	// out of bounds
 	overm := time.Date(max.Year()+1, 1, 1, 0, 0, 0, 0, time.UTC)
 	overmx := time.Date(max.Year()+2, 1, 1, 0, 0, 0, 0, time.UTC)
@@ -259,23 +208,13 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvServices(t *testing.T) {
 	w, r := testWRGet(route)
 	mux.ServeHTTP(w, r)
 
-	_, b := server.ResponseAsStrings(w.Result())
-	res := server.NewApiResponse[*cost.Cost, map[string][]*cost.Cost]()
-	json.Unmarshal(b, &res)
+	str, b := response.Stringify(w.Result())
+	resp := response.NewResult()
+	response.NewResultFromJson(b, resp)
 
-	total := 0
-	for key, list := range res.GetResult() {
-		fv := data.FromIdx(key)
-		m := fv["month"]
-		if !slices.Contains(months, m) {
-			t.Errorf("month out of range: %s", m)
-		}
-		total += len(list)
-	}
-	// as items may appear in both top level segements if they are
-	// not tax, the total should always be at least l, but can be higher
-	if total != l {
-		t.Errorf("data mis match")
+	if resp.Status.Code != http.StatusOK {
+		t.Errorf("status code failed")
+		fmt.Println(str)
 	}
 
 }

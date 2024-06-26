@@ -2,16 +2,23 @@ package monthly
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"opg-reports/shared/aws/cost"
 	"opg-reports/shared/data"
 	"opg-reports/shared/dates"
-	"opg-reports/shared/server"
+	"opg-reports/shared/server/response"
 	"strings"
 	"time"
 )
 
-// func to return the date as a month (yyyy-mm)
+// Filters
+var excludeTax = func(item *cost.Cost) bool {
+	return strings.ToLower(item.Service) != "tax"
+}
+
+// Helpers used within grouping
+
 var ym = func(i *cost.Cost) (string, string) {
 	return "month", dates.Reformat(i.Date, dates.FormatYM)
 }
@@ -32,19 +39,19 @@ var service = func(i *cost.Cost) (string, string) {
 var byMonth = func(item *cost.Cost) string {
 	return data.ToIdxF(item, ym)
 }
-var byMonthUnit = func(item *cost.Cost) string {
-	return data.ToIdxF(item, ym, unit)
+var byUnit = func(item *cost.Cost) string {
+	return data.ToIdxF(item, unit)
 }
-var byMonthAccount = func(item *cost.Cost) string {
-	return data.ToIdxF(item, ym, account_id, unit, account_env)
+var byUnitEnv = func(item *cost.Cost) string {
+	return data.ToIdxF(item, unit, account_env)
 }
-var byMonthAccountService = func(item *cost.Cost) string {
-	return data.ToIdxF(item, ym, account_id, unit, account_env, service)
+var byAccountService = func(item *cost.Cost) string {
+	return data.ToIdxF(item, account_id, unit, account_env, service)
 }
 
 // Index: /aws/costs/v1/monthly
 func (a *Api[V, F]) Index(w http.ResponseWriter, r *http.Request) {
-	res := server.NewSimpleApiResponse()
+	res := response.NewSimpleResult()
 	res.Start()
 	res.SetStatus(http.StatusOK)
 	res.End()
@@ -55,103 +62,170 @@ func (a *Api[V, F]) Index(w http.ResponseWriter, r *http.Request) {
 // Unit, Env & Service costs: /aws/costs/{version}/monthly/{start}/{end}/units/envs/services/{$}
 // Previously "Detailed breakdown" sheet
 func (a *Api[V, F]) UnitEnvironmentServices(w http.ResponseWriter, r *http.Request) {
-	res := server.NewApiResponse[*cost.Cost, map[string][]*cost.Cost]()
-	res.Start()
+	resp := response.NewResult()
+	resp.Start()
 	store := a.store
-	startDate, endDate := startAndEndDates(r, res)
+	startDate, endDate := startAndEndDates(r, resp)
 
-	errs := res.GetErrors()
+	errs := resp.GetErrors()
+
 	if len(errs) == 0 {
-		// Limit the items in the data store to those within the start & end date range
-		//
 		months := dates.Strings(dates.Months(startDate, endDate), dates.FormatYM)
-		inMonth := func(item *cost.Cost) bool {
+		inMonthRange := func(item *cost.Cost) bool {
 			return dates.InMonth(item.Date, months)
 		}
-		withinMonths := store.Filter(inMonth)
-		items := map[string][]*cost.Cost{}
+		withinMonths := store.Filter(inMonthRange)
+		rows := []*response.Row[*response.Cell]{}
+		// Add table headings
+		headings := response.NewRow[*response.Cell]()
+		headings.AddCells(
+			response.NewCell("Account", ""),
+			response.NewCell("Unit", ""),
+			response.NewCell("Environment", ""),
+			response.NewCell("Service", ""))
 
-		for k, g := range withinMonths.Group(byMonthAccountService) {
-			for _, v := range g.List() {
-				items[k] = append(items[k], v)
-			}
+		for _, m := range months {
+			headings.AddCells(response.NewCell(m, ""))
 		}
-		res.SetResult(items)
+
+		for _, g := range withinMonths.Group(byAccountService) {
+			first := g.List()[0]
+			cells := []*response.Cell{
+				response.NewCell(first.AccountId, ""),
+				response.NewCell(first.AccountUnit, ""),
+				response.NewCell(first.AccountEnvironment, ""),
+				response.NewCell(first.Service, ""),
+			}
+			for _, m := range months {
+				inM := func(item *cost.Cost) bool {
+					return dates.InMonth(item.Date, []string{m})
+				}
+				values := g.Filter(inM)
+				total := cost.Total(values.List())
+				cell := response.NewCell(m, fmt.Sprintf("%f", total))
+				cells = append(cells, cell)
+			}
+
+			row := response.NewRow(cells...)
+			rows = append(rows, row)
+		}
+		result := response.NewData(rows...)
+		result.SetHeadings(headings)
+		resp.SetResult(result)
+
 	}
-	res.SetType()
-	res.End()
-	content, _ := json.Marshal(res)
-	w.Header().Set("X-API-RES_TYPE", res.Type)
-	a.Write(w, res.GetStatus(), content)
+	resp.End()
+	content, _ := json.Marshal(resp)
+	a.Write(w, resp.GetStatus(), content)
 
 }
 
 // Unit & Env costs: /aws/costs/{version}/monthly/{start}/{end}/units/envs/{$}
 // Previously "Service And Environment" sheet
 func (a *Api[V, F]) UnitEnvironments(w http.ResponseWriter, r *http.Request) {
-	res := server.NewApiResponse[*cost.Cost, map[string][]*cost.Cost]()
-	res.Start()
+	resp := response.NewResult()
+	resp.Start()
 	store := a.store
-	startDate, endDate := startAndEndDates(r, res)
+	startDate, endDate := startAndEndDates(r, resp)
 
-	errs := res.GetErrors()
+	errs := resp.GetErrors()
+
 	if len(errs) == 0 {
-		// Limit the items in the data store to those within the start & end date range
-		//
 		months := dates.Strings(dates.Months(startDate, endDate), dates.FormatYM)
-		inMonth := func(item *cost.Cost) bool {
+		inMonthRange := func(item *cost.Cost) bool {
 			return dates.InMonth(item.Date, months)
 		}
-		withinMonths := store.Filter(inMonth)
-		items := map[string][]*cost.Cost{}
+		withinMonths := store.Filter(inMonthRange)
+		rows := []*response.Row[*response.Cell]{}
 
-		for k, g := range withinMonths.Group(byMonthAccount) {
-			for _, v := range g.List() {
-				items[k] = append(items[k], v)
-			}
+		// Add table headings
+		headings := response.NewRow[*response.Cell]()
+		headings.AddCells(response.NewCell("Unit", ""), response.NewCell("Environment", ""))
+		for _, m := range months {
+			headings.AddCells(response.NewCell(m, ""))
 		}
-		res.SetResult(items)
+
+		for _, g := range withinMonths.Group(byUnitEnv) {
+			first := g.List()[0]
+			cells := []*response.Cell{
+				response.NewCell(first.AccountUnit, ""),
+				response.NewCell(first.AccountEnvironment, ""),
+			}
+			for _, m := range months {
+				inM := func(item *cost.Cost) bool {
+					return dates.InMonth(item.Date, []string{m})
+				}
+				values := g.Filter(inM)
+				total := cost.Total(values.List())
+				cell := response.NewCell(m, fmt.Sprintf("%f", total))
+				cells = append(cells, cell)
+			}
+
+			row := response.NewRow(cells...)
+			rows = append(rows, row)
+		}
+		result := response.NewData(rows...)
+		result.SetHeadings(headings)
+		resp.SetResult(result)
+
 	}
-	res.SetType()
-	res.End()
-	content, _ := json.Marshal(res)
-	w.Header().Set(server.ResponseTypeHeader, res.Type)
-	a.Write(w, res.GetStatus(), content)
+	resp.End()
+	content, _ := json.Marshal(resp)
+	a.Write(w, resp.GetStatus(), content)
 
 }
 
 // Unit costs: /aws/costs/{version}/monthly/{start}/{end}/units/{$}
 // Previously "Service" sheet
 func (a *Api[V, F]) Units(w http.ResponseWriter, r *http.Request) {
-	res := server.NewApiResponse[*cost.Cost, map[string][]*cost.Cost]()
-	res.Start()
+	resp := response.NewResult()
+	resp.Start()
 	store := a.store
-	startDate, endDate := startAndEndDates(r, res)
+	startDate, endDate := startAndEndDates(r, resp)
 
-	errs := res.GetErrors()
+	errs := resp.GetErrors()
 	if len(errs) == 0 {
-		// Limit the items in the data store to those within the start & end date range
-		//
 		months := dates.Strings(dates.Months(startDate, endDate), dates.FormatYM)
-		inMonth := func(item *cost.Cost) bool {
+		inMonthRange := func(item *cost.Cost) bool {
 			return dates.InMonth(item.Date, months)
 		}
-		withinMonths := store.Filter(inMonth)
-		items := map[string][]*cost.Cost{}
 
-		for k, g := range withinMonths.Group(byMonthUnit) {
-			for _, v := range g.List() {
-				items[k] = append(items[k], v)
-			}
+		withinMonths := store.Filter(inMonthRange)
+		// Add table headings
+		headings := response.NewRow[*response.Cell]()
+		headings.AddCells(response.NewCell("Unit", ""))
+		for _, m := range months {
+			headings.AddCells(response.NewCell(m, ""))
 		}
-		res.SetResult(items)
-	}
-	res.SetType()
-	res.End()
-	content, _ := json.Marshal(res)
 
-	w.Header().Set(server.ResponseTypeHeader, res.Type)
-	a.Write(w, res.GetStatus(), content)
+		rows := []*response.Row[*response.Cell]{}
+
+		for _, g := range withinMonths.Group(byUnit) {
+			first := g.List()[0]
+			cells := []*response.Cell{
+				response.NewCell(first.AccountUnit, ""),
+			}
+			for _, m := range months {
+				inM := func(item *cost.Cost) bool {
+					return dates.InMonth(item.Date, []string{m})
+				}
+				values := g.Filter(inM)
+				total := cost.Total(values.List())
+				cell := response.NewCell(m, fmt.Sprintf("%f", total))
+				cells = append(cells, cell)
+			}
+
+			row := response.NewRow(cells...)
+			rows = append(rows, row)
+		}
+		result := response.NewData(rows...)
+		result.SetHeadings(headings)
+		resp.SetResult(result)
+	}
+
+	resp.End()
+	content, _ := json.Marshal(resp)
+	a.Write(w, resp.GetStatus(), content)
 
 }
 
@@ -160,59 +234,74 @@ func (a *Api[V, F]) Units(w http.ResponseWriter, r *http.Request) {
 // Previously "Totals" sheet
 // Note: if {start} or {end} are "-" it uses current month
 func (a *Api[V, F]) Totals(w http.ResponseWriter, r *http.Request) {
-	res := server.NewApiResponse[*cost.Cost, map[string]map[string][]*cost.Cost]()
-	res.Start()
+	resp := response.NewResult()
+	resp.Start()
 	store := a.store
-	startDate, endDate := startAndEndDates(r, res)
+	startDate, endDate := startAndEndDates(r, resp)
 
-	errs := res.GetErrors()
+	errs := resp.GetErrors()
 	if len(errs) == 0 {
 		// Limit the items in the data store to those within the start & end date range
 		//
 		months := dates.Strings(dates.Months(startDate, endDate), dates.FormatYM)
-		inMonth := func(item *cost.Cost) bool {
+		inMonthRange := func(item *cost.Cost) bool {
 			return dates.InMonth(item.Date, months)
 		}
-		// Filter out tax from the cost data
-		//
-		notTax := func(item *cost.Cost) bool {
-			return strings.ToLower(item.Service) != "tax"
+		// Add table headings
+		headings := response.NewRow[*response.Cell]()
+		headings.AddCells(response.NewCell("", ""))
+		for _, m := range months {
+			headings.AddCells(response.NewCell(m, ""))
 		}
+		// get everything in range
+		withTax := store.Filter(inMonthRange)
+		withTaxRow := withTaxR(withTax, months)
+		//  exclude tax from the costs
+		withoutTax := withTax.Filter(excludeTax)
+		withoutTaxRow := withoutTaxR(withoutTax, months)
 
-		withTax := store.Filter(inMonth)
-		withoutTax := withTax.Filter(notTax)
-
-		items := map[string]map[string][]*cost.Cost{
-			"without_tax": {},
-			"with_tax":    {},
-		}
-
-		// for with & without tax we now group them by their
-		// yyyy-mm
-		for with, itemSet := range items {
-			s := withoutTax
-			if with == "with_tax" {
-				s = withTax
-			}
-
-			for k, g := range s.Group(byMonth) {
-				for _, v := range g.List() {
-					itemSet[k] = append(itemSet[k], v)
-				}
-			}
-		}
-		// set the result
-		res.SetResult(items)
-
+		result := response.NewData(withoutTaxRow, withTaxRow)
+		result.SetHeadings(headings)
+		resp.SetResult(result)
 	}
-	res.SetType()
-	res.End()
-	content, _ := json.Marshal(res)
-	w.Header().Set(server.ResponseTypeHeader, res.Type)
-	a.Write(w, res.GetStatus(), content)
+	resp.End()
+	content, _ := json.Marshal(resp)
+	a.Write(w, resp.GetStatus(), content)
 }
 
-func startAndEndDates(r *http.Request, res server.IApiResponseBase) (startDate time.Time, endDate time.Time) {
+func withoutTaxR(withoutTax data.IStore[*cost.Cost], months []string) *response.Row[*response.Cell] {
+	withoutTaxCells := []*response.Cell{
+		response.NewCell("Without Tax", ""),
+	}
+	for _, m := range months {
+		inM := func(item *cost.Cost) bool {
+			return dates.InMonth(item.Date, []string{m})
+		}
+		values := withoutTax.Filter(inM)
+		total := cost.Total(values.List())
+		cell := response.NewCell(m, fmt.Sprintf("%f", total))
+		withoutTaxCells = append(withoutTaxCells, cell)
+	}
+	return response.NewRow(withoutTaxCells...)
+}
+func withTaxR(withTax data.IStore[*cost.Cost], months []string) *response.Row[*response.Cell] {
+
+	withTaxCells := []*response.Cell{
+		response.NewCell("With Tax", ""),
+	}
+	for _, m := range months {
+		inM := func(item *cost.Cost) bool {
+			return dates.InMonth(item.Date, []string{m})
+		}
+		values := withTax.Filter(inM)
+		total := cost.Total(values.List())
+		cell := response.NewCell(m, fmt.Sprintf("%f", total))
+		withTaxCells = append(withTaxCells, cell)
+	}
+	return response.NewRow(withTaxCells...)
+}
+
+func startAndEndDates(r *http.Request, res response.IBase) (startDate time.Time, endDate time.Time) {
 	var err error
 	now := time.Now().UTC().Format(dates.FormatYM)
 	// Get the dates

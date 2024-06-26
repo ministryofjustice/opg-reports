@@ -7,6 +7,7 @@ import (
 	"opg-reports/shared/data"
 	"opg-reports/shared/files"
 	"opg-reports/shared/server"
+	"opg-reports/shared/server/response"
 	"os"
 	"testing"
 	"time"
@@ -38,7 +39,7 @@ func TestServicesApiAwsCostMonthlyStatusCode(t *testing.T) {
 		w, r := testWRGet(route)
 		mux.ServeHTTP(w, r)
 		if w.Result().StatusCode != status {
-			r, _ := server.ResponseAsStrings(w.Result())
+			r, _ := response.Stringify(w.Result())
 			t.Errorf("http status mismtach [%s] expected [%d], actual [%v]\n---\n%+v\n---\n", route, status, w.Result().StatusCode, r)
 		}
 	}
@@ -99,7 +100,7 @@ func testWRGet(route string) (*httptest.ResponseRecorder, *http.Request) {
 }
 func testDates() (min time.Time, max time.Time, df string) {
 	df = time.RFC3339
-	max = time.Date(2024, 7, 1, 0, 0, 0, 0, time.UTC)
+	max = time.Date(2024, 3, 1, 0, 0, 0, 0, time.UTC)
 	min = time.Date(2023, 12, 1, 0, 0, 0, 0, time.UTC)
 	return
 }
