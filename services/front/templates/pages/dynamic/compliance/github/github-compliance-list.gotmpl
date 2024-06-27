@@ -2,9 +2,24 @@
     {{ template "head" . }}
     {{ $hc := .HeadingCounter }}
     <h1 class="govuk-heading-l">Repository Standards</h1>
-
+    <p class="govuk-body">Lists both public and private MoJ GitHub repositories which are and are not fully compliant with <a href="https://user-guide.operations-engineering.service.justice.gov.uk/documentation/information/mojrepostandards.html">MoJ standards</a> as a baseline and OPG extended requirements.</p>
 
     {{if .Result }}
+    <table id="standards-dataset" class="compliance-table govuk-table">
+        <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+                <th colspan="2" class="govuk-table__header"></th>
+                <th scope="col" class="govuk-table__header standard-head">Baseline</th>
+                <th scope="col" class="govuk-table__header standard-head">Extended</th>
+            </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+        {{ range $row := .Result }}
+            {{ $comp := complyI $row }}
+            {{ template "repo-standards-row" $comp }}
+        {{ end }}
+        </tbody>
+    </table>
 
     {{end}}
 

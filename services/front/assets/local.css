@@ -97,3 +97,82 @@
 .dataframe.govuk-table .govuk-table__header.last-header{
     border-right: 1px solid #b1b4b6;
 }
+
+/* standards compliance */
+.compliance-table {
+    max-width: 900px;
+}
+.standard-head {
+    max-width:95px;
+    width: 95px;
+}
+.compliance-table thead .govuk-table__header{
+    text-align: right;
+    padding: 10px 0;
+}
+.compliance-table .pass-fail{
+    text-align: right;
+}
+.compliance-table .pass-fail,
+.compliance-table .expand {
+    padding: 10px 0 10px 0;
+    vertical-align: top;
+
+}
+.compliance-table .expand {
+    width:32px;
+    max-width: 32px;
+    cursor:pointer;
+}
+.compliance-table .pass-fail strong,
+.compliance-table .expand strong{
+    max-width: 26px;
+    width:26px;
+    text-align: center;
+    padding: 0;
+    margin: 0;
+    font-weight: 700;
+}
+.compliance-table .repo-name{
+    text-align: left;
+    padding: 8px 0;
+}
+
+.compliance-table .kvfield{
+    text-transform: uppercase;
+    padding:0;
+    margin:0;
+    margin-bottom: 5px;
+    margin-right: 5px;
+    font-size: 0.9rem;
+    background-color: transparent;
+}
+
+.compliance-table .key{
+    width:55%;
+    max-width:55%;
+}
+.compliance-table .val{
+    font-weight: 700;
+    width:42%;
+    max-width:42%;
+    text-align: right;
+}
+
+.compliance-table .standards-tag{
+    font-weight: 700;
+    font-size:0.8rem;
+    max-width: fit-content;
+    margin-bottom: 5px;
+    margin-right: 5px;
+    text-transform: uppercase;
+}
+.compliance-table .summary td,
+.compliance-table .summary th{
+    border:0;
+    border-top: 1px solid rgb(177, 180, 182)
+}
+/* hide show */
+.compliance-table .detail{
+    display:none;
+}

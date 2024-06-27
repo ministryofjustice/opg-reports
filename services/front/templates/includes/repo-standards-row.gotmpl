@@ -1,0 +1,138 @@
+{{ define "repo-standards-row" }}
+<tr class="govuk-table__row summary">
+    <td class="expand"><strong data-toggle="detail-{{ .Name }}" class="toggler govuk-tag govuk-tag--blue" title="Show/Hide details">+</strong></td>
+    <th class="repo-name">{{ .FullName }}</th>
+    <td class="base pass-fail" >
+    {{ if .Baseline }}
+    <strong class="govuk-tag govuk-tag--green" title="baseline compliance passed">✓</strong>
+    {{ else }}
+    <strong class="govuk-tag govuk-tag--red" title="baseline compliance failed">X</strong>
+    {{ end }}
+    </td>
+    <td class="extend pass-fail" >
+    {{ if .Extended }}
+    <strong class="govuk-tag govuk-tag--green" title="Extended compliance passed">✓</strong>
+    {{ else }}
+    <strong class="govuk-tag govuk-tag--red" title="Extended compliance failed">X</strong>
+    {{ end }}
+    </td>
+</tr>
+<tr class="govuk-table__row details">
+    <td></td>
+    <td class="detail detail-{{ .Name }}" colspan="3">
+        <div>
+            <strong class="kvfield govuk-tag govuk-tag--grey key">Archived</strong>
+            <strong class="kvfield govuk-tag govuk-tag--grey val">{{ .Archived }}</strong>
+        </div>
+        <div>
+            <strong class="kvfield govuk-tag govuk-tag--grey key">Github projects are enabled</strong>
+            <strong class="kvfield govuk-tag govuk-tag--grey val">{{ .HasProjects }}</strong>
+        </div>
+        <div>
+            <strong class="kvfield govuk-tag govuk-tag--grey key">Github pages are in use</strong>
+            <strong class="kvfield govuk-tag govuk-tag--grey val">{{ .HasPages }}</strong>
+        </div>
+        <div>
+            <strong class="kvfield govuk-tag govuk-tag--grey key">Downloads are enabled</strong>
+            <strong class="kvfield govuk-tag govuk-tag--grey val">{{ .HasDownloads }}</strong>
+        </div>
+        <div>
+            <strong class="kvfield govuk-tag govuk-tag--grey key">Wiki is enabled</strong>
+            <strong class="kvfield govuk-tag govuk-tag--grey val">{{ .HasWiki }}</strong>
+        </div>
+        <div>
+            <strong class="kvfield govuk-tag govuk-tag--grey key">Forks</strong>
+            <strong class="kvfield govuk-tag govuk-tag--grey val">{{ .CountForks }}</strong>
+        </div>
+        <div>
+            <strong class="kvfield govuk-tag govuk-tag--grey key">Webhook</strong>
+            <strong class="kvfield govuk-tag govuk-tag--grey val">{{ .CountWebhooks }}</strong>
+        </div>
+        <div>
+            <strong class="kvfield govuk-tag govuk-tag--grey key">Open pull requests</strong>
+            <strong class="kvfield govuk-tag govuk-tag--grey val">{{ .CountPullRequests }}</strong>
+        </div>
+        <div>
+            <strong class="kvfield govuk-tag govuk-tag--grey key">Clone traffic</strong>
+            <strong class="kvfield govuk-tag govuk-tag--grey val">{{ .CountClones }}</strong>
+        </div>
+        <div>
+            <strong class="kvfield govuk-tag govuk-tag--grey key">Is set as private</strong>
+            <strong class="kvfield govuk-tag govuk-tag--grey val">{{ .IsPrivate }}</strong>
+        </div>
+
+    </td>
+</tr>
+<tr class="govuk-table__row details">
+    <td></td>
+    <td class="detail detail-{{ .Name }}" colspan="3">
+        {{ if eq .DefaultBranch "main" }}
+        <strong class="govuk-tag govuk-tag--green standards-tag">[B] Default branch is called main</strong>
+        {{ else }}
+        <strong class="govuk-tag govuk-tag--red standards-tag">[B] Default branch is called main</strong>
+        {{ end }}
+
+        {{ if .HasIssues }}
+        <strong class="govuk-tag govuk-tag--green standards-tag">[B] Issues are enabled</strong>
+        {{ else }}
+        <strong class="govuk-tag govuk-tag--red standards-tag">[B] Issues are enabled</strong>
+        {{ end }}
+
+        {{ if .HasRulesEnforcedForAdmins }}
+        <strong class="govuk-tag govuk-tag--green standards-tag">[B] Rules enforced for admins</strong>
+        {{ else }}
+        <strong class="govuk-tag govuk-tag--red standards-tag">[B] Rules enforced for admins</strong>
+        {{ end }}
+
+        {{ if .HasPullRequestApprovalRequired }}
+        <strong class="govuk-tag govuk-tag--green standards-tag">[B] PR Requires approval</strong>
+        {{ else }}
+        <strong class="govuk-tag govuk-tag--red standards-tag">[B] PR Requires approval</strong>
+        {{ end }}
+
+        {{ if .HasDescription }}
+        <strong class="govuk-tag govuk-tag--green standards-tag">[B] Has description</strong>
+        {{ else }}
+        <strong class="govuk-tag govuk-tag--red standards-tag">[B] Has description</strong>
+        {{ end }}
+
+        {{ if ne .License "" }}
+        <strong class="govuk-tag govuk-tag--green standards-tag">[B] Has license</strong>
+        {{ else }}
+        <strong class="govuk-tag govuk-tag--red standards-tag">[B] Has license</strong>
+        {{ end }}
+
+        {{ if .HasCodeOwnerApprovalRequired }}
+        <strong class="govuk-tag govuk-tag--green standards-tag">[E] Requires Code owner approval</strong>
+        {{ else }}
+        <strong class="govuk-tag govuk-tag--red standards-tag">[E] Requires Code owner approval</strong>
+        {{ end }}
+
+        {{ if .HasVulnerabilityAlerts }}
+        <strong class="govuk-tag govuk-tag--green standards-tag">[E] Vulnerability Alerts enabled</strong>
+        {{ else }}
+        <strong class="govuk-tag govuk-tag--red standards-tag">[E] Vulnerability Alerts enabled</strong>
+        {{ end }}
+
+        {{ if .HasReadme }}
+        <strong class="govuk-tag govuk-tag--green standards-tag">[E] Has Readme</strong>
+        {{ else }}
+        <strong class="govuk-tag govuk-tag--red standards-tag">[E] Has Readme</strong>
+        {{ end }}
+
+        {{ if .HasCodeOfConduct }}
+        <strong class="govuk-tag govuk-tag--green standards-tag">[E] Has code of conduct</strong>
+        {{ else }}
+        <strong class="govuk-tag govuk-tag--red standards-tag">[E] Has code of conduct</strong>
+        {{ end }}
+
+        {{ if .HasContributingGuide }}
+        <strong class="govuk-tag govuk-tag--green standards-tag">[E] Has Contributing Guide</strong>
+        {{ else }}
+        <strong class="govuk-tag govuk-tag--red standards-tag">[E] Has Contributing Guide</strong>
+        {{ end }}
+
+        <strong class="govuk-tag govuk-tag--yellow standards-tag">License {{ .License }}</strong>
+    </td>
+</tr>
+{{ end }}
