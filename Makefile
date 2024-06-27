@@ -34,7 +34,7 @@ govuk-frontend:
 
 test:
 	@go clean -testcache
-	@clear && env LOG_LEVEL="warn" LOG_TO="stdout" go test -count=1 -v ./... -run="$(name)"
+	@clear && env GITHUB_ACCESS_TOKEN="${GITHUB_TOKEN}" LOG_LEVEL="warn" LOG_TO="stdout" go test -count=1 -v ./... -run="$(name)"
 
 tests:
 	@go clean -testcache

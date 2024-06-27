@@ -64,7 +64,7 @@ func DateAsStr(min time.Time, max time.Time, f string) string {
 }
 
 type IChoice interface {
-	string | int | time.Time | float32 | float64
+	string | int | time.Time | float32 | float64 | bool
 }
 
 func Choice[T IChoice](choices []T) T {

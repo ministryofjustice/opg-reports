@@ -7,6 +7,14 @@ import (
 	"github.com/google/go-github/v62/github"
 )
 
+// Get a specific repository
+func Get(ctx context.Context, client *github.Client, owner string, slug string) (r *github.Repository, err error) {
+	r, _, err = client.Repositories.Get(ctx, owner, slug)
+	return
+}
+
+// Return all the repositories for the org & team passed
+// This handles the pagination
 func All(ctx context.Context, client *github.Client, org string, team string, includeArchived bool) (all []*github.Repository, err error) {
 	all = []*github.Repository{}
 	list := []*github.Repository{}

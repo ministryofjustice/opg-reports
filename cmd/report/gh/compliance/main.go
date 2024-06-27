@@ -12,13 +12,11 @@ import (
 	"opg-reports/shared/gh/repos"
 	"opg-reports/shared/logger"
 	"opg-reports/shared/report"
-	"strconv"
 )
 
 var (
-	includeArchivedArg = report.NewArg("include-archived", false, "When true, includes archived repositories as well", "false")
-	orgArg             = report.NewArg("organisation", true, "Name of the organisation we'll get respotiroies for", "ministryofjustice")
-	teamArg            = report.NewArg("team", true, "Team within the <organisation> to fetch repositories for", "")
+	orgArg  = report.NewArg("organisation", true, "Name of the organisation we'll get respotiroies for", "ministryofjustice")
+	teamArg = report.NewArg("team", true, "Team within the <organisation> to fetch repositories for", "")
 )
 
 const dir string = "data"
@@ -34,14 +32,11 @@ func run(r report.IReport) {
 	limiter, _ := cl.RateLimitedHttpClient()
 	client := cl.Client(token, limiter)
 
-	includeArchived, _ := strconv.ParseBool(includeArchivedArg.Val())
-
-	repositories, err := repos.All(ctx, client, orgArg.Val(), teamArg.Val(), includeArchived)
+	repositories, err := repos.All(ctx, client, orgArg.Val(), teamArg.Val(), true)
 	if err != nil {
 		slog.Error("error getting repositories",
 			slog.String("org", orgArg.Val()),
 			slog.String("team", teamArg.Val()),
-			slog.Bool("includeArchived", includeArchived),
 			slog.String("err", fmt.Sprintf("%v", err)),
 		)
 		return
@@ -51,7 +46,8 @@ func run(r report.IReport) {
 	toStore := []*compliance.Compliance{}
 	for i, rep := range repositories {
 		slog.Info(fmt.Sprintf("[%d] %s", i, rep.GetFullName()))
-		cmp := compliance.NewFromR(ctx, nil, rep, client)
+
+		cmp := compliance.NewWithR(nil, rep, client)
 		toStore = append(toStore, cmp)
 	}
 	content, err := data.ToJsonList[*compliance.Compliance](toStore)
@@ -63,7 +59,7 @@ func run(r report.IReport) {
 
 func main() {
 	logger.LogSetup()
-	costReport := report.New(includeArchivedArg, orgArg, teamArg)
+	costReport := report.New(orgArg, teamArg)
 	costReport.SetRunner(run)
 	costReport.Run()
 

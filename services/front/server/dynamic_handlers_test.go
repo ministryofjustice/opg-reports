@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
 	"opg-reports/services/front/cnf"
 	"opg-reports/services/front/tmpl"
@@ -74,5 +73,5 @@ func TestFrontServerDynamicHandlerMockedUnits(t *testing.T) {
 	if !strings.Contains(str, "Costs Per Unit") {
 		t.Errorf("failed, costs header not found")
 	}
-	fmt.Println(str)
+	// fmt.Println(str)
 }

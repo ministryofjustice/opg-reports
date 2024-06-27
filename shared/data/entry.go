@@ -36,6 +36,11 @@ func ToJson[T IEntry](item T) (content []byte, err error) {
 	slog.Debug("[data/entry] ToJson", slog.String("UID", item.UID()), slog.String("err", fmt.Sprintf("%v", err)))
 	return
 }
+func JsonStr[T IEntry](item T) (content string) {
+	c, _ := ToJson(item)
+	content = string(c)
+	return
+}
 
 // ToJsonList converts a series of T into a []byte string via marshalling
 func ToJsonList[T IEntry](items []T) (content []byte, err error) {
