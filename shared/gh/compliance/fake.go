@@ -36,41 +36,41 @@ func Fake(c *Compliance) (f *Compliance) {
 		c.License = fake.Choice[string]([]string{"MIT", "GPL", ""})
 	}
 
-	if c.CountClones == "" {
-		c.CountClones = fake.IntAsStr(1, 30)
+	if c.CountClones == 0 {
+		c.CountClones = fake.Int(1, 30)
 	}
-	if c.CountForks == "" {
-		c.CountForks = fake.IntAsStr(0, 10)
+	if c.CountForks == 0 {
+		c.CountForks = fake.Int(0, 10)
 	}
-	if c.CountPullRequests == "" {
-		c.CountPullRequests = fake.IntAsStr(0, 12)
+	if c.CountPullRequests == 0 {
+		c.CountPullRequests = fake.Int(0, 12)
 	}
-	if c.CountWebhooks == "" {
-		c.CountWebhooks = fake.IntAsStr(0, 5)
+	if c.CountWebhooks == 0 {
+		c.CountWebhooks = fake.Int(0, 5)
 	}
 	// Booleans
-	c.Archived = fake.Choice[string]([]string{"true", "false"})
+	c.Archived = fake.Choice[bool]([]bool{true, false})
 
-	c.HasDescription = fake.Choice[string]([]string{"true", "false"})
-	c.HasDiscussions = fake.Choice[string]([]string{"true", "false"})
-	c.HasDownloads = fake.Choice[string]([]string{"true", "false"})
-	c.HasIssues = fake.Choice[string]([]string{"true", "false"})
-	c.HasPages = fake.Choice[string]([]string{"true", "false"})
-	c.HasProjects = fake.Choice[string]([]string{"true", "false"})
-	c.HasWiki = fake.Choice[string]([]string{"true", "false"})
-	c.IsPrivate = fake.Choice[string]([]string{"true", "false"})
+	c.HasDescription = fake.Choice[bool]([]bool{true, false})
+	c.HasDiscussions = fake.Choice[bool]([]bool{true, false})
+	c.HasDownloads = fake.Choice[bool]([]bool{true, false})
+	c.HasIssues = fake.Choice[bool]([]bool{true, false})
+	c.HasPages = fake.Choice[bool]([]bool{true, false})
+	c.HasProjects = fake.Choice[bool]([]bool{true, false})
+	c.HasWiki = fake.Choice[bool]([]bool{true, false})
+	c.IsPrivate = fake.Choice[bool]([]bool{true, false})
 
-	c.HasCodeOfConduct = fake.Choice[string]([]string{"true", "false"})
-	c.HasCodeOwnerApprovalRequired = fake.Choice[string]([]string{"true", "false"})
-	c.HasContributingGuide = fake.Choice[string]([]string{"true", "false"})
-	c.HasDefaultBranchProtection = fake.Choice[string]([]string{"true", "false"})
-	c.HasReadme = fake.Choice[string]([]string{"true", "false"})
-	c.HasRulesEnforcedForAdmins = fake.Choice[string]([]string{"true", "false"})
-	c.HasPullRequestApprovalRequired = fake.Choice[string]([]string{"true", "false"})
-	c.HasVulnerabilityAlerts = fake.Choice[string]([]string{"true", "false"})
+	c.HasCodeOfConduct = fake.Choice[bool]([]bool{true, false})
+	c.HasCodeOwnerApprovalRequired = fake.Choice[bool]([]bool{true, false})
+	c.HasContributingGuide = fake.Choice[bool]([]bool{true, false})
+	c.HasDefaultBranchProtection = fake.Choice[bool]([]bool{true, false})
+	c.HasReadme = fake.Choice[bool]([]bool{true, false})
+	c.HasRulesEnforcedForAdmins = fake.Choice[bool]([]bool{true, false})
+	c.HasPullRequestApprovalRequired = fake.Choice[bool]([]bool{true, false})
+	c.HasVulnerabilityAlerts = fake.Choice[bool]([]bool{true, false})
 
-	c.Baseline = bTs(c.CompliesWithBaseline())
-	c.Extended = bTs(c.CompliesWithExtended())
+	c.Baseline = c.CompliesWithBaseline()
+	c.Extended = c.CompliesWithExtended()
 
 	f = c
 	slog.Debug("[aws/cost] fake", slog.String("UID", f.UID()))

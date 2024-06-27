@@ -63,7 +63,9 @@ func (c *Compliance) Valid() (valid bool) {
 	mapped, _ := data.ToMap(c)
 	for k, val := range mapped {
 		if val == "" {
-			slog.Debug("[gh/compliance] invalid", slog.String("UID", c.UID()), slog.String(k, val))
+			slog.Debug("[gh/compliance] invalid",
+				slog.String("UID", c.UID()),
+				slog.String(k, val.(string)))
 			return false
 		}
 	}

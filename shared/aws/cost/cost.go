@@ -43,7 +43,9 @@ func (i *Cost) Valid() (valid bool) {
 
 	for k, val := range mapped {
 		if val == "" {
-			slog.Debug("[aws/cost] invalid", slog.String("UID", i.UID()), slog.String(k, val))
+			slog.Debug("[aws/cost] invalid",
+				slog.String("UID", i.UID()),
+				slog.String(k, val.(string)))
 			return false
 		}
 	}

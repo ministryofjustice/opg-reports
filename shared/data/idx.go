@@ -25,7 +25,7 @@ func ToIdx[T IEntry](item T, fields ...string) string {
 			if v, ok := mapped[key]; !ok || v == "" {
 				value = "-"
 			} else {
-				value = v
+				value = fmt.Sprintf("%v", v)
 			}
 			str += fmt.Sprintf("%s%s%s%s", key, endOfKey, value, endOfField)
 		}

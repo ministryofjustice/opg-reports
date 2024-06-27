@@ -19,7 +19,7 @@ func TestSharedGhComplianceRealData(t *testing.T) {
 		r, _ := repos.Get(ctx, client, owner, testRepo)
 
 		comp := NewWithR(nil, r, client)
-		if comp.Baseline != "true" {
+		if !comp.Baseline {
 			t.Errorf("failed baseline")
 		}
 	}

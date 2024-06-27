@@ -17,7 +17,7 @@ func ToRow(cmp *Compliance) (row *response.Row[*response.Cell]) {
 }
 
 func FromRow(row *response.Row[*response.Cell]) (cmp *Compliance) {
-	mapped := map[string]string{}
+	mapped := map[string]interface{}{}
 
 	for _, c := range row.GetCells() {
 		mapped[c.Name] = c.Value
