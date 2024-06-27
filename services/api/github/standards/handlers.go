@@ -1,4 +1,4 @@
-package compliance
+package standards
 
 import (
 	"encoding/json"
@@ -17,6 +17,7 @@ func (a *Api[V, F]) List(w http.ResponseWriter, r *http.Request) {
 		activeOnly := func(item *comp.Compliance) bool {
 			return item.Archived == false
 		}
+		headings := response.NewRow[*response.Cell]()
 		// get everything in range
 		onlyActive := store.Filter(activeOnly)
 		rows := []*response.Row[*response.Cell]{}
@@ -26,8 +27,9 @@ func (a *Api[V, F]) List(w http.ResponseWriter, r *http.Request) {
 			rows = append(rows, row)
 		}
 		result := response.NewData(rows...)
-
+		result.SetHeadings(headings)
 		resp.SetResult(result)
+
 	}
 	resp.End()
 	content, _ := json.Marshal(resp)

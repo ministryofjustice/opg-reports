@@ -1,4 +1,4 @@
-package compliance
+package standards
 
 import (
 	"net/http"
@@ -24,7 +24,7 @@ func (a *Api[V, F]) FS() files.IWriteFS {
 
 func (a *Api[V, F]) Register(mux *http.ServeMux) {
 
-	mux.HandleFunc("/github/compliance/{version}/list/{$}",
+	mux.HandleFunc("/github/standards/{version}/list/{$}",
 		server.Middleware(a.List, server.LoggingMW, server.SecurityHeadersMW))
 }
 

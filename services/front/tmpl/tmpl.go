@@ -3,6 +3,8 @@ package tmpl
 import (
 	"opg-reports/shared/dates"
 	"opg-reports/shared/files"
+	"opg-reports/shared/gh/comp"
+	"opg-reports/shared/server/response"
 	"strconv"
 	"strings"
 	"time"
@@ -45,6 +47,9 @@ func Funcs() map[string]interface{} {
 		},
 		"addi": func(a int, b int) any {
 			return a + b
+		},
+		"complyI": func(row *response.Row[*response.Cell]) *comp.Compliance {
+			return comp.FromRow(row)
 		},
 	}
 

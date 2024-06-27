@@ -44,6 +44,26 @@
                     ]
                 }
             ]
+        },
+        {
+            "name": "Standards",
+            "template": "static-costs-home",
+            "href": "/standards/",
+            "sections": [
+                {
+                    "name": "GitHub Standards",
+                    "href": "/standards/github/",
+                    "header": true,
+                    "sections": [
+                        {
+                            "name": "Repositories",
+                            "href": "/standards/github/repositories/",
+                            "api": "/github/standards/{apiVersion}/list/",
+                            "template": "dynamic-github-standards-list"
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

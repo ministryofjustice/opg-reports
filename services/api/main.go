@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"opg-reports/services/api/aws/cost/monthly"
-	"opg-reports/services/api/gh/compliance"
+	"opg-reports/services/api/github/standards"
 	"opg-reports/shared/aws/cost"
 	"opg-reports/shared/data"
 	"opg-reports/shared/env"
@@ -33,7 +33,7 @@ func main() {
 
 	ghComplianceFS := files.NewFS(ghComplianceFs, "data/gh/compliance/")
 	ghComplianceStore := data.NewStoreFromFS[*comp.Compliance, *files.WriteFS](ghComplianceFS)
-	ghComplianceApi := compliance.New(ghComplianceStore, ghComplianceFS)
+	ghComplianceApi := standards.New(ghComplianceStore, ghComplianceFS)
 	ghComplianceApi.Register(mux)
 
 	addr := env.Get("API_ADDR", ":8081")
