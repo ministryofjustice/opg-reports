@@ -5,15 +5,20 @@ import (
 	"log/slog"
 	"net/http"
 	"opg-reports/services/api/aws/cost/monthly"
+	"opg-reports/services/api/gh/compliance"
 	"opg-reports/shared/aws/cost"
 	"opg-reports/shared/data"
 	"opg-reports/shared/env"
 	"opg-reports/shared/files"
+	"opg-reports/shared/gh/comp"
 	"opg-reports/shared/logger"
 )
 
 //go:embed data/aws/cost/monthly/*.json
 var awsCostMonthlyFs embed.FS
+
+//go:embed data/gh/compliance/*.json
+var ghComplianceFs embed.FS
 
 func main() {
 	// configure the logger
@@ -25,6 +30,11 @@ func main() {
 	awsCostMonthlyStore := data.NewStoreFromFS[*cost.Cost, *files.WriteFS](awsCostMonthlyFs)
 	awsCostMonthlyApi := monthly.New(awsCostMonthlyStore, awsCostMonthlyFs)
 	awsCostMonthlyApi.Register(mux)
+
+	ghComplianceFS := files.NewFS(ghComplianceFs, "data/gh/compliance/")
+	ghComplianceStore := data.NewStoreFromFS[*comp.Compliance, *files.WriteFS](ghComplianceFS)
+	ghComplianceApi := compliance.New(ghComplianceStore, ghComplianceFS)
+	ghComplianceApi.Register(mux)
 
 	addr := env.Get("API_ADDR", ":8081")
 	server := &http.Server{
