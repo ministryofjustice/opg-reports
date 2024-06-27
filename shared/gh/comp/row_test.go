@@ -1,4 +1,4 @@
-package compliance
+package comp
 
 import (
 	"opg-reports/shared/data"

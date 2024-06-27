@@ -1,4 +1,4 @@
-package compliance
+package comp
 
 import (
 	"context"
@@ -18,8 +18,8 @@ func TestSharedGhComplianceRealData(t *testing.T) {
 		client := cl.Client(token, limiter)
 		r, _ := repos.Get(ctx, client, owner, testRepo)
 
-		comp := NewWithR(nil, r, client)
-		if !comp.Baseline {
+		com := NewWithR(nil, r, client)
+		if !com.Baseline {
 			t.Errorf("failed baseline")
 		}
 	}
