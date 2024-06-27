@@ -11,8 +11,8 @@ import (
 // Used as part of a row
 // Impliments [ICell]
 type Cell struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	Name  string      `json:"name"`
+	Value interface{} `json:"value"`
 }
 
 // SetName change the name
@@ -31,7 +31,7 @@ func (c *Cell) SetValue(value string) {
 }
 
 // GetValue returns value
-func (c *Cell) GetValue() string {
+func (c *Cell) GetValue() interface{} {
 	return c.Value
 }
 
@@ -84,7 +84,7 @@ func (d *TableData[C, R]) GetHeadings() R {
 }
 
 // NewCell returns an ICell
-func NewCell(name string, value string) *Cell {
+func NewCell(name string, value interface{}) *Cell {
 	return &Cell{Name: name, Value: value}
 }
 
