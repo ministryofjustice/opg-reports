@@ -8,6 +8,7 @@ import (
 	"opg-reports/shared/data"
 	"opg-reports/shared/dates"
 	"opg-reports/shared/files"
+	"opg-reports/shared/logger"
 	"opg-reports/shared/report"
 	"time"
 
@@ -58,6 +59,7 @@ func run(r report.IReport) {
 }
 
 func main() {
+	logger.LogSetup()
 	now := time.Now().UTC()
 	month.SetDefault(now.Format(dates.FormatYM))
 

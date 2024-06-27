@@ -1,6 +1,7 @@
 #
 **/data/*.json
 **/data/**/*.json
+**data**/*
 # build dir
 builds/*
 # code coverage output file

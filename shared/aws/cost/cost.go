@@ -61,6 +61,8 @@ func Total(items []*Cost) (total float64) {
 	return
 }
 
+var _ data.IEntry = &Cost{}
+
 // New creates a Cost with the uid passed or
 // c=a new uuid if that is nil
 func New(uid *string) *Cost {

@@ -18,10 +18,6 @@ var excludeTax = func(item *cost.Cost) bool {
 }
 
 // Helpers used within grouping
-
-var ym = func(i *cost.Cost) (string, string) {
-	return "month", dates.Reformat(i.Date, dates.FormatYM)
-}
 var unit = func(i *cost.Cost) (string, string) {
 	return "account_unit", strings.ToLower(i.AccountUnit)
 }
@@ -36,9 +32,6 @@ var service = func(i *cost.Cost) (string, string) {
 }
 
 // Group by month
-var byMonth = func(item *cost.Cost) string {
-	return data.ToIdxF(item, ym)
-}
 var byUnit = func(item *cost.Cost) string {
 	return data.ToIdxF(item, unit)
 }

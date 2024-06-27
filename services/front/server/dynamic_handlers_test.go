@@ -71,7 +71,7 @@ func TestFrontServerDynamicHandlerMockedUnits(t *testing.T) {
 	mux.ServeHTTP(w, r)
 
 	str, _ := response.Stringify(w.Result())
-	if !strings.Contains(str, "Total Per Unit") {
+	if !strings.Contains(str, "Costs Per Unit") {
 		t.Errorf("failed, costs header not found")
 	}
 	fmt.Println(str)
