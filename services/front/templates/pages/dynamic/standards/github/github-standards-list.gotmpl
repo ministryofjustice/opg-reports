@@ -1,6 +1,6 @@
 {{ define "dynamic-github-standards-list" }}
     {{ template "head" . }}
-    {{ $standards := .Standards.Respository }}
+    {{ $standards := .Standards.Repository }}
 
     <h1 class="govuk-heading-l">Repository Standards</h1>
     <p class="govuk-body">Lists both public and private MoJ GitHub repositories which are and are not fully compliant with <a href="https://user-guide.operations-engineering.service.justice.gov.uk/documentation/information/mojrepostandards.html">MoJ standards</a> as a baseline and OPG extended requirements.</p>
@@ -41,7 +41,7 @@
             </fieldset>
         </div>
 
-        <table id="standards-dataset" class="compliance-table govuk-table">
+        <table id="standards-dataset" class="standards-table govuk-table">
             <thead class="govuk-table__head">
                 <tr class="govuk-table__row">
                     <th colspan="2" class="govuk-table__header"></th>

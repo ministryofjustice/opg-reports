@@ -98,34 +98,34 @@
     border-right: 1px solid #b1b4b6;
 }
 
-/* standards compliance */
-.compliance-table {
+/* github standards */
+.standards-table {
     max-width: 900px;
 }
 .standard-head {
     max-width:95px;
     width: 95px;
 }
-.compliance-table thead .govuk-table__header{
+.standards-table thead .govuk-table__header{
     text-align: right;
     padding: 10px 0;
 }
-.compliance-table .pass-fail{
+.standards-table .pass-fail{
     text-align: right;
 }
-.compliance-table .pass-fail,
-.compliance-table .expand {
+.standards-table .pass-fail,
+.standards-table .expand {
     padding: 10px 0 10px 0;
     vertical-align: top;
 
 }
-.compliance-table .expand {
+.standards-table .expand {
     width:32px;
     max-width: 32px;
     cursor:pointer;
 }
-.compliance-table .pass-fail strong,
-.compliance-table .expand strong{
+.standards-table .pass-fail strong,
+.standards-table .expand strong{
     max-width: 26px;
     width:26px;
     text-align: center;
@@ -133,12 +133,12 @@
     margin: 0;
     font-weight: 700;
 }
-.compliance-table .repo-name{
+.standards-table .repo-name{
     text-align: left;
     padding: 8px 0;
 }
 
-.compliance-table .kvfield{
+.standards-table .kvfield{
     text-transform: uppercase;
     padding:0;
     margin:0;
@@ -147,18 +147,18 @@
     background-color: transparent;
 }
 
-.compliance-table .key{
+.standards-table .key{
     width:57%;
     max-width:57%;
 }
-.compliance-table .val{
+.standards-table .val{
     font-weight: 700;
     width:42%;
     max-width:42%;
     text-align: right;
 }
 
-.compliance-table .standards-tag{
+.standards-table .standards-tag{
     font-weight: 700;
     font-size:0.8rem;
     max-width: fit-content;
@@ -166,13 +166,13 @@
     margin-right: 5px;
     text-transform: uppercase;
 }
-.compliance-table .summary td,
-.compliance-table .summary th{
+.standards-table .summary td,
+.standards-table .summary th{
     border:0;
     border-top: 1px solid rgb(177, 180, 182)
 }
 /* hide show */
-.compliance-table .detail{
+.standards-table .detail{
     display:none;
 }
 

@@ -4,17 +4,17 @@ import (
 	"net/http"
 	"opg-reports/shared/data"
 	"opg-reports/shared/files"
-	"opg-reports/shared/gh/comp"
+	"opg-reports/shared/github/std"
 	"opg-reports/shared/server"
 )
 
 // Api is a concreate version
-type Api[V *comp.Compliance, F files.WriteFS] struct {
-	store *data.Store[*comp.Compliance]
+type Api[V *std.Repository, F files.WriteFS] struct {
+	store *data.Store[*std.Repository]
 	fs    *files.WriteFS
 }
 
-func (a *Api[V, F]) Store() data.IStore[*comp.Compliance] {
+func (a *Api[V, F]) Store() data.IStore[*std.Repository] {
 	return a.store
 }
 
@@ -33,7 +33,7 @@ func (a *Api[V, F]) Write(w http.ResponseWriter, status int, content []byte) {
 	w.Write(content)
 }
 
-func New[V *comp.Compliance, F files.WriteFS](store *data.Store[*comp.Compliance], fS *files.WriteFS) *Api[V, F] {
+func New[V *std.Repository, F files.WriteFS](store *data.Store[*std.Repository], fS *files.WriteFS) *Api[V, F] {
 
 	return &Api[V, F]{
 		store: store,

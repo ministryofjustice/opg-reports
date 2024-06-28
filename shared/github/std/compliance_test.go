@@ -1,10 +1,10 @@
-package comp
+package std
 
 import (
 	"context"
 	"opg-reports/shared/env"
-	"opg-reports/shared/gh/cl"
-	"opg-reports/shared/gh/repos"
+	"opg-reports/shared/github/cl"
+	"opg-reports/shared/github/repos"
 	"testing"
 )
 

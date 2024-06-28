@@ -1,4 +1,4 @@
-package main
+package standards
 
 import (
 	"context"
@@ -7,9 +7,9 @@ import (
 	"opg-reports/shared/data"
 	"opg-reports/shared/env"
 	"opg-reports/shared/files"
-	"opg-reports/shared/gh/cl"
-	"opg-reports/shared/gh/comp"
-	"opg-reports/shared/gh/repos"
+	"opg-reports/shared/github/cl"
+	"opg-reports/shared/github/repos"
+	"opg-reports/shared/github/std"
 	"opg-reports/shared/logger"
 	"opg-reports/shared/report"
 )
@@ -42,14 +42,14 @@ func run(r report.IReport) {
 		return
 	}
 	slog.Info("repository count", slog.Int("count", len(repositories)))
-	toStore := []*comp.Compliance{}
+	toStore := []*std.Repository{}
 	for i, rep := range repositories {
 		slog.Info(fmt.Sprintf("[%d] %s", i, rep.GetFullName()))
 
-		cmp := comp.NewWithR(nil, rep, client)
+		cmp := std.NewWithR(nil, rep, client)
 		toStore = append(toStore, cmp)
 	}
-	content, err := data.ToJsonList[*comp.Compliance](toStore)
+	content, err := data.ToJsonList[*std.Repository](toStore)
 	filename := r.Filename()
 	err = files.WriteFile(dir, filename, content)
 

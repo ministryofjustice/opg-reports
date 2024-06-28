@@ -3,7 +3,7 @@ package standards
 import (
 	"encoding/json"
 	"net/http"
-	"opg-reports/shared/gh/comp"
+	"opg-reports/shared/github/std"
 	"opg-reports/shared/server/response"
 	"sort"
 )
@@ -15,7 +15,7 @@ func (a *Api[V, F]) List(w http.ResponseWriter, r *http.Request) {
 
 	errs := resp.GetErrors()
 	if len(errs) == 0 {
-		activeOnly := func(item *comp.Compliance) bool {
+		activeOnly := func(item *std.Repository) bool {
 			return item.Archived == false
 		}
 		headings := response.NewRow[*response.Cell]()
@@ -29,7 +29,7 @@ func (a *Api[V, F]) List(w http.ResponseWriter, r *http.Request) {
 		})
 
 		for _, item := range list {
-			row := comp.ToRow(item)
+			row := std.ToRow(item)
 			rows = append(rows, row)
 		}
 		result := response.NewData(rows...)

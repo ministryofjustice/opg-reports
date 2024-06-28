@@ -6,7 +6,7 @@ import (
 	"opg-reports/shared/data"
 	"opg-reports/shared/dates"
 	"opg-reports/shared/files"
-	"opg-reports/shared/gh/comp"
+	"opg-reports/shared/github/std"
 	"opg-reports/shared/server/response"
 	"strconv"
 	"strings"
@@ -67,22 +67,22 @@ func Funcs() map[string]interface{} {
 			return a + b
 		},
 		// Compliance
-		"getComplianceItem": func(row *response.Row[*response.Cell]) *comp.Compliance {
-			return comp.FromRow(row)
+		"getComplianceItem": func(row *response.Row[*response.Cell]) *std.Repository {
+			return std.FromRow(row)
 		},
-		"repoSetStandards": func(c *comp.Compliance, standards *cnf.RepoStandards) error {
+		"repoSetStandards": func(c *std.Repository, standards *cnf.RepoStandards) error {
 			c.SetStandards(standards)
 			return nil
 		},
-		"repoStandardPassed": func(c *comp.Compliance, standards []string) (pass bool) {
+		"repoStandardPassed": func(c *std.Repository, standards []string) (pass bool) {
 			pass, _, _ = c.Compliant(standards)
 			return
 		},
-		"repoStandardDetail": func(c *comp.Compliance, standards []string) (detail map[string]bool) {
+		"repoStandardDetail": func(c *std.Repository, standards []string) (detail map[string]bool) {
 			_, detail, _ = c.Compliant(standards)
 			return
 		},
-		"repoStandardValues": func(c *comp.Compliance, fields []string) (detail map[string]interface{}) {
+		"repoStandardValues": func(c *std.Repository, fields []string) (detail map[string]interface{}) {
 			detail = map[string]interface{}{}
 			m, _ := data.ToMap(c)
 			for _, k := range fields {
@@ -93,7 +93,7 @@ func Funcs() map[string]interface{} {
 		"totalCountPassed": func(rows []*response.Row[*response.Cell], standards []string) (count int) {
 			count = 0
 			for _, row := range rows {
-				c := comp.FromRow(row)
+				c := std.FromRow(row)
 				if pass, _, _ := c.Compliant(standards); pass {
 					count += 1
 				}

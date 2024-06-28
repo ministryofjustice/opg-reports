@@ -8,7 +8,7 @@ type RepoStandards struct {
 	Information []string `json:"information"`
 }
 type StandardsCnf struct {
-	Respository RepoStandards `json:"repository"`
+	Repository RepoStandards `json:"repository"`
 }
 
 type SiteSection struct {

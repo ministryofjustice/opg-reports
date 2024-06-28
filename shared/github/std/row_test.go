@@ -1,4 +1,4 @@
-package comp
+package std
 
 import (
 	"opg-reports/shared/data"

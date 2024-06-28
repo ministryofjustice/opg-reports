@@ -10,14 +10,14 @@ import (
 	"opg-reports/shared/data"
 	"opg-reports/shared/env"
 	"opg-reports/shared/files"
-	"opg-reports/shared/gh/comp"
+	"opg-reports/shared/github/std"
 	"opg-reports/shared/logger"
 )
 
 //go:embed data/aws/cost/monthly/*.json
 var awsCostMonthlyFs embed.FS
 
-//go:embed data/gh/compliance/*.json
+//go:embed data/github/standards/*.json
 var ghComplianceFs embed.FS
 
 func main() {
@@ -31,8 +31,8 @@ func main() {
 	awsCostMonthlyApi := monthly.New(awsCostMonthlyStore, awsCostMonthlyFs)
 	awsCostMonthlyApi.Register(mux)
 
-	ghComplianceFS := files.NewFS(ghComplianceFs, "data/gh/compliance/")
-	ghComplianceStore := data.NewStoreFromFS[*comp.Compliance, *files.WriteFS](ghComplianceFS)
+	ghComplianceFS := files.NewFS(ghComplianceFs, "data/github/standards/")
+	ghComplianceStore := data.NewStoreFromFS[*std.Repository, *files.WriteFS](ghComplianceFS)
 	ghComplianceApi := standards.New(ghComplianceStore, ghComplianceFS)
 	ghComplianceApi.Register(mux)
 

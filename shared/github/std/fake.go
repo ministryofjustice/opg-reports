@@ -1,4 +1,4 @@
-package comp
+package std
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 
 // FakeCompliant returns a faked version that has baseline compliance
 // values as true
-func FakeCompliant(c *Compliance, fields []string) (f *Compliance) {
+func FakeCompliant(c *Repository, fields []string) (f *Repository) {
 	c = Fake(c)
 	// convert to map, set the required fields to true and
 	// convert back
@@ -19,7 +19,7 @@ func FakeCompliant(c *Compliance, fields []string) (f *Compliance) {
 		for _, key := range fields {
 			m[key] = true
 		}
-		if cmp, err := data.FromMap[*Compliance](m); err == nil {
+		if cmp, err := data.FromMap[*Repository](m); err == nil {
 			c = cmp
 		}
 	}
@@ -30,7 +30,7 @@ func FakeCompliant(c *Compliance, fields []string) (f *Compliance) {
 
 // Fake returns a generated Cost item using fake data
 // If you pass an existing cost item in, it will fill in blank fields only
-func Fake(c *Compliance) (f *Compliance) {
+func Fake(c *Repository) (f *Repository) {
 
 	if c == nil {
 		c = New(nil)

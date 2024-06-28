@@ -1,4 +1,4 @@
-package comp
+package std
 
 import (
 	"context"
@@ -42,7 +42,7 @@ var defaultInformation = []string{
 	"is_private",
 }
 
-type Compliance struct {
+type Repository struct {
 	r    *github.Repository
 	stds *cnf.RepoStandards
 
@@ -82,13 +82,13 @@ type Compliance struct {
 }
 
 // UID is the unique id (UUID) for this Compliance item
-func (c *Compliance) UID() string {
+func (c *Repository) UID() string {
 	slog.Debug("[gh/compliance] UID()", slog.String("UID", c.UUID))
 	return c.UUID
 }
 
 // Valid returns true only if all fields are present with a non-empty value
-func (c *Compliance) Valid() (valid bool) {
+func (c *Repository) Valid() (valid bool) {
 	mapped, _ := data.ToMap(c)
 	for k, val := range mapped {
 		if val == "" {
@@ -102,16 +102,16 @@ func (c *Compliance) Valid() (valid bool) {
 	return true
 }
 
-func (c *Compliance) SetStandards(stds *cnf.RepoStandards) {
+func (c *Repository) SetStandards(stds *cnf.RepoStandards) {
 	c.stds = stds
 }
-func (c *Compliance) GetStandards() *cnf.RepoStandards {
+func (c *Repository) GetStandards() *cnf.RepoStandards {
 	return c.stds
 }
 
 // Compliant checks that the fieldnames passed have true values, if they dont, then this does not comply
 // Allows dynamic setting of compliance that be draw from a config
-func (c *Compliance) Compliant(booleanFields []string) (complies bool, values map[string]bool, err error) {
+func (c *Repository) Compliant(booleanFields []string) (complies bool, values map[string]bool, err error) {
 	complies = false
 	values = map[string]bool{}
 	mapped, err := data.ToMap(c)
@@ -129,24 +129,24 @@ func (c *Compliance) Compliant(booleanFields []string) (complies bool, values ma
 	return
 }
 
-// func (c *Compliance) Complies(booleanFields []string) (complies bool) {
+// func (c *Repository) Complies(booleanFields []string) (complies bool) {
 // 	complies, _, _ = c.Compliant(booleanFields)
 // 	return
 // }
-// func (c *Compliance) ComplyDetail(booleanFields []string) (values map[string]bool) {
+// func (c *Repository) ComplyDetail(booleanFields []string) (values map[string]bool) {
 // 	_, values, _ = c.Compliant(booleanFields)
 // 	return
 // }
 
 // setData calls the internal data setting funcs
-func (c *Compliance) setData(client *github.Client) {
+func (c *Repository) setData(client *github.Client) {
 	c.dataDirectFromR()
 	c.dataViaClient(client)
 }
 
 // dataViaClient sets data that requires additional calls using the
 // github client to fetch more information
-func (c *Compliance) dataViaClient(client *github.Client) {
+func (c *Repository) dataViaClient(client *github.Client) {
 	// Check branch protection
 	if branch, _, err := client.Repositories.GetBranch(context.Background(), c.Owner, c.Name, c.DefaultBranch, 1); err == nil {
 		c.HasDefaultBranchProtection = branch.GetProtected()
@@ -190,7 +190,7 @@ func (c *Compliance) dataViaClient(client *github.Client) {
 
 // dataDirectFromR sets data that can be found directly on the
 // repository without making extra calls
-func (c *Compliance) dataDirectFromR() {
+func (c *Repository) dataDirectFromR() {
 	r := c.r
 	c.Archived = r.GetArchived()
 	c.DefaultBranch = r.GetDefaultBranch()
@@ -217,10 +217,10 @@ func (c *Compliance) dataDirectFromR() {
 
 }
 
-var _ data.IEntry = &Compliance{}
+var _ data.IEntry = &Repository{}
 
-func New(uid *string) *Compliance {
-	c := &Compliance{}
+func New(uid *string) *Repository {
+	c := &Repository{}
 	if uid != nil {
 		c.UUID = *uid
 	} else {
@@ -229,7 +229,7 @@ func New(uid *string) *Compliance {
 	return c
 }
 
-func NewWithR(uid *string, r *github.Repository, client *github.Client) *Compliance {
+func NewWithR(uid *string, r *github.Repository, client *github.Client) *Repository {
 	c := New(uid)
 	c.r = r
 	c.setData(client)
