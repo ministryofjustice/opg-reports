@@ -18,7 +18,7 @@ import (
 var awsCostMonthlyFs embed.FS
 
 //go:embed data/github/standards/*.json
-var ghComplianceFs embed.FS
+var ghStandardsFs embed.FS
 
 func main() {
 	// configure the logger
@@ -31,10 +31,10 @@ func main() {
 	awsCostMonthlyApi := monthly.New(awsCostMonthlyStore, awsCostMonthlyFs)
 	awsCostMonthlyApi.Register(mux)
 
-	ghComplianceFS := files.NewFS(ghComplianceFs, "data/github/standards/")
-	ghComplianceStore := data.NewStoreFromFS[*std.Repository, *files.WriteFS](ghComplianceFS)
-	ghComplianceApi := standards.New(ghComplianceStore, ghComplianceFS)
-	ghComplianceApi.Register(mux)
+	ghStandardsFS := files.NewFS(ghStandardsFs, "data/github/standards/")
+	ghStandardsStore := data.NewStoreFromFS[*std.Repository, *files.WriteFS](ghStandardsFS)
+	ghStandardsApi := standards.New(ghStandardsStore, ghStandardsFS)
+	ghStandardsApi.Register(mux)
 
 	addr := env.Get("API_ADDR", ":8081")
 	server := &http.Server{

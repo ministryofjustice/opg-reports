@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"opg-reports/shared/data"
 	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -15,7 +16,9 @@ import (
 //
 // Impliments data.IEntry
 type Cost struct {
-	UUID                string `json:"uuid"`
+	UUID      string    `json:"uuid"`
+	Timestamp time.Time `json:"time"`
+
 	AccountOrganisation string `json:"account_organsiation"`
 	AccountId           string `json:"account_id"`
 	AccountEnvironment  string `json:"account_environment"`
@@ -26,6 +29,10 @@ type Cost struct {
 	Region              string `json:"region"`
 	Date                string `json:"date"`
 	Cost                string `json:"cost"`
+}
+
+func (i *Cost) TS() time.Time {
+	return i.Timestamp
 }
 
 // UID is the unique id (UUID) for this Cost item
@@ -68,7 +75,7 @@ var _ data.IEntry = &Cost{}
 // New creates a Cost with the uid passed or
 // c=a new uuid if that is nil
 func New(uid *string) *Cost {
-	c := &Cost{}
+	c := &Cost{Timestamp: time.Now().UTC()}
 
 	if uid != nil {
 		c.UUID = *uid

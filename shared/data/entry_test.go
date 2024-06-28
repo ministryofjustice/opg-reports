@@ -2,6 +2,7 @@ package data
 
 import (
 	"testing"
+	"time"
 )
 
 type testEntry struct {
@@ -15,6 +16,9 @@ func (i *testEntry) UID() string {
 func (i *testEntry) Valid() bool {
 	return true
 }
+func (i *testEntry) TS() time.Time {
+	return time.Now().UTC()
+}
 
 type testEntryExt struct {
 	Id       string `json:"id"`
@@ -25,7 +29,9 @@ type testEntryExt struct {
 func (i *testEntryExt) UID() string {
 	return i.Id
 }
-
+func (i *testEntryExt) TS() time.Time {
+	return time.Now().UTC()
+}
 func (i *testEntryExt) Valid() bool {
 	return true
 }

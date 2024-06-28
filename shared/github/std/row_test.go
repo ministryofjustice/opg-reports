@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestSharedGhComplianceToRow(t *testing.T) {
+func TestSharedGithubStandardsToRow(t *testing.T) {
 	item := Fake(nil)
 	row := ToRow(item)
 

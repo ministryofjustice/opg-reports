@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"opg-reports/services/front/cnf"
 	"opg-reports/shared/data"
+	"time"
 
 	"github.com/google/go-github/v62/github"
 	"github.com/google/uuid"
@@ -46,7 +47,8 @@ type Repository struct {
 	r    *github.Repository
 	stds *cnf.RepoStandards
 
-	UUID string `json:"uuid"`
+	UUID      string    `json:"uuid"`
+	Timestamp time.Time `json:"time"`
 
 	Archived      bool   `json:"archived"`
 	DefaultBranch string `json:"default_branch"`
@@ -85,6 +87,10 @@ type Repository struct {
 func (c *Repository) UID() string {
 	slog.Debug("[github/std/repo] UID()", slog.String("UID", c.UUID))
 	return c.UUID
+}
+
+func (c *Repository) TS() time.Time {
+	return c.Timestamp
 }
 
 // Valid returns true only if all fields are present with a non-empty value
@@ -211,7 +217,7 @@ func (c *Repository) dataDirectFromR() {
 var _ data.IEntry = &Repository{}
 
 func New(uid *string) *Repository {
-	c := &Repository{}
+	c := &Repository{Timestamp: time.Now().UTC()}
 	if uid != nil {
 		c.UUID = *uid
 	} else {

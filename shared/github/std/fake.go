@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log/slog"
 	"opg-reports/shared/data"
+	"opg-reports/shared/dates"
 	"opg-reports/shared/fake"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -38,7 +40,9 @@ func Fake(c *Repository) (f *Repository) {
 	if c.UUID == "" {
 		c.UUID = uuid.NewString()
 	}
-
+	if c.Timestamp.Format(dates.FormatY) == dates.ErrYear {
+		c.Timestamp = time.Now().UTC()
+	}
 	if c.DefaultBranch == "" {
 		c.DefaultBranch = fake.Choice[string]([]string{"main", "master"})
 	}

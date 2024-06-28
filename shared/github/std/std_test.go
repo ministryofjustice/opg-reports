@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestSharedGhComplianceRealData(t *testing.T) {
+func TestSharedGithubStandardsRealData(t *testing.T) {
 	owner := "ministryofjustice"
 	testRepo := "opg-incident-response"
 	token := env.Get("GITHUB_ACCESS_TOKEN", "")
@@ -24,7 +24,7 @@ func TestSharedGhComplianceRealData(t *testing.T) {
 		}
 	}
 }
-func TestSharedGhComplianceComply(t *testing.T) {
+func TestSharedGithubStandardsComply(t *testing.T) {
 	c := FakeCompliant(nil, defaultBaselineCompliance)
 	if comply, _, _ := c.Compliant(defaultBaselineCompliance); !comply {
 		t.Errorf("compliance failed")

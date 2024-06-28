@@ -2,6 +2,7 @@ package cost
 
 import (
 	"log/slog"
+	"opg-reports/shared/dates"
 	"opg-reports/shared/fake"
 	"time"
 
@@ -16,6 +17,9 @@ func Fake(c *Cost, minDate time.Time, maxDate time.Time, dFormat string) (f *Cos
 	}
 	if c.UUID == "" {
 		c.UUID = uuid.NewString()
+	}
+	if c.Timestamp.Format(dates.FormatY) == dates.ErrYear {
+		c.Timestamp = time.Now().UTC()
 	}
 	if c.AccountEnvironment == "" {
 		c.AccountEnvironment = fake.String(3)

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"time"
 )
 
 // IEntry used to represent an item within the data store
@@ -11,6 +12,7 @@ import (
 type IEntry interface {
 	Valid() bool
 	UID() string
+	TS() time.Time
 }
 
 var indent bool = true
