@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"opg-reports/shared/gh/comp"
 	"opg-reports/shared/server/response"
+	"sort"
 )
 
 func (a *Api[V, F]) List(w http.ResponseWriter, r *http.Request) {
@@ -22,7 +23,12 @@ func (a *Api[V, F]) List(w http.ResponseWriter, r *http.Request) {
 		onlyActive := store.Filter(activeOnly)
 		rows := []*response.Row[*response.Cell]{}
 
-		for _, item := range onlyActive.List() {
+		list := onlyActive.List()
+		sort.Slice(list, func(i, j int) bool {
+			return list[i].FullName < list[j].FullName
+		})
+
+		for _, item := range list {
 			row := comp.ToRow(item)
 			rows = append(rows, row)
 		}

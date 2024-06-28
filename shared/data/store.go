@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"opg-reports/shared/files"
+	"sort"
 )
 
 var (
@@ -26,6 +27,8 @@ type IStore[T IEntry] interface {
 	Group(group IStoreGrouper[T]) (stores map[string]IStore[T])
 	// All returns all of the items within the store
 	All() map[string]T
+	// Retuns all items, but sorted by the key
+	Sorted() map[string]T
 	// List returns all things as a slice
 	List() []T
 	// Length returns the number of items within the store
@@ -80,10 +83,27 @@ func (s *Store[T]) All() map[string]T {
 	return s.items
 }
 
-// List returns all items from the store as a slice
+// Sorted takes All() and sorts the map by the key
+func (s *Store[T]) Sorted() map[string]T {
+	all := s.All()
+	sorted := map[string]T{}
+	keys := []string{}
+	for k, _ := range all {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		sorted[k] = all[k]
+	}
+	slog.Debug("[data/store] Sorted")
+	return sorted
+}
+
+// List returns all items from the store as a slice,
+// using sorted version of All()
 func (s *Store[T]) List() (l []T) {
 	l = []T{}
-	for _, item := range s.All() {
+	for _, item := range s.Sorted() {
 		l = append(l, item)
 	}
 	slog.Debug("[data/store] list")

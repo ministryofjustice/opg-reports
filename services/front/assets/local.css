@@ -143,14 +143,13 @@
     padding:0;
     margin:0;
     margin-bottom: 5px;
-    margin-right: 5px;
     font-size: 0.9rem;
     background-color: transparent;
 }
 
 .compliance-table .key{
-    width:55%;
-    max-width:55%;
+    width:57%;
+    max-width:57%;
 }
 .compliance-table .val{
     font-weight: 700;

@@ -3,6 +3,7 @@ package comp
 import (
 	"context"
 	"log/slog"
+	"opg-reports/services/front/cnf"
 	"opg-reports/shared/data"
 
 	"github.com/google/go-github/v62/github"
@@ -27,9 +28,23 @@ var defaultExtendedCompliance = []string{
 	"has_code_of_conduct",
 	"has_contributing_guide",
 }
+var defaultInformation = []string{
+	"archived",
+	"has_delete_branch_on_merge",
+	"has_pages",
+	"has_downloads",
+	"has_discussions",
+	"has_wiki",
+	"forks",
+	"webhooks",
+	"open_pull_requests",
+	"clone_traffic",
+	"is_private",
+}
 
 type Compliance struct {
-	r *github.Repository
+	r    *github.Repository
+	stds *cnf.RepoStandards
 
 	UUID string `json:"uuid"`
 
@@ -41,11 +56,16 @@ type Compliance struct {
 	Owner         string `json:"owner"`
 
 	CountClones       int `json:"clone_traffic"`
-	CountForks        int `json:"forks_count"`
+	CountForks        int `json:"forks"`
 	CountPullRequests int `json:"open_pull_requests"`
 	CountWebhooks     int `json:"webhooks"`
 
+	HasCodeOfConduct               bool `json:"has_code_of_conduct"`
+	HasCodeOwnerApprovalRequired   bool `json:"has_code_owner_approval_required"`
+	HasContributingGuide           bool `json:"has_contributing_guide"`
 	HasDefaultBranchOfMain         bool `json:"has_default_branch_of_main"`
+	HasDefaultBranchProtection     bool `json:"has_default_branch_protection"`
+	HasDeleteBranchOnMerge         bool `json:"has_delete_branch_on_merge"`
 	HasDescription                 bool `json:"has_description"`
 	HasDiscussions                 bool `json:"has_discussions"`
 	HasDownloads                   bool `json:"has_downloads"`
@@ -53,16 +73,12 @@ type Compliance struct {
 	HasLicense                     bool `json:"has_license"`
 	HasPages                       bool `json:"has_pages"`
 	HasProjects                    bool `json:"has_projects"`
-	HasWiki                        bool `json:"has_wiki"`
-	IsPrivate                      bool `json:"is_private"`
-	HasCodeOfConduct               bool `json:"has_code_of_conduct"`
-	HasCodeOwnerApprovalRequired   bool `json:"has_code_owner_approval_required"`
-	HasContributingGuide           bool `json:"has_contributing_guide"`
-	HasDefaultBranchProtection     bool `json:"has_default_branch_protection"`
+	HasPullRequestApprovalRequired bool `json:"has_pull_request_approval_required"`
 	HasReadme                      bool `json:"has_readme"`
 	HasRulesEnforcedForAdmins      bool `json:"has_rules_enforced_for_admins"`
-	HasPullRequestApprovalRequired bool `json:"has_pull_request_approval_required"`
 	HasVulnerabilityAlerts         bool `json:"has_vulnerability_alerts"`
+	HasWiki                        bool `json:"has_wiki"`
+	IsPrivate                      bool `json:"is_private"`
 }
 
 // UID is the unique id (UUID) for this Compliance item
@@ -86,24 +102,41 @@ func (c *Compliance) Valid() (valid bool) {
 	return true
 }
 
+func (c *Compliance) SetStandards(stds *cnf.RepoStandards) {
+	c.stds = stds
+}
+func (c *Compliance) GetStandards() *cnf.RepoStandards {
+	return c.stds
+}
+
 // Compliant checks that the fieldnames passed have true values, if they dont, then this does not comply
 // Allows dynamic setting of compliance that be draw from a config
-func (c *Compliance) Compliant(booleanFields []string) (complies bool, failedOn []string, err error) {
+func (c *Compliance) Compliant(booleanFields []string) (complies bool, values map[string]bool, err error) {
 	complies = false
-	failedOn = []string{}
+	values = map[string]bool{}
 	mapped, err := data.ToMap(c)
 	if err != nil {
 		return
 	}
 	complies = true
 	for _, key := range booleanFields {
+		values[key] = true
 		if v, ok := mapped[key]; !ok || !v.(bool) {
 			complies = false
-			failedOn = append(failedOn, key)
+			values[key] = false
 		}
 	}
 	return
 }
+
+// func (c *Compliance) Complies(booleanFields []string) (complies bool) {
+// 	complies, _, _ = c.Compliant(booleanFields)
+// 	return
+// }
+// func (c *Compliance) ComplyDetail(booleanFields []string) (values map[string]bool) {
+// 	_, values, _ = c.Compliant(booleanFields)
+// 	return
+// }
 
 // setData calls the internal data setting funcs
 func (c *Compliance) setData(client *github.Client) {
@@ -123,6 +156,7 @@ func (c *Compliance) dataViaClient(client *github.Client) {
 		c.HasRulesEnforcedForAdmins = protection.EnforceAdmins.Enabled
 		c.HasPullRequestApprovalRequired = protection.RequiredPullRequestReviews.RequiredApprovingReviewCount > 0
 		c.HasCodeOwnerApprovalRequired = protection.RequiredPullRequestReviews.RequireCodeOwnerReviews
+
 	}
 	// vuln alerts enabled
 	if alerts, _, err := client.Repositories.GetVulnerabilityAlerts(context.Background(), c.Owner, c.Name); err == nil {
@@ -171,6 +205,7 @@ func (c *Compliance) dataDirectFromR() {
 	c.HasDefaultBranchOfMain = (c.DefaultBranch == "main")
 	c.HasDescription = len(r.GetDescription()) > 0
 	c.HasDiscussions = r.GetHasDiscussions()
+	c.HasDeleteBranchOnMerge = r.GetDeleteBranchOnMerge()
 	c.HasDownloads = r.GetHasDownloads()
 	c.HasIssues = r.GetHasIssues()
 	c.HasPages = r.GetHasPages()
@@ -179,6 +214,7 @@ func (c *Compliance) dataDirectFromR() {
 	c.IsPrivate = r.GetPrivate()
 
 	c.CountForks = r.GetForksCount()
+
 }
 
 var _ data.IEntry = &Compliance{}

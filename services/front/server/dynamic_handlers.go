@@ -43,18 +43,27 @@ func (s *FrontWebServer) Dynamic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	headings := resp.GetResult().GetHeadings()
-	// figure out how many headings in a row
-	m := dates.Months(start, end)
-	l := len(headings.GetCells()) - len(m)
-	if l <= 0 {
-		l = 1
+	result := resp.GetResult()
+
+	if result != nil {
+		if headings := result.GetHeadings(); headings != nil {
+			// figure out how many headings in a row
+			l := 0
+			if headingCells := headings.GetCells(); headingCells != nil {
+				data["Headings"] = headings.GetCells()
+				m := dates.Months(start, end)
+				l = len(headingCells) - len(m)
+				// happens in some test cases
+				if l < 0 {
+					l = 1
+				}
+			}
+			data["HeadingCounter"] = l
+		}
+		if rows := result.GetRows(); rows != nil {
+			data["Result"] = rows
+		}
 	}
-
-	data["Headings"] = headings.GetCells()
-	data["HeadingCounter"] = l
-	data["Result"] = resp.GetResult().GetRows()
-
 	// Setup data object for the templates
 	data["Organisation"] = s.Config.Organisation
 	data["PageTitle"] = active.Name + " - "
@@ -63,6 +72,7 @@ func (s *FrontWebServer) Dynamic(w http.ResponseWriter, r *http.Request) {
 	data["EndDate"] = end
 	data["Months"] = dates.Months(start, end)
 	data["Days"] = dates.Days(start, end)
+	data["Standards"] = s.Config.Standards
 
 	t, err := template.New(active.TemplateName).Funcs(tmpl.Funcs()).ParseFiles(s.templateFiles...)
 	if err != nil {
