@@ -84,6 +84,7 @@
             ],
             "information": [
                 "archived",
+                "default_branch",
                 "has_delete_branch_on_merge",
                 "has_pages",
                 "has_downloads",

@@ -18,7 +18,7 @@ func (a *Api[V, F]) List(w http.ResponseWriter, r *http.Request) {
 		activeOnly := func(item *std.Repository) bool {
 			return item.Archived == false
 		}
-		headings := response.NewRow[*response.Cell]()
+
 		// get everything in range
 		onlyActive := store.Filter(activeOnly)
 		rows := []*response.Row[*response.Cell]{}
@@ -31,9 +31,10 @@ func (a *Api[V, F]) List(w http.ResponseWriter, r *http.Request) {
 		for _, item := range list {
 			row := std.ToRow(item)
 			rows = append(rows, row)
+			// Add data times to resp
+			resp.AddTimestamp(item.TS())
 		}
 		result := response.NewData(rows...)
-		result.SetHeadings(headings)
 		resp.SetResult(result)
 
 	}

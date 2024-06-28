@@ -81,7 +81,7 @@ func (r *Row[C]) GetCells() (cells []C) {
 
 // TableHeadings represents specifc headers for the tabular data
 type TableHeadings[C ICell, R IRow[C]] struct {
-	Headings R `json:"headings"`
+	Headings R `json:"headings,omitempty"`
 }
 
 // SetHeadings sets the header
@@ -99,7 +99,7 @@ func (d *TableHeadings[C, R]) GetHeadings() (head R) {
 
 // TableFooter represents footer of a table, used for totals etc
 type TableFooter[C ICell, R IRow[C]] struct {
-	Footer R `json:"footer"`
+	Footer R `json:"footer,omitempty"`
 }
 
 func (d *TableFooter[C, R]) SetFooter(h R) {
@@ -115,7 +115,7 @@ func (d *TableFooter[C, R]) GetFooter() R {
 type TableData[C ICell, R IRow[C]] struct {
 	*TableHeadings[C, R]
 	*TableFooter[C, R]
-	Rows []R `json:"rows"`
+	Rows []R `json:"rows,omitempty"`
 }
 
 // SetRows sets rows
@@ -130,6 +130,20 @@ func (d *TableData[C, R]) AddRows(rows ...R) {
 func (d *TableData[C, R]) GetRows() (rows []R) {
 	if len(d.Rows) > 0 {
 		rows = d.Rows
+	}
+	return
+}
+
+// Overwrite the get headings to check the pointer
+func (d *TableData[C, R]) GetHeadings() (head R) {
+	if d.TableHeadings != nil {
+		head = d.TableHeadings.GetHeadings()
+	}
+	return
+}
+func (d *TableData[C, R]) GetFooter() (f R) {
+	if d.TableFooter != nil {
+		f = d.TableFooter.GetFooter()
 	}
 	return
 }
