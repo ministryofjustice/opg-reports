@@ -47,7 +47,7 @@
         },
         {
             "name": "Standards",
-            "template": "static-costs-home",
+            "template": "static-standards-home",
             "href": "/standards/",
             "sections": [
                 {

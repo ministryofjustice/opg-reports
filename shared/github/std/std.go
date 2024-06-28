@@ -129,15 +129,6 @@ func (c *Repository) Compliant(booleanFields []string) (complies bool, values ma
 	return
 }
 
-// func (c *Repository) Complies(booleanFields []string) (complies bool) {
-// 	complies, _, _ = c.Compliant(booleanFields)
-// 	return
-// }
-// func (c *Repository) ComplyDetail(booleanFields []string) (values map[string]bool) {
-// 	_, values, _ = c.Compliant(booleanFields)
-// 	return
-// }
-
 // setData calls the internal data setting funcs
 func (c *Repository) setData(client *github.Client) {
 	c.dataDirectFromR()
