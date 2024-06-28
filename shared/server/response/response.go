@@ -51,15 +51,46 @@ func (r *Row[C]) AddCells(cells ...C) {
 }
 
 // GetCells return cells of this row
-func (r *Row[C]) GetCells() []C {
-	return r.Cells
+func (r *Row[C]) GetCells() (cells []C) {
+	if len(r.Cells) > 0 {
+		cells = r.Cells
+	}
+	return
+}
+
+type TableHeadings[C ICell, R IRow[C]] struct {
+	Headings R `json:"headings"`
+}
+
+func (d *TableHeadings[C, R]) SetHeadings(h R) {
+	d.Headings = h
+}
+
+func (d *TableHeadings[C, R]) GetHeadings() (head R) {
+	if len(d.Headings.GetCells()) > 0 {
+		head = d.Headings
+	}
+	return
+}
+
+type TableFooter[C ICell, R IRow[C]] struct {
+	Footer R `json:"footer"`
+}
+
+func (d *TableFooter[C, R]) SetFooter(h R) {
+	d.Footer = h
+}
+
+func (d *TableFooter[C, R]) GetFooter() R {
+	return d.Footer
 }
 
 // TableData impliments [ITableData]
 // Acts like a table
 type TableData[C ICell, R IRow[C]] struct {
-	Headings R   `json:"headings"`
-	Rows     []R `json:"rows"`
+	*TableHeadings[C, R]
+	*TableFooter[C, R]
+	Rows []R `json:"rows"`
 }
 
 // SetRows sets rows
@@ -71,16 +102,11 @@ func (d *TableData[C, R]) AddRows(rows ...R) {
 }
 
 // GetRows returns the rows
-func (d *TableData[C, R]) GetRows() []R {
-	return d.Rows
-}
-
-func (d *TableData[C, R]) SetHeadings(h R) {
-	d.Headings = h
-}
-
-func (d *TableData[C, R]) GetHeadings() R {
-	return d.Headings
+func (d *TableData[C, R]) GetRows() (rows []R) {
+	if len(d.Rows) > 0 {
+		rows = d.Rows
+	}
+	return
 }
 
 // NewCell returns an ICell
@@ -108,7 +134,10 @@ func NewRows[C ICell](cellSet ...[]C) (rows []*Row[C]) {
 
 // NewData returns a data item acts like a table
 func NewData[C ICell, R IRow[C]](rows ...R) *TableData[C, R] {
-	d := &TableData[C, R]{}
+	d := &TableData[C, R]{
+		TableHeadings: &TableHeadings[C, R]{},
+		TableFooter:   &TableFooter[C, R]{},
+	}
 	d.SetRows(rows)
 	return d
 }

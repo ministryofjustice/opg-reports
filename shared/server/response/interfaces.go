@@ -10,12 +10,22 @@ type IRow[C ICell] interface {
 	GetCells() []C
 }
 
+type IHeadings[C ICell, R IRow[C]] interface {
+	SetHeadings(h R)
+	GetHeadings() R
+}
+
+type IFooter[C ICell, R IRow[C]] interface {
+	SetFooter(f R)
+	GetFooter() R
+}
+
 type ITableData[C ICell, R IRow[C]] interface {
+	IHeadings[C, R]
+	IFooter[C, R]
 	SetRows(rows []R)
 	AddRows(rows ...R)
 	GetRows() []R
-	SetHeadings(h R)
-	GetHeadings() R
 }
 
 // ITimings handles simple start, end and duration elements of the interface.
