@@ -83,7 +83,7 @@ type Repository struct {
 
 // UID is the unique id (UUID) for this Compliance item
 func (c *Repository) UID() string {
-	slog.Debug("[gh/compliance] UID()", slog.String("UID", c.UUID))
+	slog.Debug("[github/std/repo] UID()", slog.String("UID", c.UUID))
 	return c.UUID
 }
 
@@ -92,13 +92,13 @@ func (c *Repository) Valid() (valid bool) {
 	mapped, _ := data.ToMap(c)
 	for k, val := range mapped {
 		if val == "" {
-			slog.Debug("[gh/compliance] invalid",
+			slog.Debug("[github/std/repo] invalid",
 				slog.String("UID", c.UID()),
 				slog.String(k, val.(string)))
 			return false
 		}
 	}
-	slog.Debug("[gh/compliance] valid", slog.String("UID", c.UID()))
+	slog.Debug("[github/std/repo] valid", slog.String("UID", c.UID()))
 	return true
 }
 
