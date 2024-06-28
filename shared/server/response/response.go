@@ -253,13 +253,13 @@ func NewResponse() *Result[*Cell, *Row[*Cell], *TableData[*Cell, *Row[*Cell]]] {
 	}
 }
 
-func NewResponseFromJson[C ICell, R IRow[C], D ITableData[C, R]](content []byte, i *Result[C, R, D]) (response *Result[C, R, D], err error) {
-	err = json.Unmarshal(content, i)
-	return i, err
+func ParseFromJson[C ICell, R IRow[C], D ITableData[C, R]](content []byte, response *Result[C, R, D]) (err error) {
+	err = json.Unmarshal(content, response)
+	return
 }
-func NewResponseFromHttp[C ICell, R IRow[C], D ITableData[C, R]](r *http.Response, i *Result[C, R, D]) (response *Result[C, R, D], err error) {
+func ParseFromHttp[C ICell, R IRow[C], D ITableData[C, R]](r *http.Response, response *Result[C, R, D]) (err error) {
 	_, by := Stringify(r)
-	return NewResponseFromJson(by, i)
+	return ParseFromJson(by, response)
 }
 
 // Stringify takes a http.Response and returns string & []byte

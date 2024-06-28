@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"opg-reports/services/front/tmpl"
 	"opg-reports/shared/dates"
+	"opg-reports/shared/server/response"
 	"strings"
 	"time"
 )
@@ -33,7 +34,10 @@ func (s *FrontWebServer) Dynamic(w http.ResponseWriter, r *http.Request) {
 	u := Url(s.ApiScheme, s.ApiAddr, path)
 	slog.Info("calling api", slog.String("url", u.String()))
 
-	resp, err := GetFromApi(u.String())
+	// resp, err := GetFromApi(u.String())
+	apiResp, err := GetUrl(u.String())
+	resp := response.NewResponse()
+	response.ParseFromHttp(apiResp, resp)
 
 	if err != nil {
 		return

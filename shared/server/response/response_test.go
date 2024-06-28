@@ -3,6 +3,7 @@ package response
 import (
 	"errors"
 	"net/http"
+	"net/http/httptest"
 	"opg-reports/shared/dates"
 	"testing"
 	"time"
@@ -22,7 +23,7 @@ func (i *testI) Valid() bool {
 	return true
 }
 
-func TestSharedServerResultWithResult(t *testing.T) {
+func TestSharedServerResponseResultWithResult(t *testing.T) {
 	res := NewResponse()
 	res.Start()
 	res.End()
@@ -59,7 +60,7 @@ func TestSharedServerResultWithResult(t *testing.T) {
 
 }
 
-func TestSharedServerBase(t *testing.T) {
+func TestSharedServerResponseBase(t *testing.T) {
 
 	res := NewSimpleResult()
 
@@ -114,7 +115,7 @@ func TestSharedServerBase(t *testing.T) {
 	}
 }
 
-func TestSharedServerTableDataCell(t *testing.T) {
+func TestSharedServerResponseTableDataCell(t *testing.T) {
 
 	c := NewCell("c1", "v1")
 	if c.GetValue() != c.Value || c.GetValue() != "v1" {
@@ -130,7 +131,7 @@ func TestSharedServerTableDataCell(t *testing.T) {
 	}
 }
 
-func TestSharedServerTableDataRow(t *testing.T) {
+func TestSharedServerResponseTableDataRow(t *testing.T) {
 
 	c := NewCell("c1", "v1")
 	r := NewRow[*Cell]()
@@ -146,7 +147,7 @@ func TestSharedServerTableDataRow(t *testing.T) {
 	}
 }
 
-func TestSharedServerTableDataGetSet(t *testing.T) {
+func TestSharedServerResponseTableDataGetSet(t *testing.T) {
 
 	c := NewCell("c1", "v1")
 	r1 := NewRow[*Cell]()
@@ -164,4 +165,108 @@ func TestSharedServerTableDataGetSet(t *testing.T) {
 		t.Errorf("row mismatch")
 	}
 
+	d.AddRows(r2)
+	if len(d.GetRows()) != 2 {
+		t.Errorf("adding rows failed")
+	}
+
+	h := NewRow(c)
+	d.SetHeadings(h)
+	hh := d.GetHeadings()
+	if len(hh.GetCells()) != 1 {
+		t.Errorf("incorrect heading")
+	}
+
+	h = NewRow(c)
+	d.SetFooter(h)
+	ff := d.GetFooter()
+	if len(ff.GetCells()) != 1 {
+		t.Errorf("incorrect footer")
+	}
 }
+
+func TestSharedServerResponseParseFromJson(t *testing.T) {
+	resp := NewResponse()
+	err := ParseFromJson([]byte(sampleRes), resp)
+	if err != nil {
+		t.Errorf("failed to parse normal json")
+	}
+	if resp.GetStatus() != 404 {
+		t.Errorf("status mismatch")
+	}
+}
+
+func TestSharedServerResponseParseFromHttp(t *testing.T) {
+	ms := mockServer(sampleRes, http.StatusOK)
+	defer ms.Close()
+
+	httpResp, err := getUrl(ms.URL)
+	if err != nil {
+		t.Errorf("unexpected error")
+	}
+
+	resp := NewResponse()
+	err = ParseFromHttp(httpResp, resp)
+	if err != nil {
+		t.Errorf("unexpected error")
+	}
+
+	if resp.GetStatus() != 404 {
+		t.Errorf("status mismatch")
+	}
+}
+
+func mockServer(resp string, status int) *httptest.Server {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(status)
+		w.Write([]byte(resp))
+	}))
+	return server
+}
+func getUrl(url string) (resp *http.Response, err error) {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return
+	}
+	apiClient := http.Client{Timeout: time.Second * 3}
+	resp, err = apiClient.Do(req)
+	return
+}
+
+var sampleRes string = `{
+	"timings": {
+	  "start": "0001-01-01T00:00:00Z",
+	  "end": "0001-01-01T00:00:00Z",
+	  "duration": 0
+	},
+	"status": 404,
+	"errors": [],
+	"result": {
+	  "headings": {
+		"cells": [
+		  {
+			"name": "h1",
+			"value": "hv1"
+		  }
+		]
+	  },
+	  "footer": {
+		"cells": [
+		  {
+			"name": "f1",
+			"value": "fv1"
+		  }
+		]
+	  },
+	  "rows": [
+		{
+		  "cells": [
+			{
+			  "name": "c1",
+			  "value": "v1"
+			}
+		  ]
+		}
+	  ]
+	}
+  }`
