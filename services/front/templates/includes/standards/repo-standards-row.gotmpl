@@ -5,8 +5,8 @@
 {{ $passedExt := repoStandardPassed . $standards.Extended }}
 
 
-<tr class="govuk-table__row summary">
-    <td class="expand"><strong data-toggle="detail-{{ .Name }}" class="toggler govuk-tag govuk-tag--blue" title="Show/Hide details">+</strong></td>
+<tr class="govuk-table__row summary js-pf js-pf-b-{{ $passedBase }} js-pf-e-{{ $passedExt }}">
+    <td class="expand"><strong data-toggle="detail-{{ .Name }}" class="js-table-toggler govuk-tag govuk-tag--blue" title="Show/Hide details">+</strong></td>
     <th class="repo-name"><a href="https://github.com/{{ .FullName }}">{{ .FullName }}</a></th>
     <td class="base pass-fail" >
         {{ if $passedBase }}
@@ -23,7 +23,7 @@
         {{ end }}
     </td>
 </tr>
-<tr class="govuk-table__row details">
+<tr class="govuk-table__row details js-pf js-pf-b-{{ $passedBase }} js-pf-e-{{ $passedExt }}">
     <td></td>
     <td class="detail detail-{{ .Name }}" colspan="3">
         {{ range $k, $v := repoStandardValues . $standards.Information }}
@@ -35,7 +35,7 @@
 
     </td>
 </tr>
-<tr class="govuk-table__row details">
+<tr class="govuk-table__row details js-pf js-pf-b-{{ $passedBase }} js-pf-e-{{ $passedExt }}">
     <td></td>
     <td class="detail detail-{{ .Name }}" colspan="3">
         {{ range $key, $pass := repoStandardDetail . $standards.Baseline }}

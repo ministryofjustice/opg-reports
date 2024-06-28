@@ -175,3 +175,7 @@
 .compliance-table .detail{
     display:none;
 }
+
+.table-filters .govuk-radios__label {
+    max-width: 100%;
+}

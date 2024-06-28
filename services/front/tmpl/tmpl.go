@@ -1,6 +1,7 @@
 package tmpl
 
 import (
+	"fmt"
 	"opg-reports/services/front/cnf"
 	"opg-reports/shared/data"
 	"opg-reports/shared/dates"
@@ -34,6 +35,12 @@ func Files(fS *files.WriteFS, prefix string) []string {
 func Funcs() map[string]interface{} {
 
 	return map[string]interface{}{
+		"percent": func(got int, total int) string {
+			x := float64(got)
+			y := float64(total)
+			p := x / (y / 100)
+			return fmt.Sprintf("%.2f", p)
+		},
 		"title": func(s string) string {
 			s = strings.ReplaceAll(s, "_", " ")
 			s = strings.ReplaceAll(s, "-", " ")
@@ -80,6 +87,16 @@ func Funcs() map[string]interface{} {
 			m, _ := data.ToMap(c)
 			for _, k := range fields {
 				detail[k] = m[k]
+			}
+			return
+		},
+		"totalCountPassed": func(rows []*response.Row[*response.Cell], standards []string) (count int) {
+			count = 0
+			for _, row := range rows {
+				c := comp.FromRow(row)
+				if pass, _, _ := c.Compliant(standards); pass {
+					count += 1
+				}
 			}
 			return
 		},

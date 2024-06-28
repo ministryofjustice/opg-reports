@@ -6,23 +6,58 @@
     <p class="govuk-body">Lists both public and private MoJ GitHub repositories which are and are not fully compliant with <a href="https://user-guide.operations-engineering.service.justice.gov.uk/documentation/information/mojrepostandards.html">MoJ standards</a> as a baseline and OPG extended requirements.</p>
 
     {{if .Result }}
-    <table id="standards-dataset" class="compliance-table govuk-table">
-        <thead class="govuk-table__head">
-            <tr class="govuk-table__row">
-                <th colspan="2" class="govuk-table__header"></th>
-                <th scope="col" class="govuk-table__header standard-head">Baseline</th>
-                <th scope="col" class="govuk-table__header standard-head">Extended</th>
-            </tr>
-        </thead>
-        <tbody class="govuk-table__body">
+        {{ $passedCount := totalCountPassed .Result $standards.Baseline }}
+        {{ $total := len .Result }}
+        {{ $pc := percent $passedCount $total }}
+        <h2 class="govuk-heading-m">Pass rate</h2>
+        <p class="govuk-body">There are <strong>{{ $passedCount }}</strong> out of <strong>{{ $total }}</strong> <strong>({{ $pc }}%)</strong> repositories passing the baseline standards.</p>
 
-        {{ range $row := .Result }}
-            {{ $comp := getComplianceItem $row }}
-            {{ $e := repoSetStandards $comp $standards }}
-            {{ template "repo-standards-row" $comp }}
-        {{ end }}
-        </tbody>
-    </table>
+        <div class="table-filters">
+            <fieldset class="govuk-fieldset">
+                <div id="view-filter-hint" class="govuk-hint">Select one of the options below to filter the data:</div>
+                <div class="govuk-radios govuk-radios--small govuk-radios--inline" data-module="govuk-radios">
+                    <div class="govuk-radios__item">
+                        <input class="govuk-radios__input js-table-filter" id="view-all" name="view-filter" type="radio" value="all" checked data-hide=".nothing" data-show=".js-pf">
+                        <label class="govuk-label govuk-radios__label" for="view-all">All</label>
+                    </div>
+                    <div class="govuk-radios__item">
+                        <input class="govuk-radios__input js-table-filter" id="view-passed-baseline" name="view-filter" type="radio" value="passed-baseline" data-hide=".js-pf-b-false" data-show=".js-pf-b-true">
+                        <label class="govuk-label govuk-radios__label" for="view-passed-baseline">Passed baseline</label>
+                    </div>
+                    <div class="govuk-radios__item">
+                        <input class="govuk-radios__input js-table-filter" id="view-failed-baseline" name="view-filter" type="radio" value="failed-baseline" data-hide=".js-pf-b-true" data-show=".js-pf-b-false">
+                        <label class="govuk-label govuk-radios__label" for="view-failed-baseline">Failed baseline</label>
+                    </div>
+
+                    <div class="govuk-radios__item">
+                        <input class="govuk-radios__input js-table-filter" id="view-passed-extended" name="view-filter" type="radio" value="passed-extended" data-hide=".js-pf-e-false" data-show=".js-pf-e-true">
+                        <label class="govuk-label govuk-radios__label" for="view-passed-extended">Passed extended</label>
+                    </div>
+                    <div class="govuk-radios__item">
+                        <input class="govuk-radios__input js-table-filter" id="view-failed-extended" name="view-filter" type="radio" value="failed-extended" data-hide=".js-pf-e-true" data-show=".js-pf-e-false">
+                        <label class="govuk-label govuk-radios__label" for="view-failed-extended">Failed extended</label>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+
+        <table id="standards-dataset" class="compliance-table govuk-table">
+            <thead class="govuk-table__head">
+                <tr class="govuk-table__row">
+                    <th colspan="2" class="govuk-table__header"></th>
+                    <th scope="col" class="govuk-table__header standard-head">Baseline</th>
+                    <th scope="col" class="govuk-table__header standard-head">Extended</th>
+                </tr>
+            </thead>
+            <tbody class="govuk-table__body">
+
+            {{ range $row := .Result }}
+                {{ $comp := getComplianceItem $row }}
+                {{ $e := repoSetStandards $comp $standards }}
+                {{ template "repo-standards-row" $comp }}
+            {{ end }}
+            </tbody>
+        </table>
 
     {{end}}
 

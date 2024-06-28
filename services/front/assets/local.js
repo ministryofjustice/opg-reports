@@ -1,19 +1,17 @@
 document.addEventListener("DOMContentLoaded", ready);
 
 function ready(){
-    standardsToggler()
+    standardsTableToggler()
+    filterTable()
 }
 
-function standardsToggler() {
-    [].forEach.call( document.querySelectorAll( ".toggler" ), function ( ele ) {
+function standardsTableToggler() {
+    [].forEach.call( document.querySelectorAll( ".js-table-toggler" ), function ( ele ) {
 
         ele.addEventListener('click', function(eve){
-            console.log(eve)
             var toggleDisplay = eve.target.dataset.toggle;
 
             [].forEach.call( document.querySelectorAll('.'+toggleDisplay), function(info) {
-                console.log(toggleDisplay)
-                console.log(info)
                 if (info.style.display == 'none' || info.style.display == "") {
                     info.style.display = 'table-cell'
                 } else {
@@ -25,4 +23,21 @@ function standardsToggler() {
             return false
         }, false)
     } )
+}
+
+function filterTable() {
+    [].forEach.call(document.querySelectorAll(".js-table-filter"), function(ele){
+        ele.addEventListener("change", function(eve){
+            var show = eve.target.dataset.show;
+            var hide = eve.target.dataset.hide;
+            [].forEach.call(document.querySelectorAll(hide), function(i) {
+                i.style.display = 'none'
+            });
+            [].forEach.call(document.querySelectorAll(show), function(i) {
+                i.style.display = 'table-row'
+            });
+
+        })
+    } )
+
 }
