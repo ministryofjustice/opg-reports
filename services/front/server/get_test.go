@@ -5,11 +5,11 @@ import (
 	"testing"
 )
 
-func TestFrontServerGetFromApiMockedDetails(t *testing.T) {
+func TestFrontServerGetApiMockedDetails(t *testing.T) {
 	ms := mockServer(mockAwsCostTotalsResponse, http.StatusOK)
 	defer ms.Close()
 	url := ms.URL
-	_, err := GetFromApi(url)
+	_, err := GetUrl(url)
 
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
