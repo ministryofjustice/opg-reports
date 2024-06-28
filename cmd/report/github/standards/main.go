@@ -1,4 +1,4 @@
-package standards
+package main
 
 import (
 	"context"

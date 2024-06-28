@@ -99,6 +99,11 @@ func (a *Api[V, F]) UnitEnvironmentServices(w http.ResponseWriter, r *http.Reque
 				cells = append(cells, cell)
 			}
 
+			// Add data times to resp
+			for _, i := range g.List() {
+				resp.AddTimestamp(i.TS())
+			}
+
 			row := response.NewRow(cells...)
 			rows = append(rows, row)
 		}
@@ -156,7 +161,12 @@ func (a *Api[V, F]) UnitEnvironments(w http.ResponseWriter, r *http.Request) {
 
 			row := response.NewRow(cells...)
 			rows = append(rows, row)
+			// Add data times to resp
+			for _, i := range g.List() {
+				resp.AddTimestamp(i.TS())
+			}
 		}
+
 		result := response.NewData(rows...)
 		result.SetHeadings(headings)
 		resp.SetResult(result)
@@ -208,6 +218,11 @@ func (a *Api[V, F]) Units(w http.ResponseWriter, r *http.Request) {
 				cells = append(cells, cell)
 			}
 
+			// Add data times to resp
+			for _, i := range g.List() {
+				resp.AddTimestamp(i.TS())
+			}
+
 			row := response.NewRow(cells...)
 			rows = append(rows, row)
 		}
@@ -248,6 +263,10 @@ func (a *Api[V, F]) Totals(w http.ResponseWriter, r *http.Request) {
 		}
 		// get everything in range
 		withTax := store.Filter(inMonthRange)
+		// Add data times to resp
+		for _, i := range withTax.List() {
+			resp.AddTimestamp(i.TS())
+		}
 		withTaxRow := withTaxR(withTax, months)
 		//  exclude tax from the costs
 		withoutTax := withTax.Filter(excludeTax)

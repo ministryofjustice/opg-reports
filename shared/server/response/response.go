@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"slices"
 	"time"
 )
 
@@ -11,6 +12,16 @@ import (
 type ITimings interface {
 	Start()
 	End()
+}
+
+type IDataTimings interface {
+	AddTimestamp(ts time.Time)
+	GetMinMax() (min time.Time, max time.Time)
+}
+
+type ITimingData interface {
+	ITimings
+	IDataTimings
 }
 
 // IStatus handles tracking the http status of the api response.
@@ -32,7 +43,7 @@ type IErrors interface {
 // This version excludes any result data / handling for simplicty on errors or
 // empty results
 type IBase interface {
-	ITimings
+	ITimingData
 	IStatus
 	IErrors
 	AddErrorWithStatus(err error, status int)
@@ -47,13 +58,19 @@ type IResult[C ICell, R IRow[C], D ITableData[C, R]] interface {
 	GetResult() D
 }
 
-// Timings impliments [ITimings]
+// Timings impliments [ITimings] & [IDataTimings] which is [ITimingData]
 type Timings struct {
 	Times struct {
 		Start    time.Time     `json:"start"`
 		End      time.Time     `json:"end"`
 		Duration time.Duration `json:"duration"`
 	} `json:"timings"`
+
+	DataTimestamps struct {
+		Min *time.Time `json:"min"`
+		Max *time.Time `json:"max"`
+		All []int64    `json:"-"`
+	} `json:"data_timestamps,omitempty"`
 }
 
 // Start tracks the start time of this request
@@ -65,6 +82,30 @@ func (i *Timings) Start() {
 func (i *Timings) End() {
 	i.Times.End = time.Now().UTC()
 	i.Times.Duration = i.Times.End.Sub(i.Times.Start)
+}
+
+func (i *Timings) AddTimestamp(ts time.Time) {
+	u := ts.Unix()
+	i.DataTimestamps.All = append(i.DataTimestamps.All, u)
+	// check the min max values
+	if i.DataTimestamps.Max == nil || i.DataTimestamps.Min == nil {
+		i.GetMinMax()
+	} else if m := i.DataTimestamps.Min.Unix(); u < m {
+		i.GetMinMax()
+	} else if m := i.DataTimestamps.Min.Unix(); u > m {
+		i.GetMinMax()
+	}
+}
+func (i *Timings) GetMinMax() (minT time.Time, maxT time.Time) {
+	uMin := slices.Min(i.DataTimestamps.All)
+	uMax := slices.Min(i.DataTimestamps.All)
+
+	minT = time.Unix(uMin, 0)
+	maxT = time.Unix(uMax, 0)
+
+	i.DataTimestamps.Min = &minT
+	i.DataTimestamps.Max = &maxT
+	return
 }
 
 // Status impliments [IStatus]
