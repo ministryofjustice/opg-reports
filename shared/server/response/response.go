@@ -107,9 +107,9 @@ func (r *Errors) GetErrors() []error {
 // Would be used for a simple endpoint that doesn't return data,
 // such as an api root
 type Base struct {
-	Timings
-	Status
-	Errors
+	*Timings
+	*Status
+	*Errors
 }
 
 // AddErrorWithStatus adds an error and updates the status at the same time.
@@ -146,9 +146,9 @@ func (i *Result[C, R, D]) GetResult() D {
 // status set as OK and errors empty
 func NewSimpleResult() *Base {
 	return &Base{
-		Timings: Timings{},
-		Status:  Status{Code: http.StatusOK},
-		Errors:  Errors{Errs: []error{}},
+		Timings: &Timings{},
+		Status:  &Status{Code: http.StatusOK},
+		Errors:  &Errors{Errs: []error{}},
 	}
 }
 

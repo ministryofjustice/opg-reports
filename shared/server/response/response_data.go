@@ -79,14 +79,17 @@ func (r *Row[C]) GetCells() (cells []C) {
 	return
 }
 
+// TableHeadings represents specifc headers for the tabular data
 type TableHeadings[C ICell, R IRow[C]] struct {
 	Headings R `json:"headings"`
 }
 
+// SetHeadings sets the header
 func (d *TableHeadings[C, R]) SetHeadings(h R) {
 	d.Headings = h
 }
 
+// GetHeadings returns them
 func (d *TableHeadings[C, R]) GetHeadings() (head R) {
 	if len(d.Headings.GetCells()) > 0 {
 		head = d.Headings
@@ -94,6 +97,7 @@ func (d *TableHeadings[C, R]) GetHeadings() (head R) {
 	return
 }
 
+// TableFooter represents footer of a table, used for totals etc
 type TableFooter[C ICell, R IRow[C]] struct {
 	Footer R `json:"footer"`
 }
