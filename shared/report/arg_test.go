@@ -69,4 +69,11 @@ func TestSharedReportArgs(t *testing.T) {
 		t.Errorf("flag error")
 	}
 
+	mrg = NewMonthArg("monthtest2", true, "my help", "default")
+	mval = "not-a-month!"
+	mrg.FlagP = &mval
+	if _, err := mrg.Value(); err == nil {
+		t.Errorf("expected an error for invalid date")
+	}
+
 }

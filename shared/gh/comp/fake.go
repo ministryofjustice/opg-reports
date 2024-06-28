@@ -3,10 +3,30 @@ package comp
 import (
 	"fmt"
 	"log/slog"
+	"opg-reports/shared/data"
 	"opg-reports/shared/fake"
 
 	"github.com/google/uuid"
 )
+
+// FakeCompliant returns a faked version that has baseline compliance
+// values as true
+func FakeCompliant(c *Compliance, fields []string) (f *Compliance) {
+	c = Fake(c)
+	// convert to map, set the required fields to true and
+	// convert back
+	if m, err := data.ToMap(c); err == nil {
+		for _, key := range fields {
+			m[key] = true
+		}
+		if cmp, err := data.FromMap[*Compliance](m); err == nil {
+			c = cmp
+		}
+	}
+
+	f = c
+	return
+}
 
 // Fake returns a generated Cost item using fake data
 // If you pass an existing cost item in, it will fill in blank fields only
@@ -68,9 +88,6 @@ func Fake(c *Compliance) (f *Compliance) {
 	c.HasRulesEnforcedForAdmins = fake.Choice[bool]([]bool{true, false})
 	c.HasPullRequestApprovalRequired = fake.Choice[bool]([]bool{true, false})
 	c.HasVulnerabilityAlerts = fake.Choice[bool]([]bool{true, false})
-
-	c.Baseline = c.CompliesWithBaseline()
-	c.Extended = c.CompliesWithExtended()
 
 	f = c
 	slog.Debug("[aws/cost] fake", slog.String("UID", f.UID()))

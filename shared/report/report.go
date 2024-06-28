@@ -12,31 +12,40 @@ import (
 var ErrMissingValue error = errors.New("Required field not set")
 var ErrArgNotFound error = errors.New("Argument not found")
 
+// IReportRunF is signature for the function to be run by the command
 type IReportRunF func(r IReport)
 
-type IReport interface {
+// IArgs deals with arguments for the command
+type IArgs interface {
 	SetArguments(arguments []IReportArgument)
 	GetArguments() []IReportArgument
 	GetArgument(name string) (IReportArgument, error)
+}
+
+// IReport is the main runner for a command
+type IReport interface {
 	SetRunner(runF IReportRunF)
 	Run()
 	Filename() string
 }
 
-type Report struct {
+// ReportArgs handles getting and setting arguments for the cli
+type ReportArgs struct {
 	Arguments []IReportArgument
-	Runner    IReportRunF
 }
 
-func (r *Report) SetArguments(arguments []IReportArgument) {
+// SetArguments overwrites all the arguments
+func (r *ReportArgs) SetArguments(arguments []IReportArgument) {
 	r.Arguments = arguments
 }
 
-func (r *Report) GetArguments() []IReportArgument {
+// GetArguments returns all the arguments
+func (r *ReportArgs) GetArguments() []IReportArgument {
 	return r.Arguments
 }
 
-func (r *Report) GetArgument(name string) (arg IReportArgument, err error) {
+// GetArgument returns a single argument matching the name passed
+func (r *ReportArgs) GetArgument(name string) (arg IReportArgument, err error) {
 	found := false
 	for _, a := range r.GetArguments() {
 		if a.GetName() == name {
@@ -50,10 +59,18 @@ func (r *Report) GetArgument(name string) (arg IReportArgument, err error) {
 	return
 }
 
+// Report is a cmd line report
+type Report struct {
+	*ReportArgs
+	Runner IReportRunF
+}
+
+// SetRunner sets the func to call to run
 func (r *Report) SetRunner(runF IReportRunF) {
 	r.Runner = runF
 }
 
+// Run does some pre checks on the arguments then calls the run function
 func (r *Report) Run() {
 	flag.Parse()
 	// Handle validation
@@ -69,6 +86,7 @@ func (r *Report) Run() {
 
 }
 
+// Filename generates a filename based on the required arguments and their values
 func (r *Report) Filename() string {
 	str := ""
 	mapped := map[string]string{}
@@ -93,7 +111,7 @@ func (r *Report) Filename() string {
 }
 
 func New(args ...IReportArgument) *Report {
-	rep := &Report{}
+	rep := &Report{ReportArgs: &ReportArgs{}}
 	rep.SetArguments(args)
 	return rep
 }

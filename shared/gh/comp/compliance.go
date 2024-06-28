@@ -13,8 +13,23 @@ const readmePath string = "./README.md"
 const codeOfConductPath string = "./CODE_OF_CONDUCT.md"
 const contributingGuidePath string = "./CONTRIBUTING.md"
 
+var defaultBaselineCompliance = []string{
+	"has_default_branch_of_main",
+	"has_license",
+	"has_issues",
+	"has_description",
+	"has_rules_enforced_for_admins",
+	"has_pull_request_approval_required",
+}
+var defaultExtendedCompliance = []string{
+	"has_code_owner_approval_required",
+	"has_readme",
+	"has_code_of_conduct",
+	"has_contributing_guide",
+}
+
 type Compliance struct {
-	r *github.Repository `json:"-"`
+	r *github.Repository
 
 	UUID string `json:"uuid"`
 
@@ -30,15 +45,16 @@ type Compliance struct {
 	CountPullRequests int `json:"open_pull_requests"`
 	CountWebhooks     int `json:"webhooks"`
 
-	HasDescription bool `json:"has_description"`
-	HasDiscussions bool `json:"has_discussions"`
-	HasDownloads   bool `json:"has_downloads"`
-	HasIssues      bool `json:"has_issues"`
-	HasPages       bool `json:"has_pages"`
-	HasProjects    bool `json:"has_projects"`
-	HasWiki        bool `json:"has_wiki"`
-	IsPrivate      bool `json:"is_private"`
-
+	HasDefaultBranchOfMain         bool `json:"has_default_branch_of_main"`
+	HasDescription                 bool `json:"has_description"`
+	HasDiscussions                 bool `json:"has_discussions"`
+	HasDownloads                   bool `json:"has_downloads"`
+	HasIssues                      bool `json:"has_issues"`
+	HasLicense                     bool `json:"has_license"`
+	HasPages                       bool `json:"has_pages"`
+	HasProjects                    bool `json:"has_projects"`
+	HasWiki                        bool `json:"has_wiki"`
+	IsPrivate                      bool `json:"is_private"`
 	HasCodeOfConduct               bool `json:"has_code_of_conduct"`
 	HasCodeOwnerApprovalRequired   bool `json:"has_code_owner_approval_required"`
 	HasContributingGuide           bool `json:"has_contributing_guide"`
@@ -47,9 +63,6 @@ type Compliance struct {
 	HasRulesEnforcedForAdmins      bool `json:"has_rules_enforced_for_admins"`
 	HasPullRequestApprovalRequired bool `json:"has_pull_request_approval_required"`
 	HasVulnerabilityAlerts         bool `json:"has_vulnerability_alerts"`
-
-	Baseline bool `json:"baseline_compliant"`
-	Extended bool `json:"extended_compliant"`
 }
 
 // UID is the unique id (UUID) for this Compliance item
@@ -73,30 +86,22 @@ func (c *Compliance) Valid() (valid bool) {
 	return true
 }
 
-// CompliesWithBaseline checks if this instance meets all the
-// basedline criteria for compliance
-func (c *Compliance) CompliesWithBaseline() bool {
-	return c.DefaultBranch == "main" &&
-		len(c.License) > 0 &&
-		c.HasIssues &&
-		c.HasDescription &&
-		c.HasRulesEnforcedForAdmins &&
-		c.HasPullRequestApprovalRequired
-}
-
-// CompliesWithExtended checks other features that are nice to have
-func (c *Compliance) CompliesWithExtended() bool {
-	return c.HasCodeOwnerApprovalRequired &&
-		c.HasReadme &&
-		c.HasCodeOfConduct &&
-		c.HasContributingGuide
-}
-
-func (c *Compliance) Complies() (b bool, e bool) {
-	c.Baseline = c.CompliesWithBaseline()
-	c.Extended = c.CompliesWithExtended()
-	b = c.Baseline
-	e = c.Extended
+// Compliant checks that the fieldnames passed have true values, if they dont, then this does not comply
+// Allows dynamic setting of compliance that be draw from a config
+func (c *Compliance) Compliant(booleanFields []string) (complies bool, failedOn []string, err error) {
+	complies = false
+	failedOn = []string{}
+	mapped, err := data.ToMap(c)
+	if err != nil {
+		return
+	}
+	complies = true
+	for _, key := range booleanFields {
+		if v, ok := mapped[key]; !ok || !v.(bool) {
+			complies = false
+			failedOn = append(failedOn, key)
+		}
+	}
 	return
 }
 
@@ -162,6 +167,8 @@ func (c *Compliance) dataDirectFromR() {
 		c.License = l.GetName()
 	}
 
+	c.HasLicense = (len(c.License) > 0)
+	c.HasDefaultBranchOfMain = (c.DefaultBranch == "main")
 	c.HasDescription = len(r.GetDescription()) > 0
 	c.HasDiscussions = r.GetHasDiscussions()
 	c.HasDownloads = r.GetHasDownloads()
@@ -183,7 +190,6 @@ func New(uid *string) *Compliance {
 	} else {
 		c.UUID = uuid.NewString()
 	}
-	c.Complies()
 	return c
 }
 
@@ -191,6 +197,5 @@ func NewWithR(uid *string, r *github.Repository, client *github.Client) *Complia
 	c := New(uid)
 	c.r = r
 	c.setData(client)
-	c.Complies()
 	return c
 }

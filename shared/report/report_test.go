@@ -11,7 +11,7 @@ func TestSharedReportOK(t *testing.T) {
 	month.FlagP = &in
 	args := []IReportArgument{acc, month}
 
-	rep := &Report{}
+	rep := New()
 	rep.SetArguments(args)
 
 	if len(rep.GetArguments()) != len(args) {
@@ -45,9 +45,23 @@ func TestSharedReportPanics(t *testing.T) {
 	defer func() { _ = recover() }()
 	month := NewMonthArg("fail", true, "month", "")
 	args := []IReportArgument{month}
-	rep := &Report{}
+	rep := New()
 	rep.SetArguments(args)
 	rep.Run()
 
 	t.Errorf("failed to panic")
+}
+
+func TestSharedReportNew(t *testing.T) {
+	report := New()
+
+	if len(report.GetArguments()) != 0 {
+		t.Errorf("length of args error")
+	}
+
+	report = New(NewArg("sample", true, "", ""))
+	if len(report.GetArguments()) != 1 {
+		t.Errorf("length of args error")
+	}
+
 }
