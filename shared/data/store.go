@@ -12,33 +12,49 @@ var (
 	ErrStoreItemNotFound error = errors.New("store item not found via index") // Flag that the request index is not present in the store
 )
 
-// IStore is the common interface for all stores so we can always change the underlying
-// data source (eg to database / redis etc) easily
-type IStore[T IEntry] interface {
+type IStoreGetSet[T IEntry] interface {
 	// Add includes the item into the stores dataset, returns an error if it cant
 	Add(item T) error
 	// Get looks for the primary index for the item within the dataset. If it cant
 	// be found, it returns an error
 	Get(uid string) (T, error)
+}
+
+type IStoreFilter[T IEntry] interface {
 	// Filter will return items that match *ANY* of the filters, acting as *OR* logic
 	// Chain multiple Filter calls together for AND logic
-	Filter(filters ...IStoreFilter[T]) IStore[T]
+	Filter(filters ...IStoreFilterFunc[T]) IStore[T]
+}
+
+type IStoreGroup[T IEntry] interface {
 	// Group merges parts of data into chunks
 	Group(group IStoreGrouper[T]) (stores map[string]IStore[T])
+}
+
+type IStoreLists[T IEntry] interface {
 	// All returns all of the items within the store
 	All() map[string]T
 	// Retuns all items, but sorted by the key
 	Sorted() map[string]T
 	// List returns all things as a slice
 	List() []T
+}
+
+// IStore is the common interface for all stores so we can always change the underlying
+// data source (eg to database / redis etc) easily
+type IStore[T IEntry] interface {
+	IStoreGetSet[T]
+	IStoreFilter[T]
+	IStoreGroup[T]
+	IStoreLists[T]
 	// Length returns the number of items within the store
 	Length() int
 }
 
-// IStoreFilter is used to enforce a signature on functions that are used to filter the
-// data store. Each IStoreFilter is called against and item, those that return true
+// IStoreFilterFunc is used to enforce a signature on functions that are used to filter the
+// data store. Each IStoreFilterFunc is called against and item, those that return true
 // are added to the result
-type IStoreFilter[T IEntry] func(item T) bool
+type IStoreFilterFunc[T IEntry] func(item T) bool
 
 // IStoreGrouper enforces a signature for functions used to group the data store items.
 // These functions should return a string used as index for the data store - something
@@ -141,7 +157,7 @@ func (s *Store[T]) Group(groupF IStoreGrouper[T]) (stores map[string]IStore[T]) 
 //
 // To allow *AND* filters this returns a new Store[T] with matches, allowing
 // Filter calls to be chained together
-func (s *Store[T]) Filter(filters ...IStoreFilter[T]) (store IStore[T]) {
+func (s *Store[T]) Filter(filters ...IStoreFilterFunc[T]) (store IStore[T]) {
 	found := map[string]T{}
 
 	for key, item := range s.All() {

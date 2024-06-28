@@ -170,7 +170,7 @@ func TestSharedDataStoreNewFromMap(t *testing.T) {
 	}
 	s := NewStoreFromMap[*testEntry](items)
 	if s.Length() != len(items) {
-		t.Errorf("incorrect length")
+		t.Errorf("incorrect length: [%d] [%d] ", s.Length(), len(items))
 	}
 }
 
@@ -314,7 +314,7 @@ func TestSharedDataStoreFilter(t *testing.T) {
 
 	fin := store.Filter(under10).Filter(under5)
 	if fin.Length() != 4 {
-		t.Errorf("unexpected length of chanined filters")
+		t.Errorf("unexpected length of chanined filters: %d", fin.Length())
 	}
 
 }
