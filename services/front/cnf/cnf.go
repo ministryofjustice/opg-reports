@@ -19,9 +19,9 @@ type SiteSection struct {
 
 	Exclude bool `json:"exclude"`
 
-	Api             string `json:"api"`
-	ResponseHandler string `json:"handler"`
-	TemplateName    string `json:"template"`
+	Api             map[string]string `json:"api"`
+	ResponseHandler string            `json:"handler"`
+	TemplateName    string            `json:"template"`
 
 	Registered bool `json:"-"`
 }

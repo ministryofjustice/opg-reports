@@ -16,7 +16,7 @@ func (s *FrontWebServer) Register(mux *http.ServeMux) {
 		uri += "/{$}"
 		item.Registered = true
 		hf := s.Static
-		if item.Api != "" {
+		if len(item.Api) > 0 {
 			hf = s.Dynamic
 		}
 		slog.Info("registering route", slog.String("uri", uri), slog.Any("api", item.Api))

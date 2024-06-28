@@ -46,30 +46,38 @@ func (s *FrontWebServer) Dynamic(w http.ResponseWriter, r *http.Request) {
 	data["Standards"] = s.Config.Standards
 	data["Result"] = nil
 
-	// Call API!
-	path := urlParse(active.Api, now, start, end)
-	u := Url(s.ApiScheme, s.ApiAddr, path)
-	apiResp, err := s.handleApiCall(u)
-	// no error from the api, and no error from parsing the api resposne
-	// into local data, then set to the data map ready for the template parsing
-	if err == nil {
-		apiData, err := s.parseResponse(apiResp, months)
+	usePrefix := len(active.Api) > 1
+	// Handle multiple api calls for one page
+	for apiResultName, apiUrl := range active.Api {
+		// Call API!
+		path := urlParse(apiUrl, now, start, end)
+		u := Url(s.ApiScheme, s.ApiAddr, path)
+		apiResp, err := s.handleApiCall(u)
+		// no error from the api, and no error from parsing the api resposne
+		// into local data, then set to the data map ready for the template parsing
 		if err == nil {
-			for key, val := range apiData {
-				slog.Info("setting api res data", slog.String("key", key))
-				data[key] = val
+			apiData, err := s.parseResponse(apiResp, months)
+			if err == nil {
+				for key, val := range apiData {
+					if usePrefix {
+						key = fmt.Sprintf("%s_%s", apiResultName, key)
+					}
+					slog.Info("setting api res data", slog.String("key", key))
+					data[key] = val
+
+				}
+			} else {
+				slog.Error("dynamic handler error from parsing repsonse",
+					slog.String("url", u.String()),
+					slog.String("err", fmt.Sprintf("%v", err)),
+				)
 			}
 		} else {
-			slog.Error("dynamic handler error from parsing repsonse",
+			slog.Error("dynamic handler error from api",
 				slog.String("url", u.String()),
 				slog.String("err", fmt.Sprintf("%v", err)),
 			)
 		}
-	} else {
-		slog.Error("dynamic handler error from api",
-			slog.String("url", u.String()),
-			slog.String("err", fmt.Sprintf("%v", err)),
-		)
 	}
 
 	t, err := template.New(active.TemplateName).Funcs(tmpl.Funcs()).ParseFiles(s.templateFiles...)

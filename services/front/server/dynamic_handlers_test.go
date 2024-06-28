@@ -25,7 +25,7 @@ func TestFrontServerDynamicHandlerMockedTotals(t *testing.T) {
 	// create new
 	s := New(conf, templates, "", "")
 	// point the totals route to look at the test api
-	s.Nav.Get(route).Api = ms.URL
+	s.Nav.Get(route).Api = map[string]string{"url": ms.URL}
 	//
 	mux := testMux()
 	s.Register(mux)
@@ -60,7 +60,7 @@ func TestFrontServerDynamicHandlerMockedUnits(t *testing.T) {
 	// create new
 	s := New(conf, templates, "", "")
 	// point the totals route to look at the test api
-	s.Nav.Get(route).Api = ms.URL
+	s.Nav.Get(route).Api = map[string]string{"url": ms.URL}
 	//
 	mux := testMux()
 	s.Register(mux)

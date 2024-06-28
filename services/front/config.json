@@ -20,25 +20,33 @@
                         {
                             "name": "Totals",
                             "href": "/costs/aws/totals/",
-                            "api": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/",
+                            "api": {
+                               "totals": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/"
+                            },
                             "template": "dynamic-aws-costs-totals"
                         },
                         {
                             "name": "By Unit",
                             "href": "/costs/aws/units/",
-                            "api": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/units/",
+                            "api": {
+                               "units": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/units/"
+                            },
                             "template": "dynamic-aws-costs-units"
                         },
                         {
                             "name": "By Unit & Env",
                             "href": "/costs/aws/units-envs/",
-                            "api": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/units/envs/",
+                            "api": {
+                               "units-envs": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/units/envs/"
+                            },
                             "template": "dynamic-aws-costs-units-envs"
                         },
                         {
                             "name": "Detailed",
                             "href": "/costs/aws/detailed/",
-                            "api": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/units/envs/services/",
+                            "api": {
+                               "detailed": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/units/envs/services/"
+                            },
                             "template": "dynamic-aws-costs-units-envs-services"
                         }
                     ]
@@ -58,7 +66,9 @@
                         {
                             "name": "Repositories",
                             "href": "/standards/github/repositories/",
-                            "api": "/github/standards/{apiVersion}/list/",
+                            "api": {
+                               "list": "/github/standards/{apiVersion}/list/"
+                            },
                             "template": "dynamic-github-standards-list"
                         }
                     ]
