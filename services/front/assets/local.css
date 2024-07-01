@@ -127,6 +127,14 @@
     border-right: 1px solid #b1b4b6;
 }
 
+.dataframe.govuk-table tfoot th,
+.dataframe.govuk-table tfoot td{
+    border-top:2px solid #b1b4b6;
+    border-bottom:2px solid #b1b4b6;
+}
+.dataframe.govuk-table tfoot span{
+    font-weight: 700;
+}
 /* github standards */
 .standards-table {
     max-width: 900px;
@@ -222,7 +230,8 @@
     background-color: #FFFFAD;
 }
 .highlight tbody span,
-.highlight thead span{
+.highlight thead span,
+.highlight tfoot span{
     position: relative;
     z-index: 10;
 }

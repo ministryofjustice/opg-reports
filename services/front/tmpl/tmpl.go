@@ -48,12 +48,12 @@ func Funcs() map[string]interface{} {
 			s = c.String(s)
 			return s
 		},
-		"append": func(slice []string, value string) []string {
-			return append(slice, value)
-		},
-		"join": func(sep string, s ...string) string {
-			return strings.Join(s, sep)
-		},
+		// "append": func(slice []string, value string) []string {
+		// 	return append(slice, value)
+		// },
+		// "join": func(sep string, s ...string) string {
+		// 	return strings.Join(s, sep)
+		// },
 		"month": func(d time.Time) string {
 			return d.Format(dates.FormatYM)
 		},
@@ -61,6 +61,10 @@ func Funcs() map[string]interface{} {
 			return d.Format(dates.FormatYMD)
 		},
 		// Costs
+		"dollar": func(f float64) string {
+			p := message.NewPrinter(language.English)
+			return p.Sprintf("$%.2f", f)
+		},
 		"dollars": func(s string) string {
 			p := message.NewPrinter(language.English)
 			f, _ := strconv.ParseFloat(s, 10)

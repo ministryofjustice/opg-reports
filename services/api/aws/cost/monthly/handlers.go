@@ -97,11 +97,11 @@ func (a *Api[V, F]) UnitEnvironmentServices(w http.ResponseWriter, r *http.Reque
 				values := g.Filter(inM)
 				total := cost.Total(values.List())
 				rowTotal += total
-				cell := response.NewCell(m, fmt.Sprintf("%f", total))
+				cell := response.NewCell(m, total)
 				cells = append(cells, cell)
 			}
 
-			cells = append(cells, response.NewCell("Totals", fmt.Sprintf("%f", rowTotal)))
+			cells = append(cells, response.NewCell("Totals", rowTotal))
 			// Add data times to resp
 			for _, i := range g.List() {
 				resp.AddTimestamp(i.TS())
@@ -112,6 +112,9 @@ func (a *Api[V, F]) UnitEnvironmentServices(w http.ResponseWriter, r *http.Reque
 		}
 		result := response.NewData(rows...)
 		result.SetHeader(header)
+		pre, _ := header.GetCounters()
+		footer := columnTotals(rows, pre)
+		result.SetFooter(footer)
 		resp.SetResult(result)
 
 	}
@@ -162,11 +165,11 @@ func (a *Api[V, F]) UnitEnvironments(w http.ResponseWriter, r *http.Request) {
 				}
 				values := g.Filter(inM)
 				total := cost.Total(values.List())
-				cell := response.NewCell(m, fmt.Sprintf("%f", total))
+				cell := response.NewCell(m, total)
 				cells = append(cells, cell)
 				rowTotal += total
 			}
-			cells = append(cells, response.NewCell("Totals", fmt.Sprintf("%f", rowTotal)))
+			cells = append(cells, response.NewCell("Totals", rowTotal))
 
 			row := response.NewRow(cells...)
 			rows = append(rows, row)
@@ -178,6 +181,9 @@ func (a *Api[V, F]) UnitEnvironments(w http.ResponseWriter, r *http.Request) {
 		}
 		result := response.NewData(rows...)
 		result.SetHeader(header)
+		pre, _ := header.GetCounters()
+		footer := columnTotals(rows, pre)
+		result.SetFooter(footer)
 		resp.SetResult(result)
 
 	}
@@ -225,11 +231,11 @@ func (a *Api[V, F]) Units(w http.ResponseWriter, r *http.Request) {
 				}
 				values := g.Filter(inM)
 				total := cost.Total(values.List())
-				cell := response.NewCell(m, fmt.Sprintf("%f", total))
+				cell := response.NewCell(m, total)
 				cells = append(cells, cell)
 				rowTotal += total
 			}
-			cells = append(cells, response.NewCell("Totals", fmt.Sprintf("%f", rowTotal)))
+			cells = append(cells, response.NewCell("Totals", rowTotal))
 			// Add data times to resp
 			for _, i := range g.List() {
 				resp.AddTimestamp(i.TS())
@@ -239,7 +245,9 @@ func (a *Api[V, F]) Units(w http.ResponseWriter, r *http.Request) {
 		}
 		result := response.NewData(rows...)
 		result.SetHeader(header)
-		// totalsFooter(rows, preHeadings)
+		pre, _ := header.GetCounters()
+		footer := columnTotals(rows, pre)
+		result.SetFooter(footer)
 		resp.SetResult(result)
 	}
 
@@ -296,20 +304,28 @@ func (a *Api[V, F]) Totals(w http.ResponseWriter, r *http.Request) {
 	a.Write(w, resp.GetStatus(), content)
 }
 
-func totalsFooter(rows []*response.Row[*response.Cell], pre int) {
-	totals := []float64{}
-	for i := 0; i < pre; i++ {
-		totals = append(totals, 0.0)
+func columnTotals(rows []*response.Row[*response.Cell], pre int) *response.Row[*response.Cell] {
+	var totals []float64
+	footer := response.NewRow[*response.Cell]()
+
+	if len(rows) > 0 {
+		totals = make([]float64, rows[0].Len())
+		for i := 0; i < rows[0].Len(); i++ {
+			totals[i] = 0.0
+		}
 	}
+
 	for _, r := range rows {
 		cells := r.GetCells()
 		for x := pre; x < len(cells); x++ {
-			if len(totals) <= x {
-				totals[x] = 0.0
-			}
 			totals[x] += cells[x].Value.(float64)
 		}
 	}
+	for _, total := range totals {
+		footer.AddCells(response.NewCell("Total", total))
+	}
+	return footer
+
 }
 
 func withoutTaxR(withoutTax data.IStore[*cost.Cost], months []string) *response.Row[*response.Cell] {

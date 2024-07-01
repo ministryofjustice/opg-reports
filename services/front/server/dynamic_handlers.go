@@ -133,6 +133,15 @@ func (s *FrontWebServer) parseResponse(apiResp *http.Response) (data map[string]
 		slog.Warn("no headings")
 	}
 
+	if footer := result.GetFooter(); footer != nil {
+		fCells := footer.GetCells()
+		pre, post := footer.GetCounters()
+		data["Footer"] = fCells
+		data["FooterPre"] = pre
+		data["FooterPost"] = len(fCells) - pre - post
+
+	}
+
 	// fetch the resulting rows, return if they are empty
 	rows := result.GetRows()
 	if rows != nil {

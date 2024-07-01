@@ -1,20 +1,24 @@
 {{ define "dynamic-currency-table" }}
     {{ $pre := .HeadingsPre }}
     {{ $post := .HeadingsPost }}
+    {{ $footerPre := .FooterPre }}
+    {{ $footerPost := .FooterPost }}
     <table
         data-h-pre="{{ $pre }}"
         data-h-post="{{ $post }}"
+        data-f-pre="{{ $footerPre }}"
+        data-f-post="{{ $footerPost }}"
         class="dataframe govuk-table highlight js-table-sorter {{ .NavigationActive.ClassName }}">
         <thead class="govuk-table__head">
             <tr class="govuk-table__row">
                 {{ range $i, $cell := .Headings }}
                     {{ $n := addi $i 1}}
                     {{ if lt $n $pre }}
-                        <th scope="col" class="govuk-table__header" data-col="{{$i}}"><span>{{ $cell.GetName }}</span></th>
+                        <th class="govuk-table__header" data-col="{{$i}}"><span>{{ $cell.GetName }}</span></th>
                     {{ else if eq $n $pre}}
-                        <th scope="col" class="govuk-table__header last-header" data-col="{{$i}}"><span>{{ $cell.GetName }}</span></th>
+                        <th class="govuk-table__header last-header" data-col="{{$i}}"><span>{{ $cell.GetName }}</span></th>
                     {{ else}}
-                        <th scope="col" class="govuk-table__header data-cell"><span>{{ $cell.GetName }}</span></th>
+                        <th class="govuk-table__header data-cell"><span>{{ $cell.GetName }}</span></th>
                     {{ end }}
                 {{ end }}
             </tr>
@@ -26,17 +30,35 @@
                     {{ range $i, $cell := $cells }}
                         {{ $n := addi $i 1}}
                         {{ if lt $n $pre }}
-                            <th data-col="{{$i}}" scope="row" class="govuk-table__header"><span>{{ $cell.GetValue }}</span></th>
+                            <th data-col="{{$i}}" class="govuk-table__header"><span>{{ $cell.GetValue }}</span></th>
                         {{ else if eq $n $pre}}
-                            <th data-col="{{$i}}" scope="row" class="govuk-table__header last-header"><span>{{ $cell.GetValue }}</span></th>
+                            <th data-col="{{$i}}" class="govuk-table__header last-header"><span>{{ $cell.GetValue }}</span></th>
                         {{ else if lt $n $post }}
-                            <td data-col="{{$i}}" class="govuk-table__cell data-cell"><span>{{ dollars $cell.GetValue }}</span></td>
+                            <td data-col="{{$i}}" class="govuk-table__cell data-cell"><span>{{ dollar $cell.GetValue }}</span></td>
                         {{ else }}
-                            <td data-col="{{$i}}" class="govuk-table__cell data-cell"><span>{{ dollars $cell.GetValue }}</span></td>
+                            <td data-col="{{$i}}" class="govuk-table__cell data-cell"><span>{{ dollar $cell.GetValue }}</span></td>
                         {{ end }}
                     {{ end }}
                 </tr>
             {{ end }}
         </tbody>
+        {{ if .Footer }}
+
+
+            <tfoot>
+                <tr class="govuk-table__row">
+                {{ range $i, $cell := .Footer }}
+                    {{ if eq $i 0 }}
+                        <th class="govuk-table__header" data-col="{{$i}}"><span>TOTALS</span></th>
+                    {{ else if lt $i $pre }}
+                        <td data-col="{{$i}}" class="govuk-table__cell data-cell"></td>
+                    {{ else }}
+                        <td data-col="{{$i}}" class="govuk-table__cell data-cell"><span>{{ dollar $cell.GetValue }}</span></td>
+                    {{ end }}
+                {{ end }}
+                </tr>
+            </tfoot>
+        {{ end }}
+
     </table>
 {{ end }}

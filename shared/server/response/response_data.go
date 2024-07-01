@@ -52,6 +52,7 @@ type IRow[C ICell] interface {
 	SetCells(cells []C)
 	AddCells(cells ...C)
 	GetCells() []C
+	Len() int
 	// Heading counters for this row
 	UpdateCounters()
 	GetCounters() (prefix int, suffix int)
@@ -71,6 +72,9 @@ func (r *Row[C]) UpdateCounters() {
 }
 func (r *Row[C]) GetCounters() (prefix int, suffix int) {
 	return r.Pre, r.Post
+}
+func (r *Row[C]) Len() int {
+	return len(r.Cells)
 }
 
 // SetCells attach cells to this row
