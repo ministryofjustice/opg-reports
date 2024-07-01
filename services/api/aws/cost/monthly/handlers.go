@@ -2,7 +2,6 @@ package monthly
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"opg-reports/shared/aws/cost"
 	"opg-reports/shared/data"
@@ -340,10 +339,10 @@ func withoutTaxR(withoutTax data.IStore[*cost.Cost], months []string) *response.
 		values := withoutTax.Filter(inM)
 		total := cost.Total(values.List())
 		rowTotal += total
-		cell := response.NewCell(m, fmt.Sprintf("%f", total))
+		cell := response.NewCell(m, total)
 		withoutTaxCells = append(withoutTaxCells, cell)
 	}
-	withoutTaxCells = append(withoutTaxCells, response.NewCell("Totals", fmt.Sprintf("%f", rowTotal)))
+	withoutTaxCells = append(withoutTaxCells, response.NewCell("Totals", rowTotal))
 	return response.NewRow(withoutTaxCells...)
 }
 func withTaxR(withTax data.IStore[*cost.Cost], months []string) *response.Row[*response.Cell] {
@@ -358,10 +357,10 @@ func withTaxR(withTax data.IStore[*cost.Cost], months []string) *response.Row[*r
 		values := withTax.Filter(inM)
 		total := cost.Total(values.List())
 		rowTotal += total
-		cell := response.NewCell(m, fmt.Sprintf("%f", total))
+		cell := response.NewCell(m, total)
 		withTaxCells = append(withTaxCells, cell)
 	}
-	withTaxCells = append(withTaxCells, response.NewCell("Totals", fmt.Sprintf("%f", rowTotal)))
+	withTaxCells = append(withTaxCells, response.NewCell("Totals", rowTotal))
 	return response.NewRow(withTaxCells...)
 }
 
