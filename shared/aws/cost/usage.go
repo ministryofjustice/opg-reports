@@ -44,9 +44,10 @@ func CostAndUsage(roleArn string, startDate time.Time, endDate time.Time, region
 	}
 
 	sdkInput := CostAndUsageInput(startDate, endDate, granularity, dateFormat)
-	slog.Info("CostAndUsage",
+	slog.Debug("CostAndUsage",
 		slog.String("start", *sdkInput.TimePeriod.Start),
 		slog.String("end", *sdkInput.TimePeriod.End),
+		slog.String("arn", roleArn),
 	)
 	request, response := ceClient.GetCostAndUsageRequest(sdkInput)
 	err = request.Send()

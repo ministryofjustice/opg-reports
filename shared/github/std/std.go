@@ -31,6 +31,7 @@ var defaultExtendedCompliance = []string{
 }
 var defaultInformation = []string{
 	"archived",
+	"branch_name",
 	"has_delete_branch_on_merge",
 	"has_pages",
 	"has_downloads",
@@ -41,6 +42,7 @@ var defaultInformation = []string{
 	"open_pull_requests",
 	"clone_traffic",
 	"is_private",
+	"last_commit_date",
 }
 
 type Repository struct {
@@ -50,12 +52,13 @@ type Repository struct {
 	UUID      string    `json:"uuid"`
 	Timestamp time.Time `json:"time"`
 
-	Archived      bool   `json:"archived"`
-	DefaultBranch string `json:"default_branch"`
-	FullName      string `json:"full_name"`
-	License       string `json:"license"`
-	Name          string `json:"name"`
-	Owner         string `json:"owner"`
+	Archived       bool      `json:"archived"`
+	DefaultBranch  string    `json:"default_branch"`
+	FullName       string    `json:"full_name"`
+	License        string    `json:"license"`
+	Name           string    `json:"name"`
+	Owner          string    `json:"owner"`
+	LastCommitDate time.Time `json:"last_commit_date"`
 
 	CountClones       int `json:"clone_traffic"`
 	CountForks        int `json:"forks"`
@@ -144,10 +147,13 @@ func (c *Repository) setData(client *github.Client) {
 // dataViaClient sets data that requires additional calls using the
 // github client to fetch more information
 func (c *Repository) dataViaClient(client *github.Client) {
+
 	// Check branch protection
 	if branch, _, err := client.Repositories.GetBranch(context.Background(), c.Owner, c.Name, c.DefaultBranch, 1); err == nil {
 		c.HasDefaultBranchProtection = branch.GetProtected()
+		c.LastCommitDate = branch.GetCommit().GetCommitter().GetCreatedAt().Time
 	}
+
 	// check branch protection rules
 	if protection, _, err := client.Repositories.GetBranchProtection(context.Background(), c.Owner, c.Name, c.DefaultBranch); err == nil {
 		c.HasRulesEnforcedForAdmins = protection.EnforceAdmins.Enabled
@@ -194,6 +200,7 @@ func (c *Repository) dataDirectFromR() {
 	c.FullName = r.GetFullName()
 	c.Name = r.GetName()
 	c.Owner = r.GetOwner().GetLogin()
+
 	if l := r.GetLicense(); l != nil {
 		c.License = l.GetName()
 	}

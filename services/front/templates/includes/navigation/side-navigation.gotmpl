@@ -4,8 +4,28 @@
     <nav class="app-subnav" aria-labelledby="app-subnav-heading">
         <h2 class="govuk-visually-hidden" id="app-subnav-heading">Pages in this section</h2>
         <ul class="app-subnav__section">
+            {{ $active := .NavigationActive }}
             {{ range .NavigationSide }}
-                {{ template "side-navigation-item" . }}
+
+                {{ if .Header }}
+                    <li class="app-subnav__section-item">
+                        <h3 class="govuk-heading-s">{{ .Name }}</h3>
+                    </li>
+                    {{ range .Sections }}
+                        {{ if not .Exclude }}
+                            <li class="app-subnav__section-item {{if eq $active.Href .Href}} active {{end}}">
+                                <a class="app-subnav__link govuk-link govuk-link--no-visited-state govuk-link--no-underline" href="{{ .Href }}">{{ .Name }}</a>
+                            </li>
+                        {{ end }}
+                    {{ end }}
+
+                {{ else if not .Exclude }}
+                    <li class="app-subnav__section-item">
+                        <a class="app-subnav__link govuk-link govuk-link--no-visited-state govuk-link--no-underline" href="{{ .Href }}">{{ .Name }}</a>
+                    </li>
+                {{ end }}
+
+
             {{ end }}
         </ul>
     </nav>

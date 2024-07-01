@@ -8,10 +8,25 @@
             "template": "static-home"
         },
         {
-            "name": "Costs",
-            "template": "static-costs-home",
-            "href": "/costs/",
+            "name": "Overview",
+            "href": "/",
+            "template": "static-home",
             "sections": [
+                {
+                    "name": "Standards",
+                    "href": "/standards/github/",
+                    "header": true,
+                    "sections": [
+                        {
+                            "name": "GitHub Repositories",
+                            "href": "/standards/github/repositories/",
+                            "api": {
+                                "list": "/github/standards/{apiVersion}/list/"
+                            },
+                            "template": "dynamic-github-standards-list"
+                        }
+                    ]
+                },
                 {
                     "name": "AWS Costs",
                     "href": "/costs/aws/",
@@ -21,7 +36,7 @@
                             "name": "Totals",
                             "href": "/costs/aws/totals/",
                             "api": {
-                               "totals": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/"
+                                "totals": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/"
                             },
                             "template": "dynamic-aws-costs-totals"
                         },
@@ -29,7 +44,7 @@
                             "name": "By Unit",
                             "href": "/costs/aws/units/",
                             "api": {
-                               "units": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/units/"
+                                "units": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/units/"
                             },
                             "template": "dynamic-aws-costs-units"
                         },
@@ -37,7 +52,7 @@
                             "name": "By Unit & Env",
                             "href": "/costs/aws/units-envs/",
                             "api": {
-                               "units-envs": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/units/envs/"
+                                "units-envs": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/units/envs/"
                             },
                             "template": "dynamic-aws-costs-units-envs"
                         },
@@ -45,36 +60,15 @@
                             "name": "Detailed",
                             "href": "/costs/aws/detailed/",
                             "api": {
-                               "detailed": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/units/envs/services/"
+                                "detailed": "/aws/costs/{apiVersion}/monthly/{startYM}/{endYM}/units/envs/services/"
                             },
                             "template": "dynamic-aws-costs-units-envs-services"
                         }
                     ]
                 }
             ]
-        },
-        {
-            "name": "Standards",
-            "template": "static-standards-home",
-            "href": "/standards/",
-            "sections": [
-                {
-                    "name": "GitHub Standards",
-                    "href": "/standards/github/",
-                    "header": true,
-                    "sections": [
-                        {
-                            "name": "Repositories",
-                            "href": "/standards/github/repositories/",
-                            "api": {
-                               "list": "/github/standards/{apiVersion}/list/"
-                            },
-                            "template": "dynamic-github-standards-list"
-                        }
-                    ]
-                }
-            ]
         }
+
     ],
     "standards": {
         "repository": {
@@ -94,7 +88,7 @@
             ],
             "information": [
                 "archived",
-                "default_branch",
+                "branch_name",
                 "has_delete_branch_on_merge",
                 "has_pages",
                 "has_downloads",
@@ -104,7 +98,8 @@
                 "webhooks",
                 "open_pull_requests",
                 "clone_traffic",
-                "is_private"
+                "is_private",
+                "last_commit_date"
             ]
         }
     }

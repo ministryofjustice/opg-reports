@@ -30,6 +30,7 @@ var (
 const dir string = "data"
 
 func run(r report.IReport) {
+
 	m, _ := dates.StringToDate(month.Val())
 	id := account_id.Val()
 	name := account_name.Val()
@@ -39,6 +40,11 @@ func run(r report.IReport) {
 	env := account_env.Val()
 	roleName := role.Val()
 	reg := region.Val()
+
+	slog.Info("getting costs",
+		slog.String("account name", name),
+		slog.String("month", m.Format(dates.FormatYM)),
+	)
 
 	startDate := m
 	endDate := m.AddDate(0, 1, 0)
@@ -52,9 +58,7 @@ func run(r report.IReport) {
 	costs, err := cost.Flatten(raw, id, name, label, unit, org, env)
 	content, err := data.ToJsonList[*cost.Cost](costs)
 	filename := r.Filename()
-	err = files.WriteFile(dir, filename, content)
-
-	fmt.Println(err)
+	files.WriteFile(dir, filename, content)
 
 }
 

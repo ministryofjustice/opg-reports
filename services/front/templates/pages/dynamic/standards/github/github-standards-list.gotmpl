@@ -17,24 +17,53 @@
                 <div id="view-filter-hint" class="govuk-hint">Select one of the options below to filter the data:</div>
                 <div class="govuk-radios govuk-radios--small govuk-radios--inline" data-module="govuk-radios">
                     <div class="govuk-radios__item">
-                        <input class="govuk-radios__input js-table-filter" id="view-all" name="view-filter" type="radio" value="all" checked data-hide=".nothing" data-show=".js-pf">
+                        <input id="view-all"
+                            name="view-filter"
+                            data-all="#standards-dataset tbody tr"
+                            type="radio"
+                            value="all"
+                            class="govuk-radios__input js-table-choice-filter" checked>
                         <label class="govuk-label govuk-radios__label" for="view-all">All</label>
                     </div>
                     <div class="govuk-radios__item">
-                        <input class="govuk-radios__input js-table-filter" id="view-passed-baseline" name="view-filter" type="radio" value="passed-baseline" data-hide=".js-pf-b-false" data-show=".js-pf-b-true">
+                        <input id="view-passed-baseline"
+                            name="view-filter"
+                            data-all="#standards-dataset tbody tr"
+                            data-show='data-baseline="true"'
+                            type="radio"
+                            value="passed baseline"
+                            class="govuk-radios__input js-table-choice-filter">
                         <label class="govuk-label govuk-radios__label" for="view-passed-baseline">Passed baseline</label>
                     </div>
                     <div class="govuk-radios__item">
-                        <input class="govuk-radios__input js-table-filter" id="view-failed-baseline" name="view-filter" type="radio" value="failed-baseline" data-hide=".js-pf-b-true" data-show=".js-pf-b-false">
+                        <input id="view-failed-baseline"
+                            name="view-filter"
+                            data-all="#standards-dataset tbody tr"
+                            data-show='data-baseline="false"'
+                            type="radio"
+                            value="failed baseline"
+                            class="govuk-radios__input js-table-choice-filter">
                         <label class="govuk-label govuk-radios__label" for="view-failed-baseline">Failed baseline</label>
                     </div>
 
                     <div class="govuk-radios__item">
-                        <input class="govuk-radios__input js-table-filter" id="view-passed-extended" name="view-filter" type="radio" value="passed-extended" data-hide=".js-pf-e-false" data-show=".js-pf-e-true">
+                        <input id="view-passed-extended"
+                            name="view-filter"
+                            data-all="#standards-dataset tbody tr"
+                            data-show='data-extended="true"'
+                            type="radio"
+                            value="passed extended"
+                            class="govuk-radios__input js-table-choice-filter">
                         <label class="govuk-label govuk-radios__label" for="view-passed-extended">Passed extended</label>
                     </div>
                     <div class="govuk-radios__item">
-                        <input class="govuk-radios__input js-table-filter" id="view-failed-extended" name="view-filter" type="radio" value="failed-extended" data-hide=".js-pf-e-true" data-show=".js-pf-e-false">
+                        <input id="view-failed-extended"
+                            name="view-filter"
+                            data-all="#standards-dataset tbody tr"
+                            data-show='data-extended="false"'
+                            type="radio"
+                            value="failed extended"
+                            class="govuk-radios__input js-table-choice-filter">
                         <label class="govuk-label govuk-radios__label" for="view-failed-extended">Failed extended</label>
                     </div>
                 </div>
