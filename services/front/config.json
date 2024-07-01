@@ -13,13 +13,13 @@
             "template": "static-home",
             "sections": [
                 {
-                    "name": "Standards",
-                    "href": "/standards/github/",
+                    "name": "GitHub",
+                    "href": "/github/",
                     "header": true,
                     "sections": [
                         {
-                            "name": "GitHub Repositories",
-                            "href": "/standards/github/repositories/",
+                            "name": "Repository Standards",
+                            "href": "/github/repository-standards/",
                             "api": {
                                 "list": "/github/standards/{apiVersion}/list/"
                             },

@@ -57,6 +57,9 @@ func Funcs() map[string]interface{} {
 		"month": func(d time.Time) string {
 			return d.Format(dates.FormatYM)
 		},
+		"day": func(d time.Time) string {
+			return d.Format(dates.FormatYMD)
+		},
 		// Costs
 		"dollars": func(s string) string {
 			p := message.NewPrinter(language.English)

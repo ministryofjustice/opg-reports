@@ -12,6 +12,10 @@
         <h2 class="govuk-heading-m">Pass rate</h2>
         <p class="govuk-body">There are <strong>{{ $passedCount }}</strong> out of <strong>{{ $total }}</strong> <strong>({{ $pc }}%)</strong> repositories passing the baseline standards.</p>
 
+        <div class="govuk-inset-text">
+        <p class="govuk-body">Data was last generated on {{ day .DataAgeMax }}.</p>
+        </div>
+
         <div class="table-filters">
             <fieldset class="govuk-fieldset">
                 <div id="view-filter-hint" class="govuk-hint">Select one of the options below to filter the data:</div>
