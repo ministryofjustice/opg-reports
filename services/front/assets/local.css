@@ -107,10 +107,12 @@
     border-color:#1d70b8;
 }
 
-/* tables */
+/* generic data tables */
 .dataframe.govuk-table{
     font-size: 0.88rem;
-
+}
+.sect-detailed.dataframe.govuk-table{
+    font-size: 0.8rem;
 }
 .dataframe .govuk-table__header,
 .dataframe .govuk-table__cell{
@@ -281,8 +283,6 @@ table.js-table-sorter thead th[data-sortdir="asc"].sorted span:after{
 table.js-table-sorter thead th.sorted span:after{
     color:#d4351c;
 }
-
-
 
 /* js table filtering */
 .js-table-filter-options .govuk-form-group{

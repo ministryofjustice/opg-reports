@@ -13,11 +13,15 @@ type IRow[C ICell] interface {
 type IHeadings[C ICell, R IRow[C]] interface {
 	SetHeadings(h R)
 	GetHeadings() R
+	SetHeadingsCounters(pre int, post int)
+	GetHeadingsCounters() (pre int, post int)
 }
 
 type IFooter[C ICell, R IRow[C]] interface {
 	SetFooter(f R)
 	GetFooter() R
+	SetFooterCounters(pre int, post int)
+	GetFooterCounters() (pre int, post int)
 }
 
 type ITableData[C ICell, R IRow[C]] interface {
@@ -81,7 +85,9 @@ func (r *Row[C]) GetCells() (cells []C) {
 
 // TableHeadings represents specifc headers for the tabular data
 type TableHeadings[C ICell, R IRow[C]] struct {
-	Headings R `json:"headings,omitempty"`
+	PreHeadings  int `json:"pre_headings"`
+	PostHeadings int `json:"post_headings"`
+	Headings     R   `json:"headings,omitempty"`
 }
 
 // SetHeadings sets the header
@@ -96,10 +102,21 @@ func (d *TableHeadings[C, R]) GetHeadings() (head R) {
 	}
 	return
 }
+func (d *TableHeadings[C, R]) SetHeadingsCounters(pre int, post int) {
+	d.PreHeadings = pre
+	d.PostHeadings = post
+}
+func (d *TableHeadings[C, R]) GetHeadingsCounters() (pre int, post int) {
+	pre = d.PreHeadings
+	post = d.PostHeadings
+	return
+}
 
 // TableFooter represents footer of a table, used for totals etc
 type TableFooter[C ICell, R IRow[C]] struct {
-	Footer R `json:"footer,omitempty"`
+	Footer     R   `json:"footer,omitempty"`
+	PreFooter  int `json:"pre_footer"`
+	PostFooter int `json:"post_footer"`
 }
 
 func (d *TableFooter[C, R]) SetFooter(h R) {
@@ -108,6 +125,15 @@ func (d *TableFooter[C, R]) SetFooter(h R) {
 
 func (d *TableFooter[C, R]) GetFooter() R {
 	return d.Footer
+}
+func (d *TableFooter[C, R]) SetFooterCounters(pre int, post int) {
+	d.PreFooter = pre
+	d.PostFooter = post
+}
+func (d *TableFooter[C, R]) GetFooterCounters() (pre int, post int) {
+	pre = d.PreFooter
+	post = d.PostFooter
+	return
 }
 
 // TableData impliments [ITableData]

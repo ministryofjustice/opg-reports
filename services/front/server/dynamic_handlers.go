@@ -16,6 +16,7 @@ import (
 type dynamicHandlerFunc func(w http.ResponseWriter, r *http.Request)
 
 const apiVersion string = "v1"
+const billingDay int = 13
 
 // Dynamic handles all end points that require data from the api.
 func (s *FrontWebServer) Dynamic(w http.ResponseWriter, r *http.Request) {
@@ -24,6 +25,11 @@ func (s *FrontWebServer) Dynamic(w http.ResponseWriter, r *http.Request) {
 	data := s.Nav.Data(r)
 	now := time.Now().UTC()
 	end := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
+	if now.Day() < billingDay {
+		end = end.AddDate(0, -2, 0)
+	} else {
+		end = end.AddDate(0, -1, 0)
+	}
 	start := end.AddDate(0, -11, 0)
 	months := dates.Months(start, end)
 	days := dates.Days(start, end)
@@ -56,7 +62,7 @@ func (s *FrontWebServer) Dynamic(w http.ResponseWriter, r *http.Request) {
 		// no error from the api, and no error from parsing the api resposne
 		// into local data, then set to the data map ready for the template parsing
 		if err == nil {
-			apiData, err := s.parseResponse(apiResp, months)
+			apiData, err := s.parseResponse(apiResp)
 			if err == nil {
 				for key, val := range apiData {
 					if usePrefix {
@@ -90,7 +96,7 @@ func (s *FrontWebServer) Dynamic(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (s *FrontWebServer) parseResponse(apiResp *http.Response, months []time.Time) (data map[string]interface{}, err error) {
+func (s *FrontWebServer) parseResponse(apiResp *http.Response) (data map[string]interface{}, err error) {
 	data = map[string]interface{}{}
 
 	resp := response.NewResponse()
@@ -117,7 +123,7 @@ func (s *FrontWebServer) parseResponse(apiResp *http.Response, months []time.Tim
 	// If headings are nil, so failed to parse, return
 	headings := result.GetHeadings()
 	if headings != nil {
-		data["Headings"], data["HeadingCounter"] = getHeadingCells(headings, months)
+		data["Headings"], data["HeadingsPre"], data["HeadingsPost"] = getHeadingCells(result, headings)
 	} else {
 		slog.Warn("no headings")
 	}
@@ -140,7 +146,8 @@ func (s *FrontWebServer) handleApiCall(u *url.URL) (apiResp *http.Response, err 
 
 }
 
-func getHeadingCells(headings *response.Row[*response.Cell], months []time.Time) (cells []*response.Cell, count int) {
+func getHeadingCells(res *response.TableData[*response.Cell, *response.Row[*response.Cell]],
+	headings *response.Row[*response.Cell]) (cells []*response.Cell, pre int, post int) {
 	// if heading cells could not be parsed, return
 	cells = headings.GetCells()
 	if cells == nil {
@@ -148,10 +155,8 @@ func getHeadingCells(headings *response.Row[*response.Cell], months []time.Time)
 		return
 	}
 	// work out the number of headings and set a counter
-	count = len(cells) - len(months)
-	if count < 0 {
-		count = 1
-	}
+	pre, p := res.GetHeadingsCounters()
+	post = len(cells) - pre - p
 	return
 }
 

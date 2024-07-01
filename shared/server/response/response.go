@@ -186,6 +186,7 @@ func (i *Result[C, R, D]) GetResult() D {
 	return i.Res
 }
 
+// GetDataTimings returns the rough range of the age of the data included in the response
 func (i *Result[C, R, D]) GetDataTimings() (min *time.Time, max *time.Time) {
 	if i.Timings.Datatimes != nil {
 		min = i.Timings.Datatimes.Min

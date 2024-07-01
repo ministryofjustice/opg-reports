@@ -1,6 +1,9 @@
 package cnf
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"strings"
+)
 
 type RepoStandards struct {
 	Baseline    []string `json:"baseline"`
@@ -25,6 +28,14 @@ type SiteSection struct {
 
 	Registered bool `json:"-"`
 }
+
+func (s *SiteSection) ClassName() string {
+	str := "sect-"
+	str = str + strings.ToLower(s.Name)
+	str = strings.ReplaceAll(str, " ", "-")
+	return str
+}
+
 type Config struct {
 	Organisation string         `json:"organisation"`
 	Sections     []*SiteSection `json:"sections"`
