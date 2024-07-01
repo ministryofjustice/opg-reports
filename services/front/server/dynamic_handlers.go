@@ -121,10 +121,15 @@ func (s *FrontWebServer) parseResponse(apiResp *http.Response) (data map[string]
 	}
 
 	// If headings are nil, so failed to parse, return
-	headings := result.GetHeadings()
-	if headings != nil {
-		data["Headings"], data["HeadingsPre"], data["HeadingsPost"] = getHeadingCells(result, headings)
+	if header := result.GetHeader(); header != nil {
+		hCells := header.GetCells()
+		pre, post := header.GetCounters()
+		data["Headings"] = hCells
+		data["HeadingsPre"] = pre
+		data["HeadingsPost"] = len(hCells) - pre - post
 	} else {
+		data["HeadingsPre"] = 1
+		data["HeadingsPost"] = 0
 		slog.Warn("no headings")
 	}
 
@@ -143,21 +148,6 @@ func (s *FrontWebServer) handleApiCall(u *url.URL) (apiResp *http.Response, err 
 	// call the api
 	slog.Info("calling api", slog.String("url", u.String()))
 	return GetUrl(u.String())
-
-}
-
-func getHeadingCells(res *response.TableData[*response.Cell, *response.Row[*response.Cell]],
-	headings *response.Row[*response.Cell]) (cells []*response.Cell, pre int, post int) {
-	// if heading cells could not be parsed, return
-	cells = headings.GetCells()
-	if cells == nil {
-		slog.Error("empty cells")
-		return
-	}
-	// work out the number of headings and set a counter
-	pre, p := res.GetHeadingsCounters()
-	post = len(cells) - pre - p
-	return
 }
 
 // Parse out segements of the url that we typically replace with real values

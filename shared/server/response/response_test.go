@@ -147,6 +147,25 @@ func TestSharedServerResponseTableDataRow(t *testing.T) {
 	}
 }
 
+func TestSharedServerResponseRowHeader(t *testing.T) {
+	pre1 := NewHeaderCell("h1", "header1")
+	pre2 := NewHeaderCell("h2", "header2")
+	pre3 := NewHeaderCell("h3", "header3")
+	post1 := NewHeaderCell("post1", "suff1")
+	post2 := NewHeaderCell("post2", "suff2")
+	c1 := NewCell("c1", "v1")
+	c2 := NewCell("c1", "v1")
+
+	row := NewRow(pre1, pre2, pre3, c1, c2, post1, post2)
+	row.UpdateCounters()
+	pre, post := row.GetCounters()
+	if pre != 3 {
+		t.Errorf("pre counter incorrect")
+	}
+	if post != 2 {
+		t.Errorf("post counter incorrect")
+	}
+}
 func TestSharedServerResponseTableDataGetSet(t *testing.T) {
 
 	c := NewCell("c1", "v1")
@@ -171,8 +190,8 @@ func TestSharedServerResponseTableDataGetSet(t *testing.T) {
 	}
 
 	h := NewRow(c)
-	d.SetHeadings(h)
-	hh := d.GetHeadings()
+	d.SetHeader(h)
+	hh := d.GetHeader()
 	if len(hh.GetCells()) != 1 {
 		t.Errorf("incorrect heading")
 	}
@@ -183,6 +202,12 @@ func TestSharedServerResponseTableDataGetSet(t *testing.T) {
 	if len(ff.GetCells()) != 1 {
 		t.Errorf("incorrect footer")
 	}
+
+	d2 := NewData(r1, r2)
+	if d2.GetHeader() != nil {
+		t.Errorf("should be nil")
+	}
+
 }
 
 func TestSharedServerResponseParseFromJson(t *testing.T) {

@@ -5,6 +5,7 @@ function ready(){
     tableChoiceFilter()
     tableSorter()
     generateFormFilterOptions()
+    tableOptionFilters()
 }
 
 // ==========================
@@ -54,8 +55,6 @@ function tableChoiceFilter() {
         })
     } )
 }
-
-
 
 function tableFilterByAll(tableData, filters){
 
@@ -126,7 +125,7 @@ function generateFormFilterOptions() {
                 wrapper.classList.add(`js-table-filter-select`)
             })
             block.dataset.generated = true
-            tableOptionFilters()
+
         }
     })
 

@@ -3,41 +3,19 @@ package response
 type ICell interface {
 	SetName(name string)
 	GetName() string
-}
-type IRow[C ICell] interface {
-	SetCells(cells []C)
-	AddCells(cells ...C)
-	GetCells() []C
-}
-
-type IHeadings[C ICell, R IRow[C]] interface {
-	SetHeadings(h R)
-	GetHeadings() R
-	SetHeadingsCounters(pre int, post int)
-	GetHeadingsCounters() (pre int, post int)
-}
-
-type IFooter[C ICell, R IRow[C]] interface {
-	SetFooter(f R)
-	GetFooter() R
-	SetFooterCounters(pre int, post int)
-	GetFooterCounters() (pre int, post int)
-}
-
-type ITableData[C ICell, R IRow[C]] interface {
-	IHeadings[C, R]
-	IFooter[C, R]
-	SetRows(rows []R)
-	AddRows(rows ...R)
-	GetRows() []R
+	SetValue(v interface{})
+	GetValue() interface{}
+	SetIsHeader(h bool)
+	GetIsHeader() bool
 }
 
 // Cell represents a single cell of data - like a spreadsheet
 // Used as part of a row
 // Impliments [ICell]
 type Cell struct {
-	Name  string      `json:"name"`
-	Value interface{} `json:"value"`
+	Name     string      `json:"name"`
+	IsHeader bool        `json:"header"`
+	Value    interface{} `json:"value"`
 }
 
 // SetName change the name
@@ -50,8 +28,18 @@ func (c *Cell) GetName() string {
 	return c.Name
 }
 
+// SetIsHeader
+func (c *Cell) SetIsHeader(h bool) {
+	c.IsHeader = h
+}
+
+// GetIsHeader
+func (c *Cell) GetIsHeader() bool {
+	return c.IsHeader
+}
+
 // SetValue sets value
-func (c *Cell) SetValue(value string) {
+func (c *Cell) SetValue(value interface{}) {
 	c.Value = value
 }
 
@@ -60,10 +48,29 @@ func (c *Cell) GetValue() interface{} {
 	return c.Value
 }
 
+type IRow[C ICell] interface {
+	SetCells(cells []C)
+	AddCells(cells ...C)
+	GetCells() []C
+	// Heading counters for this row
+	UpdateCounters()
+	GetCounters() (prefix int, suffix int)
+}
+
 // Row impliments [IRow]
 // Acts like a row in a table / spreadsheet
 type Row[C ICell] struct {
 	Cells []C `json:"cells"`
+	Pre   int `json:"prefix_header_count"`
+	Post  int `json:"suffix_header_count"`
+}
+
+func (r *Row[C]) UpdateCounters() {
+	r.setPreCounter()
+	r.setPostCounter()
+}
+func (r *Row[C]) GetCounters() (prefix int, suffix int) {
+	return r.Pre, r.Post
 }
 
 // SetCells attach cells to this row
@@ -83,65 +90,71 @@ func (r *Row[C]) GetCells() (cells []C) {
 	return
 }
 
-// TableHeadings represents specifc headers for the tabular data
-type TableHeadings[C ICell, R IRow[C]] struct {
-	PreHeadings  int `json:"pre_headings"`
-	PostHeadings int `json:"post_headings"`
-	Headings     R   `json:"headings,omitempty"`
-}
+func (r *Row[C]) setPostCounter() {
+	r.Post = 0
+	cells := r.GetCells()
 
-// SetHeadings sets the header
-func (d *TableHeadings[C, R]) SetHeadings(h R) {
-	d.Headings = h
-}
-
-// GetHeadings returns them
-func (d *TableHeadings[C, R]) GetHeadings() (head R) {
-	if len(d.Headings.GetCells()) > 0 {
-		head = d.Headings
+	for i := len(cells) - 1; i >= 0; i-- {
+		c := cells[i]
+		if c.GetIsHeader() {
+			r.Post += 1
+		} else {
+			return
+		}
 	}
-	return
 }
-func (d *TableHeadings[C, R]) SetHeadingsCounters(pre int, post int) {
-	d.PreHeadings = pre
-	d.PostHeadings = post
-}
-func (d *TableHeadings[C, R]) GetHeadingsCounters() (pre int, post int) {
-	pre = d.PreHeadings
-	post = d.PostHeadings
-	return
-}
-
-// TableFooter represents footer of a table, used for totals etc
-type TableFooter[C ICell, R IRow[C]] struct {
-	Footer     R   `json:"footer,omitempty"`
-	PreFooter  int `json:"pre_footer"`
-	PostFooter int `json:"post_footer"`
+func (r *Row[C]) setPreCounter() {
+	r.Pre = 0
+	for _, c := range r.GetCells() {
+		if c.GetIsHeader() {
+			r.Pre += 1
+		} else {
+			return
+		}
+	}
 }
 
-func (d *TableFooter[C, R]) SetFooter(h R) {
-	d.Footer = h
+type ITableDataWithHeader[C ICell, R IRow[C]] interface {
+	SetHeader(row R)
+	GetHeader() (row R)
+}
+type ITableDataWithFooter[C ICell, R IRow[C]] interface {
+	SetFooter(row R)
+	GetFooter() (row R)
 }
 
-func (d *TableFooter[C, R]) GetFooter() R {
-	return d.Footer
-}
-func (d *TableFooter[C, R]) SetFooterCounters(pre int, post int) {
-	d.PreFooter = pre
-	d.PostFooter = post
-}
-func (d *TableFooter[C, R]) GetFooterCounters() (pre int, post int) {
-	pre = d.PreFooter
-	post = d.PostFooter
-	return
+type ITableData[C ICell, R IRow[C]] interface {
+	ITableDataWithHeader[C, R]
+	ITableDataWithFooter[C, R]
+
+	SetRows(rows []R)
+	AddRows(rows ...R)
+	GetRows() []R
 }
 
 // TableData impliments [ITableData]
 // Acts like a table
 type TableData[C ICell, R IRow[C]] struct {
-	*TableHeadings[C, R]
-	*TableFooter[C, R]
-	Rows []R `json:"rows,omitempty"`
+	Header R   `json:"header"`
+	Footer R   `json:"footer"`
+	Rows   []R `json:"rows,omitempty"`
+}
+
+func (d *TableData[C, R]) SetHeader(row R) {
+	row.UpdateCounters()
+	d.Header = row
+}
+func (d *TableData[C, R]) GetHeader() (row R) {
+	row = d.Header
+	return
+}
+func (d *TableData[C, R]) SetFooter(row R) {
+	row.UpdateCounters()
+	d.Footer = row
+}
+func (d *TableData[C, R]) GetFooter() (row R) {
+	row = d.Footer
+	return
 }
 
 // SetRows sets rows
@@ -160,31 +173,18 @@ func (d *TableData[C, R]) GetRows() (rows []R) {
 	return
 }
 
-// Overwrite the get headings to check the pointer
-func (d *TableData[C, R]) GetHeadings() (head R) {
-	if d.TableHeadings != nil {
-		head = d.TableHeadings.GetHeadings()
-	}
-	return
-}
-func (d *TableData[C, R]) GetFooter() (f R) {
-	if d.TableFooter != nil {
-		f = d.TableFooter.GetFooter()
-	}
-	return
-}
-
 // NewCell returns an ICell
 func NewCell(name string, value interface{}) *Cell {
 	return &Cell{Name: name, Value: value}
+}
+func NewHeaderCell(name string, value interface{}) *Cell {
+	return &Cell{Name: name, Value: value, IsHeader: true}
 }
 
 // NewRow returns a single row
 func NewRow[C ICell](cells ...C) (row *Row[C]) {
 	row = &Row[C]{}
-	for _, cell := range cells {
-		row.AddCells(cell)
-	}
+	row.AddCells(cells...)
 	return
 }
 
@@ -199,10 +199,7 @@ func NewRows[C ICell](cellSet ...[]C) (rows []*Row[C]) {
 
 // NewData returns a data item acts like a table
 func NewData[C ICell, R IRow[C]](rows ...R) *TableData[C, R] {
-	d := &TableData[C, R]{
-		TableHeadings: &TableHeadings[C, R]{},
-		TableFooter:   &TableFooter[C, R]{},
-	}
+	d := &TableData[C, R]{}
 	d.SetRows(rows)
 	return d
 }

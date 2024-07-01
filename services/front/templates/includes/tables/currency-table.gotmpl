@@ -1,7 +1,10 @@
 {{ define "dynamic-currency-table" }}
     {{ $pre := .HeadingsPre }}
     {{ $post := .HeadingsPost }}
-    <table class="dataframe govuk-table highlight js-table-sorter {{ .NavigationActive.ClassName }}">
+    <table
+        data-h-pre="{{ $pre }}"
+        data-h-post="{{ $post }}"
+        class="dataframe govuk-table highlight js-table-sorter {{ .NavigationActive.ClassName }}">
         <thead class="govuk-table__head">
             <tr class="govuk-table__row">
                 {{ range $i, $cell := .Headings }}

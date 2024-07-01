@@ -70,16 +70,16 @@ func (a *Api[V, F]) UnitEnvironmentServices(w http.ResponseWriter, r *http.Reque
 		withinMonths := store.Filter(inMonthRange)
 		rows := []*response.Row[*response.Cell]{}
 		// Add table headings
-		headings := response.NewRow[*response.Cell]()
-		headings.AddCells(
-			response.NewCell("Account", ""),
-			response.NewCell("Unit", ""),
-			response.NewCell("Environment", ""),
-			response.NewCell("Service", ""))
+		header := response.NewRow[*response.Cell]()
+		header.AddCells(
+			response.NewHeaderCell("Account", ""),
+			response.NewHeaderCell("Unit", ""),
+			response.NewHeaderCell("Environment", ""),
+			response.NewHeaderCell("Service", ""))
 		for _, m := range months {
-			headings.AddCells(response.NewCell(m, ""))
+			header.AddCells(response.NewCell(m, ""))
 		}
-		headings.AddCells(response.NewCell("Totals", ""))
+		header.AddCells(response.NewHeaderCell("Totals", ""))
 
 		for _, g := range withinMonths.Group(byAccountService) {
 			rowTotal := 0.0
@@ -111,8 +111,7 @@ func (a *Api[V, F]) UnitEnvironmentServices(w http.ResponseWriter, r *http.Reque
 			rows = append(rows, row)
 		}
 		result := response.NewData(rows...)
-		result.SetHeadingsCounters(4, 1)
-		result.SetHeadings(headings)
+		result.SetHeader(header)
 		resp.SetResult(result)
 
 	}
@@ -141,13 +140,15 @@ func (a *Api[V, F]) UnitEnvironments(w http.ResponseWriter, r *http.Request) {
 		rows := []*response.Row[*response.Cell]{}
 
 		// Add table headings
-		headings := response.NewRow[*response.Cell]()
-		headings.AddCells(response.NewCell("Unit", ""), response.NewCell("Environment", ""))
+		header := response.NewRow[*response.Cell]()
+		header.AddCells(
+			response.NewHeaderCell("Unit", ""),
+			response.NewHeaderCell("Environment", ""))
 		for _, m := range months {
-			headings.AddCells(response.NewCell(m, ""))
+			header.AddCells(response.NewCell(m, ""))
 		}
-		headings.AddCells(response.NewCell("Totals", ""))
-
+		header.AddCells(response.NewHeaderCell("Totals", ""))
+		// loop over month group data to group the other data
 		for _, g := range withinMonths.Group(byUnitEnv) {
 			first := g.List()[0]
 			rowTotal := 0.0
@@ -176,8 +177,7 @@ func (a *Api[V, F]) UnitEnvironments(w http.ResponseWriter, r *http.Request) {
 
 		}
 		result := response.NewData(rows...)
-		result.SetHeadingsCounters(2, 1)
-		result.SetHeadings(headings)
+		result.SetHeader(header)
 		resp.SetResult(result)
 
 	}
@@ -197,19 +197,19 @@ func (a *Api[V, F]) Units(w http.ResponseWriter, r *http.Request) {
 
 	errs := resp.GetErrors()
 	if len(errs) == 0 {
+		// data range
 		months := dates.Strings(dates.Months(startDate, endDate), dates.FormatYM)
 		inMonthRange := func(item *cost.Cost) bool {
 			return dates.InMonth(item.Date, months)
 		}
-
 		withinMonths := store.Filter(inMonthRange)
 		// Add table headings
-		headings := response.NewRow[*response.Cell]()
-		headings.AddCells(response.NewCell("Unit", ""))
+		header := response.NewRow[*response.Cell]()
+		header.AddCells(response.NewHeaderCell("Unit", ""))
 		for _, m := range months {
-			headings.AddCells(response.NewCell(m, ""))
+			header.AddCells(response.NewCell(m, ""))
 		}
-		headings.AddCells(response.NewCell("Totals", ""))
+		header.AddCells(response.NewHeaderCell("Totals", ""))
 
 		rows := []*response.Row[*response.Cell]{}
 
@@ -238,8 +238,8 @@ func (a *Api[V, F]) Units(w http.ResponseWriter, r *http.Request) {
 			rows = append(rows, row)
 		}
 		result := response.NewData(rows...)
-		result.SetHeadingsCounters(1, 1)
-		result.SetHeadings(headings)
+		result.SetHeader(header)
+		// totalsFooter(rows, preHeadings)
 		resp.SetResult(result)
 	}
 
@@ -268,13 +268,13 @@ func (a *Api[V, F]) Totals(w http.ResponseWriter, r *http.Request) {
 			return dates.InMonth(item.Date, months)
 		}
 		// Add table headings
-		headings := response.NewRow[*response.Cell]()
-		headings.AddCells(response.NewCell("Tax", ""))
+		header := response.NewRow[*response.Cell]()
+		header.AddCells(response.NewHeaderCell("Tax", ""))
 		for _, m := range months {
-			headings.AddCells(response.NewCell(m, ""))
+			header.AddCells(response.NewCell(m, ""))
 		}
 		// add the row total empty head
-		headings.AddCells(response.NewCell("Totals", ""))
+		header.AddCells(response.NewHeaderCell("Totals", ""))
 
 		// get everything in range
 		withTax := store.Filter(inMonthRange)
@@ -288,13 +288,28 @@ func (a *Api[V, F]) Totals(w http.ResponseWriter, r *http.Request) {
 		withoutTaxRow := withoutTaxR(withoutTax, months)
 
 		result := response.NewData(withoutTaxRow, withTaxRow)
-		result.SetHeadingsCounters(1, 1)
-		result.SetHeadings(headings)
+		result.SetHeader(header)
 		resp.SetResult(result)
 	}
 	resp.End()
 	content, _ := json.Marshal(resp)
 	a.Write(w, resp.GetStatus(), content)
+}
+
+func totalsFooter(rows []*response.Row[*response.Cell], pre int) {
+	totals := []float64{}
+	for i := 0; i < pre; i++ {
+		totals = append(totals, 0.0)
+	}
+	for _, r := range rows {
+		cells := r.GetCells()
+		for x := pre; x < len(cells); x++ {
+			if len(totals) <= x {
+				totals[x] = 0.0
+			}
+			totals[x] += cells[x].Value.(float64)
+		}
+	}
 }
 
 func withoutTaxR(withoutTax data.IStore[*cost.Cost], months []string) *response.Row[*response.Cell] {
