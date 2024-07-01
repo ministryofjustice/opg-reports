@@ -99,6 +99,14 @@ func (s *FrontWebServer) parseResponse(apiResp *http.Response, months []time.Tim
 		slog.Error("parse error")
 		return
 	}
+	// get min / max times
+	min, max := resp.GetDataTimings()
+	if min != nil {
+		data["DataAgeMin"] = min
+	}
+	if max != nil {
+		data["DataAgeMax"] = max
+	}
 	// If the result is nil (failed parsing), return
 	result := resp.GetResult()
 	if result == nil {

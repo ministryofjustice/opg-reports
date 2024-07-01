@@ -28,13 +28,13 @@ func TestSharedServerResponseResultWithResult(t *testing.T) {
 	res.Start()
 	res.End()
 	now := time.Now().UTC()
-	if res.Times.Start.Format(dates.FormatYMD) != now.Format(dates.FormatYMD) {
+	if res.RequestTimes.Start.Format(dates.FormatYMD) != now.Format(dates.FormatYMD) {
 		t.Errorf("start time failed")
 	}
-	if res.Times.End.Format(dates.FormatYMD) != now.Format(dates.FormatYMD) {
+	if res.RequestTimes.End.Format(dates.FormatYMD) != now.Format(dates.FormatYMD) {
 		t.Errorf("end time failed")
 	}
-	if res.Times.Duration.String() == "" {
+	if res.RequestTimes.Duration.String() == "" {
 		t.Errorf("duration failed")
 	}
 
@@ -67,14 +67,14 @@ func TestSharedServerResponseBase(t *testing.T) {
 	// test timings
 	now := time.Now().UTC()
 	res.Start()
-	if res.Times.Start.Format(dates.FormatYMD) != now.Format(dates.FormatYMD) {
+	if res.RequestTimes.Start.Format(dates.FormatYMD) != now.Format(dates.FormatYMD) {
 		t.Errorf("start time failed")
 	}
 	res.End()
-	if res.Times.End.Format(dates.FormatYMD) != now.Format(dates.FormatYMD) {
+	if res.RequestTimes.End.Format(dates.FormatYMD) != now.Format(dates.FormatYMD) {
 		t.Errorf("end time failed")
 	}
-	if res.Times.Duration.String() == "" {
+	if res.RequestTimes.Duration.String() == "" {
 		t.Errorf("duration failed")
 	}
 

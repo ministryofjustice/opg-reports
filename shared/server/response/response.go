@@ -56,55 +56,58 @@ type IResult[C ICell, R IRow[C], D ITableData[C, R]] interface {
 	IBase
 	SetResult(result D)
 	GetResult() D
+	GetDataTimings() (min *time.Time, max *time.Time)
+}
+
+type dataTimings struct {
+	Min *time.Time `json:"min"`
+	Max *time.Time `json:"max"`
+	All []int64    `json:"-"`
+}
+type requestTimes struct {
+	Start    time.Time     `json:"start"`
+	End      time.Time     `json:"end"`
+	Duration time.Duration `json:"duration"`
 }
 
 // Timings impliments [ITimings] & [IDataTimings] which is [ITimingData]
 type Timings struct {
-	Times struct {
-		Start    time.Time     `json:"start"`
-		End      time.Time     `json:"end"`
-		Duration time.Duration `json:"duration"`
-	} `json:"timings"`
-
-	DataTimestamps struct {
-		Min *time.Time `json:"min"`
-		Max *time.Time `json:"max"`
-		All []int64    `json:"-"`
-	} `json:"data_timestamps,omitempty"`
+	RequestTimes *requestTimes `json:"timings"`
+	Datatimes    *dataTimings  `json:"data_timestamps,omitempty"`
 }
 
 // Start tracks the start time of this request
 func (i *Timings) Start() {
-	i.Times.Start = time.Now().UTC()
+	i.RequestTimes.Start = time.Now().UTC()
 }
 
 // End tracks the end time and the duration of the request
 func (i *Timings) End() {
-	i.Times.End = time.Now().UTC()
-	i.Times.Duration = i.Times.End.Sub(i.Times.Start)
+	i.RequestTimes.End = time.Now().UTC()
+	i.RequestTimes.Duration = i.RequestTimes.End.Sub(i.RequestTimes.Start)
 }
 
 func (i *Timings) AddTimestamp(ts time.Time) {
 	u := ts.Unix()
-	i.DataTimestamps.All = append(i.DataTimestamps.All, u)
+	i.Datatimes.All = append(i.Datatimes.All, u)
 	// check the min max values
-	if i.DataTimestamps.Max == nil || i.DataTimestamps.Min == nil {
+	if i.Datatimes.Max == nil || i.Datatimes.Min == nil {
 		i.GetMinMax()
-	} else if m := i.DataTimestamps.Min.Unix(); u < m {
+	} else if m := i.Datatimes.Min.Unix(); u < m {
 		i.GetMinMax()
-	} else if m := i.DataTimestamps.Min.Unix(); u > m {
+	} else if m := i.Datatimes.Min.Unix(); u > m {
 		i.GetMinMax()
 	}
 }
 func (i *Timings) GetMinMax() (minT time.Time, maxT time.Time) {
-	uMin := slices.Min(i.DataTimestamps.All)
-	uMax := slices.Min(i.DataTimestamps.All)
+	uMin := slices.Min(i.Datatimes.All)
+	uMax := slices.Min(i.Datatimes.All)
 
 	minT = time.Unix(uMin, 0)
 	maxT = time.Unix(uMax, 0)
 
-	i.DataTimestamps.Min = &minT
-	i.DataTimestamps.Max = &maxT
+	i.Datatimes.Min = &minT
+	i.Datatimes.Max = &maxT
 	return
 }
 
@@ -183,11 +186,19 @@ func (i *Result[C, R, D]) GetResult() D {
 	return i.Res
 }
 
+func (i *Result[C, R, D]) GetDataTimings() (min *time.Time, max *time.Time) {
+	if i.Timings.Datatimes != nil {
+		min = i.Timings.Datatimes.Min
+		max = i.Timings.Datatimes.Max
+	}
+	return
+}
+
 // NewSimpleResult returns a fresh Base with
 // status set as OK and errors empty
 func NewSimpleResult() *Base {
 	return &Base{
-		Timings: &Timings{},
+		Timings: &Timings{Datatimes: &dataTimings{}, RequestTimes: &requestTimes{}},
 		Status:  &Status{Code: http.StatusOK},
 		Errors:  &Errors{Errs: []error{}},
 	}
