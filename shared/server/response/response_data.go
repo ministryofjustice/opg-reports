@@ -98,7 +98,7 @@ type IRow[C ICell] interface {
 	IRowData[C]
 	IRowSupplementary[C]
 	SetRaw(cells ...C)
-	GetRaw() []C
+	GetAll() []C
 	GetTotalCellCount() int
 }
 
@@ -195,7 +195,7 @@ func (r *Row[C]) SetRaw(cells ...C) {
 	}
 }
 
-func (r *Row[C]) GetRaw() (all []C) {
+func (r *Row[C]) GetAll() (all []C) {
 	all = []C{}
 	for _, h := range r.GetHeaders() {
 		all = append(all, h)

@@ -29,10 +29,6 @@ func (i *testEntry) Valid() bool {
 	return true
 }
 
-func TestFrontServerDynamicHandlerMocked(t *testing.T) {
-
-}
-
 func TestFrontServerDynamicHandlerMockedTotals(t *testing.T) {
 
 	ms := th.MockServer(mockAwsCostMonthlyTotals(), http.StatusOK)

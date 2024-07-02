@@ -121,13 +121,13 @@ func (s *FrontWebServer) parseResponse(apiResp *http.Response) (data map[string]
 	}
 
 	if heading := result.GetTableHead(); heading.GetHeadersCount() > 0 {
-		data["Headings"] = heading.GetRaw()
+		data["Headings"] = heading.GetAll()
 		data["HeadingsPre"] = heading.GetHeadersCount()
 		data["HeadingsPost"] = heading.GetTotalCellCount() - heading.GetHeadersCount() - heading.GetSupplementaryCount()
 	}
 
 	if footer := result.GetTableFoot(); footer.GetHeadersCount() > 0 {
-		data["Footer"] = footer.GetRaw()
+		data["Footer"] = footer.GetAll()
 		data["FooterPre"] = footer.GetHeadersCount()
 		data["FooterPost"] = footer.GetTotalCellCount() - footer.GetHeadersCount() - footer.GetSupplementaryCount()
 	}

@@ -113,7 +113,7 @@ func ToRowC[T IEntry](item T) (row *response.Row[*response.Cell]) {
 // FromMap is then called to create an IEntry
 func FromRow[T IEntry](row *response.Row[*response.Cell]) (item T) {
 	mapped := map[string]interface{}{}
-	for _, c := range row.GetRaw() {
+	for _, c := range row.GetAll() {
 		mapped[c.Name] = c.Value
 	}
 	item, _ = FromMap[T](mapped)
