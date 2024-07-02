@@ -6,7 +6,6 @@ import (
 	"opg-reports/shared/aws/cost"
 	"opg-reports/shared/data"
 	"opg-reports/shared/files"
-	"opg-reports/shared/server"
 	"opg-reports/shared/server/response"
 	"os"
 	"testing"
@@ -20,8 +19,8 @@ func TestServicesApiAwsCostMonthlyStatusCode(t *testing.T) {
 	min, max, df := testDates()
 	store := data.NewStore[*cost.Cost]()
 	store.Add(cost.Fake(nil, min, max, df))
-
-	api := New(store, fs)
+	resp := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	api := New(store, fs, resp)
 	api.Register(mux)
 
 	routes := map[string]int{
@@ -49,7 +48,8 @@ func TestServicesApiAwsCostMonthlyStatusCode(t *testing.T) {
 func TestServicesApiAwsCostMonthlyFSMatch(t *testing.T) {
 	fs := testFs()
 	store := data.NewStore[*cost.Cost]()
-	api := New(store, fs)
+	resp := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	api := New(store, fs, resp)
 
 	apiFs := api.FS()
 	if apiFs.BaseDir() != fs.BaseDir() {
@@ -63,26 +63,14 @@ func TestServicesApiAwsCostMonthlyStoreMatch(t *testing.T) {
 	store := data.NewStore[*cost.Cost]()
 	store.Add(cost.Fake(nil, min, max, df))
 
-	api := New(store, fs)
+	resp := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	api := New(store, fs, resp)
+
 	apiS := api.Store()
 
 	if apiS.Length() != store.Length() {
 		t.Errorf("store data mismatch")
 	}
-}
-
-func TestServicesApiAwsCostMonthlyInterface(t *testing.T) {
-	fs := testFs()
-	store := data.NewStore[*cost.Cost]()
-	api := New(store, fs)
-
-	if testIsI[*cost.Cost, files.IWriteFS](api) {
-		t.Errorf("should not be nil")
-	}
-}
-
-func testIsI[V data.IEntry, F files.IReadFS](i server.IApi[V, F]) bool {
-	return i == nil
 }
 
 func testFs() *files.WriteFS {

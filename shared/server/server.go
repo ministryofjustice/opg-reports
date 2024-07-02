@@ -24,6 +24,7 @@ type IApiRouteRegistration interface {
 
 type IApiResponse[C response.ICell, R response.IRow[C]] interface {
 	GetResponse() response.IResponse[C, R]
+	GetNewResponse() response.IResponse[C, R]
 }
 
 type IApiWrite interface {
@@ -68,9 +69,13 @@ func (a *Api[V, F, C, R]) Write(w http.ResponseWriter, status int, content []byt
 func (a *Api[V, F, C, R]) GetResponse() response.IResponse[C, R] {
 	return a.resp
 }
+func (a *Api[V, F, C, R]) GetNewResponse() response.IResponse[C, R] {
+	a.resp = response.NewResponse[C, R]()
+	return a.resp
+}
 
 func (a *Api[V, F, C, R]) Start(w http.ResponseWriter, r *http.Request) {
-	a.GetResponse().SetStart()
+	a.GetNewResponse().SetStart()
 }
 
 func (a *Api[V, F, C, R]) End(w http.ResponseWriter, r *http.Request) {
@@ -78,6 +83,7 @@ func (a *Api[V, F, C, R]) End(w http.ResponseWriter, r *http.Request) {
 	resp.SetEnd()
 	resp.SetEnd()
 	resp.SetDuration()
+
 	content, _ := json.MarshalIndent(resp, "", "  ")
 	a.Write(w, resp.GetStatus(), content)
 }

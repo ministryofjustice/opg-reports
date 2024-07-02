@@ -20,7 +20,9 @@ func TestServicesApiAwsCostMonthlyHandlerIndex(t *testing.T) {
 	fs := testFs()
 	mux := testMux()
 	store := data.NewStore[*cost.Cost]()
-	api := New(store, fs)
+	resp := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	api := New(store, fs, resp)
+
 	api.Register(mux)
 
 	route := "/aws/costs/v1/monthly/"
@@ -29,13 +31,13 @@ func TestServicesApiAwsCostMonthlyHandlerIndex(t *testing.T) {
 	mux.ServeHTTP(w, r)
 
 	_, b := response.Stringify(w.Result())
-	res := response.NewSimpleResult()
+	res := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
 	json.Unmarshal(b, &res)
 
 	if res.GetStatus() != http.StatusOK {
 		t.Errorf("status error")
 	}
-	if len(res.GetErrors()) != 0 {
+	if len(res.GetError()) != 0 {
 		t.Errorf("found error when not expected")
 	}
 	if res.RequestTimes.Duration.String() == "" {
@@ -69,7 +71,8 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 		store.Add(c)
 	}
 
-	api := New(store, fs)
+	resp := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	api := New(store, fs, resp)
 	api.Register(mux)
 
 	route := fmt.Sprintf("/aws/costs/v1/monthly/%s/%s/", min.Format(dates.FormatYM), max.Format(dates.FormatYM))
@@ -77,12 +80,12 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 	mux.ServeHTTP(w, r)
 
 	str, b := response.Stringify(w.Result())
-	resp := response.NewResponse()
-	response.ParseFromJson(b, resp)
+	res := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	response.FromJson(b, res)
 
 	// fmt.Println(str)
 
-	if resp.Status.Code != http.StatusOK {
+	if res.GetStatus() != http.StatusOK {
 		t.Errorf("status code failed")
 		fmt.Println(str)
 	}
@@ -112,7 +115,8 @@ func TestServicesApiAwsCostMonthlyHandlerUnits(t *testing.T) {
 		store.Add(c)
 	}
 
-	api := New(store, fs)
+	resp := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	api := New(store, fs, resp)
 	api.Register(mux)
 
 	route := fmt.Sprintf("/aws/costs/v1/monthly/%s/%s/units/", min.Format(dates.FormatYM), max.Format(dates.FormatYM))
@@ -120,11 +124,11 @@ func TestServicesApiAwsCostMonthlyHandlerUnits(t *testing.T) {
 	mux.ServeHTTP(w, r)
 
 	str, b := response.Stringify(w.Result())
-	resp := response.NewResponse()
-	response.ParseFromJson(b, resp)
+	res := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	response.FromJson(b, res)
 	// fmt.Println(str)
 
-	if resp.Status.Code != http.StatusOK {
+	if resp.GetStatus() != http.StatusOK {
 		t.Errorf("status code failed")
 		fmt.Println(str)
 	}
@@ -157,7 +161,8 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvs(t *testing.T) {
 		store.Add(c)
 	}
 
-	api := New(store, fs)
+	resp := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	api := New(store, fs, resp)
 	api.Register(mux)
 
 	route := fmt.Sprintf("/aws/costs/v1/monthly/%s/%s/units/envs/", min.Format(dates.FormatYM), max.Format(dates.FormatYM))
@@ -165,10 +170,10 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvs(t *testing.T) {
 	mux.ServeHTTP(w, r)
 
 	str, b := response.Stringify(w.Result())
-	resp := response.NewResponse()
-	response.ParseFromJson(b, resp)
+	res := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	response.FromJson(b, res)
 
-	if resp.Status.Code != http.StatusOK {
+	if resp.GetStatus() != http.StatusOK {
 		t.Errorf("status code failed")
 		fmt.Println(str)
 	}
@@ -201,7 +206,8 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvServices(t *testing.T) {
 		store.Add(c)
 	}
 
-	api := New(store, fs)
+	resp := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	api := New(store, fs, resp)
 	api.Register(mux)
 
 	route := fmt.Sprintf("/aws/costs/v1/monthly/%s/%s/units/envs/services/", min.Format(dates.FormatYM), max.Format(dates.FormatYM))
@@ -209,10 +215,10 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvServices(t *testing.T) {
 	mux.ServeHTTP(w, r)
 
 	str, b := response.Stringify(w.Result())
-	resp := response.NewResponse()
-	response.ParseFromJson(b, resp)
+	res := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	response.FromJson(b, res)
 
-	if resp.Status.Code != http.StatusOK {
+	if resp.GetStatus() != http.StatusOK {
 		t.Errorf("status code failed")
 		fmt.Println(str)
 	}
