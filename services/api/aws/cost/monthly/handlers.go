@@ -113,8 +113,8 @@ func (a *Api[V, F, C, R]) UnitEnvironmentServices(w http.ResponseWriter, r *http
 
 		table := response.NewTable(body...)
 		table.SetTableHead(head.(R))
-		// table.SetTableFoot(foot)
-
+		foot := a.columnTotals(body)
+		table.SetTableFoot(foot)
 		resp.SetData(table)
 
 	}
@@ -156,8 +156,8 @@ func (a *Api[V, F, C, R]) UnitEnvironments(w http.ResponseWriter, r *http.Reques
 			first := g.List()[0]
 			rowTotal := 0.0
 			cells := []C{
-				response.NewCell(first.AccountUnit, first.AccountUnit).(C),
-				response.NewCell(first.AccountEnvironment, first.AccountEnvironment).(C),
+				response.NewCellHeader(first.AccountUnit, first.AccountUnit).(C),
+				response.NewCellHeader(first.AccountEnvironment, first.AccountEnvironment).(C),
 			}
 			for _, m := range months {
 				inM := func(item *cost.Cost) bool {
@@ -181,7 +181,8 @@ func (a *Api[V, F, C, R]) UnitEnvironments(w http.ResponseWriter, r *http.Reques
 		}
 		table := response.NewTable(body...)
 		table.SetTableHead(head.(R))
-		// table.SetTableFoot(foot)
+		foot := a.columnTotals(body)
+		table.SetTableFoot(foot)
 		resp.SetData(table)
 
 	}
@@ -221,7 +222,7 @@ func (a *Api[V, F, C, R]) Units(w http.ResponseWriter, r *http.Request) {
 			first := g.List()[0]
 			rowTotal := 0.0
 			cells := []C{
-				response.NewCell(first.AccountUnit, first.AccountUnit).(C),
+				response.NewCellHeader(first.AccountUnit, first.AccountUnit).(C),
 			}
 			for _, m := range months {
 				inM := func(item *cost.Cost) bool {
@@ -241,14 +242,50 @@ func (a *Api[V, F, C, R]) Units(w http.ResponseWriter, r *http.Request) {
 			row := response.NewRow(cells...).(R)
 			body = append(body, row)
 		}
+
 		table := response.NewTable(body...)
 		table.SetTableHead(head.(R))
-		// table.SetTableFoot(foot)
+		foot := a.columnTotals(body)
+		table.SetTableFoot(foot)
 		resp.SetData(table)
 	}
 
 	a.End(w, r)
 
+}
+
+// columnTotals creates a row whose cell values are the total for that column
+func (a *Api[V, F, C, R]) columnTotals(rows []R) (row R) {
+	var totals []float64
+	row = response.NewRow[C]().(R)
+	headingsCount := 0
+	if len(rows) > 0 {
+		totals = make([]float64, rows[0].GetTotalCellCount())
+		for i := 0; i < rows[0].GetTotalCellCount(); i++ {
+			totals[i] = 0.0
+		}
+		headingsCount = rows[0].GetHeadersCount()
+	}
+
+	for _, r := range rows {
+		cells := r.GetAll()
+		for x := headingsCount; x < len(cells); x++ {
+			// fmt.Printf("[%s] [%v]\n", cells[x].GetName(), cells[x].GetValue())
+			totals[x] += cells[x].GetValue().(float64)
+		}
+	}
+
+	for i, total := range totals {
+		var c C
+		if i < headingsCount {
+			c = response.NewCellHeader("Total", total).(C)
+		} else {
+			c = response.NewCell("Total", total).(C)
+		}
+
+		row.SetRaw(c)
+	}
+	return
 }
 
 // Totals: /aws/costs/{version}/monthly/{start}/{end}/{$}
@@ -300,30 +337,6 @@ func (a *Api[V, F, C, R]) Totals(w http.ResponseWriter, r *http.Request) {
 	}
 	a.End(w, r)
 }
-
-// func columnTotals(rows []*response.Row[*response.Cell], pre int) *response.Row[*response.Cell] {
-// 	var totals []float64
-// 	footer := response.NewRow[*response.Cell]()
-
-// 	if len(rows) > 0 {
-// 		totals = make([]float64, rows[0].Len())
-// 		for i := 0; i < rows[0].Len(); i++ {
-// 			totals[i] = 0.0
-// 		}
-// 	}
-
-// 	for _, r := range rows {
-// 		cells := r.GetCells()
-// 		for x := pre; x < len(cells); x++ {
-// 			totals[x] += cells[x].Value.(float64)
-// 		}
-// 	}
-// 	for _, total := range totals {
-// 		footer.AddCells(response.NewCell("Total", total))
-// 	}
-// 	return footer
-
-// }
 
 func withoutTaxR(withoutTax data.IStore[*cost.Cost], months []string) response.IRow[response.ICell] {
 	rowTotal := 0.0
