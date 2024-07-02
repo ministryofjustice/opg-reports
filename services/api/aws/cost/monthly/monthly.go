@@ -1,6 +1,7 @@
 package monthly
 
 import (
+	"log/slog"
 	"net/http"
 	"opg-reports/shared/aws/cost"
 	"opg-reports/shared/data"
@@ -41,6 +42,9 @@ func (a *Api[V, F, C, R]) startAndEndDates(r *http.Request) (startDate time.Time
 	if err != nil {
 		res.SetErrorAndStatus(err, http.StatusConflict)
 	}
+	slog.Info("[api/aws/costs/monthly] start and end dates",
+		slog.Time("start", startDate),
+		slog.Time("end", endDate))
 	return
 
 }

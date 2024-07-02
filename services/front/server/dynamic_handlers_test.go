@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	th "opg-reports/internal/testhelpers"
 	"opg-reports/services/front/cnf"
 	"opg-reports/services/front/tmpl"
 	"opg-reports/shared/files"
@@ -33,7 +34,8 @@ func TestFrontServerDynamicHandlerMocked(t *testing.T) {
 }
 
 func TestFrontServerDynamicHandlerMockedTotals(t *testing.T) {
-	ms := mockServer(mockAwsCostTotalsResponse, http.StatusOK)
+
+	ms := th.MockServer(mockAwsCostMonthlyTotals(), http.StatusOK)
 	defer ms.Close()
 
 	tDir := "../templates/"
@@ -48,11 +50,11 @@ func TestFrontServerDynamicHandlerMockedTotals(t *testing.T) {
 	// point the totals route to look at the test api
 	s.Nav.Get(route).Api = map[string]string{"url": ms.URL}
 	//
-	mux := testMux()
+	mux := th.Mux()
 	s.Register(mux)
 	// now we fetch the local route, which should them call the mocked
 	// server
-	w, r := testWRGet(route)
+	w, r := th.WRGet(route)
 	mux.ServeHTTP(w, r)
 
 	if w.Result().StatusCode != http.StatusOK {
@@ -68,7 +70,8 @@ func TestFrontServerDynamicHandlerMockedTotals(t *testing.T) {
 }
 
 func TestFrontServerDynamicHandlerMockedUnits(t *testing.T) {
-	ms := mockServer(mockAwsCostUnitsResponse, http.StatusOK)
+	content := mockAwsCostMonthlyUnits()
+	ms := th.MockServer(content, http.StatusOK)
 	defer ms.Close()
 
 	tDir := "../templates/"
@@ -83,11 +86,11 @@ func TestFrontServerDynamicHandlerMockedUnits(t *testing.T) {
 	// point the totals route to look at the test api
 	s.Nav.Get(route).Api = map[string]string{"url": ms.URL}
 	//
-	mux := testMux()
+	mux := th.Mux()
 	s.Register(mux)
 	// now we fetch the local route, which should them call the mocked
 	// server
-	w, r := testWRGet(route)
+	w, r := th.WRGet(route)
 	mux.ServeHTTP(w, r)
 
 	str, _ := response.Stringify(w.Result())

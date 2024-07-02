@@ -95,16 +95,25 @@ func ToRow[T IEntry](item T) (row response.IRow[response.ICell]) {
 	row = response.NewRow(cells...)
 	return
 }
+func ToRowC[T IEntry](item T) (row *response.Row[*response.Cell]) {
+	mapped, _ := ToMap(item)
+	cells := []*response.Cell{}
+	for k, v := range mapped {
+		c := response.NewCell(k, v).(*response.Cell)
+		cells = append(cells, c)
+	}
+	row = response.NewRow[*response.Cell](cells...).(*response.Row[*response.Cell])
+	return
+}
 
 // FromRow allows conversion back to an IEntry from a response.Row presuming
 // followed the same structure as ToRow.
 // Each cell within the row is presumed to be a key value pair for a map
 // and is used to generate one.
 // FromMap is then called to create an IEntry
-func FromRow[T IEntry](row response.IRow[response.ICell]) (item T) {
+func FromRow[T IEntry](row *response.Row[*response.Cell]) (item T) {
 	mapped := map[string]interface{}{}
-	for _, ic := range row.GetRaw() {
-		c := ic.(*response.Cell)
+	for _, c := range row.GetRaw() {
 		mapped[c.Name] = c.Value
 	}
 	item, _ = FromMap[T](mapped)

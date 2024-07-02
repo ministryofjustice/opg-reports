@@ -26,7 +26,8 @@
         <tbody class="govuk-table__body">
             {{ range $i, $row := .Result }}
                 <tr class="govuk-table__row" data-rowcount="{{$i}}">
-                    {{ $cells := $row.GetCells }}
+                    {{ $cells := $row.GetRaw }}
+
                     {{ range $i, $cell := $cells }}
                         {{ $n := addi $i 1}}
                         {{ if lt $n $pre }}

@@ -99,7 +99,8 @@ func (s *FrontWebServer) Dynamic(w http.ResponseWriter, r *http.Request) {
 func (s *FrontWebServer) parseResponse(apiResp *http.Response) (data map[string]interface{}, err error) {
 	data = map[string]interface{}{}
 
-	resp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
+	// _, b := response.Stringify(apiResp)
+	resp := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
 	err = response.FromHttp(apiResp, resp)
 	if err != nil {
 		slog.Error("parse error")

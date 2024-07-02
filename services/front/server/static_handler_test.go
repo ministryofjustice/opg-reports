@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	th "opg-reports/internal/testhelpers"
 	"opg-reports/services/front/cnf"
 	"opg-reports/services/front/tmpl"
 	"opg-reports/shared/files"
@@ -17,13 +18,13 @@ func TestFrontServerStaticHandler(t *testing.T) {
 	f := files.NewFS(dfSys, tDir)
 	templates := tmpl.Files(f, tDir)
 
-	mux := testMux()
+	mux := th.Mux()
 	conf, _ := cnf.Load([]byte(testRealisticServerCnf))
 	s := New(conf, templates, "", "")
 	s.Register(mux)
 
 	route := "/costs/"
-	w, r := testWRGet(route)
+	w, r := th.WRGet(route)
 
 	mux.ServeHTTP(w, r)
 

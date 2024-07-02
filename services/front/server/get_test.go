@@ -2,11 +2,13 @@ package server
 
 import (
 	"net/http"
+	th "opg-reports/internal/testhelpers"
 	"testing"
 )
 
 func TestFrontServerGetApiMockedDetails(t *testing.T) {
-	ms := mockServer(mockAwsCostTotalsResponse, http.StatusOK)
+	content := mockAwsCostMonthlyTotals()
+	ms := th.MockServer(content, http.StatusOK)
 	defer ms.Close()
 	url := ms.URL
 	_, err := GetUrl(url)

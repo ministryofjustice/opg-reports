@@ -262,6 +262,7 @@ func (a *Api[V, F, C, R]) Totals(w http.ResponseWriter, r *http.Request) {
 	store := a.Store()
 	startDate, endDate := a.startAndEndDates(r)
 
+	slog.Info("[api/aws/costs/monthly] store count", slog.Int("count", len(store.List())))
 	errs := resp.GetError()
 	if len(errs) == 0 {
 		// Limit the items in the data store to those within the start & end date range
@@ -295,7 +296,7 @@ func (a *Api[V, F, C, R]) Totals(w http.ResponseWriter, r *http.Request) {
 		table.SetTableHead(head.(R))
 		table.SetTableBody(withoutTaxRow.(R))
 		table.SetTableBody(withTaxRow.(R))
-
+		resp.SetData(table)
 	}
 	a.End(w, r)
 }
@@ -327,7 +328,7 @@ func (a *Api[V, F, C, R]) Totals(w http.ResponseWriter, r *http.Request) {
 func withoutTaxR(withoutTax data.IStore[*cost.Cost], months []string) response.IRow[response.ICell] {
 	rowTotal := 0.0
 	withoutTaxCells := []response.ICell{
-		response.NewCell("Excluded", "Excluded"),
+		response.NewCellHeader("Excluded", "Excluded"),
 	}
 	for _, m := range months {
 		inM := func(item *cost.Cost) bool {
@@ -339,7 +340,7 @@ func withoutTaxR(withoutTax data.IStore[*cost.Cost], months []string) response.I
 		cell := response.NewCell(m, total)
 		withoutTaxCells = append(withoutTaxCells, cell)
 	}
-	withoutTaxCells = append(withoutTaxCells, response.NewCell("Totals", rowTotal))
+	withoutTaxCells = append(withoutTaxCells, response.NewCellExtra("Totals", rowTotal))
 	return response.NewRow(withoutTaxCells...)
 }
 func withTaxR(withTax data.IStore[*cost.Cost], months []string) response.IRow[response.ICell] {

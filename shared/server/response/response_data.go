@@ -294,8 +294,13 @@ func NewRow[C ICell](cells ...C) (row IRow[C]) {
 
 // -- TABLES
 func NewTable[C ICell, R IRow[C]](rows ...R) *Table[C, R] {
+	h := NewRow[C]()
+	f := NewRow[C]()
 
-	td := &Table[C, R]{}
+	td := &Table[C, R]{
+		Head: h.(R),
+		Foot: f.(R),
+	}
 	td.SetTableBody(rows...)
 	return td
 }

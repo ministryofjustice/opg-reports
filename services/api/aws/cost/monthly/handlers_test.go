@@ -40,7 +40,8 @@ func TestServicesApiAwsCostMonthlyHandlerIndex(t *testing.T) {
 	if len(res.GetError()) != 0 {
 		t.Errorf("found error when not expected")
 	}
-	if res.RequestTimes.Duration.String() == "" {
+
+	if res.GetDuration().String() == "" {
 		t.Errorf("duration error")
 	}
 
