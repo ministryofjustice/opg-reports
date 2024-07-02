@@ -11,7 +11,10 @@ import (
 // ITimings handles simple start, end and duration elements of the interface.
 type ITimings interface {
 	Start()
+	GetStart() time.Time
 	End()
+	GetEnd() time.Time
+	GetDuration() time.Duration
 }
 
 type IDataTimings interface {
@@ -86,9 +89,19 @@ func (i *Timings) End() {
 	i.RequestTimes.End = time.Now().UTC()
 	i.RequestTimes.Duration = i.RequestTimes.End.Sub(i.RequestTimes.Start)
 }
+func (i *Timings) GetStart() time.Time {
+	return i.RequestTimes.Start
+}
+
+func (i *Timings) GetEnd() time.Time {
+	return i.RequestTimes.End
+}
+func (i *Timings) GetDuration() time.Duration {
+	return i.RequestTimes.Duration
+}
 
 func (i *Timings) AddTimestamp(ts time.Time) {
-	u := ts.Unix()
+	u := ts.UnixMicro()
 	i.Datatimes.All = append(i.Datatimes.All, u)
 	// check the min max values
 	if i.Datatimes.Max == nil || i.Datatimes.Min == nil {
@@ -101,10 +114,10 @@ func (i *Timings) AddTimestamp(ts time.Time) {
 }
 func (i *Timings) GetMinMax() (minT time.Time, maxT time.Time) {
 	uMin := slices.Min(i.Datatimes.All)
-	uMax := slices.Min(i.Datatimes.All)
+	uMax := slices.Max(i.Datatimes.All)
 
-	minT = time.Unix(uMin, 0)
-	maxT = time.Unix(uMax, 0)
+	minT = time.UnixMicro(uMin).UTC()
+	maxT = time.UnixMicro(uMax).UTC()
 
 	i.Datatimes.Min = &minT
 	i.Datatimes.Max = &maxT

@@ -23,6 +23,31 @@ func (i *testI) Valid() bool {
 	return true
 }
 
+func TestSharedServerResponseTimings(t *testing.T) {
+	ti := &Timings{RequestTimes: &requestTimes{}, Datatimes: &dataTimings{}}
+	now := time.Now().UTC()
+	min := now.AddDate(-5, 0, 0)
+	ti.AddTimestamp(now)
+	ti.AddTimestamp(min)
+
+	for i := 0; i < 5; i++ {
+		d := fake.Date(min, now)
+		ti.AddTimestamp(d)
+	}
+
+	mt, mx := ti.GetMinMax()
+	if mt != min {
+		t.Errorf("min failed")
+		fmt.Println(mt)
+		fmt.Println(min)
+	}
+	if mx != now {
+		t.Errorf("max failed")
+		fmt.Println(mx)
+		fmt.Println(now)
+	}
+}
+
 func TestSharedServerResponseResultWithResult(t *testing.T) {
 	res := NewResponse()
 	res.Start()
