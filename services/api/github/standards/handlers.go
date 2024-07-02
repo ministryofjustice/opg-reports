@@ -34,7 +34,6 @@ func (a *Api[V, F, C, R]) List(w http.ResponseWriter, r *http.Request) {
 			// Add data times to resp
 			resp.SetDataAge(item.TS())
 		}
-
 		table := response.NewTable(rows...)
 		resp.SetData(table)
 

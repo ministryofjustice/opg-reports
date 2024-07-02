@@ -81,8 +81,9 @@ func (a *Api[V, F, C, R]) Start(w http.ResponseWriter, r *http.Request) {
 func (a *Api[V, F, C, R]) End(w http.ResponseWriter, r *http.Request) {
 	resp := a.GetResponse()
 	resp.SetEnd()
-	resp.SetEnd()
 	resp.SetDuration()
+	resp.GetDataAgeMin()
+	resp.GetDataAgeMax()
 
 	content, _ := json.MarshalIndent(resp, "", "  ")
 	a.Write(w, resp.GetStatus(), content)

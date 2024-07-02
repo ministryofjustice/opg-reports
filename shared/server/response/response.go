@@ -36,6 +36,7 @@ type IRequestDuration interface {
 // age of the data
 type IDataRecency interface {
 	SetDataAge(ts ...time.Time)
+	// GetAllDataAge() []time.Time
 	GetDataAgeMin() time.Time
 	GetDataAgeMax() time.Time
 }
@@ -195,6 +196,14 @@ func (r *Response[C, R]) SetDataAge(times ...time.Time) {
 		}
 	}
 }
+
+// func (r *Response[C, R]) GetAllDataAge() []time.Time {
+// 	ts := []time.Time{}
+// 	for _, u := range r.DataAge.All {
+// 		ts = append(ts, time.UnixMicro(u).UTC())
+// 	}
+// 	return ts
+// }
 
 // GetDataAgeMin returns the min date stored within the
 // data in this api response (effectively the "oldest")
