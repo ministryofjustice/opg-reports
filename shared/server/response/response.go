@@ -8,28 +8,37 @@ import (
 	"time"
 )
 
-// ITimings handles simple start, end and duration elements of the interface.
-type ITimings interface {
-	Start()
+// IRequestStart track the start time for the request
+type IRequestStart interface {
+	SetStart()
 	GetStart() time.Time
-	End()
+}
+
+// IRequestEnd track the end time of the response
+type IRequestEnd interface {
+	SetEnd()
 	GetEnd() time.Time
+}
+
+// IRequestDuration handles the duration of the request
+type IRequestDuration interface {
+	IRequestStart
+	IRequestEnd
+	SetDuration()
 	GetDuration() time.Duration
 }
 
-type IDataTimings interface {
-	AddTimestamp(ts time.Time)
-	GetMinMax() (min time.Time, max time.Time)
+// IDataRecency tracks the data creation times to inform the
+// age of the data
+type IDataRecency interface {
+	SetDataAge(ts ...time.Time)
+	GetDataAgeMin() time.Time
+	GetDataAgeMax() time.Time
 }
 
-type ITimingData interface {
-	ITimings
-	IDataTimings
-}
-
-// IStatus handles tracking the http status of the api response.
+// IResponseStatus handles tracking the http status of the api response.
 // Its value should be used with IApi.Write call at the end
-type IStatus interface {
+type IResponseStatus interface {
 	SetStatus(status int)
 	GetStatus() int
 }
@@ -37,205 +46,402 @@ type IStatus interface {
 // IErrors allows tracking of server side errors such as validation
 // and will be included in the IApi.Write
 type IErrors interface {
-	SetErrors(errors []error)
-	AddError(err error)
-	GetErrors() []error
+	SetError(errors ...error)
+	GetError() []error
 }
 
-// IBase is a merge interface that wuld be typical of an http response.
-// This version excludes any result data / handling for simplicty on errors or
-// empty results
-type IBase interface {
-	ITimingData
-	IStatus
+// IErrorWithStatus allows adding an error message and changing the response
+// status at the same time
+type IErrorWithStatus interface {
+	IResponseStatus
 	IErrors
-	AddErrorWithStatus(err error, status int)
+	SetErrorAndStatus(err error, status int)
 }
 
-// IResult providers a response interface whose result type can vary between
-// slice, a map or a map of slices.
-// This allows api respsones to adapt to the most useful data type for the endpoint
-type IResult[C ICell, R IRow[C], D ITableData[C, R]] interface {
-	IBase
-	SetResult(result D)
-	GetResult() D
-	GetDataTimings() (min *time.Time, max *time.Time)
+type IResponseData[C ICell, R IRow[C]] interface {
+	SetData(t ITable[C, R])
+	GetData() ITable[C, R]
 }
 
-type dataTimings struct {
-	Min *time.Time `json:"min"`
-	Max *time.Time `json:"max"`
-	All []int64    `json:"-"`
+type IResponse[C ICell, R IRow[C]] interface {
+	IRequestStart
+	IRequestEnd
+	IRequestDuration
+	IDataRecency
+	IResponseStatus
+	IErrors
+	IErrorWithStatus
+	IResponseData[C, R]
 }
+
+// --- CONCREATE VERSIONS
+
 type requestTimes struct {
 	Start    time.Time     `json:"start"`
 	End      time.Time     `json:"end"`
 	Duration time.Duration `json:"duration"`
 }
-
-// Timings impliments [ITimings] & [IDataTimings] which is [ITimingData]
-type Timings struct {
-	RequestTimes *requestTimes `json:"timings"`
-	Datatimes    *dataTimings  `json:"data_timestamps,omitempty"`
+type dataAge struct {
+	Min *time.Time `json:"min"`
+	Max *time.Time `json:"max"`
+	All []int64    `json:"-"`
+}
+type Response[C ICell, R IRow[C]] struct {
+	RequestTimes *requestTimes `json:"request_timings,omitempty"`
+	DataAge      *dataAge      `json:"data_age"`
+	StatusCode   int           `json:"status"`
+	Errors       []error       `json:"errors"`
+	Data         ITable[C, R]  `json:"result"`
 }
 
-// Start tracks the start time of this request
-func (i *Timings) Start() {
-	i.RequestTimes.Start = time.Now().UTC()
+// --- IResponseData
+
+func (r *Response[C, R]) SetData(t ITable[C, R]) {
+	r.Data = t
+}
+func (r *Response[C, R]) GetData() ITable[C, R] {
+	return r.Data
 }
 
-// End tracks the end time and the duration of the request
-func (i *Timings) End() {
-	i.RequestTimes.End = time.Now().UTC()
-	i.RequestTimes.Duration = i.RequestTimes.End.Sub(i.RequestTimes.Start)
-}
-func (i *Timings) GetStart() time.Time {
-	return i.RequestTimes.Start
+// --- IErrorWithStatus
+
+func (r *Response[C, R]) SetErrorAndStatus(err error, status int) {
+	r.SetError(err)
+	r.SetStatus(status)
 }
 
-func (i *Timings) GetEnd() time.Time {
-	return i.RequestTimes.End
-}
-func (i *Timings) GetDuration() time.Duration {
-	return i.RequestTimes.Duration
-}
+// --- IErrors
 
-func (i *Timings) AddTimestamp(ts time.Time) {
-	u := ts.UnixMicro()
-	i.Datatimes.All = append(i.Datatimes.All, u)
-	// check the min max values
-	if i.Datatimes.Max == nil || i.Datatimes.Min == nil {
-		i.GetMinMax()
-	} else if m := i.Datatimes.Min.Unix(); u < m {
-		i.GetMinMax()
-	} else if m := i.Datatimes.Min.Unix(); u > m {
-		i.GetMinMax()
+func (r *Response[C, R]) SetError(errors ...error) {
+	if errors == nil {
+		r.Errors = []error{}
+	} else {
+		r.Errors = append(r.Errors, errors...)
 	}
 }
-func (i *Timings) GetMinMax() (minT time.Time, maxT time.Time) {
-	uMin := slices.Min(i.Datatimes.All)
-	uMax := slices.Max(i.Datatimes.All)
 
-	minT = time.UnixMicro(uMin).UTC()
-	maxT = time.UnixMicro(uMax).UTC()
+func (r *Response[C, R]) GetError() []error {
+	return r.Errors
+}
 
-	i.Datatimes.Min = &minT
-	i.Datatimes.Max = &maxT
+// --- IResponseStatus
+
+func (r *Response[C, R]) SetStatus(status int) {
+	r.StatusCode = status
+}
+func (r *Response[C, R]) GetStatus() int {
+	return r.StatusCode
+}
+
+// --- IDataRecency
+
+func (r *Response[C, R]) SetDataAge(times ...time.Time) {
+	if times == nil {
+		r.DataAge.All = []int64{}
+	} else {
+		for _, t := range times {
+			r.DataAge.All = append(r.DataAge.All, t.UnixMicro())
+		}
+	}
+}
+
+func (r *Response[C, R]) GetDataAgeMin() time.Time {
+	min := slices.Min(r.DataAge.All)
+	t := time.UnixMicro(min).UTC()
+	r.DataAge.Min = &t
+	return t
+}
+
+func (r *Response[C, R]) GetDataAgeMax() time.Time {
+	max := slices.Max(r.DataAge.All)
+	t := time.UnixMicro(max).UTC()
+	r.DataAge.Max = &t
+	return t
+}
+
+// --- IRequestStart
+
+func (r *Response[C, R]) SetStart() {
+	r.RequestTimes.Start = time.Now().UTC()
+}
+func (r *Response[C, R]) GetStart() time.Time {
+	return r.RequestTimes.Start
+}
+
+// --- IRequestEnd
+
+func (r *Response[C, R]) SetEnd() {
+	r.RequestTimes.End = time.Now().UTC()
+}
+func (r *Response[C, R]) GetEnd() time.Time {
+	return r.RequestTimes.End
+}
+
+// -- IRequestDuration
+
+func (r *Response[C, R]) SetDuration() {
+	r.RequestTimes.Duration = r.GetEnd().Sub(r.GetStart())
+}
+func (r *Response[C, R]) GetDuration() time.Duration {
+	return r.RequestTimes.Duration
+}
+
+// --- NEW HELPERS
+
+func NewResponse[C ICell, R IRow[C]]() *Response[C, R] {
+	return &Response[C, R]{
+		RequestTimes: &requestTimes{},
+		DataAge:      &dataAge{},
+		StatusCode:   http.StatusOK,
+		Errors:       []error{},
+		Data:         NewTable[C, R](),
+	}
+}
+
+func ToJson[C ICell, R IRow[C]](r *Response[C, R]) (content []byte, err error) {
+	return json.MarshalIndent(r, "", "  ")
+}
+
+func FromJson[C ICell, R IRow[C]](content []byte, r *Response[C, R]) (err error) {
+	err = json.Unmarshal(content, r)
 	return
 }
 
-// Status impliments [IStatus]
-// Provides http status tracking
-type Status struct {
-	Code int `json:"status"`
+func FromHttp[C ICell, R IRow[C]](content *http.Response, r *Response[C, R]) (err error) {
+	_, bytes := Stringify(content)
+	return FromJson[C, R](bytes, r)
 }
 
-// SetStatus updates the status field
-func (i *Status) SetStatus(status int) {
-	i.Code = status
-}
-
-// GetStatus returns the status field
-func (i *Status) GetStatus() int {
-	return i.Code
-}
-
-// Errors handles error tracking and impliments [IErrors]
-type Errors struct {
-	Errs []error `json:"errors"`
-}
-
-// SetErrors replaces errors with those passed
-func (r *Errors) SetErrors(errors []error) {
-	r.Errs = errors
-}
-
-// AddError add a new error to the list
-func (r *Errors) AddError(err error) {
-	r.Errs = append(r.Errs, err)
-}
-
-// GetErrors returns all errors
-func (r *Errors) GetErrors() []error {
-	return r.Errs
-}
-
-// Base impliments IBase
-// Would be used for a simple endpoint that doesn't return data,
-// such as an api root
-type Base struct {
-	*Timings
-	*Status
-	*Errors
-}
-
-// AddErrorWithStatus adds an error and updates the status at the same time.
-// Helpful when validating fields to do both at once.
-func (i *Base) AddErrorWithStatus(err error, status int) {
-	i.AddError(err)
-	i.SetStatus(status)
-}
-
-// Result impliments [IResult].
-// It allows a response to return with variable (C) data type. This is currently
-// constrained to map[string]R, map[string][]R and []R.
-// This means various enpoints can return differing ways collecting the data.IEntry
-// so some can group by a field or just list everything that matches
-//
-// This struct and interface allows you to easily decode a response as long as you know
-// its return type
-type Result[C ICell, R IRow[C], D ITableData[C, R]] struct {
-	Base
-	Res D `json:"result"`
-}
-
-// SetResult updates the internal result data
-func (i *Result[C, R, D]) SetResult(result D) {
-	i.Res = result
-}
-
-// GetResult returns the result
-func (i *Result[C, R, D]) GetResult() D {
-	return i.Res
-}
-
-// GetDataTimings returns the rough range of the age of the data included in the response
-func (i *Result[C, R, D]) GetDataTimings() (min *time.Time, max *time.Time) {
-	if i.Timings.Datatimes != nil {
-		min = i.Timings.Datatimes.Min
-		max = i.Timings.Datatimes.Max
-	}
+func Stringify(r *http.Response) (s string, b []byte) {
+	b, _ = io.ReadAll(r.Body)
+	s = string(b)
 	return
 }
 
-// NewSimpleResult returns a fresh Base with
-// status set as OK and errors empty
-func NewSimpleResult() *Base {
-	return &Base{
-		Timings: &Timings{Datatimes: &dataTimings{}, RequestTimes: &requestTimes{}},
-		Status:  &Status{Code: http.StatusOK},
-		Errors:  &Errors{Errs: []error{}},
-	}
-}
+// func ParseFromJson[C ICell, R IRow[C], D ITableData[C, R]](content []byte, response *Result[C, R, D]) (err error) {
+// 	err = json.Unmarshal(content, response)
+// 	return
+// }
+// func ParseFromHttp[C ICell, R IRow[C], D ITableData[C, R]](r *http.Response, response *Result[C, R, D]) (err error) {
+// 	_, by := Stringify(r)
+// 	return ParseFromJson(by, response)
+// }
 
-func NewResponse() *Result[*Cell, *Row[*Cell], *TableData[*Cell, *Row[*Cell]]] {
-	return &Result[*Cell, *Row[*Cell], *TableData[*Cell, *Row[*Cell]]]{
-		Base: *NewSimpleResult(),
-	}
-}
+// // Stringify takes a http.Response and returns string & []byte
+// // values of the response body
+// func Stringify(r *http.Response) (string, []byte) {
+// 	b, _ := io.ReadAll(r.Body)
+// 	return string(b), b
+// }
 
-func ParseFromJson[C ICell, R IRow[C], D ITableData[C, R]](content []byte, response *Result[C, R, D]) (err error) {
-	err = json.Unmarshal(content, response)
-	return
-}
-func ParseFromHttp[C ICell, R IRow[C], D ITableData[C, R]](r *http.Response, response *Result[C, R, D]) (err error) {
-	_, by := Stringify(r)
-	return ParseFromJson(by, response)
-}
+// // IBase is a merge interface that wuld be typical of an http response.
+// // This version excludes any result data / handling for simplicty on errors or
+// // empty results
+// type IBase interface {
+// 	ITimingData
+// 	IStatus
+// 	IErrors
+// 	AddErrorWithStatus(err error, status int)
+// }
 
-// Stringify takes a http.Response and returns string & []byte
-// values of the response body
-func Stringify(r *http.Response) (string, []byte) {
-	b, _ := io.ReadAll(r.Body)
-	return string(b), b
-}
+// // IResult providers a response interface whose result type can vary between
+// // slice, a map or a map of slices.
+// // This allows api respsones to adapt to the most useful data type for the endpoint
+// type IResult[C ICell, R IRow[C], D ITableData[C, R]] interface {
+// 	IBase
+// 	SetResult(result D)
+// 	GetResult() D
+// 	GetDataTimings() (min *time.Time, max *time.Time)
+// }
+
+// type dataTimings struct {
+// 	Min *time.Time `json:"min"`
+// 	Max *time.Time `json:"max"`
+// 	All []int64    `json:"-"`
+// }
+// type requestTimes struct {
+// 	Start    time.Time     `json:"start"`
+// 	End      time.Time     `json:"end"`
+// 	Duration time.Duration `json:"duration"`
+// }
+
+// // Timings impliments [ITimings] & [IDataTimings] which is [ITimingData]
+// type Timings struct {
+// 	RequestTimes *requestTimes `json:"timings"`
+// 	Datatimes    *dataTimings  `json:"data_timestamps,omitempty"`
+// }
+
+// // Start tracks the start time of this request
+// func (i *Timings) Start() {
+// 	i.RequestTimes.Start = time.Now().UTC()
+// }
+
+// // End tracks the end time and the duration of the request
+// func (i *Timings) End() {
+// 	i.RequestTimes.End = time.Now().UTC()
+// 	i.RequestTimes.Duration = i.RequestTimes.End.Sub(i.RequestTimes.Start)
+// }
+// func (i *Timings) GetStart() time.Time {
+// 	return i.RequestTimes.Start
+// }
+
+// func (i *Timings) GetEnd() time.Time {
+// 	return i.RequestTimes.End
+// }
+// func (i *Timings) GetDuration() time.Duration {
+// 	return i.RequestTimes.Duration
+// }
+
+// func (i *Timings) AddTimestamp(ts time.Time) {
+// 	u := ts.UnixMicro()
+// 	i.Datatimes.All = append(i.Datatimes.All, u)
+// 	// check the min max values
+// 	if i.Datatimes.Max == nil || i.Datatimes.Min == nil {
+// 		i.GetMinMax()
+// 	} else if m := i.Datatimes.Min.Unix(); u < m {
+// 		i.GetMinMax()
+// 	} else if m := i.Datatimes.Min.Unix(); u > m {
+// 		i.GetMinMax()
+// 	}
+// }
+// func (i *Timings) GetMinMax() (minT time.Time, maxT time.Time) {
+// 	uMin := slices.Min(i.Datatimes.All)
+// 	uMax := slices.Max(i.Datatimes.All)
+
+// 	minT = time.UnixMicro(uMin).UTC()
+// 	maxT = time.UnixMicro(uMax).UTC()
+
+// 	i.Datatimes.Min = &minT
+// 	i.Datatimes.Max = &maxT
+// 	return
+// }
+
+// // Status impliments [IStatus]
+// // Provides http status tracking
+// type Status struct {
+// 	Code int `json:"status"`
+// }
+
+// // SetStatus updates the status field
+// func (i *Status) SetStatus(status int) {
+// 	i.Code = status
+// }
+
+// // GetStatus returns the status field
+// func (i *Status) GetStatus() int {
+// 	return i.Code
+// }
+
+// // Errors handles error tracking and impliments [IErrors]
+// type Errors struct {
+// 	Errs []error `json:"errors"`
+// }
+
+// // SetErrors replaces errors with those passed
+// func (r *Errors) SetErrors(errors []error) {
+// 	r.Errs = errors
+// }
+
+// // AddError add a new error to the list
+// func (r *Errors) AddError(err error) {
+// 	r.Errs = append(r.Errs, err)
+// }
+
+// // GetErrors returns all errors
+// func (r *Errors) GetErrors() []error {
+// 	return r.Errs
+// }
+
+// // Base impliments IBase
+// // Would be used for a simple endpoint that doesn't return data,
+// // such as an api root
+// type Base struct {
+// 	*Timings
+// 	*Status
+// 	*Errors
+// }
+
+// // AddErrorWithStatus adds an error and updates the status at the same time.
+// // Helpful when validating fields to do both at once.
+// func (i *Base) AddErrorWithStatus(err error, status int) {
+// 	i.AddError(err)
+// 	i.SetStatus(status)
+// }
+
+// // Result impliments [IResult].
+// // It allows a response to return with variable (C) data type. This is currently
+// // constrained to map[string]R, map[string][]R and []R.
+// // This means various enpoints can return differing ways collecting the data.IEntry
+// // so some can group by a field or just list everything that matches
+// //
+// // This struct and interface allows you to easily decode a response as long as you know
+// // its return type
+// type Result[C ICell, R IRow[C], D ITableData[C, R]] struct {
+// 	Base
+// 	Res D `json:"result"`
+// }
+
+// // SetResult updates the internal result data
+// func (i *Result[C, R, D]) SetResult(result D) {
+// 	i.Res = result
+// }
+
+// // GetResult returns the result
+// func (i *Result[C, R, D]) GetResult() D {
+// 	return i.Res
+// }
+
+// // GetDataTimings returns the rough range of the age of the data included in the response
+// func (i *Result[C, R, D]) GetDataTimings() (min *time.Time, max *time.Time) {
+// 	if i.Timings.Datatimes != nil {
+// 		min = i.Timings.Datatimes.Min
+// 		max = i.Timings.Datatimes.Max
+// 	}
+// 	return
+// }
+
+// // NewSimpleResult returns a fresh Base with
+// // status set as OK and errors empty
+// func NewSimpleResult() *Base {
+// 	return &Base{
+// 		Timings: &Timings{Datatimes: &dataTimings{}, RequestTimes: &requestTimes{}},
+// 		Status:  &Status{Code: http.StatusOK},
+// 		Errors:  &Errors{Errs: []error{}},
+// 	}
+// }
+
+// func NewResponse() *Result[*Cell, *Row[*Cell], *TableData[*Cell, *Row[*Cell]]] {
+// 	return &Result[*Cell, *Row[*Cell], *TableData[*Cell, *Row[*Cell]]]{
+// 		Base: *NewSimpleResult(),
+// 	}
+// }
+
+// func NewTResponseSimple() IBase {
+// 	return &Base{
+// 		Timings: &Timings{Datatimes: &dataTimings{}, RequestTimes: &requestTimes{}},
+// 		Status:  &Status{Code: http.StatusOK},
+// 		Errors:  &Errors{Errs: []error{}},
+// 	}
+// }
+
+// func NewTResponse[C ICell, R IRow[C], D ITableData[C, R]]() IResult[C, R, D] {
+// 	return &Result[C, R, D]{
+// 		Base: NewTResponseSimple(),
+// 	}
+// }
+
+// func ParseFromJson[C ICell, R IRow[C], D ITableData[C, R]](content []byte, response *Result[C, R, D]) (err error) {
+// 	err = json.Unmarshal(content, response)
+// 	return
+// }
+// func ParseFromHttp[C ICell, R IRow[C], D ITableData[C, R]](r *http.Response, response *Result[C, R, D]) (err error) {
+// 	_, by := Stringify(r)
+// 	return ParseFromJson(by, response)
+// }
+
+// // Stringify takes a http.Response and returns string & []byte
+// // values of the response body
+// func Stringify(r *http.Response) (string, []byte) {
+// 	b, _ := io.ReadAll(r.Body)
+// 	return string(b), b
+// }

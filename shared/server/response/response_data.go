@@ -1,21 +1,37 @@
 package response
 
-type ICell interface {
+// --- CELLS
+
+type ICellName interface {
 	SetName(name string)
 	GetName() string
-	SetValue(v interface{})
-	GetValue() interface{}
-	SetIsHeader(h bool)
-	GetIsHeader() bool
 }
 
-// Cell represents a single cell of data - like a spreadsheet
-// Used as part of a row
-// Impliments [ICell]
+type ICellValue interface {
+	SetValue(value interface{})
+	GetValue() interface{}
+}
+
+type ICellHeader interface {
+	SetIsHeader(is bool)
+	GetIsHeader() bool
+}
+type ICellSupplementary interface {
+	SetIsSupplementary(is bool)
+	GetIsSupplementary() bool
+}
+type ICell interface {
+	ICellName
+	ICellValue
+	ICellHeader
+	ICellSupplementary
+}
+
 type Cell struct {
-	Name     string      `json:"name"`
-	IsHeader bool        `json:"header"`
-	Value    interface{} `json:"value"`
+	Name            string      `json:"name"`
+	Value           interface{} `json:"value"`
+	IsHeader        bool        `json:"is_header"`
+	IsSupplementary bool        `json:"is_supplementary"`
 }
 
 // SetName change the name
@@ -28,16 +44,6 @@ func (c *Cell) GetName() string {
 	return c.Name
 }
 
-// SetIsHeader
-func (c *Cell) SetIsHeader(h bool) {
-	c.IsHeader = h
-}
-
-// GetIsHeader
-func (c *Cell) GetIsHeader() bool {
-	return c.IsHeader
-}
-
 // SetValue sets value
 func (c *Cell) SetValue(value interface{}) {
 	c.Value = value
@@ -48,162 +54,245 @@ func (c *Cell) GetValue() interface{} {
 	return c.Value
 }
 
+// SetIsHeader
+func (c *Cell) SetIsHeader(h bool) {
+	c.IsHeader = h
+}
+
+// GetIsHeader
+func (c *Cell) GetIsHeader() bool {
+	return c.IsHeader
+}
+
+// SetIsSupplementary
+func (c *Cell) SetIsSupplementary(h bool) {
+	c.IsSupplementary = h
+}
+
+// GetIsSupplementary
+func (c *Cell) GetIsSupplementary() bool {
+	return c.IsSupplementary
+}
+
+// --- ROWS
+type IRowHeader[C ICell] interface {
+	SetHeaders(cells ...C)
+	GetHeaders() []C
+	GetHeadersCount() int
+}
+type IRowData[C ICell] interface {
+	SetData(cells ...C)
+	GetData() []C
+	GetDataCount() int
+}
+type IRowSupplementary[C ICell] interface {
+	SetSupplementary(cells ...C)
+	GetSupplementary() []C
+	GetSupplementaryCount() int
+}
+
 type IRow[C ICell] interface {
-	SetCells(cells []C)
-	AddCells(cells ...C)
-	GetCells() []C
-	Len() int
-	// Heading counters for this row
-	UpdateCounters()
-	GetCounters() (prefix int, suffix int)
+	IRowHeader[C]
+	IRowData[C]
+	IRowSupplementary[C]
+	SetRaw(cells ...C)
+	GetRaw() []C
+	GetTotalCellCount() int
 }
 
-// Row impliments [IRow]
-// Acts like a row in a table / spreadsheet
 type Row[C ICell] struct {
-	Cells []C `json:"cells"`
-	Pre   int `json:"prefix_header_count"`
-	Post  int `json:"suffix_header_count"`
+	HeaderCells        []C `json:"headers"`
+	DataCells          []C `json:"data"`
+	SupplementaryCells []C `json:"supplementary"`
 }
 
-func (r *Row[C]) UpdateCounters() {
-	r.setPreCounter()
-	r.setPostCounter()
-}
-func (r *Row[C]) GetCounters() (prefix int, suffix int) {
-	return r.Pre, r.Post
-}
-func (r *Row[C]) Len() int {
-	return len(r.Cells)
-}
-
-// SetCells attach cells to this row
-func (r *Row[C]) SetCells(cells []C) {
-	r.Cells = cells
-}
-
-func (r *Row[C]) AddCells(cells ...C) {
-	r.Cells = append(r.Cells, cells...)
-}
-
-// GetCells return cells of this row
-func (r *Row[C]) GetCells() (cells []C) {
-	if len(r.Cells) > 0 {
-		cells = r.Cells
-	}
-	return
-}
-
-func (r *Row[C]) setPostCounter() {
-	r.Post = 0
-	cells := r.GetCells()
-
-	for i := len(cells) - 1; i >= 0; i-- {
-		c := cells[i]
-		if c.GetIsHeader() {
-			r.Post += 1
-		} else {
-			return
+func (r *Row[C]) SetHeaders(cells ...C) {
+	if cells == nil {
+		r.HeaderCells = []C{}
+	} else {
+		for _, h := range cells {
+			if h.GetIsHeader() {
+				r.HeaderCells = append(r.HeaderCells, h)
+			}
 		}
+
 	}
 }
-func (r *Row[C]) setPreCounter() {
-	r.Pre = 0
-	for _, c := range r.GetCells() {
-		if c.GetIsHeader() {
-			r.Pre += 1
-		} else {
-			return
+
+func (r *Row[C]) GetHeaders() []C {
+	return r.HeaderCells
+}
+
+func (r *Row[C]) GetHeadersCount() int {
+	if r.HeaderCells == nil {
+		return 0
+	}
+	return len(r.HeaderCells)
+}
+
+func (r *Row[C]) SetData(cells ...C) {
+	if cells == nil {
+		r.DataCells = []C{}
+	} else {
+		for _, d := range cells {
+			// not header, not supplementary
+			if !d.GetIsHeader() && !d.GetIsSupplementary() {
+				r.DataCells = append(r.DataCells, d)
+			}
 		}
 	}
 }
 
-type ITableDataWithHeader[C ICell, R IRow[C]] interface {
-	SetHeader(row R)
-	GetHeader() (row R)
-}
-type ITableDataWithFooter[C ICell, R IRow[C]] interface {
-	SetFooter(row R)
-	GetFooter() (row R)
+func (r *Row[C]) GetData() []C {
+	return r.DataCells
 }
 
-type ITableData[C ICell, R IRow[C]] interface {
-	ITableDataWithHeader[C, R]
-	ITableDataWithFooter[C, R]
-
-	SetRows(rows []R)
-	AddRows(rows ...R)
-	GetRows() []R
+func (r *Row[C]) GetDataCount() int {
+	if r.DataCells == nil {
+		return 0
+	}
+	return len(r.DataCells)
 }
 
-// TableData impliments [ITableData]
-// Acts like a table
-type TableData[C ICell, R IRow[C]] struct {
-	Header R   `json:"header"`
-	Footer R   `json:"footer"`
-	Rows   []R `json:"rows,omitempty"`
+func (r *Row[C]) SetSupplementary(cells ...C) {
+	if cells == nil {
+		r.SupplementaryCells = []C{}
+	} else {
+		for _, s := range cells {
+			if s.GetIsSupplementary() {
+				r.SupplementaryCells = append(r.SupplementaryCells, s)
+			}
+		}
+	}
 }
 
-func (d *TableData[C, R]) SetHeader(row R) {
-	row.UpdateCounters()
-	d.Header = row
-}
-func (d *TableData[C, R]) GetHeader() (row R) {
-	row = d.Header
-	return
-}
-func (d *TableData[C, R]) SetFooter(row R) {
-	row.UpdateCounters()
-	d.Footer = row
-}
-func (d *TableData[C, R]) GetFooter() (row R) {
-	row = d.Footer
-	return
+func (r *Row[C]) GetSupplementary() []C {
+	return r.SupplementaryCells
 }
 
-// SetRows sets rows
-func (d *TableData[C, R]) SetRows(rows []R) {
-	d.Rows = rows
-}
-func (d *TableData[C, R]) AddRows(rows ...R) {
-	d.Rows = append(d.Rows, rows...)
+func (r *Row[C]) GetSupplementaryCount() int {
+	if r.SupplementaryCells == nil {
+		return 0
+	}
+	return len(r.SupplementaryCells)
 }
 
-// GetRows returns the rows
-func (d *TableData[C, R]) GetRows() (rows []R) {
-	if len(d.Rows) > 0 {
-		rows = d.Rows
+func (r *Row[C]) SetRaw(cells ...C) {
+	if cells == nil {
+		r.DataCells = []C{}
+	} else {
+		for _, c := range cells {
+			if c.GetIsHeader() {
+				r.SetHeaders(c)
+			} else if c.GetIsSupplementary() {
+				r.SetSupplementary(c)
+			} else {
+				r.SetData(c)
+			}
+		}
+	}
+}
+
+func (r *Row[C]) GetRaw() (all []C) {
+	all = []C{}
+	for _, h := range r.GetHeaders() {
+		all = append(all, h)
+	}
+	for _, d := range r.GetData() {
+		all = append(all, d)
+	}
+	for _, s := range r.GetSupplementary() {
+		all = append(all, s)
 	}
 	return
 }
 
-// NewCell returns an ICell
+func (r *Row[C]) GetTotalCellCount() int {
+	return r.GetHeadersCount() + r.GetDataCount() + r.GetSupplementaryCount()
+}
+
+// ---- TABLE
+
+type ITableHead[C ICell, R IRow[C]] interface {
+	SetTableHead(row R)
+	GetTableHead() R
+}
+
+type ITableBody[C ICell, R IRow[C]] interface {
+	SetTableBody(rows ...R)
+	GetTableBody() []R
+}
+
+type ITableFoot[C ICell, R IRow[C]] interface {
+	SetTableFoot(row R)
+	GetTableFoot() R
+}
+
+type ITable[C ICell, R IRow[C]] interface {
+	ITableHead[C, R]
+	ITableBody[C, R]
+	ITableFoot[C, R]
+}
+
+type Table[C ICell, R IRow[C]] struct {
+	Head R   `json:"head"`
+	Body []R `json:"body"`
+	Foot R   `json:"foot"`
+}
+
+func (t *Table[C, R]) SetTableHead(row R) {
+	t.Head = row
+}
+
+func (t *Table[C, R]) GetTableHead() R {
+	return t.Head
+}
+
+func (t *Table[C, R]) SetTableBody(rows ...R) {
+	if rows == nil {
+		t.Body = []R{}
+	} else {
+		t.Body = append(t.Body, rows...)
+	}
+}
+
+func (t *Table[C, R]) GetTableBody() []R {
+	return t.Body
+}
+
+func (t *Table[C, R]) SetTableFoot(row R) {
+	t.Foot = row
+}
+
+func (t *Table[C, R]) GetTableFoot() R {
+	return t.Foot
+}
+
+// New helpers
+// -- CELLS
 func NewCell(name string, value interface{}) *Cell {
-	return &Cell{Name: name, Value: value}
+	return &Cell{Name: name, Value: value, IsHeader: false, IsSupplementary: false}
 }
-func NewHeaderCell(name string, value interface{}) *Cell {
-	return &Cell{Name: name, Value: value, IsHeader: true}
+func NewCellHeader(name string, value interface{}) *Cell {
+	return &Cell{Name: name, Value: value, IsHeader: true, IsSupplementary: false}
+}
+func NewCellExtra(name string, value interface{}) *Cell {
+	return &Cell{Name: name, Value: value, IsHeader: false, IsSupplementary: true}
 }
 
-// NewRow returns a single row
+// -- ROWS
 func NewRow[C ICell](cells ...C) (row *Row[C]) {
 	row = &Row[C]{}
-	row.AddCells(cells...)
+	row.SetHeaders()
+	row.SetSupplementary()
+	row.SetData()
+	row.SetRaw(cells...)
 	return
 }
 
-// NewRows returns multiple rows
-func NewRows[C ICell](cellSet ...[]C) (rows []*Row[C]) {
-	rows = []*Row[C]{}
-	for _, cells := range cellSet {
-		rows = append(rows, NewRow(cells...))
-	}
-	return
-}
-
-// NewData returns a data item acts like a table
-func NewData[C ICell, R IRow[C]](rows ...R) *TableData[C, R] {
-	d := &TableData[C, R]{}
-	d.SetRows(rows)
-	return d
+// -- TABLES
+func NewTable[C ICell, R IRow[C]](rows ...R) *Table[C, R] {
+	td := &Table[C, R]{}
+	td.SetTableBody(rows...)
+	return td
 }

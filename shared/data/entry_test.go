@@ -43,7 +43,7 @@ func TestSharedDataEntryToRowFromRow(t *testing.T) {
 	test := &testEntryExt{Id: "01", Tag: "tag1", Category: "cat1"}
 	r := ToRow(test)
 
-	if len(r.GetCells()) != 3 {
+	if len(r.GetRaw()) != 3 {
 		t.Errorf("should have created 3 cells")
 	}
 	from := FromRow[*testEntryExt](r)

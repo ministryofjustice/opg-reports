@@ -9,7 +9,28 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 )
+
+type testEntry struct {
+	Id       string `json:"id"`
+	Tag      string `json:"tag"`
+	Category string `json:"category"`
+}
+
+func (i *testEntry) UID() string {
+	return i.Id
+}
+func (i *testEntry) TS() time.Time {
+	return time.Now().UTC()
+}
+func (i *testEntry) Valid() bool {
+	return true
+}
+
+func TestFrontServerDynamicHandlerMocked(t *testing.T) {
+
+}
 
 func TestFrontServerDynamicHandlerMockedTotals(t *testing.T) {
 	ms := mockServer(mockAwsCostTotalsResponse, http.StatusOK)
