@@ -12,7 +12,7 @@ import (
 )
 
 type Api[V *cost.Cost, F files.IReadFS, C response.ICell, R response.IRow[C]] struct {
-	server.IApi[*cost.Cost, F, C, R]
+	*server.Api[*cost.Cost, F, C, R]
 }
 
 func (a *Api[V, F, C, R]) Register(mux *http.ServeMux) {
@@ -51,7 +51,7 @@ func New[V *cost.Cost, F files.IReadFS, C response.ICell, R response.IRow[C]](
 	resp response.IResponse[C, R]) *Api[*cost.Cost, F, C, R] {
 
 	api := server.NewApi[*cost.Cost, F, C, R](store, fileSys, resp)
-	return &Api[*cost.Cost, F, C, R]{IApi: api}
+	return &Api[*cost.Cost, F, C, R]{Api: api}
 
 }
 

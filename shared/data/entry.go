@@ -86,9 +86,9 @@ func FromJsonList[T IEntry](content []byte) (items []T, err error) {
 // ToRow converts an IEntry into a response.Row using ToMap.
 // Each key & value of the map are converted into a cell, and added
 // to the row
-func ToRow[T IEntry](item T) (row *response.Row[*response.Cell]) {
+func ToRow[T IEntry](item T) (row response.IRow[response.ICell]) {
 	mapped, _ := ToMap(item)
-	cells := []*response.Cell{}
+	cells := []response.ICell{}
 	for k, v := range mapped {
 		cells = append(cells, response.NewCell(k, v))
 	}
@@ -101,9 +101,10 @@ func ToRow[T IEntry](item T) (row *response.Row[*response.Cell]) {
 // Each cell within the row is presumed to be a key value pair for a map
 // and is used to generate one.
 // FromMap is then called to create an IEntry
-func FromRow[T IEntry](row *response.Row[*response.Cell]) (item T) {
+func FromRow[T IEntry](row response.IRow[response.ICell]) (item T) {
 	mapped := map[string]interface{}{}
-	for _, c := range row.GetRaw() {
+	for _, ic := range row.GetRaw() {
+		c := ic.(*response.Cell)
 		mapped[c.Name] = c.Value
 	}
 	item, _ = FromMap[T](mapped)

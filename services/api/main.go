@@ -12,6 +12,7 @@ import (
 	"opg-reports/shared/files"
 	"opg-reports/shared/github/std"
 	"opg-reports/shared/logger"
+	"opg-reports/shared/server/response"
 )
 
 //go:embed data/aws/cost/monthly/*.json
@@ -28,12 +29,14 @@ func main() {
 
 	awsCostMonthlyFs := files.NewFS(awsCostMonthlyFs, "data/aws/cost/monthly/")
 	awsCostMonthlyStore := data.NewStoreFromFS[*cost.Cost, *files.WriteFS](awsCostMonthlyFs)
-	awsCostMonthlyApi := monthly.New(awsCostMonthlyStore, awsCostMonthlyFs)
+	awsResp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
+	awsCostMonthlyApi := monthly.New(awsCostMonthlyStore, awsCostMonthlyFs, awsResp)
 	awsCostMonthlyApi.Register(mux)
 
 	ghStandardsFS := files.NewFS(ghStandardsFs, "data/github/standards/")
 	ghStandardsStore := data.NewStoreFromFS[*std.Repository, *files.WriteFS](ghStandardsFS)
-	ghStandardsApi := standards.New(ghStandardsStore, ghStandardsFS)
+	ghResp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
+	ghStandardsApi := standards.New(ghStandardsStore, ghStandardsFS, ghResp)
 	ghStandardsApi.Register(mux)
 
 	addr := env.Get("API_ADDR", ":8081")

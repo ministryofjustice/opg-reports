@@ -6,17 +6,17 @@ import (
 )
 
 func TestSharedServerResponseDataTable(t *testing.T) {
-	cells := []*Cell{
+	cells := []ICell{
 		NewCell("name1", "v1"),
 		NewCell("name1.5", "v1.5"),
 		NewCellHeader("name2", "v2"),
 		NewCellExtra("name3", "v3"),
 	}
-	h := NewRow[*Cell](cells...)
-	b := NewRow[*Cell](cells...)
-	f := NewRow[*Cell](cells...)
+	h := NewRow[ICell](cells...)
+	b := NewRow[ICell](cells...)
+	f := NewRow[ICell](cells...)
 
-	tb := NewTable[*Cell, *Row[*Cell]]()
+	tb := NewTable[ICell, IRow[ICell]]()
 
 	tb.SetTableHead(h)
 	gh := tb.GetTableHead()
@@ -38,13 +38,13 @@ func TestSharedServerResponseDataTable(t *testing.T) {
 }
 
 func TestSharedServerResponseDataRowRaw(t *testing.T) {
-	cells := []*Cell{
+	cells := []ICell{
 		NewCell("name1", "v1"),
 		NewCell("name1.5", "v1.5"),
 		NewCellHeader("name2", "v2"),
 		NewCellExtra("name3", "v3"),
 	}
-	row := NewRow[*Cell]()
+	row := NewRow[ICell]()
 
 	row.SetRaw(cells...)
 
@@ -64,13 +64,13 @@ func TestSharedServerResponseDataRowRaw(t *testing.T) {
 
 }
 func TestSharedServerResponseDataRowSupplementary(t *testing.T) {
-	cells := []*Cell{
+	cells := []ICell{
 		NewCell("name1", "v1"),
 		NewCell("name1.5", "v1.5"),
 		NewCellHeader("name2", "v2"),
 		NewCellExtra("name3", "v3"),
 	}
-	row := NewRow[*Cell]()
+	row := NewRow[ICell]()
 
 	row.SetSupplementary(cells...)
 	d := row.GetSupplementary()
@@ -81,13 +81,13 @@ func TestSharedServerResponseDataRowSupplementary(t *testing.T) {
 
 }
 func TestSharedServerResponseDataRowData(t *testing.T) {
-	cells := []*Cell{
+	cells := []ICell{
 		NewCell("name1", "v1"),
 		NewCell("name1.5", "v1.5"),
 		NewCellHeader("name2", "v2"),
 		NewCellExtra("name3", "v3"),
 	}
-	row := NewRow[*Cell]()
+	row := NewRow[ICell]()
 
 	row.SetData(cells...)
 	d := row.GetData()
@@ -98,12 +98,12 @@ func TestSharedServerResponseDataRowData(t *testing.T) {
 
 }
 func TestSharedServerResponseDataRowHeaders(t *testing.T) {
-	cells := []*Cell{
+	cells := []ICell{
 		NewCell("name1", "v1"),
 		NewCellHeader("name2", "v2"),
 		NewCellExtra("name3", "v3"),
 	}
-	row := NewRow[*Cell]()
+	row := NewRow[ICell]()
 
 	row.SetHeaders(cells...)
 	h := row.GetHeaders()
@@ -160,12 +160,13 @@ func TestSharedServerResponseDataCellHeader(t *testing.T) {
 
 }
 func TestSharedServerResponseDataCellValues(t *testing.T) {
-	cells := []*Cell{
+	cells := []ICell{
 		NewCell("name1", "v1"),
 		NewCellHeader("name2", "v2"),
 		NewCellExtra("name3", "v3"),
 	}
-	for i, c := range cells {
+	for i, ic := range cells {
+		c := ic.(*Cell)
 		if c.Value != c.GetValue() {
 			t.Errorf("failed to get value")
 			fmt.Printf("%+v\n", c)
@@ -181,13 +182,14 @@ func TestSharedServerResponseDataCellValues(t *testing.T) {
 
 func TestSharedServerResponseDataCellNames(t *testing.T) {
 
-	cells := []*Cell{
+	cells := []ICell{
 		NewCell("name1", "v1"),
 		NewCellHeader("name2", "v2"),
 		NewCellExtra("name3", "v3"),
 	}
 
-	for i, c := range cells {
+	for i, ic := range cells {
+		c := ic.(*Cell)
 		if c.Name != c.GetName() {
 			t.Errorf("failed to get name")
 			fmt.Printf("%+v\n", c)

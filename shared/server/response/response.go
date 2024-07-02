@@ -145,17 +145,25 @@ func (r *Response[C, R]) SetDataAge(times ...time.Time) {
 	}
 }
 
-func (r *Response[C, R]) GetDataAgeMin() time.Time {
-	min := slices.Min(r.DataAge.All)
-	t := time.UnixMicro(min).UTC()
-	r.DataAge.Min = &t
+func (r *Response[C, R]) GetDataAgeMin() (t time.Time) {
+	if r.DataAge.Min != nil {
+		return *r.DataAge.Min
+	} else if len(r.DataAge.All) > 0 {
+		min := slices.Min(r.DataAge.All)
+		t = time.UnixMicro(min).UTC()
+		r.DataAge.Min = &t
+	}
 	return t
 }
 
-func (r *Response[C, R]) GetDataAgeMax() time.Time {
-	max := slices.Max(r.DataAge.All)
-	t := time.UnixMicro(max).UTC()
-	r.DataAge.Max = &t
+func (r *Response[C, R]) GetDataAgeMax() (t time.Time) {
+	if r.DataAge.Max != nil {
+		return *r.DataAge.Max
+	} else if len(r.DataAge.All) > 0 {
+		max := slices.Max(r.DataAge.All)
+		t = time.UnixMicro(max).UTC()
+		r.DataAge.Max = &t
+	}
 	return t
 }
 
@@ -198,16 +206,16 @@ func NewResponse[C ICell, R IRow[C]]() *Response[C, R] {
 	}
 }
 
-func ToJson[C ICell, R IRow[C]](r *Response[C, R]) (content []byte, err error) {
+func ToJson[C ICell, R IRow[C]](r IResponse[C, R]) (content []byte, err error) {
 	return json.MarshalIndent(r, "", "  ")
 }
 
-func FromJson[C ICell, R IRow[C]](content []byte, r *Response[C, R]) (err error) {
+func FromJson[C ICell, R IRow[C]](content []byte, r IResponse[C, R]) (err error) {
 	err = json.Unmarshal(content, r)
 	return
 }
 
-func FromHttp[C ICell, R IRow[C]](content *http.Response, r *Response[C, R]) (err error) {
+func FromHttp[C ICell, R IRow[C]](content *http.Response, r IResponse[C, R]) (err error) {
 	_, bytes := Stringify(content)
 	return FromJson[C, R](bytes, r)
 }

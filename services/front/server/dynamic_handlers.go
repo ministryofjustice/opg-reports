@@ -99,51 +99,40 @@ func (s *FrontWebServer) Dynamic(w http.ResponseWriter, r *http.Request) {
 func (s *FrontWebServer) parseResponse(apiResp *http.Response) (data map[string]interface{}, err error) {
 	data = map[string]interface{}{}
 
-	resp := response.NewResponse()
-	err = response.ParseFromHttp(apiResp, resp)
+	resp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
+	err = response.FromHttp(apiResp, resp)
 	if err != nil {
 		slog.Error("parse error")
 		return
 	}
 	// get min / max times
-	min, max := resp.GetDataTimings()
-	if min != nil {
+	if min := resp.GetDataAgeMin(); min.Format(dates.FormatY) != dates.ErrYear {
 		data["DataAgeMin"] = min
 	}
-	if max != nil {
+	if max := resp.GetDataAgeMax(); max.Format(dates.FormatY) != dates.ErrYear {
 		data["DataAgeMax"] = max
 	}
 	// If the result is nil (failed parsing), return
-	result := resp.GetResult()
+	result := resp.GetData()
 	if result == nil {
 		slog.Error("empty result")
 		return
 	}
 
-	// If headings are nil, so failed to parse, return
-	if header := result.GetHeader(); header != nil {
-		hCells := header.GetCells()
-		pre, post := header.GetCounters()
-		data["Headings"] = hCells
-		data["HeadingsPre"] = pre
-		data["HeadingsPost"] = len(hCells) - pre - post
-	} else {
-		data["HeadingsPre"] = 1
-		data["HeadingsPost"] = 0
-		slog.Warn("no headings")
+	if heading := result.GetTableHead(); heading.GetHeadersCount() > 0 {
+		data["Headings"] = heading.GetRaw()
+		data["HeadingsPre"] = heading.GetHeadersCount()
+		data["HeadingsPost"] = heading.GetTotalCellCount() - heading.GetHeadersCount() - heading.GetSupplementaryCount()
 	}
 
-	if footer := result.GetFooter(); footer != nil {
-		fCells := footer.GetCells()
-		pre, post := footer.GetCounters()
-		data["Footer"] = fCells
-		data["FooterPre"] = pre
-		data["FooterPost"] = len(fCells) - pre - post
-
+	if footer := result.GetTableFoot(); footer.GetHeadersCount() > 0 {
+		data["Footer"] = footer.GetRaw()
+		data["FooterPre"] = footer.GetHeadersCount()
+		data["FooterPost"] = footer.GetTotalCellCount() - footer.GetHeadersCount() - footer.GetSupplementaryCount()
 	}
 
 	// fetch the resulting rows, return if they are empty
-	rows := result.GetRows()
+	rows := result.GetTableBody()
 	if rows != nil {
 		data["Result"] = rows
 	} else {

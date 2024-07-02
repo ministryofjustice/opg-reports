@@ -74,7 +74,7 @@ func Funcs() map[string]interface{} {
 			return a + b
 		},
 		// Compliance
-		"getComplianceItem": func(row *response.Row[*response.Cell]) *std.Repository {
+		"getComplianceItem": func(row response.IRow[response.ICell]) *std.Repository {
 			return data.FromRow[*std.Repository](row)
 		},
 		"repoSetStandards": func(c *std.Repository, standards *cnf.RepoStandards) error {
@@ -97,7 +97,7 @@ func Funcs() map[string]interface{} {
 			}
 			return
 		},
-		"totalCountPassed": func(rows []*response.Row[*response.Cell], standards []string) (count int) {
+		"totalCountPassed": func(rows []response.IRow[response.ICell], standards []string) (count int) {
 			count = 0
 			for _, row := range rows {
 				c := data.FromRow[*std.Repository](row)

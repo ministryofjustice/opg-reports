@@ -27,6 +27,8 @@ type ICell interface {
 	ICellSupplementary
 }
 
+var _ ICell = &Cell{}
+
 type Cell struct {
 	Name            string      `json:"name"`
 	Value           interface{} `json:"value"`
@@ -270,18 +272,18 @@ func (t *Table[C, R]) GetTableFoot() R {
 
 // New helpers
 // -- CELLS
-func NewCell(name string, value interface{}) *Cell {
+func NewCell(name string, value interface{}) ICell {
 	return &Cell{Name: name, Value: value, IsHeader: false, IsSupplementary: false}
 }
-func NewCellHeader(name string, value interface{}) *Cell {
+func NewCellHeader(name string, value interface{}) ICell {
 	return &Cell{Name: name, Value: value, IsHeader: true, IsSupplementary: false}
 }
-func NewCellExtra(name string, value interface{}) *Cell {
+func NewCellExtra(name string, value interface{}) ICell {
 	return &Cell{Name: name, Value: value, IsHeader: false, IsSupplementary: true}
 }
 
 // -- ROWS
-func NewRow[C ICell](cells ...C) (row *Row[C]) {
+func NewRow[C ICell](cells ...C) (row IRow[C]) {
 	row = &Row[C]{}
 	row.SetHeaders()
 	row.SetSupplementary()
@@ -292,6 +294,7 @@ func NewRow[C ICell](cells ...C) (row *Row[C]) {
 
 // -- TABLES
 func NewTable[C ICell, R IRow[C]](rows ...R) *Table[C, R] {
+
 	td := &Table[C, R]{}
 	td.SetTableBody(rows...)
 	return td

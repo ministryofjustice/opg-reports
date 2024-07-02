@@ -19,7 +19,7 @@ func TestServicesApiAwsCostMonthlyStatusCode(t *testing.T) {
 	min, max, df := testDates()
 	store := data.NewStore[*cost.Cost]()
 	store.Add(cost.Fake(nil, min, max, df))
-	resp := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	resp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
 	api := New(store, fs, resp)
 	api.Register(mux)
 
@@ -48,7 +48,7 @@ func TestServicesApiAwsCostMonthlyStatusCode(t *testing.T) {
 func TestServicesApiAwsCostMonthlyFSMatch(t *testing.T) {
 	fs := testFs()
 	store := data.NewStore[*cost.Cost]()
-	resp := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	resp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
 	api := New(store, fs, resp)
 
 	apiFs := api.FS()
@@ -63,7 +63,7 @@ func TestServicesApiAwsCostMonthlyStoreMatch(t *testing.T) {
 	store := data.NewStore[*cost.Cost]()
 	store.Add(cost.Fake(nil, min, max, df))
 
-	resp := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	resp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
 	api := New(store, fs, resp)
 
 	apiS := api.Store()

@@ -1,7 +1,6 @@
 package standards
 
 import (
-	"encoding/json"
 	"net/http"
 	"opg-reports/shared/data"
 	"opg-reports/shared/github/std"
@@ -9,12 +8,12 @@ import (
 	"sort"
 )
 
-func (a *Api[V, F]) List(w http.ResponseWriter, r *http.Request) {
-	resp := response.NewResponse()
-	resp.Start()
-	store := a.store
+func (a *Api[V, F, C, R]) List(w http.ResponseWriter, r *http.Request) {
+	a.Start(w, r)
+	resp := a.GetResponse()
+	store := a.Store()
 
-	errs := resp.GetErrors()
+	errs := resp.GetError()
 	if len(errs) == 0 {
 		activeOnly := func(item *std.Repository) bool {
 			return item.Archived == false
@@ -22,7 +21,7 @@ func (a *Api[V, F]) List(w http.ResponseWriter, r *http.Request) {
 
 		// get everything in range
 		onlyActive := store.Filter(activeOnly)
-		rows := []*response.Row[*response.Cell]{}
+		rows := []R{}
 
 		list := onlyActive.List()
 		sort.Slice(list, func(i, j int) bool {
@@ -30,16 +29,15 @@ func (a *Api[V, F]) List(w http.ResponseWriter, r *http.Request) {
 		})
 
 		for _, item := range list {
-			row := data.ToRow(item)
+			row := data.ToRow(item).(R)
 			rows = append(rows, row)
 			// Add data times to resp
-			resp.AddTimestamp(item.TS())
+			resp.SetDataAge(item.TS())
 		}
-		result := response.NewData(rows...)
-		resp.SetResult(result)
+
+		table := response.NewTable(rows...)
+		resp.SetData(table)
 
 	}
-	resp.End()
-	content, _ := json.Marshal(resp)
-	a.Write(w, resp.GetStatus(), content)
+	a.End(w, r)
 }

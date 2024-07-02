@@ -20,7 +20,7 @@ func TestServicesApiAwsCostMonthlyHandlerIndex(t *testing.T) {
 	fs := testFs()
 	mux := testMux()
 	store := data.NewStore[*cost.Cost]()
-	resp := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	resp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
 	api := New(store, fs, resp)
 
 	api.Register(mux)
@@ -31,7 +31,7 @@ func TestServicesApiAwsCostMonthlyHandlerIndex(t *testing.T) {
 	mux.ServeHTTP(w, r)
 
 	_, b := response.Stringify(w.Result())
-	res := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	res := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
 	json.Unmarshal(b, &res)
 
 	if res.GetStatus() != http.StatusOK {
@@ -71,7 +71,7 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 		store.Add(c)
 	}
 
-	resp := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	resp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
 	api := New(store, fs, resp)
 	api.Register(mux)
 
@@ -80,7 +80,7 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 	mux.ServeHTTP(w, r)
 
 	str, b := response.Stringify(w.Result())
-	res := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	res := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
 	response.FromJson(b, res)
 
 	// fmt.Println(str)
@@ -115,7 +115,7 @@ func TestServicesApiAwsCostMonthlyHandlerUnits(t *testing.T) {
 		store.Add(c)
 	}
 
-	resp := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	resp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
 	api := New(store, fs, resp)
 	api.Register(mux)
 
@@ -124,7 +124,7 @@ func TestServicesApiAwsCostMonthlyHandlerUnits(t *testing.T) {
 	mux.ServeHTTP(w, r)
 
 	str, b := response.Stringify(w.Result())
-	res := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	res := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
 	response.FromJson(b, res)
 	// fmt.Println(str)
 
@@ -161,7 +161,7 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvs(t *testing.T) {
 		store.Add(c)
 	}
 
-	resp := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	resp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
 	api := New(store, fs, resp)
 	api.Register(mux)
 
@@ -170,7 +170,7 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvs(t *testing.T) {
 	mux.ServeHTTP(w, r)
 
 	str, b := response.Stringify(w.Result())
-	res := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	res := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
 	response.FromJson(b, res)
 
 	if resp.GetStatus() != http.StatusOK {
@@ -206,7 +206,7 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvServices(t *testing.T) {
 		store.Add(c)
 	}
 
-	resp := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	resp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
 	api := New(store, fs, resp)
 	api.Register(mux)
 
@@ -215,7 +215,7 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvServices(t *testing.T) {
 	mux.ServeHTTP(w, r)
 
 	str, b := response.Stringify(w.Result())
-	res := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	res := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
 	response.FromJson(b, res)
 
 	if resp.GetStatus() != http.StatusOK {

@@ -32,7 +32,7 @@ func TestSharedServerApi(t *testing.T) {
 
 	f := files.NewFS(dfSys, tDir)
 	store := data.NewStore[*tEntry]()
-	resp := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	resp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
 
 	tApi := NewApi(store, f, resp)
 
