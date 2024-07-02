@@ -1,3 +1,7 @@
+// Package response provides interfaces and structs for api response handling.
+//
+// An API ressponse will always contain some time, status and data information within
+// it. The data is always in the form of a tabular set - like a html table / spreadsheet.
 package response
 
 import (
@@ -75,17 +79,29 @@ type IResponse[C ICell, R IRow[C]] interface {
 }
 
 // --- CONCREATE VERSIONS
-
+// requestTimes handles start, end & duration of the request
 type requestTimes struct {
 	Start    time.Time     `json:"start"`
 	End      time.Time     `json:"end"`
 	Duration time.Duration `json:"duration"`
 }
+
+// dataAge is used to track the age of the data items in the response
+// so we can display a "data accurate as of" message if wanted
 type dataAge struct {
 	Min *time.Time `json:"min"`
 	Max *time.Time `json:"max"`
 	All []int64    `json:"-"`
 }
+
+// Response is the main response struct that is returned by API
+// endpoints.
+//
+// All data is stored and ahndles as a table, made up of header, body
+// and foot liks a HTML table (as that is main how the data is used).
+//
+// Errors and Http status codes are also tracked
+// Impliments [IResponse]
 type Response[C ICell, R IRow[C]] struct {
 	RequestTimes *requestTimes `json:"request_timings,omitempty"`
 	DataAge      *dataAge      `json:"data_age"`
@@ -95,23 +111,42 @@ type Response[C ICell, R IRow[C]] struct {
 }
 
 // --- IResponseData
-
+// SetData overwrites the main data object of the repsonse with a new
+// table of data.
+//
+// Called towards the end of a http handler to set the response ready
+// for transmission
+//
+// Interface: [IResponseData]
 func (r *Response[C, R]) SetData(t ITable[C, R]) {
 	r.Data = t
 }
+
+// GetData returns the tabular data from this API response
+//
+// Interface: [IResponseData]
 func (r *Response[C, R]) GetData() ITable[C, R] {
 	return r.Data
 }
 
 // --- IErrorWithStatus
-
+// SetErrorAndStatus adds an error to the stack of erroes and also
+// changes the http status code at the same time. This provides
+// slightly cleaner error handling with http func by combining two calls
+//
+// Interface: [IErrorWithStatus]
 func (r *Response[C, R]) SetErrorAndStatus(err error, status int) {
 	r.SetError(err)
 	r.SetStatus(status)
 }
 
 // --- IErrors
-
+// SetError appends a new error the error stack. This is then
+// included within the response from the api so issues with
+// the request can be debugged.
+//
+// Note: If `nil` is passed, then the error stack is reset
+// Interface: [IErrors]
 func (r *Response[C, R]) SetError(errors ...error) {
 	if errors == nil {
 		r.Errors = []error{}
@@ -120,21 +155,37 @@ func (r *Response[C, R]) SetError(errors ...error) {
 	}
 }
 
+// GetError returns all stored errors in this response
+//
+// Interface: [IErrors]
 func (r *Response[C, R]) GetError() []error {
 	return r.Errors
 }
 
 // --- IResponseStatus
-
+// SetStatus updates the http status code that will be used
+// within the respone to the value passed. When use NewResponse
+// this is set as http.StatusOK by default.
+//
+// Interface: [IResponseStatus]
 func (r *Response[C, R]) SetStatus(status int) {
 	r.StatusCode = status
 }
+
+// GetStatus returns the current status code value
+//
+// Interface: [IResponseStatus]
 func (r *Response[C, R]) GetStatus() int {
 	return r.StatusCode
 }
 
 // --- IDataRecency
-
+// SetDataAge is used to track the created times of the data
+// associated with this api response. This provides a way
+// to show messages about when the data was created / updated
+// in front ends
+//
+// Interface: [IDataRecency]
 func (r *Response[C, R]) SetDataAge(times ...time.Time) {
 	if times == nil {
 		r.DataAge.All = []int64{}
@@ -145,6 +196,10 @@ func (r *Response[C, R]) SetDataAge(times ...time.Time) {
 	}
 }
 
+// GetDataAgeMin returns the min date stored within the
+// data in this api response (effectively the "oldest")
+//
+// Interface: [IDataRecency]
 func (r *Response[C, R]) GetDataAgeMin() (t time.Time) {
 	if r.DataAge.Min != nil {
 		return *r.DataAge.Min
@@ -156,6 +211,10 @@ func (r *Response[C, R]) GetDataAgeMin() (t time.Time) {
 	return t
 }
 
+// GetDataAgeMax returns the max date stored within the
+// data in this api response (effectively the "youngest")
+//
+// Interface: [IDataRecency]
 func (r *Response[C, R]) GetDataAgeMax() (t time.Time) {
 	if r.DataAge.Max != nil {
 		return *r.DataAge.Max
@@ -169,33 +228,62 @@ func (r *Response[C, R]) GetDataAgeMax() (t time.Time) {
 
 // --- IRequestStart
 
+// SetStart is callef early in the http request handler to
+// accurately track the start time of the request.
+// This is then used with end time to work out durations
+// that can be checked for performance etc
+//
+// Interface: [IRequestStart]
 func (r *Response[C, R]) SetStart() {
 	r.RequestTimes.Start = time.Now().UTC()
 }
+
+// GetStart returns the request start time data
+// Interface: [IRequestStart]
 func (r *Response[C, R]) GetStart() time.Time {
 	return r.RequestTimes.Start
 }
 
 // --- IRequestEnd
 
+// SetEnd is companiion to SetStart, this tracks the
+// end of the http request being processed and can then
+// be used to work out duration.
+//
+// Interface: [IRequestEnd]
 func (r *Response[C, R]) SetEnd() {
 	r.RequestTimes.End = time.Now().UTC()
 }
+
+// GetEnd returns the end time of the request
+//
+// Interface: [IRequestEnd]
 func (r *Response[C, R]) GetEnd() time.Time {
 	return r.RequestTimes.End
 }
 
 // -- IRequestDuration
 
+// SetDuration uses the end & start times to work out how long
+// a http request has taken to be processed. This informaton
+// is helpful for assessing performance over the api
+//
+// Interface: [IRequestDuration]
 func (r *Response[C, R]) SetDuration() {
 	r.RequestTimes.Duration = r.GetEnd().Sub(r.GetStart())
 }
+
+// GetDuration returns the duration data
+//
+// Interface: [IRequestDuration]
 func (r *Response[C, R]) GetDuration() time.Duration {
 	return r.RequestTimes.Duration
 }
 
 // --- NEW HELPERS
 
+// NewResponse returns a fresh response with empty data setup
+// Note: StatusCode is set to http.StatusOk
 func NewResponse[C ICell, R IRow[C]]() IResponse[C, R] {
 	return &Response[C, R]{
 		RequestTimes: &requestTimes{},
@@ -206,20 +294,27 @@ func NewResponse[C ICell, R IRow[C]]() IResponse[C, R] {
 	}
 }
 
+// ToJson converts a response into json friendly []bye that is indented for readability.
+// This is used for passing the data back from the api
 func ToJson[C ICell, R IRow[C]](r IResponse[C, R]) (content []byte, err error) {
 	return json.MarshalIndent(r, "", "  ")
 }
 
+// FromJson converts a []byte back into an IResponse by using json unmarshaling
 func FromJson[C ICell, R IRow[C]](content []byte, r IResponse[C, R]) (err error) {
 	err = json.Unmarshal(content, r)
 	return
 }
 
+// FromHttp is similar to FromJson, but first fetches the content from the http.Repsonse body
+// and then converts using that
 func FromHttp[C ICell, R IRow[C]](content *http.Response, r IResponse[C, R]) (err error) {
 	_, bytes := Stringify(content)
 	return FromJson[C, R](bytes, r)
 }
 
+// Stringify returns the body content of a http.Response as both a string and []byte.
+// Very helpful for debugging, testing and converting back and forth from the api.
 func Stringify(r *http.Response) (s string, b []byte) {
 	b, _ = io.ReadAll(r.Body)
 	s = string(b)
