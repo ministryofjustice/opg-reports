@@ -65,6 +65,17 @@
                             "template": "dynamic-aws-costs-units-envs-services"
                         }
                     ]
+                },
+                {
+                    "name": "Uptime & Incidents",
+                    "href": "/uptime-incidents/",
+                    "header": true,
+                    "sections": [
+                        {
+                            "name": "Service uptime",
+                            "href": "/uptime-incidents/uptime"
+                        }
+                    ]
                 }
             ]
         }

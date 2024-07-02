@@ -3,6 +3,7 @@ package standards
 import (
 	"encoding/json"
 	"net/http"
+	"opg-reports/shared/data"
 	"opg-reports/shared/github/std"
 	"opg-reports/shared/server/response"
 	"sort"
@@ -29,7 +30,7 @@ func (a *Api[V, F]) List(w http.ResponseWriter, r *http.Request) {
 		})
 
 		for _, item := range list {
-			row := std.ToRow(item)
+			row := data.ToRow(item)
 			rows = append(rows, row)
 			// Add data times to resp
 			resp.AddTimestamp(item.TS())

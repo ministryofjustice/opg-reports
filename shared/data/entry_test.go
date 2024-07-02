@@ -1,9 +1,12 @@
 package data
 
 import (
+	"fmt"
 	"testing"
 	"time"
 )
+
+var nowT = time.Now().UTC()
 
 type testEntry struct {
 	Id string `json:"id"`
@@ -17,7 +20,7 @@ func (i *testEntry) Valid() bool {
 	return true
 }
 func (i *testEntry) TS() time.Time {
-	return time.Now().UTC()
+	return nowT
 }
 
 type testEntryExt struct {
@@ -30,10 +33,26 @@ func (i *testEntryExt) UID() string {
 	return i.Id
 }
 func (i *testEntryExt) TS() time.Time {
-	return time.Now().UTC()
+	return nowT
 }
 func (i *testEntryExt) Valid() bool {
 	return true
+}
+
+func TestSharedDataEntryToRowFromRow(t *testing.T) {
+	test := &testEntryExt{Id: "01", Tag: "tag1", Category: "cat1"}
+	r := ToRow(test)
+
+	if len(r.GetCells()) != 3 {
+		t.Errorf("should have created 3 cells")
+	}
+	from := FromRow[*testEntryExt](r)
+
+	if from.Id != test.Id || from.Tag != test.Tag || from.Category != test.Category {
+		t.Errorf("conversion failed")
+		fmt.Printf("%+v\n", from)
+		fmt.Printf("%+v\n", test)
+	}
 }
 
 func TestSharedDataEntryComparable(t *testing.T) {

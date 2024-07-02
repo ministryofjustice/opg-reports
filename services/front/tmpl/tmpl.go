@@ -75,7 +75,7 @@ func Funcs() map[string]interface{} {
 		},
 		// Compliance
 		"getComplianceItem": func(row *response.Row[*response.Cell]) *std.Repository {
-			return std.FromRow(row)
+			return data.FromRow[*std.Repository](row)
 		},
 		"repoSetStandards": func(c *std.Repository, standards *cnf.RepoStandards) error {
 			c.SetStandards(standards)
@@ -100,7 +100,7 @@ func Funcs() map[string]interface{} {
 		"totalCountPassed": func(rows []*response.Row[*response.Cell], standards []string) (count int) {
 			count = 0
 			for _, row := range rows {
-				c := std.FromRow(row)
+				c := data.FromRow[*std.Repository](row)
 				if pass, _, _ := c.Compliant(standards); pass {
 					count += 1
 				}

@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	orgArg  = report.NewArg("organisation", true, "Name of the organisation we'll get respotiroies for", "ministryofjustice")
+	orgArg  = report.NewArg("organisation", true, "Name of the organisation we'll get repositories for", "ministryofjustice")
 	teamArg = report.NewArg("team", true, "Team within the <organisation> to fetch repositories for", "")
 )
 
