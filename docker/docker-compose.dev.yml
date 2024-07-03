@@ -1,0 +1,21 @@
+services:
+  api:
+    build:
+      target: dev
+    volumes:
+      - ./internal:/app/internal/
+      - ./services/api:/app/services/api
+      - ./shared:/app/shared
+      - ./go.mod:/app/go.mod
+      - ./go.sum:/app/go.sum
+      - ./Makefile:/app/Makefile
+  front:
+    build:
+      target: dev
+    volumes:
+      - ./internal:/app/internal/
+      - ./services/front:/app/services/front
+      - ./shared:/app/shared
+      - ./go.mod:/app/go.mod
+      - ./go.sum:/app/go.sum
+      - ./Makefile:/app/Makefile

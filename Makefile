@@ -13,8 +13,10 @@ else
 	BUILD_ARCH := ${ARCH}
 endif
 
-.PHONY: test tests benchmarks coverage govuk-frontend
+.PHONY: test tests benchmarks coverage govuk-frontend docker-dev
 
+docker-dev:
+	env DOCKER_BUILDKIT=0 COMPOSE_DOCKER_CLI_BUILD=0 docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml build --no-cache
 # get the gov uk front end assets and move them into local folders
 govuk-frontend:
 	@rm -Rf ./builds/govuk-frontend

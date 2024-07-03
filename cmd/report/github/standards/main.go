@@ -25,7 +25,7 @@ func run(r report.IReport) {
 	ctx := context.Background()
 	token := env.Get("GITHUB_ACCESS_TOKEN", "")
 	if token == "" {
-		slog.Error("not github token found")
+		slog.Error("no github token found")
 		return
 	}
 
