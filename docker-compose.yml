@@ -2,6 +2,7 @@ version: "3.6"
 
 services:
   api:
+    image: opg-reports-api
     build:
       context: .
       dockerfile: docker/api/Dockerfile
@@ -11,6 +12,7 @@ services:
       - "8081:8081"
 
   front:
+    image: opg-reports-front
     build:
       context: .
       dockerfile: docker/front/Dockerfile

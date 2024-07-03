@@ -30,7 +30,7 @@ func (s *FrontWebServer) Dynamic(w http.ResponseWriter, r *http.Request) {
 	} else {
 		end = end.AddDate(0, -1, 0)
 	}
-	start := end.AddDate(0, -11, 0)
+	start := end.AddDate(0, -9, 0)
 	months := dates.Months(start, end)
 	days := dates.Days(start, end)
 

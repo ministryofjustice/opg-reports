@@ -11,7 +11,9 @@
         {{ $tmplFilters := dict "Filters" $filters "OptionsSource" ".dataframe tbody th"  "FilterRows" ".dataframe tbody tr"}}
 
         {{ template "aws-costs-table-filters" $tmplFilters }}
+        <div class='scroller'>
         {{ template "dynamic-currency-table" . }}
+        </div>
         {{ template "result-notes" . }}
     {{end}}
 

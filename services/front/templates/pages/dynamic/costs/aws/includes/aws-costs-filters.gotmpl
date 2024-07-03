@@ -2,7 +2,7 @@
     {{ $filters := .Filters }}
     {{ if $filters }}
     <form
-        class='js-table-filter-options js-table-filter-options-generate'
+        class='js-table-filter-options js-table-filter-options-generate govuk-clearfix'
         data-optionssource="{{ .OptionsSource }}"
         data-filterrows="{{ .FilterRows }}" >
 
@@ -24,6 +24,5 @@
 
     </form>
     {{ end }}
-
 
 {{ end }}

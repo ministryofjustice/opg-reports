@@ -109,11 +109,9 @@
 
 /* generic data tables */
 .dataframe.govuk-table{
-    font-size: 0.88rem;
+    font-size: 0.96rem;
 }
-.sect-detailed.dataframe.govuk-table{
-    font-size: 0.78rem;
-}
+
 .dataframe .govuk-table__header,
 .dataframe .govuk-table__cell{
     padding: 5px;
@@ -121,6 +119,21 @@
 
 .dataframe.govuk-table .data-cell{
     text-align: right;
+}
+.scroller {
+    overflow-x: auto;
+}
+/* currency table data to use monospaced */
+.currency-table.govuk-table .govuk-table__header{
+    font-size: 0.9rem;
+}
+.currency-table.govuk-table tbody .govuk-table__header{
+    font-size: 0.83rem;
+}
+.currency-table.govuk-table tbody .data-cell,
+.currency-table.govuk-table tfoot .data-cell{
+    font-family: monospace;
+    font-size: 0.85rem;
 }
 
 .dataframe.govuk-table .govuk-table__header.last-header{
@@ -220,8 +233,6 @@
 /* row hightlights */
 .highlight{
     overflow: hidden;
-    display:inline-block;
-    box-sizing:border-box;
 }
 .highlight td, .highlight th{
     position: relative;
