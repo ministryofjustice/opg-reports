@@ -7,7 +7,7 @@
     <p class="govuk-body">Unit is analogous to a team which maintains multiple products.</p>
 
     {{if .Result }}
-        {{ $filters := dict "Unit" 1 }}
+        {{ $filters := dict "1.Unit" 0 }}
         {{ $tmplFilters := dict "Filters" $filters "OptionsSource" ".dataframe tbody th"  "FilterRows" ".dataframe tbody tr"}}
 
         {{ template "aws-costs-table-filters" $tmplFilters }}

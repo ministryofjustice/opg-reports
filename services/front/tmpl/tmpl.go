@@ -41,6 +41,13 @@ func Funcs() map[string]interface{} {
 			p := x / (y / 100)
 			return fmt.Sprintf("%.2f", p)
 		},
+		"stripI": func(s string) string {
+			sp := strings.Split(s, ".")
+			if len(sp) > 0 {
+				return strings.Join(sp[1:], "")
+			}
+			return s
+		},
 		"title": func(s string) string {
 			s = strings.ReplaceAll(s, "_", " ")
 			s = strings.ReplaceAll(s, "-", " ")

@@ -261,18 +261,22 @@ table.js-table-sorter thead th span{
     box-sizing:border-box;
     display: block;
     width:100%;
-    padding-left:13px;
+    padding-right:13px;
 }
 /* sort arrows */
 table.js-table-sorter thead th span:after{
     position: absolute;
-    left:0;
-    content:' ';
+    right:0;
+    content:'▼';
     width:8px;
     top:2px;
     font-size: 0.6rem;
+    color: #CDCDCD;
 }
 
+table.js-table-sorter thead th:hover span:after{
+    color:rgb(11, 12, 12);
+}
 table.js-table-sorter thead th:hover span:after,
 table.js-table-sorter thead th.sorted span:after{
     content:'▼'
