@@ -151,7 +151,7 @@ func (c *Repository) dataViaClient(client *github.Client) {
 	// Check branch protection
 	if branch, _, err := client.Repositories.GetBranch(context.Background(), c.Owner, c.Name, c.DefaultBranch, 1); err == nil {
 		c.HasDefaultBranchProtection = branch.GetProtected()
-		c.LastCommitDate = branch.GetCommit().GetCommitter().GetCreatedAt().Time
+		c.LastCommitDate = branch.Commit.Commit.Author.Date.Time
 	}
 
 	// check branch protection rules
