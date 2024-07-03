@@ -153,7 +153,6 @@ function tableSortCompareValues(a, b) {
     } else if (aVal > bVal) {
         comp = 1
     }
-    console.log(aVal, bVal, comp)
     return comp
 
 }
@@ -202,6 +201,9 @@ function tableSorter() {
         thead.querySelectorAll(`th`).forEach((th, position) => {
             th.addEventListener(`click`, evt => tableSortHandler(thead, tbody, th, position));
         });
+        // trigger a click on the last column
+        var sel = ".govuk-table__head th:last-of-type"
+        table.querySelector(sel).click()
     })
 
 }
