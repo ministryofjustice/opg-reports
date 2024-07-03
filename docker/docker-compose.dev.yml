@@ -1,14 +1,17 @@
+version: "3.6"
+
 services:
   api:
     build:
       target: dev
+    ports:
+      - "8081:8081"
     volumes:
       - ./internal:/app/internal/
       - ./services/api:/app/services/api
       - ./shared:/app/shared
       - ./go.mod:/app/go.mod
       - ./go.sum:/app/go.sum
-      - ./Makefile:/app/Makefile
   front:
     build:
       target: dev
@@ -18,4 +21,3 @@ services:
       - ./shared:/app/shared
       - ./go.mod:/app/go.mod
       - ./go.sum:/app/go.sum
-      - ./Makefile:/app/Makefile

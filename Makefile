@@ -13,10 +13,25 @@ else
 	BUILD_ARCH := ${ARCH}
 endif
 
-.PHONY: test tests benchmarks coverage govuk-frontend docker-dev
+.PHONY: test tests benchmarks coverage govuk-frontend assets
+# docker build and dev stages
+docker-down:
+	@docker compose down
 
-docker-dev:
-	env DOCKER_BUILDKIT=0 COMPOSE_DOCKER_CLI_BUILD=0 docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml build --no-cache
+docker-clean: docker-down
+	@docker container prune -f
+	@docker image prune -f --filter="dangling=true"
+
+docker-build: assets
+	@env DOCKER_BUILDKIT=0 docker compose -f docker-compose.yml build
+
+docker-dev-build: assets
+	@env DOCKER_BUILDKIT=0 docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml build
+
+dev: docker-clean docker-dev-build
+	docker compose --verbose -f docker-compose.yml -f docker/docker-compose.dev.yml up -d api front
+# get assets - expand this to grab from s3?
+assets: govuk-frontend
 # get the gov uk front end assets and move them into local folders
 govuk-frontend:
 	@rm -Rf ./builds/govuk-frontend
@@ -33,6 +48,7 @@ govuk-frontend:
 	@mv ./builds/govuk-frontend/assets/images/ ./services/front/assets/
 	@mv ./builds/govuk-frontend/assets/manifest.json ./services/front/assets/
 	@rm -Rf ./builds/govuk-frontend
+	@echo "Downloaded alphagov/govuk-frontend@${VERSION_UK_GOV_FRONT} to ./services/front/assets/"
 
 test:
 	@go clean -testcache

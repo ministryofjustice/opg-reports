@@ -2,20 +2,21 @@ version: "3.6"
 
 services:
   api:
-    image: "opg-reports-api"
     build:
+      context: .
       dockerfile: docker/api/Dockerfile
     environment:
-      API_ADDR: 8081
+      API_ADDR: ":8081"
     ports:
       - "8081:8081"
 
-  # front:
-  #   build:
-  #     target: dev
-  #   environment:
-  #     API_ADDR: localhost:8081
-  #     API_SCHEME: http
-  #     FRONT_ADDR: 8080
-  #   ports:
-  #     - '8080:8080'
+  front:
+    build:
+      context: .
+      dockerfile: docker/front/Dockerfile
+    environment:
+      API_ADDR: api:8081
+      API_SCHEME: http
+      FRONT_ADDR: :8080
+    ports:
+      - "8080:8080"

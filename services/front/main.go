@@ -12,7 +12,7 @@ import (
 	"opg-reports/shared/logger"
 )
 
-//go:embed templates
+//go:embed templates/**
 var templateFs embed.FS
 
 //go:embed config.json
