@@ -48,6 +48,22 @@ func Funcs() map[string]interface{} {
 			s = c.String(s)
 			return s
 		},
+		"lower": func(s string) string {
+			return strings.ToLower(s)
+		},
+		"dict": func(values ...any) (dict map[string]any) {
+			dict = map[string]any{}
+			if len(values)%2 != 0 {
+				return
+			}
+			// if the key isnt a string, this will crash!
+			for i := 0; i < len(values); i += 2 {
+				var key string = values[i].(string)
+				var v any = values[i+1]
+				dict[key] = v
+			}
+			return
+		},
 		// "append": func(slice []string, value string) []string {
 		// 	return append(slice, value)
 		// },

@@ -7,39 +7,12 @@
     <p class="govuk-body">A unit is analogous to a team which maintains multiple products or services within the wider org.</p>
 
     {{if .Result }}
-        <form
-            class='js-table-filter-options js-table-filter-options-generate'
-            data-optionssource=".dataframe tbody th"
-            data-filterrows=".dataframe tbody tr">
-        <fieldset class='govuk-fieldset'>
-            <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">
-                <h2 class="govuk-fieldset__heading">Data filter</h2>
-            </legend>
+        {{ $filters := dict "Unit" 1 "Environment" 2 "Service" 3 }}
+        {{ $tmplFilters := dict "Filters" $filters "OptionsSource" ".dataframe tbody th"  "FilterRows" ".dataframe tbody tr"}}
 
-            <div class="govuk-form-group govuk-form-group--small js-table-generate-options" data-col="1">
-                <label class="govuk-label" for="unit">Unit</label>
-                <select class="govuk-select" id="unit" name="unit">
-                    <option value="all">All</option>
-                </select>
-            </div>
-
-            <div class="govuk-form-group govuk-form-group--small js-table-generate-options" data-col="2">
-                <label class="govuk-label" for="environment">Environment</label>
-                <select class="govuk-select" id="environment" name="environment">
-                    <option value="all">All</option>
-                </select>
-            </div>
-
-            <div class="govuk-form-group govuk-form-group--small js-table-generate-options" data-col="3">
-                <label class="govuk-label" for="service">Service</label>
-                <select class="govuk-select" id="service" name="service">
-                    <option value="all">All</option>
-                </select>
-            </div>
-        </fieldset>
-        </form>
-
+        {{ template "aws-costs-table-filters" $tmplFilters }}
         {{ template "dynamic-currency-table" . }}
+        {{ template "result-notes" . }}
     {{end}}
 
     {{ template "foot" . }}
