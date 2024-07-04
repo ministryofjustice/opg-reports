@@ -13,6 +13,8 @@
         {{ template "aws-costs-table-filters" $tmplFilters }}
         {{ template "dynamic-currency-table" . }}
         {{ template "result-notes" . }}
+    {{ else }}
+        {{ template "no-result" . }}
     {{end}}
 
     {{ template "foot" . }}

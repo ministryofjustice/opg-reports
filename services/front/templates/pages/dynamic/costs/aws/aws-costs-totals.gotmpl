@@ -8,6 +8,8 @@
     {{if .Result }}
         {{ template "dynamic-currency-table" . }}
         {{ template "result-notes" . }}
+    {{ else }}
+        {{ template "no-result" . }}
     {{end}}
 
     {{ template "foot" . }}
