@@ -7,25 +7,25 @@ import (
 
 func TestSharedReportArgs(t *testing.T) {
 
-	a := &ArgNamed{}
+	a := &Arg{}
 	a.SetName("foo")
 	if a.GetName() != "foo" {
 		t.Errorf("get name failed")
 	}
 
-	b := &ArgHelp{}
+	b := &Arg{}
 	b.SetHelp("usage setup")
 	if b.GetHelp() != "usage setup" {
 		t.Errorf("help / usage failed")
 	}
 
-	c := &ArgDefaults{}
+	c := &Arg{}
 	c.SetDefault("1")
 	if c.GetDefault() != "1" {
 		t.Errorf("default failed: %v", c.GetDefault())
 	}
 
-	d := &ArgRequired{}
+	d := &Arg{}
 	d.SetRequired(true)
 	if d.GetRequired() != true {
 		t.Errorf("required failed")
@@ -59,7 +59,7 @@ func TestSharedReportArgs(t *testing.T) {
 		t.Errorf("required value should flag as not set")
 	}
 
-	mrg := NewMonthArg("monthtest", true, "my help", "default")
+	mrg := NewMonthArg("monthtest1", true, "my help", "default")
 	mval := "2024-04"
 	mrg.FlagP = &mval
 	if v, err := mrg.Value(); err != nil || v != mval || mrg.Val() != mval {

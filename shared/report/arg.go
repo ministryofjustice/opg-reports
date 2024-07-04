@@ -55,85 +55,59 @@ type IReportArgument interface {
 	Val() string
 }
 
-// ArgNamed handles tracking the name of the argument
-type ArgNamed struct {
-	Name string
+// Arg is a standard argument for a report
+type Arg struct {
+	Name     string
+	Help     string
+	Default  string
+	Required bool
+	FlagP    *string
 }
 
 // SetName replaces the name
-func (a *ArgNamed) SetName(name string) {
+func (a *Arg) SetName(name string) {
 	a.Name = name
 }
 
 // GetName returns the name
-func (a *ArgNamed) GetName() string {
+func (a *Arg) GetName() string {
 	return a.Name
 }
 
-// ArgHelp handles usage message
-type ArgHelp struct {
-	Help string
-}
-
 // SetHelp replaces the help message
-func (a *ArgHelp) SetHelp(help string) {
+func (a *Arg) SetHelp(help string) {
 	a.Help = help
 }
 
 // GetHelp returns the usage message
-func (a *ArgHelp) GetHelp() string {
+func (a *Arg) GetHelp() string {
 	return a.Help
 }
 
-// ArgDefaults handles default values
-type ArgDefaults struct {
-	Default string
-}
-
 // SetDefault replaces the default value
-func (a *ArgDefaults) SetDefault(def string) {
+func (a *Arg) SetDefault(def string) {
 	a.Default = def
 }
 
 // GetDefault returns the value
-func (a *ArgDefaults) GetDefault() string {
+func (a *Arg) GetDefault() string {
 	return a.Default
 }
 
-// ArgRequired determines if its required or not
-type ArgRequired struct {
-	Required bool
-}
-
 // SetRequired replaces the value
-func (a *ArgRequired) SetRequired(req bool) {
+func (a *Arg) SetRequired(req bool) {
 	a.Required = req
 }
 
 // GetRequired returns the value
-func (a *ArgRequired) GetRequired() bool {
+func (a *Arg) GetRequired() bool {
 	return a.Required
 }
-
-// ArgFlag handles the actual flag package usage
-type ArgFlag struct {
-	*ArgNamed
-	*ArgHelp
-	*ArgDefaults
-	FlagP *string
-}
-
-func (a *ArgFlag) SetFlag() {
+func (a *Arg) SetFlag() {
 	a.FlagP = flag.String(a.GetName(), a.GetDefault(), a.GetHelp())
 }
-func (a *ArgFlag) GetFlag() *string {
+func (a *Arg) GetFlag() *string {
 	return a.FlagP
-}
-
-// Arg is a standard argument for a report
-type Arg struct {
-	*ArgRequired
-	*ArgFlag
 }
 
 // Value uses the flag value and returns string version
@@ -158,8 +132,7 @@ func (a *Arg) Val() string {
 // MonthArg is a custom arg that represents a YYYY-MM inputed value
 // and replaces the Value() to handle parsing of string to time.Time
 type MonthArg struct {
-	*ArgRequired
-	*ArgFlag
+	*Arg
 }
 
 // Value fetches the value and tries to parse this into
@@ -193,14 +166,12 @@ func (a *MonthArg) MonthValue() (val time.Time, err error) {
 
 // NewArg generates a new argument
 func NewArg(name string, required bool, usage string, def string) *Arg {
-	argFlag := &ArgFlag{
-		ArgNamed:    &ArgNamed{Name: name},
-		ArgHelp:     &ArgHelp{Help: usage},
-		ArgDefaults: &ArgDefaults{Default: def},
-	}
+
 	arg := &Arg{
-		ArgFlag:     argFlag,
-		ArgRequired: &ArgRequired{Required: required},
+		Name:     name,
+		Help:     usage,
+		Default:  def,
+		Required: required,
 	}
 	arg.SetFlag()
 	return arg
@@ -208,15 +179,10 @@ func NewArg(name string, required bool, usage string, def string) *Arg {
 
 // NewMonthArg generates a new month argument
 func NewMonthArg(name string, required bool, usage string, def string) *MonthArg {
-	argFlag := &ArgFlag{
-		ArgNamed:    &ArgNamed{Name: name},
-		ArgHelp:     &ArgHelp{Help: usage},
-		ArgDefaults: &ArgDefaults{Default: def},
-	}
+	a := NewArg(name, required, usage, def)
 	arg := &MonthArg{
-		ArgFlag:     argFlag,
-		ArgRequired: &ArgRequired{Required: required},
+		Arg: a,
 	}
-	arg.SetFlag()
+
 	return arg
 }

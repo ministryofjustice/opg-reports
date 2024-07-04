@@ -12,9 +12,13 @@ type MiddlewareHandlerFunc func(http.HandlerFunc) http.HandlerFunc
 // MiddlewareFunc type matching for chaining middleware
 type MiddlewareFunc func(w http.ResponseWriter, r *http.Request)
 
-// Chain facilitates creation of middleware chains, with them being called in sequence
-// Normally called by the MiddlewareServerMux Register func, but can be called directly
-// if required
+// Middleware facilitates creation of middleware chains, with them being called in sequence.
+// Normally configuerd by the IApi Register func, but can be called directly if required.
+//
+//	mux.HandleFunc("/user/{id}/{$}", Middleware(GetUserById, LoggingMW, SecurityHeadersMW))
+//
+// Calls internal function `wrap`, which reduces some of the boiler plate required with
+// chaining, so the handler should be setup as a normal handler func
 func Middleware(handlerFunc http.HandlerFunc, middleware ...MiddlewareFunc) http.HandlerFunc {
 
 	for _, mw := range middleware {
@@ -57,9 +61,11 @@ func SecurityHeadersMW(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// LoggingMW uses the default structured log instance to output
+// some information about the incoming request
 func LoggingMW(w http.ResponseWriter, r *http.Request) {
 	slog.Info(
-		fmt.Sprintf(""),
+		fmt.Sprintf("request"),
 		slog.String("request_method", r.Method),
 		slog.String("request_uri", r.URL.String()),
 	)

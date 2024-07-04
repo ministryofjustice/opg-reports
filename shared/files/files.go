@@ -1,3 +1,11 @@
+// Package files provides method to return all files, or fitler list of files from a T IReadFS filesystem.
+//
+// As the api and front will swap between file system based on directory or an embedded version, this package
+// contains interfaces (IReadFS, IWriteFS) and concrete versions (WriteFS) that both embed.FS and result of
+// os.DirFs can be casted into to simplify that issue.
+//
+// The functions within this package utilise those interfaces so and are consumed by the api and data store
+// objects
 package files
 
 import (

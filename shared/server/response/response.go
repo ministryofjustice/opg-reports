@@ -1,7 +1,26 @@
-// Package response provides interfaces and structs for api response handling.
+// Package response provides interfaces and structs for an IApi response object.
 //
-// An API ressponse will always contain some time, status and data information within
-// it. The data is always in the form of a tabular set - like a html table / spreadsheet.
+// The IApi utilises an IRepsonse object to provide the content that will be
+// sent back in the request
+//
+// By default, we want that resposne to include start, end and duration
+// of the original request - this will help and tracking and performance
+// analysis of the api
+//
+// We also want to ensure we include a http status code as well errors
+// about the reason the request failed (validation etc).
+//
+// For more complex api calls we also provide metadata about the original
+// request - this should contain things like query conditions found within
+// the request (path values or query strings) so this can be confirmed
+// on the recievers end
+//
+// The main data included in the response is modelled as a table and
+// handled by ITable, which is also within this package
+//
+// The response data (GetData, SetData with ITable) is s single table,
+// analogus to a spreadsheet / html table. It contains head, body and foot
+// elements with getters & setters for each
 package response
 
 import (
@@ -32,9 +51,9 @@ type IRequestDuration interface {
 	GetDuration() time.Duration
 }
 
-// IDataRecency tracks the data creation times to inform the
+// IResponseDataRecency tracks the data creation times to inform the
 // age of the data
-type IDataRecency interface {
+type IResponseDataRecency interface {
 	SetDataAge(ts ...time.Time)
 	// GetAllDataAge() []time.Time
 	GetDataAgeMin() time.Time
@@ -48,18 +67,18 @@ type IResponseStatus interface {
 	GetStatus() int
 }
 
-// IErrors allows tracking of server side errors such as validation
+// IResponseErrors allows tracking of server side errors such as validation
 // and will be included in the IApi.Write
-type IErrors interface {
+type IResponseErrors interface {
 	SetError(errors ...error)
 	GetError() []error
 }
 
-// IErrorWithStatus allows adding an error message and changing the response
+// IResponseErrorWithStatus allows adding an error message and changing the response
 // status at the same time
-type IErrorWithStatus interface {
+type IResponseErrorWithStatus interface {
 	IResponseStatus
-	IErrors
+	IResponseErrors
 	SetErrorAndStatus(err error, status int)
 }
 
@@ -77,10 +96,10 @@ type IResponse[C ICell, R IRow[C]] interface {
 	IRequestStart
 	IRequestEnd
 	IRequestDuration
-	IDataRecency
+	IResponseDataRecency
 	IResponseStatus
-	IErrors
-	IErrorWithStatus
+	IResponseErrors
+	IResponseErrorWithStatus
 	IResponseMetadata
 	IResponseData[C, R]
 }
@@ -152,24 +171,24 @@ func (r *Response[C, R]) GetMetadata() map[string]interface{} {
 	return r.Metadata
 }
 
-// --- IErrorWithStatus
+// --- IResponseErrorWithStatus
 // SetErrorAndStatus adds an error to the stack of erroes and also
 // changes the http status code at the same time. This provides
 // slightly cleaner error handling with http func by combining two calls
 //
-// Interface: [IErrorWithStatus]
+// Interface: [IResponseErrorWithStatus]
 func (r *Response[C, R]) SetErrorAndStatus(err error, status int) {
 	r.SetError(err)
 	r.SetStatus(status)
 }
 
-// --- IErrors
+// --- IResponseErrors
 // SetError appends a new error the error stack. This is then
 // included within the response from the api so issues with
 // the request can be debugged.
 //
 // Note: If `nil` is passed, then the error stack is reset
-// Interface: [IErrors]
+// Interface: [IResponseErrors]
 func (r *Response[C, R]) SetError(errors ...error) {
 	if errors == nil {
 		r.Errors = []error{}
@@ -180,7 +199,7 @@ func (r *Response[C, R]) SetError(errors ...error) {
 
 // GetError returns all stored errors in this response
 //
-// Interface: [IErrors]
+// Interface: [IResponseErrors]
 func (r *Response[C, R]) GetError() []error {
 	return r.Errors
 }
@@ -202,13 +221,13 @@ func (r *Response[C, R]) GetStatus() int {
 	return r.StatusCode
 }
 
-// --- IDataRecency
+// --- IResponseDataRecency
 // SetDataAge is used to track the created times of the data
 // associated with this api response. This provides a way
 // to show messages about when the data was created / updated
 // in front ends
 //
-// Interface: [IDataRecency]
+// Interface: [IResponseDataRecency]
 func (r *Response[C, R]) SetDataAge(times ...time.Time) {
 	if times == nil {
 		r.DataAge.All = []int64{}
@@ -219,18 +238,10 @@ func (r *Response[C, R]) SetDataAge(times ...time.Time) {
 	}
 }
 
-// func (r *Response[C, R]) GetAllDataAge() []time.Time {
-// 	ts := []time.Time{}
-// 	for _, u := range r.DataAge.All {
-// 		ts = append(ts, time.UnixMicro(u).UTC())
-// 	}
-// 	return ts
-// }
-
 // GetDataAgeMin returns the min date stored within the
 // data in this api response (effectively the "oldest")
 //
-// Interface: [IDataRecency]
+// Interface: [IResponseDataRecency]
 func (r *Response[C, R]) GetDataAgeMin() (t time.Time) {
 	if r.DataAge.Min != nil {
 		return *r.DataAge.Min
@@ -245,7 +256,7 @@ func (r *Response[C, R]) GetDataAgeMin() (t time.Time) {
 // GetDataAgeMax returns the max date stored within the
 // data in this api response (effectively the "youngest")
 //
-// Interface: [IDataRecency]
+// Interface: [IResponseDataRecency]
 func (r *Response[C, R]) GetDataAgeMax() (t time.Time) {
 	if r.DataAge.Max != nil {
 		return *r.DataAge.Max

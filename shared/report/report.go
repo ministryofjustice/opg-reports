@@ -1,3 +1,11 @@
+// Package report provides and interface and concrete versions of commandline report and arguments
+//
+// The data collection aspect of this project runs from command line utilities that fetc hdata from
+// a mix of resources and then stores those results locally in json. As there are several of these
+// collection commands we standardise those by utilising the IReport interface and in most cases
+// make use of the concrete Report provided here to reduce repeating code.
+//
+// This package also provides interface and concrete common arguments for a typicall report
 package report
 
 import (
@@ -9,7 +17,10 @@ import (
 	"strings"
 )
 
+// ErrMissingValue error used when a required field for the report is not present
 var ErrMissingValue error = errors.New("Required field not set")
+
+// ErrArgNotFound is when an argument is requested, but it is not present
 var ErrArgNotFound error = errors.New("Argument not found")
 
 // IReportRunF is signature for the function to be run by the command
@@ -28,6 +39,8 @@ type IReport interface {
 	Run()
 	Filename() string
 }
+
+// -- CONCRETE
 
 // ReportArgs handles getting and setting arguments for the cli
 type ReportArgs struct {

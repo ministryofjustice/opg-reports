@@ -17,6 +17,8 @@ type IWriteFS interface {
 	BaseDir() string
 }
 
+// WriteFS is a conrete version of a writable file system
+// Interface [IWriteFS, IReadFS]
 type WriteFS struct {
 	IReadFS
 	dir string
