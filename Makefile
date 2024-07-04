@@ -15,21 +15,26 @@ endif
 
 .PHONY: test tests benchmarks coverage govuk-frontend assets
 # docker build and dev stages
-docker-down:
-	@docker compose down
-
-docker-clean: docker-down
-	@docker container prune -f
-	@docker image prune -f --filter="dangling=true"
-
 docker-build: assets
 	@env DOCKER_BUILDKIT=0 docker compose -f docker-compose.yml build
 
 docker-dev-build: assets
 	@env DOCKER_BUILDKIT=0 docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml build
 
-dev: docker-clean docker-dev-build
+down:
+	@docker compose down
+clean: down
+	@docker container prune -f
+	@docker image prune -f --filter="dangling=true"
+up: clean docker-dev-build
 	docker compose --verbose -f docker-compose.yml -f docker/docker-compose.dev.yml up -d api front
+
+# non-docker versions
+dev-api:
+	@clear && cd ./services/api/ && go run main.go
+
+dev-front:
+	@clear && cd ./services/front/ && go run main.go
 # get assets - expand this to grab from s3?
 assets: govuk-frontend
 # get the gov uk front end assets and move them into local folders

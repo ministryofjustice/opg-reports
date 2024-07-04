@@ -63,6 +63,11 @@ type IErrorWithStatus interface {
 	SetErrorAndStatus(err error, status int)
 }
 
+type IResponseMetadata interface {
+	SetMetadata(k string, v interface{})
+	GetMetadata() map[string]interface{}
+}
+
 type IResponseData[C ICell, R IRow[C]] interface {
 	SetData(t ITable[C, R])
 	GetData() ITable[C, R]
@@ -76,6 +81,7 @@ type IResponse[C ICell, R IRow[C]] interface {
 	IResponseStatus
 	IErrors
 	IErrorWithStatus
+	IResponseMetadata
 	IResponseData[C, R]
 }
 
@@ -104,11 +110,12 @@ type dataAge struct {
 // Errors and Http status codes are also tracked
 // Impliments [IResponse]
 type Response[C ICell, R IRow[C]] struct {
-	RequestTimes *requestTimes `json:"request_timings,omitempty"`
-	DataAge      *dataAge      `json:"data_age"`
-	StatusCode   int           `json:"status"`
-	Errors       []error       `json:"errors"`
-	Data         ITable[C, R]  `json:"result"`
+	RequestTimes *requestTimes          `json:"request_timings,omitempty"`
+	DataAge      *dataAge               `json:"data_age"`
+	StatusCode   int                    `json:"status"`
+	Errors       []error                `json:"errors"`
+	Metadata     map[string]interface{} `json:"metadata"`
+	Data         ITable[C, R]           `json:"result"`
 }
 
 // --- IResponseData
@@ -128,6 +135,21 @@ func (r *Response[C, R]) SetData(t ITable[C, R]) {
 // Interface: [IResponseData]
 func (r *Response[C, R]) GetData() ITable[C, R] {
 	return r.Data
+}
+
+// Set response metadata, this can include relevant info
+// such as query string values and filter requests
+//
+// Interface: [IResponseMetadata]
+func (r *Response[C, R]) SetMetadata(k string, v interface{}) {
+	r.Metadata[k] = v
+}
+
+// GetMetadata
+//
+// Interface: [IResponseMetadata]
+func (r *Response[C, R]) GetMetadata() map[string]interface{} {
+	return r.Metadata
 }
 
 // --- IErrorWithStatus
@@ -300,6 +322,7 @@ func NewResponse[C ICell, R IRow[C]]() IResponse[C, R] {
 		StatusCode:   http.StatusOK,
 		Errors:       []error{},
 		Data:         NewTable[C, R](),
+		Metadata:     map[string]interface{}{},
 	}
 }
 

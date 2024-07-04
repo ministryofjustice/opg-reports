@@ -55,6 +55,9 @@ func (a *Api[V, F, C, R]) UnitEnvironmentServices(w http.ResponseWriter, r *http
 	store := a.Store()
 	startDate, endDate := a.startAndEndDates(r)
 
+	resp.SetMetadata("StartDate", startDate)
+	resp.SetMetadata("EndDate", endDate)
+
 	errs := resp.GetError()
 
 	if len(errs) == 0 {
@@ -129,6 +132,8 @@ func (a *Api[V, F, C, R]) UnitEnvironments(w http.ResponseWriter, r *http.Reques
 	resp := a.GetResponse()
 	store := a.Store()
 	startDate, endDate := a.startAndEndDates(r)
+	resp.SetMetadata("StartDate", startDate)
+	resp.SetMetadata("EndDate", endDate)
 
 	errs := resp.GetError()
 	if len(errs) == 0 {
@@ -197,6 +202,8 @@ func (a *Api[V, F, C, R]) Units(w http.ResponseWriter, r *http.Request) {
 	resp := a.GetResponse()
 	store := a.Store()
 	startDate, endDate := a.startAndEndDates(r)
+	resp.SetMetadata("StartDate", startDate)
+	resp.SetMetadata("EndDate", endDate)
 
 	errs := resp.GetError()
 	if len(errs) == 0 {
@@ -298,6 +305,8 @@ func (a *Api[V, F, C, R]) Totals(w http.ResponseWriter, r *http.Request) {
 	resp := a.GetResponse()
 	store := a.Store()
 	startDate, endDate := a.startAndEndDates(r)
+	resp.SetMetadata("StartDate", startDate)
+	resp.SetMetadata("EndDate", endDate)
 
 	slog.Info("[api/aws/costs/monthly] store count", slog.Int("count", len(store.List())))
 	errs := resp.GetError()

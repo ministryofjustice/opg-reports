@@ -9,8 +9,6 @@ import (
 	"opg-reports/services/front/tmpl"
 	"opg-reports/shared/dates"
 	"opg-reports/shared/server/response"
-	"strings"
-	"time"
 )
 
 type dynamicHandlerFunc func(w http.ResponseWriter, r *http.Request)
@@ -21,18 +19,7 @@ const billingDay int = 13
 // Dynamic handles all end points that require data from the api.
 func (s *FrontWebServer) Dynamic(w http.ResponseWriter, r *http.Request) {
 	slog.Info("dynamic handler starting", slog.String("uri", r.RequestURI))
-
 	data := s.Nav.Data(r)
-	now := time.Now().UTC()
-	end := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
-	if now.Day() < billingDay {
-		end = end.AddDate(0, -2, 0)
-	} else {
-		end = end.AddDate(0, -1, 0)
-	}
-	start := end.AddDate(0, -9, 0)
-	months := dates.Months(start, end)
-	days := dates.Days(start, end)
 
 	active := s.Nav.Active(r)
 	// TODO - handle this issue with a redirect to root?
@@ -44,20 +31,15 @@ func (s *FrontWebServer) Dynamic(w http.ResponseWriter, r *http.Request) {
 	// Setup data object for the templates
 	data["Organisation"] = s.Config.Organisation
 	data["PageTitle"] = active.Name + " - "
-	data["Now"] = now
-	data["StartDate"] = start
-	data["EndDate"] = end
-	data["Months"] = months
-	data["Days"] = days
 	data["Standards"] = s.Config.Standards
 	data["Result"] = nil
 
 	usePrefix := len(active.Api) > 1
 	// Handle multiple api calls for one page
-	for apiResultName, apiUrl := range active.Api {
+	urls, _ := active.ApiUrls()
+	for apiResultName, apiUrl := range urls {
 		// Call API!
-		path := urlParse(apiUrl, now, start, end)
-		u := Url(s.ApiScheme, s.ApiAddr, path)
+		u := Url(s.ApiScheme, s.ApiAddr, apiUrl)
 		apiResp, err := s.handleApiCall(u)
 		// no error from the api, and no error from parsing the api resposne
 		// into local data, then set to the data map ready for the template parsing
@@ -106,6 +88,21 @@ func (s *FrontWebServer) parseResponse(apiResp *http.Response) (data map[string]
 		slog.Error("parse error")
 		return
 	}
+	// get meta data
+	if meta := resp.GetMetadata(); meta != nil {
+		data["Metadata"] = meta
+		start, sOk := meta["StartDate"]
+		end, eOK := meta["EndDate"]
+		if sOk && eOK {
+			startDate, _ := dates.StringToDate(start.(string))
+			endDate, _ := dates.StringToDate(end.(string))
+			data["StartDate"] = startDate
+			data["EndDate"] = endDate
+			data["Months"] = dates.Months(startDate, endDate)
+
+		}
+	}
+
 	// get min / max times
 	if min := resp.GetDataAgeMin(); min.Format(dates.FormatY) != dates.ErrYear {
 		data["DataAgeMin"] = min
@@ -147,23 +144,4 @@ func (s *FrontWebServer) handleApiCall(u *url.URL) (apiResp *http.Response, err 
 	// call the api
 	slog.Info("calling api", slog.String("url", u.String()))
 	return GetUrl(u.String())
-}
-
-// Parse out segements of the url that we typically replace with real values
-func urlParse(url string, now time.Time, start time.Time, end time.Time) string {
-
-	replacers := map[string]string{
-		"apiVersion": apiVersion,
-		"nowYM":      now.Format(dates.FormatYM),
-		"nowYMD":     now.Format(dates.FormatYMD),
-		"startYM":    start.Format(dates.FormatYM),
-		"startYMD":   start.Format(dates.FormatYMD),
-		"endYM":      end.Format(dates.FormatYM),
-		"endYMD":     end.Format(dates.FormatYMD),
-	}
-	for key, value := range replacers {
-		url = strings.ReplaceAll(url, fmt.Sprintf("{%s}", key), value)
-	}
-
-	return url
 }

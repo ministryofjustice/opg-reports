@@ -5,6 +5,15 @@ import (
 	"time"
 )
 
+func MonthsS(start string, end string) (t []time.Time) {
+	s, er1 := StringToDate(start)
+	e, er2 := StringToDate(end)
+	if er1 == nil && er2 == nil {
+		t = Months(s, e)
+	}
+	return
+}
+
 // Months returns a slice of time.Time for every month between the start & end values passed
 func Months(start time.Time, end time.Time) []time.Time {
 	// reset the days to be the first day of each
