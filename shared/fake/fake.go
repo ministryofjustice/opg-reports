@@ -37,8 +37,6 @@ func IntAsStr(min int, max int) string {
 // Float creates a float between the min & max
 func Float(min float64, max float64) float64 {
 	return min + rand.Float64()*(max-min)
-	// return​ ​min​ ​+​ ​rand​.​Float64​()​*​(​fr​.​max​-​fr​.​min​)
-	// return rand.Float64()
 }
 
 // FloatAsStr generates a string version of a randomised float
