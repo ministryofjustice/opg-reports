@@ -233,7 +233,7 @@ func (r *Response[C, R]) SetDataAge(times ...time.Time) {
 		r.DataAge.All = []int64{}
 	} else {
 		for _, t := range times {
-			r.DataAge.All = append(r.DataAge.All, t.UnixMilli())
+			r.DataAge.All = append(r.DataAge.All, t.UnixMicro())
 		}
 	}
 }
@@ -247,7 +247,7 @@ func (r *Response[C, R]) GetDataAgeMin() (t time.Time) {
 		return *r.DataAge.Min
 	} else if len(r.DataAge.All) > 0 {
 		min := slices.Min(r.DataAge.All)
-		t = time.UnixMilli(min).UTC()
+		t = time.UnixMicro(min).UTC()
 		r.DataAge.Min = &t
 	}
 	return t

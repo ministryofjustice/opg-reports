@@ -106,10 +106,10 @@ func TestSharedServerResponseRequestDataAge(t *testing.T) {
 	minT := resp.GetDataAgeMin()
 	maxT := resp.GetDataAgeMax()
 
-	if minT != min {
+	if minT.UnixMicro() != min.UnixMicro() {
 		t.Errorf(fmt.Sprintf("min failed. actual [%+v] expected [%+v]", minT, min))
 	}
-	if maxT != now {
+	if maxT.UnixMicro() != now.UnixMicro() {
 		t.Errorf(fmt.Sprintf("max failed. actual [%+v] expected [%+v]", maxT, now))
 		fmt.Printf("%+v\n", maxT)
 		fmt.Printf("%+v\n", now)
