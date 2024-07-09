@@ -93,7 +93,7 @@ func TestSharedServerResponseRequestStatus(t *testing.T) {
 func TestSharedServerResponseRequestDataAge(t *testing.T) {
 	resp := NewResponse[ICell, IRow[ICell]]()
 	now := time.Now().UTC()
-	min := now.AddDate(-1, 0, 0)
+	min := now.AddDate(-1, 0, 0).UTC()
 	ds := []time.Time{
 		fake.Date(min, now),
 		min,
@@ -107,12 +107,10 @@ func TestSharedServerResponseRequestDataAge(t *testing.T) {
 	maxT := resp.GetDataAgeMax()
 
 	if minT != min {
-		t.Errorf("min failed")
-		fmt.Printf("%+v\n", minT)
-		fmt.Printf("%+v\n", min)
+		t.Errorf(fmt.Sprintf("min failed. actual [%+v] expected [%+v]", minT, min))
 	}
 	if maxT != now {
-		t.Errorf("max failed")
+		t.Errorf(fmt.Sprintf("max failed. actual [%+v] expected [%+v]", maxT, now))
 		fmt.Printf("%+v\n", maxT)
 		fmt.Printf("%+v\n", now)
 	}
