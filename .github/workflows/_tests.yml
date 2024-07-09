@@ -30,6 +30,9 @@ jobs:
           go-junit-report -parser gojson -in test-results.json -out report.xml || true
           ls -larth ./test-results.json
           ls -larth ./report.xml
+      - name: "debug"
+        run: |
+          cat ./report.xml
         # generate test report for this run
       - name: Test Report
         id: report
