@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"log/slog"
 	"net/http"
 )
@@ -64,8 +63,7 @@ func SecurityHeadersMW(w http.ResponseWriter, r *http.Request) {
 // LoggingMW uses the default structured log instance to output
 // some information about the incoming request
 func LoggingMW(w http.ResponseWriter, r *http.Request) {
-	slog.Info(
-		fmt.Sprintf("request"),
+	slog.Info("request",
 		slog.String("request_method", r.Method),
 		slog.String("request_uri", r.URL.String()),
 	)

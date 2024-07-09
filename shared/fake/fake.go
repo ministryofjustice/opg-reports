@@ -1,4 +1,4 @@
-// Package fake providers some helper functions to generate fake data for mocking / testing
+// Package fake provides some helper functions to generate fake data for mocking / testing
 package fake
 
 import (

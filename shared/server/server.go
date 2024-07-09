@@ -17,6 +17,7 @@ package server
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"opg-reports/shared/data"
 	"opg-reports/shared/files"
@@ -84,12 +85,14 @@ type Api[V data.IEntry, F files.IReadFS, C response.ICell, R response.IRow[C]] s
 // Store provides a data store to fetch info for processing within the request.
 // Currently, this would be data read in from a series of files
 func (a *Api[V, F, C, R]) Store() data.IStore[V] {
+	slog.Debug("getting store")
 	return a.store
 }
 
 // FS returns the reader filesystem helper for this running api - so can
 // get any files etc
 func (a *Api[V, F, C, R]) FS() F {
+	slog.Debug("getting FS")
 	return a.fs
 }
 
@@ -102,12 +105,14 @@ func (a *Api[V, F, C, R]) Register(mux *http.ServeMux) {}
 
 // Write uses the status and content to return info to the client
 func (a *Api[V, F, C, R]) Write(w http.ResponseWriter, status int, content []byte) {
+	slog.Debug("writing response", slog.Int("status", status))
 	w.WriteHeader(status)
 	w.Write(content)
 }
 
 // GetResponse returns the existing response item, allowing handlers to add result data
 func (a *Api[V, F, C, R]) GetResponse() response.IResponse[C, R] {
+	slog.Debug("return existing response")
 	return a.resp
 }
 
@@ -115,12 +120,17 @@ func (a *Api[V, F, C, R]) GetResponse() response.IResponse[C, R] {
 // the Start() function, as it will blank any existing data that should be
 // sent back in the response
 func (a *Api[V, F, C, R]) GetNewResponse() response.IResponse[C, R] {
+	slog.Debug("create new response")
 	a.resp = response.NewResponse[C, R]()
 	return a.resp
 }
 
 // Start generates a new repsonse and then sets the start time of the request
 func (a *Api[V, F, C, R]) Start(w http.ResponseWriter, r *http.Request) {
+	slog.Debug("request start",
+		slog.String("request_method", r.Method),
+		slog.String("request_uri", r.URL.String()))
+
 	a.GetNewResponse().SetStart()
 }
 
@@ -135,7 +145,14 @@ func (a *Api[V, F, C, R]) End(w http.ResponseWriter, r *http.Request) {
 	resp.GetDataAgeMax()
 
 	content, _ := json.MarshalIndent(resp, "", "  ")
-	a.Write(w, resp.GetStatus(), content)
+	status := resp.GetStatus()
+
+	slog.Info("request end",
+		slog.Int("status", status),
+		slog.String("request_method", r.Method),
+		slog.String("request_uri", r.URL.String()))
+
+	a.Write(w, status, content)
 }
 
 // NewApi generates a new Api instance

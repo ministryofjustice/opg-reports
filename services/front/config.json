@@ -73,7 +73,7 @@
                     "sections": [
                         {
                             "name": "Service uptime",
-                            "href": "/uptime-incidents/uptime"
+                            "href": "/uptime-incidents/uptime/"
                         }
                     ]
                 }
