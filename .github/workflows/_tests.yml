@@ -32,6 +32,7 @@ jobs:
           ls -larth ./report.xml
       - name: "debug"
         run: |
+          go test -v -json ./...
           cat ./report.xml
         # generate test report for this run
       - name: Test Report
