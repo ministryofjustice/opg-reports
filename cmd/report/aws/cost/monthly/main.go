@@ -49,7 +49,7 @@ func run(r report.IReport) {
 	startDate := m
 	endDate := m.AddDate(0, 1, 0)
 	roleArn := arn.RoleArn(id, roleName)
-	raw, err := cost.CostAndUsage(roleArn, startDate, endDate, reg, costexplorer.GranularityMonthly, dates.FormatYMD)
+	raw, err := cost.CostAndUsage(roleArn, startDate, endDate, reg, costexplorer.GranularityDaily, dates.FormatYMD)
 	if err != nil {
 		slog.Error(fmt.Sprintf("error: %v", err.Error()))
 		panic(err.Error())
