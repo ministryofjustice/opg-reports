@@ -1,0 +1,39 @@
+name: "[Reports] Repository Standards"
+
+on:
+  schedule:
+    # 9am saturday
+    - cron: '0 9 * * 6'
+  workflow_dispatch:
+
+jobs:
+  # run all tests
+  tests:
+    name: "[Tests]"
+    uses: './.github/workflows/_tests.yml'
+    secrets: inherit
+
+  report:
+    needs: [tests]
+    name: "Repository standards"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "checkout"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: "setup go"
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: './go.mod'
+      - name: "Run report"
+        env:
+          GITHUB_ACCESS_TOKEN: ${{ secrets.ORG_ACCESS_TOKEN }}
+          baseDir: './cmd/report/github/standards'
+          organisation: "ministryofjustice"
+          team: "opg"
+        run: |
+          cd ${{ env.baseDir }}
+          mkdir -p ./data
+          go run main.go -organisation ${{ env.organisation }} -team ${{ env.team }}
+          ls -lart ./data

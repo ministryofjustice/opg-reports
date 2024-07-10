@@ -1,0 +1,17 @@
+{{ define "top-navigation" }}
+{{ if not ( eq (len .NavigationTop) 0) }}
+<nav id="app-navigation" class="app-navigation js-app-navigation govuk-clearfix" role="navigation" aria-labelledby="app-navigation-heading">
+    <h2 class="govuk-visually-hidden" id="app-navigation-heading">Menu</h2>
+    <ul class="app-navigation__list app-width-container">
+      {{ $active := .NavigationTopActive }}
+      {{ range .NavigationTop }}
+        {{ if not .Exclude }}
+          <li class="app-navigation__list-item {{if eq $active.Href .Href}} active {{end}} ">
+            <a class="govuk-link govuk-link--no-visited-state govuk-link--no-underline app-navigation__link" href="{{ .Href }}">{{ .Name }}</a>
+          </li>
+        {{ end }}
+      {{ end }}
+    </ul>
+</nav>
+{{ end }}
+{{ end }}
