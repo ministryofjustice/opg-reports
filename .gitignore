@@ -4,10 +4,20 @@
 **data**/*
 # build dir
 builds/*
-# code coverage output file
+# code coverage and test output files
 code-coverage.out
+report.xml
+test-results.json
 # assets pulled over from govuk via make
 **/assets/css*
 **/assets/fonts*
 **/assets/images*
 **/assets/manifest.json
+# terraform folders and files
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+
+#
+accounts.yml

@@ -28,12 +28,7 @@ jobs:
           echo "" > report.xml
           go test -v -json ./... > test-results.json 2>&1 || true
           go-junit-report -parser gojson -in test-results.json -out report.xml || true
-      # - name: "debug"
-      #   run: |
-      #     ls -larth ./test-results.json
-      #     ls -larth ./report.xml
-      #     go test -v -json ./...
-      #     cat ./report.xml
+
       # generate test report for this run
       - name: Test Report
         id: report

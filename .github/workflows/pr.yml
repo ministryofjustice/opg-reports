@@ -6,15 +6,15 @@ on:
 
 jobs:
   # run all tests
-  tests:
-    name: "[Tests]"
+  go_tests:
+    name: "[Go] Tests"
     uses: './.github/workflows/_tests.yml'
     secrets: inherit
 
   build:
     runs-on: ubuntu-latest
     name: "Build"
-    needs: [tests]
+    needs: [go_tests]
     steps:
       - name: "Checkout self"
         uses: actions/checkout@v4
@@ -30,7 +30,7 @@ jobs:
   end:
     name: 'End of workflow'
     runs-on: 'ubuntu-latest'
-    needs: [tests, build]
+    needs: [go_tests, build]
     steps:
       - id: end
         name: End
