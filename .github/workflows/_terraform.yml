@@ -63,13 +63,9 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ inputs.version }}
-      - name: "Lint Terraform"
+      - name: "Lint"
         id: lint
         run: terraform fmt -check -recursive
-      # - name: "SSH Agent"
-      #   uses: webfactory/ssh-agent@v0.9.0
-      #   with:
-      #     ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
       - name: "Configure AWS Credentials For Terraform"
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -84,7 +80,14 @@ jobs:
       - name: "Plan"
         env:
           TF_WORKSPACE: ${{ inputs.workspace }}
+          PLAN_FILE: ${{ inputs.workspace }}.plan
         run: |
           terraform init -input=false -lock-timeout=300s
+          echo -e "workspace:"
           terraform workspace show
-          terraform plan -lock-timeout=300s -input=false -out=terraform.plan -parallelism=30
+          terraform plan -lock-timeout=300s -input=false -out=${{ env.PLAN_FILE }} -parallelism=30
+      - name: Output Plan
+        env:
+          PLAN_FILE: ${{ inputs.workspace }}.plan
+        run: |
+          cat ${{ env.PLAN_FILE }}
