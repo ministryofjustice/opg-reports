@@ -47,7 +47,8 @@ jobs:
     secrets: inherit
 
   # run account level terraform
-  terraform_account:
+  terraform_development_account:
+    if: ${{ github.ref != 'refs/heads/main' }}
     needs: [setup]
     name: "[Terraform] Account"
     uses: './.github/workflows/_terraform.yml'
@@ -56,12 +57,12 @@ jobs:
       directory: ./terraform/account
       workspace: development
       version: ${{ needs.setup.outputs.terraform_version_account }}
-      register_ephemeral: ${{ github.ref != 'refs/heads/main' }}
+      is_ephemeral: false
     secrets: inherit
 
   # run env level terraform
   terraform_environment:
-    needs: [setup]
+    needs: [setup, terraform_development_account]
     name: "[Terraform] Environment"
     uses: './.github/workflows/_terraform.yml'
     with:
@@ -69,7 +70,7 @@ jobs:
       directory: ./terraform/environment
       workspace: ${{ needs.setup.outputs.terraform_workspace }}
       version: ${{ needs.setup.outputs.terraform_version_environment }}
-      register_ephemeral: ${{ github.ref != 'refs/heads/main' }}
+      is_ephemeral: ${{ github.ref != 'refs/heads/main' }}
     secrets: inherit
 
 
@@ -93,7 +94,7 @@ jobs:
   end:
     name: 'End of workflow'
     runs-on: 'ubuntu-latest'
-    needs: [go_tests, terraform_account, terraform_environment]
+    needs: [go_tests, terraform_environment]
     steps:
       - id: end
         name: End

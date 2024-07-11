@@ -21,7 +21,7 @@ on:
         type: boolean
         required: true
         default: false
-      register_ephemeral:
+      is_ephemeral:
         description: "Boolean to determine if this is an ephemeral environment that we need to track"
         type: boolean
         required: true
@@ -77,6 +77,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
           aws-region: eu-west-1
           role-session-name: GitHubActionsOpgReports
+
       - name: "Plan"
         env:
           TF_WORKSPACE: ${{ inputs.workspace }}
