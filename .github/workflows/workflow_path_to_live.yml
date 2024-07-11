@@ -45,9 +45,6 @@ jobs:
       directory: ./terraform/account
       workspace: development
       version: ${{ needs.setup.outputs.terraform_version_account }}
-      is_ephemeral: false
-      account: ${{ needs.setup.outputs.development_account_id }}
-      role: ${{ needs.setup.outputs.role }}
     secrets: inherit
 
   terraform_production_account:
@@ -59,9 +56,6 @@ jobs:
       directory: ./terraform/account
       workspace: production
       version: ${{ needs.setup.outputs.terraform_version_account }}
-      is_ephemeral: false
-      account: ${{ needs.setup.outputs.production_account_id }}
-      role: ${{ needs.setup.outputs.role }}
     secrets: inherit
 
 
