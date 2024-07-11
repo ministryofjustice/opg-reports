@@ -8,7 +8,7 @@ on:
         description: "Terraform workspace to use"
         type: string
         required: true
-        default: "dev"
+        default: "development"
       version:
         description: "Terraform version to use"
         type: string
