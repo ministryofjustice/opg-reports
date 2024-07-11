@@ -23,7 +23,7 @@ jobs:
         name: "Get terraform workspace name"
         uses: ministryofjustice/opg-github-actions/.github/actions/safe-strings@v3.0.6
         with:
-          original: ${{ steps.branch.outputs.branch_name }}
+          original: ${{ steps.branch_name.outputs.branch_name }}
           conditional_match: "main"
           conditional_value: "production"
           suffix: ${{ github.event.number }}
@@ -76,6 +76,7 @@ jobs:
 
   # helper to output summary of steps
   summary:
+    name: "Summary"
     if: always()
     needs: [setup]
     runs-on: ubuntu-latest
