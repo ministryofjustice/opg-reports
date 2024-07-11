@@ -10,7 +10,3 @@ repos:
     rev: v1.86.0
     hooks:
       - id: terraform_fmt
-      - id: terraform_tflint
-        args:
-          - --args=--recursive
-          - --disable-rule terraform_module_pinned_source
