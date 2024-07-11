@@ -89,12 +89,6 @@ jobs:
     needs: [setup]
     runs-on: ubuntu-latest
     steps:
-      - name: "Branch"
-        run: |
-          echo "### Branch info" >> $GITHUB_STEP_SUMMARY
-          echo "| Variable | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "| --- | --- |"  >> $GITHUB_STEP_SUMMARY
-          echo "| branch name | ${{ needs.setup.outputs.branch_name }} |"  >> $GITHUB_STEP_SUMMARY
       - name: "Terraform"
         run: |
           echo "### Terraform info" >> $GITHUB_STEP_SUMMARY
