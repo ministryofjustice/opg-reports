@@ -1,6 +1,6 @@
 locals {
-  environment_name  = lower(replace(terraform.workspace, "_", "-"))
-  environment       = contains(keys(var.environments), local.environment_name) ? var.environments[local.environment_name] : var.environments["default"]
+  environment_name = lower(replace(terraform.workspace, "_", "-"))
+  environment      = contains(keys(var.environments), local.environment_name) ? var.environments[local.environment_name] : var.environments["default"]
 
   mandatory_moj_tags = {
     business-unit    = "OPG"
@@ -39,8 +39,8 @@ variable "management_role" {
 variable "environments" {
   type = map(
     object({
-      account_id     = string
-      account_name   = string
+      account_id   = string
+      account_name = string
     })
   )
 }
