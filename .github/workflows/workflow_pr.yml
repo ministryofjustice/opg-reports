@@ -1,4 +1,4 @@
-name: "[PR] Workflow"
+name: "[Workflow] Pull Request"
 
 on:
   pull_request:
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       branch_name: ${{ steps.branch_name.outputs.branch_name }}
-      terraform_workspace: ${{ steps.terraform_workspace.outputs.trimmed }}
+      terraform_workspace: ${{ steps.terraform_workspace.outputs.safe }}
       terraform_version_account: ${{ steps.terraform_account_version.outputs.version }}
       terraform_version_environment: ${{ steps.terraform_environment_version.outputs.version }}
     steps:
@@ -81,8 +81,7 @@ jobs:
     needs: [setup]
     runs-on: ubuntu-latest
     steps:
-      - name: "Summary"
-        run: |
+      - run: |
           echo "### Setup" >> $GITHUB_STEP_SUMMARY
           echo "| Variable | Value |" >> $GITHUB_STEP_SUMMARY
           echo "| --- | --- |"  >> $GITHUB_STEP_SUMMARY
