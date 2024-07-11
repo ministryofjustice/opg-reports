@@ -80,12 +80,6 @@ jobs:
       - name: "Init"
         run: |
           terraform init -input=false -lock-timeout=300s
-      - name: "Workspace setup"
-        env:
-          TF_WORKSPACE: ${{ inputs.workspace }}
-        run: |
-          terraform workspace new ${{ env.TF_WORKSPACE }} || true
-          terraform workspace list
       - name: "Plan"
         env:
           TF_WORKSPACE: ${{ inputs.workspace }}
