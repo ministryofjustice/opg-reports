@@ -73,21 +73,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
           aws-region: eu-west-1
           role-session-name: GitHubActionsOpgReports
-      - name: "Workspace"
+      - name: "Init"
         run: |
           terraform init -input=false -lock-timeout=300s
-          terraform workspace new ${{ inputs.workspace }} || true
       - name: "Plan"
         env:
           TF_WORKSPACE: ${{ inputs.workspace }}
           PLAN_FILE: ${{ inputs.workspace }}.plan
         run: |
-          terraform init -input=false -lock-timeout=300s
           echo -e "workspace:"
           terraform workspace show
           terraform plan -lock-timeout=300s -input=false -out=${{ env.PLAN_FILE }} -parallelism=30
-      - name: Output Plan
-        env:
-          PLAN_FILE: ${{ inputs.workspace }}.plan
-        run: |
-          cat ${{ env.PLAN_FILE }}
