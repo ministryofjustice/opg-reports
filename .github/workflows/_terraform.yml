@@ -32,8 +32,8 @@ on:
         required: true
       AWS_SECRET_ACCESS_KEY_ACTIONS:
         required: true
-      SSH_PRIVATE_KEY:
-        required: false
+      # SSH_PRIVATE_KEY:
+      #   required: false
 
 permissions:
   contents: write
@@ -66,10 +66,10 @@ jobs:
       - name: "Lint Terraform"
         id: lint
         run: terraform fmt -check -recursive
-      - name: "SSH Agent"
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      # - name: "SSH Agent"
+      #   uses: webfactory/ssh-agent@v0.9.0
+      #   with:
+      #     ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
       - name: "Configure AWS Credentials For Terraform"
         uses: aws-actions/configure-aws-credentials@v4
         with:
