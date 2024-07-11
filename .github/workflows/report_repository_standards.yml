@@ -28,7 +28,7 @@ jobs:
           go-version-file: './go.mod'
       - name: "Run report"
         env:
-          GITHUB_ACCESS_TOKEN: ${{ secrets.ORG_ACCESS_TOKEN }}
+          GITHUB_ACCESS_TOKEN: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
           baseDir: './cmd/report/github/standards'
           organisation: "ministryofjustice"
           team: "opg"
