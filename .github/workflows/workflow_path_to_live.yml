@@ -48,7 +48,7 @@ jobs:
     secrets: inherit
 
   terraform_production_account:
-    needs: [setup]
+    needs: [setup, terraform_development_account]
     name: "[Terraform] Production Account"
     uses: './.github/workflows/_terraform.yml'
     with:
@@ -61,7 +61,7 @@ jobs:
 
   # run env level terraform
   terraform_environment:
-    needs: [setup, terraform_development_account]
+    needs: [setup, terraform_production_account, terraform_development_account]
     name: "[Terraform] Environment"
     uses: './.github/workflows/_terraform.yml'
     with:
