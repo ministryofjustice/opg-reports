@@ -86,10 +86,10 @@ jobs:
           echo "### Setup" >> $GITHUB_STEP_SUMMARY
           echo "| Variable | Value |" >> $GITHUB_STEP_SUMMARY
           echo "| --- | --- |"  >> $GITHUB_STEP_SUMMARY
-          echo "| branch name | ${{ needs.setup.branch_name }} |"  >> $GITHUB_STEP_SUMMARY
-          echo "| terraform workspace | ${{ needs.setup.terraform_workspace }} |"  >> $GITHUB_STEP_SUMMARY
-          echo "| terraform account version | ${{ needs.setup.terraform_version_account }} |"  >> $GITHUB_STEP_SUMMARY
-          echo "| terraform environment version | ${{ needs.setup.terraform_version_environment }} |"  >> $GITHUB_STEP_SUMMARY
+          echo "| branch name | ${{ needs.setup.outputs.branch_name }} |"  >> $GITHUB_STEP_SUMMARY
+          echo "| terraform workspace | ${{ needs.setup.outputs.terraform_workspace }} |"  >> $GITHUB_STEP_SUMMARY
+          echo "| terraform account version | ${{ needs.setup.outputs.terraform_version_account }} |"  >> $GITHUB_STEP_SUMMARY
+          echo "| terraform environment version | ${{ needs.setup.outputs.terraform_version_environment }} |"  >> $GITHUB_STEP_SUMMARY
 
 
   end:
