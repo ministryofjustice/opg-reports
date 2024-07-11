@@ -63,11 +63,6 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ inputs.version }}
-      - name: "Workspace setup"
-        env:
-          TF_WORKSPACE: ${{ inputs.workspace }}
-        run: |
-          terraform workspace new ${{ env.TF_WORKSPACE }} || true
       - name: "Lint Terraform"
         id: lint
         run: terraform fmt -check -recursive
@@ -82,9 +77,18 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
           aws-region: eu-west-1
           role-session-name: GitHubActionsOpgReports
+      - name: "Init"
+        run: |
+          terraform init -input=false -lock-timeout=300s
+      - name: "Workspace setup"
+        env:
+          TF_WORKSPACE: ${{ inputs.workspace }}
+        run: |
+          terraform workspace new ${{ env.TF_WORKSPACE }} || true
+          terraform workspace list
       - name: "Plan"
         env:
           TF_WORKSPACE: ${{ inputs.workspace }}
         run: |
-          terraform init -input=false -lock-timeout=300s
+          terraform workspace show
           terraform plan -lock-timeout=300s -input=false -out=terraform.plan -parallelism=30
