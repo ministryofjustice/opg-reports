@@ -12,8 +12,6 @@ jobs:
       terraform_workspace: production
       terraform_version_account: ${{ steps.terraform_account_version.outputs.version }}
       terraform_version_environment: ${{ steps.terraform_environment_version.outputs.version }}
-      development_account_id: "679638075911"
-      production_account_id: "997462338508"
       role: "docs-and-metadata-ci"
     steps:
       - name: "Checkout"
@@ -35,7 +33,7 @@ jobs:
     uses: './.github/workflows/_tests.yml'
     secrets: inherit
 
-  # run account level terraform
+  # run dev level account terraform
   terraform_development_account:
     needs: [setup]
     name: "[Terraform] Development Account"
@@ -47,36 +45,49 @@ jobs:
       version: ${{ needs.setup.outputs.terraform_version_account }}
     secrets: inherit
 
-  terraform_production_account:
+  # run dev level environment terraform
+  terraform_development_environment:
     needs: [setup, terraform_development_account]
-    name: "[Terraform] Production Account"
+    name: "[Terraform] Development Environment"
     uses: './.github/workflows/_terraform.yml'
     with:
       apply: true
-      directory: ./terraform/account
-      workspace: production
-      version: ${{ needs.setup.outputs.terraform_version_account }}
-    secrets: inherit
-
-
-  # run env level terraform
-  terraform_environment:
-    needs: [setup, terraform_production_account, terraform_development_account]
-    name: "[Terraform] Environment"
-    uses: './.github/workflows/_terraform.yml'
-    with:
-      apply: false
       directory: ./terraform/environment
-      workspace: production
+      workspace: development
       version: ${{ needs.setup.outputs.terraform_version_environment }}
     secrets: inherit
+
+  # run prod level account
+  # terraform_production_account:
+  #   needs: [setup, terraform_development_environment ]
+  #   name: "[Terraform] Production Account"
+  #   uses: './.github/workflows/_terraform.yml'
+  #   with:
+  #     apply: true
+  #     directory: ./terraform/account
+  #     workspace: production
+  #     version: ${{ needs.setup.outputs.terraform_version_account }}
+  #   secrets: inherit
+
+
+  # # run prod level environment terraform
+  # terraform_production_environment:
+  #   needs: [setup, terraform_production_account]
+  #   name: "[Terraform] Production Environment"
+  #   uses: './.github/workflows/_terraform.yml'
+  #   with:
+  #     apply: true
+  #     directory: ./terraform/environment
+  #     workspace: production
+  #     version: ${{ needs.setup.outputs.terraform_version_environment }}
+  #   secrets: inherit
 
 
   # helper to output summary of steps
   summary:
     name: "Summary"
     if: always()
-    needs: [setup]
+    needs: [setup, terraform_production_environment]
     runs-on: ubuntu-latest
     steps:
       - name: "Terraform"
@@ -92,7 +103,7 @@ jobs:
   end:
     name: 'End of workflow'
     runs-on: 'ubuntu-latest'
-    needs: [go_tests, terraform_environment]
+    needs: [go_tests, terraform_development_environment, terraform_production_environment]
     steps:
       - id: end
         name: End
