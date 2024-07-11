@@ -26,10 +26,6 @@ variable "default_role" {
   default = "docs-and-metadata-ci"
 }
 
-variable "ci_role" {
-  type    = string
-  default = "docs-and-metadata-ci"
-}
 
 variable "management_role" {
   type    = string
