@@ -54,7 +54,7 @@ jobs:
     with:
       apply: false
       directory: ./terraform/account
-      workspace: ${{ needs.setup.outputs.terraform_workspace }}
+      workspace: development
       version: ${{ needs.setup.outputs.terraform_version_account }}
       register_ephemeral: ${{ github.ref != 'refs/heads/main' }}
     secrets: inherit

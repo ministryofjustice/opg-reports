@@ -63,6 +63,11 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ inputs.version }}
+      - name: "Workspace setup"
+        env:
+          TF_WORKSPACE: ${{ inputs.workspace }}
+        run: |
+          terraform workspace new ${{ env.TF_WORKSPACE }} || true
       - name: "Lint Terraform"
         id: lint
         run: terraform fmt -check -recursive
