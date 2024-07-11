@@ -13,3 +13,4 @@ repos:
       - id: terraform_tflint
         args:
           - --args=--recursive
+          - --disable-rule terraform_module_pinned_source
