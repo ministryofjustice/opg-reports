@@ -10,3 +10,15 @@ terraform {
   }
 
 }
+
+provider "aws" {
+  region = "eu-west-1"
+
+  default_tags {
+    tags = local.default_tags
+  }
+  assume_role {
+    role_arn     = "arn:aws:iam::${local.environment.account_id}:role/${var.default_role}"
+    session_name = "terraform-session"
+  }
+}

@@ -13,6 +13,8 @@ jobs:
       terraform_workspace: ${{ steps.terraform_workspace.outputs.safe }}
       terraform_version_account: ${{ steps.terraform_account_version.outputs.version }}
       terraform_version_environment: ${{ steps.terraform_environment_version.outputs.version }}
+      development_account_id: "679638075911"
+      role: "docs-and-metadata-ci"
     steps:
       - name: "Checkout"
         uses: actions/checkout@v4
@@ -58,6 +60,8 @@ jobs:
       workspace: development
       version: ${{ needs.setup.outputs.terraform_version_account }}
       is_ephemeral: false
+      account: ${{ needs.setup.outputs.development_account_id }}
+      role: ${{ needs.setup.outputs.role }}
     secrets: inherit
 
   # run env level terraform
@@ -70,9 +74,11 @@ jobs:
       directory: ./terraform/environment
       workspace: ${{ needs.setup.outputs.terraform_workspace }}
       version: ${{ needs.setup.outputs.terraform_version_environment }}
-      is_ephemeral: ${{ github.ref != 'refs/heads/main' }}
+      # is_ephemeral: ${{ github.ref != 'refs/heads/main' }}
+      is_ephemeral: false
+      account: ${{ needs.setup.outputs.development_account_id }}
+      role: ${{ needs.setup.outputs.role }}
     secrets: inherit
-
 
 
   # helper to output summary of steps
