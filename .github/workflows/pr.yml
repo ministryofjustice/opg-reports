@@ -52,7 +52,7 @@ jobs:
     name: "[Terraform] Account"
     uses: './.github/workflows/_terraform.yml'
     with:
-      apply: ${{ github.ref == 'refs/heads/main' }}
+      apply: false
       directory: ./terraform/account
       workspace: ${{ needs.setup.outputs.terraform_workspace }}
       version: ${{ needs.setup.outputs.terraform_version_account }}
@@ -65,7 +65,7 @@ jobs:
     name: "[Terraform] Environment"
     uses: './.github/workflows/_terraform.yml'
     with:
-      apply: ${{ github.ref == 'refs/heads/main' }}
+      apply: false
       directory: ./terraform/environment
       workspace: ${{ needs.setup.outputs.terraform_workspace }}
       version: ${{ needs.setup.outputs.terraform_version_environment }}
