@@ -35,7 +35,8 @@ variable "restrict_public_buckets" {
 
 variable "kms_key_id" {
   type        = string
-  description = "KMS key to encrypt s3 bucket with"
+  description = "KMS key to encrypt s3 bucket with. If null uses the default key aws/s3."
+  nullable    = true
 }
 
 variable "enable_lifecycle" {
