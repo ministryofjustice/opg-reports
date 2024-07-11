@@ -1,6 +1,6 @@
 locals {
-  environment       = contains(keys(var.environments), terraform.workspace) ? var.environments[terraform.workspace] : var.environments["default"]
-  environment_name  = terraform.workspace == "production" ? "production" : "development"
+  environment_name  = lower(replace(terraform.workspace, "_", "-"))
+  environment       = contains(keys(var.environments), local.environment_name) ? var.environments[local.environment_name] : var.environments["default"]
 
   mandatory_moj_tags = {
     business-unit    = "OPG"
@@ -22,6 +22,11 @@ locals {
 }
 
 variable "default_role" {
+  type    = string
+  default = "docs-and-metadata-ci"
+}
+
+variable "ci_role" {
   type    = string
   default = "docs-and-metadata-ci"
 }
