@@ -55,7 +55,7 @@ TERRAFORM_VERSION_RANGE=$(cat ${file} | sed -r -n 's/.*required_version.*"(.*)"$
 # Now run tfswitch
 echo
 echo -e "Running tfswitch.."
-# tfswitch
+tfswitch
 
 # Now capture the version in use - can only do this after tfswitch has run
 # - strip quotes from the json output
