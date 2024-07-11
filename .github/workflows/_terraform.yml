@@ -34,7 +34,6 @@ on:
 
 permissions:
   contents: write
-  security-events: write
   pull-requests: read
   actions: none
   checks: none
