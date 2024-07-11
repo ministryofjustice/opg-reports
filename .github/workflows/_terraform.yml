@@ -23,23 +23,6 @@ on:
         required: true
         default: false
 
-      account:
-        description: "AWS account id where workspace manager is"
-        type: string
-        required: true
-      role:
-        description: "AWS role to access the workspace manager"
-        type: string
-        required: true
-      ttl:
-        description: "tiem to live in hours"
-        type: number
-        default: 12
-      is_ephemeral:
-        description: "Boolean to determine if this is an ephemeral environment that we need to track"
-        type: boolean
-        required: true
-        default: false
 
     secrets:
       AWS_ACCESS_KEY_ID_ACTIONS:
@@ -98,16 +81,6 @@ jobs:
           echo -e "workspace:"
           terraform workspace show
           terraform plan -lock-timeout=300s -input=false -out=${{ env.PLAN_FILE }} -parallelism=30
-      - name: "Register workspace"
-        if: inputs.is_ephemeral
-        uses: 'ministryofjustice/opg-github-actions/.github/actions/terraform-workspace-manager@v2.3.1'
-        with:
-            aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
-            aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
-            aws_account_id: ${{ inputs.account }}
-            aws_iam_role: ${{ inputs.role }}
-            register_workspace: ${{ inputs.workspace }}
-            time_to_protect: ${{ inputs.ttl }}
       - name: "Apply"
         if: inputs.apply
         env:

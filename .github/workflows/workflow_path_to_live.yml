@@ -1,7 +1,7 @@
-name: "[Workflow] Pull Request"
+name: "[Workflow] Path to live"
 
 on:
-  pull_request:
+  push:
     branches: [main]
 
 jobs:
@@ -9,10 +9,11 @@ jobs:
     name: "Setup"
     runs-on: ubuntu-latest
     outputs:
-      terraform_workspace: "development"
+      terraform_workspace: production
       terraform_version_account: ${{ steps.terraform_account_version.outputs.version }}
       terraform_version_environment: ${{ steps.terraform_environment_version.outputs.version }}
       development_account_id: "679638075911"
+      production_account_id: "997462338508"
       role: "docs-and-metadata-ci"
     steps:
       - name: "Checkout"
@@ -36,27 +37,48 @@ jobs:
 
   # run account level terraform
   terraform_development_account:
-    if: ${{ github.ref != 'refs/heads/main' }}
     needs: [setup]
     name: "[Terraform] Development Account"
     uses: './.github/workflows/_terraform.yml'
     with:
-      apply: false
+      apply: true
       directory: ./terraform/account
-      workspace: ${{ needs.setup.outputs.terraform_workspace }}
+      workspace: development
       version: ${{ needs.setup.outputs.terraform_version_account }}
+      is_ephemeral: false
+      account: ${{ needs.setup.outputs.development_account_id }}
+      role: ${{ needs.setup.outputs.role }}
     secrets: inherit
+
+  terraform_production_account:
+    needs: [setup]
+    name: "[Terraform] Production Account"
+    uses: './.github/workflows/_terraform.yml'
+    with:
+      apply: true
+      directory: ./terraform/account
+      workspace: production
+      version: ${{ needs.setup.outputs.terraform_version_account }}
+      is_ephemeral: false
+      account: ${{ needs.setup.outputs.production_account_id }}
+      role: ${{ needs.setup.outputs.role }}
+    secrets: inherit
+
 
   # run env level terraform
   terraform_environment:
     needs: [setup, terraform_development_account]
-    name: "[Terraform] Development Environment"
+    name: "[Terraform] Environment"
     uses: './.github/workflows/_terraform.yml'
     with:
       apply: false
       directory: ./terraform/environment
-      workspace: ${{ needs.setup.outputs.terraform_workspace }}
+      workspace: production
       version: ${{ needs.setup.outputs.terraform_version_environment }}
+      # is_ephemeral: ${{ github.ref != 'refs/heads/main' }}
+      is_ephemeral: false
+      account: ${{ needs.setup.outputs.development_account_id }}
+      role: ${{ needs.setup.outputs.role }}
     secrets: inherit
 
 
