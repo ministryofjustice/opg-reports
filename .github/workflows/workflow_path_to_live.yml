@@ -69,10 +69,6 @@ jobs:
       directory: ./terraform/environment
       workspace: production
       version: ${{ needs.setup.outputs.terraform_version_environment }}
-      # is_ephemeral: ${{ github.ref != 'refs/heads/main' }}
-      is_ephemeral: false
-      account: ${{ needs.setup.outputs.development_account_id }}
-      role: ${{ needs.setup.outputs.role }}
     secrets: inherit
 
 
