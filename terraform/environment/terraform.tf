@@ -11,6 +11,10 @@ terraform {
 
 }
 
+locals {
+  identity = "631181914621"
+}
+
 provider "aws" {
   region = "eu-west-1"
   default_tags {
