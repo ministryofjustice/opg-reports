@@ -102,8 +102,8 @@ jobs:
   end:
     name: 'End of workflow'
     runs-on: 'ubuntu-latest'
-    needs: [go_tests, terraform_development_environment]
-    # needs: [go_tests, terraform_development_environment, terraform_production_environment]
+    needs: [terraform_development_environment]
+    # needs: [terraform_development_environment, terraform_production_environment]
     steps:
       - id: end
         name: End
