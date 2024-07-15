@@ -3,14 +3,25 @@ name: "[Report] Run"
 on:
   workflow_call:
     inputs:
+    ## command related
       name:
-        description: "Name of the report"
+        description: "Name of the report. Used for display only."
         type: string
         required: true
       directory:
-        description: "Directory path run the report from"
+        description: "Directory path to run the main.go file from"
         type: string
         required: true
+      arguments:
+        description: "String containing all arguments for the command"
+        type: string
+        required: true
+        default: ""
+      role:
+        description: "Alternative role to run the command as"
+        type: string
+        default: ""
+    ## bucket related
       bucket:
         description: "Bucket name"
         type: string
@@ -19,20 +30,15 @@ on:
         description: "Bucket path suffix"
         type: string
         required: true
+      bucket_role:
+        description: "Role to assume to upload file"
+        type: string
+        required: true
       upload:
         description: "Flag to see if we should upload the data output"
         type: boolean
         required: true
         default: false
-      arguments:
-        description: "string containing all arguments for the command"
-        type: string
-        required: true
-        default: ""
-      role:
-        description: "Role to assume to upload file"
-        type: string
-        required: true
 
     secrets:
       GH_ORG_ACCESS_TOKEN:
@@ -66,25 +72,38 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: './go.mod'
-      - name: "Configure AWS Credentials"
+      - name: "Data directory"
+        working-directory: ${{ inputs.directory }}
+        run: |
+          rm -Rf ./data
+          mkdir -p ./data
+      - name: "Configure AWS Credentials for report execution"
+        if: ${{ inputs.role != '' }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
           aws-region: eu-west-1
           role-to-assume: ${{ inputs.role }}
-          role-session-name: GitHubActionsOpgReports
+          role-session-name: GitHubActionsOpgReportsExec
       - name: "Run report"
         working-directory: ${{ inputs.directory }}
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
           cmd_args: ${{ inputs.arguments }}
         run: |
-          rm -Rf ./data
-          mkdir -p ./data
           go run main.go ${{ env.cmd_args }}
-      - name: "Sync data"
-        if: inputs.upload
+      - name: "Configure AWS Credentials for bucket upload"
+        if: ${{ inputs.upload && inputs.bucket_role != '' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
+          aws-region: eu-west-1
+          role-to-assume: ${{ inputs.bucket_role }}
+          role-session-name: GitHubActionsOpgReportsBucketUpload
+      - name: "Bucket upload"
+        if: ${{ inputs.upload }}
         working-directory: ${{ inputs.directory }}/data
         run: |
           ls -larth .
