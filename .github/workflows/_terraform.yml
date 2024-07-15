@@ -33,7 +33,7 @@ on:
       #   required: false
 
 permissions:
-  contents: write
+  contents: read
   pull-requests: read
   actions: none
   checks: none

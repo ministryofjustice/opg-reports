@@ -49,7 +49,7 @@ on:
         required: true
 
 permissions:
-  contents: write
+  contents: read
   pull-requests: read
   actions: none
   checks: none
