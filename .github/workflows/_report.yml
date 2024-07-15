@@ -1,0 +1,86 @@
+name: "[Report] Run"
+
+on:
+  workflow_call:
+    inputs:
+      name:
+        description: "Name of the report"
+        type: string
+        required: true
+      directory:
+        description: "Directory path run the report from"
+        type: string
+        required: true
+      bucket:
+        description: "Bucket name"
+        type: string
+        required: true
+      bucket_suffix:
+        description: "Bucket path suffix"
+        type: string
+        required: true
+      upload:
+        description: "Flag to see if we should upload the data output"
+        type: boolean
+        required: true
+        default: false
+      arguments:
+        description: "string containing all arguments for the command"
+        type: string
+        required: true
+        default: ""
+
+    secrets:
+      GITHUB_ACCESS_TOKEN:
+        required: true
+      AWS_ACCESS_KEY_ID_ACTIONS:
+        required: true
+      AWS_SECRET_ACCESS_KEY_ACTIONS:
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: read
+  actions: none
+  checks: none
+  deployments: none
+  issues: none
+  packages: none
+  repository-projects: none
+  statuses: none
+
+jobs:
+  reports:
+    name: "[Report] ${{ inputs.name }}"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "checkout"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: "setup go"
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: './go.mod'
+      - name: "Configure AWS Credentials"
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
+          aws-region: eu-west-1
+          role-session-name: GitHubActionsOpgReports
+      - name: "Run report"
+        working-directory: ${{ inputs.directory }}
+        env:
+          GITHUB_ACCESS_TOKEN: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
+          cmd_args: ${{ inputs.arguments }}
+        run: |
+          rm -Rf ./data
+          mkdir -p ./data
+          go run main.go ${{ env.cmd_args }}
+      - name: "Sync data"
+        if: inputs.upload
+        working-directory: ${{ inputs.directory }}/data
+        run: |
+          ls -larth .
+          aws s3 cp --recursive . s3://${{inputs.bucket}}/${{inputs.bucket_suffix}} --sse AES256
