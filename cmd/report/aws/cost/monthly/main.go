@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	month         = report.NewMonthArg("month", true, "Month (YYYY-MM) to fetch cost data for", "")
+	month         = report.NewMonthArg("month", true, "Month (YYYY-MM) to fetch cost data for", "-")
 	account_id    = report.NewArg("account_id", true, "AWS Account Id", "")
 	account_name  = report.NewArg("account_name", true, "Friendly name for the AWS Account", "")
 	account_label = report.NewArg("account_label", true, "Label for the account", "")
@@ -30,8 +30,12 @@ var (
 const dir string = "data"
 
 func run(r report.IReport) {
-
-	m, _ := dates.StringToDate(month.Val())
+	var m time.Time
+	if month.Val() == "-" {
+		m = time.Now().UTC().AddDate(0, -1, 0)
+	} else {
+		m, _ = dates.StringToDate(month.Val())
+	}
 	id := account_id.Val()
 	name := account_name.Val()
 	label := account_label.Val()
@@ -64,7 +68,8 @@ func run(r report.IReport) {
 
 func main() {
 	logger.LogSetup()
-	now := time.Now().UTC()
+	// 1 month ago
+	now := time.Now().UTC().AddDate(0, -1, 0)
 	month.SetDefault(now.Format(dates.FormatYM))
 
 	costReport := report.New(month, account_id, account_name, account_label, account_unit, account_org, account_env, role, region)
