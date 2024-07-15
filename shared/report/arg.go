@@ -154,7 +154,10 @@ func (a *MonthArg) Value() (val string, err error) {
 
 // Val calls Value(), but disregards the error message
 func (a *MonthArg) Val() string {
-	v, _ := a.Value()
+	v, e := a.Value()
+	if e != nil {
+		return "-"
+	}
 	return v
 }
 

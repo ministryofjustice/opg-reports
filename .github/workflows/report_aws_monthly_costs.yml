@@ -22,6 +22,7 @@ on:
         description: "YYYY-MM formatted month to get cost data for."
         type: string
         default: "-"
+
 jobs:
   # run all tests
   tests:
@@ -29,6 +30,14 @@ jobs:
     uses: './.github/workflows/_tests.yml'
     secrets: inherit
 
+  get_month:
+    name: "Get month"
+    runs-on: ubuntu-latest
+    outputs:
+      month:
+    steps:
+      - id: get
+        run:
 
   report:
     needs: [tests]
@@ -57,8 +66,8 @@ jobs:
     uses: './.github/workflows/_report.yml'
     secrets: inherit
     with:
-      name: "Aws monthly costs [${{ matrix.account_name }}]"
-      arguments: '-account_unit ${{ matrix.account_unit }} -account_label ${{ matrix.account_label }} -account_name ${{ matrix.account_name }} -account_id ${{ matrix.account_id }} -account_environment ${{ matrix.account_environment }} -role ${{ matrix.role}} -month ${{inputs.month}}'
+      name: "AWS monthly costs [${{ matrix.account_name }}]"
+      arguments: '-account_unit "${{ matrix.account_unit }}" -account_label "${{ matrix.account_label }}" -account_name "${{ matrix.account_name }}" -account_id "${{ matrix.account_id }}" -account_environment "${{ matrix.account_environment }}" -role "${{ matrix.role}}" -month "${{ inputs.month }}" '
       directory: './cmd/report/aws/cost/monthly/'
       upload: true
       bucket_suffix: 'aws/cost/monthly'

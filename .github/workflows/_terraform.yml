@@ -1,4 +1,4 @@
-name: "[TF] Plan & Apply "
+name: "[Terrform] Plan & Apply "
 
 on:
   workflow_call:
