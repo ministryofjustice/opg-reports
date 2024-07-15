@@ -129,6 +129,8 @@ func (a *Arg) Val() string {
 	return v
 }
 
+const emptyMonth string = "-"
+
 // MonthArg is a custom arg that represents a YYYY-MM inputed value
 // and replaces the Value() to handle parsing of string to time.Time
 type MonthArg struct {
@@ -141,6 +143,10 @@ type MonthArg struct {
 // (0000-01) then return an error message, otherwise
 // return YYYY-MM version of the inputed date
 func (a *MonthArg) Value() (val string, err error) {
+	rawValue := *a.FlagP
+	if rawValue == emptyMonth {
+		return rawValue, nil
+	}
 	value, e := a.MonthValue()
 	if e != nil {
 		err = e

@@ -12,16 +12,23 @@ import (
 	"opg-reports/shared/github/std"
 	"opg-reports/shared/logger"
 	"opg-reports/shared/report"
+
+	"github.com/google/go-github/v62/github"
 )
 
 var (
 	orgArg  = report.NewArg("organisation", true, "Name of the organisation we'll get repositories for", "ministryofjustice")
-	teamArg = report.NewArg("team", true, "Team within the <organisation> to fetch repositories for", "")
+	teamArg = report.NewArg("team", true, "Team within the <organisation> to fetch repositories for", "-")
+	repoArg = report.NewArg("repo", false, "Run the report for just the single repo passed", "-")
 )
 
 const dir string = "data"
 
 func run(r report.IReport) {
+	var err error
+	var repositories []*github.Repository
+	var repo *github.Repository
+
 	ctx := context.Background()
 	token := env.Get("GITHUB_ACCESS_TOKEN", "")
 	if token == "" {
@@ -32,10 +39,17 @@ func run(r report.IReport) {
 	limiter, _ := cl.RateLimitedHttpClient()
 	client := cl.Client(token, limiter)
 
-	repositories, err := repos.All(ctx, client, orgArg.Val(), teamArg.Val(), true)
+	if repoArg.Val() != "-" {
+		repo, err = repos.Get(ctx, client, orgArg.Val(), repoArg.Val())
+		repositories = append(repositories, repo)
+	} else if teamArg.Val() != "-" {
+		repositories, err = repos.All(ctx, client, orgArg.Val(), teamArg.Val(), true)
+	}
+
 	if err != nil {
 		slog.Error("error getting repositories",
 			slog.String("org", orgArg.Val()),
+			slog.String("team", teamArg.Val()),
 			slog.String("team", teamArg.Val()),
 			slog.String("err", fmt.Sprintf("%v", err)),
 		)
@@ -58,7 +72,7 @@ func run(r report.IReport) {
 
 func main() {
 	logger.LogSetup()
-	costReport := report.New(orgArg, teamArg)
+	costReport := report.New(orgArg, teamArg, repoArg)
 	costReport.SetRunner(run)
 	costReport.Run()
 

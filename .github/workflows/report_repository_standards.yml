@@ -1,6 +1,12 @@
 name: "[Reports] Repository Standards"
 
 on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/_report.yml'
+      - '.github/workflows/report_repository_standards.yml'
   schedule:
     # 9am saturday
     - cron: '0 9 * * 6'
@@ -9,31 +15,23 @@ on:
 jobs:
   # run all tests
   tests:
-    name: "[Tests]"
+    name: "Tests"
     uses: './.github/workflows/_tests.yml'
     secrets: inherit
 
   report:
     needs: [tests]
-    name: "Repository standards"
-    runs-on: ubuntu-latest
-    steps:
-      - name: "checkout"
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: "setup go"
-        uses: actions/setup-go@v4
-        with:
-          go-version-file: './go.mod'
-      - name: "Run report"
-        env:
-          GITHUB_ACCESS_TOKEN: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
-          baseDir: './cmd/report/github/standards'
-          organisation: "ministryofjustice"
-          team: "opg"
-        run: |
-          cd ${{ env.baseDir }}
-          mkdir -p ./data
-          go run main.go -organisation ${{ env.organisation }} -team ${{ env.team }}
-          ls -lart ./data
+    uses: './.github/workflows/_report.yml'
+    secrets: inherit
+    with:
+      name: "Repository standards"
+      arguments: '-organisation ministryofjustice -team opg'
+      directory: './cmd/report/github/standards'
+      role: 'arn:aws:iam::679638075911:role/docs-and-metadata-ci'
+      # role: ${{ github.ref == 'refs/heads/main' && 'arn:aws:iam::997462338508:role/docs-and-metadata-ci' || 'arn:aws:iam::679638075911:role/docs-and-metadata-ci' }}
+      upload: true
+      bucket_suffix: 'github/standards'
+      bucket: 'report-data-development'
+      bucket_role: 'arn:aws:iam::679638075911:role/docs-and-metadata-ci'
+      # bucket: ${{ github.ref == 'refs/heads/main' && 'report-data-production' || 'report-data-development' }}
+      # bucket_role: ${{ github.ref == 'refs/heads/main' && 'arn:aws:iam::997462338508:role/docs-and-metadata-ci' || 'arn:aws:iam::679638075911:role/docs-and-metadata-ci' }}

@@ -1,4 +1,4 @@
-name: "[TF] Plan & Apply "
+name: "[Terrform] Plan & Apply "
 
 on:
   workflow_call:
@@ -33,7 +33,7 @@ on:
       #   required: false
 
 permissions:
-  contents: write
+  contents: read
   pull-requests: read
   actions: none
   checks: none
