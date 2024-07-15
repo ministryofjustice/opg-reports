@@ -33,6 +33,7 @@ jobs:
       name: "Repository standards"
       arguments: '-organisation ministryofjustice -team opg'
       directory: './cmd/report/github/standards'
-      bucket: ${{ github.ref == 'refs/heads/main' && 'report-data-production' || 'report-data-development' }}
-      bucket_suffix: 'github/standards'
       upload: true
+      bucket_suffix: 'github/standards'
+      bucket: ${{ github.ref == 'refs/heads/main' && 'report-data-production' || 'report-data-development' }}
+      role: ${{ github.ref == 'refs/heads/main' && 'arn:aws:iam::997462338508:role/docs-and-metadata-ci' || 'arn:aws:iam::679638075911:role/docs-and-metadata-ci' }}
