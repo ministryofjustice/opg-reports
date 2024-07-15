@@ -30,15 +30,6 @@ jobs:
     uses: './.github/workflows/_tests.yml'
     secrets: inherit
 
-  get_month:
-    name: "Get month"
-    runs-on: ubuntu-latest
-    outputs:
-      month:
-    steps:
-      - id: get
-        run:
-
   report:
     needs: [tests]
     strategy:
