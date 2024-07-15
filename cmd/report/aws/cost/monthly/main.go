@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	month         = report.NewMonthArg("month", true, "Month (YYYY-MM) to fetch cost data for", "-")
+	month         = report.NewMonthArg("month", true, "Month (YYYY-MM) to fetch cost data for", "")
 	account_id    = report.NewArg("account_id", true, "AWS Account Id", "")
 	account_name  = report.NewArg("account_name", true, "Friendly name for the AWS Account", "")
 	account_label = report.NewArg("account_label", true, "Label for the account", "")

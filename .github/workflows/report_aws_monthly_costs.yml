@@ -30,8 +30,19 @@ jobs:
     uses: './.github/workflows/_tests.yml'
     secrets: inherit
 
+  get_month:
+    name: "Get month"
+    runs-on: ubuntu-latest
+    outputs:
+      month: ${{steps.month.outputs.ym}}
+    steps:
+      - id: "month"
+        env:
+          ym: ${{ inputs.month != '' && inputs.month || '-'}}
+        run: echo "ym=${{ env.ym }}" >> $GITHUB_OUTPUT
+
   report:
-    needs: [tests]
+    needs: [tests, get_month]
     strategy:
       fail-fast: false
       matrix:
@@ -58,7 +69,7 @@ jobs:
     secrets: inherit
     with:
       name: "AWS monthly costs [${{ matrix.account_name }}]"
-      arguments: '-account_unit "${{ matrix.account_unit }}" -account_label "${{ matrix.account_label }}" -account_name "${{ matrix.account_name }}" -account_id "${{ matrix.account_id }}" -account_environment "${{ matrix.account_environment }}" -role "${{ matrix.role}}" -month "${{ inputs.month }}" '
+      arguments: '-account_unit "${{ matrix.account_unit }}" -account_label "${{ matrix.account_label }}" -account_name "${{ matrix.account_name }}" -account_id "${{ matrix.account_id }}" -account_environment "${{ matrix.account_environment }}" -role "${{ matrix.role}}" -month "${{ needs.get_month.outputs.month }}" '
       directory: './cmd/report/aws/cost/monthly/'
       upload: true
       bucket_suffix: 'aws/cost/monthly'
