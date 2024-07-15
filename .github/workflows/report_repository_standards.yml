@@ -31,7 +31,7 @@ jobs:
     secrets: inherit
     with:
       name: "Repository standards"
-      arguments: '-organisation ministryofjustice -team opg'
+      arguments: '-organisation ministryofjustice -repo opg-aws-sandbox'
       directory: './cmd/report/github/standards'
       upload: true
       bucket_suffix: 'github/standards'
