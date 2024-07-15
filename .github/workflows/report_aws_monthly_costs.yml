@@ -31,7 +31,7 @@ jobs:
 
 
   report:
-    needs: [tests, get_month]
+    needs: [tests]
     strategy:
       fail-fast: false
       matrix:
