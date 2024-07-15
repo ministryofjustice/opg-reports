@@ -1,8 +1,14 @@
-name: "[Workflow] Path to live"
+name: "[Workflow - Terraform] Path to live"
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+    paths:
+      - 'terraform/**'
+      - './.github/workflows/_terraform.yml'
+      - './.github/workflows/workflow_terraform_pr.yml'
+      - './.github/workflows/workflow_terraform_path_to_live.yml'
 
 jobs:
   setup:
@@ -12,7 +18,6 @@ jobs:
       terraform_workspace: production
       terraform_version_account: ${{ steps.terraform_account_version.outputs.version }}
       terraform_version_environment: ${{ steps.terraform_environment_version.outputs.version }}
-      role: "docs-and-metadata-ci"
     steps:
       - name: "Checkout"
         uses: actions/checkout@v4
@@ -26,12 +31,6 @@ jobs:
         uses: ministryofjustice/opg-github-actions/.github/actions/terraform-version@v3.0.6
         with:
           terraform_directory: ./terraform/environment
-
-  # run all tests
-  go_tests:
-    name: "[Go] Tests"
-    uses: './.github/workflows/_tests.yml'
-    secrets: inherit
 
   # run dev level account terraform
   terraform_development_account:
