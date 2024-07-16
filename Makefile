@@ -7,21 +7,29 @@ ifeq (${ARCH}, 'x86_64')
 	ARCH := 'amd64'
 endif
 
+# version of the gov uk front end to download
+GOVUK_FRONT_VERSION := "v5.4.0"
+# location of go builds
 BUILD_FOLDER := ${ROOT_DIR}builds
-REPORTS_SRC := ${ROOT_DIR}cmd/report
-API_SRC := ${ROOT_DIR}services/api
-FRONT_SRC := ${ROOT_DIR}services/front
+# where govuk assets are downloaded into
+GOVUK_DOWNLOAD_FOLDER := ${BUILD_FOLDER}/govuk-frontend
+# location of go report commands
+REPORTS_FOLDER := ${ROOT_DIR}cmd/report
+# location of where services are based from
+SERVICES_FOLDER := ${ROOT_DIR}services
+# location of the api service
+API_FOLDER := ${SERVICES_FOLDER}/api
+# location of the api services data files
+API_DATA_FOLDER := ${API_FOLDER}/data
+# location of the web front end
+FRONT_FOLDER := ${SERVICES_FOLDER}/front
+# location to download data from the remote bucket into
+BUCKET_FOLDER := ./from-bucket
+# aws vault profile to use to connect to the dev bucket
+AWS_PROFILE ?= "shared-development"
+# name of the dev bucket
+BUCKET ?= "report-data-development"
 
-DEV_AWS_VAULT_PROFILE := "shared-development"
-DEV_BUCKET := "report-data-development"
-# PROD_AWS_VAULT_PROFILE := "shared-production"
-# PROD_BUCKET := "report-data-production"
-PROD_AWS_VAULT_PROFILE := "shared-development"
-PROD_BUCKET := "report-data-development"
-LOCAL_FOLDER := "./bucket-sync"
-API_DATA_FOLDER := ${API_SRC}/data
-
-VERSION_UK_GOV_FRONT := "v5.4.0"
 
 .PHONY: test tests benchmarks coverage assets assets-front assets-api
 
@@ -54,10 +62,10 @@ benchmarks:
 # main commands
 ##############################
 
-build: assets
+build-production: assets
 	@env DOCKER_BUILDKIT=0 docker compose build --no-cache
 # build dev version
-build-dev: assets-dev
+build: assets
 	@env DOCKER_BUILDKIT=0 docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml build
 down:
 	@docker compose down
@@ -71,53 +79,38 @@ up: clean build-dev
 ##############################
 # ASSETS
 ##############################
-# get data from s3 for development
-assets-api-dev:
-	@clear
-	@rm -Rf ${LOCAL_FOLDER}
-	@rm -Rf ${API_DATA_FOLDER}
-	@if test "$(AWS_SESSION_TOKEN)" = "" ; then \
-		echo "warning: AWS_SESSION_TOKEN not set, running as aws-vault profile [${DEV_AWS_VAULT_PROFILE}] "; \
-		aws-vault exec ${DEV_AWS_VAULT_PROFILE} -- aws s3 sync s3://${DEV_BUCKET} ${LOCAL_FOLDER}; \
-	else \
-		echo "AWS_SESSION_TOKEN set, running as is"; \
-		aws s3 sync s3://${DEV_BUCKET} ${LOCAL_FOLDER}; \
-	fi
-	@mv ${LOCAL_FOLDER} ${API_DATA_FOLDER}
 
 # get data from s3 for (production)
 assets-api:
-	@clear
-	@rm -Rf ${LOCAL_FOLDER}
+	@rm -Rf ${BUCKET_FOLDER}
 	@rm -Rf ${API_DATA_FOLDER}
 	@if test "$(AWS_SESSION_TOKEN)" = "" ; then \
-		echo "warning: AWS_SESSION_TOKEN not set, running as aws-vault profile [${PROD_AWS_VAULT_PROFILE}] "; \
-		aws-vault exec ${PROD_AWS_VAULT_PROFILE} -- aws s3 sync s3://${PROD_BUCKET} ${LOCAL_FOLDER}; \
+		echo "warning: AWS_SESSION_TOKEN not set, running as aws-vault profile [${AWS_PROFILE}] "; \
+		aws-vault exec ${AWS_PROFILE} -- aws s3 sync s3://${BUCKET} ${BUCKET_FOLDER}; \
 	else \
 		echo "AWS_SESSION_TOKEN set, running as is"; \
-		aws s3 sync s3://${PROD_BUCKET} ${LOCAL_FOLDER}; \
+		aws s3 sync s3://${BUCKET} ${BUCKET_FOLDER}; \
 	fi
-	@mv ${LOCAL_FOLDER} ${API_DATA_FOLDER}
+	@mv ${BUCKET_FOLDER} ${API_DATA_FOLDER}
 
 # get the gov uk front end assets and move them into local folders
 assets-front:
-	@rm -Rf ./builds/govuk-frontend
-	@rm -Rf ./services/front/assets/css/
-	@rm -Rf ./services/front/assets/fonts/
-	@rm -Rf ./services/front/assets/images/
-	@rm -Rf ./services/front/assets/manifest.json
-	@mkdir -p ./builds/govuk-frontend
-	@cd ./builds/govuk-frontend && gh release download ${VERSION_UK_GOV_FRONT} -R alphagov/govuk-frontend
-	@cd ./builds/govuk-frontend && unzip -qq release-${VERSION_UK_GOV_FRONT}.zip
-	@cd ./builds/govuk-frontend && mkdir -p ./assets/css/ && mv govuk-frontend-*.css* ./assets/css/
-	@mv ./builds/govuk-frontend/assets/css/ ./services/front/assets/
-	@mv ./builds/govuk-frontend/assets/fonts/ ./services/front/assets/
-	@mv ./builds/govuk-frontend/assets/images/ ./services/front/assets/
-	@mv ./builds/govuk-frontend/assets/manifest.json ./services/front/assets/
-	@rm -Rf ./builds/govuk-frontend
-	@echo "Downloaded alphagov/govuk-frontend@${VERSION_UK_GOV_FRONT} to ./services/front/assets/"
+	@rm -Rf ${GOVUK_DOWNLOAD_FOLDER}
+	@rm -Rf ${SERVICES_FOLDER}/front/assets/css/
+	@rm -Rf ${SERVICES_FOLDER}/front/assets/fonts/
+	@rm -Rf ${SERVICES_FOLDER}/front/assets/images/
+	@rm -Rf ${SERVICES_FOLDER}/front/assets/manifest.json
+	@mkdir -p ${GOVUK_DOWNLOAD_FOLDER}
+	@cd ${GOVUK_DOWNLOAD_FOLDER} && gh release download ${GOVUK_FRONT_VERSION} -R alphagov/govuk-frontend
+	@cd ${GOVUK_DOWNLOAD_FOLDER} && unzip -qq release-${GOVUK_FRONT_VERSION}.zip
+	@cd ${GOVUK_DOWNLOAD_FOLDER} && mkdir -p ./assets/css/ && mv govuk-frontend-*.css* ./assets/css/
+	@mv ${GOVUK_DOWNLOAD_FOLDER}/assets/css/ ${SERVICES_FOLDER}/front/assets/
+	@mv ${GOVUK_DOWNLOAD_FOLDER}/assets/fonts/ ${SERVICES_FOLDER}/front/assets/
+	@mv ${GOVUK_DOWNLOAD_FOLDER}/assets/images/ ${SERVICES_FOLDER}/front/assets/
+	@mv ${GOVUK_DOWNLOAD_FOLDER}/assets/manifest.json ${SERVICES_FOLDER}/front/assets/
+	@rm -Rf ${GOVUK_DOWNLOAD_FOLDER}
+	@echo "Downloaded alphagov/govuk-frontend@${GOVUK_FRONT_VERSION} to ${SERVICES_FOLDER}/front/assets/"
 
-assets-dev: assets-api-dev assets-front
 assets: assets-api assets-front
 ##############################
 # RELEASE ARTIFACTS
@@ -128,20 +121,20 @@ assets: assets-api assets-front
 artifact-reports:
 	@rm -Rf ${BUILD_FOLDER}/${OS}_${ARCH}/reports/
 	@mkdir -p ${BUILD_FOLDER}/${OS}_${ARCH}/reports/
-	@cd ${REPORTS_SRC}/aws/cost/monthly/ && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${BUILD_FOLDER}/${OS}_${ARCH}/reports/aws_cost_monthly main.go
-	@cd ${REPORTS_SRC}/github/standards/ && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${BUILD_FOLDER}/${OS}_${ARCH}/reports/github_standards main.go
+	@cd ${REPORTS_FOLDER}/aws/cost/monthly/ && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${BUILD_FOLDER}/${OS}_${ARCH}/reports/aws_cost_monthly main.go
+	@cd ${REPORTS_FOLDER}/github/standards/ && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${BUILD_FOLDER}/${OS}_${ARCH}/reports/github_standards main.go
 
 # builds the api into a build folder - typically for a release artifact rather than docker setup
 artifact-api: assets-api
 	@rm -Rf ${BUILD_FOLDER}/${OS}_${ARCH}/api/
 	@mkdir -p ${BUILD_FOLDER}/${OS}_${ARCH}/api/
-	@cd ${API_SRC}/ && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${BUILD_FOLDER}/${OS}_${ARCH}/api/api main.go
+	@cd ${API_FOLDER}/ && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${BUILD_FOLDER}/${OS}_${ARCH}/api/api main.go
 
 # builds the api into a build folder - typically for a release artifact rather than docker setup
 artifact-front: assets-front
 	@rm -Rf ${BUILD_FOLDER}/${OS}_${ARCH}/front/
 	@mkdir -p ${BUILD_FOLDER}/${OS}_${ARCH}/front/
-	@cd ${API_SRC}/ && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${BUILD_FOLDER}/${OS}_${ARCH}/front/front main.go
+	@cd ${API_FOLDER}/ && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${BUILD_FOLDER}/${OS}_${ARCH}/front/front main.go
 
 artifacts: artifact-reports artifact-api artifact-front
 
@@ -150,7 +143,7 @@ artifacts: artifact-reports artifact-api artifact-front
 ##############################
 
 dev-run-api:
-	@clear && cd ./services/api/ && go run main.go
+	@clear && cd ${API_FOLDER} && go run main.go
 
 dev-run-front:
-	@clear && cd ./services/front/ && go run main.go
+	@clear && cd ${FRONT_FOLDER} && go run main.go
