@@ -13,6 +13,7 @@ FROM build as dev
 EXPOSE 8081
 WORKDIR /go/bin
 COPY --from=build /go/bin/api api
+COPY --from=build /app/services/api/data data
 ENTRYPOINT ["./api"]
 
 FROM alpine:3
