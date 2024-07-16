@@ -1,9 +1,5 @@
 SHELL := $(shell which bash)
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
-
-VERSION_UK_GOV_FRONT := "v5.4.0"
-
-
 OS := $(shell uname | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m)
 # check and set the correct goarch
@@ -13,10 +9,21 @@ endif
 
 BUILD_FOLDER := ${ROOT_DIR}builds
 REPORTS_SRC := ${ROOT_DIR}cmd/report
-API_SRC := ${ROOT_DIR}/services/api
-FRONT_SRC := ${ROOT_DIR}/services/front
+API_SRC := ${ROOT_DIR}services/api
+FRONT_SRC := ${ROOT_DIR}services/front
 
-.PHONY: test tests benchmarks coverage assets-front assets-api
+DEV_AWS_VAULT_PROFILE := "shared-development"
+DEV_BUCKET := "report-data-development"
+# PROD_AWS_VAULT_PROFILE := "shared-production"
+# PROD_BUCKET := "report-data-production"
+PROD_AWS_VAULT_PROFILE := "shared-development"
+PROD_BUCKET := "report-data-development"
+LOCAL_FOLDER := "./bucket-sync"
+API_DATA_FOLDER := ${API_SRC}/data
+
+VERSION_UK_GOV_FRONT := "v5.4.0"
+
+.PHONY: test tests benchmarks coverage assets assets-front assets-api
 
 ##############################
 # TESTS
@@ -50,7 +57,7 @@ benchmarks:
 build: assets
 	@env DOCKER_BUILDKIT=0 docker compose build --no-cache
 # build dev version
-build-dev: assets
+build-dev: assets-dev
 	@env DOCKER_BUILDKIT=0 docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml build
 down:
 	@docker compose down
@@ -64,8 +71,34 @@ up: clean build-dev
 ##############################
 # ASSETS
 ##############################
-# get data from s3 (eventually)
+# get data from s3 for development
+assets-api-dev:
+	@clear
+	@rm -Rf ${LOCAL_FOLDER}
+	@rm -Rf ${API_DATA_FOLDER}
+	@if test "$(AWS_SESSION_TOKEN)" = "" ; then \
+		echo "warning: AWS_SESSION_TOKEN not set, running as aws-vault profile [${DEV_AWS_VAULT_PROFILE}] "; \
+		aws-vault exec ${DEV_AWS_VAULT_PROFILE} -- aws s3 sync s3://${DEV_BUCKET} ${LOCAL_FOLDER}; \
+	else \
+		echo "AWS_SESSION_TOKEN set, running as is"; \
+		aws s3 sync s3://${DEV_BUCKET} ${LOCAL_FOLDER}; \
+	fi
+	@mv ${LOCAL_FOLDER} ${API_DATA_FOLDER}
+
+# get data from s3 for (production)
 assets-api:
+	@clear
+	@rm -Rf ${LOCAL_FOLDER}
+	@rm -Rf ${API_DATA_FOLDER}
+	@if test "$(AWS_SESSION_TOKEN)" = "" ; then \
+		echo "warning: AWS_SESSION_TOKEN not set, running as aws-vault profile [${PROD_AWS_VAULT_PROFILE}] "; \
+		aws-vault exec ${PROD_AWS_VAULT_PROFILE} -- aws s3 sync s3://${PROD_BUCKET} ${LOCAL_FOLDER}; \
+	else \
+		echo "AWS_SESSION_TOKEN set, running as is"; \
+		aws s3 sync s3://${PROD_BUCKET} ${LOCAL_FOLDER}; \
+	fi
+	@mv ${LOCAL_FOLDER} ${API_DATA_FOLDER}
+
 # get the gov uk front end assets and move them into local folders
 assets-front:
 	@rm -Rf ./builds/govuk-frontend
@@ -84,6 +117,7 @@ assets-front:
 	@rm -Rf ./builds/govuk-frontend
 	@echo "Downloaded alphagov/govuk-frontend@${VERSION_UK_GOV_FRONT} to ./services/front/assets/"
 
+assets-dev: assets-api-dev assets-front
 assets: assets-api assets-front
 ##############################
 # RELEASE ARTIFACTS
@@ -115,8 +149,8 @@ artifacts: artifact-reports artifact-api artifact-front
 # DEV
 ##############################
 
-dev-api:
+dev-run-api:
 	@clear && cd ./services/api/ && go run main.go
 
-dev-front:
+dev-run-front:
 	@clear && cd ./services/front/ && go run main.go
