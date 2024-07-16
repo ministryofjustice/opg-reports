@@ -1,7 +1,6 @@
 package main
 
 import (
-	"embed"
 	"log/slog"
 	"net/http"
 	"opg-reports/services/api/aws/cost/monthly"
@@ -13,13 +12,8 @@ import (
 	"opg-reports/shared/github/std"
 	"opg-reports/shared/logger"
 	"opg-reports/shared/server/response"
+	"os"
 )
-
-//go:embed data/aws/cost/monthly/*.json
-var awsCostMonthlyFs embed.FS
-
-//go:embed data/github/standards/*.json
-var ghStandardsFs embed.FS
 
 func main() {
 	// configure the logger
@@ -27,13 +21,15 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	awsCostMonthlyFs := files.NewFS(awsCostMonthlyFs, "data/aws/cost/monthly/")
+	awsCostMonthDir := os.DirFS("data/aws/cost/monthly/").(files.IReadFS)
+	awsCostMonthlyFs := files.NewFS(awsCostMonthDir, "data/aws/cost/monthly/")
 	awsCostMonthlyStore := data.NewStoreFromFS[*cost.Cost, *files.WriteFS](awsCostMonthlyFs)
 	awsResp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
 	awsCostMonthlyApi := monthly.New(awsCostMonthlyStore, awsCostMonthlyFs, awsResp)
 	awsCostMonthlyApi.Register(mux)
 
-	ghStandardsFS := files.NewFS(ghStandardsFs, "data/github/standards/")
+	ghStandardsDir := os.DirFS("data/github/standards/").(files.IReadFS)
+	ghStandardsFS := files.NewFS(ghStandardsDir, "data/github/standards/")
 	ghStandardsStore := data.NewStoreFromFS[*std.Repository, *files.WriteFS](ghStandardsFS)
 	ghResp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
 	ghStandardsApi := standards.New(ghStandardsStore, ghStandardsFS, ghResp)

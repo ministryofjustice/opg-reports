@@ -10,10 +10,11 @@ import (
 	"opg-reports/shared/env"
 	"opg-reports/shared/files"
 	"opg-reports/shared/logger"
+	"os"
 )
 
 //go:embed templates/**
-var templateFs embed.FS
+var templateEmbed embed.FS
 
 //go:embed config.json
 var configContent []byte
@@ -30,7 +31,8 @@ func main() {
 		w.WriteHeader(http.StatusNotFound)
 	})
 
-	templateFS := files.NewFS(templateFs, "templates")
+	templateDir := os.DirFS("templates").(files.IReadFS)
+	templateFS := files.NewFS(templateDir, "templates")
 	templateFiles := tmpl.Files(templateFS, "")
 
 	conf, _ := cnf.Load(configContent)
