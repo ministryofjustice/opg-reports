@@ -72,17 +72,17 @@ jobs:
           directory: ./terraform/account
           workspace: ${{ needs.setup.outputs.terraform_workspace_development }}
           version: ${{ needs.setup.outputs.terraform_version_account }}
-          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
+          # aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
+          # aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
       - name: "Environment level terraform"
         uses: ./.github/actions/terraform
         with:
           apply: true
-          directory: ./terraform/account
+          directory: ./terraform/environment
           workspace: ${{ needs.setup.outputs.terraform_workspace_development }}
           version: ${{ needs.setup.outputs.terraform_version_environment }}
-          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
+          # aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
+          # aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
 
   # helper to output summary of steps
   summary:

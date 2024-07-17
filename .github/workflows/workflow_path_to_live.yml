@@ -70,7 +70,7 @@ jobs:
         uses: ./.github/actions/terraform
         with:
           apply: true
-          directory: ./terraform/account
+          directory: ./terraform/environment
           workspace: ${{ needs.setup.outputs.terraform_workspace_development }}
           version: ${{ needs.setup.outputs.terraform_version_environment }}
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
