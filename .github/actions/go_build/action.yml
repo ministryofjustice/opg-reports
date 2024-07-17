@@ -109,7 +109,7 @@ runs:
         target: ${{ inputs.target }}
       shell: bash
       run: |
-        if [ "${{ env.target }}" -ne "all" ]; then
+        if [[ "${{ env.target }}" != "all" ]]; then
           echo "target_folder=${{ env.base_folder }}/${{ env.target }}" >> $GITHUB_OUTPUT
         else
           echo "target_folder=" >> $GITHUB_OUTPUT
