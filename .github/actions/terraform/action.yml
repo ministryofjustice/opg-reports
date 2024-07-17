@@ -19,15 +19,15 @@ inputs:
     required: true
     default: "false"
 
-  aws_access_key_id:
-    description: "The AWS access key id for this user"
-    required: true
-  aws_secret_access_key:
-    description: "The AWS secret access key"
-    required: true
-  aws_region:
-    description: "The AWS region to run from. Default: eu-west-1"
-    default: "eu-west-1"
+  # aws_access_key_id:
+  #   description: "The AWS access key id for this user"
+  #   required: true
+  # aws_secret_access_key:
+  #   description: "The AWS secret access key"
+  #   required: true
+  # aws_region:
+  #   description: "The AWS region to run from. Default: eu-west-1"
+  #   default: "eu-west-1"
 
 runs:
   using: "composite"
@@ -51,16 +51,16 @@ runs:
       if: ${{ inputs.lint == 'true' }}
       run: |
         terraform fmt -check -recursive
-    # configure the aws role
-    - name: "Configure AWS Credentials For Terraform"
-      id: configure_aws_creds
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ inputs.aws_access_key_id }}
-        aws-secret-access-key: ${{ inputs.aws_secret_access_key }}
-        aws-region: ${{ inputs.aws_region }}
-        role-session-name: GitHubActionsOpgReports
-    # Run the terraform init
+    # # configure the aws role
+    # - name: "Configure AWS Credentials For Terraform"
+    #   id: configure_aws_creds
+    #   uses: aws-actions/configure-aws-credentials@v4
+    #   with:
+    #     aws-access-key-id: ${{ inputs.aws_access_key_id }}
+    #     aws-secret-access-key: ${{ inputs.aws_secret_access_key }}
+    #     aws-region: ${{ inputs.aws_region }}
+    #     role-session-name: GitHubActionsOpgReports
+    # # Run the terraform init
     - name: "Init"
       id: init
       shell: bash

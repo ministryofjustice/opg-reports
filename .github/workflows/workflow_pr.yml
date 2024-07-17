@@ -5,7 +5,6 @@ on:
     branches:
       - main
 
-
 jobs:
   # setup series of variables either calculated or fixed for this workflow that
   # are used though out the other jobs / steps
@@ -57,6 +56,15 @@ jobs:
       - name: "Checkout"
         id: checkout
         uses: actions/checkout@v4
+    # configure the aws role
+      - name: "Configure AWS Credentials For Terraform"
+        id: configure_aws_creds
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
+          aws-region: "eu-west-1"
+          role-session-name: GitHubActionsOpgReports
       - name: "Account level terraform"
         uses: ./.github/actions/terraform
         with:
@@ -78,7 +86,7 @@ jobs:
 
   # helper to output summary of steps
   summary:
-    name: "Summary"
+    name: "Workflow summary"
     if: always()
     needs: [setup, terraform_development]
     runs-on: ubuntu-latest
