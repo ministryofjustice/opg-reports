@@ -13,15 +13,11 @@ inputs:
     required: true
     default: ""
 
-  gh_access_token:
-    description: "GitHub access token for permissions."
-    required: true
-
 
 outputs:
   data_folder:
     description: "Path to the folder containing the built versions of the code base"
-    value: ${{steps.build_go.outputs.BUILD_FOLDER}}
+    value: ${{ steps.build_go.outputs.BUILD_FOLDER }}
 
 
 runs:
@@ -50,7 +46,6 @@ runs:
       shell: bash
       working-directory: ${{ steps.build_go.outputs.build_folder }}
       env:
-        GITHUB_ACCESS_TOKEN: ${{ inputs.gh_access_token }}
         cmd_args: ${{ inputs.arguments }}
       run: |
         ./${{ inputs.cmd }} ${{ env.cmd_args }}

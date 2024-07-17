@@ -24,8 +24,9 @@ jobs:
       - name: "run"
         id: run
         uses: ./.github/actions/report
+        env:
+          GITHUB_ACCESS_TOKEN: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
         with:
           name: "Repository standards"
           cmd: "github_standards"
-          arguments: '-organisation ministryofjustice -repo opg-aws-whitepaper'
-          gh_access_token: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
+          arguments: '-organisation ministryofjustice -repo opg-org-infra'
