@@ -18,10 +18,10 @@ jobs:
     name: "Run repository standards report"
     runs-on: ubuntu-latest
     steps:
-      - name: "checkout"
+      - name: "Checkout"
         id: checkout
         uses: actions/checkout@v4
-      - name: "run"
+      - name: "Run report"
         id: run
         uses: ./.github/actions/report
         env:
@@ -32,4 +32,4 @@ jobs:
           arguments: '-organisation ministryofjustice -repo opg-org-infra'
       - name: "ls"
         run: |
-          ls -lah ${{ steps.id.outputs.data_folder }}/*
+          ls -lah ${{ steps.run.outputs.data_folder }}/*
