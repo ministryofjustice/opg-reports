@@ -1,0 +1,108 @@
+name: "Go: Test & Build"
+description: "Build the go code within the opg-reports repository so it can then be released"
+
+inputs:
+  target:
+    description: "Decide what part of the code base to build. Options:[all, api, front, reports] Default: all"
+    default: "all"
+    required: true
+  skip_tests:
+    description: "Boolean when set to true the go test suite wont be run. Default: false"
+    default: "false"
+
+
+outputs:
+  build_folder:
+    description: "Path to the folder containing the built versions of the code base"
+    value: ${{steps.build_go.outputs.BUILD_FOLDER}}
+
+runs:
+  using: "composite"
+  steps:
+    # checkout self
+    - name: "Checkout"
+      id: checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    # setup the go version and pull from cache etc
+    - name: "Setup go"
+      id: setup_go
+      uses: actions/setup-go@v4
+      with:
+        go-version-file: './go.mod'
+    ###############
+    #   TESTS
+    ###############
+    # install the json to junit report tool
+    - name: "Install junit report tool"
+      id: install_junit
+      if: ${{ inputs.skip_tests != 'true' }}
+      shell: bash
+      run: |
+        go install github.com/jstemmer/go-junit-report/v2@latest
+        echo "" > report.xml
+    # run the tests and output the results as a json file
+    - name: "Run tests"
+      id: run_tests
+      if: ${{ inputs.skip_tests != 'true' }}
+      shell: bash
+      env:
+        LOG_LEVEL: ${{ runner.debug == '1' && 'debug' || 'error' }}
+        LOG_TO: "stdout"
+      run: |
+        go test -v -json ./... > test-results.json 2>&1 || true
+    # conver the json file to the junit report file
+    - name: "Convert test results to junit"
+      id: convert_test_results
+      if: ${{ inputs.skip_tests != 'true' }}
+      shell: bash
+      run: |
+        go-junit-report -parser gojson -in test-results.json -out report.xml || true
+    # Add the report to the workflow
+    - name: "Attach junit test results"
+      id: attach_results
+      if: ${{ inputs.skip_tests != 'true' }}
+      uses: dorny/test-reporter@v1
+      with:
+        name: Test Results
+        fail-on-error: false
+        path: ./report.xml
+        reporter: java-junit
+    - name: "Add report link to summary"
+      id: test_report_link
+      if: ${{ inputs.skip_tests != 'true' }}
+      shell: bash
+      run:  |
+        echo "**[Test results](${{steps.attach_results.outputs.url_html}})**" >> $GITHUB_STEP_SUMMARY
+    - name: "Tests failed"
+      id: tests_failed
+      shell: bash
+      if: ${{ inputs.skip_tests != 'true' && steps.report.attach_results.conclusion != 'success' }}
+      run: |
+        echo "Test failed, please see summary: ${{steps.report.outputs.url_html}}"
+        exit 1
+    ###############
+    #   BUILD
+    ###############
+    - name: "Build go [${{ inputs.target }}]"
+      id: build_go
+      shell: bash
+      env:
+        target: "go-${{inputs.target == '' && 'all' || inputs.target}}"
+      run: |
+        make ${{ env.target }} > make.log
+        path=$(cat ./make.log | tail -n1)
+        echo "BUILD_FOLDER=${path}" >> $GITHUB_OUTPUT
+    ###############
+    #   CLEAN UP
+    ###############
+    - name: "Clean up"
+      id: cleanup
+      if: always()
+      shell: bash
+      run: |
+        rm -f ./report.xml
+        rm -f ./test-results.json
+        rm -Rf ./make.log

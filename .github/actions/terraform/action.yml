@@ -1,0 +1,93 @@
+name: "Terraform: Plan & Apply"
+description: "Plan and apply the terraform"
+
+inputs:
+  version:
+    description: "Terraform version number to use"
+    required: true
+  directory:
+    description: "Working directory to run the terraform from."
+    required: true
+  workspace:
+    description: "Terraform workspace to utilise"
+    required: true
+  lint:
+    description: "When 'true', run tf linting. Default: true"
+    default: "true"
+  apply:
+    description: "When 'true' then the terraform will be applied. Default: false"
+    required: true
+    default: "false"
+
+  aws_access_key_id:
+    description: "The AWS access key id for this user"
+    required: true
+  aws_secret_access_key:
+    description: "The AWS secret access key"
+    required: true
+  aws_region:
+    description: "The AWS region to run from. Default: eu-west-1"
+    default: "eu-west-1"
+
+runs:
+  using: "composite"
+  steps:
+    # check the repository with all branches and tags
+    - name: "Checkout"
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    # setup the terraform version
+    - name: "Setup terraform [version: ${{ inputs.version }}]"
+      uses: hashicorp/setup-terraform@v3
+      working-directory: ${{ inputs.directory }}
+      with:
+        terraform_version: ${{ inputs.version }}
+    # run linting against the terraform (if requested)
+    - name: "Lint"
+      id: lint
+      shell: bash
+      working-directory: ${{ inputs.directory }}
+      if: ${{ inputs.lint == 'true' }}
+      run: |
+        terraform fmt -check -recursive
+    # configure the aws role
+    - name: "Configure AWS Credentials For Terraform"
+      id: configure_aws_creds
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ inputs.aws_access_key_id }}
+        aws-secret-access-key: ${{ inputs.aws_secret_access_key }}
+        aws-region: ${{ inputs.aws_region }}
+        role-session-name: GitHubActionsOpgReports
+    # Run the terraform init
+    - name: "Init"
+      id: init
+      shell: bash
+      working-directory: ${{ inputs.directory }}
+      run: |
+        terraform init -input=false -lock-timeout=300s
+    # Run the terraform plan and output that to a file for use in apply
+    - name: "Plan"
+      id: plan
+      shell: bash
+      working-directory: ${{ inputs.directory }}
+      env:
+        TF_WORKSPACE: ${{ inputs.workspace }}
+        PLAN_FILE: ${{ inputs.workspace }}.plan
+      run: |
+        echo -e "workspace:"
+        terraform workspace show
+        terraform plan -lock-timeout=300s -input=false -out=${{ env.PLAN_FILE }} -parallelism=30
+    # Run the terraform applt (if true) from the plan file
+    - name: "Apply [apply: ${{ inputs.apply == 'true' }}]"
+      id: apply
+      shell: bash
+      working-directory: ${{ inputs.directory }}
+      if: ${{ inputs.apply == 'true' }}
+      env:
+        TF_WORKSPACE: ${{ inputs.workspace }}
+        PLAN_FILE: ${{ inputs.workspace }}.plan
+      run: |
+        terraform apply -lock-timeout=300s -input=false -auto-approve -parallelism=30
