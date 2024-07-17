@@ -104,8 +104,7 @@ runs:
         path: ${{ steps.build_go.outputs.BUILD_FOLDER }}/
       run: |
         rm -Rf ${{ env.tarball }}
-        ls -lah ${{ env.path }}
-        tar -czvf ${{ env.tarball }} ${{ env.path }}/
+        tar -czvf ${{ env.tarball }} ${{ env.path }}
         echo "ARTIFACT=${{ env.tarball }}" >> $GITHUB_OUTPUT
 
     ###############
