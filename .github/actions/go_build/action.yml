@@ -19,7 +19,7 @@ outputs:
     value: ${{steps.build_go.outputs.BUILD_FOLDER}}
   artifact:
     description: "Artifact tar ball containing the built binaries"
-    value: ${{steps.build_go.outputs.ARTIFACT}}
+    value: ${{steps.create_artifact.outputs.ARTIFACT}}
 
 
 runs:
@@ -121,7 +121,7 @@ runs:
         echo "| target | ${{ inputs.target }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| test results | [link](${{steps.attach_results.outputs.url_html}}) |"  >> $GITHUB_STEP_SUMMARY
         echo "| build folder | ${{ steps.build_go.outputs.BUILD_FOLDER }} |"  >> $GITHUB_STEP_SUMMARY
-        echo "| artifact | ${{ steps.build_go.outputs.ARTIFACT }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| artifact | ${{ steps.create_artifact.outputs.ARTIFACT }} |"  >> $GITHUB_STEP_SUMMARY
 
     ###############
     #   CLEAN UP

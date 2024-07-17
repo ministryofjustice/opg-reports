@@ -111,8 +111,6 @@ jobs:
           create_artifact: true
       - name: "Generate semver tag and release"
         id: semver_tag
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
         uses: ministryofjustice/opg-github-actions/.github/actions/semver-tag@v3.0.6
         with:
           prerelease: true
