@@ -32,7 +32,7 @@ runs:
       uses: actions/checkout@v4
     - name: "Build"
       id: "build_go"
-      uses: .github/actions/go_build
+      uses: ./.github/actions/go_build
       with:
         target: "reports"
     - name: "Setup data directory"
