@@ -47,11 +47,18 @@ jobs:
       # run report
       - name: "Run report"
         id: run
+        env:
+          month: ${{ inputs.month != "" && inputs.month || '-' }}
+          unit: ${{ matrix.account_unit }}
+          label: ${{ matrix.account_label }}
+          name: ${{ matrix.account_name }}
+          id: ${{ matrix.account_id }}
+          environment: ${{ matrix.account_environment }}
         uses: ./.github/actions/report
         with:
           name: "AWS monthly costs"
           cmd: "aws_cost_monthly"
-          arguments: '-account_unit ${{ matrix.account_unit }} -account_label ${{ matrix.account_label }} -account_name ${{ matrix.account_name }} -account_id ${{ matrix.account_id }} -account_environment ${{ matrix.account_environment }}'
+          arguments: '-month "${{ env.month }}"  -account_unit "${{ env.unit }}" -account_label "${{ env.label }}" -account_name "${{ env.name }}" -account_id "${{ env.id }}" -account_environment "${{ env.environment }}" '
       # configure the aws role for s3 upload
       - name: "Configure AWS credentials for S3 upload"
         id: configure_aws_creds_bucket
