@@ -1,7 +1,7 @@
 name: "[Workflow] Path to Live"
 
 on:
-  pull_request:
+  push:
     branches:
       - main
 
@@ -108,6 +108,7 @@ jobs:
   summary:
     name: "Summary"
     if: always()
+    #needs: [setup, terraform_development, terraform_production]
     needs: [setup, terraform_development]
     runs-on: ubuntu-latest
     steps:
