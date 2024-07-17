@@ -26,6 +26,7 @@ data "aws_iam_policy_document" "allow_data_role_access" {
       type = "AWS"
       identifiers = [
         "arn:aws:iam::${local.environment.account_id}:role/docs-and-metadata-ci",
+        "arn:aws:iam::${local.environment.account_id}:role/operator",
       ]
     }
 

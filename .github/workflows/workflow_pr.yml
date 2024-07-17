@@ -56,7 +56,7 @@ jobs:
       - name: "Checkout"
         id: checkout
         uses: actions/checkout@v4
-    # configure the aws role
+      # configure the aws role
       - name: "Configure AWS Credentials For Terraform"
         id: configure_aws_creds
         uses: aws-actions/configure-aws-credentials@v4
@@ -64,7 +64,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
           aws-region: "eu-west-1"
-          role-session-name: GitHubActionsOpgReports
+          role-session-name: GitHubActionsOpgReportsTerraform
       - name: "Account level terraform"
         uses: ./.github/actions/terraform
         with:
@@ -72,8 +72,6 @@ jobs:
           directory: ./terraform/account
           workspace: ${{ needs.setup.outputs.terraform_workspace_development }}
           version: ${{ needs.setup.outputs.terraform_version_account }}
-          # aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
-          # aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
       - name: "Environment level terraform"
         uses: ./.github/actions/terraform
         with:
@@ -81,8 +79,6 @@ jobs:
           directory: ./terraform/environment
           workspace: ${{ needs.setup.outputs.terraform_workspace_development }}
           version: ${{ needs.setup.outputs.terraform_version_environment }}
-          # aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
-          # aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
 
   # helper to output summary of steps
   summary:
