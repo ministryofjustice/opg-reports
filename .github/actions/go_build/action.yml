@@ -100,12 +100,12 @@ runs:
       shell: bash
       if: ${{ inputs.create_artifact == 'true' }}
       env:
-        tarball: "./go.tar.gz"
-        path: ${{ steps.build_go.outputs.BUILD_FOLDER }}/
+        tarball: "go.tar.gz"
+      working-directory: ${{ steps.build_go.outputs.BUILD_FOLDER }}
       run: |
         rm -Rf ${{ env.tarball }}
-        tar -czvf ${{ env.tarball }} ${{ env.path }}
-        echo "ARTIFACT=${{ env.tarball }}" >> $GITHUB_OUTPUT
+        tar -czvf ${{ env.tarball }} .
+        echo "ARTIFACT=${{ steps.build_go.outputs.BUILD_FOLDER }}/${{ env.tarball }}" >> $GITHUB_OUTPUT
 
     ###############
     #   SUMMARY
