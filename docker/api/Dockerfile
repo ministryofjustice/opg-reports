@@ -24,6 +24,6 @@ RUN apk --update --no-cache add \
 
 # Patch vulnerabilities
 RUN apk upgrade --no-cache busybox libcrypto3 libssl3
-
 COPY --from=build /go/bin/api api
+COPY --from=build /app/services/api/data data
 ENTRYPOINT ["./api"]

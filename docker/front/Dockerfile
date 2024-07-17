@@ -24,6 +24,7 @@ RUN apk --update --no-cache add \
     tzdata
 # Patch vulnerabilities
 RUN apk upgrade --no-cache busybox libcrypto3 libssl3
-
 COPY --from=build /go/bin/front front
+COPY --from=build /app/services/front/assets assets
+COPY --from=build /app/services/front/templates templates
 ENTRYPOINT ["./front"]
