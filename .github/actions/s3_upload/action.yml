@@ -35,6 +35,7 @@ runs:
       shell: bash
       run:  |
         echo "### S3 Upload Summary" >> $GITHUB_STEP_SUMMARY
+        echo "| Variable | Value |" >> $GITHUB_STEP_SUMMARY
         echo "| --- | --- |"  >> $GITHUB_STEP_SUMMARY
         echo "| directory | ${{ inputs.directory }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| bucket | ${{ inputs.bucket }} |"  >> $GITHUB_STEP_SUMMARY
