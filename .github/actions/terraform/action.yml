@@ -1,5 +1,5 @@
 name: "Terraform: Plan & Apply"
-description: "Plan and apply the terraform"
+description: "Plan and apply the terraform. Presumes workflow is already authenticated."
 
 inputs:
   version:
@@ -19,15 +19,6 @@ inputs:
     required: true
     default: "false"
 
-  # aws_access_key_id:
-  #   description: "The AWS access key id for this user"
-  #   required: true
-  # aws_secret_access_key:
-  #   description: "The AWS secret access key"
-  #   required: true
-  # aws_region:
-  #   description: "The AWS region to run from. Default: eu-west-1"
-  #   default: "eu-west-1"
 
 runs:
   using: "composite"
@@ -51,23 +42,14 @@ runs:
       if: ${{ inputs.lint == 'true' }}
       run: |
         terraform fmt -check -recursive
-    # # configure the aws role
-    # - name: "Configure AWS Credentials For Terraform"
-    #   id: configure_aws_creds
-    #   uses: aws-actions/configure-aws-credentials@v4
-    #   with:
-    #     aws-access-key-id: ${{ inputs.aws_access_key_id }}
-    #     aws-secret-access-key: ${{ inputs.aws_secret_access_key }}
-    #     aws-region: ${{ inputs.aws_region }}
-    #     role-session-name: GitHubActionsOpgReports
-    # # Run the terraform init
+    # run the terraform init
     - name: "Init"
       id: init
       shell: bash
       working-directory: ${{ inputs.directory }}
       run: |
         terraform init -input=false -lock-timeout=300s
-    # Run the terraform plan and output that to a file for use in apply
+    # run the terraform plan and output that to a file for use in apply
     - name: "Plan"
       id: plan
       shell: bash
@@ -79,7 +61,7 @@ runs:
         echo -e "workspace:"
         terraform workspace show
         terraform plan -lock-timeout=300s -input=false -out=${{ env.PLAN_FILE }} -parallelism=30
-    # Run the terraform applt (if true) from the plan file
+    # run the terraform applt (if true) from the plan file
     - name: "Apply [apply: ${{ inputs.apply == 'true' }}]"
       id: apply
       shell: bash
