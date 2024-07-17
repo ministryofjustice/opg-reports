@@ -58,7 +58,7 @@ jobs:
         id: checkout
         uses: actions/checkout@v4
       # configure the aws role
-      - name: "Configure AWS Credentials For Terraform"
+      - name: "Configure AWS credentials For terraform"
         id: configure_aws_creds
         uses: aws-actions/configure-aws-credentials@v4
         with:

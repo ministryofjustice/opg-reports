@@ -5,7 +5,6 @@ on:
     branches:
       - main
     paths:
-      - '.github/actions/report/*'
       - '.github/workflows/report_repository_standards.yml'
   schedule:
     # 9am saturday
@@ -31,7 +30,7 @@ jobs:
           cmd: "github_standards"
           arguments: '-organisation ministryofjustice -team opg'
       # configure the aws role
-      - name: "Configure AWS Credentials For S3 Upload"
+      - name: "Configure AWS credentials for S3 upload"
         id: configure_aws_creds
         uses: aws-actions/configure-aws-credentials@v4
         with:
