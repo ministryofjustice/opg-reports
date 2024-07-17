@@ -134,6 +134,7 @@ runs:
         echo "| root folder | ${{ steps.build_go.outputs.ARCH }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| build folder | ${{ steps.build_go.outputs.BUILD_FOLDER }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| artifact | ${{ steps.create_artifact.outputs.ARTIFACT }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| test! | ${{ steps.create_artifact.outputs.api_arch }} |"  >> $GITHUB_STEP_SUMMARY
 
     ###############
     #   CLEAN UP

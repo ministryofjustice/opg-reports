@@ -164,7 +164,8 @@ go-api go-front go-report-gh-standards go-report-aws-monthly-costs:
 	@rm -Rf ${GO_TARGET_FOLDER}/${GO_BIN_NAME}
 	@cd ${GO_SOURCE_FOLDER} && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${GO_TARGET_FOLDER}/${GO_BIN_NAME} main.go
 	@if test "$(GITHUB_OUTPUT)" != "" ; then \
-		echo "	running in github"; \
+		echo "	running in github, outputting values"; \
+		echo "${GO_BIN_NAME}_arch=${OS_ARCH}" >> $(GITHUB_OUTPUT); \
 	else \
 		echo "	running in cli"; \
 	fi
