@@ -30,3 +30,6 @@ jobs:
           name: "Repository standards"
           cmd: "github_standards"
           arguments: '-organisation ministryofjustice -repo opg-org-infra'
+      - name: "ls"
+        run: |
+          ls -lah ${{ steps.id.outputs.data_folder }}/*

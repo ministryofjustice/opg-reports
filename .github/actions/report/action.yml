@@ -15,9 +15,12 @@ inputs:
 
 
 outputs:
+  build_folder:
+    description: "Path to the folder containing the built versions of the code base"
+    value: ${{steps.build_go.outputs.build_folder}}
   data_folder:
     description: "Path to the folder containing the built versions of the code base"
-    value: ${{ steps.build_go.outputs.BUILD_FOLDER }}
+    value: ${{ steps.setup_data_dir.outputs.DATA_FOLDER }}
 
 
 runs:
@@ -40,7 +43,7 @@ runs:
       run: |
         rm -Rf ${{ env.data_folder }}
         mkdir -p ${{ env.data_folder }}
-        echo "data_folder=${{ env.data_folder }}" >> $GITHUB_OUTPUT
+        echo "DATA_FOLDER=${{ env.data_folder }}" >> $GITHUB_OUTPUT
     - name: "Run report"
       id: run_report
       shell: bash
@@ -49,6 +52,8 @@ runs:
         cmd_args: ${{ inputs.arguments }}
       run: |
         ./${{ inputs.cmd }} ${{ env.cmd_args }}
+        ls -lah ./data/*
+        ls -lah ${{ steps.setup_data_dir.outputs.DATA_FOLDER }}
     ###############
     #   SUMMARY
     ###############
@@ -63,4 +68,4 @@ runs:
         echo "| cmd | ${{ inputs.cmd }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| arguments | ${{ inputs.arguments }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| directory | ${{ steps.build_go.outputs.build_folder }} |"  >> $GITHUB_STEP_SUMMARY
-        echo "| data folder | ${{ steps.setup_data_dir.outputs.data_folder }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| data folder | ${{ steps.setup_data_dir.outputs.DATA_FOLDER }} |"  >> $GITHUB_STEP_SUMMARY
