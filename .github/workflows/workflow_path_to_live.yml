@@ -120,7 +120,6 @@ jobs:
       - name: "Terraform"
         run: |
           echo "### Terraform info" >> $GITHUB_STEP_SUMMARY
-          echo "| Variable | Value |" >> $GITHUB_STEP_SUMMARY
           echo "| --- | --- |"  >> $GITHUB_STEP_SUMMARY
           echo "| terraform workspace development | ${{ needs.setup.outputs.terraform_workspace_development }} |"  >> $GITHUB_STEP_SUMMARY
           echo "| terraform workspace production | ${{ needs.setup.outputs.terraform_workspace_production }} |"  >> $GITHUB_STEP_SUMMARY

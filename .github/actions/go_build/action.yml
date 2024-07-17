@@ -97,7 +97,6 @@ runs:
       shell: bash
       run:  |
         echo "### Go Build Summary" >> $GITHUB_STEP_SUMMARY
-        echo "| Variable | Value |" >> $GITHUB_STEP_SUMMARY
         echo "| --- | --- |"  >> $GITHUB_STEP_SUMMARY
         echo "| skip tests | ${{ inputs.skip_tests }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| target | ${{ inputs.target }} |"  >> $GITHUB_STEP_SUMMARY

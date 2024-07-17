@@ -62,7 +62,6 @@ runs:
       shell: bash
       run:  |
         echo "### Report Summary" >> $GITHUB_STEP_SUMMARY
-        echo "| Variable | Value |" >> $GITHUB_STEP_SUMMARY
         echo "| --- | --- |"  >> $GITHUB_STEP_SUMMARY
         echo "| name | ${{ inputs.name }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| cmd | ${{ inputs.cmd }} |"  >> $GITHUB_STEP_SUMMARY
