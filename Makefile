@@ -137,6 +137,8 @@ go-reports:
 	@cd ${REPORTS_FOLDER}/aws/cost/monthly/ && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${BUILD_ARCH_FOLDER}/reports/aws_cost_monthly main.go
 	@cd ${REPORTS_FOLDER}/github/standards/ && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${BUILD_ARCH_FOLDER}/reports/github_standards main.go
 	@ls -laRh ${BUILD_ARCH_FOLDER}/reports/
+	@echo "Built go-reports"
+	@echo "${BUILD_ARCH_FOLDER}/reports"
 # builds the api into a build folder
 go-api:
 	@echo "Building go-api"
@@ -146,7 +148,8 @@ go-api:
 	@mkdir -p ${BUILD_ARCH_FOLDER}/api/
 	@cd ${API_FOLDER}/ && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${BUILD_ARCH_FOLDER}/api/api main.go
 	@ls -laRh ${BUILD_ARCH_FOLDER}/api/
-
+	@echo "Built go-api"
+	@echo "${BUILD_ARCH_FOLDER}/api"
 # builds the api into a build folder
 go-front:
 	@echo "Building go-front"
@@ -156,6 +159,8 @@ go-front:
 	@mkdir -p ${BUILD_ARCH_FOLDER}/front/
 	@cd ${FRONT_FOLDER}/ && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${BUILD_ARCH_FOLDER}/front/front main.go
 	@ls -laRh ${BUILD_ARCH_FOLDER}/front/
+	@echo "Built go-front"
+	@echo "${BUILD_ARCH_FOLDER}/front"
 
 go-all: go-reports go-api go-front
 	@echo "Built."
