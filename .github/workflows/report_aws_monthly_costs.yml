@@ -34,7 +34,7 @@ jobs:
       - name: "Checkout"
         id: checkout
         uses: actions/checkout@v4
-      # configure the aws role
+      # configure the aws role for costs
       - name: "Configure AWS credentials for running the report"
         id: configure_aws_creds_report
         uses: aws-actions/configure-aws-credentials@v4
@@ -51,10 +51,10 @@ jobs:
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
         with:
-          name: "Repository standards"
-          cmd: "github_standards"
-          arguments: '-organisation ministryofjustice -team opg'
-      # configure the aws role
+          name: "AWS monthly costs"
+          cmd: "aws_cost_monthly"
+          arguments: '-account_unit ${{ matrix.account_unit }} -account_label ${{ matrix.account_label }} -account_name ${{ matrix.account_name }} -account_id ${{ matrix.account_id }} -account_environment ${{ matrix.account_environment }}'
+      # configure the aws role for s3 upload
       - name: "Configure AWS credentials for S3 upload"
         id: configure_aws_creds_bucket
         uses: aws-actions/configure-aws-credentials@v4
