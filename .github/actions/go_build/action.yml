@@ -95,11 +95,10 @@ runs:
       env:
         target: "go-${{ inputs.target == '' && 'all' || inputs.target }}"
       run: |
-        make ${{ env.target }} > make.log
-        arch=$(cat ./make.log | tail -n3 | head -1)
-        root_folder=$(cat ./make.log | tail -n2 | head -1)
-        build_folder=$(cat ./make.log | tail -n1)
-        cat ./make.log
+        make ${{ env.target }}
+        while read -r a b; do
+          echo "${a}=${b}|"
+        done < ./build.log
         echo "ARCH=${arch}" >> $GITHUB_OUTPUT
         echo "ROOT_FOLDER=${build_folder}" >> $GITHUB_OUTPUT
         echo "BUILD_FOLDER=${build_folder}" >> $GITHUB_OUTPUT
@@ -146,4 +145,4 @@ runs:
       run: |
         rm -f ./report.xml
         rm -f ./test-results.json
-        rm -Rf ./make.log
+        rm -f ./build.log

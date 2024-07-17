@@ -29,8 +29,7 @@ AWS_PROFILE ?= shared-development
 # name of the dev bucket
 BUCKET ?= report-data-development
 
-
-
+GO_BUILD_INFO := "build.log"
 GO_SOURCE_FOLDER := ${API_FOLDER}
 GO_TARGET_FOLDER := ${BUILD_ARCH_FOLDER}/api
 GO_BIN_NAME := api
@@ -135,6 +134,11 @@ assets: assets-api assets-front
 # set folders and binary names
 ##############################
 
+gbuildinfo:
+	echo "arch ${OS_ARCH}" >> ${GO_BUILD_INFO}
+	echo "build_folder ${BUILD_FOLDER}" >> ${GO_BUILD_INFO}
+	echo "build_arch_folder ${BUILD_ARCH_FOLDER}" >> ${GO_BUILD_INFO}
+
 # set variables for the api binary
 go-api: GO_SOURCE_FOLDER=${SERVICES_FOLDER}/api
 go-api: GO_TARGET_FOLDER=${BUILD_ARCH_FOLDER}/api
@@ -154,7 +158,7 @@ go-report-aws-monthly-costs: GO_BIN_NAME=aws_cost_monthly
 
 # go-build should be called by other targets with the $GO_ variables overwritten to something
 # suitable for the target
-go-api go-front go-report-gh-standards go-report-aws-monthly-costs:
+go-api go-front go-report-gh-standards go-report-aws-monthly-costs: gbuildinfo
 	@echo "-----"
 	@echo "[Go](${GO_BIN_NAME}) Building..."
 	@echo "	source: [${GO_SOURCE_FOLDER}]"
@@ -163,27 +167,14 @@ go-api go-front go-report-gh-standards go-report-aws-monthly-costs:
 	@mkdir -p ${GO_TARGET_FOLDER}
 	@rm -Rf ${GO_TARGET_FOLDER}/${GO_BIN_NAME}
 	@cd ${GO_SOURCE_FOLDER} && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${GO_TARGET_FOLDER}/${GO_BIN_NAME} main.go
-	@if test "$(GITHUB_OUTPUT)" != "" ; then \
-		echo "	running in github, outputting values"; \
-		echo "${GO_BIN_NAME}_arch=${OS_ARCH}" >> $(GITHUB_OUTPUT); \
-	else \
-		echo "	running in cli"; \
-	fi
-# these last echos are used by the github workflows to read in data
-	@echo "[Go](${GO_BIN_NAME}) Built. Details:"
-	@echo "${OS_ARCH}"
-	@echo "${BUILD_FOLDER}"
-	@echo "${GO_TARGET_FOLDER}"
-
+	@echo "[Go](${GO_BIN_NAME}) Built."
+	@echo "${GO_BIN_NAME}_target_folder ${GO_TARGET_FOLDER}" >> ${GO_BUILD_INFO}
 
 go-reports: go-report-gh-standards go-report-aws-monthly-costs
 
 go-all: go-api go-front go-reports
 # these last echos are used by the github workflows to read in data
-	@echo "Built All. Info:"
-	@echo "${OS_ARCH}"
-	@echo "${BUILD_FOLDER}"
-	@echo "${BUILD_ARCH_FOLDER}"
+	@echo "Built All"
 ##############################
 # DEV
 ##############################
