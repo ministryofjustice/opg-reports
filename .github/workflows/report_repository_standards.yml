@@ -27,5 +27,5 @@ jobs:
         with:
           name: "Repository standards"
           cmd: "github_standards"
-          arguments: '-organisation ministryofjustice -team opg'
+          arguments: '-organisation ministryofjustice -repo opg-aws-whitepaper'
           gh_access_token: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
