@@ -116,7 +116,7 @@ jobs:
   summary:
     name: "Workflow summary"
     if: always()
-    needs: [setup, terraform_development]
+    needs: [setup, terraform_development, release]
     runs-on: ubuntu-latest
     steps:
       - name: "Terraform"
