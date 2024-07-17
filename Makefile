@@ -11,6 +11,8 @@ endif
 GOVUK_FRONT_VERSION := "v5.4.0"
 # location of go builds
 BUILD_FOLDER := ${ROOT_DIR}builds
+# location for this arch
+BUILD_ARCH_FOLDER := ${BUILD_FOLDER}/${OS}_${ARCH}
 # where govuk assets are downloaded into
 GOVUK_DOWNLOAD_FOLDER := ${BUILD_FOLDER}/govuk-frontend
 # location of go report commands
@@ -30,9 +32,12 @@ AWS_PROFILE ?= "shared-development"
 # name of the dev bucket
 BUCKET ?= "report-data-development"
 
-
+.DEFAULT_GOAL: all
 .PHONY: test tests benchmarks coverage assets assets-front assets-api
 
+all:
+	@echo "Nothing to run, choose a target."
+	@echo ${BUILD_ARCH_FOLDER}
 ##############################
 # TESTS
 ##############################
@@ -63,9 +68,11 @@ benchmarks:
 ##############################
 
 build-production: assets
+	@echo "Building docker setup for production..."
 	@env DOCKER_BUILDKIT=0 docker compose build --no-cache
 # build dev version
 build: assets
+	@echo "Building docker setup for development..."
 	@env DOCKER_BUILDKIT=0 docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml build
 down:
 	@docker compose down
@@ -82,6 +89,10 @@ up: clean build-dev
 
 # get data from s3 for (production)
 assets-api:
+	@echo "Running assets-api..."
+	@echo "source:[${BUCKET}]"
+	@echo "target:[${API_DATA_FOLDER}]"
+	@echo " - You can use a different bucket by running the command with `BUCKET=name` appended."
 	@rm -Rf ${BUCKET_FOLDER}
 	@rm -Rf ${API_DATA_FOLDER}
 	@if test "$(AWS_SESSION_TOKEN)" = "" ; then \
@@ -95,6 +106,9 @@ assets-api:
 
 # get the gov uk front end assets and move them into local folders
 assets-front:
+	@echo "Running assets-front..."
+	@echo "source:[alphagov/govuk-frontend@${GOVUK_FRONT_VERSION}]"
+	@echo "target:[${SERVICES_FOLDER}/front/assets/]"
 	@rm -Rf ${GOVUK_DOWNLOAD_FOLDER}
 	@rm -Rf ${SERVICES_FOLDER}/front/assets/css/
 	@rm -Rf ${SERVICES_FOLDER}/front/assets/fonts/
@@ -118,32 +132,46 @@ assets: assets-api assets-front
 ##############################
 
 # builds the reports into a build folder - typically for a release artifact rather than docker setup
-artifact-reports:
-	@rm -Rf ${BUILD_FOLDER}/${OS}_${ARCH}/reports/
-	@mkdir -p ${BUILD_FOLDER}/${OS}_${ARCH}/reports/
-	@cd ${REPORTS_FOLDER}/aws/cost/monthly/ && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${BUILD_FOLDER}/${OS}_${ARCH}/reports/aws_cost_monthly main.go
-	@cd ${REPORTS_FOLDER}/github/standards/ && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${BUILD_FOLDER}/${OS}_${ARCH}/reports/github_standards main.go
+go-reports:
+	@echo "Building go-reports"
+	@echo "source:[${REPORTS_FOLDER}]"
+	@echo "target:[${BUILD_ARCH_FOLDER}/reports/]"
+	@rm -Rf ${BUILD_ARCH_FOLDER}/reports/
+	@mkdir -p ${BUILD_ARCH_FOLDER}/reports/
+	@cd ${REPORTS_FOLDER}/aws/cost/monthly/ && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${BUILD_ARCH_FOLDER}/reports/aws_cost_monthly main.go
+	@cd ${REPORTS_FOLDER}/github/standards/ && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${BUILD_ARCH_FOLDER}/reports/github_standards main.go
+	@ls -laRh ${BUILD_ARCH_FOLDER}/reports/
+# builds the api into a build folder
+go-api:
+	@echo "Building go-api"
+	@echo "source:[${API_FOLDER}]"
+	@echo "target:[${BUILD_ARCH_FOLDER}/api/]"
+	@rm -Rf ${BUILD_ARCH_FOLDER}/api/
+	@mkdir -p ${BUILD_ARCH_FOLDER}/api/
+	@cd ${API_FOLDER}/ && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${BUILD_ARCH_FOLDER}/api/api main.go
+	@ls -laRh ${BUILD_ARCH_FOLDER}/api/
 
-# builds the api into a build folder - typically for a release artifact rather than docker setup
-artifact-api: assets-api
-	@rm -Rf ${BUILD_FOLDER}/${OS}_${ARCH}/api/
-	@mkdir -p ${BUILD_FOLDER}/${OS}_${ARCH}/api/
-	@cd ${API_FOLDER}/ && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${BUILD_FOLDER}/${OS}_${ARCH}/api/api main.go
+# builds the api into a build folder
+go-front:
+	@echo "Building go-front"
+	@echo "source:[${FRONT_FOLDER}]"
+	@echo "target:[${BUILD_ARCH_FOLDER}/front/]"
+	@rm -Rf ${BUILD_ARCH_FOLDER}/front/
+	@mkdir -p ${BUILD_ARCH_FOLDER}/front/
+	@cd ${FRONT_FOLDER}/ && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${BUILD_ARCH_FOLDER}/front/front main.go
+	@ls -laRh ${BUILD_ARCH_FOLDER}/front/
 
-# builds the api into a build folder - typically for a release artifact rather than docker setup
-artifact-front: assets-front
-	@rm -Rf ${BUILD_FOLDER}/${OS}_${ARCH}/front/
-	@mkdir -p ${BUILD_FOLDER}/${OS}_${ARCH}/front/
-	@cd ${API_FOLDER}/ && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${BUILD_FOLDER}/${OS}_${ARCH}/front/front main.go
-
-artifacts: artifact-reports artifact-api artifact-front
-
+go-all: go-reports go-api go-front
+	@echo "Built."
+	@echo "${BUILD_ARCH_FOLDER}"
 ##############################
 # DEV
 ##############################
 
 dev-run-api:
+	@echo "Running api..."
 	@clear && cd ${API_FOLDER} && go run main.go
 
 dev-run-front:
+	@echo "Running front..."
 	@clear && cd ${FRONT_FOLDER} && go run main.go
