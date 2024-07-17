@@ -29,7 +29,7 @@ jobs:
         with:
           name: "Repository standards"
           cmd: "github_standards"
-          arguments: '-organisation ministryofjustice -repo opg-org-infra'
+          arguments: '-organisation ministryofjustice -team opg'
       # configure the aws role
       - name: "Configure AWS Credentials For S3 Upload"
         id: configure_aws_creds
