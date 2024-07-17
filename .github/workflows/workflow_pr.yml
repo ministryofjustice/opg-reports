@@ -43,7 +43,7 @@ jobs:
         uses: actions/checkout@v4
       - name: "Build"
         id: "build_go"
-        uses: ./.github/actions/go_build
+        uses: .github/actions/go_build
         with:
           target: "all"
 
@@ -66,14 +66,14 @@ jobs:
           aws-region: "eu-west-1"
           role-session-name: GitHubActionsOpgReportsTerraform
       - name: "Account level terraform"
-        uses: ./.github/actions/terraform
+        uses: .github/actions/terraform
         with:
           apply: true
           directory: ./terraform/account
           workspace: ${{ needs.setup.outputs.terraform_workspace_development }}
           version: ${{ needs.setup.outputs.terraform_version_account }}
       - name: "Environment level terraform"
-        uses: ./.github/actions/terraform
+        uses: .github/actions/terraform
         with:
           apply: true
           directory: ./terraform/environment
