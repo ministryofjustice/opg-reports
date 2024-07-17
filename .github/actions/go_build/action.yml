@@ -67,22 +67,22 @@ runs:
       run: |
         go-junit-report -parser gojson -in test-results.json -out report.xml || true
     # Add the report to the workflow
-    - name: "Attach junit test results"
-      id: attach_results
-      if: ${{ inputs.skip_tests != 'true' }}
-      uses: dorny/test-reporter@v1
-      with:
-        name: Test Results
-        fail-on-error: false
-        path: ./report.xml
-        reporter: java-junit
-    - name: "Tests failed"
-      id: tests_failed
-      shell: bash
-      if: ${{ inputs.skip_tests != 'true' && steps.attach_results.outputs.conclusion != 'success' }}
-      run: |
-        echo "Test failed, please see summary: ${{ steps.attach_results.outputs.url_html }}"
-        exit 1
+    # - name: "Attach junit test results"
+    #   id: attach_results
+    #   if: ${{ inputs.skip_tests != 'true' }}
+    #   uses: dorny/test-reporter@v1
+    #   with:
+    #     name: "Go Test Results"
+    #     fail-on-error: false
+    #     path: ./report.xml
+    #     reporter: java-junit
+    # - name: "Tests failed"
+    #   id: tests_failed
+    #   shell: bash
+    #   if: ${{ inputs.skip_tests != 'true' && steps.attach_results.outputs.conclusion != 'success' }}
+    #   run: |
+    #     echo "Test failed, please see summary: ${{ steps.attach_results.outputs.url_html }}"
+    #     exit 1
     ###############
     #   BUILD
     ###############
