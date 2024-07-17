@@ -83,6 +83,9 @@ jobs:
     name: "Create release"
     needs: [build_go, terraform_development]
     runs-on: ubuntu-latest
+    outputs:
+      artifact: ${{ steps.build_go.outputs.artifact }}
+      tag: ${{ steps.semver_tag.outputs.created_tag }}
     steps:
       - name: "Checkout"
         id: checkout
@@ -128,6 +131,13 @@ jobs:
           echo "| terraform workspace production | ${{ needs.setup.outputs.terraform_workspace_production }} |"  >> $GITHUB_STEP_SUMMARY
           echo "| terraform account version | ${{ needs.setup.outputs.terraform_version_account }} |"  >> $GITHUB_STEP_SUMMARY
           echo "| terraform environment version | ${{ needs.setup.outputs.terraform_version_environment }} |"  >> $GITHUB_STEP_SUMMARY
+      - name: "Release"
+        run: |
+          echo "### Release info" >> $GITHUB_STEP_SUMMARY
+          echo "| Variable | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "| --- | --- |"  >> $GITHUB_STEP_SUMMARY
+          echo "| tag | ${{ needs.release.outputs.tag }} |"  >> $GITHUB_STEP_SUMMARY
+          echo "| artifact | ${{ needs.release.outputs.artifact }} |"  >> $GITHUB_STEP_SUMMARY
 
   end:
     name: 'End of workflow'
