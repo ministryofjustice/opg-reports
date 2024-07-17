@@ -9,12 +9,18 @@ inputs:
   skip_tests:
     description: "Boolean when set to true the go test suite wont be run. Default: false"
     default: "false"
-
+  create_artifact:
+    description: "Boolean when set to true will create a tarball containing all binaries"
+    default: "false"
 
 outputs:
   build_folder:
     description: "Path to the folder containing the built versions of the code base"
     value: ${{steps.build_go.outputs.BUILD_FOLDER}}
+  artifact:
+    description: "Artifact tar ball containing the built binaries"
+    value: ${{steps.build_go.outputs.ARTIFACT}}
+
 
 runs:
   using: "composite"
@@ -75,7 +81,7 @@ runs:
       shell: bash
       if: ${{ inputs.skip_tests != 'true' && steps.attach_results.outputs.conclusion != 'success' }}
       run: |
-        echo "Test failed, please see summary: ${{steps.attach_results.outputs.url_html}}"
+        echo "Test failed, please see summary: ${{ steps.attach_results.outputs.url_html }}"
         exit 1
     ###############
     #   BUILD
@@ -84,11 +90,24 @@ runs:
       id: build_go
       shell: bash
       env:
-        target: "go-${{inputs.target == '' && 'all' || inputs.target}}"
+        target: "go-${{ inputs.target == '' && 'all' || inputs.target }}"
       run: |
         make ${{ env.target }} > make.log
         path=$(cat ./make.log | tail -n1)
         echo "BUILD_FOLDER=${path}" >> $GITHUB_OUTPUT
+    - name: "Create artifact [${{ inputs.create_artifact }}]"
+      id: create_artifact
+      shell: bash
+      if: ${{ inputs.create_artifact == 'true' }}
+      env:
+        tarball: "./go.tar.gz"
+        path: ${{ steps.build_go.outputs.BUILD_FOLDER }}/
+      run: |
+        rm -Rf ${{ env.tarball }}
+        ls -lah ${{ env.path }}
+        tar -czvf ${{ env.tarball }} ${{ env.path }}/
+        echo "ARTIFACT=${{ env.tarball }}" >> $GITHUB_OUTPUT
+
     ###############
     #   SUMMARY
     ###############
@@ -103,6 +122,7 @@ runs:
         echo "| target | ${{ inputs.target }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| test results | [link](${{steps.attach_results.outputs.url_html}}) |"  >> $GITHUB_STEP_SUMMARY
         echo "| build folder | ${{ steps.build_go.outputs.BUILD_FOLDER }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| artifact | ${{ steps.build_go.outputs.ARTIFACT }} |"  >> $GITHUB_STEP_SUMMARY
 
     ###############
     #   CLEAN UP
