@@ -8,7 +8,8 @@ GOVUK_FRONT_VERSION := "v5.4.0"
 # location of go builds
 BUILD_FOLDER := ${ROOT_DIR}builds
 # location for this arch
-BUILD_ARCH_FOLDER := ${BUILD_FOLDER}/${OS}_${ARCH}
+OS_ARCH := ${OS}_${ARCH}
+BUILD_ARCH_FOLDER := ${BUILD_FOLDER}/${OS_ARCH}
 # where govuk assets are downloaded into
 GOVUK_DOWNLOAD_FOLDER := ${BUILD_FOLDER}/govuk-frontend
 # location of go report commands
@@ -24,12 +25,18 @@ FRONT_FOLDER := ${SERVICES_FOLDER}/front
 # location to download data from the remote bucket into
 BUCKET_FOLDER := ./from-bucket
 # aws vault profile to use to connect to the dev bucket
-AWS_PROFILE ?= "shared-development"
+AWS_PROFILE ?= shared-development
 # name of the dev bucket
-BUCKET ?= "report-data-development"
+BUCKET ?= report-data-development
+
+
+
+GO_SOURCE_FOLDER := ${API_FOLDER}
+GO_TARGET_FOLDER := ${BUILD_ARCH_FOLDER}/api
+GO_BIN_NAME := api
 
 .DEFAULT_GOAL: all
-.PHONY: test tests benchmarks coverage assets assets-front assets-api
+.PHONY: test tests benchmarks coverage assets assets-front assets-api go-build
 
 all:
 	@echo "Nothing to run, choose a target."
@@ -124,46 +131,57 @@ assets-front:
 assets: assets-api assets-front
 ##############################
 # RELEASE ARTIFACTS
-# Can also be used for local binary builds
+# Will build the go code. Uses target specific variables to
+# set folders and binary names
 ##############################
 
-# builds the reports into a build folder - typically for a release artifact rather than docker setup
-go-reports:
-	@echo "Building go-reports"
-	@echo "source:[${REPORTS_FOLDER}]"
-	@echo "target:[${BUILD_ARCH_FOLDER}/reports/]"
-	@rm -Rf ${BUILD_ARCH_FOLDER}/reports/
-	@mkdir -p ${BUILD_ARCH_FOLDER}/reports/
-	@cd ${REPORTS_FOLDER}/aws/cost/monthly/ && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${BUILD_ARCH_FOLDER}/reports/aws_cost_monthly main.go
-	@cd ${REPORTS_FOLDER}/github/standards/ && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${BUILD_ARCH_FOLDER}/reports/github_standards main.go
-	@ls -laRh ${BUILD_ARCH_FOLDER}/reports/
-	@echo "Built go-reports"
-	@echo "${BUILD_ARCH_FOLDER}/reports"
-# builds the api into a build folder
-go-api:
-	@echo "Building go-api"
-	@echo "source:[${API_FOLDER}]"
-	@echo "target:[${BUILD_ARCH_FOLDER}/api/]"
-	@rm -Rf ${BUILD_ARCH_FOLDER}/api/
-	@mkdir -p ${BUILD_ARCH_FOLDER}/api/
-	@cd ${API_FOLDER}/ && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${BUILD_ARCH_FOLDER}/api/api main.go
-	@ls -laRh ${BUILD_ARCH_FOLDER}/api/
-	@echo "Built go-api"
-	@echo "${BUILD_ARCH_FOLDER}/api"
-# builds the api into a build folder
-go-front:
-	@echo "Building go-front"
-	@echo "source:[${FRONT_FOLDER}]"
-	@echo "target:[${BUILD_ARCH_FOLDER}/front/]"
-	@rm -Rf ${BUILD_ARCH_FOLDER}/front/
-	@mkdir -p ${BUILD_ARCH_FOLDER}/front/
-	@cd ${FRONT_FOLDER}/ && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${BUILD_ARCH_FOLDER}/front/front main.go
-	@ls -laRh ${BUILD_ARCH_FOLDER}/front/
-	@echo "Built go-front"
-	@echo "${BUILD_ARCH_FOLDER}/front"
+# set variables for the api binary
+go-api: GO_SOURCE_FOLDER=${SERVICES_FOLDER}/api
+go-api: GO_TARGET_FOLDER=${BUILD_ARCH_FOLDER}/api
+go-api: GO_BIN_NAME=api
+# set variables for the the front binary
+go-front: GO_SOURCE_FOLDER=${SERVICES_FOLDER}/front
+go-front: GO_TARGET_FOLDER=${BUILD_ARCH_FOLDER}/front
+go-front: GO_BIN_NAME=front
+# set variables for the github standards report
+go-report-gh-standards: GO_SOURCE_FOLDER=${REPORTS_FOLDER}/github/standards
+go-report-gh-standards: GO_TARGET_FOLDER=${BUILD_ARCH_FOLDER}/reports
+go-report-gh-standards: GO_BIN_NAME=github_standards
+# set variables for the aws monthly costs report
+go-report-aws-monthly-costs: GO_SOURCE_FOLDER=${REPORTS_FOLDER}/aws/cost/monthly
+go-report-aws-monthly-costs: GO_TARGET_FOLDER=${BUILD_ARCH_FOLDER}/reports
+go-report-aws-monthly-costs: GO_BIN_NAME=aws_cost_monthly
 
-go-all: go-reports go-api go-front
-	@echo "Built."
+# go-build should be called by other targets with the $GO_ variables overwritten to something
+# suitable for the target
+go-api go-front go-report-gh-standards go-report-aws-monthly-costs:
+	@echo "-----"
+	@echo "[Go](${GO_BIN_NAME}) Building..."
+	@echo "	source: [${GO_SOURCE_FOLDER}]"
+	@echo "	target: [${GO_TARGET_FOLDER}]"
+	@echo "	binary: [${GO_BIN_NAME}]"
+	@mkdir -p ${GO_TARGET_FOLDER}
+	@rm -Rf ${GO_TARGET_FOLDER}/${GO_BIN_NAME}
+	@cd ${GO_SOURCE_FOLDER} && go mod download && env GOOS=${OS} GOARCH=${ARCH} go build -o ${GO_TARGET_FOLDER}/${GO_BIN_NAME} main.go
+	@if test "$(GITHUB_OUTPUT)" != "" ; then \
+		echo "	running in github"; \
+	else \
+		echo "	running in cli"; \
+	fi
+# these last echos are used by the github workflows to read in data
+	@echo "[Go](${GO_BIN_NAME}) Built. Details:"
+	@echo "${OS_ARCH}"
+	@echo "${BUILD_FOLDER}"
+	@echo "${GO_TARGET_FOLDER}"
+
+
+go-reports: go-report-gh-standards go-report-aws-monthly-costs
+
+go-all: go-api go-front go-reports
+# these last echos are used by the github workflows to read in data
+	@echo "Built All. Info:"
+	@echo "${OS_ARCH}"
+	@echo "${BUILD_FOLDER}"
 	@echo "${BUILD_ARCH_FOLDER}"
 ##############################
 # DEV
