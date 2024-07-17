@@ -67,5 +67,5 @@ runs:
         echo "| name | ${{ inputs.name }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| cmd | ${{ inputs.cmd }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| arguments | ${{ inputs.arguments }} |"  >> $GITHUB_STEP_SUMMARY
-        echo "| directory" | ${{ steps.build_go.outputs.build_folder }} |"  >> $GITHUB_STEP_SUMMARY
-        echo "| data folder" | ${{ steps.setup_data_dir.outputs.data_folder }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| directory | ${{ steps.build_go.outputs.build_folder }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| data folder | ${{ steps.setup_data_dir.outputs.data_folder }} |"  >> $GITHUB_STEP_SUMMARY
