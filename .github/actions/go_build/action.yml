@@ -70,12 +70,6 @@ runs:
         fail-on-error: false
         path: ./report.xml
         reporter: java-junit
-    - name: "Add report link to summary"
-      id: test_report_link
-      if: ${{ inputs.skip_tests != 'true' }}
-      shell: bash
-      run:  |
-        echo "**[Test results](${{steps.attach_results.outputs.url_html}})**" >> $GITHUB_STEP_SUMMARY
     - name: "Tests failed"
       id: tests_failed
       shell: bash
@@ -95,6 +89,21 @@ runs:
         make ${{ env.target }} > make.log
         path=$(cat ./make.log | tail -n1)
         echo "BUILD_FOLDER=${path}" >> $GITHUB_OUTPUT
+    ###############
+    #   SUMMARY
+    ###############
+    - name: "Summary"
+      id: summary
+      shell: bash
+      run:  |
+        echo "### Go Build Summary" >> $GITHUB_STEP_SUMMARY
+        echo "| Variable | Value |" >> $GITHUB_STEP_SUMMARY
+        echo "| --- | --- |"  >> $GITHUB_STEP_SUMMARY
+        echo "| skip tests | ${{ inputs.skip_tests }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| target | ${{ inputs.target }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| test results | [link](${{steps.attach_results.outputs.url_html}}) |"  >> $GITHUB_STEP_SUMMARY
+        echo "| build folder | ${{ steps.build_go.outputs.BUILD_FOLDER }} |"  >> $GITHUB_STEP_SUMMARY
+
     ###############
     #   CLEAN UP
     ###############
