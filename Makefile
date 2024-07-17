@@ -1,11 +1,7 @@
 SHELL := $(shell which bash)
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 OS := $(shell uname | tr '[:upper:]' '[:lower:]')
-ARCH := $(shell uname -m)
-# check and set the correct goarch
-ifeq (${ARCH}, 'x86_64')
-	ARCH := 'amd64'
-endif
+ARCH := $(shell uname -m | sed 's/x86_64/amd64/')
 
 # version of the gov uk front end to download
 GOVUK_FRONT_VERSION := "v5.4.0"
