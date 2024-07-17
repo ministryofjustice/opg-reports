@@ -48,8 +48,6 @@ jobs:
       - name: "Run report"
         id: run
         uses: ./.github/actions/report
-        env:
-          GITHUB_ACCESS_TOKEN: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
         with:
           name: "AWS monthly costs"
           cmd: "aws_cost_monthly"
