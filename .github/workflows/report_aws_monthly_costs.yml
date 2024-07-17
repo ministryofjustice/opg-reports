@@ -48,7 +48,7 @@ jobs:
       - name: "Run report"
         id: run
         env:
-          month: ${{ inputs.month != "" && inputs.month || '-' }}
+          month: ${{ inputs.month != '' && inputs.month || '-' }}
           unit: ${{ matrix.account_unit }}
           label: ${{ matrix.account_label }}
           name: ${{ matrix.account_name }}
