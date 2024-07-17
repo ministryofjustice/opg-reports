@@ -1,6 +1,8 @@
 package sess
 
 import (
+	"opg-reports/shared/env"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -19,12 +21,28 @@ func AssumeRole(roleArn string, region string, sessionName string) (*session.Ses
 	if err != nil {
 		return nil, err
 	}
+	return NewSession(
+		*assumedRole.Credentials.AccessKeyId,
+		*assumedRole.Credentials.SecretAccessKey,
+		*assumedRole.Credentials.SessionToken,
+		region)
 
+}
+
+func NewSession(id string, secret string, token string, region string) (*session.Session, error) {
 	return session.NewSession(&aws.Config{
-		Credentials: credentials.NewStaticCredentials(
-			*assumedRole.Credentials.AccessKeyId,
-			*assumedRole.Credentials.SecretAccessKey,
-			*assumedRole.Credentials.SessionToken),
-		Region: aws.String(region),
+		Credentials: credentials.NewStaticCredentials(id, secret, token),
+		Region:      aws.String(region),
+	})
+}
+
+func NewSessionFromEnv() (*session.Session, error) {
+	id := env.Get("AWS_ACCESS_KEY_ID", "")
+	secret := env.Get("AWS_SECRET_ACCESS_KEY", "")
+	token := env.Get("AWS_SESSION_TOKEN", "")
+	region := env.Get("AWS_DEFAULT_REGION", "eu-west-1")
+	return session.NewSession(&aws.Config{
+		Credentials: credentials.NewStaticCredentials(id, secret, token),
+		Region:      aws.String(region),
 	})
 }

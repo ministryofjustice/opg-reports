@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log/slog"
-	"opg-reports/shared/aws/arn"
 	"opg-reports/shared/aws/cost"
 	"opg-reports/shared/data"
 	"opg-reports/shared/dates"
@@ -23,8 +22,6 @@ var (
 	account_unit  = report.NewArg("account_unit", true, "Unit to group the account into (like a team structure)", "")
 	account_org   = report.NewArg("account_organisation", true, "Organisation name", "OPG")
 	account_env   = report.NewArg("account_environment", true, "Account environment type", "development")
-	role          = report.NewArg("role", false, "Role to use to fetch the data", "billing")
-	region        = report.NewArg("region", false, "Region to start session from", "eu-west-1")
 )
 
 const dir string = "data"
@@ -42,8 +39,6 @@ func run(r report.IReport) {
 	unit := account_unit.Val()
 	org := account_org.Val()
 	env := account_env.Val()
-	roleName := role.Val()
-	reg := region.Val()
 
 	slog.Info("getting costs",
 		slog.String("account name", name),
@@ -52,8 +47,7 @@ func run(r report.IReport) {
 
 	startDate := m
 	endDate := m.AddDate(0, 1, 0)
-	roleArn := arn.RoleArn(id, roleName)
-	raw, err := cost.CostAndUsage(roleArn, startDate, endDate, reg, costexplorer.GranularityDaily, dates.FormatYMD)
+	raw, err := cost.CostAndUsage(startDate, endDate, costexplorer.GranularityDaily, dates.FormatYMD)
 	if err != nil {
 		slog.Error(fmt.Sprintf("error: %v", err.Error()))
 		panic(err.Error())
@@ -72,7 +66,7 @@ func main() {
 	now := time.Now().UTC().AddDate(0, -1, 0)
 	month.SetDefault(now.Format(dates.FormatYM))
 
-	costReport := report.New(month, account_id, account_name, account_label, account_unit, account_org, account_env, role, region)
+	costReport := report.New(month, account_id, account_name, account_label, account_unit, account_org, account_env)
 	costReport.SetRunner(run)
 	costReport.Run()
 

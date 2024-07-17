@@ -35,9 +35,9 @@ func CostAndUsageInput(startDate time.Time, endDate time.Time, granularity strin
 
 }
 
-func CostAndUsage(roleArn string, startDate time.Time, endDate time.Time, region string, granularity string, dateFormat string) (*costexplorer.GetCostAndUsageOutput, error) {
+func CostAndUsage(startDate time.Time, endDate time.Time, granularity string, dateFormat string) (*costexplorer.GetCostAndUsageOutput, error) {
 
-	ceClient, err := Client(roleArn, region)
+	ceClient, err := ClientFromEnv()
 	if err != nil {
 		slog.Error(fmt.Sprintf("error: CostAndUsage client: %v", err.Error()))
 		return nil, err
@@ -47,7 +47,6 @@ func CostAndUsage(roleArn string, startDate time.Time, endDate time.Time, region
 	slog.Debug("CostAndUsage",
 		slog.String("start", *sdkInput.TimePeriod.Start),
 		slog.String("end", *sdkInput.TimePeriod.End),
-		slog.String("arn", roleArn),
 	)
 	request, response := ceClient.GetCostAndUsageRequest(sdkInput)
 	err = request.Send()
