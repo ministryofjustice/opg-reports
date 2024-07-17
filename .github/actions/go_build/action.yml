@@ -14,12 +14,15 @@ inputs:
     default: "false"
 
 outputs:
+  root_folder:
+    description: "Folder path where all builds are stored within"
+    value: ${{ steps.build_go.outputs.ROOT_FOLDER }}
   build_folder:
     description: "Path to the folder containing the built versions of the code base"
-    value: ${{steps.build_go.outputs.BUILD_FOLDER}}
+    value: ${{ steps.build_go.outputs.BUILD_FOLDER }}
   artifact:
     description: "Artifact tar ball containing the built binaries"
-    value: ${{steps.create_artifact.outputs.ARTIFACT}}
+    value: ${{ steps.create_artifact.outputs.ARTIFACT }}
 
 
 runs:
@@ -93,18 +96,25 @@ runs:
         target: "go-${{ inputs.target == '' && 'all' || inputs.target }}"
       run: |
         make ${{ env.target }} > make.log
-        path=$(cat ./make.log | tail -n1)
-        echo "BUILD_FOLDER=${path}" >> $GITHUB_OUTPUT
+        arch=$(cat ./make.log | tail -n3 | head -1)
+        root_folder=$(cat ./make.log | tail -n2 | head -1)
+        build_folder=$(cat ./make.log | tail -n1)
+        cat ./make.log
+        echo "ARCH=${arch}" >> $GITHUB_OUTPUT
+        echo "ROOT_FOLDER=${build_folder}" >> $GITHUB_OUTPUT
+        echo "BUILD_FOLDER=${build_folder}" >> $GITHUB_OUTPUT
     - name: "Create artifact [${{ inputs.create_artifact }}]"
       id: create_artifact
       shell: bash
       if: ${{ inputs.create_artifact == 'true' }}
       env:
-        tarball: "go.tar.gz"
-      working-directory: ${{ steps.build_go.outputs.BUILD_FOLDER }}
+        arch: ${{ steps.build_go.outputs.ARCH }}
+        tarball: "${{ steps.build_go.outputs.ARCH }}.tar.gz"
+      working-directory: ${{ steps.build_go.outputs.ROOT_FOLDER }}
       run: |
         rm -Rf ${{ env.tarball }}
-        tar -czvf ${{ env.tarball }} .
+        tar -czvf ${{ env.tarball }} ${{ steps.build_go.outputs.ARCH }}
+        ls -lh .
         echo "ARTIFACT=${{ steps.build_go.outputs.BUILD_FOLDER }}/${{ env.tarball }}" >> $GITHUB_OUTPUT
 
     ###############
@@ -120,6 +130,8 @@ runs:
         echo "| skip tests | ${{ inputs.skip_tests }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| target | ${{ inputs.target }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| test results | [link](${{steps.attach_results.outputs.url_html}}) |"  >> $GITHUB_STEP_SUMMARY
+        echo "| arch | ${{ steps.build_go.outputs.ROOT_FOLDER }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| root folder | ${{ steps.build_go.outputs.ARCH }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| build folder | ${{ steps.build_go.outputs.BUILD_FOLDER }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| artifact | ${{ steps.create_artifact.outputs.ARTIFACT }} |"  >> $GITHUB_STEP_SUMMARY
 
