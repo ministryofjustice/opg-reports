@@ -52,7 +52,6 @@ runs:
         cmd_args: ${{ inputs.arguments }}
       run: |
         ./${{ inputs.cmd }} ${{ env.cmd_args }}
-        ls -lah ./data/*
         ls -lah ${{ steps.setup_data_dir.outputs.DATA_FOLDER }}
     ###############
     #   SUMMARY
