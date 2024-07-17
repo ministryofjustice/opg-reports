@@ -1,0 +1,31 @@
+name: "[Reports] Repository Standards"
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/actions/report/*'
+      - '.github/workflows/report_repository_standards.yml'
+  schedule:
+    # 9am saturday
+    - cron: '0 9 * * 6'
+  workflow_dispatch:
+
+jobs:
+
+  report:
+    name: "Run repository standards report"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "checkout"
+        id: checkout
+        uses: actions/checkout@v4
+      - name: "run"
+        id: run
+        uses: .github/actions/report
+        with:
+          name: "Repository standards"
+          cmd: "github_standards"
+          arguments: '-organisation ministryofjustice -team opg'
+          gh_access_token: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
