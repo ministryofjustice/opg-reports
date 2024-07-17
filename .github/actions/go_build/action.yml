@@ -17,15 +17,15 @@ outputs:
   build_folder:
     description: "Folder path where all builds are stored"
     value: ${{ steps.build_go.outputs.build_folder }}
-  target_folder:
-    description: "Folder path where the target requested binaries are"
-    value: ${{ steps.target_folder.outputs.target_folder }}
   build_arch_folder:
     description: "Path to the folder containing the built versions of the code base for this architecture"
     value: ${{ steps.build_go.outputs.build_arch_folder }}
+  target_folder:
+    description: "Folder path where the input.target binaries are"
+    value: ${{ steps.target_folder.outputs.target_folder }}
   artifact:
     description: "Artifact tar ball containing the built binaries"
-    value: ${{ steps.create_artifact.outputs.ARTIFACT }}
+    value: ${{ steps.create_artifact.outputs.artifact }}
 
 
 runs:
@@ -126,7 +126,7 @@ runs:
       run: |
         rm -Rf ${{ env.tarball }}
         tar -czvf ${{ env.tarball }} ${{ steps.build_go.outputs.arch }}
-        echo "ARTIFACT=${{ steps.build_go.outputs.build_folder }}/${{ env.tarball }}" >> $GITHUB_OUTPUT
+        echo "artifact=${{ steps.build_go.outputs.build_folder }}/${{ env.tarball }}" >> $GITHUB_OUTPUT
 
     ###############
     #   SUMMARY
@@ -145,7 +145,7 @@ runs:
         echo "| build folder | ${{ steps.build_go.outputs.build_folder }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| build arch folder | ${{ steps.build_go.outputs.build_arch_folder }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| target folder | ${{ steps.target_folder.outputs.target_folder }} |"  >> $GITHUB_STEP_SUMMARY
-        echo "| artifact | ${{ steps.create_artifact.outputs.ARTIFACT }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| artifact | ${{ steps.create_artifact.outputs.artifact }} |"  >> $GITHUB_STEP_SUMMARY
 
     ###############
     #   CLEAN UP
