@@ -14,12 +14,15 @@ inputs:
     default: "false"
 
 outputs:
-  root_folder:
-    description: "Folder path where all builds are stored within"
-    value: ${{ steps.build_go.outputs.ROOT_FOLDER }}
   build_folder:
-    description: "Path to the folder containing the built versions of the code base"
-    value: ${{ steps.build_go.outputs.BUILD_FOLDER }}
+    description: "Folder path where all builds are stored"
+    value: ${{ steps.build_go.outputs.build_folder }}
+  target_folder:
+    description: "Folder path where the target requested binaries are"
+    value: ${{ steps.target_folder.outputs.target_folder }}
+  build_arch_folder:
+    description: "Path to the folder containing the built versions of the code base for this architecture"
+    value: ${{ steps.build_go.outputs.build_arch_folder }}
   artifact:
     description: "Artifact tar ball containing the built binaries"
     value: ${{ steps.create_artifact.outputs.ARTIFACT }}
@@ -97,24 +100,33 @@ runs:
       run: |
         make ${{ env.target }}
         while read -r a b; do
-          echo "${a}=${b}|"
+          echo "${a}=${b}" >> $GITHUB_OUTPUT
         done < ./build.log
-        echo "ARCH=${arch}" >> $GITHUB_OUTPUT
-        echo "ROOT_FOLDER=${build_folder}" >> $GITHUB_OUTPUT
-        echo "BUILD_FOLDER=${build_folder}" >> $GITHUB_OUTPUT
+    - name: "Target folder"
+      id: target_folder
+      env:
+        base_folder: ${{ steps.build_go.outputs.build_arch_folder }}
+        target: ${{ inputs.target }}
+      shell: bash
+      run: |
+        if [ "${{ env.target }}" -ne "all"]; then
+          echo "target_folder=${{ env.base_folder }}/${{ env.target }}" >> $GITHUB_OUTPUT
+        else
+          echo "target_folder=" >> $GITHUB_OUTPUT
+        fi
+
     - name: "Create artifact [${{ inputs.create_artifact }}]"
       id: create_artifact
       shell: bash
       if: ${{ inputs.create_artifact == 'true' }}
       env:
-        arch: ${{ steps.build_go.outputs.ARCH }}
-        tarball: "${{ steps.build_go.outputs.ARCH }}.tar.gz"
-      working-directory: ${{ steps.build_go.outputs.ROOT_FOLDER }}
+        arch: ${{ steps.build_go.outputs.arch }}
+        tarball: "${{ steps.build_go.outputs.arch }}.tar.gz"
+      working-directory: ${{ steps.build_go.outputs.build_folder }}
       run: |
         rm -Rf ${{ env.tarball }}
-        tar -czvf ${{ env.tarball }} ${{ steps.build_go.outputs.ARCH }}
-        ls -lh .
-        echo "ARTIFACT=${{ steps.build_go.outputs.BUILD_FOLDER }}/${{ env.tarball }}" >> $GITHUB_OUTPUT
+        tar -czvf ${{ env.tarball }} ${{ steps.build_go.outputs.arch }}
+        echo "ARTIFACT=${{ steps.build_go.outputs.build_folder }}/${{ env.tarball }}" >> $GITHUB_OUTPUT
 
     ###############
     #   SUMMARY
@@ -129,11 +141,11 @@ runs:
         echo "| skip tests | ${{ inputs.skip_tests }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| target | ${{ inputs.target }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| test results | [link](${{steps.attach_results.outputs.url_html}}) |"  >> $GITHUB_STEP_SUMMARY
-        echo "| arch | ${{ steps.build_go.outputs.ROOT_FOLDER }} |"  >> $GITHUB_STEP_SUMMARY
-        echo "| root folder | ${{ steps.build_go.outputs.ARCH }} |"  >> $GITHUB_STEP_SUMMARY
-        echo "| build folder | ${{ steps.build_go.outputs.BUILD_FOLDER }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| arch | ${{ steps.build_go.outputs.arch }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| build folder | ${{ steps.build_go.outputs.build_folder }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| build arch folder | ${{ steps.build_go.outputs.build_arch_folder }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| target folder | ${{ steps.target_folder.outputs.target_folder }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| artifact | ${{ steps.create_artifact.outputs.ARTIFACT }} |"  >> $GITHUB_STEP_SUMMARY
-        echo "| test! | ${{ steps.create_artifact.outputs.api_arch }} |"  >> $GITHUB_STEP_SUMMARY
 
     ###############
     #   CLEAN UP

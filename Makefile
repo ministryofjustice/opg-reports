@@ -135,9 +135,10 @@ assets: assets-api assets-front
 ##############################
 
 gbuildinfo:
-	echo "arch ${OS_ARCH}" >> ${GO_BUILD_INFO}
-	echo "build_folder ${BUILD_FOLDER}" >> ${GO_BUILD_INFO}
-	echo "build_arch_folder ${BUILD_ARCH_FOLDER}" >> ${GO_BUILD_INFO}
+	@rm -f ${GO_BUILD_INFO}
+	@echo "arch ${OS_ARCH}" >> ${GO_BUILD_INFO}
+	@echo "build_folder ${BUILD_FOLDER}" >> ${GO_BUILD_INFO}
+	@echo "build_arch_folder ${BUILD_ARCH_FOLDER}" >> ${GO_BUILD_INFO}
 
 # set variables for the api binary
 go-api: GO_SOURCE_FOLDER=${SERVICES_FOLDER}/api
