@@ -66,29 +66,29 @@ jobs:
       - name: "Checkout"
         id: checkout
         uses: actions/checkout@v4
-      # configure the aws role
-      - name: "Configure AWS credentials for terraform"
-        id: configure_aws_creds
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
-          aws-region: "eu-west-1"
-          role-session-name: GitHubActionsOpgReportsTerraform
-      - name: "Account level terraform"
-        uses: ./.github/actions/terraform
-        with:
-          apply: true
-          directory: ./terraform/account
-          workspace: ${{ needs.setup.outputs.terraform_workspace_development }}
-          version: ${{ needs.setup.outputs.terraform_version_account }}
-      - name: "Environment level terraform"
-        uses: ./.github/actions/terraform
-        with:
-          apply: true
-          directory: ./terraform/environment
-          workspace: ${{ needs.setup.outputs.terraform_workspace_development }}
-          version: ${{ needs.setup.outputs.terraform_version_environment }}
+      # # configure the aws role
+      # - name: "Configure AWS credentials for terraform"
+      #   id: configure_aws_creds
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
+      #     aws-region: "eu-west-1"
+      #     role-session-name: GitHubActionsOpgReportsTerraform
+      # - name: "Account level terraform"
+      #   uses: ./.github/actions/terraform
+      #   with:
+      #     apply: true
+      #     directory: ./terraform/account
+      #     workspace: ${{ needs.setup.outputs.terraform_workspace_development }}
+      #     version: ${{ needs.setup.outputs.terraform_version_account }}
+      # - name: "Environment level terraform"
+      #   uses: ./.github/actions/terraform
+      #   with:
+      #     apply: true
+      #     directory: ./terraform/environment
+      #     workspace: ${{ needs.setup.outputs.terraform_workspace_development }}
+      #     version: ${{ needs.setup.outputs.terraform_version_environment }}
 
   # do the release
   release:
@@ -102,29 +102,29 @@ jobs:
       - name: "Checkout"
         id: checkout
         uses: actions/checkout@v4
-      - name: "Build"
-        id: "build_go"
-        uses: ./.github/actions/go_build
-        with:
-          target: "all"
-          skip_tests: true
-          create_artifact: true
-      - name: "Generate semver tag and release"
-        id: semver_tag
-        uses: ministryofjustice/opg-github-actions/.github/actions/semver-tag@v3.0.6
-        with:
-          prerelease: true
-          releases_enabled: false # disable the release as we want to attach artifacts
-      - name: "Create a release"
-        id: create_release
-        uses: ncipollo/release-action@v1.13.0
-        with:
-          generateReleaseNotes: false
-          tag: ${{ steps.semver_tag.outputs.created_tag }}
-          name: ${{ steps.semver_tag.outputs.created_tag }}
-          draft: false
-          prerelease: true
-          artifacts: '${{ steps.build_go.outputs.artifact }}'
+      # - name: "Build"
+      #   id: "build_go"
+      #   uses: ./.github/actions/go_build
+      #   with:
+      #     target: "all"
+      #     skip_tests: true
+      #     create_artifact: true
+      # - name: "Generate semver tag and release"
+      #   id: semver_tag
+      #   uses: ministryofjustice/opg-github-actions/.github/actions/semver-tag@v3.0.6
+      #   with:
+      #     prerelease: true
+      #     releases_enabled: false # disable the release as we want to attach artifacts
+      # - name: "Create a release"
+      #   id: create_release
+      #   uses: ncipollo/release-action@v1.13.0
+      #   with:
+      #     generateReleaseNotes: false
+      #     tag: ${{ steps.semver_tag.outputs.created_tag }}
+      #     name: ${{ steps.semver_tag.outputs.created_tag }}
+      #     draft: false
+      #     prerelease: true
+      #     artifacts: '${{ steps.build_go.outputs.artifact }}'
 
 
   # helper to output summary of steps
