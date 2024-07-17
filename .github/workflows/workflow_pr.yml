@@ -46,7 +46,6 @@ jobs:
         uses: ./.github/actions/go_build
         with:
           target: "all"
-          skip_tests: false
 
   # Run the terraform for development workspace
   terraform:

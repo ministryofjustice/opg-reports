@@ -41,7 +41,6 @@ runs:
     # setup the terraform version
     - name: "Setup terraform [version: ${{ inputs.version }}]"
       uses: hashicorp/setup-terraform@v3
-      working-directory: ${{ inputs.directory }}
       with:
         terraform_version: ${{ inputs.version }}
     # run linting against the terraform (if requested)

@@ -6,10 +6,6 @@ inputs:
     description: "Decide what part of the code base to build. Options:[all, api, front, reports] Default: all"
     default: "all"
     required: true
-  skip_tests:
-    description: "Boolean when set to true the go test suite wont be run. Default: false"
-    default: "false"
-
 
 outputs:
   build_folder:
@@ -38,7 +34,6 @@ runs:
     # install the json to junit report tool
     - name: "Install junit report tool"
       id: install_junit
-      if: ${{ inputs.skip_tests != 'true' }}
       shell: bash
       run: |
         go install github.com/jstemmer/go-junit-report/v2@latest
@@ -46,7 +41,6 @@ runs:
     # run the tests and output the results as a json file
     - name: "Run tests"
       id: run_tests
-      if: ${{ inputs.skip_tests != 'true' }}
       shell: bash
       env:
         LOG_LEVEL: ${{ runner.debug == '1' && 'debug' || 'error' }}
@@ -56,14 +50,12 @@ runs:
     # conver the json file to the junit report file
     - name: "Convert test results to junit"
       id: convert_test_results
-      if: ${{ inputs.skip_tests != 'true' }}
       shell: bash
       run: |
         go-junit-report -parser gojson -in test-results.json -out report.xml || true
     # Add the report to the workflow
     - name: "Attach junit test results"
       id: attach_results
-      if: ${{ inputs.skip_tests != 'true' }}
       uses: dorny/test-reporter@v1
       with:
         name: Test Results
@@ -72,14 +64,13 @@ runs:
         reporter: java-junit
     - name: "Add report link to summary"
       id: test_report_link
-      if: ${{ inputs.skip_tests != 'true' }}
       shell: bash
       run:  |
         echo "**[Test results](${{steps.attach_results.outputs.url_html}})**" >> $GITHUB_STEP_SUMMARY
     - name: "Tests failed"
       id: tests_failed
       shell: bash
-      if: ${{ inputs.skip_tests != 'true' && steps.report.attach_results.conclusion != 'success' }}
+      if: ${{ steps.report.attach_results.conclusion != 'success' }}
       run: |
         echo "Test failed, please see summary: ${{steps.report.outputs.url_html}}"
         exit 1
