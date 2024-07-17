@@ -1,6 +1,10 @@
 name: "[Reports] Repository Standards"
 
 on:
+  pull_request:
+    branches:
+      - main
+
   schedule:
     # 9am saturday
     - cron: '0 9 * * 6'

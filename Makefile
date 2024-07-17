@@ -172,9 +172,9 @@ go-api go-front go-report-gh-standards go-report-aws-monthly-costs: gbuildinfo
 	@echo "${GO_BIN_NAME}_target_folder ${GO_TARGET_FOLDER}" >> ${GO_BUILD_INFO}
 
 go-reports: go-report-gh-standards go-report-aws-monthly-costs
+	@echo "Built reports."
 
 go-all: go-api go-front go-reports
-# these last echos are used by the github workflows to read in data
 	@echo "Built All"
 ##############################
 # DEV
