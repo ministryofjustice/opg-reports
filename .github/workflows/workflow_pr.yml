@@ -40,7 +40,7 @@ jobs:
     steps:
       - name: "Build"
         id: "build_go"
-        uses: ./github/actions/go_build
+        uses: ./.github/actions/go_build
         with:
           target: "all"
           skip_tests: false
@@ -52,7 +52,7 @@ jobs:
     needs: [setup]
     steps:
       - name: "Account level terraform"
-        uses: ./github/actions/terraform
+        uses: ./.github/actions/terraform
         with:
           apply: true
           directory: ./terraform/account
@@ -61,7 +61,7 @@ jobs:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
       - name: "Environment level terraform"
-        uses: ./github/actions/terraform
+        uses: ./.github/actions/terraform
         with:
           apply: true
           directory: ./terraform/account
