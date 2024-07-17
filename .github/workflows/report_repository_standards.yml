@@ -1,9 +1,6 @@
 name: "[Reports] Repository Standards"
 
 on:
-  pull_request:
-    branches:
-      - main
 
   schedule:
     # 9am saturday
