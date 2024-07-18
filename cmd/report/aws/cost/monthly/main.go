@@ -47,7 +47,7 @@ func run(r report.IReport) {
 
 	startDate := m
 	endDate := m.AddDate(0, 1, 0)
-	raw, err := cost.CostAndUsage(startDate, endDate, costexplorer.GranularityDaily, dates.FormatYMD)
+	raw, err := cost.CostAndUsage(startDate, endDate, costexplorer.GranularityMonthly, dates.FormatYMD)
 	if err != nil {
 		slog.Error(fmt.Sprintf("error: %v", err.Error()))
 		panic(err.Error())
