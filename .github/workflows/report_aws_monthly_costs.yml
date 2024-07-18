@@ -29,9 +29,9 @@ jobs:
         include:
           - account_unit: "Digideps"
             account_label: "Digideps"
-            account_name: "Digideps Development"
+            account_name: "Digideps development"
             account_id: 248804316466
-            account_environment: "Development"
+            account_environment: "development"
     steps:
       - name: "Checkout"
         id: checkout

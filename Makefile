@@ -43,7 +43,6 @@ GO_BIN_NAME := api
 
 all:
 	@echo "Nothing to run, choose a target."
-	@echo ${BUILD_ARCH_FOLDER}
 ##############################
 # TESTS
 ##############################
