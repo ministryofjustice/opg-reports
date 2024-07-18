@@ -23,6 +23,7 @@ runs:
       id: setup_go
       uses: actions/setup-go@v4
       with:
+        cache: false
         go-version-file: './go.mod'
     # run the tests and output the results as a json file
     - name: "Run tests"
