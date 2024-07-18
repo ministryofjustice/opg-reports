@@ -74,18 +74,26 @@ benchmarks:
 ##############################
 
 build-production: assets
-	@echo "Building docker setup for production..."
+	@echo "-----"
+	@echo "[Docker](production) Building..."
 	@env DOCKER_BUILDKIT=0 docker compose build --no-cache
+	@echo "[Docker](production) Built."
 # build dev version
 build: assets
-	@echo "Building docker setup for development..."
+	@echo "-----"
+	@echo "[Docker](development) Building..."
 	@env DOCKER_BUILDKIT=0 docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml build
+	@echo "[Docker](development) Built."
 down:
+	@echo "-----"
+	@echo "[Docker] down"
 	@docker compose down
 clean: down
+	@echo "-----"
+	@echo "[Docker] clean"
 	@docker container prune -f
 	@docker image prune -f --filter="dangling=true"
-up: clean build
+dev up: clean build
 	docker compose --verbose -f docker-compose.yml -f docker/docker-compose.dev.yml up -d api front
 
 
@@ -95,26 +103,29 @@ up: clean build
 
 # get data from s3 for (production)
 assets-api:
-	@echo "Running assets-api..."
-	@echo "source:[${BUCKET}]"
-	@echo "target:[${API_DATA_FOLDER}]"
-	@echo " - You can use a different bucket by running the command with `BUCKET=name` appended."
+	@echo "-----"
+	@echo "[Assets](api) Building..."
+	@echo "	source: [${BUCKET}]"
+	@echo "	target: [${API_DATA_FOLDER}]"
+	@echo "	Note: You can use a different bucket by running the command with BUCKET=name added."
 	@rm -Rf ${BUCKET_FOLDER}
 	@rm -Rf ${API_DATA_FOLDER}
 	@if test "$(AWS_SESSION_TOKEN)" = "" ; then \
 		echo "warning: AWS_SESSION_TOKEN not set, running as aws-vault profile [${AWS_PROFILE}] "; \
-		aws-vault exec ${AWS_PROFILE} -- aws s3 sync s3://${BUCKET} ${BUCKET_FOLDER}; \
+		aws-vault exec ${AWS_PROFILE} -- aws s3 sync --quiet s3://${BUCKET} ${BUCKET_FOLDER}; \
 	else \
 		echo "AWS_SESSION_TOKEN set, running as is"; \
-		aws s3 sync s3://${BUCKET} ${BUCKET_FOLDER}; \
+		aws s3 sync --quiet s3://${BUCKET} ${BUCKET_FOLDER}; \
 	fi
 	@mv ${BUCKET_FOLDER} ${API_DATA_FOLDER}
+	@echo "[Assets](api) Built."
 
 # get the gov uk front end assets and move them into local folders
 assets-front:
-	@echo "Running assets-front..."
-	@echo "source:[alphagov/govuk-frontend@${GOVUK_FRONT_VERSION}]"
-	@echo "target:[${SERVICES_FOLDER}/front/assets/]"
+	@echo "-----"
+	@echo "[Assets](front) Building..."
+	@echo "	source: [alphagov/govuk-frontend@${GOVUK_FRONT_VERSION}]"
+	@echo "	target: [${SERVICES_FOLDER}/front/assets/]"
 	@rm -Rf ${GOVUK_DOWNLOAD_FOLDER}
 	@rm -Rf ${SERVICES_FOLDER}/front/assets/css/
 	@rm -Rf ${SERVICES_FOLDER}/front/assets/fonts/
@@ -129,9 +140,10 @@ assets-front:
 	@mv ${GOVUK_DOWNLOAD_FOLDER}/assets/images/ ${SERVICES_FOLDER}/front/assets/
 	@mv ${GOVUK_DOWNLOAD_FOLDER}/assets/manifest.json ${SERVICES_FOLDER}/front/assets/
 	@rm -Rf ${GOVUK_DOWNLOAD_FOLDER}
-	@echo "Downloaded alphagov/govuk-frontend@${GOVUK_FRONT_VERSION} to ${SERVICES_FOLDER}/front/assets/"
+	@echo "[Assets](front) Built."
 
 assets: assets-api assets-front
+	@echo "[Assets] Built all"
 
 ##############################
 # RELEASE ARTIFACTS
@@ -177,10 +189,10 @@ go-api go-front go-report-gh-standards go-report-aws-monthly-costs: gbuildinfo
 	@echo "${GO_BIN_NAME}_target_folder ${GO_TARGET_FOLDER}" >> ${GO_BUILD_INFO}
 
 go-reports: go-report-gh-standards go-report-aws-monthly-costs
-	@echo "Built reports."
+	@echo "[Go] Built reports."
 
-go-all: go-api go-front go-reports
-	@echo "Built All"
+go go-all: go-api go-front go-reports
+	@echo "[Go] Built all"
 ##############################
 # DEV
 ##############################
