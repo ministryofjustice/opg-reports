@@ -85,7 +85,7 @@ down:
 clean: down
 	@docker container prune -f
 	@docker image prune -f --filter="dangling=true"
-up: clean build-dev
+up: clean build
 	docker compose --verbose -f docker-compose.yml -f docker/docker-compose.dev.yml up -d api front
 
 

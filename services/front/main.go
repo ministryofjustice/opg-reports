@@ -31,9 +31,13 @@ func main() {
 		w.WriteHeader(http.StatusNotFound)
 	})
 
-	templateDir := os.DirFS("templates").(files.IReadFS)
-	templateFS := files.NewFS(templateDir, "templates")
-	templateFiles := tmpl.Files(templateFS, "")
+	templateDir := os.DirFS("templates/").(files.IReadFS)
+	templateFS := files.NewFS(templateDir, "templates/")
+	templateFiles := tmpl.Files(templateFS, "templates/")
+
+	for _, f := range templateFiles {
+		slog.Debug("template file", slog.String("path", f))
+	}
 
 	conf, _ := cnf.Load(configContent)
 	serve := server.New(
