@@ -54,8 +54,6 @@ jobs:
       - name: "Test"
         id: go_test
         uses: ./.github/actions/go_tests
-        with:
-          attach_result: false
       - name: "Build"
         id: "go_build"
         uses: ./.github/actions/go_build

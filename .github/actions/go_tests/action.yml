@@ -1,4 +1,4 @@
-name: "Go: Test"
+name: "Go: Tests"
 description: "Run tests for the go code base"
 
 inputs:
@@ -75,7 +75,7 @@ runs:
       id: summary
       shell: bash
       run:  |
-        echo "### Go Build Summary" >> $GITHUB_STEP_SUMMARY
+        echo "### Go Test Summary" >> $GITHUB_STEP_SUMMARY
         echo "| Variable | Value |" >> $GITHUB_STEP_SUMMARY
         echo "| --- | --- |"  >> $GITHUB_STEP_SUMMARY
         echo "| attach_result | ${{ inputs.attach_result }} |"  >> $GITHUB_STEP_SUMMARY
