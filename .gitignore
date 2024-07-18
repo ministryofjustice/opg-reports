@@ -1,9 +1,10 @@
 #
 **/data/*.json
-**/data/**/*.json
+**/data*/**/*.json
 **data**/*
 # build dir
 builds/*
+build.log
 # code coverage and test output files
 code-coverage.out
 report.xml

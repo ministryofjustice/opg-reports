@@ -35,9 +35,9 @@
                         {{ else if eq $n $pre}}
                             <th data-col="{{$i}}" class="govuk-table__header last-header"><span>{{ $cell.GetValue }}</span></th>
                         {{ else if lt $n $post }}
-                            <td data-col="{{$i}}" class="govuk-table__cell data-cell"><span>{{ dollar $cell.GetValue }}</span></td>
+                            <td data-col="{{$i}}" class="govuk-table__cell data-cell"><span title="{{ $cell.GetValue }}">{{ dollar $cell.GetValue }}</span></td>
                         {{ else }}
-                            <td data-col="{{$i}}" class="govuk-table__cell data-cell"><span>{{ dollar $cell.GetValue }}</span></td>
+                            <td data-col="{{$i}}" class="govuk-table__cell data-cell"><span title="{{ $cell.GetValue }}">{{ dollar $cell.GetValue }}</span></td>
                         {{ end }}
                     {{ end }}
                 </tr>

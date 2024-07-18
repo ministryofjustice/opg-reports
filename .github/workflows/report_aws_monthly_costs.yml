@@ -1,0 +1,73 @@
+name: "[Reports] AWS Monthly Costs"
+
+on:
+  schedule:
+    # 8am on the 15th of every month
+    - cron: '0 8 15 * *'
+  workflow_dispatch:
+    inputs:
+      month:
+        description: "YYYY-MM formatted month to get cost data for."
+        type: string
+        default: "-"
+
+jobs:
+
+  report:
+    name: "Run AWS monthly costs"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - account_unit: "Digideps"
+            account_label: "Digideps"
+            account_name: "Digideps Development"
+            account_id: 248804316466
+            account_environment: "Development"
+    steps:
+      - name: "Checkout"
+        id: checkout
+        uses: actions/checkout@v4
+      # configure the aws role for costs
+      - name: "Configure AWS credentials for running the report"
+        id: configure_aws_creds_report
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
+          aws-region: "eu-west-1"
+          role-to-assume: "arn:aws:iam::679638075911:role/docs-and-metadata-ci"
+          role-session-name: GitHubActionsOpgReportsGetCosts
+      # run report
+      - name: "Run report"
+        id: run
+        env:
+          month: ${{ inputs.month != '' && inputs.month || '-' }}
+          unit: ${{ matrix.account_unit }}
+          label: ${{ matrix.account_label }}
+          name: ${{ matrix.account_name }}
+          id: ${{ matrix.account_id }}
+          environment: ${{ matrix.account_environment }}
+        uses: ./.github/actions/report
+        with:
+          name: "AWS monthly costs"
+          cmd: "aws_cost_monthly"
+          arguments: '-month "${{ env.month }}"  -account_unit "${{ env.unit }}" -account_label "${{ env.label }}" -account_name "${{ env.name }}" -account_id "${{ env.id }}" -account_environment "${{ env.environment }}" '
+      # configure the aws role for s3 upload
+      - name: "Configure AWS credentials for S3 upload"
+        id: configure_aws_creds_bucket
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
+          aws-region: "eu-west-1"
+          role-to-assume: "arn:aws:iam::679638075911:role/docs-and-metadata-ci"
+          role-session-name: GitHubActionsOpgReportsBucketUpload
+      # upload
+      - name: "Upload to s3"
+        uses: ./.github/actions/s3_upload
+        with:
+          directory: ${{ steps.run.outputs.data_folder }}
+          bucket: "report-data-development"
+          bucket_path: "aws/cost/monthly"

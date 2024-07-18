@@ -1,37 +1,43 @@
 name: "[Reports] Repository Standards"
 
 on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - '.github/workflows/_report.yml'
-      - '.github/workflows/report_repository_standards.yml'
+
   schedule:
     # 9am saturday
     - cron: '0 9 * * 6'
   workflow_dispatch:
 
 jobs:
-  # run all tests
-  tests:
-    name: "Tests"
-    uses: './.github/workflows/_tests.yml'
-    secrets: inherit
 
   report:
-    needs: [tests]
-    uses: './.github/workflows/_report.yml'
-    secrets: inherit
-    with:
-      name: "Repository standards"
-      arguments: '-organisation ministryofjustice -team opg'
-      directory: './cmd/report/github/standards'
-      role: 'arn:aws:iam::679638075911:role/docs-and-metadata-ci'
-      # role: ${{ github.ref == 'refs/heads/main' && 'arn:aws:iam::997462338508:role/docs-and-metadata-ci' || 'arn:aws:iam::679638075911:role/docs-and-metadata-ci' }}
-      upload: true
-      bucket_suffix: 'github/standards'
-      bucket: 'report-data-development'
-      bucket_role: 'arn:aws:iam::679638075911:role/docs-and-metadata-ci'
-      # bucket: ${{ github.ref == 'refs/heads/main' && 'report-data-production' || 'report-data-development' }}
-      # bucket_role: ${{ github.ref == 'refs/heads/main' && 'arn:aws:iam::997462338508:role/docs-and-metadata-ci' || 'arn:aws:iam::679638075911:role/docs-and-metadata-ci' }}
+    name: "Run repository standards report"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout"
+        id: checkout
+        uses: actions/checkout@v4
+      - name: "Run report"
+        id: run
+        uses: ./.github/actions/report
+        env:
+          GITHUB_ACCESS_TOKEN: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
+        with:
+          name: "Repository standards"
+          cmd: "github_standards"
+          arguments: '-organisation ministryofjustice -team opg'
+      # configure the aws role
+      - name: "Configure AWS credentials for S3 upload"
+        id: configure_aws_creds
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
+          aws-region: "eu-west-1"
+          role-to-assume: "arn:aws:iam::679638075911:role/docs-and-metadata-ci"
+          role-session-name: GitHubActionsOpgReportsBucketUpload
+      - name: "Upload to s3"
+        uses: ./.github/actions/s3_upload
+        with:
+          directory: ${{ steps.run.outputs.data_folder }}
+          bucket: "report-data-development"
+          bucket_path: "github/standards"
