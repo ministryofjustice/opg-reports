@@ -1,6 +1,10 @@
 name: "[Reports] AWS Monthly Costs"
 
 on:
+  pull_request:
+    branches:
+      - main
+
   schedule:
     # 8am on the 15th of every month
     - cron: '0 8 15 * *'
@@ -37,8 +41,8 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
           aws-region: "eu-west-1"
-          role-to-assume: "arn:aws:iam::679638075911:role/docs-and-metadata-ci"
-          role-session-name: GitHubActionsOpgReportsGetCosts
+          role-to-assume: "arn:aws:iam::${{ matrix.account_id}}:role/reporting-gh-actions-run-reports"
+          role-session-name: github-actions-opg-reports-get-costs
       # run report
       - name: "Run report"
         id: run
