@@ -1,4 +1,4 @@
-name: "Go: Test & Build"
+name: "Go: Build"
 description: "Build the go code within the opg-reports repository so it can then be released"
 
 inputs:
@@ -6,9 +6,6 @@ inputs:
     description: "Decide what part of the code base to build. Options:[all, api, front, reports] Default: all"
     default: "all"
     required: true
-  skip_tests:
-    description: "Boolean when set to true the go test suite wont be run. Default: false"
-    default: "false"
   create_artifact:
     description: "Boolean when set to true will create a tarball containing all binaries"
     default: "false"
@@ -16,10 +13,10 @@ inputs:
 outputs:
   build_folder:
     description: "Folder path where all builds are stored"
-    value: ${{ steps.build_go.outputs.build_folder }}
+    value: ${{ steps.build.outputs.build_folder }}
   build_arch_folder:
     description: "Path to the folder containing the built versions of the code base for this architecture"
-    value: ${{ steps.build_go.outputs.build_arch_folder }}
+    value: ${{ steps.build.outputs.build_arch_folder }}
   target_folder:
     description: "Folder path where the input.target binaries are"
     value: ${{ steps.target_folder.outputs.target_folder }}
@@ -44,89 +41,56 @@ runs:
       uses: actions/setup-go@v4
       with:
         go-version-file: './go.mod'
-    ###############
-    #   TESTS
-    ###############
-    # install the json to junit report tool
-    - name: "Install junit report tool"
-      id: install_junit
-      if: ${{ inputs.skip_tests != 'true' }}
-      shell: bash
-      run: |
-        go install github.com/jstemmer/go-junit-report/v2@latest
-        echo "" > report.xml
-    # run the tests and output the results as a json file
-    - name: "Run tests"
-      id: run_tests
-      if: ${{ inputs.skip_tests != 'true' }}
-      shell: bash
-      env:
-        LOG_LEVEL: ${{ runner.debug == '1' && 'debug' || 'error' }}
-        LOG_TO: "stdout"
-      run: |
-        go test -v -json ./... > test-results.json 2>&1 || true
-    # conver the json file to the junit report file
-    - name: "Convert test results to junit"
-      id: convert_test_results
-      if: ${{ inputs.skip_tests != 'true' }}
-      shell: bash
-      run: |
-        go-junit-report -parser gojson -in test-results.json -out report.xml || true
-    # Add the report to the workflow
-    # - name: "Attach junit test results"
-    #   id: attach_results
-    #   if: ${{ inputs.skip_tests != 'true' }}
-    #   uses: dorny/test-reporter@v1
-    #   with:
-    #     name: "Go Test Results"
-    #     fail-on-error: false
-    #     path: ./report.xml
-    #     reporter: java-junit
-    # - name: "Tests failed"
-    #   id: tests_failed
-    #   shell: bash
-    #   if: ${{ inputs.skip_tests != 'true' && steps.attach_results.outputs.conclusion != 'success' }}
-    #   run: |
-    #     echo "Test failed, please see summary: ${{ steps.attach_results.outputs.url_html }}"
-    #     exit 1
+
     ###############
     #   BUILD
     ###############
     - name: "Build go [${{ inputs.target }}]"
-      id: build_go
+      id: build
       shell: bash
       env:
         target: "go-${{ inputs.target == '' && 'all' || inputs.target }}"
       run: |
+        echo "Build go using makefile."
+
+        echo "  Setting default github output values"
+        echo "arch=" >> $GITHUB_OUTPUT
+        echo "build_folder=" >> $GITHUB_OUTPUT
+        echo "build_arch_folder=" >> $GITHUB_OUTPUT
+
         make ${{ env.target }}
+
+        echo "  Setting github output values from makefile build log"
         while read -r a b; do
           echo "${a}=${b}" >> $GITHUB_OUTPUT
         done < ./build.log
+
     - name: "Target folder"
       id: target_folder
       env:
-        base_folder: ${{ steps.build_go.outputs.build_arch_folder }}
+        base_folder: ${{ steps.build.outputs.build_arch_folder }}
         target: ${{ inputs.target }}
       shell: bash
       run: |
+        echo "Setting folder path for the requested target. Will be empty if requested 'all'."
         if [[ "${{ env.target }}" != "all" ]]; then
           echo "target_folder=${{ env.base_folder }}/${{ env.target }}" >> $GITHUB_OUTPUT
         else
           echo "target_folder=" >> $GITHUB_OUTPUT
         fi
-
     - name: "Create artifact [${{ inputs.create_artifact }}]"
       id: create_artifact
       shell: bash
       if: ${{ inputs.create_artifact == 'true' }}
       env:
-        arch: ${{ steps.build_go.outputs.arch }}
-        tarball: "${{ steps.build_go.outputs.arch }}.tar.gz"
-      working-directory: ${{ steps.build_go.outputs.build_folder }}
+        arch: ${{ steps.build.outputs.arch }}
+        tarball: "${{ steps.build.outputs.arch }}.tar.gz"
+      working-directory: ${{ steps.build.outputs.build_folder }}
       run: |
-        rm -Rf ${{ env.tarball }}
-        tar -czvf ${{ env.tarball }} ${{ steps.build_go.outputs.arch }}
-        echo "artifact=${{ steps.build_go.outputs.build_folder }}/${{ env.tarball }}" >> $GITHUB_OUTPUT
+        echo "Creating tarball artifact"
+        rm -f ${{ env.tarball }}
+        tar -czvf ${{ env.tarball }} ${{ steps.build.outputs.arch }}
+        echo "artifact=${{ steps.build.outputs.build_folder }}/${{ env.tarball }}" >> $GITHUB_OUTPUT
 
     ###############
     #   SUMMARY
@@ -138,12 +102,10 @@ runs:
         echo "### Go Build Summary" >> $GITHUB_STEP_SUMMARY
         echo "| Variable | Value |" >> $GITHUB_STEP_SUMMARY
         echo "| --- | --- |"  >> $GITHUB_STEP_SUMMARY
-        echo "| skip tests | ${{ inputs.skip_tests }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| target | ${{ inputs.target }} |"  >> $GITHUB_STEP_SUMMARY
-        echo "| test results | [link](${{steps.attach_results.outputs.url_html}}) |"  >> $GITHUB_STEP_SUMMARY
-        echo "| arch | ${{ steps.build_go.outputs.arch }} |"  >> $GITHUB_STEP_SUMMARY
-        echo "| build folder | ${{ steps.build_go.outputs.build_folder }} |"  >> $GITHUB_STEP_SUMMARY
-        echo "| build arch folder | ${{ steps.build_go.outputs.build_arch_folder }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| arch | ${{ steps.build.outputs.arch }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| build folder | ${{ steps.build.outputs.build_folder }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| build arch folder | ${{ steps.build.outputs.build_arch_folder }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| target folder | ${{ steps.target_folder.outputs.target_folder }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| artifact | ${{ steps.create_artifact.outputs.artifact }} |"  >> $GITHUB_STEP_SUMMARY
 
@@ -155,6 +117,4 @@ runs:
       if: always()
       shell: bash
       run: |
-        rm -f ./report.xml
-        rm -f ./test-results.json
         rm -f ./build.log

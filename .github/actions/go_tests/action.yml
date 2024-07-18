@@ -1,0 +1,93 @@
+name: "Go: Test"
+description: "Run tests for the go code base"
+
+inputs:
+  attach_result:
+    description: "Boolean when set to true the test results will be added as a junit report"
+    default: "true"
+
+outputs:
+  result_link:
+    description: "Link to test results page"
+    value: ${{ steps.attach_results.outputs.url_html} }
+
+runs:
+  using: "composite"
+  steps:
+    # checkout self
+    - name: "Checkout"
+      id: checkout
+      uses: actions/checkout@v4
+    # setup the go version and pull from cache etc
+    - name: "Setup go"
+      id: setup_go
+      uses: actions/setup-go@v4
+      with:
+        go-version-file: './go.mod'
+    # run the tests and output the results as a json file
+    - name: "Run tests"
+      id: run_tests
+      shell: bash
+      env:
+        go_test_flags: ${{ inputs.attach_result == 'true' && '-v -json' || '-v' }}
+        go_test_post: ${{ inputs.attach_result == 'true' && '> test-results.json 2>&1 || true' || '' }}
+        LOG_LEVEL: ${{ runner.debug == '1' && 'debug' || 'error' }}
+        LOG_TO: "stdout"
+      run: |
+        go test ${{ env.go_test_flags }} ./... ${{ env.go_test_post }}
+     # install the json to junit report tool
+    - name: "Install junit report tool"
+      id: install_junit
+      if: ${{ inputs.attach_result == 'true' }}
+      shell: bash
+      run: |
+        go install github.com/jstemmer/go-junit-report/v2@latest
+        echo "" > report.xml
+    # conver the json file to the junit report file
+    - name: "Convert test results to junit"
+      id: convert_test_results
+      if: ${{ inputs.attach_result == 'true' }}
+      shell: bash
+      run: |
+        go-junit-report -parser gojson -in test-results.json -out report.xml || true
+    # Add the report to the workflow
+    - name: "Attach junit test results"
+      id: attach_results
+      if: ${{ inputs.attach_result == 'true' }}
+      uses: dorny/test-reporter@v1
+      with:
+        name: "Go Test Results"
+        fail-on-error: false
+        path: ./report.xml
+        reporter: java-junit
+    - name: "Tests failed"
+      id: tests_failed
+      shell: bash
+      if: ${{ inputs.attach_result == 'true' && steps.attach_results.outputs.conclusion != 'success' }}
+      run: |
+        echo "Test failed, please see summary: ${{ steps.attach_results.outputs.url_html }}"
+        exit 1
+
+    ###############
+    #   SUMMARY
+    ###############
+    - name: "Summary"
+      id: summary
+      shell: bash
+      run:  |
+        echo "### Go Build Summary" >> $GITHUB_STEP_SUMMARY
+        echo "| Variable | Value |" >> $GITHUB_STEP_SUMMARY
+        echo "| --- | --- |"  >> $GITHUB_STEP_SUMMARY
+        echo "| attach_result | ${{ inputs.attach_result }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| test results | [link](${{steps.attach_results.outputs.url_html}}) |"  >> $GITHUB_STEP_SUMMARY
+
+    ###############
+    #   CLEAN UP
+    ###############
+    - name: "Clean up"
+      id: cleanup
+      if: always()
+      shell: bash
+      run: |
+        rm -f ./report.xml
+        rm -f ./test-results.json
