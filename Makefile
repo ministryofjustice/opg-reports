@@ -39,7 +39,7 @@ GO_TARGET_FOLDER := ${BUILD_ARCH_FOLDER}/api
 GO_BIN_NAME := api
 
 .DEFAULT_GOAL: all
-.PHONY: test tests benchmarks coverage assets assets-front assets-api go-build
+.PHONY: test tests benchmarks coverage assets assets-front assets-api
 
 all:
 	@echo "Nothing to run, choose a target."
