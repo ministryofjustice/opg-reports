@@ -15,8 +15,11 @@ on:
         type: string
         default: "-"
 
-jobs:
+permissions:
+  id-token: write
+  contents: read
 
+jobs:
   report:
     name: "Run AWS monthly costs"
     runs-on: ubuntu-latest
@@ -40,7 +43,7 @@ jobs:
         with:
           aws-region: "eu-west-1"
           role-duration-seconds: 300
-          role-to-assume: "arn:aws:iam::${{ matrix.account_id}}:role/reporting-gh-actions-run-reports"
+          role-to-assume: "arn:aws:iam::${{ matrix.account_id }}:role/reporting-gh-actions-run-reports"
           role-session-name: github-actions-opg-reports-get-costs
       # run report
       - name: "Run report"
