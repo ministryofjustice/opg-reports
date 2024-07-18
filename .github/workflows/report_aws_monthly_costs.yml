@@ -42,7 +42,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: "eu-west-1"
-          role-duration-seconds: 300
+          role-duration-seconds: 900
           role-to-assume: "arn:aws:iam::${{ matrix.account_id }}:role/reporting-gh-actions-run-reports"
           role-session-name: github-actions-opg-reports-get-costs
       # run report
