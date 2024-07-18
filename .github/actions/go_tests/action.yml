@@ -9,7 +9,7 @@ inputs:
 outputs:
   result_link:
     description: "Link to test results page"
-    value: ${{ steps.attach_results.outputs.url_html} }
+    value: ${{ steps.attach_results.outputs.url_html }}
 
 runs:
   using: "composite"
