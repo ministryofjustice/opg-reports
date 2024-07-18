@@ -143,10 +143,6 @@ type MonthArg struct {
 // (0000-01) then return an error message, otherwise
 // return YYYY-MM version of the inputed date
 func (a *MonthArg) Value() (val string, err error) {
-	rawValue := *a.FlagP
-	if rawValue == emptyMonth {
-		return rawValue, nil
-	}
 	value, e := a.MonthValue()
 	if e != nil {
 		err = e
@@ -167,7 +163,13 @@ func (a *MonthArg) Val() string {
 // MonthValue is used to convert the string version of the argument
 // into a time.Time
 func (a *MonthArg) MonthValue() (val time.Time, err error) {
-	return dates.StringToDate(*a.FlagP)
+	rawValue := *a.FlagP
+	if rawValue == emptyMonth {
+		val = time.Now().UTC().AddDate(0, -1, 0)
+	} else {
+		val, err = dates.StringToDate(*a.FlagP)
+	}
+	return
 }
 
 // NewArg generates a new argument

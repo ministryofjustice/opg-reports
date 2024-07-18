@@ -2,7 +2,9 @@ package report
 
 import (
 	"errors"
+	"opg-reports/shared/dates"
 	"testing"
+	"time"
 )
 
 func TestSharedReportArgs(t *testing.T) {
@@ -74,6 +76,14 @@ func TestSharedReportArgs(t *testing.T) {
 	mrg.FlagP = &mval
 	if _, err := mrg.Value(); err == nil {
 		t.Errorf("expected an error for invalid date")
+	}
+
+	mrg = NewMonthArg("monthtest3", true, "my help", "default")
+	mval = emptyMonth
+	now := time.Now().UTC().AddDate(0, -1, 0).Format(dates.FormatYM)
+	mrg.FlagP = &mval
+	if v, err := mrg.Value(); err != nil || v != now {
+		t.Errorf("expected last month for a empty date")
 	}
 
 }
