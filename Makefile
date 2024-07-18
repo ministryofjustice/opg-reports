@@ -29,7 +29,11 @@ AWS_PROFILE ?= shared-development
 # name of the dev bucket
 BUCKET ?= report-data-development
 
+# file used to track os, arch and build folders for use
+# in github actions
 GO_BUILD_INFO := "build.log"
+# these vars are overriden per go-* target, but each
+# type uses the same recipe so not repeating
 GO_SOURCE_FOLDER := ${API_FOLDER}
 GO_TARGET_FOLDER := ${BUILD_ARCH_FOLDER}/api
 GO_BIN_NAME := api
@@ -128,6 +132,7 @@ assets-front:
 	@echo "Downloaded alphagov/govuk-frontend@${GOVUK_FRONT_VERSION} to ${SERVICES_FOLDER}/front/assets/"
 
 assets: assets-api assets-front
+
 ##############################
 # RELEASE ARTIFACTS
 # Will build the go code. Uses target specific variables to
@@ -157,8 +162,8 @@ go-report-aws-monthly-costs: GO_SOURCE_FOLDER=${REPORTS_FOLDER}/aws/cost/monthly
 go-report-aws-monthly-costs: GO_TARGET_FOLDER=${BUILD_ARCH_FOLDER}/reports
 go-report-aws-monthly-costs: GO_BIN_NAME=aws_cost_monthly
 
-# go-build should be called by other targets with the $GO_ variables overwritten to something
-# suitable for the target
+# these all share the same recipe, but each target changes the $GO_ variables
+# to build the correct binary
 go-api go-front go-report-gh-standards go-report-aws-monthly-costs: gbuildinfo
 	@echo "-----"
 	@echo "[Go](${GO_BIN_NAME}) Building..."
