@@ -60,6 +60,12 @@ jobs:
             account_name: "Make production"
             account_id: 980242665824
             account_environment: "production"
+          # Refunds
+          - account_unit: "Legacy"
+            account_label: "Refunds"
+            account_name: "Refunds production"
+            account_id: 805626386523
+            account_environment: "production"
           # Serve
           - account_unit: "Serve"
             account_label: "Serve"
