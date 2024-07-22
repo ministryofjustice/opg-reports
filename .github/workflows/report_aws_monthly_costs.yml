@@ -120,7 +120,21 @@ jobs:
             account_id: 764856231715
             account_environment: "production"
           # Use
-
+          - account_unit: "Use"
+            account_label: "Use"
+            account_name: "Use development"
+            account_id: 367815980639
+            account_environment: "development"
+          - account_unit: "Use"
+            account_label: "Use"
+            account_name: "Use pre-production"
+            account_id: 888228022356
+            account_environment: "pre-production"
+          - account_unit: "Use"
+            account_label: "Use"
+            account_name: "Use production"
+            account_id: 690083044361
+            account_environment: "production"
     steps:
       - name: "Checkout"
         id: checkout
