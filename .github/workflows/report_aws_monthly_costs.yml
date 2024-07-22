@@ -182,6 +182,26 @@ jobs:
             account_name: "Shared production"
             account_id: 997462338508
             account_environment: "production"
+          ### Legacy
+          # old shared
+          - account_unit: "Legacy"
+            account_label: "Legacy Shared"
+            account_name: "Legacy Shared"
+            account_id: 357766484745
+            account_environment: "production"
+          # old refunds prod
+          - account_unit: "Legacy"
+            account_label: "Old Refunds"
+            account_name: "Legacy old refunds production"
+            account_id: 574983609246
+            account_environment: "production"
+          # old make prod
+          - account_unit: "Legacy"
+            account_label: "Make"
+            account_name: "Legacy make production"
+            account_id: 550790013665
+            account_environment: "production"
+
     steps:
       - name: "Checkout"
         id: checkout
