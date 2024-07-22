@@ -40,6 +40,22 @@ jobs:
             account_name: "Digideps production"
             account_id: 515688267891
             account_environment: "production"
+          # Make
+          - account_unit: "Make"
+            account_label: "Make"
+            account_name: "Make development"
+            account_id: 050256574573
+            account_environment: "development"
+          - account_unit: "Make"
+            account_label: "Make"
+            account_name: "Make pre-production"
+            account_id: 987830934591
+            account_environment: "pre-production"
+          - account_unit: "Make"
+            account_label: "Make"
+            account_name: "Make production"
+            account_id: 980242665824
+            account_environment: "production"
           # Serve
           - account_unit: "Serve"
             account_label: "Serve"
