@@ -27,7 +27,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Service accounts:
+          ### Service accounts:
           # Digideps
           - account_unit: "Digideps"
             account_label: "Digideps"
@@ -150,6 +150,37 @@ jobs:
             account_label: "Use"
             account_name: "Use production"
             account_id: 690083044361
+            account_environment: "production"
+          ### Shared ORG accounts
+          - account_unit: "ORG"
+            account_label: "ORG Backup"
+            account_name: "Backup"
+            account_id: 238302996107
+            account_environment: "production"
+          - account_unit: "ORG"
+            account_label: "ORG Identity"
+            account_name: "Identity"
+            account_id: 631181914621
+            account_environment: "production"
+          - account_unit: "ORG"
+            account_label: "ORG Sandbox"
+            account_name: "Sandbox"
+            account_id: 995199299616
+            account_environment: "development"
+          - account_unit: "ORG"
+            account_label: "ORG Management"
+            account_name: "Management"
+            account_id: 311462405659
+            account_environment: "production"
+          - account_unit: "ORG"
+            account_label: "ORG Shared"
+            account_name: "Shared development"
+            account_id: 679638075911
+            account_environment: "development"
+          - account_unit: "ORG"
+            account_label: "ORG Shared"
+            account_name: "Shared production"
+            account_id: 997462338508
             account_environment: "production"
     steps:
       - name: "Checkout"
