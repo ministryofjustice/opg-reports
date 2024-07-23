@@ -27,29 +27,23 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - account_unit: "ORG"
-            account_label: "ORG Sandbox"
-            account_name: "Sandbox"
-            account_id: 995199299616
+          ### Service accounts:
+          # Digideps
+          - account_unit: "Digideps"
+            account_label: "Digideps"
+            account_name: "Digideps development"
+            account_id: 248804316466
             account_environment: "development"
-
-          # ### Service accounts:
-          # # Digideps
-          # - account_unit: "Digideps"
-          #   account_label: "Digideps"
-          #   account_name: "Digideps development"
-          #   account_id: 248804316466
-          #   account_environment: "development"
-          # - account_unit: "Digideps"
-          #   account_label: "Digideps"
-          #   account_name: "Digideps pre-production"
-          #   account_id: 454262938596
-          #   account_environment: "pre-production"
-          # - account_unit: "Digideps"
-          #   account_label: "Digideps"
-          #   account_name: "Digideps production"
-          #   account_id: 515688267891
-          #   account_environment: "production"
+          - account_unit: "Digideps"
+            account_label: "Digideps"
+            account_name: "Digideps pre-production"
+            account_id: 454262938596
+            account_environment: "pre-production"
+          - account_unit: "Digideps"
+            account_label: "Digideps"
+            account_name: "Digideps production"
+            account_id: 515688267891
+            account_environment: "production"
           # # Make
           # - account_unit: "Make"
           #   account_label: "Make"
