@@ -82,22 +82,22 @@ jobs:
             account_name: "Refunds production"
             account_id: 805626386523
             account_environment: "production"
-          # # Serve
-          # - account_unit: "Serve"
-          #   account_label: "Serve"
-          #   account_name: "Serve development"
-          #   account_id: 705467933182
-          #   account_environment: "development"
-          # - account_unit: "Serve"
-          #   account_label: "Serve"
-          #   account_name: "Serve pre-production"
-          #   account_id: 540070264006
-          #   account_environment: "pre-production"
-          # - account_unit: "Serve"
-          #   account_label: "Serve"
-          #   account_name: "Serve production"
-          #   account_id: 933639921819
-          #   account_environment: "production"
+          # Serve
+          - account_unit: "Serve"
+            account_label: "Serve"
+            account_name: "Serve development"
+            account_id: 705467933182
+            account_environment: "development"
+          - account_unit: "Serve"
+            account_label: "Serve"
+            account_name: "Serve pre-production"
+            account_id: 540070264006
+            account_environment: "pre-production"
+          - account_unit: "Serve"
+            account_label: "Serve"
+            account_name: "Serve production"
+            account_id: 933639921819
+            account_environment: "production"
           # # Sirius
           # - account_unit: "Sirius"
           #   account_label: "Sirius"
