@@ -44,22 +44,22 @@ jobs:
             account_name: "Digideps production"
             account_id: 515688267891
             account_environment: "production"
-          # # Make
-          # - account_unit: "Make"
-          #   account_label: "Make"
-          #   account_name: "Make development"
-          #   account_id: "050256574573"
-          #   account_environment: "development"
-          # - account_unit: "Make"
-          #   account_label: "Make"
-          #   account_name: "Make pre-production"
-          #   account_id: 987830934591
-          #   account_environment: "pre-production"
-          # - account_unit: "Make"
-          #   account_label: "Make"
-          #   account_name: "Make production"
-          #   account_id: 980242665824
-          #   account_environment: "production"
+          # Make
+          - account_unit: "Make"
+            account_label: "Make"
+            account_name: "Make development"
+            account_id: "050256574573"
+            account_environment: "development"
+          - account_unit: "Make"
+            account_label: "Make"
+            account_name: "Make pre-production"
+            account_id: 987830934591
+            account_environment: "pre-production"
+          - account_unit: "Make"
+            account_label: "Make"
+            account_name: "Make production"
+            account_id: 980242665824
+            account_environment: "production"
           # # Modernise
           # - account_unit: "Modernise"
           #   account_label: "Modernise"
@@ -195,12 +195,12 @@ jobs:
           #   account_name: "Legacy old refunds production"
           #   account_id: 574983609246
           #   account_environment: "production"
-          # # old make prod
-          # - account_unit: "Legacy"
-          #   account_label: "Make"
-          #   account_name: "Legacy make production"
-          #   account_id: 550790013665
-          #   account_environment: "production"
+          # old make prod
+          - account_unit: "Legacy"
+            account_label: "Make"
+            account_name: "Legacy make production"
+            account_id: 550790013665
+            account_environment: "production"
 
     steps:
       - name: "Checkout"
