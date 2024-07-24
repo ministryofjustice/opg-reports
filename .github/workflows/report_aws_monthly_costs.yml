@@ -119,22 +119,22 @@ jobs:
             account_name: "Sirius backup"
             account_id: 132068124730
             account_environment: "backup"
-          # # Sirius LPA Store
-          # - account_unit: "Sirius"
-          #   account_label: "LPA Store"
-          #   account_name: "LPA Store development (via MP)"
-          #   account_id: 493907465011
-          #   account_environment: "development"
-          # - account_unit: "Sirius"
-          #   account_label: "LPA Store"
-          #   account_name: "LPA Store pre-production"
-          #   account_id: 936779158973
-          #   account_environment: "pre-production"
-          # - account_unit: "Sirius"
-          #   account_label: "LPA Store"
-          #   account_name: "LPA Store production"
-          #   account_id: 764856231715
-          #   account_environment: "production"
+          # Sirius LPA Store
+          - account_unit: "Sirius"
+            account_label: "LPA Store"
+            account_name: "LPA Store development (via MP)"
+            account_id: 493907465011
+            account_environment: "development"
+          - account_unit: "Sirius"
+            account_label: "LPA Store"
+            account_name: "LPA Store pre-production"
+            account_id: 936779158973
+            account_environment: "pre-production"
+          - account_unit: "Sirius"
+            account_label: "LPA Store"
+            account_name: "LPA Store production"
+            account_id: 764856231715
+            account_environment: "production"
           # # Use
           # - account_unit: "Use"
           #   account_label: "Use"
