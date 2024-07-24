@@ -122,7 +122,7 @@ jobs:
           # Sirius LPA Store
           - account_unit: "Sirius"
             account_label: "LPA Store"
-            account_name: "LPA Store development (via MP)"
+            account_name: "LPA Store development via MP"
             account_id: 493907465011
             account_environment: "development"
           - account_unit: "Sirius"
