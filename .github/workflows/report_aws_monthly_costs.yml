@@ -162,33 +162,33 @@ jobs:
             account_name: "Identity"
             account_id: 631181914621
             account_environment: "production"
-          # - account_unit: "ORG"
-          #   account_label: "ORG Sandbox"
-          #   account_name: "Sandbox"
-          #   account_id: 995199299616
-          #   account_environment: "development"
+          - account_unit: "ORG"
+            account_label: "ORG Sandbox"
+            account_name: "Sandbox"
+            account_id: 995199299616
+            account_environment: "development"
           # - account_unit: "ORG"
           #   account_label: "ORG Management"
           #   account_name: "Management"
           #   account_id: 311462405659
           #   account_environment: "production"
-          # - account_unit: "ORG"
-          #   account_label: "ORG Shared"
-          #   account_name: "Shared development"
-          #   account_id: 679638075911
-          #   account_environment: "development"
-          # - account_unit: "ORG"
-          #   account_label: "ORG Shared"
-          #   account_name: "Shared production"
-          #   account_id: 997462338508
-          #   account_environment: "production"
-          # ### Legacy
-          # # old shared
-          # - account_unit: "Legacy"
-          #   account_label: "Legacy Shared"
-          #   account_name: "Legacy Shared"
-          #   account_id: 357766484745
-          #   account_environment: "production"
+          - account_unit: "ORG"
+            account_label: "ORG Shared"
+            account_name: "Shared development"
+            account_id: 679638075911
+            account_environment: "development"
+          - account_unit: "ORG"
+            account_label: "ORG Shared"
+            account_name: "Shared production"
+            account_id: 997462338508
+            account_environment: "production"
+          ### Legacy
+          # old shared
+          - account_unit: "Legacy"
+            account_label: "Legacy Shared"
+            account_name: "Legacy Shared"
+            account_id: 357766484745
+            account_environment: "production"
           # old refunds prod
           - account_unit: "Legacy"
             account_label: "Old Refunds"
