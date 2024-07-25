@@ -24,7 +24,8 @@ jobs:
     name: "Setup"
     runs-on: ubuntu-latest
     outputs:
-      aws_role: "arn:aws:iam::679638075911:role/docs-and-metadata-ci"
+      aws_role_s3_download: "arn:aws:iam::679638075911:role/docs-and-metadata-ci"
+      aws_role_ecr_login_and_push: "arn:aws:iam::679638075911:role/docs-and-metadata-ci"
       terraform_workspace_production: "production"
       terraform_workspace_development: "development"
       terraform_version_account: ${{ steps.terraform_account_version.outputs.version }}
@@ -92,7 +93,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
           aws-region: "eu-west-1"
-          role-to-assume: ${{ needs.setup.outputs.aws_role }}
+          role-to-assume: ${{ needs.setup.outputs.aws_role_s3_download }}
           role-session-name: opg-reports-download-s3-assets
       - name: "Build assets"
         id: build_setup
@@ -110,6 +111,15 @@ jobs:
       - name: "Checkout"
         id: checkout
         uses: actions/checkout@v4
+      - name: "Configure AWS credentials for ECR"
+        id: configure_aws_creds
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
+          aws-region: "eu-west-1"
+          role-to-assume: ${{ needs.setup.outputs.aws_role_ecr_login_and_push }}
+          role-session-name: opg-reports-ecr-access
       - name: "Build [api]"
         id: build_api
         uses: ./.github/actions/docker_buildx
