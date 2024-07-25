@@ -2,6 +2,7 @@ version: "3.6"
 
 services:
   api:
+    platform: linux/arm64
     build:
       target: dev
     ports:
@@ -13,6 +14,7 @@ services:
       - ./go.mod:/app/go.mod
       - ./go.sum:/app/go.sum
   front:
+    platform: linux/arm64
     build:
       target: dev
     volumes:
