@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       aws_role_s3_download: "arn:aws:iam::679638075911:role/docs-and-metadata-ci"
-      aws_role_ecr_login_and_push: "arn:aws:iam::679638075911:role/docs-and-metadata-ci"
+      aws_role_ecr_login_and_push: "arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
       terraform_workspace_production: "production"
       terraform_workspace_development: "development"
       terraform_version_account: ${{ steps.terraform_account_version.outputs.version }}
