@@ -124,6 +124,7 @@ jobs:
           tag: ${{ needs.setup.outputs.semver_tag }}
           dockerfile: './docker/api/Dockerfile'
           scan_image: false
+          path_to_live: true
       # build front
       - name: "Build [front]"
         id: build_front
@@ -134,6 +135,7 @@ jobs:
           tag: ${{ needs.setup.outputs.semver_tag }}
           dockerfile: './docker/front/Dockerfile'
           scan_image: false
+          path_to_live: true
 
   # Run the terraform for development workspace
   terraform_development:
