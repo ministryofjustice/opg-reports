@@ -48,7 +48,7 @@ runs:
       id: debug
       shell: bash
       run: |
-        ls -lth .
+        ls -lthR ./services/api/data
     # QEMU for multi platforms
     - name: Set up QEMU
       id: setup_qemu
@@ -60,13 +60,13 @@ runs:
       with:
         version: ${{ inputs.buildx_version }}
         platforms:
-    # # Login to ecr registry
-    # - name: "ECR Login"
-    #   id: ecr_login
-    #   uses: aws-actions/amazon-ecr-login@v2.0.1
-    #   with:
-    #     mask-password: true
-    #     registries: ${{ inputs.ecr_registry_id }}
+    # Login to ecr registry
+    - name: "ECR Login"
+      id: ecr_login
+      uses: aws-actions/amazon-ecr-login@v2.0.1
+      with:
+        mask-password: true
+        registries: ${{ inputs.ecr_registry_id }}
     # # Build image
     # - name: "Build Image [image: ${{ inputs.ecr_repository }} ]"
     #   uses: docker/build-push-action@v6.3.0
