@@ -121,9 +121,9 @@ runs:
         platforms:  ${{ inputs.buildx_platforms }}
         cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,type=registry,ref=${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:cache-${{ inputs.branch_name }}
         tags: |
-          ${{ steps.login_ecr.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}
-          ${{ steps.login_ecr.outputs.registry }}/${{ inputs.ecr_repository }}:development-${{ inputs.tag }}
-          ${{ steps.login_ecr.outputs.registry }}/${{ inputs.ecr_repository }}:development-latest
+          ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}
+          ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:development-${{ inputs.tag }}
+          ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:development-latest
         build-args: |
           TAG=${{ inputs.tag }}
       env:
@@ -141,9 +141,9 @@ runs:
         platforms:  ${{ inputs.buildx_platforms }}
         cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,type=registry,ref=${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:cache-${{ inputs.branch_name }}
         tags: |
-          ${{ steps.login_ecr.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}
-          ${{ steps.login_ecr.outputs.registry }}/${{ inputs.ecr_repository }}:main-${{ inputs.tag }}
-          ${{ steps.login_ecr.outputs.registry }}/${{ inputs.ecr_repository }}:latest
+          ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}
+          ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:main-${{ inputs.tag }}
+          ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:latest
         build-args: |
           TAG=${{ inputs.tag }}
       env:
