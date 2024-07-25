@@ -6,15 +6,16 @@ on:
       - main
 
 permissions:
+  actions: read
   contents: write
+  id-token: write
   pull-requests: read
-  actions: none
+  security-events: write
   checks: none
   deployments: none
   issues: none
   packages: none
   repository-projects: none
-  security-events: none
   statuses: none
 
 jobs:
@@ -24,13 +25,23 @@ jobs:
     name: "Setup"
     runs-on: ubuntu-latest
     outputs:
+      aws_role_s3_download: "arn:aws:iam::679638075911:role/docs-and-metadata-ci"
+      aws_role_ecr_login_and_push: "arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
       terraform_workspace_production: "production"
       terraform_workspace_development: "development"
       terraform_version_account: ${{ steps.terraform_account_version.outputs.version }}
       terraform_version_environment: ${{ steps.terraform_environment_version.outputs.version }}
+      branch_name: ${{ steps.semver_tag.outputs.branch_safe }}
+      semver_tag: ${{ steps.semver_tag.outputs.created_tag }}
     steps:
+      # Check the code base
       - name: "Checkout"
+        id: checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      # Find the terraform version details for account & env
       - name: "Parse terraform account version"
         id: terraform_account_version
         uses: ministryofjustice/opg-github-actions/.github/actions/terraform-version@v3.0.6
@@ -41,9 +52,16 @@ jobs:
         uses: ministryofjustice/opg-github-actions/.github/actions/terraform-version@v3.0.6
         with:
           terraform_directory: ./terraform/environment
+      # Generate a semver tag for this workflow
+      - name: "Generate semver tag"
+        id: semver_tag
+        uses: ministryofjustice/opg-github-actions/.github/actions/semver-tag@v3.0.6
+        with:
+          prerelease: false
+          releases_enabled: false
 
   # build & test go
-  build_test_go:
+  go_test_and_build:
     name: "[Go] Test & Build"
     runs-on: ubuntu-latest
     needs: [setup]
@@ -60,11 +78,68 @@ jobs:
         with:
           target: "all"
 
+  # Run docker build
+  docker_build:
+    name: "[Docker] Build"
+    runs-on: ubuntu-latest
+    needs: [setup, go_test_and_build]
+    steps:
+      # checkout repo
+      - name: "Checkout"
+        id: checkout
+        uses: actions/checkout@v4
+      # setup s3 creds
+      - name: "Configure AWS credentials for S3 access"
+        id: configure_aws_creds_s3
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
+          aws-region: "eu-west-1"
+          role-to-assume: ${{ needs.setup.outputs.aws_role_s3_download }}
+          role-session-name: opg-reports-download-s3-assets
+      # download the s3 assets locally
+      - name: "Build assets"
+        id: build_setup
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          make assets
+      # switch aws creds for ecr push
+      - name: "Configure AWS credentials for ECR"
+        id: configure_aws_creds_ecr
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: "eu-west-1"
+          role-duration-seconds: 900
+          role-to-assume: ${{ needs.setup.outputs.aws_role_ecr_login_and_push }}
+          role-session-name: opg-reports-ecr-access
+      # build api
+      - name: "Build [api]"
+        id: build_api
+        uses: ./.github/actions/docker_build_scan_push
+        with:
+          ecr_repository: "opg-reports/api"
+          branch_name: ${{ needs.setup.outputs.branch_name }}
+          tag: ${{ needs.setup.outputs.semver_tag }}
+          dockerfile: './docker/api/Dockerfile'
+          scan_image: false
+      # build front
+      - name: "Build [front]"
+        id: build_front
+        uses: ./.github/actions/docker_build_scan_push
+        with:
+          ecr_repository: "opg-reports/front"
+          branch_name: ${{ needs.setup.outputs.branch_name }}
+          tag: ${{ needs.setup.outputs.semver_tag }}
+          dockerfile: './docker/front/Dockerfile'
+          scan_image: false
+
   # Run the terraform for development workspace
   terraform_development:
     name: "[Terraform] Development"
     runs-on: ubuntu-latest
-    needs: [setup]
+    needs: [setup, docker_build]
     steps:
       - name: "Checkout"
         id: checkout
@@ -93,47 +168,15 @@ jobs:
           workspace: ${{ needs.setup.outputs.terraform_workspace_development }}
           version: ${{ needs.setup.outputs.terraform_version_environment }}
 
-  # terraform_production:
-  #   name: "[Terraform] Production"
-  #   runs-on: ubuntu-latest
-  #   needs: [setup, terraform_development]
-  #   steps:
-  #     - name: "Checkout"
-  #       id: checkout
-  #       uses: actions/checkout@v4
-  #     # configure the aws role
-  #     - name: "Configure AWS credentials for terraform"
-  #       id: configure_aws_creds
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
-  #         aws-region: "eu-west-1"
-  #         role-session-name: GitHubActionsOpgReportsTerraform
-  #     - name: "Account level terraform"
-  #       uses: ./.github/actions/terraform
-  #       with:
-  #         apply: true
-  #         directory: ./terraform/account
-  #         workspace: ${{ needs.setup.outputs.terraform_workspace_production }}
-  #         version: ${{ needs.setup.outputs.terraform_version_account }}
-  #     - name: "Environment level terraform"
-  #       uses: ./.github/actions/terraform
-  #       with:
-  #         apply: true
-  #         directory: ./terraform/environment
-  #         workspace: ${{ needs.setup.outputs.terraform_workspace_production }}
-  #         version: ${{ needs.setup.outputs.terraform_version_environment }}
+  # TODO: terraform production!
 
   # do the release
   release:
     name: "Create release"
-    # needs: [build_go, terraform_development, terraform_production]
-    needs: [build_test_go, terraform_development]
+    needs: [terraform_development, setup]
     runs-on: ubuntu-latest
     outputs:
       artifact: ${{ steps.build_go.outputs.artifact }}
-      tag: ${{ steps.semver_tag.outputs.created_tag }}
     steps:
       - name: "Checkout"
         id: checkout
@@ -144,19 +187,13 @@ jobs:
         with:
           target: "all"
           create_artifact: true
-      - name: "Generate semver tag and release"
-        id: semver_tag
-        uses: ministryofjustice/opg-github-actions/.github/actions/semver-tag@v3.0.6
-        with:
-          prerelease: false
-          releases_enabled: false # disable the release as we want to attach artifacts
       - name: "Create a release"
         id: create_release
         uses: ncipollo/release-action@v1.13.0
         with:
           generateReleaseNotes: false
-          tag: ${{ steps.semver_tag.outputs.created_tag }}
-          name: ${{ steps.semver_tag.outputs.created_tag }}
+          tag: ${{ needs.setup.outputs.semver_tag }}
+          name: ${{ needs.setup.outputs.semver_tag }}
           draft: false
           prerelease: false
           artifacts: '${{ steps.build_go.outputs.artifact }}'
@@ -166,10 +203,23 @@ jobs:
   summary:
     name: "Workflow summary"
     if: always()
-    # needs: [setup, terraform_development, terraform_production, release]
-    needs: [setup, terraform_development, release]
+    needs: [setup, release]
     runs-on: ubuntu-latest
     steps:
+      - name: "AWS Roles"
+        run: |
+          echo "### AWS Role info" >> $GITHUB_STEP_SUMMARY
+          echo "| Variable | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "| --- | --- |"  >> $GITHUB_STEP_SUMMARY
+          echo "| S3 download | ${{ needs.setup.outputs.aws_role_s3_download }} |"  >> $GITHUB_STEP_SUMMARY
+          echo "| ECR login & push | ${{ needs.setup.outputs.aws_role_ecr_login_and_push }} |"  >> $GITHUB_STEP_SUMMARY
+      - name: "Git"
+        run: |
+          echo "### Git info" >> $GITHUB_STEP_SUMMARY
+          echo "| Variable | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "| --- | --- |"  >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | ${{ needs.setup.outputs.branch_name }} |"  >> $GITHUB_STEP_SUMMARY
+          echo "| Semver tag | ${{ needs.setup.outputs.semver_tag }} |"  >> $GITHUB_STEP_SUMMARY
       - name: "Terraform"
         run: |
           echo "### Terraform info" >> $GITHUB_STEP_SUMMARY
@@ -187,10 +237,11 @@ jobs:
           echo "| tag | ${{ needs.release.outputs.tag }} |"  >> $GITHUB_STEP_SUMMARY
           echo "| artifact | ${{ needs.release.outputs.artifact }} |"  >> $GITHUB_STEP_SUMMARY
 
+
   end:
     name: 'End of workflow'
     runs-on: 'ubuntu-latest'
-    needs: [terraform_development, summary]
+    needs: [summary]
     steps:
       - id: end
         name: End
