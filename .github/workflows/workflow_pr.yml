@@ -105,7 +105,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           make assets
-      # switch aws creds for ecr
+      # switch aws creds for ecr push
       - name: "Configure AWS credentials for ECR"
         id: configure_aws_creds_ecr
         uses: aws-actions/configure-aws-credentials@v4
@@ -123,7 +123,17 @@ jobs:
           branch_name: ${{ needs.setup.outputs.branch_name }}
           tag: ${{ needs.setup.outputs.semver_tag }}
           dockerfile: './docker/api/Dockerfile'
-          scan_image: 'false'
+          scan_image: false
+      # build front
+      - name: "Build [front]"
+        id: build_front
+        uses: ./.github/actions/docker_build_scan_push
+        with:
+          ecr_repository: "opg-reports/front"
+          branch_name: ${{ needs.setup.outputs.branch_name }}
+          tag: ${{ needs.setup.outputs.semver_tag }}
+          dockerfile: './docker/front/Dockerfile'
+          scan_image: false
 
   # Run the terraform for development workspace
   terraform_development:
