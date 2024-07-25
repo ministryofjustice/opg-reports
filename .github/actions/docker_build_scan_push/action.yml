@@ -33,6 +33,14 @@ inputs:
   checkout_repo:
     description: "Force a checkout of the repository"
     default: "false"
+
+  scan_image:
+    description: "When set to true, uses trivy to scan the docker image just created."
+    default: 'true'
+
+  path_to_live:
+    description: "When set to true, pushes images following production conventions."
+    default: "false"
 # outputs:
 
 
@@ -60,14 +68,14 @@ runs:
         version: ${{ inputs.buildx_version }}
         platforms:
     # Login to ecr registry
-    - name: "ECR Login"
+    - name: "ECR login"
       id: ecr_login
       uses: aws-actions/amazon-ecr-login@v2.0.1
       with:
         mask-password: true
         registries: ${{ inputs.ecr_registry_id }}
     # Build image
-    - name: "Build Image [image: ${{ inputs.ecr_repository }} ]"
+    - name: "Build image [image: ${{ inputs.ecr_repository }} ]"
       uses: docker/build-push-action@v6.3.0
       with:
         context: .
@@ -83,18 +91,58 @@ runs:
       env:
         SOURCE_DATE_EPOCH: 0
 
-    # # Scan the image
-    # - name: Trivy Image Vulnerability Scanner for ${{ matrix.ecr_repository }}
-    #   id: trivy_scan
-    #   uses: aquasecurity/trivy-action@0.24.0
-    #   with:
-    #     image-ref: ${{ matrix.ecr_repository }}:${{ inputs.tag }}
-    #     severity: 'HIGH,CRITICAL'
-    #     format: 'sarif'
-    #     output: 'trivy-results.sarif'
-    # - name: Upload Trivy scan results to GitHub Security tab for ${{ matrix.ecr_repository }}
-    #   id: trivy_upload_sarif
-    #   uses: github/codeql-action/upload-sarif@v3.25.11
-    #   if: always()
-    #   with:
-    #     sarif_file: 'trivy-results.sarif'
+    # Scan the image
+    - name: "Trivy image vulnerability scanner [repository: ${{ inputs.ecr_repository }}]"
+      id: trivy_scan
+      if: ${{ inputs.scan_image }}
+      uses: aquasecurity/trivy-action@0.24.0
+      with:
+        image-ref: ${{ inputs.ecr_repository }}:${{ inputs.tag }}
+        severity: 'HIGH,CRITICAL'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    - name: "Upload Trivy scan results to GitHub security tab [repository: ${{ inputs.ecr_repository }}]"
+      id: trivy_upload_sarif
+      uses: github/codeql-action/upload-sarif@v3.25.11
+      if: ${{ inputs.scan_image }}
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+    # Push the image
+    # for a PR
+    - name: "Push image to ECR [PR]"
+      if: ${{ inputs.path_to_live != 'true' }}
+      uses: docker/build-push-action@v6.3.0
+      with:
+        context: .
+        file: ${{ inputs.dockerfile }}
+        builder: ${{ steps.docker_buildx_setup.outputs.name }}
+        push: true
+        platforms:  ${{ inputs.buildx_platforms }}
+        cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,type=registry,ref=${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:cache-${{ inputs.branch_name }}
+        tags: |
+          ${{ steps.login_ecr.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}
+        build-args: |
+          TAG=${{ inputs.tag }}
+      env:
+        SOURCE_DATE_EPOCH: 0
+
+    # For live
+    - name: "Push image to ECR [Path to live]"
+      if: ${{ inputs.path_to_live == 'true' }}
+      uses: docker/build-push-action@v6.3.0
+      with:
+        context: .
+        file: ${{ inputs.dockerfile }}
+        builder: ${{ steps.docker_buildx_setup.outputs.name }}
+        push: true
+        platforms:  ${{ inputs.buildx_platforms }}
+        cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,type=registry,ref=${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:cache-${{ inputs.branch_name }}
+        tags: |
+          ${{ steps.login_ecr.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}
+          ${{ steps.login_ecr.outputs.registry }}/${{ inputs.ecr_repository }}:main-${{ inputs.tag }}
+          ${{ steps.login_ecr.outputs.registry }}/${{ inputs.ecr_repository }}:latest
+        build-args: |
+          TAG=${{ inputs.tag }}
+      env:
+        SOURCE_DATE_EPOCH: 0

@@ -119,7 +119,6 @@ jobs:
         id: build_api
         uses: ./.github/actions/docker_build_scan_push
         with:
-          service: "api"
           ecr_repository: "opg-reports/api"
           branch_name: ${{ needs.setup.outputs.branch_name }}
           tag: ${{ needs.setup.outputs.semver_tag }}
