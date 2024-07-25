@@ -77,15 +77,19 @@ jobs:
         with:
           target: "all"
 
-  # get build assets
-  docker_build_assets:
-    name: "[Docker] Get build assets"
+
+
+  # Run docker build
+  docker_build:
+    name: "[Docker] Build"
     runs-on: ubuntu-latest
-    needs: [setup, go_test_and_build]
+    needs: [setup]
     steps:
+      # checkout repo
       - name: "Checkout"
         id: checkout
         uses: actions/checkout@v4
+      # setup s3 creds
       - name: "Configure AWS credentials for S3 access"
         id: configure_aws_creds
         uses: aws-actions/configure-aws-credentials@v4
@@ -95,22 +99,14 @@ jobs:
           aws-region: "eu-west-1"
           role-to-assume: ${{ needs.setup.outputs.aws_role_s3_download }}
           role-session-name: opg-reports-download-s3-assets
+      # download the s3 assets locally
       - name: "Build assets"
         id: build_setup
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           make assets
-
-  # Run docker build
-  docker_build:
-    name: "[Docker] Build"
-    runs-on: ubuntu-latest
-    needs: [setup, docker_build_assets]
-    steps:
-      - name: "Checkout"
-        id: checkout
-        uses: actions/checkout@v4
+      # switch aws creds for ecr
       - name: "Configure AWS credentials for ECR"
         id: configure_aws_creds
         uses: aws-actions/configure-aws-credentials@v4
@@ -120,6 +116,7 @@ jobs:
           aws-region: "eu-west-1"
           role-to-assume: ${{ needs.setup.outputs.aws_role_ecr_login_and_push }}
           role-session-name: opg-reports-ecr-access
+      # build api
       - name: "Build [api]"
         id: build_api
         uses: ./.github/actions/docker_buildx
