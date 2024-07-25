@@ -20,7 +20,7 @@ inputs:
 
   buildx_platforms:
     description: "List of platforms to generate images for"
-    default: "linux/amd64"
+    default: "linux/amd64,linux/arm64"
 
   ecr_repository:
     description: "Name of ECR repository"
