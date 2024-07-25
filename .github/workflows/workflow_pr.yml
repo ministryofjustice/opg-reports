@@ -77,13 +77,11 @@ jobs:
         with:
           target: "all"
 
-
-
   # Run docker build
   docker_build:
     name: "[Docker] Build"
     runs-on: ubuntu-latest
-    needs: [setup]
+    needs: [setup, go_test_and_build]
     steps:
       # checkout repo
       - name: "Checkout"
@@ -119,7 +117,7 @@ jobs:
       # build api
       - name: "Build [api]"
         id: build_api
-        uses: ./.github/actions/docker_buildx
+        uses: ./.github/actions/docker_build_scan_push
         with:
           service: "api"
           ecr_repository: "opg-reports/api"
@@ -197,6 +195,20 @@ jobs:
     needs: [setup, terraform_development, release]
     runs-on: ubuntu-latest
     steps:
+      - name: "AWS Roles"
+        run: |
+          echo "### AWS Role info" >> $GITHUB_STEP_SUMMARY
+          echo "| Variable | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "| --- | --- |"  >> $GITHUB_STEP_SUMMARY
+          echo "| S3 download | ${{ needs.setup.outputs.aws_role_s3_download }} |"  >> $GITHUB_STEP_SUMMARY
+          echo "| ECR login & push | ${{ needs.setup.outputs.aws_role_ecr_login_and_push }} |"  >> $GITHUB_STEP_SUMMARY
+      - name: "Git"
+        run: |
+          echo "### Git info" >> $GITHUB_STEP_SUMMARY
+          echo "| Variable | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "| --- | --- |"  >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | ${{ needs.setup.outputs.branch_name }} |"  >> $GITHUB_STEP_SUMMARY
+          echo "| Semver tag | ${{ needs.setup.outputs.semver_tag }} |"  >> $GITHUB_STEP_SUMMARY
       - name: "Terraform"
         run: |
           echo "### Terraform info" >> $GITHUB_STEP_SUMMARY
