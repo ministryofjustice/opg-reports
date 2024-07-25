@@ -110,9 +110,8 @@ jobs:
         id: configure_aws_creds_ecr
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
           aws-region: "eu-west-1"
+          role-duration-seconds: 900
           role-to-assume: ${{ needs.setup.outputs.aws_role_ecr_login_and_push }}
           role-session-name: opg-reports-ecr-access
       # build api
