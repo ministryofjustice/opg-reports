@@ -8,20 +8,78 @@
             "template": "static-home"
         },
         {
-            "name": "GitHub",
-            "href": "/github/",
-            "header": true,
+            "name": "Overview",
+            "href": "/",
+            "template": "static-home",
             "sections": [
                 {
-                    "name": "Repository Standards",
-                    "href": "/github/repository-standards/",
-                    "api": {
-                        "list": "/github/standards/v1/list/"
-                    },
-                    "template": "dynamic-github-standards-list"
+                    "name": "GitHub",
+                    "href": "/github/",
+                    "header": true,
+                    "sections": [
+                        {
+                            "name": "Repository Standards",
+                            "href": "/github/repository-standards/",
+                            "api": {
+                                "list": "/github/standards/v1/list/"
+                            },
+                            "template": "dynamic-github-standards-list"
+                        }
+                    ]
+                },
+                {
+                    "name": "AWS Costs",
+                    "href": "/costs/aws/",
+                    "header": true,
+                    "sections": [
+                        {
+                            "name": "Totals",
+                            "href": "/costs/aws/totals/",
+                            "api": {
+                                "totals": "/aws/costs/v1/monthly/{month:-11}/{billingMonth}/"
+                            },
+                            "template": "dynamic-aws-costs-totals"
+                        },
+                        {
+                            "name": "By Unit",
+                            "href": "/costs/aws/units/",
+                            "api": {
+                                "units": "/aws/costs/v1/monthly/{month:-11}/{billingMonth}/units/"
+                            },
+                            "template": "dynamic-aws-costs-units"
+                        },
+                        {
+                            "name": "By Unit & Env",
+                            "href": "/costs/aws/units-envs/",
+                            "api": {
+                                "units-envs": "/aws/costs/v1/monthly/{month:-11}/{billingMonth}/units/envs/"
+                            },
+                            "template": "dynamic-aws-costs-units-envs"
+                        },
+                        {
+                            "name": "Detailed",
+                            "href": "/costs/aws/detailed/",
+                            "api": {
+                                "detailed": "/aws/costs/v1/monthly/{month:-9}/{billingMonth}/units/envs/services/"
+                            },
+                            "template": "dynamic-aws-costs-units-envs-services"
+                        }
+                    ]
+                },
+                {
+                    "name": "Uptime & Incidents",
+                    "href": "/uptime-incidents/",
+                    "header": true,
+                    "sections": [
+                        {
+                            "name": "Service uptime",
+                            "href": "/uptime-incidents/uptime/"
+                        }
+                    ]
                 }
             ]
         }
+
     ],
     "standards": {
         "repository": {
