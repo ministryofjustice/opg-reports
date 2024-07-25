@@ -9,7 +9,7 @@ COPY . .
 RUN go mod download
 RUN go build -o /go/bin/front services/front/main.go
 
-FROM build as dev
+FROM build AS dev
 EXPOSE 8080
 WORKDIR /go/bin
 COPY --from=build /go/bin/front front
