@@ -91,7 +91,7 @@ jobs:
         uses: actions/checkout@v4
       # setup s3 creds
       - name: "Configure AWS credentials for S3 access"
-        id: configure_aws_creds
+        id: configure_aws_creds_s3
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
@@ -108,7 +108,7 @@ jobs:
           make assets
       # switch aws creds for ecr
       - name: "Configure AWS credentials for ECR"
-        id: configure_aws_creds
+        id: configure_aws_creds_ecr
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
