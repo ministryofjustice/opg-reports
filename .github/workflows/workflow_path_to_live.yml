@@ -234,7 +234,7 @@ jobs:
           echo "### Release info" >> $GITHUB_STEP_SUMMARY
           echo "| Variable | Value |" >> $GITHUB_STEP_SUMMARY
           echo "| --- | --- |"  >> $GITHUB_STEP_SUMMARY
-          echo "| tag | ${{ needs.release.outputs.tag }} |"  >> $GITHUB_STEP_SUMMARY
+          echo "| tag | ${{ needs.setup.outputs.semver_tag }} |"  >> $GITHUB_STEP_SUMMARY
           echo "| artifact | ${{ needs.release.outputs.artifact }} |"  >> $GITHUB_STEP_SUMMARY
 
 
