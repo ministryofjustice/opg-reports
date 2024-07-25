@@ -167,11 +167,11 @@ jobs:
             account_name: "Sandbox"
             account_id: 995199299616
             account_environment: "development"
-          # - account_unit: "ORG"
-          #   account_label: "ORG Management"
-          #   account_name: "Management"
-          #   account_id: 311462405659
-          #   account_environment: "production"
+          - account_unit: "ORG"
+            account_label: "ORG Management"
+            account_name: "Management"
+            account_id: 311462405659
+            account_environment: "production"
           - account_unit: "ORG"
             account_label: "ORG Shared"
             account_name: "Shared development"
