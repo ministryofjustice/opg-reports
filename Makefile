@@ -83,6 +83,7 @@ build: assets
 	@echo "[Docker](development) Building..."
 	@env DOCKER_BUILDKIT=0 docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml build
 	@echo "[Docker](development) Built."
+
 down:
 	@echo "-----"
 	@echo "[Docker] down"
@@ -92,8 +93,14 @@ clean: down
 	@echo "[Docker] clean"
 	@docker container prune -f
 	@docker image prune -f --filter="dangling=true"
-dev up: clean build
+dev: clean build
+	@echo "-----"
+	@echo "[Docker] Starting..."
 	docker compose --verbose -f docker-compose.yml -f docker/docker-compose.dev.yml up -d api front
+up:
+	@echo "-----"
+	@echo "[Docker] Running with images from ECR..."
+	docker compose --verbose -f docker-compose.yml up -d api front
 
 
 ##############################

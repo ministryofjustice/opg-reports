@@ -9,7 +9,7 @@ COPY . .
 RUN go mod download
 RUN go build -o /go/bin/api services/api/main.go
 
-FROM build as dev
+FROM build AS dev
 EXPOSE 8081
 WORKDIR /go/bin
 COPY --from=build /go/bin/api api
