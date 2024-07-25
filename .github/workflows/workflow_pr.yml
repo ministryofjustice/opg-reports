@@ -6,11 +6,11 @@ on:
       - main
 
 permissions:
+  actions: read
   contents: write
   id-token: write
   pull-requests: read
   security-events: write
-  actions: none
   checks: none
   deployments: none
   issues: none
