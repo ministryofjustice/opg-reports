@@ -96,6 +96,8 @@ jobs:
           role-session-name: opg-reports-download-s3-assets
       - name: "Build assets"
         id: build_setup
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           make assets
 
