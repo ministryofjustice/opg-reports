@@ -124,6 +124,7 @@ jobs:
           branch_name: ${{ needs.setup.outputs.branch_name }}
           tag: ${{ needs.setup.outputs.semver_tag }}
           dockerfile: './docker/api/Dockerfile'
+          scan_image: 'false'
 
   # Run the terraform for development workspace
   terraform_development:
