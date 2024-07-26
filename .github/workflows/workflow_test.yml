@@ -24,6 +24,10 @@ jobs:
     outputs:
       matrix: ${{ steps.account_matrix.outputs.matrix}}
     steps:
+      # checkout repo
+      - name: "Checkout"
+        id: checkout
+        uses: actions/checkout@v4
       - name: "get account matrix"
         id: account_matrix
         uses: "./.github/actions/get_opg_metadata"
