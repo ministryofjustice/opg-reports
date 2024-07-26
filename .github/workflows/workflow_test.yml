@@ -18,13 +18,27 @@ permissions:
   statuses: none
 
 jobs:
-
-  test:
-    name: "Test"
+  load_matrix:
+    name: "Load matrix"
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.account_matrix.outputs.matrix}}
     steps:
-      - name: "get release"
-        env:
-          GH_TOKEN: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
-        run: |
-          gh release list --repo ministryofjustice/opg-metadata
+      - name: "get account matrix"
+        id: account_matrix
+        uses: "./.github/actions/get_opg_metadata"
+        with:
+          github_token: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
+          prereleases: true
+
+  use_matrix:
+    needs: [load_matrix]
+    name: "test matrix"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix: ${{ fromJson(needs.load_matrix.outputs.matrix) }}
+    steps:
+      - run: |
+          echo "id: ${{ matrix.id }}"
+          echo "name: ${{ matrix.name }}"
