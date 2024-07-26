@@ -76,9 +76,9 @@ runs:
         filename: ${{ inputs.file }}
       run: |
         data=$(cat ${{ env.filename }})
-        matrix={ "include": ${data} }
-        echo 'matrix=${matrix}' >> $GITHUB_OUTPUT
-        echo '${matrix}'
+        matrix="{ "include": ${data} }"
+        echo "matrix=${matrix}" >> $GITHUB_OUTPUT
+        echo "${matrix}"
     - name: "clean up"
       shell: bash
       if: always()
