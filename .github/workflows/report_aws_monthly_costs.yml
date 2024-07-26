@@ -1,6 +1,12 @@
 name: "[Reports] AWS Monthly Costs"
 
 on:
+  # pull_request:
+  #   branches:
+  #     - "main"
+  #   paths:
+  #     - '.github/workflows/report_aws_monthly_costs.yml'
+
   schedule:
     # 8am on the 15th of every month
     - cron: '0 8 15 * *'
@@ -231,10 +237,9 @@ jobs:
         id: configure_aws_creds_bucket
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
           aws-region: "eu-west-1"
-          role-to-assume: "arn:aws:iam::679638075911:role/docs-and-metadata-ci"
+          role-duration-seconds: 900
+          role-to-assume: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
           role-session-name: opg-reports-upload-costs-to-s3
       # upload
       - name: "Upload to s3"
