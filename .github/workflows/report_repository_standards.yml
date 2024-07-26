@@ -36,9 +36,8 @@ jobs:
         id: configure_aws_creds
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
           aws-region: "eu-west-1"
+          role-duration-seconds: 900
           role-to-assume: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
           role-session-name: GitHubActionsOpgReportsBucketUpload
       - name: "Upload to s3"
