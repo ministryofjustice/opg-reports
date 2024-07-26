@@ -22,7 +22,6 @@ jobs:
   test:
     name: "Test"
     runs-on: ubuntu-latest
-    needs: [setup]
     steps:
       - name: "get release"
         env:
