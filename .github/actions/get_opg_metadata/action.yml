@@ -43,11 +43,11 @@ runs:
         GH_TOKEN: ${{ inputs.github_token }}
         release: ${{ inputs.release }}
         repo: ${{ inputs.repository }}
-        exclude: ${{ inputs.prereleases == 'true' && '' || '--exclude-pre-releases' }}
+        exclude: ${{ inputs.prereleases != 'false' && '' || '--exclude-pre-releases' }}
       run: |
         tag=${{ env.release }}
         if [[ "${{ env.release }}" == "latest" ]]; then
-          tag=$(gh release list --repo ${{env.repo}} --order "desc" ${{env.exclude}} --limit 1 --json tagName --jq '.[].tagName')
+          tag=$(gh release list --repo ${{ env.repo }} --order "desc" ${{ env.exclude }} --limit 1 --json tagName --jq '.[].tagName')
         fi
         echo "tag=${tag}" >> $GITHUB_OUTPUT
     - name: "Download release [tag:${{ steps.tag.outputs.tag }}]"
@@ -56,11 +56,10 @@ runs:
       working-directory: ./opg-metadata-release
       env:
         GH_TOKEN: ${{ inputs.github_token }}
-        release: ${{ inputs.release }}
         repo: ${{ inputs.repository }}
         tag: ${{ steps.tag.outputs.tag }}
       run: |
-        gh release download ${{env.tag}} --clobber --repo ${{env.repo}} --pattern "*.tar.gz"
+        gh release download ${{ env.tag }} --clobber --repo ${{ env.repo }} --pattern "*.tar.gz"
         ls -lth
     - name: "Extract release"
       id: extract
