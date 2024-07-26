@@ -43,7 +43,7 @@ runs:
         GH_TOKEN: ${{ inputs.github_token }}
         release: ${{ inputs.release }}
         repo: ${{ inputs.repository }}
-        exclude: ${{ inputs.prereleases != 'false' && '' || '--exclude-pre-releases' }}
+        exclude: ${{ inputs.prereleases == 'false' && '--exclude-pre-releases' || '' }}
       run: |
         tag=${{ env.release }}
         if [[ "${{ env.release }}" == "latest" ]]; then
