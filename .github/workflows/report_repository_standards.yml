@@ -1,11 +1,11 @@
 name: "[Reports] Repository Standards"
 
 on:
-  pull_request:
-    branches:
-      - "main"
-    paths:
-      - '.github/workflows/report_repository_standards.yml'
+  # pull_request:
+  #   branches:
+  #     - "main"
+  #   paths:
+  #     - '.github/workflows/report_repository_standards.yml'
 
   schedule:
     # 9am saturday
@@ -44,7 +44,7 @@ jobs:
           aws-region: "eu-west-1"
           role-duration-seconds: 900
           role-to-assume: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
-          role-session-name: GitHubActionsOpgReportsBucketUpload
+          role-session-name: opg-reports-upload-github-standards-to-s3
       - name: "Upload to s3"
         uses: ./.github/actions/s3_upload
         with:
