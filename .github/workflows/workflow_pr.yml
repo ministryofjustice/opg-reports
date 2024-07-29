@@ -59,6 +59,7 @@ jobs:
           echo "unit: ${{ env.unit }}"
           echo "label: ${{ env.label }}"
           echo "environment: ${{ env.environment }}"
+
   # setup series of variables either calculated or fixed for this workflow that
   # are used though out the other jobs / steps
   setup:
