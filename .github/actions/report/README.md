@@ -2,13 +2,14 @@
 
 Build the local `go` code and then run the binary whose name is passed along as the `cmd` input.
 
+The outputed variable `data_folder` can then be used by `s3_upload` action to push data to the s3 bucket.
+
 Please ensure any authentication (AWS creds, github tokens etc) are done before calling this action within your job.
 
-The outputed variable `data_folder` can then be used by `s3_upload` action to push data to the s3 bucket.
 
 ## Usage
 
-Here is a ypical usage of the action where the report requires the environment variable set in this step as well:
+Here is a typical usage of the action where the report requires the environment variable set in this step as well:
 
 ```
 - name: "Run report"
