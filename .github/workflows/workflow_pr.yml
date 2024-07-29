@@ -175,7 +175,7 @@ jobs:
 
   # do the release
   release:
-    name: "Create release"
+    name: "Create pre-release"
     needs: [terraform_development, setup]
     runs-on: ubuntu-latest
     outputs:
