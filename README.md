@@ -34,7 +34,7 @@ You can run both the api and front using docker containers by running:
 make dev
 ```
 
-Or if you want to run the api with docker and utilise the `go` build directly, then call
+Or if you want to run the api without docker and utilise the `go` build directly, then call
 
 ```
 make dev-run-api
@@ -61,3 +61,20 @@ The front uses its config file to set the visiable organisation name rendered in
 Additionally, what repository values are checked for the baseline and extended standard checks are configured here.
 
 Please see the [package details for more info](./services/front/cnf/cnf.go)
+
+### Running locally
+
+You can run both the front and api using docker containers by running:
+```
+make dev
+```
+
+Or if you want to run the front without docker and utilise the `go` build directly, then call
+
+```
+make dev-run-front
+```
+
+By default, the front will then be available on `http://localhost:8080`.
+
+For more details on how front works and how to use / change it, please see its own [README](./services/front/README.md)
