@@ -66,7 +66,7 @@ runs:
       id: docker_buildx_setup
       with:
         version: ${{ inputs.buildx_version }}
-        platforms:
+        platforms: ${{ inputs.buildx_platforms }}
     # Login to ecr registry
     - name: "ECR login"
       id: ecr_login
@@ -138,7 +138,7 @@ runs:
         file: ${{ inputs.dockerfile }}
         builder: ${{ steps.docker_buildx_setup.outputs.name }}
         push: true
-        platforms:  ${{ inputs.buildx_platforms }}
+        platforms: ${{ inputs.buildx_platforms }}
         cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,type=registry,ref=${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:cache-${{ inputs.branch_name }}
         tags: |
           ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}
