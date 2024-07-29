@@ -74,13 +74,16 @@ runs:
       working-directory: ./opg-metadata-release
       env:
         filename: ${{ inputs.file }}
+        debug: ${{ runner.debug == '1' && 'debug' || '' }}
       run: |
         data=$(cat ${{ env.filename }})
         matrix="{ "include": ${data} }"
         echo "matrix<<EOF" >> $GITHUB_OUTPUT
         echo "${matrix}" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
-        echo "${matrix}"
+        if [[ "${{ env.debug }}" == "debug" ]]; then
+          echo "${matrix}"
+        fi
     - name: "clean up"
       shell: bash
       if: always()
