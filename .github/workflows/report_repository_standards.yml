@@ -1,11 +1,22 @@
 name: "[Reports] Repository Standards"
 
 on:
+  # pull_request:
+  #   branches:
+  #     - "main"
+  #   paths:
+  #     - '.github/workflows/report_repository_standards.yml'
 
   schedule:
     # 9am saturday
     - cron: '0 9 * * 6'
+
   workflow_dispatch:
+
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
 
@@ -30,11 +41,10 @@ jobs:
         id: configure_aws_creds
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
           aws-region: "eu-west-1"
-          role-to-assume: "arn:aws:iam::679638075911:role/docs-and-metadata-ci"
-          role-session-name: GitHubActionsOpgReportsBucketUpload
+          role-duration-seconds: 900
+          role-to-assume: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
+          role-session-name: opg-reports-upload-github-standards-to-s3
       - name: "Upload to s3"
         uses: ./.github/actions/s3_upload
         with:
