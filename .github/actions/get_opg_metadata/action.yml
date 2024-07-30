@@ -20,7 +20,7 @@ inputs:
 
   file:
     description: "File to read in"
-    default: "accounts.json"
+    default: "accounts.aws.json"
 
 outputs:
   matrix:
