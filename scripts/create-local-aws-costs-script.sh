@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# This script fetches the latest release of the opg-metadata, uses
-# the xml version of account data to form the basis of the ./aws-costs.sh
-# file
-# After it has run, it you will need to edit the file and change PROFILE
-# with correct profile values for the local host
+# This script generates another script that contains a series of bash commands fetch
+# monthly aws costs for all known accounts.
+#
+# Fetches the accounts.aws.json data from the latest opg-metadata release, and uses
+# jq and sed to parse and convert the content into command to run
+#
 
 OS=$(uname | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m | sed 's/x86_64/amd64/')
@@ -28,33 +29,53 @@ mkdir -p ./metadata
 cd ./metadata
 gh release download --clobber --repo ministryofjustice/opg-metadata --pattern "*.tar.gz"
 tar -xzf metadata.tar.gz
-cp ./accounts.xml ./costs.sh
-# run string substitues on the xml tags to become arguments for the command
-# map the account id
-sed -i'' -e 's#<id>#-account_id "#g' ./costs.sh
-sed -i'' -e 's#</id>#" \\#g' ./costs.sh
-# map the account name
-sed -i'' -e 's#<name>#-account_name "#g' ./costs.sh
-sed -i'' -e 's#</name>#" \\#g' ./costs.sh
-# map the unit
-sed -i'' -e 's#<billing-unit>#-account_unit "#g' ./costs.sh
-sed -i'' -e 's#</billing-unit>#" \\#g' ./costs.sh
-# map the label
-sed -i'' -e 's#<label>#-account_label "#g' ./costs.sh
-sed -i'' -e 's#</label>#" \\#g' ./costs.sh
-# map the environment
-sed -i'' -e 's#<environment>#-account_environment "#g' ./costs.sh
-sed -i'' -e 's#</environment>#"#g' ./costs.sh
-# remove the type
-sed -i'' -e 's#<type>aws</type>##g' ./costs.sh
-# setup the command
-sed -i'' -e 's#<account>#aws-vault exec PROFILE -- ./aws_cost_monthly -month "2024-05" \\#g' ./costs.sh
-# remove closing tags
-sed -i'' -e 's#</account>##g' ./costs.sh
-sed -i'' -e 's@<accounts>@#!/usr/bin/env bash@g' ./costs.sh
-sed -i'' -e 's#</accounts>##g' ./costs.sh
-# remove tabs / spaces at start of the line
-sed -i'' -e "s/^[ \t]*//" ./costs.sh
+# use jq to remap all the values
+echo "#!/usr/bin/env bash" > ./costs.sh
+# append input to change the month
+echo 'month="2023-06"
+if [[ "${1}" != "" ]]; then
+    month="${1}"
+fi' >> ./costs.sh
+########
+# due to fun with quotes and escaping we use some subs with sed
+# fixing it after jq. Details in order:
+#  - replace ~ with \: so the command is neatly split over multiple lines
+#  - replace | with ": so argument values have string encapsulation for spaces etc
+#  - replace -null- with -: some accounts dont have an environment value, so clean it up
+#  - replace \\n with a new line: jq uses string value, replace it for real version
+#  - remove " at starting of line: jq outputs wrapping string quotes, strip those out
+########
+jq 'map(
+"aws-vault exec \(.label)-\(.environment)-breakglass -- ./aws_cost_monthly ~
+    -month=|${month}|~
+    -account_id=|\(.id)|~
+    -account_name=|\(.name)|~
+    -account_unit=|\(.billing_unit)|~
+    -account_label=|\(.label)|~
+    -account_environment=|\(.environment)|
+"
+) | join("\n")' ./accounts.aws.json \
+    | sed "s/-month=|MONTH|/-month=|${month}|/g" \
+    | sed 's/~/ \\/g' \
+    | sed 's/|/"/g' \
+    | sed 's/-null-/-/g' \
+    | sed 's/\\n/\
+/g' | sed 's/^"\(.*\)/\1/' >> costs.sh
+
+#####
+# add the aws sync
+#####
+profile="shared-development-operator"
+bucket="report-data-development"
+bucket_path="aws/cost/monthly"
+echo 'read -p "upload to s3?: (Y|N) " up' >> costs.sh
+echo 'if [[ "${up}" == [Yy] ]]; then' >> costs.sh
+echo "  cd ./data/" >> costs.sh
+echo "  ls -lh . | wc -l" >> costs.sh
+echo "  aws-vault exec ${profile} -- aws s3 cp --recursive . s3://${bucket}/${bucket_path} --sse AES256" >> costs.sh
+echo "  cd ../" >> costs.sh
+echo "  rm -Rf ./data/" >> costs.sh
+echo 'fi' >> costs.sh
 # mv the updated script up a level and clean up the directory
 cp ./costs.sh ${BASE}/aws-costs-monthly.sh
 chmod 0777 ${BASE}/aws-costs-monthly.sh
@@ -73,7 +94,7 @@ rm -Rf ${WORKING_DIR}
 
 # echo out message
 echo "------------------------------------------"
-echo "✅ Download latest opg-metadata release and reformatted the accounts.xml file"
+echo "✅ Download latest opg-metadata release and reformatted the account data"
 echo "✅ Copied binary to same directory as script"
 echo "Generated script here:"
 echo "${BASE}/aws-costs-monthly.sh"
@@ -84,8 +105,4 @@ echo " - remove any non-aws account details"
 echo " - update month to which ever reporting on"
 echo "------------------------------------------"
 
-read -p "Edit file? (Y|N) " edit_file
-
-if [[ "${edit_file}" == [yY] ]]; then
-    code ${BASE}/aws-costs-monthly.sh
-fi
+code ${BASE}/aws-costs-monthly.sh
