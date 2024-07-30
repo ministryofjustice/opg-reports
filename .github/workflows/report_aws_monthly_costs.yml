@@ -68,7 +68,7 @@ jobs:
         if: ${{ matrix.type == 'aws' }}
         env:
           month: ${{ inputs.month != '' && inputs.month || '-' }}
-          unit: ${{ matrix.billing-unit }}
+          unit: ${{ matrix.billing_unit }}
           label: ${{ matrix.label }}
           name: ${{ matrix.name }}
           id: ${{ matrix.id }}

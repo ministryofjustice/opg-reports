@@ -49,7 +49,7 @@ jobs:
     steps:
       - name: "test matrix values"
         env:
-          unit: ${{ matrix.billing-unit }}
+          unit: ${{ matrix.billing_unit }}
           label: ${{ matrix.label }}
           name: ${{ matrix.name }}
           id: ${{ matrix.id }}
