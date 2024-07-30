@@ -27,26 +27,9 @@ The folder paths of the handlers [should match the report-path](./cmd/report/REA
 
 The api layer contains a `./data/` directory which is where the s3 bucket is synch'd into (via a make command).
 
-### Running locally
+## Display layer<a name="display-layer-intro"></a>
 
-You can run both the api and front using docker containers by running:
-```
-make dev
-```
-
-Or if you want to run the api without docker and utilise the `go` build directly, then call
-
-```
-make dev-run-api
-```
-
-By default, the api will then be available on `http://localhost:8081`.
-
-For more details on how the api works and how to use / change it, please see its own [README](./services/api/README.md)
-
-## Display layer
-
-The display / front layer uses `go` webserver and its built in templating to generate html views. It has two request handlers - static and dynamic.
+The [display / front layer](./services/front/README.md) uses `go` webserver and its built in templating to generate html views. It has two request handlers - static and dynamic.
 
 The static handler handle pages that are simple html / markup that don't utilise any data from the api.
 
@@ -54,27 +37,10 @@ The dynamic handler fetches information from the api and will then call the temp
 
 This is configured within the [front's config.json file](./services/front/config.json).
 
-### Configure
+### Configuration
 
 The front uses its config file to set the visiable organisation name rendered in the html (default: OPG) as well as the navigation structure with where each page gets its data from.
 
 Additionally, what repository values are checked for the baseline and extended standard checks are configured here.
 
 Please see the [package details for more info](./services/front/cnf/cnf.go)
-
-### Running locally
-
-You can run both the front and api using docker containers by running:
-```
-make dev
-```
-
-Or if you want to run the front without docker and utilise the `go` build directly, then call
-
-```
-make dev-run-front
-```
-
-By default, the front will then be available on `http://localhost:8080`.
-
-For more details on how front works and how to use / change it, please see its own [README](./services/front/README.md)
