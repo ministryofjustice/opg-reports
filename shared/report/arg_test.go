@@ -86,4 +86,10 @@ func TestSharedReportArgs(t *testing.T) {
 		t.Errorf("expected last month for a empty date")
 	}
 
+	darg := NewArgConditionalDefault("argdeftest", true, "help", "default!", "null")
+	dval := "null"
+	darg.FlagP = &dval
+	if v, err := darg.Value(); err != nil || v != "default!" {
+		t.Errorf("value with a conditional check failed")
+	}
 }

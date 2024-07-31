@@ -21,7 +21,7 @@ var (
 	account_label = report.NewArg("account_label", true, "Label for the account", "")
 	account_unit  = report.NewArg("account_unit", true, "Unit to group the account into (like a team structure)", "")
 	account_org   = report.NewArg("account_organisation", true, "Organisation name", "OPG")
-	account_env   = report.NewArg("account_environment", true, "Account environment type", "development")
+	account_env   = report.NewArgConditionalDefault("account_environment", true, "Account environment type", "production", "null")
 )
 
 const dir string = "data"

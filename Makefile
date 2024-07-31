@@ -25,7 +25,7 @@ FRONT_FOLDER := ${SERVICES_FOLDER}/front
 # location to download data from the remote bucket into
 BUCKET_FOLDER := ./from-bucket
 # aws vault profile to use to connect to the dev bucket
-AWS_PROFILE ?= shared-development
+AWS_PROFILE ?= shared-development-operator
 # name of the dev bucket
 BUCKET ?= report-data-development
 

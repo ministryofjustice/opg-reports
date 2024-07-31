@@ -57,11 +57,12 @@ type IReportArgument interface {
 
 // Arg is a standard argument for a report
 type Arg struct {
-	Name     string
-	Help     string
-	Default  string
-	Required bool
-	FlagP    *string
+	Name             string
+	Help             string
+	Default          string
+	DefaultCondition *string
+	Required         bool
+	FlagP            *string
 }
 
 // SetName replaces the name
@@ -114,7 +115,10 @@ func (a *Arg) GetFlag() *string {
 // if theres an error, will return that
 func (a *Arg) Value() (val string, err error) {
 	value := *a.FlagP
-	if value != "" || len(value) > 0 {
+	defCond := a.DefaultCondition
+	if value != "" && defCond != nil && value == *defCond {
+		val = a.Default
+	} else if value != "" || len(value) > 0 {
 		val = value
 	} else if a.Required {
 		err = ErrMissingValue
@@ -146,6 +150,7 @@ func (a *MonthArg) Value() (val string, err error) {
 	value, e := a.MonthValue()
 	if e != nil {
 		err = e
+		return
 	} else if a.GetRequired() && value.Format(dates.FormatY) == dates.ErrYear {
 		err = ErrMonthParse
 	} else {
@@ -176,10 +181,24 @@ func (a *MonthArg) MonthValue() (val time.Time, err error) {
 func NewArg(name string, required bool, usage string, def string) *Arg {
 
 	arg := &Arg{
-		Name:     name,
-		Help:     usage,
-		Default:  def,
-		Required: required,
+		Name:             name,
+		Help:             usage,
+		Default:          def,
+		DefaultCondition: nil,
+		Required:         required,
+	}
+	arg.SetFlag()
+	return arg
+}
+
+func NewArgConditionalDefault(name string, required bool, usage string, def string, condVal string) *Arg {
+
+	arg := &Arg{
+		Name:             name,
+		Help:             usage,
+		Default:          def,
+		DefaultCondition: &condVal,
+		Required:         required,
 	}
 	arg.SetFlag()
 	return arg

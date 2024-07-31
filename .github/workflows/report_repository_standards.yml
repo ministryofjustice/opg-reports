@@ -38,7 +38,7 @@ jobs:
           arguments: '-organisation ministryofjustice -team opg'
       # configure the aws role
       - name: "Configure AWS credentials for S3 upload"
-        id: configure_aws_creds
+        id: configure_aws_creds_s3_upload
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: "eu-west-1"
@@ -46,6 +46,7 @@ jobs:
           role-to-assume: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
           role-session-name: opg-reports-upload-github-standards-to-s3
       - name: "Upload to s3"
+        id: upload_to_s3
         uses: ./.github/actions/s3_upload
         with:
           directory: ${{ steps.run.outputs.data_folder }}
