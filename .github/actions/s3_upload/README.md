@@ -1,6 +1,6 @@
 # S3 Upload
 
-Upload the content of the directory passed into the bucket using the bucket_path as well.
+Uploads the content of a directory into a bucket using a bucket_path.
 
 Please ensure any authentication (AWS creds, OIDC etc) required to upload to the bucket is done before calling the action
 
