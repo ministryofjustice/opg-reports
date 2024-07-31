@@ -19,19 +19,19 @@ func TestSharedGithubStandardsRealData(t *testing.T) {
 		r, _ := repos.Get(ctx, client, owner, testRepo)
 
 		com := NewWithR(nil, r, client)
-		if comply, _, _ := com.Compliant(defaultBaselineCompliance); comply != true {
+		if comply, _, _ := com.Compliant(DefaultBaselineCompliance); comply != true {
 			t.Errorf("error with compliance")
 		}
 	}
 }
 func TestSharedGithubStandardsComply(t *testing.T) {
-	c := FakeCompliant(nil, defaultBaselineCompliance)
-	if comply, _, _ := c.Compliant(defaultBaselineCompliance); !comply {
+	c := FakeCompliant(nil, DefaultBaselineCompliance)
+	if comply, _, _ := c.Compliant(DefaultBaselineCompliance); !comply {
 		t.Errorf("compliance failed")
 	}
 
-	c = FakeCompliant(nil, defaultExtendedCompliance)
-	if comply, _, _ := c.Compliant(defaultExtendedCompliance); !comply {
+	c = FakeCompliant(nil, DefaultExtendedCompliance)
+	if comply, _, _ := c.Compliant(DefaultExtendedCompliance); !comply {
 		t.Errorf("compliance failed")
 	}
 

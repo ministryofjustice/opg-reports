@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"opg-reports/internal/testhelpers"
 	"opg-reports/shared/aws/cost"
 	"opg-reports/shared/data"
 	"opg-reports/shared/dates"
@@ -17,8 +18,8 @@ import (
 // so just check status and errors
 func TestServicesApiAwsCostMonthlyHandlerIndex(t *testing.T) {
 
-	fs := testFs()
-	mux := testMux()
+	fs := testhelpers.Fs()
+	mux := testhelpers.Mux()
 	store := data.NewStore[*cost.Cost]()
 	resp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
 	api := New(store, fs, resp)
@@ -26,7 +27,7 @@ func TestServicesApiAwsCostMonthlyHandlerIndex(t *testing.T) {
 	api.Register(mux)
 
 	route := "/aws/costs/v1/monthly/"
-	w, r := testWRGet(route)
+	w, r := testhelpers.WRGet(route)
 
 	mux.ServeHTTP(w, r)
 
@@ -51,9 +52,9 @@ func TestServicesApiAwsCostMonthlyHandlerIndex(t *testing.T) {
 // triggers the api to get that data.
 // Checks the number of items returned matches expectations
 func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
-	fs := testFs()
-	mux := testMux()
-	min, max, df := testDates()
+	fs := testhelpers.Fs()
+	mux := testhelpers.Mux()
+	min, max, df := testhelpers.Dates()
 	overm := time.Date(max.Year()+1, 1, 1, 0, 0, 0, 0, time.UTC)
 	overmx := time.Date(max.Year()+2, 1, 1, 0, 0, 0, 0, time.UTC)
 	store := data.NewStore[*cost.Cost]()
@@ -77,7 +78,7 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 	api.Register(mux)
 
 	route := fmt.Sprintf("/aws/costs/v1/monthly/%s/%s/", min.Format(dates.FormatYM), max.Format(dates.FormatYM))
-	w, r := testWRGet(route)
+	w, r := testhelpers.WRGet(route)
 	mux.ServeHTTP(w, r)
 
 	str, b := response.Stringify(w.Result())
@@ -94,9 +95,9 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 }
 
 func TestServicesApiAwsCostMonthlyHandlerUnits(t *testing.T) {
-	fs := testFs()
-	mux := testMux()
-	min, max, df := testDates()
+	fs := testhelpers.Fs()
+	mux := testhelpers.Mux()
+	min, max, df := testhelpers.Dates()
 	// out of bounds
 	overm := time.Date(max.Year()+1, 1, 1, 0, 0, 0, 0, time.UTC)
 	overmx := time.Date(max.Year()+2, 1, 1, 0, 0, 0, 0, time.UTC)
@@ -121,7 +122,7 @@ func TestServicesApiAwsCostMonthlyHandlerUnits(t *testing.T) {
 	api.Register(mux)
 
 	route := fmt.Sprintf("/aws/costs/v1/monthly/%s/%s/units/", min.Format(dates.FormatYM), max.Format(dates.FormatYM))
-	w, r := testWRGet(route)
+	w, r := testhelpers.WRGet(route)
 	mux.ServeHTTP(w, r)
 
 	str, b := response.Stringify(w.Result())
@@ -137,9 +138,9 @@ func TestServicesApiAwsCostMonthlyHandlerUnits(t *testing.T) {
 }
 
 func TestServicesApiAwsCostMonthlyHandlerUnitEnvs(t *testing.T) {
-	fs := testFs()
-	mux := testMux()
-	min, max, df := testDates()
+	fs := testhelpers.Fs()
+	mux := testhelpers.Mux()
+	min, max, df := testhelpers.Dates()
 	// out of bounds
 	overm := time.Date(max.Year()+1, 1, 1, 0, 0, 0, 0, time.UTC)
 	overmx := time.Date(max.Year()+2, 1, 1, 0, 0, 0, 0, time.UTC)
@@ -167,7 +168,7 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvs(t *testing.T) {
 	api.Register(mux)
 
 	route := fmt.Sprintf("/aws/costs/v1/monthly/%s/%s/units/envs/", min.Format(dates.FormatYM), max.Format(dates.FormatYM))
-	w, r := testWRGet(route)
+	w, r := testhelpers.WRGet(route)
 	mux.ServeHTTP(w, r)
 
 	str, b := response.Stringify(w.Result())
@@ -182,9 +183,9 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvs(t *testing.T) {
 }
 
 func TestServicesApiAwsCostMonthlyHandlerUnitEnvServices(t *testing.T) {
-	fs := testFs()
-	mux := testMux()
-	min, max, df := testDates()
+	fs := testhelpers.Fs()
+	mux := testhelpers.Mux()
+	min, max, df := testhelpers.Dates()
 	// out of bounds
 	overm := time.Date(max.Year()+1, 1, 1, 0, 0, 0, 0, time.UTC)
 	overmx := time.Date(max.Year()+2, 1, 1, 0, 0, 0, 0, time.UTC)
@@ -212,7 +213,7 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvServices(t *testing.T) {
 	api.Register(mux)
 
 	route := fmt.Sprintf("/aws/costs/v1/monthly/%s/%s/units/envs/services/", min.Format(dates.FormatYM), max.Format(dates.FormatYM))
-	w, r := testWRGet(route)
+	w, r := testhelpers.WRGet(route)
 	mux.ServeHTTP(w, r)
 
 	str, b := response.Stringify(w.Result())

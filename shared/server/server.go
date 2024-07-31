@@ -62,11 +62,17 @@ type IApiBase[V data.IEntry, F files.IReadFS] interface {
 	IApiWrite
 }
 
+type IApiQueryable[V data.IEntry] interface {
+	AllowedGetParameters() []string
+	GetParameters(allowed []string, r *http.Request) map[string][]string
+}
+
 // IApi is common interface for setting up a standard data driven api
 // Adds Start to track the begining of the request and End to write the completed data back out
 type IApi[V data.IEntry, F files.IReadFS, C response.ICell, R response.IRow[C]] interface {
 	IApiBase[V, F]
 	IApiResponse[C, R]
+	IApiQueryable[V]
 	Start(w http.ResponseWriter, r *http.Request)
 	End(w http.ResponseWriter, r *http.Request)
 }
@@ -123,6 +129,29 @@ func (a *Api[V, F, C, R]) GetNewResponse() response.IResponse[C, R] {
 	slog.Debug("create new response")
 	a.resp = response.NewResponse[C, R]()
 	return a.resp
+}
+
+// AllowedGetParameters returns slice of strings of named GET parameters
+// that can be used with this IApi.
+// Defaults to empty
+func (a *Api[V, F, C, R]) AllowedGetParameters() []string {
+	return []string{}
+}
+
+// GetParameters uses the allowed slcie (the result of AllowedGetParameters) to find
+// GET parameters that have been passed and returns a map of their values
+// This is then used to build a filter
+func (a *Api[V, F, C, R]) GetParameters(allowed []string, r *http.Request) map[string][]string {
+	values := map[string][]string{}
+	q := r.URL.Query()
+	for _, name := range allowed {
+		if v, ok := q[name]; ok {
+			values[name] = v
+		}
+	}
+
+	return values
+
 }
 
 // Start generates a new repsonse and then sets the start time of the request

@@ -2,21 +2,19 @@ package monthly
 
 import (
 	"net/http"
-	"net/http/httptest"
+	"opg-reports/internal/testhelpers"
 	"opg-reports/shared/aws/cost"
 	"opg-reports/shared/data"
-	"opg-reports/shared/files"
 	"opg-reports/shared/server/response"
-	"os"
 	"testing"
-	"time"
 )
 
 func TestServicesApiAwsCostMonthlyStatusCode(t *testing.T) {
 
-	fs := testFs()
-	mux := testMux()
-	min, max, df := testDates()
+	fs := testhelpers.Fs()
+
+	mux := testhelpers.Mux()
+	min, max, df := testhelpers.Dates()
 	store := data.NewStore[*cost.Cost]()
 	store.Add(cost.Fake(nil, min, max, df))
 	resp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
@@ -35,7 +33,7 @@ func TestServicesApiAwsCostMonthlyStatusCode(t *testing.T) {
 		"/aws/costs/v1/monthly/2024-04/invalid/":    http.StatusConflict,
 	}
 	for route, status := range routes {
-		w, r := testWRGet(route)
+		w, r := testhelpers.WRGet(route)
 		mux.ServeHTTP(w, r)
 		if w.Result().StatusCode != status {
 			r, _ := response.Stringify(w.Result())
@@ -46,7 +44,7 @@ func TestServicesApiAwsCostMonthlyStatusCode(t *testing.T) {
 }
 
 func TestServicesApiAwsCostMonthlyFSMatch(t *testing.T) {
-	fs := testFs()
+	fs := testhelpers.Fs()
 	store := data.NewStore[*cost.Cost]()
 	resp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
 	api := New(store, fs, resp)
@@ -58,8 +56,8 @@ func TestServicesApiAwsCostMonthlyFSMatch(t *testing.T) {
 }
 
 func TestServicesApiAwsCostMonthlyStoreMatch(t *testing.T) {
-	fs := testFs()
-	min, max, df := testDates()
+	fs := testhelpers.Fs()
+	min, max, df := testhelpers.Dates()
 	store := data.NewStore[*cost.Cost]()
 	store.Add(cost.Fake(nil, min, max, df))
 
@@ -71,24 +69,4 @@ func TestServicesApiAwsCostMonthlyStoreMatch(t *testing.T) {
 	if apiS.Length() != store.Length() {
 		t.Errorf("store data mismatch")
 	}
-}
-
-func testFs() *files.WriteFS {
-	td := os.TempDir()
-	tDir, _ := os.MkdirTemp(td, "files-all-*")
-	dfSys := os.DirFS(tDir).(files.IReadFS)
-	return files.NewFS(dfSys, tDir)
-}
-
-func testMux() *http.ServeMux {
-	return http.NewServeMux()
-}
-func testWRGet(route string) (*httptest.ResponseRecorder, *http.Request) {
-	return httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, route, nil)
-}
-func testDates() (min time.Time, max time.Time, df string) {
-	df = time.RFC3339
-	max = time.Date(2024, 3, 1, 0, 0, 0, 0, time.UTC)
-	min = time.Date(2023, 12, 1, 0, 0, 0, 0, time.UTC)
-	return
 }
