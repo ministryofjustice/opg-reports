@@ -1,6 +1,6 @@
 # Get OPG Metadata
 
-Fetchs the latest metadata tarball release from `opg-metadata` repository to get account data for using in matrix workflows in our reports.
+Fetches the latest metadata tarball release from `opg-metadata` repository to get account data for using in matrix workflows in our reports.
 
 As `opg-metadata` is an internal repository, you will need to pass in a github token with the correct permissions to theis action to fetch the matrix data correctly.
 
