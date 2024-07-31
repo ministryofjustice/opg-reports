@@ -149,16 +149,16 @@ Please test your changes as you go - see the [running locally section on how](#r
 
 In order to start capturing github repository standards for your organisation you will need to focus on the following areas fo code:
 
-- Remove / disable reports that won't be used
-- CI user for terraform
-- Using this projects terraform
-- S3 bucket
-- Role for local development
-- Role or user for workflow access
-- Repository secrets
-- Repository standards report workflow
-- ECR
-- Front end configuration
+- [Remove / disable reports that won't be used](#forking-remove-reports)
+- [CI user for terraform](#forking-ci-user)
+- [Using this projects terraform](#forking-this-terraform)
+- [S3 bucket](#forking-bucket)
+- [Role for local development](#forking-local-dev-access)
+- [Role or user for workflow access](#forking-workflow-role-access)
+- [Repository secrets](#forking-secrets)
+- [Repository standards report workflow](#forking-standards-workflow)
+- [ECR](#forking-ecr)
+- [Front end configuration](#forking-front-config)
 
 ## Remove or disable reports<a name="forking-remove-reports"></a>
 
@@ -211,7 +211,7 @@ You will need to update the AWS profile (`shared-development-operator`) used wit
 
 This project makes use of OIDC roles to allow the workflows to pull / push data to sources such as s3 and ecr.
 
-### ECR
+### ECR<a name="forking-workflow-role-access-ecr"></a>
 
 *Only relevant if you are using this projects terraform.*
 
@@ -232,7 +232,7 @@ You will need to update all references:
 - [`workflow_path_to_live.yml`](./.github/workflows/workflow_path_to_live.yml)
 - [`workflow_pr.yml`](./.github/workflows/workflow_pr.yml)
 
-### S3
+### S3<a name="forking-workflow-role-access-s3"></a>
 
 Our workflows use OIDC roles to upload their result data to and s3 bucket. This role (`opg-reports-github-actions-s3`) is defined within [our s3 terraform](./terraform/environment/s3.tf) and will need to be replaced with a suitable you have create role that has the following permissions:
 
