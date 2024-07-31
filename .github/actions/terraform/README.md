@@ -6,7 +6,7 @@ Output the plan data to a local file.
 
 When `apply` is set to `true`, then run the apply using the out from the plan step.
 
-Both the plan and apply uses state lock timeout so if tehre is an error or clash the state file will unlock after 300 seconds.
+Both the plan and apply uses state lock timeout so if there is an error or clash the state file will unlock after 300 seconds.
 
 ## Usage
 
