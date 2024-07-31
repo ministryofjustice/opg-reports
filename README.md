@@ -54,6 +54,28 @@ The [`Makefile`](./Makefile) at the project root contains targets to build and s
 
 Currently, neither method for running the project have have realtime code updates to a running process.
 
+### Test suite
+
+While not complete, there is a good amount of tests within the go code that you can run to check any changes against. These are setup in the `Makefile` as targets.
+
+Run all tests:
+
+```
+make tests
+```
+
+Run a specifc set of tests based on their name:
+
+```
+make test name="<pattern>"
+```
+
+Run code coverage checks:
+
+```
+make coverage
+```
+
 ### With Docker<a name="running-locally-with-docker"></a>
 
 This project is setup to use `docker compose` files ([docker-compose.yml](./docker-compose.yml) and [docker-compose.dev.yml](./docker/docker-compose.dev.yml) ), with the base file referencing the `latest` images from our private registry.
@@ -123,6 +145,8 @@ While this code bae make use of a lot of configuration, the default and checked 
 
 We'll try to walk you though all the changes you need to make after forking, including infrastructure / access needs that are used but not included in this repository.
 
+Please test your changes as you go and see the [running locally section on best ways](#running-locally)
+
 In order to start capturing github repository standards for your organisation you will need to focus on the following areas fo code:
 
 - Remove / disable reports that won't be used
@@ -134,7 +158,7 @@ In order to start capturing github repository standards for your organisation yo
 - Repository secrets
 - Repository standards report workflow
 - ECR
-
+- Front end configuration
 
 ## Remove or disable reports<a name="forking-remove-reports"></a>
 
@@ -185,6 +209,31 @@ You will need to update the AWS profile (`shared-development-operator`) used wit
 
 ## Role or user for workflow access<a name="forking-workflow-role-access"></a>
 
+This project makes use of OIDC roles to allow the workflows to pull / push data to sources such as s3 and ecr.
+
+### ECR
+
+*Only relevant if you are using this projects terraform.*
+
+Within the projects workflows there is an ecr specifc OIDC role (`opg-reports-github-actions-ecr-push`) configured to push/pull docker images with ECR. Its replacement will require the following permissions:
+
+```
+ecr:CompleteLayerUpload
+ecr:UploadLayerPart
+ecr:InitiateLayerUpload
+ecr:BatchCheckLayerAvailability
+ecr:PutImage
+ecr:BatchGetImage
+ecr:GetDownloadUrlForLayer
+```
+
+You will need to update all references:
+
+- [`workflow_path_to_live.yml`](./.github/workflows/workflow_path_to_live.yml)
+- [`workflow_pr.yml`](./.github/workflows/workflow_pr.yml)
+
+### S3
+
 Our workflows use OIDC roles to upload their result data to and s3 bucket. This role (`opg-reports-github-actions-s3`) is defined within [our s3 terraform](./terraform/environment/s3.tf) and will need to be replaced with a suitable you have create role that has the following permissions:
 
 ```
@@ -229,7 +278,7 @@ The terraform code within this repository calls external modules, so we store a 
 Replace when forking to allow the terraform to run, but if you are not using this projects terraform it can be ignored.
 
 
-## Repository standards reporting workflow
+## Repository standards reporting workflow<a name="forking-standards-workflow"></a>
 
 This [workflow](./.github/workflows/report_repository_standards.yml) calls [`go` code](./cmd/report/github/standards/README.md) to go and fetch data.
 
@@ -241,3 +290,32 @@ The go code expects arguments to be either an organisation and team or the name 
 Within the workflow you will need to replace the env variable `arguments` with versions that work for your team.
 
 The workflow is currently configured to run every Saturday at 9am - feel free to adjust for your own needs.
+
+## ECR<a name="forking-ecr"></a>
+
+During the docker build process we utilise a private registry (AWS ECR) within one of our accounts. As the built version of the images contains a copy of all data from the s3 bucket, it is advisable keep using a private registry.
+
+You will need to update the code in the following places to change the registry:
+
+- [`docker-compose.yml`](./docker-compose.yml)
+
+
+## Front end configuration<a name="forking-front-config"></a>
+
+The front end service / dispaly layer has a [configuration file](./services/front/config.json) that allow's you to adjust its functionality without directly editing the `go` code.
+
+For more details on how the configuration file is used, please see its [package details](./services/front/cnf/cnf.go).
+
+### Organisation
+
+The front end uses the `organsiation` value from the [configuration file](./services/front/config.json) in the html title and various page headings - please adjust this to something suitable for yourself.
+
+### Sections
+
+The `sections` block is a recursive structure that is used to render the navigation levels of the front end. The [simple example included](./services/front/config.simple.json) shows a single level of navigation with one main page displaying the github standards report details.
+
+You are unlikey to need to change this.
+
+### Standards
+
+The properties that are checked for the baseline and extended tests are configured in this block. This are the normal values and unlikely they need changing.
