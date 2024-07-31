@@ -3,6 +3,7 @@ package cnf
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"opg-reports/shared/dates"
 	"regexp"
 	"strconv"
@@ -13,12 +14,16 @@ import (
 const billingDay int = 13
 const errUrlSubNotFound string = "Pattern [%s] is not supported"
 
-type ApiSubFunc func(key string, fragment string, url string) string
+// ApiSubFunc type used for signature mapping
+// key - the section of the url to be replaced: {month} | {month:-2}
+// fragment - would be the -2 in {month:-2}
+// url - the original url
+type ApiSubFunc func(key string, fragment string, url string, d *time.Time) string
 
-func month(key string, fragment string, url string) (m string) {
+func month(key string, fragment string, url string, d *time.Time) (m string) {
 	m = url
-	date := time.Now().UTC()
-
+	now := *d
+	date := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
 	if fragment == "" {
 		m = strings.ReplaceAll(url, key, date.Format(dates.FormatYM))
 		return
@@ -28,17 +33,33 @@ func month(key string, fragment string, url string) (m string) {
 		date = date.AddDate(0, i, 0)
 		m = strings.ReplaceAll(url, key, date.Format(dates.FormatYM))
 	}
+	slog.Debug("month",
+		slog.String("key", key),
+		slog.String("fragment", fragment),
+		slog.String("url", url),
+		slog.String("m", m),
+		slog.String("date", date.String()))
 	return
 }
 
-func billingMonth(key string, fragment string, url string) (m string) {
+func billingMonth(key string, fragment string, url string, d *time.Time) (m string) {
+	var date time.Time
 	m = url
-	date := time.Now().UTC()
-	if date.Day() < billingDay {
+	now := *d
+	date = time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
+	if now.Day() < billingDay {
 		date = date.AddDate(0, -2, 0)
 	} else {
 		date = date.AddDate(0, -1, 0)
 	}
+
+	slog.Debug("billingMonth",
+		slog.String("key", key),
+		slog.String("fragment", fragment),
+		slog.String("url", url),
+		slog.String("m", m),
+		slog.String("now", now.String()),
+		slog.String("date", date.String()))
 	m = strings.ReplaceAll(url, key, date.Format(dates.FormatYM))
 	return
 }
@@ -81,16 +102,22 @@ func (s *SiteSection) ClassName() string {
 func (s *SiteSection) ApiUrls() (res map[string]string, err error) {
 	var re = regexp.MustCompile(`(?mi){(.*?)}`)
 	res = map[string]string{}
+	now := time.Now().UTC()
 
 	for name, url := range s.Api {
+		org := url
 		for _, match := range re.FindAllString(url, -1) {
 			index, fragment := getIndex(match)
 			if subFunc, ok := ApiSubstitutionFuncs[index]; ok {
-				url = subFunc(match, fragment, url)
+				url = subFunc(match, fragment, url, &now)
 			} else {
 				err = fmt.Errorf(errUrlSubNotFound, match)
 			}
 		}
+		slog.Debug("[cnf] api url processing",
+			slog.String("name", name),
+			slog.String("original_url", org),
+			slog.String("processed_url", url))
 		res[name] = url
 	}
 	return

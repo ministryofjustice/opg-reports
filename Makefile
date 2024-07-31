@@ -115,16 +115,16 @@ assets-api:
 	@echo "[Assets](api) Building..."
 	@echo "	source: [${BUCKET}]"
 	@echo "	target: [${API_DATA_FOLDER}]"
-	@echo "	Note: You can use a different bucket by running the command with BUCKET=name added."
 	@rm -Rf ${BUCKET_FOLDER}
 	@rm -Rf ${API_DATA_FOLDER}
 	@if test "$(AWS_SESSION_TOKEN)" = "" ; then \
-		echo "warning: AWS_SESSION_TOKEN not set, running as aws-vault profile [${AWS_PROFILE}] "; \
+		echo "	warning: AWS_SESSION_TOKEN not set, running as aws-vault profile [${AWS_PROFILE}] "; \
 		aws-vault exec ${AWS_PROFILE} -- aws s3 sync --quiet s3://${BUCKET} ${BUCKET_FOLDER}; \
 	else \
-		echo "AWS_SESSION_TOKEN set, running as is"; \
+		echo "	AWS_SESSION_TOKEN set, running as is"; \
 		aws s3 sync --quiet s3://${BUCKET} ${BUCKET_FOLDER}; \
 	fi
+	@echo "	note: You can use a different bucket by running the command with BUCKET=name added."
 	@mv ${BUCKET_FOLDER} ${API_DATA_FOLDER}
 	@echo "[Assets](api) Built."
 
