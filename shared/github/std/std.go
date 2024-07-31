@@ -59,6 +59,7 @@ type Repository struct {
 	Name           string    `json:"name"`
 	Owner          string    `json:"owner"`
 	LastCommitDate time.Time `json:"last_commit_date"`
+	Teams          []string  `json:"teams"`
 
 	CountClones       int `json:"clone_traffic"`
 	CountForks        int `json:"forks"`
@@ -188,6 +189,12 @@ func (c *Repository) dataViaClient(client *github.Client) {
 	// webhooks
 	if hooks, _, err := client.Repositories.ListHooks(context.Background(), c.Owner, c.Name, &github.ListOptions{PerPage: 100}); err == nil {
 		c.CountWebhooks = len(hooks)
+	}
+	// teams
+	if teams, _, err := client.Repositories.ListTeams(context.Background(), c.Owner, c.Name, &github.ListOptions{PerPage: 100}); err == nil {
+		for _, team := range teams {
+			c.Teams = append(c.Teams, *team.Name)
+		}
 	}
 }
 
