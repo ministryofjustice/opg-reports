@@ -20,5 +20,5 @@ test-results.json
 *.tfstate.*
 *.tfvars
 
-#
-accounts.yml
+# generated go docs
+docs/go/**
