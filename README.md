@@ -145,7 +145,7 @@ While this code bae make use of a lot of configuration, the default and checked 
 
 We'll try to walk you though all the changes you need to make after forking, including infrastructure / access needs that are used but not included in this repository.
 
-Please test your changes as you go and see the [running locally section on best ways](#running-locally)
+Please test your changes as you go - see the [running locally section on how](#running-locally).
 
 In order to start capturing github repository standards for your organisation you will need to focus on the following areas fo code:
 
