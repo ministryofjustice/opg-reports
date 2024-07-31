@@ -102,6 +102,20 @@ make dev-run-front
 
 The api will then be visible on `http://localhost:8081` and the front end on `http://localhost:8080`.
 
+# Current functionality<a name="functionality"></a>
+
+At the moment, the CI/CD workflows (with `workflow_` prefix) within this project run on pull_requests or pushes to main. The workflow does the following actions:
+
+- Determines terraform versions to use
+- Creates a semver tag
+- Runs the go test suites
+- Creates docker image
+  - Fetches assets (from `s3` and the govuk front end) using the makefile (`make assets`)
+  - Login to ECR
+  - Builds and pushes containers (both the `api` and `front` found with ./services/ folder)
+- Runs terraform (both ./terraform/account and ./terraform/environment) for the development workspace
+- Creates a release (or pre-release) using the semver tag generated, attaching the go code binaries as an artifact
+
 
 # Forking<a name="forking"></a>
 
@@ -120,20 +134,6 @@ In order to start capturing github repository standards for your organisation yo
 - Repository secrets
 - Repository standards report workflow
 - ECR
-
-## Current state
-
-At the moment, the CI/CD workflows (with `workflow_` prefix) within this project run on pull_requests or pushes to main. The workflow does the following actions:
-
-- Determines terraform versions to use
-- Creates a semver tag
-- Runs the go test suites
-- Creates docker image
-  - Fetches assets (from `s3` and the govuk front end) using the makefile (`make assets`)
-  - Login to ECR
-  - Builds and pushes containers (both the `api` and `front` found with ./services/ folder)
-- Runs terraform (both ./terraform/account and ./terraform/environment) for the development workspace
-- Creates a release (or pre-release) using the semver tag generated, attaching the go code binaries as an artifact
 
 
 ## Remove or disable reports<a name="forking-remove-reports"></a>
