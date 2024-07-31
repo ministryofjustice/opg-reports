@@ -54,7 +54,7 @@ The [`Makefile`](./Makefile) at the project root contains targets to build and s
 
 Currently, neither method for running the project have have realtime code updates to a running process.
 
-### Test suite
+### Test suite<a name="running-locally-tests"></a>
 
 While not complete, there is a good amount of tests within the go code that you can run to check any changes against. These are setup in the `Makefile` as targets.
 
