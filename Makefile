@@ -43,6 +43,8 @@ GO_BIN_NAME := api
 
 all:
 	@echo "Nothing to run, choose a target."
+
+
 ##############################
 # TESTS
 ##############################
@@ -199,6 +201,12 @@ go-reports: go-report-gh-standards go-report-aws-monthly-costs
 
 go go-all: go-api go-front go-reports
 	@echo "[Go] Built all"
+
+godocs:
+	@echo "-----"
+	@echo "[Go](docs) building docs "
+	@./scripts/go-docs.sh
+	@echo "[Go](docs) done"
 ##############################
 # DEV
 ##############################
