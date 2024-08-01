@@ -15,7 +15,7 @@ const readmePath string = "./README.md"
 const codeOfConductPath string = "./CODE_OF_CONDUCT.md"
 const contributingGuidePath string = "./CONTRIBUTING.md"
 
-var defaultBaselineCompliance = []string{
+var DefaultBaselineCompliance = []string{
 	"has_default_branch_of_main",
 	"has_license",
 	"has_issues",
@@ -23,13 +23,13 @@ var defaultBaselineCompliance = []string{
 	"has_rules_enforced_for_admins",
 	"has_pull_request_approval_required",
 }
-var defaultExtendedCompliance = []string{
+var DefaultExtendedCompliance = []string{
 	"has_code_owner_approval_required",
 	"has_readme",
 	"has_code_of_conduct",
 	"has_contributing_guide",
 }
-var defaultInformation = []string{
+var DefaultInformation = []string{
 	"archived",
 	"branch_name",
 	"has_delete_branch_on_merge",
@@ -59,6 +59,7 @@ type Repository struct {
 	Name           string    `json:"name"`
 	Owner          string    `json:"owner"`
 	LastCommitDate time.Time `json:"last_commit_date"`
+	Teams          []string  `json:"teams,omitempty"`
 
 	CountClones       int `json:"clone_traffic"`
 	CountForks        int `json:"forks"`
@@ -188,6 +189,12 @@ func (c *Repository) dataViaClient(client *github.Client) {
 	// webhooks
 	if hooks, _, err := client.Repositories.ListHooks(context.Background(), c.Owner, c.Name, &github.ListOptions{PerPage: 100}); err == nil {
 		c.CountWebhooks = len(hooks)
+	}
+	// teams
+	if teams, _, err := client.Repositories.ListTeams(context.Background(), c.Owner, c.Name, &github.ListOptions{PerPage: 100}); err == nil {
+		for _, team := range teams {
+			c.Teams = append(c.Teams, *team.Name)
+		}
 	}
 }
 

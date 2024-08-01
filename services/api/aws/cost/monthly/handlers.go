@@ -81,7 +81,6 @@ func (a *Api[V, F, C, R]) UnitEnvironmentServices(w http.ResponseWriter, r *http
 
 		head := response.NewRow(headingCells...)
 		body := []R{}
-		// body := []*response.Row[*response.Cell]{}
 
 		for _, g := range withinMonths.Group(byAccountService) {
 			rowTotal := 0.0
@@ -277,7 +276,6 @@ func (a *Api[V, F, C, R]) columnTotals(rows []R) (row R) {
 	for _, r := range rows {
 		cells := r.GetAll()
 		for x := headingsCount; x < len(cells); x++ {
-			// fmt.Printf("[%s] [%v]\n", cells[x].GetName(), cells[x].GetValue())
 			totals[x] += cells[x].GetValue().(float64)
 		}
 	}
@@ -314,6 +312,7 @@ func (a *Api[V, F, C, R]) Totals(w http.ResponseWriter, r *http.Request) {
 		// Limit the items in the data store to those within the start & end date range
 		//
 		months := dates.Strings(dates.Months(startDate, endDate), dates.FormatYM)
+		// impliments IStoreFilterFunc
 		inMonthRange := func(item *cost.Cost) bool {
 			return dates.InMonth(item.Date, months)
 		}

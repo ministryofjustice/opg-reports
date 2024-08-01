@@ -15,13 +15,14 @@
                 {
                     "name": "GitHub",
                     "href": "/github/",
+                    "template": "static-github-home",
                     "header": true,
                     "sections": [
                         {
                             "name": "Repository Standards",
                             "href": "/github/repository-standards/",
                             "api": {
-                                "list": "/github/standards/v1/list/"
+                                "list": "/github/standards/v1/list/?archived=false"
                             },
                             "template": "dynamic-github-standards-list"
                         }
@@ -30,6 +31,7 @@
                 {
                     "name": "AWS Costs",
                     "href": "/costs/aws/",
+                    "template": "static-aws-costs-home",
                     "header": true,
                     "sections": [
                         {
@@ -65,18 +67,8 @@
                             "template": "dynamic-aws-costs-units-envs-services"
                         }
                     ]
-                },
-                {
-                    "name": "Uptime & Incidents",
-                    "href": "/uptime-incidents/",
-                    "header": true,
-                    "sections": [
-                        {
-                            "name": "Service uptime",
-                            "href": "/uptime-incidents/uptime/"
-                        }
-                    ]
                 }
+
             ]
         }
 

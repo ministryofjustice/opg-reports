@@ -9,6 +9,7 @@ import (
 	"opg-reports/shared/server/response"
 )
 
+// Api implements IApi
 type Api[V *std.Repository, F files.IReadFS, C response.ICell, R response.IRow[C]] struct {
 	*server.Api[*std.Repository, F, C, R]
 }
@@ -27,35 +28,3 @@ func New[V *std.Repository, F files.IReadFS, C response.ICell, R response.IRow[C
 	return &Api[*std.Repository, F, C, R]{Api: api}
 
 }
-
-// // Api is a concreate version
-// type Api[V *std.Repository, F files.WriteFS] struct {
-// 	store *data.Store[*std.Repository]
-// 	fs    *files.WriteFS
-// }
-
-// func (a *Api[V, F]) Store() data.IStore[*std.Repository] {
-// 	return a.store
-// }
-
-// func (a *Api[V, F]) FS() files.IWriteFS {
-// 	return a.fs
-// }
-
-// func (a *Api[V, F]) Register(mux *http.ServeMux) {
-
-// }
-
-// func (a *Api[V, F]) Write(w http.ResponseWriter, status int, content []byte) {
-// 	w.WriteHeader(status)
-// 	w.Write(content)
-// }
-
-// func New[V *std.Repository, F files.WriteFS](store *data.Store[*std.Repository], fS *files.WriteFS) *Api[V, F] {
-
-// 	return &Api[V, F]{
-// 		store: store,
-// 		fs:    fS,
-// 	}
-
-// }

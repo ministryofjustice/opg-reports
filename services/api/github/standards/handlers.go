@@ -3,11 +3,11 @@ package standards
 import (
 	"net/http"
 	"opg-reports/shared/data"
-	"opg-reports/shared/github/std"
 	"opg-reports/shared/server/response"
 	"sort"
 )
 
+// List: /github/standards/v1/list/
 func (a *Api[V, F, C, R]) List(w http.ResponseWriter, r *http.Request) {
 	a.Start(w, r)
 	resp := a.GetResponse()
@@ -15,15 +15,14 @@ func (a *Api[V, F, C, R]) List(w http.ResponseWriter, r *http.Request) {
 
 	errs := resp.GetError()
 	if len(errs) == 0 {
-		activeOnly := func(item *std.Repository) bool {
-			return item.Archived == false
-		}
 
-		// get everything in range
-		onlyActive := store.Filter(activeOnly)
+		getFilters := a.FiltersForGetParameters(r)
+		if len(getFilters) > 0 {
+			store = store.Filter(getFilters...)
+		}
 		rows := []R{}
 
-		list := onlyActive.List()
+		list := store.List()
 		sort.Slice(list, func(i, j int) bool {
 			return list[i].FullName < list[j].FullName
 		})
