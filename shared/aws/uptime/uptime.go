@@ -22,8 +22,7 @@ type Uptime struct {
 	Unit     string    `json:"unit"`
 	DateTime time.Time `json:"date_time"`
 
-	AccountUnit  string `json:"account_unit"`
-	AccountLabel string `json:"account_label"`
+	AccountUnit string `json:"account_unit"`
 }
 
 func (i *Uptime) TS() time.Time {
