@@ -304,14 +304,14 @@ You will need to update the code in the following places to change the registry:
 
 The front end (display layer) service utilises a configuration file to setup the navigation, organisation name and which pages use api data or static content.
 
-Which configuration file to use is controlled by an environment variable - `CONFIG_FILE` - for the docker container. By default, this is set to the [`config.opg.json`](./services/front/config.opg.json) version, but we suggest you make a copy of the [`config.json`](./services/front/config.json) and adjust the file name (`config.<my-org>.json`).
+Which configuration file to use is controlled by an environment variable - `CONFIG_FILE` - for the docker container. By default, this is set to the [`config.json`](./services/front/config.json) version, which is in turn a symlink to [`config.opg.json`](./services/front/config.opg.json).
 
-The Dockerfile will copy all `config*.json` files into the built image.
-
-Once you have made a copy you will need to adjust the following areas:
+We recommend you create a copy of [`config.simple.json`](./services/front/config.simple.json) to start with and rename it something relevant (`config.<business-unit>.json`). You can then either change the symlink to point to this new file, or change the environment varibles in the following places:
 
 - [`docker-compose.yml`](./docker-compose.yml) - change the env var (`CONFIG_FILE`) value
 - [`Makefile`](./Makefile) - in the `dev-run-front` target, swap the value of the `CONFIG_FILE` variable.
+
+The Dockerfile will copy files matching `config*.json` pattern building the build.
 
 For more details on how the configuration file is used, please see its [package details](./services/front/cnf/cnf.go).
 

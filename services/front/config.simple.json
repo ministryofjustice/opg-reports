@@ -1,0 +1,47 @@
+{
+    "organisation": "OPG",
+    "sections": [
+        {
+            "name": "Repository Standards",
+            "href": "/",
+            "header": true,
+            "api": {
+                "list": "/github/standards/v1/list/?archived=false"
+            },
+            "template": "dynamic-github-standards-list"
+        }
+    ],
+    "standards": {
+        "repository": {
+            "baseline": [
+                "has_default_branch_of_main",
+                "has_license",
+                "has_issues",
+                "has_description",
+                "has_rules_enforced_for_admins",
+                "has_pull_request_approval_required"
+            ],
+            "extended": [
+                "has_code_owner_approval_required",
+                "has_readme",
+                "has_code_of_conduct",
+                "has_contributing_guide"
+            ],
+            "information": [
+                "archived",
+                "branch_name",
+                "has_delete_branch_on_merge",
+                "has_pages",
+                "has_downloads",
+                "has_discussions",
+                "has_wiki",
+                "forks",
+                "webhooks",
+                "open_pull_requests",
+                "clone_traffic",
+                "is_private",
+                "last_commit_date"
+            ]
+        }
+    }
+}

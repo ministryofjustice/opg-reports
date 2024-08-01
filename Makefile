@@ -217,4 +217,4 @@ dev-run-api:
 
 dev-run-front:
 	@echo "Running front..."
-	@clear && cd ${FRONT_FOLDER} && env CONFIG_FILE="./config.opg.json" go run main.go
+	@clear && cd ${FRONT_FOLDER} && env CONFIG_FILE="./config.json" go run main.go
