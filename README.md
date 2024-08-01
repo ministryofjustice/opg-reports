@@ -302,7 +302,16 @@ You will need to update the code in the following places to change the registry:
 
 ## Front end configuration<a name="forking-front-config"></a>
 
-The front end service / dispaly layer has a [configuration file](./services/front/config.json) that allow's you to adjust its functionality without directly editing the `go` code.
+The front end (display layer) service utilises a configuration file to setup the navigation, organisation name and which pages use api data or static content.
+
+Which configuration file to use is controlled by an environment variable - `CONFIG_FILE` - for the docker container. By default, this is set to the [`config.opg.json`](./services/front/config.opg.json) version, but we suggest you make a copy of the [`config.json`](./services/front/config.json) and adjust the file name (`config.<my-org>.json`).
+
+The Dockerfile will copy all `config*.json` files into the built image.
+
+Once you have made a copy you will need to adjust the following areas:
+
+- [`docker-compose.yml`](./docker-compose.yml) - change the env var (`CONFIG_FILE`) value
+- [`Makefile`](./Makefile) - in the `dev-run-front` target, swap the value of the `CONFIG_FILE` variable.
 
 For more details on how the configuration file is used, please see its [package details](./services/front/cnf/cnf.go).
 
