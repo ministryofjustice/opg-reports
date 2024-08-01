@@ -45,6 +45,7 @@ func run(r report.IReport) {
 			ups = append(ups, up)
 		}
 	}
+	slog.Info("found datapoints", slog.Int("count", len(ups)))
 	// write to file
 	content, _ := data.ToJsonList[*uptime.Uptime](ups)
 	filename := r.Filename()
