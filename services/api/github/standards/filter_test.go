@@ -52,6 +52,7 @@ func TestServicesApiGithubStandardsFiltersForGetParameters(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to parse response: %v", err)
 	}
+
 	if res.GetStatus() != http.StatusOK {
 		t.Errorf("status code failed")
 		fmt.Println(str)
