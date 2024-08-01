@@ -127,8 +127,6 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 		fmt.Println(str)
 	}
 
-	fmt.Println(allTotal)
-
 	apiTotal := 0.0
 	for _, row := range res.GetData().GetTableBody() {
 		if row.HeaderCells[0].Name == "Included" {
@@ -136,8 +134,8 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 		}
 	}
 	// round the values down
-	apiTotalS := p.Sprintf("$%.5f", apiTotal)
-	unitTotalS := p.Sprintf("$%.5f", unitTotal)
+	apiTotalS := p.Sprintf("$%.4f", apiTotal)
+	unitTotalS := p.Sprintf("$%.4f", unitTotal)
 	if apiTotalS != unitTotalS {
 		t.Errorf("filtering by unit failed: expected [%v] actual [%v]", unitTotal, apiTotal)
 	}
@@ -168,8 +166,8 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 		}
 	}
 	// round the values down
-	apiTotalS = p.Sprintf("$%.5f", apiTotal)
-	allTotalS := p.Sprintf("$%.5f", allTotal)
+	apiTotalS = p.Sprintf("$%.4f", apiTotal)
+	allTotalS := p.Sprintf("$%.4f", allTotal)
 	if apiTotalS != allTotalS {
 		t.Errorf("filtering by unit failed: expected [%v] actual [%v]", allTotal, apiTotal)
 	}

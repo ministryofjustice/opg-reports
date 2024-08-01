@@ -64,7 +64,7 @@ func TestServicesApiGithubStandardsFiltersForGetParameters(t *testing.T) {
 	repos := data.FromRows[*std.Repository](res.GetData().GetTableBody())
 
 	if len(repos) != archived {
-		t.Errorf("archive filter failed")
+		t.Errorf("archive filter failed: expected [%v] actual [%v]", archived, len(repos))
 	}
 
 	// --- TEST TEAM FILTER OR LOGIC
