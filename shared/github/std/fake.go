@@ -93,7 +93,12 @@ func Fake(c *Repository) (f *Repository) {
 	c.HasPullRequestApprovalRequired = fake.Choice[bool]([]bool{true, false})
 	c.HasVulnerabilityAlerts = fake.Choice[bool]([]bool{true, false})
 
-	c.Teams = []string{}
+	// slices
+	x := fake.Int(1, 5)
+	for i := 0; i < x; i++ {
+		c.Teams = append(c.Teams, fake.String(12))
+	}
+
 	f = c
 	slog.Debug("[aws/cost] fake", slog.String("UID", f.UID()))
 	return

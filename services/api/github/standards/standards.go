@@ -19,16 +19,6 @@ func (a *Api[V, F, C, R]) Register(mux *http.ServeMux) {
 		server.Middleware(a.List, server.LoggingMW, server.SecurityHeadersMW))
 }
 
-// AllowedGetParameters allows this data to be filtered by
-// - archived
-// - teams
-func (a *Api[V, F, C, R]) AllowedGetParameters() []string {
-	return []string{
-		"archived",
-		"teams",
-	}
-}
-
 func New[V *std.Repository, F files.IReadFS, C response.ICell, R response.IRow[C]](
 	store data.IStore[*std.Repository],
 	fileSys F,

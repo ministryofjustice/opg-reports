@@ -119,3 +119,12 @@ func FromRow[T IEntry](row *response.Row[*response.Cell]) (item T) {
 	item, _ = FromMap[T](mapped)
 	return
 }
+
+func FromRows[T IEntry](rows []*response.Row[*response.Cell]) (items []T) {
+	items = []T{}
+	for _, row := range rows {
+		item := FromRow[T](row)
+		items = append(items, item)
+	}
+	return
+}
