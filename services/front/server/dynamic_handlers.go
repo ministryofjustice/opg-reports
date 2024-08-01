@@ -40,6 +40,9 @@ func (s *FrontWebServer) Dynamic(w http.ResponseWriter, r *http.Request) {
 	for apiResultName, apiUrl := range urls {
 		// Call API!
 		u := Url(s.ApiScheme, s.ApiAddr, apiUrl)
+		slog.Info("calling api",
+			slog.String("url", u.String()),
+			slog.String("apiUrl", apiUrl))
 		apiResp, err := s.handleApiCall(u)
 		// no error from the api, and no error from parsing the api resposne
 		// into local data, then set to the data map ready for the template parsing
@@ -50,7 +53,7 @@ func (s *FrontWebServer) Dynamic(w http.ResponseWriter, r *http.Request) {
 					if usePrefix {
 						key = fmt.Sprintf("%s_%s", apiResultName, key)
 					}
-					slog.Info("setting api res data", slog.String("key", key))
+					slog.Debug("setting api res data", slog.String("key", key))
 					data[key] = val
 
 				}
