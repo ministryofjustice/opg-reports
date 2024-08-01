@@ -21,7 +21,7 @@
                             "name": "Repository Standards",
                             "href": "/github/repository-standards/",
                             "api": {
-                                "list": "/github/standards/v1/list/"
+                                "list": "/github/standards/v1/list/?archived=false"
                             },
                             "template": "dynamic-github-standards-list"
                         }
