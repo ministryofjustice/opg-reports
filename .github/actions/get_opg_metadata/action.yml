@@ -84,7 +84,6 @@ runs:
         if [[ "${{ env.debug }}" == "debug" ]]; then
           echo "${matrix}"
         fi
-        echo "${matrix}"
     - name: "clean up"
       shell: bash
       if: always()

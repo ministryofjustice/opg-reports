@@ -62,7 +62,7 @@ jobs:
           # might need to change the region..
           aws-region: "eu-west-1"
           role-duration-seconds: 900
-          role-to-assume: "arn:aws:iam::${{ matrix.account_id }}:role/gh-actions-uptime-metrics"
+          role-to-assume: "arn:aws:iam::${{ matrix.id }}:role/gh-actions-uptime-metrics"
           role-session-name: opg-reports-get-uptime
       # run report
       - name: "Run report"

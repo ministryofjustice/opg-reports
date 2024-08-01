@@ -60,7 +60,7 @@ jobs:
         with:
           aws-region: "eu-west-1"
           role-duration-seconds: 900
-          role-to-assume: "arn:aws:iam::${{ matrix.account_id }}:role/gh-actions-cost-metrics"
+          role-to-assume: "arn:aws:iam::${{ matrix.id }}:role/gh-actions-cost-metrics"
           role-session-name: opg-reports-get-costs
       # run report
       - name: "Run report"
