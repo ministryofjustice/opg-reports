@@ -72,7 +72,7 @@ jobs:
           label: ${{ matrix.label }}
           name: ${{ matrix.name }}
           id: ${{ matrix.id }}
-          environment: ${{ matrix.environment }}
+          environment: ${{ matrix.environment != '' && matrix.environment || 'production' }}
         uses: ./.github/actions/report
         with:
           name: "AWS monthly costs"
