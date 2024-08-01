@@ -22,5 +22,6 @@ services:
       API_ADDR: api:8081
       API_SCHEME: http
       FRONT_ADDR: :8080
+      CONFIG_FILE: ./config.json
     ports:
       - "8080:8080"
