@@ -160,3 +160,41 @@ func TestServicesFrontCnfLoadNested(t *testing.T) {
 		t.Errorf("s2 should have sub sections")
 	}
 }
+
+func TestServicesFrontCnfBillingMonth(t *testing.T) {
+	postBilling := time.Date(2024, 7, 31, 17, 0, 0, 0, time.UTC)
+	res := billingMonth("{billingMonth}", "", "/{billingMonth}/", &postBilling)
+	if res != "/2024-06/" {
+		t.Errorf("unepxected month returned for billing: %v", res)
+	}
+
+	postBilling = time.Date(2024, 2, 29, 17, 0, 0, 0, time.UTC)
+	res = billingMonth("{billingMonth}", "", "/{billingMonth}/", &postBilling)
+	if res != "/2024-01/" {
+		t.Errorf("unepxected month returned for billing: %v", res)
+	}
+
+	postBilling = time.Date(2024, 2, billingDay-1, 17, 0, 0, 0, time.UTC)
+	res = billingMonth("{billingMonth}", "", "/{billingMonth}/", &postBilling)
+	if res != "/2023-12/" {
+		t.Errorf("unepxected month returned for billing: %v", res)
+	}
+
+}
+
+func TestServicesFrontCnfMonth(t *testing.T) {
+	m := time.Date(2024, 7, 31, 17, 0, 0, 0, time.UTC)
+	res := month("{m:-1}", "-1", "/{m:-1}/", &m)
+	if res != "/2024-06/" {
+		t.Errorf("unepxected month returned: %v", res)
+	}
+	m = time.Date(2024, 2, 29, 23, 0, 0, 0, time.UTC)
+	res = month("{m:-1}", "-1", "/{m:-1}/", &m)
+	if res != "/2024-01/" {
+		t.Errorf("unepxected month returned: %v", res)
+	}
+	res = month("{m:-2}", "-2", "/{m:-2}/", &m)
+	if res != "/2023-12/" {
+		t.Errorf("unepxected month returned: %v", res)
+	}
+}
