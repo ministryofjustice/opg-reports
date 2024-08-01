@@ -16,9 +16,6 @@ import (
 //go:embed templates/**
 var templateEmbed embed.FS
 
-//go:embed config.json
-var configContent []byte
-
 func main() {
 
 	logger.LogSetup()
@@ -38,6 +35,8 @@ func main() {
 	for _, f := range templateFiles {
 		slog.Debug("template file", slog.String("path", f))
 	}
+	configFile := env.Get("CONFIG_FILE", "./config.opg.json")
+	configContent, _ := os.ReadFile(configFile)
 
 	conf, _ := cnf.Load(configContent)
 	serve := server.New(
