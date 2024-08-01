@@ -40,7 +40,7 @@ func TestFrontServerDynamicHandlerMockedTotals(t *testing.T) {
 	templates := tmpl.Files(f, tDir)
 
 	route := "/costs/aws/totals/"
-	conf, _ := cnf.Load([]byte(testRealisticServerCnf))
+	conf, _ := cnf.Load(testRealServerCnf())
 	// create new
 	s := New(conf, templates, "", "")
 	// point the totals route to look at the test api
@@ -76,7 +76,7 @@ func TestFrontServerDynamicHandlerMockedUnits(t *testing.T) {
 	templates := tmpl.Files(f, tDir)
 
 	route := "/costs/aws/units/"
-	conf, _ := cnf.Load([]byte(testRealisticServerCnf))
+	conf, _ := cnf.Load(testRealServerCnf())
 	// create new
 	s := New(conf, templates, "", "")
 	// point the totals route to look at the test api
