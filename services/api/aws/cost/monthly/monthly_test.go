@@ -5,12 +5,13 @@ import (
 	"opg-reports/internal/testhelpers"
 	"opg-reports/shared/aws/cost"
 	"opg-reports/shared/data"
+	"opg-reports/shared/logger"
 	"opg-reports/shared/server/response"
 	"testing"
 )
 
 func TestServicesApiAwsCostMonthlyStatusCode(t *testing.T) {
-
+	logger.LogSetup()
 	fs := testhelpers.Fs()
 
 	mux := testhelpers.Mux()
@@ -44,6 +45,7 @@ func TestServicesApiAwsCostMonthlyStatusCode(t *testing.T) {
 }
 
 func TestServicesApiAwsCostMonthlyFSMatch(t *testing.T) {
+	logger.LogSetup()
 	fs := testhelpers.Fs()
 	store := data.NewStore[*cost.Cost]()
 	resp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
@@ -56,6 +58,7 @@ func TestServicesApiAwsCostMonthlyFSMatch(t *testing.T) {
 }
 
 func TestServicesApiAwsCostMonthlyStoreMatch(t *testing.T) {
+	logger.LogSetup()
 	fs := testhelpers.Fs()
 	min, max, df := testhelpers.Dates()
 	store := data.NewStore[*cost.Cost]()

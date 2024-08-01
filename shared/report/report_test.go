@@ -1,10 +1,12 @@
 package report
 
 import (
+	"opg-reports/shared/logger"
 	"testing"
 )
 
 func TestSharedReportOK(t *testing.T) {
+	logger.LogSetup()
 	acc := NewArg("account", false, "account name", "test00")
 	month := NewMonthArg("month", true, "month", "")
 	in := "2024-01"
@@ -42,6 +44,7 @@ func TestSharedReportOK(t *testing.T) {
 }
 
 func TestSharedReportPanics(t *testing.T) {
+	logger.LogSetup()
 	defer func() { _ = recover() }()
 	month := NewMonthArg("fail", true, "month", "")
 	args := []IReportArgument{month}
@@ -53,6 +56,7 @@ func TestSharedReportPanics(t *testing.T) {
 }
 
 func TestSharedReportNew(t *testing.T) {
+	logger.LogSetup()
 	report := New()
 
 	if len(report.GetArguments()) != 0 {

@@ -2,10 +2,12 @@ package cost
 
 import (
 	"opg-reports/shared/data"
+	"opg-reports/shared/logger"
 	"testing"
 )
 
 func TestSharedAwsCostUUID(t *testing.T) {
+	logger.LogSetup()
 	cost := New(nil)
 	if len(cost.UUID) <= 0 {
 		t.Errorf("failed to create uuid")
@@ -23,6 +25,7 @@ func TestSharedAwsCostUUID(t *testing.T) {
 }
 
 func TestSharedAwsCostValid(t *testing.T) {
+	logger.LogSetup()
 	cost := New(nil)
 
 	if cost.Valid() {
@@ -57,6 +60,7 @@ func testIsI[V data.IEntry](i V) bool {
 	return i.UID() != ""
 }
 func TestSharedAwsCostInterface(t *testing.T) {
+	logger.LogSetup()
 	c := &Cost{}
 	if testIsI[*Cost](c) {
 		t.Errorf("should not be nil")

@@ -3,12 +3,13 @@ package report
 import (
 	"errors"
 	"opg-reports/shared/dates"
+	"opg-reports/shared/logger"
 	"testing"
 	"time"
 )
 
 func TestSharedReportArgs(t *testing.T) {
-
+	logger.LogSetup()
 	a := &Arg{}
 	a.SetName("foo")
 	if a.GetName() != "foo" {

@@ -41,6 +41,11 @@ func (a *Api[V, F, C, R]) FiltersForGetParameters(r *http.Request) (filters []da
 		slog.String("filterValues", fmt.Sprintf("%+v", filterValues)),
 	)
 
+	if len(filterValues) > 0 {
+		resp := a.GetResponse()
+		resp.SetMetadata("filters", filterValues)
+	}
+
 	// if archived is set, then check if the item status matches the
 	// value we are looking for
 	if values, ok := filterValues["archived"]; ok {

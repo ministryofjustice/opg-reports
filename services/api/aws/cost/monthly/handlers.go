@@ -4,41 +4,9 @@ import (
 	"log/slog"
 	"net/http"
 	"opg-reports/shared/aws/cost"
-	"opg-reports/shared/data"
 	"opg-reports/shared/dates"
 	"opg-reports/shared/server/response"
-	"strings"
 )
-
-// Filters
-var excludeTax = func(item *cost.Cost) bool {
-	return strings.ToLower(item.Service) != "tax"
-}
-
-// Helpers used within grouping
-var unit = func(i *cost.Cost) (string, string) {
-	return "account_unit", strings.ToLower(i.AccountUnit)
-}
-var account_id = func(i *cost.Cost) (string, string) {
-	return "account_id", i.AccountId
-}
-var account_env = func(i *cost.Cost) (string, string) {
-	return "account_environment", strings.ToLower(i.AccountEnvironment)
-}
-var service = func(i *cost.Cost) (string, string) {
-	return "service", strings.ToLower(i.Service)
-}
-
-// Group by month
-var byUnit = func(item *cost.Cost) string {
-	return data.ToIdxF(item, unit)
-}
-var byUnitEnv = func(item *cost.Cost) string {
-	return data.ToIdxF(item, unit, account_env)
-}
-var byAccountService = func(item *cost.Cost) string {
-	return data.ToIdxF(item, account_id, unit, account_env, service)
-}
 
 // Index: /aws/costs/v1/monthly
 func (a *Api[V, F, C, R]) Index(w http.ResponseWriter, r *http.Request) {
@@ -47,9 +15,9 @@ func (a *Api[V, F, C, R]) Index(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// Unit, Env & Service costs: /aws/costs/{version}/monthly/{start}/{end}/units/envs/services/{$}
+// MonthlyCostsPerAccountUnitEnvironmentAndServices: /aws/costs/{version}/monthly/{start}/{end}/units/envs/services/{$}
 // Previously "Detailed breakdown" sheet
-func (a *Api[V, F, C, R]) UnitEnvironmentServices(w http.ResponseWriter, r *http.Request) {
+func (a *Api[V, F, C, R]) MonthlyCostsPerAccountUnitEnvironmentAndServices(w http.ResponseWriter, r *http.Request) {
 	a.Start(w, r)
 	resp := a.GetResponse()
 	store := a.Store()
@@ -64,6 +32,11 @@ func (a *Api[V, F, C, R]) UnitEnvironmentServices(w http.ResponseWriter, r *http
 		months := dates.Strings(dates.Months(startDate, endDate), dates.FormatYM)
 		inMonthRange := func(c *cost.Cost) bool {
 			return dates.InMonth(c.Date, months)
+		}
+		// Add get filters to the data
+		getFilters := a.FiltersForGetParameters(r)
+		if len(getFilters) > 0 {
+			store = store.Filter(getFilters...)
 		}
 		withinMonths := store.Filter(inMonthRange)
 
@@ -124,9 +97,9 @@ func (a *Api[V, F, C, R]) UnitEnvironmentServices(w http.ResponseWriter, r *http
 
 }
 
-// Unit & Env costs: /aws/costs/{version}/monthly/{start}/{end}/units/envs/{$}
+// MonthlyCostsPerAccountUnitAndEnvironments: /aws/costs/{version}/monthly/{start}/{end}/units/envs/{$}
 // Previously "Service And Environment" sheet
-func (a *Api[V, F, C, R]) UnitEnvironments(w http.ResponseWriter, r *http.Request) {
+func (a *Api[V, F, C, R]) MonthlyCostsPerAccountUnitAndEnvironments(w http.ResponseWriter, r *http.Request) {
 	a.Start(w, r)
 	resp := a.GetResponse()
 	store := a.Store()
@@ -139,6 +112,11 @@ func (a *Api[V, F, C, R]) UnitEnvironments(w http.ResponseWriter, r *http.Reques
 		months := dates.Strings(dates.Months(startDate, endDate), dates.FormatYM)
 		inMonthRange := func(item *cost.Cost) bool {
 			return dates.InMonth(item.Date, months)
+		}
+		// Add get filters to the data
+		getFilters := a.FiltersForGetParameters(r)
+		if len(getFilters) > 0 {
+			store = store.Filter(getFilters...)
 		}
 		withinMonths := store.Filter(inMonthRange)
 		// Add table headings
@@ -194,9 +172,9 @@ func (a *Api[V, F, C, R]) UnitEnvironments(w http.ResponseWriter, r *http.Reques
 
 }
 
-// Unit costs: /aws/costs/{version}/monthly/{start}/{end}/units/{$}
+// MonthlyCostsPerAccountUnits: /aws/costs/{version}/monthly/{start}/{end}/units/{$}
 // Previously "Service" sheet
-func (a *Api[V, F, C, R]) Units(w http.ResponseWriter, r *http.Request) {
+func (a *Api[V, F, C, R]) MonthlyCostsPerAccountUnits(w http.ResponseWriter, r *http.Request) {
 	a.Start(w, r)
 	resp := a.GetResponse()
 	store := a.Store()
@@ -211,6 +189,12 @@ func (a *Api[V, F, C, R]) Units(w http.ResponseWriter, r *http.Request) {
 		inMonthRange := func(item *cost.Cost) bool {
 			return dates.InMonth(item.Date, months)
 		}
+		// Add get filters to the data
+		getFilters := a.FiltersForGetParameters(r)
+		if len(getFilters) > 0 {
+			store = store.Filter(getFilters...)
+		}
+
 		withinMonths := store.Filter(inMonthRange)
 		// Add table headings
 		headingCells := []C{
@@ -260,44 +244,11 @@ func (a *Api[V, F, C, R]) Units(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// columnTotals creates a row whose cell values are the total for that column
-func (a *Api[V, F, C, R]) columnTotals(rows []R) (row R) {
-	var totals []float64
-	row = response.NewRow[C]().(R)
-	headingsCount := 0
-	if len(rows) > 0 {
-		totals = make([]float64, rows[0].GetTotalCellCount())
-		for i := 0; i < rows[0].GetTotalCellCount(); i++ {
-			totals[i] = 0.0
-		}
-		headingsCount = rows[0].GetHeadersCount()
-	}
-
-	for _, r := range rows {
-		cells := r.GetAll()
-		for x := headingsCount; x < len(cells); x++ {
-			totals[x] += cells[x].GetValue().(float64)
-		}
-	}
-
-	for i, total := range totals {
-		var c C
-		if i < headingsCount {
-			c = response.NewCellHeader("Total", total).(C)
-		} else {
-			c = response.NewCell("Total", total).(C)
-		}
-
-		row.SetRaw(c)
-	}
-	return
-}
-
-// Totals: /aws/costs/{version}/monthly/{start}/{end}/{$}
+// MonthlyTotals: /aws/costs/{version}/monthly/{start}/{end}/{$}
 // Returns cost data split into with & without tax segments, then grouped by the month
 // Previously "Totals" sheet
 // Note: if {start} or {end} are "-" it uses current month
-func (a *Api[V, F, C, R]) Totals(w http.ResponseWriter, r *http.Request) {
+func (a *Api[V, F, C, R]) MonthlyTotals(w http.ResponseWriter, r *http.Request) {
 	slog.Info("[api/aws/costs/monthly] totals", slog.String("uri", r.RequestURI))
 	a.Start(w, r)
 	resp := a.GetResponse()
@@ -315,6 +266,11 @@ func (a *Api[V, F, C, R]) Totals(w http.ResponseWriter, r *http.Request) {
 		// impliments IStoreFilterFunc
 		inMonthRange := func(item *cost.Cost) bool {
 			return dates.InMonth(item.Date, months)
+		}
+		// Add get filters to the data
+		getFilters := a.FiltersForGetParameters(r)
+		if len(getFilters) > 0 {
+			store = store.Filter(getFilters...)
 		}
 		// Add table headings
 		headingCells := []C{
@@ -344,41 +300,4 @@ func (a *Api[V, F, C, R]) Totals(w http.ResponseWriter, r *http.Request) {
 		resp.SetData(table)
 	}
 	a.End(w, r)
-}
-
-func withoutTaxR(withoutTax data.IStore[*cost.Cost], months []string) response.IRow[response.ICell] {
-	rowTotal := 0.0
-	withoutTaxCells := []response.ICell{
-		response.NewCellHeader("Excluded", "Excluded"),
-	}
-	for _, m := range months {
-		inM := func(item *cost.Cost) bool {
-			return dates.InMonth(item.Date, []string{m})
-		}
-		values := withoutTax.Filter(inM)
-		total := cost.Total(values.List())
-		rowTotal += total
-		cell := response.NewCell(m, total)
-		withoutTaxCells = append(withoutTaxCells, cell)
-	}
-	withoutTaxCells = append(withoutTaxCells, response.NewCellExtra("Totals", rowTotal))
-	return response.NewRow(withoutTaxCells...)
-}
-func withTaxR(withTax data.IStore[*cost.Cost], months []string) response.IRow[response.ICell] {
-	rowTotal := 0.0
-	withTaxCells := []response.ICell{
-		response.NewCellHeader("Included", "Included"),
-	}
-	for _, m := range months {
-		inM := func(item *cost.Cost) bool {
-			return dates.InMonth(item.Date, []string{m})
-		}
-		values := withTax.Filter(inM)
-		total := cost.Total(values.List())
-		rowTotal += total
-		cell := response.NewCell(m, total)
-		withTaxCells = append(withTaxCells, cell)
-	}
-	withTaxCells = append(withTaxCells, response.NewCellExtra("Totals", rowTotal))
-	return response.NewRow(withTaxCells...)
 }

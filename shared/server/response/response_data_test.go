@@ -2,10 +2,12 @@ package response
 
 import (
 	"fmt"
+	"opg-reports/shared/logger"
 	"testing"
 )
 
 func TestSharedServerResponseDataTable(t *testing.T) {
+	logger.LogSetup()
 	cells := []ICell{
 		NewCell("name1", "v1"),
 		NewCell("name1.5", "v1.5"),
@@ -38,6 +40,7 @@ func TestSharedServerResponseDataTable(t *testing.T) {
 }
 
 func TestSharedServerResponseDataRowRaw(t *testing.T) {
+	logger.LogSetup()
 	cells := []ICell{
 		NewCell("name1", "v1"),
 		NewCell("name1.5", "v1.5"),
@@ -64,6 +67,7 @@ func TestSharedServerResponseDataRowRaw(t *testing.T) {
 
 }
 func TestSharedServerResponseDataRowSupplementary(t *testing.T) {
+	logger.LogSetup()
 	cells := []ICell{
 		NewCell("name1", "v1"),
 		NewCell("name1.5", "v1.5"),
@@ -81,6 +85,7 @@ func TestSharedServerResponseDataRowSupplementary(t *testing.T) {
 
 }
 func TestSharedServerResponseDataRowData(t *testing.T) {
+	logger.LogSetup()
 	cells := []ICell{
 		NewCell("name1", "v1"),
 		NewCell("name1.5", "v1.5"),
@@ -98,6 +103,7 @@ func TestSharedServerResponseDataRowData(t *testing.T) {
 
 }
 func TestSharedServerResponseDataRowHeaders(t *testing.T) {
+	logger.LogSetup()
 	cells := []ICell{
 		NewCell("name1", "v1"),
 		NewCellHeader("name2", "v2"),
@@ -114,7 +120,7 @@ func TestSharedServerResponseDataRowHeaders(t *testing.T) {
 
 }
 func TestSharedServerResponseDataCellSupplementary(t *testing.T) {
-
+	logger.LogSetup()
 	c1 := NewCell("name1", "v1")
 	c2 := NewCellHeader("name2", "v2")
 	c3 := NewCellExtra("name3", "v3")
@@ -137,7 +143,7 @@ func TestSharedServerResponseDataCellSupplementary(t *testing.T) {
 
 }
 func TestSharedServerResponseDataCellHeader(t *testing.T) {
-
+	logger.LogSetup()
 	c1 := NewCell("name1", "v1")
 	c2 := NewCellHeader("name2", "v2")
 	c3 := NewCellExtra("name3", "v3")
@@ -160,6 +166,7 @@ func TestSharedServerResponseDataCellHeader(t *testing.T) {
 
 }
 func TestSharedServerResponseDataCellValues(t *testing.T) {
+	logger.LogSetup()
 	cells := []ICell{
 		NewCell("name1", "v1"),
 		NewCellHeader("name2", "v2"),
@@ -181,7 +188,7 @@ func TestSharedServerResponseDataCellValues(t *testing.T) {
 }
 
 func TestSharedServerResponseDataCellNames(t *testing.T) {
-
+	logger.LogSetup()
 	cells := []ICell{
 		NewCell("name1", "v1"),
 		NewCellHeader("name2", "v2"),

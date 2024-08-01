@@ -2,6 +2,7 @@ package data
 
 import (
 	"fmt"
+	"opg-reports/shared/logger"
 	"testing"
 	"time"
 )
@@ -40,6 +41,7 @@ func (i *testEntryExt) Valid() bool {
 }
 
 func TestSharedDataEntryToRowFromRow(t *testing.T) {
+	logger.LogSetup()
 	test := &testEntryExt{Id: "01", Tag: "tag1", Category: "cat1"}
 	r := ToRowC(test)
 
@@ -57,6 +59,7 @@ func TestSharedDataEntryToRowFromRow(t *testing.T) {
 }
 
 func TestSharedDataEntryComparable(t *testing.T) {
+	logger.LogSetup()
 	t1 := &testEntry{Id: "t1"}
 	t2 := &testEntry{Id: "t2"}
 	t3 := &testEntry{Id: "t1"}
@@ -72,6 +75,7 @@ func TestSharedDataEntryComparable(t *testing.T) {
 }
 
 func TestSharedDataMapConversion(t *testing.T) {
+	logger.LogSetup()
 	indent = false
 
 	te := &testEntry{Id: "001"}

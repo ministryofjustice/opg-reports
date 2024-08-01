@@ -2,10 +2,12 @@ package data
 
 import (
 	"fmt"
+	"opg-reports/shared/logger"
 	"testing"
 )
 
 func TestSharedDataToIdx(t *testing.T) {
+	logger.LogSetup()
 	i := &testEntryExt{Id: "01", Tag: "test-tag", Category: "cat1"}
 
 	idx := ToIdx(i, "tag", "category")

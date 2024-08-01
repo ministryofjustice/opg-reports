@@ -6,11 +6,13 @@ import (
 	"opg-reports/internal/testhelpers"
 	"opg-reports/shared/data"
 	"opg-reports/shared/github/std"
+	"opg-reports/shared/logger"
 	"opg-reports/shared/server/response"
 	"testing"
 )
 
 func TestServicesApiGithubStandardsFiltersForGetParameters(t *testing.T) {
+	logger.LogSetup()
 	// --- SETUP
 	fs := testhelpers.Fs()
 	mux := testhelpers.Mux()
@@ -52,6 +54,7 @@ func TestServicesApiGithubStandardsFiltersForGetParameters(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to parse response: %v", err)
 	}
+
 	if res.GetStatus() != http.StatusOK {
 		t.Errorf("status code failed")
 		fmt.Println(str)
@@ -61,7 +64,7 @@ func TestServicesApiGithubStandardsFiltersForGetParameters(t *testing.T) {
 	repos := data.FromRows[*std.Repository](res.GetData().GetTableBody())
 
 	if len(repos) != archived {
-		t.Errorf("archive filter failed")
+		t.Errorf("archive filter failed: expected [%v] actual [%v]", archived, len(repos))
 	}
 
 	// --- TEST TEAM FILTER OR LOGIC
@@ -77,7 +80,7 @@ func TestServicesApiGithubStandardsFiltersForGetParameters(t *testing.T) {
 		t.Errorf("failed to parse response: %v", err)
 	}
 	if res.GetStatus() != http.StatusOK {
-		t.Errorf("status code failed")
+		t.Errorf("status code failed: %v", res.GetStatus())
 		fmt.Println(str)
 	}
 
@@ -85,7 +88,7 @@ func TestServicesApiGithubStandardsFiltersForGetParameters(t *testing.T) {
 	repos = data.FromRows[*std.Repository](res.GetData().GetTableBody())
 
 	if len(repos) != teams {
-		t.Errorf("team filter failed")
+		t.Errorf("team filter failed: actual [%v] expected [%v]", len(repos), teams)
 	}
 
 	// --- TEST TEAM FILTER AND LOGIC

@@ -3,11 +3,13 @@ package files
 import (
 	"embed"
 	"fmt"
+	"opg-reports/shared/logger"
 	"os"
 	"testing"
 )
 
 func TestSharedFilesWriteFileError(t *testing.T) {
+	logger.LogSetup()
 	var err error
 	td := os.TempDir()
 	tDir, _ := os.MkdirTemp(td, "files-write-err-*")
@@ -28,6 +30,7 @@ func TestSharedFilesWriteFileError(t *testing.T) {
 var testFS embed.FS
 
 func TestSharedFilesAllFromEmbedded(t *testing.T) {
+	logger.LogSetup()
 	tDir := "./testdata"
 	fSys := NewFS(testFS, tDir)
 
@@ -48,6 +51,7 @@ func TestSharedFilesAllFromEmbedded(t *testing.T) {
 }
 
 func TestSharedFilesReadFromEmbedded(t *testing.T) {
+	logger.LogSetup()
 	tDir := "testdata"
 	fSys := NewFS(testFS, tDir)
 
@@ -70,6 +74,7 @@ func TestSharedFilesReadFromEmbedded(t *testing.T) {
 }
 
 func TestSharedFilesAllFromDir(t *testing.T) {
+	logger.LogSetup()
 	td := os.TempDir()
 	tDir, _ := os.MkdirTemp(td, "files-all-*")
 	dfSys := os.DirFS(tDir).(IReadFS)
@@ -101,6 +106,7 @@ func TestSharedFilesAllFromDir(t *testing.T) {
 }
 
 func TestSharedFilesWriteReadFromDir(t *testing.T) {
+	logger.LogSetup()
 	td := os.TempDir()
 	tDir, _ := os.MkdirTemp(td, "files-write-read-*")
 	dfSys := os.DirFS(tDir).(IReadFS)

@@ -1,12 +1,13 @@
 package dates
 
 import (
+	"opg-reports/shared/logger"
 	"testing"
 	"time"
 )
 
 func TestSharedDatesGetFormat(t *testing.T) {
-
+	logger.LogSetup()
 	test := time.Now().UTC().Format(Format)
 
 	if GetFormat(test[0:4]) != "2006" || GetFormat(FormatY) != FormatY {
@@ -26,6 +27,7 @@ func TestSharedDatesGetFormat(t *testing.T) {
 }
 
 func TestSharedDatesStringToDate(t *testing.T) {
+	logger.LogSetup()
 	valid := []string{
 		"2024", "2024-01", "2024-02-29", "2024-03-01T00:00",
 	}
@@ -48,6 +50,7 @@ func TestSharedDatesStringToDate(t *testing.T) {
 }
 
 func TestSharedDatesStrings(t *testing.T) {
+	logger.LogSetup()
 	dates := []time.Time{
 		time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 		time.Date(2023, 9, 1, 0, 0, 0, 0, time.UTC),
@@ -64,7 +67,7 @@ func TestSharedDatesStrings(t *testing.T) {
 }
 
 func TestSharedDatesStringToDateDefault(t *testing.T) {
-
+	logger.LogSetup()
 	ds := time.Now().UTC().Format(FormatYMD)
 
 	d, _ := StringToDateDefault("-", "-", ds)
@@ -75,7 +78,7 @@ func TestSharedDatesStringToDateDefault(t *testing.T) {
 }
 
 func TestSharedDatesReformat(t *testing.T) {
-
+	logger.LogSetup()
 	full := "2024-02-29"
 	expected := "2024-02"
 	actual := Reformat(full, FormatYM)

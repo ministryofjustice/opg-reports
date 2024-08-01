@@ -5,10 +5,12 @@ import (
 	"opg-reports/shared/env"
 	"opg-reports/shared/github/cl"
 	"opg-reports/shared/github/repos"
+	"opg-reports/shared/logger"
 	"testing"
 )
 
 func TestSharedGithubStandardsRealData(t *testing.T) {
+	logger.LogSetup()
 	owner := "ministryofjustice"
 	testRepo := "opg-incident-response"
 	token := env.Get("GITHUB_ACCESS_TOKEN", "")
@@ -25,6 +27,7 @@ func TestSharedGithubStandardsRealData(t *testing.T) {
 	}
 }
 func TestSharedGithubStandardsComply(t *testing.T) {
+	logger.LogSetup()
 	c := FakeCompliant(nil, DefaultBaselineCompliance)
 	if comply, _, _ := c.Compliant(DefaultBaselineCompliance); !comply {
 		t.Errorf("compliance failed")

@@ -3,11 +3,13 @@ package server
 import (
 	"net/http"
 	"net/http/httptest"
+	"opg-reports/shared/logger"
 	"slices"
 	"testing"
 )
 
 func TestMiddlewareDefaultSecurityHeaders(t *testing.T) {
+	logger.LogSetup()
 	r := httptest.NewRequest(http.MethodGet, "/user/", nil)
 
 	rec := httptest.NewRecorder()
