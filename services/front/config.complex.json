@@ -15,6 +15,7 @@
                 {
                     "name": "GitHub",
                     "href": "/github/",
+                    "template": "static-github-home",
                     "header": true,
                     "sections": [
                         {
@@ -30,6 +31,7 @@
                 {
                     "name": "AWS Costs",
                     "href": "/costs/aws/",
+                    "template": "static-aws-costs-home",
                     "header": true,
                     "sections": [
                         {
@@ -65,18 +67,8 @@
                             "template": "dynamic-aws-costs-units-envs-services"
                         }
                     ]
-                },
-                {
-                    "name": "Uptime & Incidents",
-                    "href": "/uptime-incidents/",
-                    "header": true,
-                    "sections": [
-                        {
-                            "name": "Service uptime",
-                            "href": "/uptime-incidents/uptime/"
-                        }
-                    ]
                 }
+
             ]
         }
 
