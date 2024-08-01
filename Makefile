@@ -181,10 +181,14 @@ go-report-gh-standards: GO_BIN_NAME=github_standards
 go-report-aws-monthly-costs: GO_SOURCE_FOLDER=${REPORTS_FOLDER}/aws/cost/monthly
 go-report-aws-monthly-costs: GO_TARGET_FOLDER=${BUILD_ARCH_FOLDER}/reports
 go-report-aws-monthly-costs: GO_BIN_NAME=aws_cost_monthly
+#
+go-report-aws-daily-uptime: GO_SOURCE_FOLDER=${REPORTS_FOLDER}/aws/uptime/daily
+go-report-aws-daily-uptime: GO_TARGET_FOLDER=${BUILD_ARCH_FOLDER}/reports
+go-report-aws-daily-uptime: GO_BIN_NAME=aws_uptime_daily
 
 # these all share the same recipe, but each target changes the $GO_ variables
 # to build the correct binary
-go-api go-front go-report-gh-standards go-report-aws-monthly-costs: gbuildinfo
+go-api go-front go-report-gh-standards go-report-aws-monthly-costs go-report-aws-daily-uptime: gbuildinfo
 	@echo "-----"
 	@echo "[Go](${GO_BIN_NAME}) Building..."
 	@echo "	source: [${GO_SOURCE_FOLDER}]"
@@ -196,7 +200,7 @@ go-api go-front go-report-gh-standards go-report-aws-monthly-costs: gbuildinfo
 	@echo "[Go](${GO_BIN_NAME}) Built."
 	@echo "${GO_BIN_NAME}_target_folder ${GO_TARGET_FOLDER}" >> ${GO_BUILD_INFO}
 
-go-reports: go-report-gh-standards go-report-aws-monthly-costs
+go-reports: go-report-gh-standards go-report-aws-monthly-costs go-report-aws-daily-uptime
 	@echo "[Go] Built reports."
 
 go go-all: go-api go-front go-reports
