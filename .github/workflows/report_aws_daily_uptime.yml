@@ -1,4 +1,4 @@
-name: "[Reports] AWS MonDaily Uptime"
+name: "[Reports] AWS Daily Uptime"
 
 on:
   pull_request:
