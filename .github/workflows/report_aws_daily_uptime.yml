@@ -75,7 +75,7 @@ jobs:
         with:
           name: "AWS daily uptime"
           cmd: "aws_uptime_daily"
-          arguments: '-day "${{ env.month }}"  -account_unit "${{ env.unit }}"'
+          arguments: '-day "${{ env.day }}"  -account_unit "${{ env.unit }}"'
       # configure the aws role for s3 upload
       - name: "Configure AWS credentials for S3 upload"
         id: configure_aws_creds_bucket

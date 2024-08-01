@@ -8,6 +8,7 @@ import (
 )
 
 var ErrMonthParse error = errors.New("failed to parse month argument")
+var ErrDayParse error = errors.New("failed to parse day argument")
 
 // IReportArgumentNamed handles getting and setting the name of argument,
 // this will be the cli flag as well
@@ -195,7 +196,7 @@ func (a *DayArg) Value() (val string, err error) {
 		err = e
 		return
 	} else if a.GetRequired() && value.Format(dates.FormatY) == dates.ErrYear {
-		err = ErrMonthParse
+		err = ErrDayParse
 	} else {
 		val = value.Format(dates.FormatYMD)
 	}
