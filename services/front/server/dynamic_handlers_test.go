@@ -6,6 +6,7 @@ import (
 	"opg-reports/services/front/cnf"
 	"opg-reports/services/front/tmpl"
 	"opg-reports/shared/files"
+	"opg-reports/shared/logger"
 	"opg-reports/shared/server/response"
 	"os"
 	"strings"
@@ -30,6 +31,7 @@ func (i *testEntry) Valid() bool {
 }
 
 func TestFrontServerDynamicHandlerMockedTotals(t *testing.T) {
+	logger.LogSetup()
 
 	ms := th.MockServer(mockAwsCostMonthlyTotals(), http.StatusOK)
 	defer ms.Close()
@@ -66,6 +68,7 @@ func TestFrontServerDynamicHandlerMockedTotals(t *testing.T) {
 }
 
 func TestFrontServerDynamicHandlerMockedUnits(t *testing.T) {
+	logger.LogSetup()
 	content := mockAwsCostMonthlyUnits()
 	ms := th.MockServer(content, http.StatusOK)
 	defer ms.Close()

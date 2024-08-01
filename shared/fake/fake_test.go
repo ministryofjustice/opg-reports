@@ -1,6 +1,7 @@
 package fake
 
 import (
+	"opg-reports/shared/logger"
 	"slices"
 	"strconv"
 	"strings"
@@ -9,7 +10,7 @@ import (
 )
 
 func TestSharedFakeString(t *testing.T) {
-
+	logger.LogSetup()
 	str := String(5)
 
 	if len(str) != 5 {
@@ -25,6 +26,7 @@ func TestSharedFakeString(t *testing.T) {
 }
 
 func TestSharedFakeInt(t *testing.T) {
+	logger.LogSetup()
 	i := Int(-10, 10)
 	if i > 10 || i < -10 {
 		t.Errorf("int out of range: %d", i)
@@ -32,6 +34,7 @@ func TestSharedFakeInt(t *testing.T) {
 }
 
 func TestSharedFakeIntAsStr(t *testing.T) {
+	logger.LogSetup()
 	is := IntAsStr(-10, 10)
 	i, err := strconv.Atoi(is)
 	if err != nil {
@@ -43,6 +46,7 @@ func TestSharedFakeIntAsStr(t *testing.T) {
 }
 
 func TestSharedFakeFloat(t *testing.T) {
+	logger.LogSetup()
 	f := Float(-2.0, 55.0)
 	if f > 55.0 || f < -2.0 {
 		t.Errorf("float out of range: %v", f)
@@ -50,6 +54,7 @@ func TestSharedFakeFloat(t *testing.T) {
 }
 
 func TestSharedFakeFloatAsStr(t *testing.T) {
+	logger.LogSetup()
 	fs := FloatAsStr(-10.0, 55.0)
 	f, err := strconv.ParseFloat(fs, 10)
 	if err != nil {
@@ -62,6 +67,7 @@ func TestSharedFakeFloatAsStr(t *testing.T) {
 }
 
 func TestSharedFakeDate(t *testing.T) {
+	logger.LogSetup()
 	max := time.Now().UTC()
 	min := time.Date(max.Year()-2, max.Month(), 1, 0, 0, 0, 0, time.UTC)
 
@@ -73,6 +79,7 @@ func TestSharedFakeDate(t *testing.T) {
 }
 
 func TestSharedFakeDateAsStr(t *testing.T) {
+	logger.LogSetup()
 	max := time.Now().UTC()
 	min := time.Date(max.Year()-2, max.Month(), 1, 0, 0, 0, 0, time.UTC)
 	f := time.RFC3339
@@ -88,6 +95,7 @@ func TestSharedFakeDateAsStr(t *testing.T) {
 }
 
 func TestSharedFakeChoices(t *testing.T) {
+	logger.LogSetup()
 	single := []string{"one"}
 	item := Choice(single)
 	if item != single[0] {

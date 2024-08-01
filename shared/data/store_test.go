@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"opg-reports/shared/fake"
 	"opg-reports/shared/files"
+	"opg-reports/shared/logger"
 	"os"
 	"strconv"
 	"strings"
@@ -14,6 +15,7 @@ import (
 // by Tag, Category & then both. These are then compared to the counters of
 // each to make sure grouping is working
 func TestSharedDataStoreGroup(t *testing.T) {
+	logger.LogSetup()
 	items := []*testEntryExt{}
 	tags := []string{"t1", "t2", "t3"}
 	cats := []string{"c1", "c2"}
@@ -102,6 +104,7 @@ func TestSharedDataStoreGroup(t *testing.T) {
 }
 
 func TestSharedDataStoreNewFromFS(t *testing.T) {
+	logger.LogSetup()
 	td := os.TempDir()
 	tDir, _ := os.MkdirTemp(td, "test-data-store-fs-*")
 	dfSys := os.DirFS(tDir).(files.IReadFS)
@@ -130,6 +133,7 @@ func TestSharedDataStoreNewFromFS(t *testing.T) {
 }
 
 func BenchmarkSharedDataStoreNewFromFS(b *testing.B) {
+	logger.LogSetup()
 	td := os.TempDir()
 	tDir, _ := os.MkdirTemp(td, "b-data-store-fs-*")
 	dfSys := os.DirFS(tDir).(files.IReadFS)
@@ -153,16 +157,19 @@ func BenchmarkSharedDataStoreNewFromFS(b *testing.B) {
 }
 
 func TestSharedDataStoreNew(t *testing.T) {
+	logger.LogSetup()
 	s := NewStore[*testEntry]()
 	if s.Length() != 0 {
 		t.Errorf("not empty")
 	}
 }
 func BenchmarkSharedDataStoreNew(b *testing.B) {
+	logger.LogSetup()
 	NewStore[*testEntry]()
 }
 
 func TestSharedDataStoreNewFromMap(t *testing.T) {
+	logger.LogSetup()
 	items := map[string]*testEntry{}
 	for i := 0; i < 200; i++ {
 		e := &testEntry{Id: fmt.Sprintf("%d", i+1)}
@@ -175,6 +182,7 @@ func TestSharedDataStoreNewFromMap(t *testing.T) {
 }
 
 func BenchmarkSharedDataStoreNewFromMap(b *testing.B) {
+	logger.LogSetup()
 	items := map[string]*testEntry{}
 	for i := 0; i < 2000; i++ {
 		e := &testEntry{Id: fmt.Sprintf("%d", i+1)}
@@ -185,6 +193,7 @@ func BenchmarkSharedDataStoreNewFromMap(b *testing.B) {
 }
 
 func TestSharedDataStoreNewFromList(t *testing.T) {
+	logger.LogSetup()
 	items := []*testEntry{}
 	for i := 0; i < 200; i++ {
 		items = append(items, &testEntry{Id: fmt.Sprintf("%d", i+1)})
@@ -196,6 +205,7 @@ func TestSharedDataStoreNewFromList(t *testing.T) {
 }
 
 func BenchmarkSharedDataStoreNewFromList(b *testing.B) {
+	logger.LogSetup()
 	items := []*testEntry{}
 	for i := 0; i < 200000; i++ {
 		items = append(items, &testEntry{Id: fmt.Sprintf("%d", i+1)})
@@ -204,6 +214,7 @@ func BenchmarkSharedDataStoreNewFromList(b *testing.B) {
 }
 
 func TestSharedDataStoreAdd(t *testing.T) {
+	logger.LogSetup()
 	store := NewStore[*testEntry]()
 	for i := 0; i < 100; i++ {
 		store.Add(&testEntry{Id: fmt.Sprintf("%d", i+1)})
@@ -214,6 +225,7 @@ func TestSharedDataStoreAdd(t *testing.T) {
 }
 
 func BenchmarkSharedDataStoreAdd(b *testing.B) {
+	logger.LogSetup()
 	store := NewStore[*testEntry]()
 	for i := 0; i < 20000; i++ {
 		store.Add(&testEntry{Id: fmt.Sprintf("%d", i+1)})
@@ -221,6 +233,7 @@ func BenchmarkSharedDataStoreAdd(b *testing.B) {
 }
 
 func TestSharedDataStoreAll(t *testing.T) {
+	logger.LogSetup()
 	store := NewStore[*testEntry]()
 	for i := 0; i < 100; i++ {
 		store.Add(&testEntry{Id: fmt.Sprintf("%d", i+1)})
@@ -237,6 +250,7 @@ func TestSharedDataStoreAll(t *testing.T) {
 }
 
 func BenchmarkSharedDataStoreAll(b *testing.B) {
+	logger.LogSetup()
 	items := []*testEntry{}
 	for i := 0; i < 200000; i++ {
 		items = append(items, &testEntry{Id: fmt.Sprintf("%d", i+1)})
@@ -247,6 +261,7 @@ func BenchmarkSharedDataStoreAll(b *testing.B) {
 }
 
 func TestSharedDataStoreGet(t *testing.T) {
+	logger.LogSetup()
 	store := NewStore[*testEntry]()
 	for i := 0; i < 1000; i++ {
 		store.Add(&testEntry{Id: fmt.Sprintf("%d", i+1)})
@@ -267,6 +282,7 @@ func TestSharedDataStoreGet(t *testing.T) {
 }
 
 func BenchmarkSharedDataStoreGet(b *testing.B) {
+	logger.LogSetup()
 	items := []*testEntry{}
 	for i := 0; i < 200000; i++ {
 		items = append(items, &testEntry{Id: fmt.Sprintf("%d", i+1)})
@@ -277,6 +293,7 @@ func BenchmarkSharedDataStoreGet(b *testing.B) {
 }
 
 func TestSharedDataStoreFilter(t *testing.T) {
+	logger.LogSetup()
 	items := []*testEntry{}
 	for i := 0; i < 40; i++ {
 		items = append(items, &testEntry{Id: fmt.Sprintf("%d", i+1)})
@@ -320,6 +337,7 @@ func TestSharedDataStoreFilter(t *testing.T) {
 }
 
 func BenchmarkSharedDataStoreFilter(b *testing.B) {
+	logger.LogSetup()
 	items := []*testEntry{}
 	for i := 0; i < 200000; i++ {
 		items = append(items, &testEntry{Id: fmt.Sprintf("%d", i+1)})

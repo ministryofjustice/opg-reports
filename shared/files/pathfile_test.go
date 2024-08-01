@@ -2,11 +2,13 @@ package files
 
 import (
 	"io/fs"
+	"opg-reports/shared/logger"
 	"os"
 	"testing"
 )
 
 func TestNewPathFile(t *testing.T) {
+	logger.LogSetup()
 	dir := "testdata"
 	dirFs := os.DirFS(dir)
 	entries, err := fs.ReadDir(dirFs, ".")

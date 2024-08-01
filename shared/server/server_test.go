@@ -4,6 +4,7 @@ import (
 	"opg-reports/internal/testhelpers"
 	"opg-reports/shared/data"
 	"opg-reports/shared/files"
+	"opg-reports/shared/logger"
 	"opg-reports/shared/server/response"
 	"os"
 	"testing"
@@ -26,6 +27,7 @@ func (i *tEntry) Valid() bool {
 	return true
 }
 func TestSharedServerApi(t *testing.T) {
+	logger.LogSetup()
 	td := os.TempDir()
 	tDir, _ := os.MkdirTemp(td, "server-test-*")
 	defer os.RemoveAll(tDir)
@@ -50,6 +52,7 @@ func TestSharedServerApi(t *testing.T) {
 }
 
 func TestSharedServerApiGetParams(t *testing.T) {
+	logger.LogSetup()
 	td := os.TempDir()
 	tDir, _ := os.MkdirTemp(td, "server-test-*")
 	defer os.RemoveAll(tDir)

@@ -5,12 +5,13 @@ import (
 	"opg-reports/internal/testhelpers"
 	"opg-reports/shared/data"
 	"opg-reports/shared/github/std"
+	"opg-reports/shared/logger"
 	"opg-reports/shared/server/response"
 	"testing"
 )
 
 func TestServicesApiGithubStandardsStatusCode(t *testing.T) {
-
+	logger.LogSetup()
 	fs := testhelpers.Fs()
 
 	mux := testhelpers.Mux()

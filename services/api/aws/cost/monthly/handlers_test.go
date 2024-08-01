@@ -9,6 +9,7 @@ import (
 	"opg-reports/shared/data"
 	"opg-reports/shared/dates"
 	"opg-reports/shared/fake"
+	"opg-reports/shared/logger"
 	"opg-reports/shared/server/response"
 	"testing"
 	"time"
@@ -20,7 +21,7 @@ import (
 // Index is empty and returns simple api response without a result
 // so just check status and errors
 func TestServicesApiAwsCostMonthlyHandlerIndex(t *testing.T) {
-
+	logger.LogSetup()
 	fs := testhelpers.Fs()
 	mux := testhelpers.Mux()
 	store := data.NewStore[*cost.Cost]()
@@ -61,6 +62,7 @@ func TestServicesApiAwsCostMonthlyHandlerIndex(t *testing.T) {
 // URLS:
 //   - /aws/costs/v1/monthly/%s/%s/
 func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
+	logger.LogSetup()
 	p := message.NewPrinter(language.English)
 	fs := testhelpers.Fs()
 	mux := testhelpers.Mux()
@@ -175,6 +177,7 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 }
 
 func TestServicesApiAwsCostMonthlyHandlerUnits(t *testing.T) {
+	logger.LogSetup()
 	fs := testhelpers.Fs()
 	mux := testhelpers.Mux()
 	min, max, df := testhelpers.Dates()
@@ -218,6 +221,7 @@ func TestServicesApiAwsCostMonthlyHandlerUnits(t *testing.T) {
 }
 
 func TestServicesApiAwsCostMonthlyHandlerUnitEnvs(t *testing.T) {
+	logger.LogSetup()
 	fs := testhelpers.Fs()
 	mux := testhelpers.Mux()
 	min, max, df := testhelpers.Dates()
@@ -263,6 +267,7 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvs(t *testing.T) {
 }
 
 func TestServicesApiAwsCostMonthlyHandlerUnitEnvServices(t *testing.T) {
+	logger.LogSetup()
 	fs := testhelpers.Fs()
 	mux := testhelpers.Mux()
 	min, max, df := testhelpers.Dates()

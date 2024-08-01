@@ -6,11 +6,13 @@ import (
 	"opg-reports/internal/testhelpers"
 	"opg-reports/shared/data"
 	"opg-reports/shared/github/std"
+	"opg-reports/shared/logger"
 	"opg-reports/shared/server/response"
 	"testing"
 )
 
 func TestServicesApiGithubStandardsFiltersForGetParameters(t *testing.T) {
+	logger.LogSetup()
 	// --- SETUP
 	fs := testhelpers.Fs()
 	mux := testhelpers.Mux()

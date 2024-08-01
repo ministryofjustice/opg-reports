@@ -7,6 +7,7 @@ import (
 	"opg-reports/services/front/cnf"
 	"opg-reports/services/front/tmpl"
 	"opg-reports/shared/files"
+	"opg-reports/shared/logger"
 	"opg-reports/shared/server/response"
 	"os"
 	"strings"
@@ -14,6 +15,7 @@ import (
 )
 
 func TestFrontServerStaticHandler(t *testing.T) {
+	logger.LogSetup()
 	tDir := "../templates/"
 	dfSys := os.DirFS(tDir).(files.IReadFS)
 	f := files.NewFS(dfSys, tDir)

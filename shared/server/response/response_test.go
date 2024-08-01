@@ -5,12 +5,14 @@ import (
 	"net/http"
 	"opg-reports/shared/dates"
 	"opg-reports/shared/fake"
+	"opg-reports/shared/logger"
 	"strings"
 	"testing"
 	"time"
 )
 
 func TestSharedServerResponseToJsonFromJson(t *testing.T) {
+	logger.LogSetup()
 	resp := NewResponse[ICell, IRow[ICell]]()
 	tb := FakeTable(3, 2, 5, 1)
 	resp.SetData(tb)
@@ -29,6 +31,7 @@ func TestSharedServerResponseToJsonFromJson(t *testing.T) {
 
 }
 func TestSharedServerResponseRequestData(t *testing.T) {
+	logger.LogSetup()
 	resp := NewResponse[ICell, IRow[ICell]]()
 
 	tb := FakeTable(3, 2, 5, 1)
@@ -59,6 +62,7 @@ func TestSharedServerResponseRequestData(t *testing.T) {
 
 }
 func TestSharedServerResponseRequestErrorAndStatus(t *testing.T) {
+	logger.LogSetup()
 	resp := NewResponse[ICell, IRow[ICell]]()
 	resp.SetErrorAndStatus(fmt.Errorf("error test!"), http.StatusNotExtended)
 
@@ -70,6 +74,7 @@ func TestSharedServerResponseRequestErrorAndStatus(t *testing.T) {
 	}
 }
 func TestSharedServerResponseRequestErrors(t *testing.T) {
+	logger.LogSetup()
 	resp := NewResponse[ICell, IRow[ICell]]()
 	resp.SetError(fmt.Errorf("error test!"))
 
@@ -79,6 +84,7 @@ func TestSharedServerResponseRequestErrors(t *testing.T) {
 }
 
 func TestSharedServerResponseRequestStatus(t *testing.T) {
+	logger.LogSetup()
 	resp := NewResponse[ICell, IRow[ICell]]()
 	if resp.GetStatus() != http.StatusOK {
 		t.Errorf("default status not set")
@@ -91,6 +97,7 @@ func TestSharedServerResponseRequestStatus(t *testing.T) {
 
 }
 func TestSharedServerResponseRequestDataAge(t *testing.T) {
+	logger.LogSetup()
 	resp := NewResponse[ICell, IRow[ICell]]()
 	now := time.Now().UTC()
 	min := now.AddDate(-1, 0, 0).UTC()
@@ -118,6 +125,7 @@ func TestSharedServerResponseRequestDataAge(t *testing.T) {
 }
 
 func TestSharedServerResponseRequestDuration(t *testing.T) {
+	logger.LogSetup()
 	resp := NewResponse[ICell, IRow[ICell]]()
 	resp.SetStart()
 	resp.SetEnd()
@@ -130,6 +138,7 @@ func TestSharedServerResponseRequestDuration(t *testing.T) {
 
 }
 func TestSharedServerResponseRequestStart(t *testing.T) {
+	logger.LogSetup()
 	now := time.Now().UTC()
 	resp := NewResponse[*Cell, *Row[*Cell]]()
 	resp.SetStart()
@@ -141,6 +150,7 @@ func TestSharedServerResponseRequestStart(t *testing.T) {
 }
 
 func TestSharedServerResponseRequestEnd(t *testing.T) {
+	logger.LogSetup()
 	now := time.Now().UTC()
 	resp := NewResponse[*Cell, *Row[*Cell]]()
 	resp.SetEnd()

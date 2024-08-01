@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"opg-reports/services/front/cnf"
+	"opg-reports/shared/logger"
 	"os"
 	"testing"
 )
@@ -62,6 +63,7 @@ const testServerCfg string = `{
 }`
 
 func TestFrontServerNavigationTop(t *testing.T) {
+	logger.LogSetup()
 	conf, _ := cnf.Load([]byte(testServerCfg))
 	s := New(conf, nil, "", "")
 
@@ -91,6 +93,7 @@ func TestFrontServerNavigationTop(t *testing.T) {
 }
 
 func TestFrontServerNavigationSide(t *testing.T) {
+	logger.LogSetup()
 	conf, _ := cnf.Load([]byte(testServerCfg))
 	s := New(conf, nil, "", "")
 
@@ -111,6 +114,7 @@ func TestFrontServerNavigationSide(t *testing.T) {
 }
 
 func TestFrontServerNavigationActive(t *testing.T) {
+	logger.LogSetup()
 	conf, _ := cnf.Load([]byte(testServerCfg))
 	s := New(conf, nil, "", "")
 
