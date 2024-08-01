@@ -33,6 +33,11 @@ func (a *Api[V, F, C, R]) MonthlyCostsPerAccountUnitEnvironmentAndServices(w htt
 		inMonthRange := func(c *cost.Cost) bool {
 			return dates.InMonth(c.Date, months)
 		}
+		// Add get filters to the data
+		getFilters := a.FiltersForGetParameters(r)
+		if len(getFilters) > 0 {
+			store = store.Filter(getFilters...)
+		}
 		withinMonths := store.Filter(inMonthRange)
 
 		// Add table headings
@@ -108,6 +113,11 @@ func (a *Api[V, F, C, R]) MonthlyCostsPerAccountUnitAndEnvironments(w http.Respo
 		inMonthRange := func(item *cost.Cost) bool {
 			return dates.InMonth(item.Date, months)
 		}
+		// Add get filters to the data
+		getFilters := a.FiltersForGetParameters(r)
+		if len(getFilters) > 0 {
+			store = store.Filter(getFilters...)
+		}
 		withinMonths := store.Filter(inMonthRange)
 		// Add table headings
 		headingCells := []C{
@@ -178,6 +188,11 @@ func (a *Api[V, F, C, R]) MonthlyCostsPerAccountUnits(w http.ResponseWriter, r *
 		months := dates.Strings(dates.Months(startDate, endDate), dates.FormatYM)
 		inMonthRange := func(item *cost.Cost) bool {
 			return dates.InMonth(item.Date, months)
+		}
+		// Add get filters to the data
+		getFilters := a.FiltersForGetParameters(r)
+		if len(getFilters) > 0 {
+			store = store.Filter(getFilters...)
 		}
 
 		withinMonths := store.Filter(inMonthRange)

@@ -80,7 +80,7 @@ func TestServicesApiGithubStandardsFiltersForGetParameters(t *testing.T) {
 		t.Errorf("failed to parse response: %v", err)
 	}
 	if res.GetStatus() != http.StatusOK {
-		t.Errorf("status code failed")
+		t.Errorf("status code failed: %v", res.GetStatus())
 		fmt.Println(str)
 	}
 
@@ -88,7 +88,7 @@ func TestServicesApiGithubStandardsFiltersForGetParameters(t *testing.T) {
 	repos = data.FromRows[*std.Repository](res.GetData().GetTableBody())
 
 	if len(repos) != teams {
-		t.Errorf("team filter failed")
+		t.Errorf("team filter failed: actual [%v] expected [%v]", len(repos), teams)
 	}
 
 	// --- TEST TEAM FILTER AND LOGIC

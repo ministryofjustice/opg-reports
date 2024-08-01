@@ -134,8 +134,8 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 		}
 	}
 	// round the values down
-	apiTotalS := p.Sprintf("$%.4f", apiTotal)
-	unitTotalS := p.Sprintf("$%.4f", unitTotal)
+	apiTotalS := p.Sprintf("%.4f", apiTotal)
+	unitTotalS := p.Sprintf("%.4f", unitTotal)
 	if apiTotalS != unitTotalS {
 		t.Errorf("filtering by unit failed: expected [%v] actual [%v]", unitTotal, apiTotal)
 	}
@@ -166,14 +166,16 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 		}
 	}
 	// round the values down
-	apiTotalS = p.Sprintf("$%.4f", apiTotal)
-	allTotalS := p.Sprintf("$%.4f", allTotal)
+	apiTotalS = p.Sprintf("%.4f", apiTotal)
+	allTotalS := p.Sprintf("%.4f", allTotal)
 	if apiTotalS != allTotalS {
 		t.Errorf("filtering by unit failed: expected [%v] actual [%v]", allTotal, apiTotal)
 	}
 
 }
 
+// URLS:
+//   - /aws/costs/v1/monthly/%s/%s/units/
 func TestServicesApiAwsCostMonthlyHandlerUnits(t *testing.T) {
 	logger.LogSetup()
 	fs := testhelpers.Fs()
@@ -218,8 +220,11 @@ func TestServicesApiAwsCostMonthlyHandlerUnits(t *testing.T) {
 
 }
 
+// URLS:
+//   - /aws/costs/v1/monthly/%s/%s/units/envs
 func TestServicesApiAwsCostMonthlyHandlerUnitEnvs(t *testing.T) {
 	logger.LogSetup()
+	pr := message.NewPrinter(language.English)
 	fs := testhelpers.Fs()
 	mux := testhelpers.Mux()
 	min, max, df := testhelpers.Dates()
@@ -232,11 +237,20 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvs(t *testing.T) {
 	l := 9
 	x := 5
 
-	for i := 0; i < l; i++ {
+	// force a prod version in
+	p := cost.Fake(nil, min, max, df)
+	p.AccountUnit = fake.Choice(units)
+	p.AccountEnvironment = "prod"
+	prods := []*cost.Cost{p}
+	store.Add(p)
+	for i := 0; i < (l - 1); i++ {
 		c := cost.Fake(nil, min, max, df)
 		c.AccountUnit = fake.Choice(units)
 		c.AccountEnvironment = fake.Choice(envs)
 		store.Add(c)
+		if c.AccountEnvironment == "prod" {
+			prods = append(prods, c)
+		}
 	}
 	for i := 0; i < x; i++ {
 		c := cost.Fake(nil, overm, overmx, df)
@@ -249,14 +263,50 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvs(t *testing.T) {
 	api := New(store, fs, resp)
 	api.Register(mux)
 
-	route := fmt.Sprintf("/aws/costs/v1/monthly/%s/%s/units/envs/", min.Format(dates.FormatYM), max.Format(dates.FormatYM))
+	// -- TEST WITH FILTER
+
+	route := fmt.Sprintf("/aws/costs/v1/monthly/%s/%s/units/envs/?environment=prod", min.Format(dates.FormatYM), max.Format(dates.FormatYM))
 	w, r := testhelpers.WRGet(route)
 	mux.ServeHTTP(w, r)
 
 	str, b := response.Stringify(w.Result())
-	res := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
-	response.FromJson(b, res)
+	res := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	err := response.FromJson(b, res)
+	if err != nil {
+		t.Errorf("error parsing data: %v", err)
+	}
 
+	if resp.GetStatus() != http.StatusOK {
+		t.Errorf("status code failed")
+		fmt.Println(str)
+	}
+	prodTotal := cost.Total(prods)
+	// multiple rows can have prod info due to splitting by unit as well
+	apiTotal := 0.0
+	for _, row := range res.GetData().GetTableBody() {
+		if row.HeaderCells[1].Name == "prod" {
+			apiTotal += row.SupplementaryCells[0].Value.(float64)
+		}
+	}
+	// round the values down
+	apiTotalS := pr.Sprintf("%.4f", apiTotal)
+	prodTotalS := pr.Sprintf("%.4f", prodTotal)
+	if apiTotalS != prodTotalS {
+		fmt.Println(str)
+		t.Errorf("filtering by unit failed: expected [%v] actual [%v]", prodTotal, apiTotal)
+	}
+
+	// -- TEST WITHOUT FILTER
+	route = fmt.Sprintf("/aws/costs/v1/monthly/%s/%s/units/envs/", min.Format(dates.FormatYM), max.Format(dates.FormatYM))
+	w, r = testhelpers.WRGet(route)
+	mux.ServeHTTP(w, r)
+
+	str, b = response.Stringify(w.Result())
+	res = response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	err = response.FromJson(b, res)
+	if err != nil {
+		t.Errorf("error parsing data: %v", err)
+	}
 	if resp.GetStatus() != http.StatusOK {
 		t.Errorf("status code failed")
 		fmt.Println(str)
