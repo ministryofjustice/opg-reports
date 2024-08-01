@@ -134,6 +134,7 @@ func (a *Arg) Val() string {
 }
 
 const emptyMonth string = "-"
+const emptyDay string = "-"
 
 // MonthArg is a custom arg that represents a YYYY-MM inputed value
 // and replaces the Value() to handle parsing of string to time.Time
@@ -177,6 +178,49 @@ func (a *MonthArg) MonthValue() (val time.Time, err error) {
 	return
 }
 
+// DayArg is a custom arg that represents a YYYY-MM-DD inputed value
+// and replaces the Value() to handle parsing of string to time.Time
+type DayArg struct {
+	*Arg
+}
+
+// Value fetches the value and tries to parse this into
+// and time.Time (via DayValue func)
+// If the parsing fails or if the value matches a default date
+// (0000-01) then return an error message, otherwise
+// return YYYY-MM-DD version of the inputed date
+func (a *DayArg) Value() (val string, err error) {
+	value, e := a.DayValue()
+	if e != nil {
+		err = e
+		return
+	} else if a.GetRequired() && value.Format(dates.FormatY) == dates.ErrYear {
+		err = ErrMonthParse
+	} else {
+		val = value.Format(dates.FormatYMD)
+	}
+	return
+}
+
+// Val calls Value(), but disregards the error message
+func (a *DayArg) Val() string {
+	v, _ := a.Value()
+	return v
+}
+
+// DayValue is used to convert the string version of the argument
+// into a time.Time
+func (a *DayArg) DayValue() (val time.Time, err error) {
+	rawValue := *a.FlagP
+	if rawValue == emptyDay {
+		n := time.Now().UTC().AddDate(0, 0, -1)
+		val = time.Date(n.Year(), n.Month(), n.Day(), 0, 0, 0, 0, time.UTC)
+	} else {
+		val, err = dates.StringToDate(*a.FlagP)
+	}
+	return
+}
+
 // NewArg generates a new argument
 func NewArg(name string, required bool, usage string, def string) *Arg {
 
@@ -211,5 +255,14 @@ func NewMonthArg(name string, required bool, usage string, def string) *MonthArg
 		Arg: a,
 	}
 
+	return arg
+}
+
+// NewDayArg generates a new month argument
+func NewDayArg(name string, required bool, usage string, def string) *DayArg {
+	a := NewArg(name, required, usage, def)
+	arg := &DayArg{
+		Arg: a,
+	}
 	return arg
 }

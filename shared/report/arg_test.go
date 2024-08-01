@@ -93,4 +93,19 @@ func TestSharedReportArgs(t *testing.T) {
 	if v, err := darg.Value(); err != nil || v != "default!" {
 		t.Errorf("value with a conditional check failed")
 	}
+
+	dayArg := NewDayArg("dayarg1", true, "my help", "default")
+	dval = emptyDay
+	now = time.Now().UTC().AddDate(0, 0, -1).Format(dates.FormatYMD)
+	dayArg.FlagP = &dval
+	if v, err := dayArg.Value(); err != nil || v != now {
+		t.Errorf("expected yesterday for a empty date")
+	}
+
+	dayArg = NewDayArg("dayarg2", true, "my help", "default")
+	dval = "2024-02-29"
+	dayArg.FlagP = &dval
+	if v, err := dayArg.Value(); err != nil || v != dval {
+		t.Errorf("expected a match")
+	}
 }
