@@ -20,13 +20,13 @@ func (a *Api[V, F, C, R]) Register(mux *http.ServeMux) {
 	mux.HandleFunc("/aws/costs/{version}/monthly/{$}",
 		server.Middleware(a.Index, server.LoggingMW, server.SecurityHeadersMW))
 	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/{$}",
-		server.Middleware(a.Totals, server.LoggingMW, server.SecurityHeadersMW))
+		server.Middleware(a.MonthlyTotals, server.LoggingMW, server.SecurityHeadersMW))
 	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/units/{$}",
-		server.Middleware(a.Units, server.LoggingMW, server.SecurityHeadersMW))
+		server.Middleware(a.MonthlyCostsPerAccountUnits, server.LoggingMW, server.SecurityHeadersMW))
 	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/units/envs/{$}",
-		server.Middleware(a.UnitEnvironments, server.LoggingMW, server.SecurityHeadersMW))
+		server.Middleware(a.MonthlyCostsPerAccountUnitAndEnvironments, server.LoggingMW, server.SecurityHeadersMW))
 	mux.HandleFunc("/aws/costs/{version}/monthly/{start}/{end}/units/envs/services/{$}",
-		server.Middleware(a.UnitEnvironmentServices, server.LoggingMW, server.SecurityHeadersMW))
+		server.Middleware(a.MonthlyCostsPerAccountUnitEnvironmentAndServices, server.LoggingMW, server.SecurityHeadersMW))
 }
 
 func (a *Api[V, F, C, R]) startAndEndDates(r *http.Request) (startDate time.Time, endDate time.Time) {
