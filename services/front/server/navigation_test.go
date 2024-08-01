@@ -10,7 +10,7 @@ import (
 )
 
 func testRealServerCnf() []byte {
-	s, _ := os.ReadFile("../config.json")
+	s, _ := os.ReadFile("../config.complex.json")
 	return s
 }
 
