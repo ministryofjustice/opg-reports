@@ -19,8 +19,8 @@ func GetUrl(url string) (resp *http.Response, err error) {
 	return
 }
 
-func Url(scheme string, host string, path string) (u *url.URL) {
-	slog.Debug("generating url",
+func clean(scheme string, host string, path string) string {
+	slog.Debug("cleaning url",
 		slog.String("scheme", scheme),
 		slog.String("host", host),
 		slog.String("path", path))
@@ -43,26 +43,42 @@ func Url(scheme string, host string, path string) (u *url.URL) {
 
 	path = strings.ReplaceAll(path, "https://", "")
 	path = strings.ReplaceAll(path, "http://", "")
+	path = strings.ReplaceAll(path, "localhost", "")
 	path = strings.ReplaceAll(path, host, "")
 	path = strings.ReplaceAll(path, parsedHost, "")
 
-	raw := fmt.Sprintf("%s://%s%s", scheme, parsedHost, path)
+	slog.Debug("cleaned url",
+		slog.String("scheme", scheme),
+		slog.String("host", host),
+		slog.String("parsedHost", parsedHost),
+		slog.String("path", path))
+
+	return fmt.Sprintf("%s://%s%s", scheme, parsedHost, path)
+}
+
+func Url(scheme string, host string, path string) (u *url.URL) {
+
+	var raw string
+	// if path contains the scheme, the use the path directly
+	if strings.HasPrefix(path, "http") && strings.Contains(path, "://") {
+		raw = path
+	} else {
+		raw = clean(scheme, host, path)
+	}
 	u, err := url.Parse(raw)
 
 	// add trialing slash to the end of the path
 	p := u.Path
-	last := p[len(p)-1:]
-	if err == nil && last != "/" {
-		u.Path = p + "/"
+	if len(p) > 0 {
+		last := p[len(p)-1:]
+		if err == nil && last != "/" {
+			u.Path = p + "/"
+		}
 	}
 
 	slog.Debug("generated url",
-		slog.String("scheme", scheme),
-		slog.String("host", host),
-		slog.String("parsedHost", parsedHost),
-		slog.String("path", path),
-		slog.String("raw", raw),
-		slog.String("u", u.String()))
+		slog.String("url", u.String()),
+		slog.String("err", fmt.Sprintf("%+v", err)))
 
 	if err != nil {
 		return nil

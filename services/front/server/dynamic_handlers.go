@@ -145,6 +145,6 @@ func (s *FrontWebServer) parseResponse(apiResp *http.Response) (data map[string]
 
 func (s *FrontWebServer) handleApiCall(u *url.URL) (apiResp *http.Response, err error) {
 	// call the api
-	slog.Info("calling api", slog.String("url", u.String()))
+	slog.Info("handle api call", slog.String("url", u.String()))
 	return GetUrl(u.String())
 }
