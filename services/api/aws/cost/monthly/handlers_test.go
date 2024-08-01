@@ -12,6 +12,9 @@ import (
 	"opg-reports/shared/server/response"
 	"testing"
 	"time"
+
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 // Index is empty and returns simple api response without a result
@@ -32,7 +35,7 @@ func TestServicesApiAwsCostMonthlyHandlerIndex(t *testing.T) {
 	mux.ServeHTTP(w, r)
 
 	_, b := response.Stringify(w.Result())
-	res := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
+	res := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
 	json.Unmarshal(b, &res)
 
 	if res.GetStatus() != http.StatusOK {
@@ -46,12 +49,19 @@ func TestServicesApiAwsCostMonthlyHandlerIndex(t *testing.T) {
 		t.Errorf("duration error")
 	}
 
+	costs := data.FromRows[*cost.Cost](res.GetData().GetTableBody())
+	if len(costs) != 0 {
+		t.Errorf("unexpected data returned from empty data store")
+	}
 }
 
 // Generates a series of date in and out of date bounds and then
 // triggers the api to get that data.
 // Checks the number of items returned matches expectations
+// URLS:
+//   - /aws/costs/v1/monthly/%s/%s/
 func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
+	p := message.NewPrinter(language.English)
 	fs := testhelpers.Fs()
 	mux := testhelpers.Mux()
 	min, max, df := testhelpers.Dates()
@@ -59,37 +69,107 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 	overmx := time.Date(max.Year()+2, 1, 1, 0, 0, 0, 0, time.UTC)
 	store := data.NewStore[*cost.Cost]()
 	services := []string{"ec2", "ecs", "tax", "rds", "r53"}
-	l := 900
-	x := 100
 
-	for i := 0; i < l; i++ {
+	inrange := 100
+	outofrange := 30
+	inrangeunit := 20
+
+	// within range and limited to know service
+	allCost := []*cost.Cost{}
+	for i := 0; i < inrange; i++ {
 		c := cost.Fake(nil, min, max, df)
 		c.Service = fake.Choice(services)
 		store.Add(c)
+		allCost = append(allCost, c)
 	}
-	for i := 0; i < x; i++ {
+	// out of range, so dont add to cost totals
+	for i := 0; i < outofrange; i++ {
 		c := cost.Fake(nil, overm, overmx, df)
 		c.Service = fake.Choice(services)
 		store.Add(c)
+
 	}
+	// in range with a unit to be filtered on
+	unitFoo := []*cost.Cost{}
+	for i := 0; i < inrangeunit; i++ {
+		c := cost.Fake(nil, min, max, df)
+		c.Service = fake.Choice(services)
+		c.AccountUnit = "foobar"
+		store.Add(c)
+		unitFoo = append(unitFoo, c)
+		allCost = append(allCost, c)
+	}
+	unitTotal := cost.Total(unitFoo)
+	allTotal := cost.Total(allCost)
 
 	resp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
 	api := New(store, fs, resp)
 	api.Register(mux)
 
-	route := fmt.Sprintf("/aws/costs/v1/monthly/%s/%s/", min.Format(dates.FormatYM), max.Format(dates.FormatYM))
+	// --- TEST WITH FILTER
+	route := fmt.Sprintf("/aws/costs/v1/monthly/%s/%s/?unit=foobar", min.Format(dates.FormatYM), max.Format(dates.FormatYM))
 	w, r := testhelpers.WRGet(route)
 	mux.ServeHTTP(w, r)
 
 	str, b := response.Stringify(w.Result())
-	res := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
-	response.FromJson(b, res)
+	res := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	err := response.FromJson(b, res)
 
-	// fmt.Println(str)
+	if err != nil {
+		fmt.Println(str)
+		t.Errorf("error: %+v", err)
+	}
 
 	if res.GetStatus() != http.StatusOK {
 		t.Errorf("status code failed")
 		fmt.Println(str)
+	}
+
+	fmt.Println(allTotal)
+
+	apiTotal := 0.0
+	for _, row := range res.GetData().GetTableBody() {
+		if row.HeaderCells[0].Name == "Included" {
+			apiTotal = row.SupplementaryCells[0].Value.(float64)
+		}
+	}
+	// round the values down
+	apiTotalS := p.Sprintf("$%.5f", apiTotal)
+	unitTotalS := p.Sprintf("$%.5f", unitTotal)
+	if apiTotalS != unitTotalS {
+		t.Errorf("filtering by unit failed: expected [%v] actual [%v]", unitTotal, apiTotal)
+	}
+
+	// --- TEST WITHOUT FILTER
+	route = fmt.Sprintf("/aws/costs/v1/monthly/%s/%s/", min.Format(dates.FormatYM), max.Format(dates.FormatYM))
+	w, r = testhelpers.WRGet(route)
+	mux.ServeHTTP(w, r)
+
+	str, b = response.Stringify(w.Result())
+	res = response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
+	err = response.FromJson(b, res)
+
+	if err != nil {
+		fmt.Println(str)
+		t.Errorf("error: %+v", err)
+	}
+
+	if res.GetStatus() != http.StatusOK {
+		t.Errorf("status code failed")
+		fmt.Println(str)
+	}
+
+	apiTotal = 0.0
+	for _, row := range res.GetData().GetTableBody() {
+		if row.HeaderCells[0].Name == "Included" {
+			apiTotal = row.SupplementaryCells[0].Value.(float64)
+		}
+	}
+	// round the values down
+	apiTotalS = p.Sprintf("$%.5f", apiTotal)
+	allTotalS := p.Sprintf("$%.5f", allTotal)
+	if apiTotalS != allTotalS {
+		t.Errorf("filtering by unit failed: expected [%v] actual [%v]", allTotal, apiTotal)
 	}
 
 }
