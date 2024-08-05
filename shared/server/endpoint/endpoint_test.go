@@ -13,41 +13,28 @@ import (
 	"opg-reports/shared/server/resp/cell"
 	"opg-reports/shared/server/resp/row"
 	"slices"
+	"strconv"
+	"strings"
 	"testing"
 )
-
-// func TestRegister(mux *http.ServeMux) {
-// 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-// 		st := data.NewStore[*testEntry]()
-// 		epData := NewEndpointData[*testEntry](st, nil, nil)
-// 		epDisplay := NewEndpointDisplay(nil)
-// 		a.ep := New[*testEntry]("/home", epData, epDisplay)
-// 		server.Middleware(a.Index, server.LoggingMW, server.SecurityHeadersMW)
-// 	})
-// }
 
 func TestSharedServerEndpointFull(t *testing.T) {
 	logger.LogSetup()
 
 	mux := testhelpers.Mux()
 	min, max, _ := testhelpers.Dates()
-	create := 10
+	create := 15
 
 	foos := []*testhelpers.TestIEntry{}
 	others := []*testhelpers.TestIEntry{}
-	active := []*testhelpers.TestIEntry{}
 	items := []*testhelpers.TestIEntry{}
 	for i := 0; i < create; i++ {
-		st := fake.Choice([]bool{true, false})
-		if i == 0 {
-			st = true
-		}
 		item := &testhelpers.TestIEntry{
 			Id:       fake.IntAsStr(1000, 9999),
 			Tags:     []string{"default", fake.Choice([]string{"foo", "bar"})},
 			Date:     fake.Date(min, max),
 			Category: fake.Choice([]string{"main", "other"}),
-			Status:   st,
+			Status:   true,
 		}
 		if slices.Contains(item.Tags, "foo") {
 			foos = append(foos, item)
@@ -55,18 +42,12 @@ func TestSharedServerEndpointFull(t *testing.T) {
 		if item.Category == "other" {
 			others = append(others, item)
 		}
-		if item.Status {
-			active = append(active, item)
-		}
+
 		items = append(items, item)
 	}
 	store := data.NewStoreFromList[*testhelpers.TestIEntry](items)
 	// -- data filtering and group
-	filters := map[string]data.IStoreFilterFunc[*testhelpers.TestIEntry]{
-		"active": func(i *testhelpers.TestIEntry) bool {
-			return i.Status == true
-		},
-	}
+
 	group := func(item *testhelpers.TestIEntry) string {
 		return item.Category
 	}
@@ -111,18 +92,62 @@ func TestSharedServerEndpointFull(t *testing.T) {
 
 	// Setup the endpoint
 	mux.HandleFunc("/test/", func(w http.ResponseWriter, r *http.Request) {
+		qp := NewQueryable([]string{
+			"active",
+			"tag",
+		})
+		params := qp.Parse(r)
+		// filter by status
+		activeF := func(i *testhelpers.TestIEntry) bool {
+			status := true
+			if v, ok := params["active"]; ok {
+				check, _ := strconv.ParseBool(v[0])
+				status = (i.Status == check)
+			}
+			return status
+		}
+		// filter by tag
+		tagF := func(i *testhelpers.TestIEntry) bool {
+			res := true
+			if tags, ok := params["tag"]; ok {
+				merged := strings.ToLower(strings.Join(i.Tags, ","))
+				for _, s := range tags {
+					if strings.Contains(merged, strings.ToLower(s)) {
+						res = true
+						break
+					}
+				}
+			}
+			return res
+		}
+
+		filters := map[string]data.IStoreFilterFunc[*testhelpers.TestIEntry]{
+			"active": activeF,
+			"tag":    tagF,
+		}
 		resp := resp.New()
 		data := NewEndpointData[*testhelpers.TestIEntry](store, group, filters)
 		display := NewEndpointDisplay[*testhelpers.TestIEntry](headF, rowF, nil)
-		ep := New[*testhelpers.TestIEntry]("test", resp, data, display)
+
+		ep := New[*testhelpers.TestIEntry]("test", resp, data, display, params)
 
 		server.Middleware(ep.ProcessRequest, server.LoggingMW, server.SecurityHeadersMW)(w, r)
 	})
 
-	w, r := testhelpers.WRGet("/test/")
+	// should be empty
+	w, r := testhelpers.WRGet("/test/?active=false")
 	mux.ServeHTTP(w, r)
+	_, b := resp.Stringify(w.Result())
+	re := resp.New()
+	resp.FromJson(b, re)
 
+	l := len(re.Result.Body)
+	if l != 0 {
+		t.Errorf("unexpected results returned")
+	}
+
+	w, r = testhelpers.WRGet("/test/?tag=foo")
+	mux.ServeHTTP(w, r)
 	str, _ := resp.Stringify(w.Result())
 	fmt.Println(str)
-
 }

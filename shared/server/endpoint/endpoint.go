@@ -19,6 +19,7 @@ type Endpoint[V data.IEntry] struct {
 	data     IData[V]
 	display  IDisplay[V]
 	resp     *resp.Response
+	params   map[string][]string
 }
 
 func (e *Endpoint[V]) Data() IData[V] {
@@ -50,15 +51,16 @@ func (e *Endpoint[V]) ProcessRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	table.Body = bdy
 	table.Foot = display.Foot(bdy)
-	response.Data = table
+	response.Result = table
 	response.End(w, r)
 }
 
-func New[V data.IEntry](endpoint string, resp *resp.Response, dataCnf IData[V], displayCnf IDisplay[V]) IEndpoint[V] {
+func New[V data.IEntry](endpoint string, resp *resp.Response, dataCnf IData[V], displayCnf IDisplay[V], params map[string][]string) IEndpoint[V] {
 	return &Endpoint[V]{
 		endpoint: endpoint,
 		resp:     resp,
 		data:     dataCnf,
 		display:  displayCnf,
+		params:   params,
 	}
 }

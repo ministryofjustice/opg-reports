@@ -27,7 +27,7 @@ type Response struct {
 	StatusCode int                    `json:"status"`
 	Errors     []error                `json:"errors"`
 	Metadata   map[string]interface{} `json:"metadata"`
-	Data       *table.Table           `json:"result"`
+	Result     *table.Table           `json:"result"`
 }
 
 func (rp *Response) Start(w http.ResponseWriter, r *http.Request) {
@@ -124,6 +124,6 @@ func New() *Response {
 		StatusCode: http.StatusOK,
 		Errors:     []error{},
 		Metadata:   map[string]interface{}{},
-		Data:       table.New(),
+		Result:     table.New(),
 	}
 }
