@@ -1,6 +1,7 @@
 package sess
 
 import (
+	"log/slog"
 	"opg-reports/shared/env"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -37,10 +38,14 @@ func NewSession(id string, secret string, token string, region string) (*session
 }
 
 func NewSessionFromEnv() (*session.Session, error) {
+	return NewSessionFromEnvWithRegion(env.Get("AWS_DEFAULT_REGION", "eu-west-1"))
+}
+
+func NewSessionFromEnvWithRegion(region string) (*session.Session, error) {
 	id := env.Get("AWS_ACCESS_KEY_ID", "")
 	secret := env.Get("AWS_SECRET_ACCESS_KEY", "")
 	token := env.Get("AWS_SESSION_TOKEN", "")
-	region := env.Get("AWS_DEFAULT_REGION", "eu-west-1")
+	slog.Info("AWS session", slog.String("region", region))
 	return session.NewSession(&aws.Config{
 		Credentials: credentials.NewStaticCredentials(id, secret, token),
 		Region:      aws.String(region),
