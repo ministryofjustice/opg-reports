@@ -51,12 +51,10 @@ jobs:
     steps:
       - name: "Checkout"
         id: checkout
-        if: ${{ matrix.type == 'aws' }}
         uses: actions/checkout@v4
       # configure the aws role for costs
       - name: "Configure AWS credentials for running the report"
         id: configure_aws_creds_report
-        if: ${{ matrix.type == 'aws' }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
           # might need to change the region..
@@ -67,7 +65,6 @@ jobs:
       # run report
       - name: "Run report"
         id: run
-        if: ${{ matrix.type == 'aws' }}
         env:
           day: ${{ inputs.day != '' && inputs.day || '-' }}
           unit: ${{ matrix.billing_unit }}
@@ -79,7 +76,6 @@ jobs:
       # configure the aws role for s3 upload
       - name: "Configure AWS credentials for S3 upload"
         id: configure_aws_creds_bucket
-        if: ${{ matrix.type == 'aws' }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: "eu-west-1"
@@ -88,7 +84,6 @@ jobs:
           role-session-name: opg-reports-upload-uptime-to-s3
       # upload
       - name: "Upload to s3"
-        if: ${{ matrix.type == 'aws' }}
         uses: ./.github/actions/s3_upload
         with:
           directory: ${{ steps.run.outputs.data_folder }}
