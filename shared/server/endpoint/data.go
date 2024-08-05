@@ -26,9 +26,14 @@ func (d *Data[V]) ApplyFilters() (store data.IStore[V]) {
 	return
 }
 
-func (d *Data[V]) ApplyGroupBy() map[string]data.IStore[V] {
+func (d *Data[V]) ApplyGroupBy() (g map[string]data.IStore[V]) {
 	slog.Info("applying groupby")
-	return d.store.Group(d.groupBy)
+	// provide a default group of the store
+	g = map[string]data.IStore[V]{"all": d.store}
+	if d.groupBy != nil {
+		g = d.store.Group(d.groupBy)
+	}
+	return
 }
 
 func NewEndpointData[V data.IEntry](

@@ -8,6 +8,24 @@ import (
 	"time"
 )
 
+type TestIEntry struct {
+	Id       string    `json:"id"`
+	Tags     []string  `json:"tags"`
+	Category string    `json:"category"`
+	Status   bool      `json:"status"`
+	Date     time.Time `json:"date"`
+}
+
+func (i *TestIEntry) UID() string {
+	return i.Id
+}
+func (i *TestIEntry) TS() time.Time {
+	return time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+}
+func (i *TestIEntry) Valid() bool {
+	return true
+}
+
 func Fs() *files.WriteFS {
 	td := os.TempDir()
 	tDir, _ := os.MkdirTemp(td, "test-*")

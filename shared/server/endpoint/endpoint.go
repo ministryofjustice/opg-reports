@@ -1,30 +1,63 @@
 package endpoint
 
 import (
+	"log/slog"
+	"net/http"
 	"opg-reports/shared/data"
+	"opg-reports/shared/server/resp"
+	"opg-reports/shared/server/resp/row"
+	"opg-reports/shared/server/resp/table"
 )
 
 type IEndpoint[V data.IEntry] interface {
 	Data() IData[V]
-	Display() IDisplay
+	Display() IDisplay[V]
+	ProcessRequest(w http.ResponseWriter, r *http.Request)
 }
 type Endpoint[V data.IEntry] struct {
 	endpoint string
 	data     IData[V]
-	display  IDisplay
+	display  IDisplay[V]
+	resp     *resp.Response
 }
 
 func (e *Endpoint[V]) Data() IData[V] {
 	return e.data
 }
 
-func (e *Endpoint[V]) Display() IDisplay {
+func (e *Endpoint[V]) Display() IDisplay[V] {
 	return e.display
 }
 
-func New[V data.IEntry](endpoint string, dataCnf IData[V], displayCnf IDisplay) IEndpoint[V] {
+func (e *Endpoint[V]) ProcessRequest(w http.ResponseWriter, r *http.Request) {
+	slog.Info("processing endpoint request", slog.String("endpoint", e.endpoint))
+
+	response := e.resp
+	response.Start(w, r)
+
+	data := e.Data()
+	data.ApplyFilters()
+
+	display := e.Display()
+	table := table.New()
+
+	table.Head = display.Head()
+	bdy := []*row.Row{}
+
+	for _, g := range data.ApplyGroupBy() {
+		line := display.Row(g, response)
+		bdy = append(bdy, line)
+	}
+	table.Body = bdy
+	table.Foot = display.Foot(bdy)
+	response.Data = table
+	response.End(w, r)
+}
+
+func New[V data.IEntry](endpoint string, resp *resp.Response, dataCnf IData[V], displayCnf IDisplay[V]) IEndpoint[V] {
 	return &Endpoint[V]{
 		endpoint: endpoint,
+		resp:     resp,
 		data:     dataCnf,
 		display:  displayCnf,
 	}

@@ -1,13 +1,57 @@
 package endpoint
 
-type IDisplay interface {
-	ColumnMap() map[string]string
+import (
+	"opg-reports/shared/data"
+	"opg-reports/shared/server/resp"
+	"opg-reports/shared/server/resp/row"
+)
+
+type IDisplay[V data.IEntry] interface {
+	Head() *row.Row
+	Row(store data.IStore[V], resp *resp.Response) *row.Row
+	Foot(body []*row.Row) *row.Row
 }
 
-type Display struct {
-	columnMap map[string]string
+type DisplayHeadFunc func() *row.Row
+type DisplayFootFunc func(bodyRows []*row.Row) *row.Row
+type DisplayRowFunc[V data.IEntry] func(store data.IStore[V], resp *resp.Response) *row.Row
+
+type Display[V data.IEntry] struct {
+	headF DisplayHeadFunc
+	footF DisplayFootFunc
+	rowF  DisplayRowFunc[V]
 }
 
-func (d *Display) ColumnMap() map[string]string {
-	return d.columnMap
+func (d *Display[V]) Foot(body []*row.Row) (ro *row.Row) {
+	ro = row.New()
+	if d.footF != nil {
+		ro = d.footF(body)
+	}
+	return
+}
+func (d *Display[V]) Row(store data.IStore[V], resp *resp.Response) (ro *row.Row) {
+	ro = row.New()
+	if d.rowF != nil {
+		ro = d.rowF(store, resp)
+	}
+	return
+}
+
+func (d *Display[V]) Head() (ro *row.Row) {
+	ro = row.New()
+	if d.headF != nil {
+		ro = d.headF()
+	}
+	return
+}
+
+func NewEndpointDisplay[V data.IEntry](
+	headF DisplayHeadFunc,
+	rowF DisplayRowFunc[V],
+	footF DisplayFootFunc) IDisplay[V] {
+	return &Display[V]{
+		headF: headF,
+		rowF:  rowF,
+		footF: footF,
+	}
 }

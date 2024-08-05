@@ -3,6 +3,7 @@ package endpoint
 import (
 	"opg-reports/shared/data"
 	"opg-reports/shared/fake"
+	"opg-reports/shared/logger"
 	"slices"
 	"testing"
 	"time"
@@ -25,6 +26,8 @@ func (i *testEntry) Valid() bool {
 }
 
 func TestSharedServerEndpointDataFilters(t *testing.T) {
+	logger.LogSetup()
+
 	tagFoo := 5
 	categoryBar := 10
 	create := 20
@@ -78,6 +81,8 @@ func TestSharedServerEndpointDataFilters(t *testing.T) {
 }
 
 func TestSharedServerEndpointDataGrouping(t *testing.T) {
+	logger.LogSetup()
+
 	categoryBar := 10
 	create := 20
 
