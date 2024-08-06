@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"opg-reports/services/front/tmpl"
 	"opg-reports/shared/dates"
-	"opg-reports/shared/server/response"
+	"opg-reports/shared/server/resp"
 )
 
 type dynamicHandlerFunc func(w http.ResponseWriter, r *http.Request)
@@ -17,6 +17,34 @@ const apiVersion string = "v1"
 const billingDay int = 13
 
 // Dynamic handles all end points that require data from the api.
+// The api data used here should match a resp.Response struct
+//
+// Uses data from the active navigation item to determine what api
+// url's should be called, iterates over those urls and fetches
+// the api data, calling `parseResponse` for each
+//
+// Generates a map (`data`) containing all details for rendering
+// dynamic and static templates. Capitalises them to match struct naming
+// conventions.
+//
+//   - Organisation: set to `organisation` value from config file
+//   - PageTitle: currently active navigation items Name
+//   - Standards: github repository standards from the config file
+//
+// To allow multiple api calls for one page, the following properties are
+// generated per api url and all would have a `_<key>` suffix; where `<key>`
+// relates to the key in the config for that url. If there is only one
+// api url to call, then no suffixes are added.
+//
+//   - Result: data from the api, generally the `.Body`
+//   - Metadata: setup within `parseResponse`, should contain `.Metadata`
+//   - StartDate & EndDate: only set when a start & end date are found in the `.Metadata`
+//   - Months: all months between the StartDate & EndDate
+//   - DateAgeMin & DataAgeMax: timestamps showing the youngest and oldest data entry
+//   - Headings & Footer: the header and footer rows of the dataset
+//
+// The above map is then passed into the template rendering and the result
+// is then returned (via w.Write)
 func (s *FrontWebServer) Dynamic(w http.ResponseWriter, r *http.Request) {
 	slog.Info("dynamic handler starting", slog.String("uri", r.RequestURI))
 	data := s.Nav.Data(r)
@@ -33,7 +61,7 @@ func (s *FrontWebServer) Dynamic(w http.ResponseWriter, r *http.Request) {
 	data["PageTitle"] = active.Name + " - "
 	data["Standards"] = s.Config.Standards
 	data["Result"] = nil
-
+	// determine if we should use a a prefix on the result data
 	usePrefix := len(active.Api) > 1
 	// Handle multiple api calls for one page
 	urls, _ := active.ApiUrls()
@@ -43,12 +71,11 @@ func (s *FrontWebServer) Dynamic(w http.ResponseWriter, r *http.Request) {
 		slog.Info("calling api",
 			slog.String("url", u.String()),
 			slog.String("apiUrl", apiUrl))
-		apiResp, err := s.handleApiCall(u)
 		// no error from the api, and no error from parsing the api resposne
 		// into local data, then set to the data map ready for the template parsing
-		if err == nil {
-			apiData, err := s.parseResponse(apiResp)
-			if err == nil {
+		if apiResp, err := s.handleApiCall(u); err == nil {
+			// if there is no error, try to then parse the response
+			if apiData, parseErr := s.parseResponse(apiResp); parseErr == nil {
 				for key, val := range apiData {
 					if usePrefix {
 						key = fmt.Sprintf("%s_%s", apiResultName, key)
@@ -60,14 +87,12 @@ func (s *FrontWebServer) Dynamic(w http.ResponseWriter, r *http.Request) {
 			} else {
 				slog.Error("dynamic handler error from parsing repsonse",
 					slog.String("url", u.String()),
-					slog.String("err", fmt.Sprintf("%v", err)),
-				)
+					slog.String("err", fmt.Sprintf("%+v", parseErr)))
 			}
 		} else {
 			slog.Error("dynamic handler error from api",
 				slog.String("url", u.String()),
-				slog.String("err", fmt.Sprintf("%v", err)),
-			)
+				slog.String("err", fmt.Sprintf("%+v", err)))
 		}
 	}
 
@@ -81,21 +106,30 @@ func (s *FrontWebServer) Dynamic(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// parseResponse takes a http.Response from the api call and returns useful data as a map
+// Returns:
+//   - Result: the `.Body` value
+//   - Metadata: the `.Metadata` value
+//   - StartDate & EndDate: only set when a start & end date are found in the `.Metadata`
+//   - Months: all months between the StartDate & EndDate
+//   - DateAgeMin & DataAgeMax: timestamps showing the youngest and oldest data entry
+//   - Headings & Footer: the header and footer rows of the dataset
 func (s *FrontWebServer) parseResponse(apiResp *http.Response) (data map[string]interface{}, err error) {
 	data = map[string]interface{}{}
 
-	// _, b := response.Stringify(apiResp)
-	resp := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
-	err = response.FromHttp(apiResp, resp)
+	res := resp.New()
+	err = resp.FromHttp(apiResp, res)
+
 	if err != nil {
 		slog.Error("parse error")
 		return
 	}
 	// get meta data
-	if meta := resp.GetMetadata(); meta != nil {
+	meta := res.Metadata
+	if len(meta) > 0 {
 		data["Metadata"] = meta
-		start, sOk := meta["StartDate"]
-		end, eOK := meta["EndDate"]
+		start, sOk := meta["startDate"]
+		end, eOK := meta["endDate"]
 		if sOk && eOK {
 			startDate, _ := dates.StringToDate(start.(string))
 			endDate, _ := dates.StringToDate(end.(string))
@@ -107,33 +141,31 @@ func (s *FrontWebServer) parseResponse(apiResp *http.Response) (data map[string]
 	}
 
 	// get min / max times
-	if min := resp.GetDataAgeMin(); min.Format(dates.FormatY) != dates.ErrYear {
+	if min := res.GetDataAgeMin(); min.Format(dates.FormatY) != dates.ErrYear {
 		data["DataAgeMin"] = min
 	}
-	if max := resp.GetDataAgeMax(); max.Format(dates.FormatY) != dates.ErrYear {
+	if max := res.GetDataAgeMax(); max.Format(dates.FormatY) != dates.ErrYear {
 		data["DataAgeMax"] = max
 	}
 	// If the result is nil (failed parsing), return
-	result := resp.GetData()
+	result := res.Result
 	if result == nil {
 		slog.Error("empty result")
 		return
 	}
 
-	if heading := result.GetTableHead(); heading.GetHeadersCount() > 0 {
-		data["Headings"] = heading.GetAll()
-		data["HeadingsPre"] = heading.GetHeadersCount()
-		data["HeadingsPost"] = heading.GetTotalCellCount() - heading.GetHeadersCount() - heading.GetSupplementaryCount()
+	heading := result.Head
+	if heading != nil {
+		data["Headings"] = heading.All()
 	}
 
-	if footer := result.GetTableFoot(); footer.GetHeadersCount() > 0 {
-		data["Footer"] = footer.GetAll()
-		data["FooterPre"] = footer.GetHeadersCount()
-		data["FooterPost"] = footer.GetTotalCellCount() - footer.GetHeadersCount() - footer.GetSupplementaryCount()
+	footer := result.Foot
+	if footer != nil {
+		data["Footer"] = footer.All()
 	}
 
 	// fetch the resulting rows, return if they are empty
-	rows := result.GetTableBody()
+	rows := result.Body
 	if rows != nil {
 		data["Result"] = rows
 	} else {

@@ -1,4 +1,4 @@
-package server
+package mw
 
 import (
 	"net/http"
@@ -13,7 +13,7 @@ func TestMiddlewareDefaultSecurityHeaders(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "/user/", nil)
 
 	rec := httptest.NewRecorder()
-	handler := http.HandlerFunc(SecurityHeadersMW)
+	handler := http.HandlerFunc(SecurityHeaders)
 	handler.ServeHTTP(rec, r)
 
 	head := rec.Header()

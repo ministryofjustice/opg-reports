@@ -1,7 +1,6 @@
 package monthly
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"opg-reports/internal/testhelpers"
@@ -10,51 +9,13 @@ import (
 	"opg-reports/shared/dates"
 	"opg-reports/shared/fake"
 	"opg-reports/shared/logger"
-	"opg-reports/shared/server/response"
+	"opg-reports/shared/server/resp"
 	"testing"
 	"time"
 
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 )
-
-// Index is empty and returns simple api response without a result
-// so just check status and errors
-func TestServicesApiAwsCostMonthlyHandlerIndex(t *testing.T) {
-	logger.LogSetup()
-	fs := testhelpers.Fs()
-	mux := testhelpers.Mux()
-	store := data.NewStore[*cost.Cost]()
-	resp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
-	api := New(store, fs, resp)
-
-	api.Register(mux)
-
-	route := "/aws/costs/v1/monthly/"
-	w, r := testhelpers.WRGet(route)
-
-	mux.ServeHTTP(w, r)
-
-	_, b := response.Stringify(w.Result())
-	res := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
-	json.Unmarshal(b, &res)
-
-	if res.GetStatus() != http.StatusOK {
-		t.Errorf("status error")
-	}
-	if len(res.GetError()) != 0 {
-		t.Errorf("found error when not expected")
-	}
-
-	if res.GetDuration().String() == "" {
-		t.Errorf("duration error")
-	}
-
-	costs := data.FromRows[*cost.Cost](res.GetData().GetTableBody())
-	if len(costs) != 0 {
-		t.Errorf("unexpected data returned from empty data store")
-	}
-}
 
 // Generates a series of date in and out of date bounds and then
 // triggers the api to get that data.
@@ -64,7 +25,6 @@ func TestServicesApiAwsCostMonthlyHandlerIndex(t *testing.T) {
 func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 	logger.LogSetup()
 	p := message.NewPrinter(language.English)
-	fs := testhelpers.Fs()
 	mux := testhelpers.Mux()
 	min, max, df := testhelpers.Dates()
 	overm := time.Date(max.Year()+1, 1, 1, 0, 0, 0, 0, time.UTC)
@@ -104,33 +64,30 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 	unitTotal := cost.Total(unitFoo)
 	allTotal := cost.Total(allCost)
 
-	resp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
-	api := New(store, fs, resp)
-	api.Register(mux)
-
+	Register(mux, store)
 	// --- TEST WITH FILTER
 	route := fmt.Sprintf("/aws/costs/v1/monthly/%s/%s/?unit=foobar", min.Format(dates.FormatYM), max.Format(dates.FormatYM))
 	w, r := testhelpers.WRGet(route)
 	mux.ServeHTTP(w, r)
 
-	str, b := response.Stringify(w.Result())
-	res := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
-	err := response.FromJson(b, res)
+	str, b := resp.Stringify(w.Result())
+	res := resp.New()
+	err := resp.FromJson(b, res)
 
 	if err != nil {
 		fmt.Println(str)
 		t.Errorf("error: %+v", err)
 	}
 
-	if res.GetStatus() != http.StatusOK {
+	if res.StatusCode != http.StatusOK {
 		t.Errorf("status code failed")
 		fmt.Println(str)
 	}
 
 	apiTotal := 0.0
-	for _, row := range res.GetData().GetTableBody() {
-		if row.HeaderCells[0].Name == "Included" {
-			apiTotal = row.SupplementaryCells[0].Value.(float64)
+	for _, row := range res.Result.Body {
+		if row.Headers[0].Name == "Included" {
+			apiTotal = row.Supplementary[0].Value.(float64)
 		}
 	}
 	// round the values down
@@ -145,24 +102,24 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 	w, r = testhelpers.WRGet(route)
 	mux.ServeHTTP(w, r)
 
-	str, b = response.Stringify(w.Result())
-	res = response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
-	err = response.FromJson(b, res)
+	str, b = resp.Stringify(w.Result())
+	res = resp.New()
+	err = resp.FromJson(b, res)
 
 	if err != nil {
 		fmt.Println(str)
 		t.Errorf("error: %+v", err)
 	}
 
-	if res.GetStatus() != http.StatusOK {
+	if res.StatusCode != http.StatusOK {
 		t.Errorf("status code failed")
 		fmt.Println(str)
 	}
 
 	apiTotal = 0.0
-	for _, row := range res.GetData().GetTableBody() {
-		if row.HeaderCells[0].Name == "Included" {
-			apiTotal = row.SupplementaryCells[0].Value.(float64)
+	for _, row := range res.Result.Body {
+		if row.Headers[0].Name == "Included" {
+			apiTotal = row.Supplementary[0].Value.(float64)
 		}
 	}
 	// round the values down
@@ -178,7 +135,6 @@ func TestServicesApiAwsCostMonthlyHandlerTotals(t *testing.T) {
 //   - /aws/costs/v1/monthly/%s/%s/units/
 func TestServicesApiAwsCostMonthlyHandlerUnits(t *testing.T) {
 	logger.LogSetup()
-	fs := testhelpers.Fs()
 	mux := testhelpers.Mux()
 	min, max, df := testhelpers.Dates()
 	// out of bounds
@@ -199,21 +155,22 @@ func TestServicesApiAwsCostMonthlyHandlerUnits(t *testing.T) {
 		c.AccountUnit = fake.Choice(units)
 		store.Add(c)
 	}
-
-	resp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
-	api := New(store, fs, resp)
-	api.Register(mux)
+	Register(mux, store)
 
 	route := fmt.Sprintf("/aws/costs/v1/monthly/%s/%s/units/", min.Format(dates.FormatYM), max.Format(dates.FormatYM))
 	w, r := testhelpers.WRGet(route)
 	mux.ServeHTTP(w, r)
 
-	str, b := response.Stringify(w.Result())
-	res := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
-	response.FromJson(b, res)
-	// fmt.Println(str)
+	str, b := resp.Stringify(w.Result())
+	res := resp.New()
+	err := resp.FromJson(b, res)
 
-	if resp.GetStatus() != http.StatusOK {
+	if err != nil {
+		fmt.Println(str)
+		t.Errorf("error: %+v", err)
+	}
+
+	if res.StatusCode != http.StatusOK {
 		t.Errorf("status code failed")
 		fmt.Println(str)
 	}
@@ -225,7 +182,6 @@ func TestServicesApiAwsCostMonthlyHandlerUnits(t *testing.T) {
 func TestServicesApiAwsCostMonthlyHandlerUnitEnvs(t *testing.T) {
 	logger.LogSetup()
 	pr := message.NewPrinter(language.English)
-	fs := testhelpers.Fs()
 	mux := testhelpers.Mux()
 	min, max, df := testhelpers.Dates()
 	// out of bounds
@@ -259,9 +215,7 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvs(t *testing.T) {
 		store.Add(c)
 	}
 
-	resp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
-	api := New(store, fs, resp)
-	api.Register(mux)
+	Register(mux, store)
 
 	// -- TEST WITH FILTER
 
@@ -269,23 +223,24 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvs(t *testing.T) {
 	w, r := testhelpers.WRGet(route)
 	mux.ServeHTTP(w, r)
 
-	str, b := response.Stringify(w.Result())
-	res := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
-	err := response.FromJson(b, res)
+	str, b := resp.Stringify(w.Result())
+	res := resp.New()
+	err := resp.FromJson(b, res)
+
 	if err != nil {
 		t.Errorf("error parsing data: %v", err)
 	}
 
-	if resp.GetStatus() != http.StatusOK {
+	if res.StatusCode != http.StatusOK {
 		t.Errorf("status code failed")
 		fmt.Println(str)
 	}
 	prodTotal := cost.Total(prods)
 	// multiple rows can have prod info due to splitting by unit as well
 	apiTotal := 0.0
-	for _, row := range res.GetData().GetTableBody() {
-		if row.HeaderCells[1].Name == "prod" {
-			apiTotal += row.SupplementaryCells[0].Value.(float64)
+	for _, row := range res.Result.Body {
+		if row.Headers[1].Name == "prod" {
+			apiTotal += row.Supplementary[0].Value.(float64)
 		}
 	}
 	// round the values down
@@ -301,13 +256,14 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvs(t *testing.T) {
 	w, r = testhelpers.WRGet(route)
 	mux.ServeHTTP(w, r)
 
-	str, b = response.Stringify(w.Result())
-	res = response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
-	err = response.FromJson(b, res)
+	str, b = resp.Stringify(w.Result())
+	res = resp.New()
+	err = resp.FromJson(b, res)
+
 	if err != nil {
 		t.Errorf("error parsing data: %v", err)
 	}
-	if resp.GetStatus() != http.StatusOK {
+	if res.StatusCode != http.StatusOK {
 		t.Errorf("status code failed")
 		fmt.Println(str)
 	}
@@ -316,7 +272,6 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvs(t *testing.T) {
 
 func TestServicesApiAwsCostMonthlyHandlerUnitEnvServices(t *testing.T) {
 	logger.LogSetup()
-	fs := testhelpers.Fs()
 	mux := testhelpers.Mux()
 	min, max, df := testhelpers.Dates()
 	// out of bounds
@@ -341,19 +296,21 @@ func TestServicesApiAwsCostMonthlyHandlerUnitEnvServices(t *testing.T) {
 		store.Add(c)
 	}
 
-	resp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
-	api := New(store, fs, resp)
-	api.Register(mux)
+	Register(mux, store)
 
 	route := fmt.Sprintf("/aws/costs/v1/monthly/%s/%s/units/envs/services/", min.Format(dates.FormatYM), max.Format(dates.FormatYM))
 	w, r := testhelpers.WRGet(route)
 	mux.ServeHTTP(w, r)
 
-	str, b := response.Stringify(w.Result())
-	res := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
-	response.FromJson(b, res)
+	str, b := resp.Stringify(w.Result())
+	res := resp.New()
+	err := resp.FromJson(b, res)
 
-	if resp.GetStatus() != http.StatusOK {
+	if err != nil {
+		t.Errorf("error parsing data: %v", err)
+	}
+
+	if res.StatusCode != http.StatusOK {
 		t.Errorf("status code failed")
 		fmt.Println(str)
 	}

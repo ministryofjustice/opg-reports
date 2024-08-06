@@ -7,14 +7,13 @@ import (
 	"opg-reports/shared/data"
 	"opg-reports/shared/github/std"
 	"opg-reports/shared/logger"
-	"opg-reports/shared/server/response"
+	"opg-reports/shared/server/resp"
 	"testing"
 )
 
-func TestServicesApiGithubStandardsFiltersForGetParameters(t *testing.T) {
+func TestServicesApiGithubStandardsFilters(t *testing.T) {
 	logger.LogSetup()
 	// --- SETUP
-	fs := testhelpers.Fs()
 	mux := testhelpers.Mux()
 	store := data.NewStore[*std.Repository]()
 	fakes := 90
@@ -38,107 +37,113 @@ func TestServicesApiGithubStandardsFiltersForGetParameters(t *testing.T) {
 		store.Add(c)
 	}
 
-	resp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
-	api := New(store, fs, resp)
-	api.Register(mux)
-
+	Register(mux, store)
 	// --- TEST ARCHIVED ONLY VALUES
 	route := "/github/standards/v1/list/?archived=true"
 	w, r := testhelpers.WRGet(route)
 	mux.ServeHTTP(w, r)
 
-	str, b := response.Stringify(w.Result())
-	res := response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
-	err := response.FromJson(b, res)
+	str, b := resp.Stringify(w.Result())
+	res := resp.New()
+	err := resp.FromJson(b, res)
 
 	if err != nil {
 		t.Errorf("failed to parse response: %v", err)
 	}
 
-	if res.GetStatus() != http.StatusOK {
+	if res.StatusCode != http.StatusOK {
 		t.Errorf("status code failed")
 		fmt.Println(str)
 	}
-
-	// convert the row back to a repo
-	repos := data.FromRows[*std.Repository](res.GetData().GetTableBody())
+	repos := resp.ToEntries[*std.Repository](res.Result.Body)
 
 	if len(repos) != archived {
 		t.Errorf("archive filter failed: expected [%v] actual [%v]", archived, len(repos))
+		fmt.Println("--> repos:")
+		fmt.Printf("%+v\n", repos)
 	}
 
 	// --- TEST TEAM FILTER OR LOGIC
-	route = "/github/standards/v1/list/?teams=ABC&team=bar"
+	route = "/github/standards/v1/list/?team=ABC&team=bar"
 	w, r = testhelpers.WRGet(route)
 	mux.ServeHTTP(w, r)
 
-	str, b = response.Stringify(w.Result())
-	res = response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
-	err = response.FromJson(b, res)
+	str, b = resp.Stringify(w.Result())
+	res = resp.New()
+	err = resp.FromJson(b, res)
 
 	if err != nil {
 		t.Errorf("failed to parse response: %v", err)
 	}
-	if res.GetStatus() != http.StatusOK {
-		t.Errorf("status code failed: %v", res.GetStatus())
+	if res.StatusCode != http.StatusOK {
+		t.Errorf("status code failed: %v", res.StatusCode)
 		fmt.Println(str)
 	}
 
 	// convert the row back to a repo
-	repos = data.FromRows[*std.Repository](res.GetData().GetTableBody())
+	repos = resp.ToEntries[*std.Repository](res.Result.Body)
 
 	if len(repos) != teams {
 		t.Errorf("team filter failed: actual [%v] expected [%v]", len(repos), teams)
+		fmt.Println("--> repos:")
+		for _, re := range repos {
+			m, _ := data.ToMap(re)
+			fmt.Printf("%+v\n", m)
+		}
+
 	}
 
 	// --- TEST TEAM FILTER AND LOGIC
 	// this should return empty set as that team does not exist
-	route = "/github/standards/v1/list/?teams=ABC,bar"
+	route = "/github/standards/v1/list/?team=ABC,bar"
 	w, r = testhelpers.WRGet(route)
 	mux.ServeHTTP(w, r)
 
-	str, b = response.Stringify(w.Result())
-	res = response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
-	err = response.FromJson(b, res)
+	str, b = resp.Stringify(w.Result())
+	res = resp.New()
+	err = resp.FromJson(b, res)
 
 	if err != nil {
 		t.Errorf("failed to parse response: %v", err)
 	}
-	if res.GetStatus() != http.StatusOK {
-		t.Errorf("status code failed")
+	if res.StatusCode != http.StatusOK {
+		t.Errorf("status code failed: %v", res.StatusCode)
 		fmt.Println(str)
 	}
 
 	// convert the row back to a repo
-	repos = data.FromRows[*std.Repository](res.GetData().GetTableBody())
+	repos = resp.ToEntries[*std.Repository](res.Result.Body)
 
 	if len(repos) != 0 {
 		t.Errorf("team AND filter failed")
+		fmt.Printf("%+v\n", repos)
 	}
 
 	// --- TEST TEAM FILTER AND OR COMBINED LOGIC
 	// this should return all expected teams due to the foo team
-	route = "/github/standards/v1/list/?teams=ABC,bar&teams=foo"
+	route = "/github/standards/v1/list/?team=ABC,bar&team=foo"
 	w, r = testhelpers.WRGet(route)
 	mux.ServeHTTP(w, r)
 
-	str, b = response.Stringify(w.Result())
-	res = response.NewResponse[*response.Cell, *response.Row[*response.Cell]]()
-	err = response.FromJson(b, res)
+	str, b = resp.Stringify(w.Result())
+	res = resp.New()
+	err = resp.FromJson(b, res)
 
 	if err != nil {
 		t.Errorf("failed to parse response: %v", err)
 	}
-	if res.GetStatus() != http.StatusOK {
-		t.Errorf("status code failed")
+	if res.StatusCode != http.StatusOK {
+		t.Errorf("status code failed: %v", res.StatusCode)
 		fmt.Println(str)
 	}
 
 	// convert the row back to a repo
-	repos = data.FromRows[*std.Repository](res.GetData().GetTableBody())
+	repos = resp.ToEntries[*std.Repository](res.Result.Body)
 
 	if len(repos) != teams {
-		t.Errorf("team AND OR filter failed")
+		t.Errorf("team AND OR filter failed: [%v] [%v]", len(repos), teams)
+		fmt.Println("--> repos:")
+		fmt.Printf("%+v\n", repos)
 	}
 
 }
