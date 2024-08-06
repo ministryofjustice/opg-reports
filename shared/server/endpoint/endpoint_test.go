@@ -108,7 +108,7 @@ func TestSharedServerEndpointFull(t *testing.T) {
 		}
 		// filter by tag
 		tagF := func(i *testhelpers.TestIEntry) bool {
-			res := true
+			res := false
 			if tags, ok := params["tag"]; ok {
 				merged := strings.ToLower(strings.Join(i.Tags, ","))
 				for _, s := range tags {
@@ -148,6 +148,16 @@ func TestSharedServerEndpointFull(t *testing.T) {
 
 	w, r = testhelpers.WRGet("/test/?tag=foo")
 	mux.ServeHTTP(w, r)
-	str, _ := resp.Stringify(w.Result())
-	fmt.Println(str)
+	str, b := resp.Stringify(w.Result())
+	resp.FromJson(b, re)
+
+	total := 0
+	for _, r := range re.Result.Body {
+		total += int(r.Supplementary[0].Value.(float64))
+	}
+
+	if total != len(foos) {
+		t.Errorf("tag filter failed: [%v] [%v]", total, len(foos))
+		fmt.Println(str)
+	}
 }
