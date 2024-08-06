@@ -59,6 +59,8 @@ func TestServicesApiGithubStandardsFilters(t *testing.T) {
 
 	if len(repos) != archived {
 		t.Errorf("archive filter failed: expected [%v] actual [%v]", archived, len(repos))
+		fmt.Println("--> repos:")
+		fmt.Printf("%+v\n", repos)
 	}
 
 	// --- TEST TEAM FILTER OR LOGIC
@@ -83,6 +85,12 @@ func TestServicesApiGithubStandardsFilters(t *testing.T) {
 
 	if len(repos) != teams {
 		t.Errorf("team filter failed: actual [%v] expected [%v]", len(repos), teams)
+		fmt.Println("--> repos:")
+		for _, re := range repos {
+			m, _ := data.ToMap(re)
+			fmt.Printf("%+v\n", m)
+		}
+
 	}
 
 	// --- TEST TEAM FILTER AND LOGIC
@@ -108,6 +116,7 @@ func TestServicesApiGithubStandardsFilters(t *testing.T) {
 
 	if len(repos) != 0 {
 		t.Errorf("team AND filter failed")
+		fmt.Printf("%+v\n", repos)
 	}
 
 	// --- TEST TEAM FILTER AND OR COMBINED LOGIC
@@ -132,7 +141,9 @@ func TestServicesApiGithubStandardsFilters(t *testing.T) {
 	repos = resp.ToEntries[*std.Repository](res.Result.Body)
 
 	if len(repos) != teams {
-		t.Errorf("team AND OR filter failed")
+		t.Errorf("team AND OR filter failed: [%v] [%v]", len(repos), teams)
+		fmt.Println("--> repos:")
+		fmt.Printf("%+v\n", repos)
 	}
 
 }
