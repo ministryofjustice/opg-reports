@@ -28,6 +28,8 @@ func main() {
 	awsCostMonthlyApi := monthly.New(awsCostMonthlyStore, awsCostMonthlyFs, awsResp)
 	awsCostMonthlyApi.Register(mux)
 
+	monthly.Register(mux, awsCostMonthlyStore)
+
 	ghStandardsDir := os.DirFS("data/github/standards/").(files.IReadFS)
 	ghStandardsFS := files.NewFS(ghStandardsDir, "data/github/standards/")
 	ghStandardsStore := data.NewStoreFromFS[*std.Repository, *files.WriteFS](ghStandardsFS)

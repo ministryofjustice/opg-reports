@@ -8,7 +8,7 @@ import (
 
 // Filters
 var excludeTax = func(item *cost.Cost) bool {
-	return strings.ToLower(item.Service) != "tax"
+	return strings.ToLower(item.Service) != taxServiceName
 }
 
 // Helpers used within grouping
