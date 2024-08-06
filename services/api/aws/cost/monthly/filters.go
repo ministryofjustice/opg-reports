@@ -6,6 +6,7 @@ import (
 	"opg-reports/shared/aws/cost"
 	"opg-reports/shared/data"
 	"opg-reports/shared/dates"
+	"opg-reports/shared/server"
 	"opg-reports/shared/server/resp"
 	"strings"
 )
@@ -16,7 +17,7 @@ var excludeTax = func(item *cost.Cost) bool {
 
 func FilterFunctions(parameters map[string][]string, response *resp.Response) (funcs map[string]data.IStoreFilterFunc[*cost.Cost]) {
 	// -- get the start & end dates as well as list of all months
-	startDate, endDate := startEnd(parameters)
+	startDate, endDate := server.GetStartEndDates(parameters)
 	months := dates.Strings(dates.Months(startDate, endDate), dates.FormatYM)
 	slog.Debug("[aws/costs/monthly] FilterFunctions",
 		slog.String("start", startDate.String()),

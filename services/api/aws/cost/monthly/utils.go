@@ -6,7 +6,6 @@ import (
 	"opg-reports/shared/dates"
 	"opg-reports/shared/server/resp/cell"
 	"opg-reports/shared/server/resp/row"
-	"time"
 )
 
 func HeaderMonths(months []string) (cells []*cell.Cell) {
@@ -15,21 +14,6 @@ func HeaderMonths(months []string) (cells []*cell.Cell) {
 		cells = append(cells, cell.New(m, m, false, false))
 	}
 	return
-}
-
-func startEnd(parameters map[string][]string) (time.Time, time.Time) {
-	now := time.Now().UTC()
-	firstDay := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
-	startDate := firstDay
-	endDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
-
-	if starts, ok := parameters["start"]; ok && starts[0] != "-" {
-		startDate, _ = dates.StringToDateDefault(starts[0], "-", firstDay.Format(dates.FormatYM))
-	}
-	if ends, ok := parameters["end"]; ok && ends[0] != "-" {
-		endDate, _ = dates.StringToDateDefault(ends[0], "-", endDate.Format(dates.FormatYM))
-	}
-	return startDate, endDate
 }
 
 func TotalPerMonth(store data.IStore[*cost.Cost], months []string) (rowTotal float64, cells []*cell.Cell) {
