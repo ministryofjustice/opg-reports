@@ -11,7 +11,6 @@ import (
 	"opg-reports/shared/files"
 	"opg-reports/shared/github/std"
 	"opg-reports/shared/logger"
-	"opg-reports/shared/server/response"
 	"os"
 )
 
@@ -24,10 +23,6 @@ func main() {
 	awsCostMonthDir := os.DirFS("data/aws/cost/monthly/").(files.IReadFS)
 	awsCostMonthlyFs := files.NewFS(awsCostMonthDir, "data/aws/cost/monthly/")
 	awsCostMonthlyStore := data.NewStoreFromFS[*cost.Cost, *files.WriteFS](awsCostMonthlyFs)
-	awsResp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
-	awsCostMonthlyApi := monthly.New(awsCostMonthlyStore, awsCostMonthlyFs, awsResp)
-	awsCostMonthlyApi.Register(mux)
-
 	monthly.Register(mux, awsCostMonthlyStore)
 
 	ghStandardsDir := os.DirFS("data/github/standards/").(files.IReadFS)

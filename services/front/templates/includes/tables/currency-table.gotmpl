@@ -12,13 +12,11 @@
         <thead class="govuk-table__head">
             <tr class="govuk-table__row">
                 {{ range $i, $cell := .Headings }}
-                    {{ $n := addi $i 1}}
-                    {{ if lt $n $pre }}
+                    {{ $head := $cell.GetIsHeader }}
+                    {{ if $head }}
                         <th class="govuk-table__header" data-col="{{$i}}"><span>{{ $cell.GetName }}</span></th>
-                    {{ else if eq $n $pre}}
-                        <th class="govuk-table__header last-header" data-col="{{$i}}"><span>{{ $cell.GetName }}</span></th>
-                    {{ else}}
-                        <th class="govuk-table__header data-cell"><span>{{ $cell.GetName }}</span></th>
+                    {{ else }}
+                        <th class="govuk-table__header data-cell" data-col="{{$i}}"><span>{{ $cell.GetName }}</span></th>
                     {{ end }}
                 {{ end }}
             </tr>
@@ -29,13 +27,9 @@
                     {{ $cells := $row.GetAll }}
 
                     {{ range $i, $cell := $cells }}
-                        {{ $n := addi $i 1}}
-                        {{ if lt $n $pre }}
+                        {{ $head := $cell.GetIsHeader }}
+                        {{ if $head }}
                             <th data-col="{{$i}}" class="govuk-table__header"><span>{{ $cell.GetValue }}</span></th>
-                        {{ else if eq $n $pre}}
-                            <th data-col="{{$i}}" class="govuk-table__header last-header"><span>{{ $cell.GetValue }}</span></th>
-                        {{ else if lt $n $post }}
-                            <td data-col="{{$i}}" class="govuk-table__cell data-cell"><span title="{{ $cell.GetValue }}">{{ dollar $cell.GetValue }}</span></td>
                         {{ else }}
                             <td data-col="{{$i}}" class="govuk-table__cell data-cell"><span title="{{ $cell.GetValue }}">{{ dollar $cell.GetValue }}</span></td>
                         {{ end }}

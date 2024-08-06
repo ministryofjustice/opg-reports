@@ -12,6 +12,14 @@ import (
 	"opg-reports/shared/server/resp/row"
 )
 
+func headerMonths(months []string) (cells []*cell.Cell) {
+	cells = []*cell.Cell{}
+	for _, m := range months {
+		cells = append(cells, cell.New(m, m, false, false))
+	}
+	return
+}
+
 // DisplayHeadFunctions
 func DisplayHeadFunctions(parameters map[string][]string) (funcs map[string]endpoint.DisplayHeadFunc) {
 	// -- get the start & end dates as well as list of all months
@@ -22,6 +30,8 @@ func DisplayHeadFunctions(parameters map[string][]string) (funcs map[string]endp
 		slog.String("end", endDate.String()),
 		slog.String("months", fmt.Sprintf("%+v", months)),
 		slog.String("parameters", fmt.Sprintf("%+v", parameters)))
+
+	hMonths := headerMonths(months)
 	// -- monthly totals
 	// This has a split on in tax is included or not and then
 	// a final col for the line total
@@ -29,15 +39,47 @@ func DisplayHeadFunctions(parameters map[string][]string) (funcs map[string]endp
 		slog.Debug("[aws/costs/monthly] monthlyTotals head func")
 		r = row.New()
 		r.Add(cell.New("Tax", "Tax", true, false))
-		for _, m := range months {
-			r.Add(cell.New(m, m, true, false))
-		}
-		r.Add(cell.New("Total", "Total", true, true))
+		r.Add(hMonths...)
+		r.Add(cell.New("Totals", "Totals", false, true))
+		return
+	}
+	// -- per unit
+	var perUnit endpoint.DisplayHeadFunc = func() (r *row.Row) {
+		slog.Debug("[aws/costs/monthly] perUnit head func")
+		r = row.New()
+		r.Add(cell.New("Unit", "Unit", true, false))
+		r.Add(hMonths...)
+		r.Add(cell.New("Totals", "Totals", false, true))
+		return
+	}
+	// -- per unit & env
+	var perUnitEnv endpoint.DisplayHeadFunc = func() (r *row.Row) {
+		slog.Debug("[aws/costs/monthly] perUnitEnv head func")
+		r = row.New()
+		r.Add(cell.New("Unit", "Unit", true, false))
+		r.Add(cell.New("Environment", "Environment", true, false))
+		r.Add(hMonths...)
+		r.Add(cell.New("Totals", "Totals", false, true))
+		return
+	}
+	// -- per unit, env, service
+	var perUnitEnvService endpoint.DisplayHeadFunc = func() (r *row.Row) {
+		slog.Debug("[aws/costs/monthly] perUnitEnvService head func")
+		r = row.New()
+		r.Add(cell.New("Account", "Account", true, false))
+		r.Add(cell.New("Unit", "Unit", true, false))
+		r.Add(cell.New("Environment", "Environment", true, false))
+		r.Add(cell.New("Service", "Service", true, false))
+		r.Add(hMonths...)
+		r.Add(cell.New("Totals", "Totals", false, true))
 		return
 	}
 
 	funcs = map[string]endpoint.DisplayHeadFunc{
-		"monthlyTotals": monthlyTotals,
+		"monthlyTotals":     monthlyTotals,
+		"perUnit":           perUnit,
+		"perUnitEnv":        perUnitEnv,
+		"perUnitEnvService": perUnitEnvService,
 	}
 
 	return funcs
@@ -75,12 +117,89 @@ func DisplayRowFunctions(parameters map[string][]string) (funcs map[string]endpo
 		}
 		return
 	}
+	// -- per unit
+	var perUnit endpoint.DisplayRowFunc[*cost.Cost] = func(group string, store data.IStore[*cost.Cost], resp *resp.Response) (rows []*row.Row) {
+		first := store.List()[0]
+		// row headers
+		cells := []*cell.Cell{
+			cell.New(first.AccountUnit, first.AccountUnit, true, false),
+		}
+		// get the row months
+		rowTotal, monthCells := totalPerMonth(store, months)
+		cells = append(cells, monthCells...)
+		// totals
+		cells = append(cells, cell.New("Totals", rowTotal, false, true))
+		// return the row
+		rows = []*row.Row{row.New(cells...)}
+		return
+	}
+	// -- per unit & env
+	var perUnitEnv endpoint.DisplayRowFunc[*cost.Cost] = func(group string, store data.IStore[*cost.Cost], resp *resp.Response) (rows []*row.Row) {
+		first := store.List()[0]
+		// row headers
+		cells := []*cell.Cell{
+			cell.New(first.AccountUnit, first.AccountUnit, true, false),
+			cell.New(first.AccountEnvironment, first.AccountEnvironment, true, false),
+		}
+		// get the row months
+		rowTotal, monthCells := totalPerMonth(store, months)
+		cells = append(cells, monthCells...)
+		// totals
+		cells = append(cells, cell.New("Totals", rowTotal, false, true))
+		// return the row
+		rows = []*row.Row{row.New(cells...)}
+		return
+	}
+	// perUnitEnvService
+	var perUnitEnvService endpoint.DisplayRowFunc[*cost.Cost] = func(group string, store data.IStore[*cost.Cost], resp *resp.Response) (rows []*row.Row) {
+		first := store.List()[0]
+		// row headers
+		cells := []*cell.Cell{
+			cell.New(first.AccountId, first.AccountId, true, false),
+			cell.New(first.AccountUnit, first.AccountUnit, true, false),
+			cell.New(first.AccountEnvironment, first.AccountEnvironment, true, false),
+			cell.New(first.Service, first.Service, true, false),
+		}
+		// get the row months
+		rowTotal, monthCells := totalPerMonth(store, months)
+		cells = append(cells, monthCells...)
+		// totals
+		cells = append(cells, cell.New("Totals", rowTotal, false, true))
+		// return the row
+		rows = []*row.Row{row.New(cells...)}
+		return
+	}
 
 	funcs = map[string]endpoint.DisplayRowFunc[*cost.Cost]{
-		"monthlyTotals": monthlyTotals,
+		"monthlyTotals":     monthlyTotals,
+		"perUnit":           perUnit,
+		"perUnitEnv":        perUnitEnv,
+		"perUnitEnvService": perUnitEnvService,
 	}
 
 	return
 }
 
-// type DisplayFootFunc func(bodyRows []*row.Row) *row.Row
+// DisplayFootFunctions
+func DisplayFootFunctions(parameters map[string][]string) (funcs map[string]endpoint.DisplayFootFunc) {
+	// -- get the start & end dates as well as list of all months
+	startDate, endDate := startEnd(parameters)
+	months := dates.Strings(dates.Months(startDate, endDate), dates.FormatYM)
+	slog.Debug("[aws/costs/monthly] DisplayFootFunctions",
+		slog.String("start", startDate.String()),
+		slog.String("end", endDate.String()),
+		slog.String("months", fmt.Sprintf("%+v", months)),
+		slog.String("parameters", fmt.Sprintf("%+v", parameters)))
+
+	var perUnit endpoint.DisplayFootFunc = columnTotals
+	var perUnitEnv endpoint.DisplayFootFunc = columnTotals
+	var perUnitEnvService endpoint.DisplayFootFunc = columnTotals
+
+	funcs = map[string]endpoint.DisplayFootFunc{
+		"perUnit":           perUnit,
+		"perUnitEnv":        perUnitEnv,
+		"perUnitEnvService": perUnitEnvService,
+	}
+
+	return
+}

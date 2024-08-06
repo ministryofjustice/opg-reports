@@ -10,6 +10,10 @@ import (
 	"strings"
 )
 
+var excludeTax = func(item *cost.Cost) bool {
+	return strings.ToLower(item.Service) != taxServiceName
+}
+
 func FilterFunctions(parameters map[string][]string, response *resp.Response) (funcs map[string]data.IStoreFilterFunc[*cost.Cost]) {
 	// -- get the start & end dates as well as list of all months
 	startDate, endDate := startEnd(parameters)
@@ -59,9 +63,9 @@ func FilterFunctions(parameters map[string][]string, response *resp.Response) (f
 	var envFilter = func(item *cost.Cost) (found bool) {
 		if len(envs) > 0 {
 			found = false
-			check := strings.ToLower(item.AccountUnit)
-			for _, u := range units {
-				if check == strings.ToLower(u) {
+			check := strings.ToLower(item.AccountEnvironment)
+			for _, i := range envs {
+				if check == strings.ToLower(i) {
 					found = true
 					break
 				}
