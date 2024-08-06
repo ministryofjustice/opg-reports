@@ -32,8 +32,8 @@ gh release download --clobber --repo ministryofjustice/opg-metadata --pattern "*
 tar -xzf metadata.tar.gz
 # loop between two dates
 echo '#!/usr/bin/env bash
-read -p "Start date [2024-06-01]: " start
-start="${start:-2024-06-01}"
+read -p "Start date [2024-07-22]: " start
+start="${start:-2024-07-22}"
 read -p "End date [2024-08-06]: " end
 end="${end:-2024-08-06}"
 d="${start}"
@@ -71,15 +71,17 @@ echo 'done' >> ./uptime.sh
 # #####
 # # add the aws sync
 # #####
+echo '
 profile="shared-development-operator"
 bucket="report-data-development"
 bucket_path="aws/uptime/daily"
+' >> ./uptime.sh
 echo '
 read -p "upload to s3?: (Y|N) " up
 if [[ "${up}" == [Yy] ]]; then
   cd ./data/
   ls -lh . | wc -l
-  aws-vault exec ${profile} -- aws s3 cp --recursive . s3://${bucket}/${bucket_path} --sse AES256" >> ./uptime.sh
+  aws-vault exec ${profile} -- aws s3 cp --recursive . s3://${bucket}/${bucket_path} --sse AES256
   cd ../
   rm -Rf ./data/
 fi' >> ./uptime.sh
@@ -105,10 +107,6 @@ echo "✅ Download latest opg-metadata release and reformatted the account data"
 echo "✅ Copied binary to same directory as script"
 echo "Generated script here:"
 echo "${BASE}/aws-uptime-daily.sh"
-echo "------------------------------------------"
-echo "Before use, you will need to:"
-echo " - replace PROFILE with accurate aws profile values."
-echo " - remove any non-aws account details"
 echo "------------------------------------------"
 
 code ${BASE}/aws-uptime-daily.sh
