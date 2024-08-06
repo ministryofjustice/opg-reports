@@ -64,7 +64,7 @@ func TestSharedServerEndpointFull(t *testing.T) {
 		return r
 	}
 	// func(store data.IStore[V]) *row.Row
-	rowF := func(store data.IStore[*testhelpers.TestIEntry], resp *resp.Response) *row.Row {
+	rowF := func(store data.IStore[*testhelpers.TestIEntry], resp *resp.Response) []*row.Row {
 		totalCount := 0
 		list := store.List()
 		first := list[0]
@@ -87,7 +87,7 @@ func TestSharedServerEndpointFull(t *testing.T) {
 			resp.AddDataAge(i.TS())
 		}
 		r.Add(cell.New("Total", totalCount, false, true))
-		return r
+		return []*row.Row{r}
 	}
 
 	// Setup the endpoint

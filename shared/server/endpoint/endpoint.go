@@ -46,8 +46,8 @@ func (e *Endpoint[V]) ProcessRequest(w http.ResponseWriter, r *http.Request) {
 	bdy := []*row.Row{}
 
 	for _, g := range data.ApplyGroupBy() {
-		line := display.Row(g, response)
-		bdy = append(bdy, line)
+		lines := display.Rows(g, response)
+		bdy = append(bdy, lines...)
 	}
 	table.Body = bdy
 	table.Foot = display.Foot(bdy)

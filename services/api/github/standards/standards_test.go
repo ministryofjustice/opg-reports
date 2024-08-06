@@ -12,21 +12,21 @@ import (
 
 func TestServicesApiGithubStandardsStatusCode(t *testing.T) {
 	logger.LogSetup()
-	fs := testhelpers.Fs()
-
 	mux := testhelpers.Mux()
 	store := data.NewStore[*std.Repository]()
 	store.Add(std.Fake(nil))
-	resp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
-	api := New(store, fs, resp)
-	api.Register(mux)
 
+	Register(mux, store)
 	routes := map[string]int{
 		"/github/standards/v1/list/":               http.StatusOK,
 		"/github/standards/v1/list/?archived=true": http.StatusOK,
 		"/github/standards/v1/list/?teams=foobar":  http.StatusOK,
 		"/github/standards/v1/list":                http.StatusMovedPermanently,
 		"/github/standards/v1/list?archived=true":  http.StatusMovedPermanently,
+		// this should return a 200, and the foo param is ignored
+		"/github/standards/v1/list/?foo=bar": http.StatusOK,
+		// no endpoint for this pattern
+		"/github/standards/v1/": http.StatusNotFound,
 	}
 	for route, status := range routes {
 		w, r := testhelpers.WRGet(route)

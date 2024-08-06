@@ -3,28 +3,31 @@ package standards
 import (
 	"net/http"
 	"opg-reports/shared/data"
-	"opg-reports/shared/files"
 	"opg-reports/shared/github/std"
 	"opg-reports/shared/server"
-	"opg-reports/shared/server/response"
+	"opg-reports/shared/server/endpoint"
+	"opg-reports/shared/server/resp"
 )
 
-// Api implements IApi
-type Api[V *std.Repository, F files.IReadFS, C response.ICell, R response.IRow[C]] struct {
-	*server.Api[*std.Repository, F, C, R]
+var allowedParameters = []string{
+	"archived",
+	"team",
 }
 
-func (a *Api[V, F, C, R]) Register(mux *http.ServeMux) {
-	mux.HandleFunc("/github/standards/{version}/list/{$}",
-		server.Middleware(a.List, server.LoggingMW, server.SecurityHeadersMW))
-}
+func Register(mux *http.ServeMux, store data.IStore[*std.Repository]) {
 
-func New[V *std.Repository, F files.IReadFS, C response.ICell, R response.IRow[C]](
-	store data.IStore[*std.Repository],
-	fileSys F,
-	resp response.IResponse[C, R]) *Api[*std.Repository, F, C, R] {
+	qp := endpoint.NewQueryable(allowedParameters)
 
-	api := server.NewApi[*std.Repository, F, C, R](store, fileSys, resp)
-	return &Api[*std.Repository, F, C, R]{Api: api}
+	mux.HandleFunc("/github/standards/{version}/list/{$}", func(w http.ResponseWriter, r *http.Request) {
+		parameters := qp.Parse(r)
+		filterFuncs := EndpointFilters(parameters)
+
+		resp := resp.New()
+		data := endpoint.NewEndpointData[*std.Repository](store, nil, filterFuncs)
+		display := endpoint.NewEndpointDisplay[*std.Repository](nil, DisplayRow, nil)
+		ep := endpoint.New[*std.Repository]("test", resp, data, display, parameters)
+
+		server.Middleware(ep.ProcessRequest, server.LoggingMW, server.SecurityHeadersMW)(w, r)
+	})
 
 }

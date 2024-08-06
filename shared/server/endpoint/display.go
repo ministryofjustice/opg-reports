@@ -8,13 +8,13 @@ import (
 
 type IDisplay[V data.IEntry] interface {
 	Head() *row.Row
-	Row(store data.IStore[V], resp *resp.Response) *row.Row
+	Rows(store data.IStore[V], resp *resp.Response) []*row.Row
 	Foot(body []*row.Row) *row.Row
 }
 
 type DisplayHeadFunc func() *row.Row
 type DisplayFootFunc func(bodyRows []*row.Row) *row.Row
-type DisplayRowFunc[V data.IEntry] func(store data.IStore[V], resp *resp.Response) *row.Row
+type DisplayRowFunc[V data.IEntry] func(store data.IStore[V], resp *resp.Response) []*row.Row
 
 type Display[V data.IEntry] struct {
 	headF DisplayHeadFunc
@@ -29,10 +29,10 @@ func (d *Display[V]) Foot(body []*row.Row) (ro *row.Row) {
 	}
 	return
 }
-func (d *Display[V]) Row(store data.IStore[V], resp *resp.Response) (ro *row.Row) {
-	ro = row.New()
+func (d *Display[V]) Rows(store data.IStore[V], resp *resp.Response) (rows []*row.Row) {
+	rows = []*row.Row{}
 	if d.rowF != nil {
-		ro = d.rowF(store, resp)
+		rows = d.rowF(store, resp)
 	}
 	return
 }

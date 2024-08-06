@@ -26,6 +26,20 @@ func (r *Row) Add(cells ...*cell.Cell) {
 	return
 }
 
+func (r *Row) All() (all []*cell.Cell) {
+	all = []*cell.Cell{}
+	for _, h := range r.Headers {
+		all = append(all, h)
+	}
+	for _, d := range r.Data {
+		all = append(all, d)
+	}
+	for _, s := range r.Supplementary {
+		all = append(all, s)
+	}
+	return
+}
+
 func New(cells ...*cell.Cell) (r *Row) {
 	r = &Row{
 		Headers:       []*cell.Cell{},

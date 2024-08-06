@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"opg-reports/shared/data"
+	"opg-reports/shared/server/resp/row"
 )
 
 // Stringify returns the body content of a http.Response as both a string and []byte.
@@ -31,4 +33,22 @@ func FromJson(content []byte, r *Response) (err error) {
 func FromHttp(content *http.Response, r *Response) (err error) {
 	_, bytes := Stringify(content)
 	return FromJson(bytes, r)
+}
+
+func ToEntry[T data.IEntry](r *row.Row) (item T) {
+	mapped := map[string]interface{}{}
+	for _, c := range r.All() {
+		mapped[c.Name] = c.Value
+	}
+	item, _ = data.FromMap[T](mapped)
+	return
+}
+
+func ToEntries[T data.IEntry](rows []*row.Row) (items []T) {
+	items = []T{}
+	for _, r := range rows {
+		item := ToEntry[T](r)
+		items = append(items, item)
+	}
+	return
 }

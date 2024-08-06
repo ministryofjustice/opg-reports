@@ -31,9 +31,7 @@ func main() {
 	ghStandardsDir := os.DirFS("data/github/standards/").(files.IReadFS)
 	ghStandardsFS := files.NewFS(ghStandardsDir, "data/github/standards/")
 	ghStandardsStore := data.NewStoreFromFS[*std.Repository, *files.WriteFS](ghStandardsFS)
-	ghResp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
-	ghStandardsApi := standards.New(ghStandardsStore, ghStandardsFS, ghResp)
-	ghStandardsApi.Register(mux)
+	standards.Register(mux, ghStandardsStore)
 
 	addr := env.Get("API_ADDR", ":8081")
 	server := &http.Server{
