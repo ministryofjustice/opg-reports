@@ -29,17 +29,17 @@ mkdir -p ./metadata
 cd ./metadata
 gh release download --clobber --repo ministryofjustice/opg-metadata --pattern "*.tar.gz"
 tar -xzf metadata.tar.gz
+
+echo '#!/usr/bin/env bash
+read -p "Start date [2023-06]: " start
+start="${start:-2023-06}"
+read -p "End date [2024-08]: " end
+end="${end:-2024-08}"
+month="${start}"
+while [ "${month}" != "${end}" ]; do
+  echo "month: ${month}"' > ./costs.sh
+
 # use jq to remap all the values
-echo "#!/usr/bin/env bash" > ./costs.sh
-# add array of all months we want to record
-echo 'months=("2023-06" "2023-07" "2023-08" "2023-09" "2023-10" "2023-11" "2023-12" "2024-01" "2024-02" "2024-03" "2024-04" "2024-05" "2024-06")' >> ./costs.sh
-# add the for loop
-echo 'for month in ${months[@]}; do' >> ./costs.sh
-echo '  echo "month:${month}"' >> ./costs.sh
-# echo 'month="2023-06"
-# if [[ "${1}" != "" ]]; then
-#     month="${1}"
-# fi' >> ./costs.sh
 ########
 # due to fun with quotes and escaping we use some subs with sed
 # fixing it after jq. Details in order:
@@ -59,7 +59,6 @@ jq 'map(
     -account_environment=|\(.environment)|
 "
 ) | join("\n")' ./accounts.aws.json \
-    | sed "s/-month=|MONTH|/-month=|${month}|/g" \
     | sed 's/~/ \\/g' \
     | sed 's/|/"/g' \
     | sed 's/-null-/-/g' \
@@ -67,6 +66,7 @@ jq 'map(
 /g' | sed 's/^"\(.*\)/\1/' >> costs.sh
 
 # end the for loop
+echo '  month=$(date -v+1m -j -f "%Y-%m" ${month} +%Y-%m)' >> ./costs.sh
 echo 'done' >> ./costs.sh
 
 #####
@@ -105,11 +105,6 @@ echo "✅ Download latest opg-metadata release and reformatted the account data"
 echo "✅ Copied binary to same directory as script"
 echo "Generated script here:"
 echo "${BASE}/aws-costs-monthly.sh"
-echo "------------------------------------------"
-echo "Before use, you will need to:"
-echo " - replace PROFILE with accurate aws profile values."
-echo " - remove any non-aws account details"
-echo " - update month to which ever reporting on"
 echo "------------------------------------------"
 
 code ${BASE}/aws-costs-monthly.sh
