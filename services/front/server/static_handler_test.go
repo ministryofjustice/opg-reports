@@ -8,7 +8,7 @@ import (
 	"opg-reports/services/front/tmpl"
 	"opg-reports/shared/files"
 	"opg-reports/shared/logger"
-	"opg-reports/shared/server/response"
+	"opg-reports/shared/server/resp"
 	"os"
 	"strings"
 	"testing"
@@ -47,7 +47,7 @@ func TestFrontServerStaticHandler(t *testing.T) {
 			t.Errorf("should return 200: %v", w.Result().StatusCode)
 		}
 
-		str, _ := response.Stringify(w.Result())
+		str, _ := resp.Stringify(w.Result())
 		if !strings.Contains(str, "OPG") {
 			fmt.Println(str)
 			t.Errorf("org not rendered for route [%s]", route)

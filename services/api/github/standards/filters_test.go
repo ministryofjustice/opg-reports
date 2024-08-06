@@ -8,7 +8,6 @@ import (
 	"opg-reports/shared/github/std"
 	"opg-reports/shared/logger"
 	"opg-reports/shared/server/resp"
-	"opg-reports/shared/server/response"
 	"testing"
 )
 
@@ -67,7 +66,7 @@ func TestServicesApiGithubStandardsFilters(t *testing.T) {
 	w, r = testhelpers.WRGet(route)
 	mux.ServeHTTP(w, r)
 
-	str, b = response.Stringify(w.Result())
+	str, b = resp.Stringify(w.Result())
 	res = resp.New()
 	err = resp.FromJson(b, res)
 
@@ -92,7 +91,7 @@ func TestServicesApiGithubStandardsFilters(t *testing.T) {
 	w, r = testhelpers.WRGet(route)
 	mux.ServeHTTP(w, r)
 
-	str, b = response.Stringify(w.Result())
+	str, b = resp.Stringify(w.Result())
 	res = resp.New()
 	err = resp.FromJson(b, res)
 
@@ -117,7 +116,7 @@ func TestServicesApiGithubStandardsFilters(t *testing.T) {
 	w, r = testhelpers.WRGet(route)
 	mux.ServeHTTP(w, r)
 
-	str, b = response.Stringify(w.Result())
+	str, b = resp.Stringify(w.Result())
 	res = resp.New()
 	err = resp.FromJson(b, res)
 

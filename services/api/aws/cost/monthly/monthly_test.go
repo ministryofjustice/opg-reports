@@ -6,7 +6,7 @@ import (
 	"opg-reports/shared/aws/cost"
 	"opg-reports/shared/data"
 	"opg-reports/shared/logger"
-	"opg-reports/shared/server/response"
+	"opg-reports/shared/server/resp"
 	"testing"
 )
 
@@ -31,7 +31,7 @@ func TestServicesApiAwsCostMonthlyStatusCode(t *testing.T) {
 		w, r := testhelpers.WRGet(route)
 		mux.ServeHTTP(w, r)
 		if w.Result().StatusCode != status {
-			r, _ := response.Stringify(w.Result())
+			r, _ := resp.Stringify(w.Result())
 			t.Errorf("http status mismtach [%s] expected [%d], actual [%v]\n---\n%+v\n---\n", route, status, w.Result().StatusCode, r)
 		}
 	}

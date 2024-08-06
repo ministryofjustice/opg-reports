@@ -24,8 +24,8 @@ func FilterFunctions(parameters map[string][]string, response *resp.Response) (f
 		slog.String("months", fmt.Sprintf("%+v", months)),
 		slog.String("parameters", fmt.Sprintf("%+v", parameters)))
 
-	response.Metadata["StartDate"] = startDate
-	response.Metadata["EndDate"] = endDate
+	response.Metadata["startDate"] = startDate
+	response.Metadata["endDate"] = endDate
 	response.Metadata["filters"] = parameters
 
 	// -- month range filters

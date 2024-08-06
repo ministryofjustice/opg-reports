@@ -7,7 +7,8 @@ import (
 	"opg-reports/shared/dates"
 	"opg-reports/shared/files"
 	"opg-reports/shared/github/std"
-	"opg-reports/shared/server/response"
+	"opg-reports/shared/server/resp"
+	"opg-reports/shared/server/resp/row"
 	"strconv"
 	"strings"
 	"time"
@@ -71,19 +72,13 @@ func Funcs() map[string]interface{} {
 			}
 			return
 		},
-		// "append": func(slice []string, value string) []string {
-		// 	return append(slice, value)
-		// },
-		// "join": func(sep string, s ...string) string {
-		// 	return strings.Join(s, sep)
-		// },
 		"month": func(d time.Time) string {
 			return d.Format(dates.FormatYM)
 		},
 		"day": func(d time.Time) string {
 			return d.Format(dates.FormatYMD)
 		},
-		// Costs
+		// -- Costs
 		"dollar": func(f float64) string {
 			p := message.NewPrinter(language.English)
 			return p.Sprintf("$%.2f", f)
@@ -96,10 +91,11 @@ func Funcs() map[string]interface{} {
 		"addi": func(a int, b int) any {
 			return a + b
 		},
-		// Compliance
-		"getComplianceItem": func(row *response.Row[*response.Cell]) *std.Repository {
-			return data.FromRow[*std.Repository](row)
+		// -- Compliance
+		"getComplianceItem": func(r *row.Row) *std.Repository {
+			return resp.ToEntry[*std.Repository](r)
 		},
+
 		"repoSetStandards": func(c *std.Repository, standards *cnf.RepoStandards) error {
 			c.SetStandards(standards)
 			return nil
@@ -120,10 +116,10 @@ func Funcs() map[string]interface{} {
 			}
 			return
 		},
-		"totalCountPassed": func(rows []*response.Row[*response.Cell], standards []string) (count int) {
+		"totalCountPassed": func(rows []*row.Row, standards []string) (count int) {
 			count = 0
-			for _, row := range rows {
-				c := data.FromRow[*std.Repository](row)
+			for _, r := range rows {
+				c := resp.ToEntry[*std.Repository](r)
 				if pass, _, _ := c.Compliant(standards); pass {
 					count += 1
 				}

@@ -1,18 +1,11 @@
 {{ define "dynamic-currency-table" }}
-    {{ $pre := .HeadingsPre }}
-    {{ $post := .HeadingsPost }}
-    {{ $footerPre := .FooterPre }}
-    {{ $footerPost := .FooterPost }}
+
     <table
-        data-h-pre="{{ $pre }}"
-        data-h-post="{{ $post }}"
-        data-f-pre="{{ $footerPre }}"
-        data-f-post="{{ $footerPost }}"
         class="dataframe currency-table govuk-table highlight js-table-sorter {{ .NavigationActive.ClassName }}">
         <thead class="govuk-table__head">
             <tr class="govuk-table__row">
                 {{ range $i, $cell := .Headings }}
-                    {{ $head := $cell.GetIsHeader }}
+                    {{ $head := $cell.IsHeader }}
                     {{ if $head }}
                         <th class="govuk-table__header" data-col="{{$i}}"><span>{{ $cell.GetName }}</span></th>
                     {{ else }}
@@ -27,7 +20,7 @@
                     {{ $cells := $row.GetAll }}
 
                     {{ range $i, $cell := $cells }}
-                        {{ $head := $cell.GetIsHeader }}
+                        {{ $head := $cell.IsHeader }}
                         {{ if $head }}
                             <th data-col="{{$i}}" class="govuk-table__header"><span>{{ $cell.GetValue }}</span></th>
                         {{ else }}
@@ -43,12 +36,14 @@
             <tfoot>
                 <tr class="govuk-table__row">
                 {{ range $i, $cell := .Footer }}
+                    {{ $head := $cell.IsHeader }}
+                    {{ $extra := $cell.IsSupplementary }}
                     {{ if eq $i 0 }}
                         <th class="govuk-table__header" data-col="{{$i}}"><span>TOTALS</span></th>
-                    {{ else if lt $i $pre }}
-                        <td data-col="{{$i}}" class="govuk-table__cell data-cell"></td>
-                    {{ else }}
+                    {{ else if $extra }}
                         <td data-col="{{$i}}" class="govuk-table__cell data-cell"><span>{{ dollar $cell.GetValue }}</span></td>
+                    {{ else }}
+                        <td data-col="{{$i}}" class="govuk-table__cell data-cell"></td>
                     {{ end }}
                 {{ end }}
                 </tr>
