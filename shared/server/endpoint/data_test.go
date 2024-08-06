@@ -1,9 +1,10 @@
-package endpoint
+package endpoint_test
 
 import (
 	"opg-reports/shared/data"
 	"opg-reports/shared/fake"
 	"opg-reports/shared/logger"
+	"opg-reports/shared/server/endpoint"
 	"slices"
 	"testing"
 	"time"
@@ -55,7 +56,7 @@ func TestSharedServerEndpointDataFilters(t *testing.T) {
 		},
 	}
 
-	d := NewEndpointData[*testEntry](store, nil, filters)
+	d := endpoint.NewEndpointData[*testEntry](store, nil, filters)
 
 	s := d.ApplyFilters()
 	li := s.List()
@@ -72,7 +73,7 @@ func TestSharedServerEndpointDataFilters(t *testing.T) {
 		},
 	}
 
-	d = NewEndpointData[*testEntry](store, nil, filters)
+	d = endpoint.NewEndpointData[*testEntry](store, nil, filters)
 	s = d.ApplyFilters()
 	li = s.List()
 	if len(li) != tagFoo {
@@ -102,7 +103,7 @@ func TestSharedServerEndpointDataGrouping(t *testing.T) {
 	group := func(item *testEntry) string {
 		return item.Category
 	}
-	d := NewEndpointData[*testEntry](store, group, nil)
+	d := endpoint.NewEndpointData[*testEntry](store, group, nil)
 
 	groups := d.ApplyGroupBy()
 

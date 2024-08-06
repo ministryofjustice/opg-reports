@@ -1,4 +1,4 @@
-package endpoint
+package endpoint_test
 
 import (
 	"fmt"
@@ -9,6 +9,7 @@ import (
 	"opg-reports/shared/fake"
 	"opg-reports/shared/logger"
 	"opg-reports/shared/server"
+	"opg-reports/shared/server/endpoint"
 	"opg-reports/shared/server/resp"
 	"opg-reports/shared/server/resp/cell"
 	"opg-reports/shared/server/resp/row"
@@ -90,7 +91,7 @@ func TestSharedServerEndpointFull(t *testing.T) {
 
 	// Setup the endpoint
 	mux.HandleFunc("/test/", func(w http.ResponseWriter, r *http.Request) {
-		qp := NewQueryable([]string{
+		qp := endpoint.NewQueryable([]string{
 			"active",
 			"tag",
 		})
@@ -124,10 +125,10 @@ func TestSharedServerEndpointFull(t *testing.T) {
 			"tag":    tagF,
 		}
 		resp := resp.New()
-		data := NewEndpointData[*testhelpers.TestIEntry](store, group, filters)
-		display := NewEndpointDisplay[*testhelpers.TestIEntry](headF, rowF, nil)
+		data := endpoint.NewEndpointData[*testhelpers.TestIEntry](store, group, filters)
+		display := endpoint.NewEndpointDisplay[*testhelpers.TestIEntry](headF, rowF, nil)
 
-		ep := New[*testhelpers.TestIEntry]("test", resp, data, display, params)
+		ep := endpoint.New[*testhelpers.TestIEntry]("test", resp, data, display, params)
 
 		server.Middleware(ep.ProcessRequest, server.LoggingMW, server.SecurityHeadersMW)(w, r)
 	})
