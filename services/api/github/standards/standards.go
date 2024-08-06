@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"opg-reports/shared/data"
 	"opg-reports/shared/github/std"
-	"opg-reports/shared/server"
 	"opg-reports/shared/server/endpoint"
+	"opg-reports/shared/server/mw"
 	"opg-reports/shared/server/resp"
 )
 
@@ -27,7 +27,7 @@ func Register(mux *http.ServeMux, store data.IStore[*std.Repository]) {
 		display := endpoint.NewEndpointDisplay[*std.Repository](nil, DisplayRow, nil)
 		ep := endpoint.New[*std.Repository]("github-standards", resp, data, display, parameters)
 
-		server.Middleware(ep.ProcessRequest, server.LoggingMW, server.SecurityHeadersMW)(w, r)
+		mw.Middleware(ep.ProcessRequest, mw.Logging, mw.SecurityHeaders)(w, r)
 	})
 
 }

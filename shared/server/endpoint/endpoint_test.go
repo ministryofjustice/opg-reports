@@ -8,8 +8,8 @@ import (
 	"opg-reports/shared/dates"
 	"opg-reports/shared/fake"
 	"opg-reports/shared/logger"
-	"opg-reports/shared/server"
 	"opg-reports/shared/server/endpoint"
+	"opg-reports/shared/server/mw"
 	"opg-reports/shared/server/resp"
 	"opg-reports/shared/server/resp/cell"
 	"opg-reports/shared/server/resp/row"
@@ -130,7 +130,7 @@ func TestSharedServerEndpointFull(t *testing.T) {
 
 		ep := endpoint.New[*testhelpers.TestIEntry]("test", resp, data, display, params)
 
-		server.Middleware(ep.ProcessRequest, server.LoggingMW, server.SecurityHeadersMW)(w, r)
+		mw.Middleware(ep.ProcessRequest, mw.Logging, mw.SecurityHeaders)(w, r)
 	})
 
 	// should be empty

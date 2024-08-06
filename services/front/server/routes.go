@@ -3,7 +3,7 @@ package server
 import (
 	"log/slog"
 	"net/http"
-	"opg-reports/shared/server"
+	"opg-reports/shared/server/mw"
 	"strings"
 )
 
@@ -20,7 +20,8 @@ func (s *FrontWebServer) Register(mux *http.ServeMux) {
 			hf = s.Dynamic
 		}
 		slog.Info("registering route", slog.String("uri", uri), slog.Any("api", item.Api))
-		mux.HandleFunc(uri, server.Middleware(hf, server.LoggingMW, server.SecurityHeadersMW))
+
+		mux.HandleFunc(uri, mw.Middleware(hf, mw.Logging, mw.SecurityHeaders))
 
 	}
 }

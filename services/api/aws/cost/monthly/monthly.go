@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"opg-reports/shared/aws/cost"
 	"opg-reports/shared/data"
-	"opg-reports/shared/server"
 	"opg-reports/shared/server/endpoint"
+	"opg-reports/shared/server/mw"
 	"opg-reports/shared/server/resp"
 )
 
@@ -44,7 +44,7 @@ func Register(mux *http.ServeMux, store data.IStore[*cost.Cost]) {
 		display := endpoint.NewEndpointDisplay[*cost.Cost](head, row, nil)
 		ep := endpoint.New[*cost.Cost]("aws-cost-monthly-monthly-total", response, data, display, parameters)
 
-		server.Middleware(ep.ProcessRequest, server.LoggingMW, server.SecurityHeadersMW)(w, r)
+		mw.Middleware(ep.ProcessRequest, mw.Logging, mw.SecurityHeaders)(w, r)
 	})
 
 	// Previously "Service" sheet
@@ -68,7 +68,7 @@ func Register(mux *http.ServeMux, store data.IStore[*cost.Cost]) {
 		display := endpoint.NewEndpointDisplay[*cost.Cost](head, row, foot)
 		ep := endpoint.New[*cost.Cost]("aws-cost-monthly-per-unit", response, data, display, parameters)
 
-		server.Middleware(ep.ProcessRequest, server.LoggingMW, server.SecurityHeadersMW)(w, r)
+		mw.Middleware(ep.ProcessRequest, mw.Logging, mw.SecurityHeaders)(w, r)
 	})
 
 	// Previously "Service And Environment" sheet
@@ -92,7 +92,7 @@ func Register(mux *http.ServeMux, store data.IStore[*cost.Cost]) {
 		display := endpoint.NewEndpointDisplay[*cost.Cost](head, row, foot)
 		ep := endpoint.New[*cost.Cost]("aws-cost-monthly-per-unit-env", response, data, display, parameters)
 
-		server.Middleware(ep.ProcessRequest, server.LoggingMW, server.SecurityHeadersMW)(w, r)
+		mw.Middleware(ep.ProcessRequest, mw.Logging, mw.SecurityHeaders)(w, r)
 
 	})
 
@@ -117,6 +117,6 @@ func Register(mux *http.ServeMux, store data.IStore[*cost.Cost]) {
 		display := endpoint.NewEndpointDisplay[*cost.Cost](head, row, foot)
 		ep := endpoint.New[*cost.Cost]("aws-cost-monthly-per-unit-env-service", response, data, display, parameters)
 
-		server.Middleware(ep.ProcessRequest, server.LoggingMW, server.SecurityHeadersMW)(w, r)
+		mw.Middleware(ep.ProcessRequest, mw.Logging, mw.SecurityHeaders)(w, r)
 	})
 }

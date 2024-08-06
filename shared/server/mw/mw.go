@@ -1,4 +1,13 @@
-package server
+// package mw is the middleware handler
+//
+// Provides the Middleware function that allows chaining of http requests
+// from a server. This allows for logging, enforcing auth, output headers etc
+// in a neat fashion
+//
+// Includes common middleware:
+//   - Logging
+//   - SecurityHeaders
+package mw
 
 import (
 	"log/slog"
@@ -14,7 +23,7 @@ type MiddlewareFunc func(w http.ResponseWriter, r *http.Request)
 // Middleware facilitates creation of middleware chains, with them being called in sequence.
 // Normally configuerd by the IApi Register func, but can be called directly if required.
 //
-//	mux.HandleFunc("/user/{id}/{$}", Middleware(GetUserById, LoggingMW, SecurityHeadersMW))
+//	mux.HandleFunc("/user/{id}/{$}", Middleware(GetUserById, Logging, SecurityHeaders))
 //
 // Calls internal function `wrap`, which reduces some of the boiler plate required with
 // chaining, so the handler should be setup as a normal handler func
@@ -53,16 +62,16 @@ var securityHeaders = map[string]string{
 	"Pragma":                    "no-cache",
 }
 
-// SecurityHeadersMW attaches standard headers to the response
-func SecurityHeadersMW(w http.ResponseWriter, r *http.Request) {
+// SecurityHeaders attaches standard headers to the response
+func SecurityHeaders(w http.ResponseWriter, r *http.Request) {
 	for header, value := range securityHeaders {
 		w.Header().Add(header, value)
 	}
 }
 
-// LoggingMW uses the default structured log instance to output
+// Logging uses the default structured log instance to output
 // some information about the incoming request
-func LoggingMW(w http.ResponseWriter, r *http.Request) {
+func Logging(w http.ResponseWriter, r *http.Request) {
 	slog.Info("request",
 		slog.String("request_method", r.Method),
 		slog.String("request_uri", r.URL.String()),
