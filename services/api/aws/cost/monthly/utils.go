@@ -67,7 +67,7 @@ func columnTotals(rows []*row.Row) (totalRow *row.Row) {
 		if i < headingsCount {
 			c = cell.New("Total", total, true, false)
 		} else {
-			c = cell.New("Total", total, false, false)
+			c = cell.New("Total", total, false, true)
 		}
 		totalRow.Add(c)
 	}
