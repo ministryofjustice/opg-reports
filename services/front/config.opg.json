@@ -29,6 +29,22 @@
                     ]
                 },
                 {
+                    "name": "Service Uptime",
+                    "href": "/uptime/",
+                    "template": "static-aws-uptime-home",
+                    "header": true,
+                    "sections": [
+                        {
+                            "name": "Monthly Averages",
+                            "href": "/uptime/monthly/",
+                            "api": {
+                                "list": "/aws/uptime/v1/daily/{month:-3}/{month}/"
+                            },
+                            "template": "dynamic-aws-uptime-monthly"
+                        }
+                    ]
+                },
+                {
                     "name": "AWS Costs",
                     "href": "/costs/aws/",
                     "template": "static-aws-costs-home",

@@ -1,0 +1,54 @@
+{{ define "dynamic-uptime-table" }}
+
+    <table
+        class="dataframe currency-table govuk-table highlight js-table-sorter {{ .NavigationActive.ClassName }}">
+        <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+                {{ range $i, $cell := .Headings }}
+                    {{ $head := $cell.IsHeader }}
+                    {{ if $head }}
+                        <th class="govuk-table__header" data-col="{{$i}}"><span>{{ $cell.Name }}</span></th>
+                    {{ else }}
+                        <th class="govuk-table__header data-cell" data-col="{{$i}}"><span>{{ $cell.Name }}</span></th>
+                    {{ end }}
+                {{ end }}
+            </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+            {{ range $i, $row := .Result }}
+                <tr class="govuk-table__row" data-rowcount="{{$i}}">
+                    {{ $cells := $row.All }}
+
+                    {{ range $i, $cell := $cells }}
+                        {{ $head := $cell.IsHeader }}
+                        {{ if $head }}
+                            <th data-col="{{$i}}" class="govuk-table__header"><span>{{ $cell.Value }}</span></th>
+                        {{ else }}
+                            <td data-col="{{$i}}" class="govuk-table__cell data-cell"><span title="{{ $cell.Value }}">{{ percentage $cell.Value }}</span></td>
+                        {{ end }}
+                    {{ end }}
+                </tr>
+            {{ end }}
+        </tbody>
+        {{ if .Footer }}
+
+
+            <tfoot>
+                <tr class="govuk-table__row">
+                {{ range $i, $cell := .Footer }}
+                    {{ $head := $cell.IsHeader }}
+                    {{ $extra := $cell.IsSupplementary }}
+                    {{ if eq $i 0 }}
+                        <th class="govuk-table__header" data-col="{{$i}}"><span>OVERALL</span></th>
+                    {{ else if $extra }}
+                        <td data-col="{{$i}}" class="govuk-table__cell data-cell"><span>{{ percentage $cell.Value }}</span></td>
+                    {{ else }}
+                        <td data-col="{{$i}}" class="govuk-table__cell data-cell"></td>
+                    {{ end }}
+                {{ end }}
+                </tr>
+            </tfoot>
+        {{ end }}
+
+    </table>
+{{ end }}

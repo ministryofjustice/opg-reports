@@ -1,0 +1,14 @@
+{{ define "dynamic-aws-uptime-monthly" }}
+    {{ template "head" . }}
+    <h1 class="govuk-heading-l">Overall uptime averages</h1>
+
+    {{if .Result }}
+        {{ template "dynamic-uptime-table" . }}
+        {{ template "result-notes" . }}
+    {{ else }}
+        {{ template "no-result" . }}
+    {{end}}
+
+    {{ template "foot" . }}
+
+{{ end }}

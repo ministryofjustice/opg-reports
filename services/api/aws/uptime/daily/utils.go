@@ -24,7 +24,10 @@ func AvgPerMonth(store data.IStore[*uptime.Uptime], months []string) (rowAvg flo
 			return dates.InMonth(dateStr, []string{m})
 		}
 		values := store.Filter(inMonth)
-		monthlyAvg := uptime.Average(values.List())
+		monthlyAvg := 0.0
+		if values.Length() > 0 {
+			monthlyAvg = uptime.Average(values.List())
+		}
 		rowCount += monthlyAvg
 		// add to the set of cells
 		cells = append(cells, cell.New(m, monthlyAvg, false, false))

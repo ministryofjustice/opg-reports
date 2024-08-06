@@ -43,7 +43,10 @@ func (rp *Response) End(w http.ResponseWriter, r *http.Request) {
 	rp.GetDataAgeMin()
 	rp.GetDataAgeMax()
 
-	content, _ := json.MarshalIndent(rp, "", "  ")
+	content, err := json.MarshalIndent(rp, "", "  ")
+	if err != nil {
+		slog.Error(err.Error())
+	}
 
 	slog.Info("request end",
 		slog.Int("status", rp.StatusCode),

@@ -31,8 +31,9 @@ func DisplayHeadFunctions(parameters map[string][]string) (funcs map[string]endp
 	var monthly endpoint.DisplayHeadFunc = func() (r *row.Row) {
 		slog.Debug("[aws/uptime/daily] monthly head func")
 		r = row.New()
+		r.Add(cell.New("", "", true, false))
 		r.Add(hMonths...)
-		r.Add(cell.New("Average %", "Average %", false, true))
+		r.Add(cell.New("Overall %", "Overall %", false, true))
 		return
 	}
 
@@ -57,12 +58,14 @@ func DisplayRowFunctions(parameters map[string][]string) (funcs map[string]endpo
 	// -- monthly
 	var monthly endpoint.DisplayRowFunc[*uptime.Uptime] = func(group string, store data.IStore[*uptime.Uptime], resp *resp.Response) (rows []*row.Row) {
 		// row headers
-		cells := []*cell.Cell{}
+		cells := []*cell.Cell{
+			cell.New("Average", "Average", true, false),
+		}
 		// get the row months
 		rowAvg, monthCells := AvgPerMonth(store, months)
 		cells = append(cells, monthCells...)
 		// totals
-		cells = append(cells, cell.New("Average %", rowAvg, false, true))
+		cells = append(cells, cell.New("Overall %", rowAvg, false, true))
 		// return the row
 		rows = []*row.Row{row.New(cells...)}
 		return
