@@ -31,11 +31,15 @@ gh release download --clobber --repo ministryofjustice/opg-metadata --pattern "*
 tar -xzf metadata.tar.gz
 # use jq to remap all the values
 echo "#!/usr/bin/env bash" > ./costs.sh
-# append input to change the month
-echo 'month="2023-06"
-if [[ "${1}" != "" ]]; then
-    month="${1}"
-fi' >> ./costs.sh
+# add array of all months we want to record
+echo 'months=("2023-06" "2023-07" "2023-08" "2023-09" "2023-10" "2023-11" "2023-12" "2024-01" "2024-02" "2024-03" "2024-04" "2024-05" "2024-06")' >> ./costs.sh
+# add the for loop
+echo 'for month in ${months[@]}; do' >> ./costs.sh
+echo '  echo "month:${month}"' >> ./costs.sh
+# echo 'month="2023-06"
+# if [[ "${1}" != "" ]]; then
+#     month="${1}"
+# fi' >> ./costs.sh
 ########
 # due to fun with quotes and escaping we use some subs with sed
 # fixing it after jq. Details in order:
@@ -46,7 +50,7 @@ fi' >> ./costs.sh
 #  - remove " at starting of line: jq outputs wrapping string quotes, strip those out
 ########
 jq 'map(
-"aws-vault exec \(.label)-\(.environment)-breakglass -- ./aws_cost_monthly ~
+"  aws-vault exec \(.label)-\(.environment)-breakglass -- ./aws_cost_monthly ~
     -month=|${month}|~
     -account_id=|\(.id)|~
     -account_name=|\(.name)|~
@@ -61,6 +65,9 @@ jq 'map(
     | sed 's/-null-/-/g' \
     | sed 's/\\n/\
 /g' | sed 's/^"\(.*\)/\1/' >> costs.sh
+
+# end the for loop
+echo 'done' >> ./costs.sh
 
 #####
 # add the aws sync

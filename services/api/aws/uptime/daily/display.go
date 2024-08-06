@@ -79,7 +79,7 @@ func DisplayRowFunctions(parameters map[string][]string) (funcs map[string]endpo
 		return
 	}
 
-	// -- monthly
+	// -- monthly by account unit
 	var monthlyByAccountUnit endpoint.DisplayRowFunc[*uptime.Uptime] = func(group string, store data.IStore[*uptime.Uptime], resp *resp.Response) (rows []*row.Row) {
 		if store.Length() > 0 {
 			first := store.List()[0]
