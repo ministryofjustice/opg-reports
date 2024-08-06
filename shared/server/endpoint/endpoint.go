@@ -45,9 +45,13 @@ func (e *Endpoint[V]) ProcessRequest(w http.ResponseWriter, r *http.Request) {
 	table.Head = display.Head()
 	bdy := []*row.Row{}
 
-	for _, g := range data.ApplyGroupBy() {
-		lines := display.Rows(g, response)
+	for key, g := range data.ApplyGroupBy() {
+		lines := display.Rows(key, g, response)
 		bdy = append(bdy, lines...)
+		// add the timestamp data
+		for _, i := range g.List() {
+			response.AddDataAge(i.TS())
+		}
 	}
 	table.Body = bdy
 	table.Foot = display.Foot(bdy)

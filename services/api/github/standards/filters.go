@@ -1,13 +1,16 @@
 package standards
 
 import (
+	"fmt"
+	"log/slog"
 	"opg-reports/shared/data"
 	"opg-reports/shared/github/std"
+	"opg-reports/shared/server/resp"
 	"strconv"
 	"strings"
 )
 
-// EndpointFilters generates a map of functions that can be run against the data store based on the parameters passed.
+// FilterFunctions generates a map of functions that can be run against the data store based on the parameters passed.
 //
 // Archived filter is as simple match against the boolean
 //   - `?archived=true`
@@ -17,8 +20,11 @@ import (
 // for AND logic pass mutiple teams in one team parameter:
 //   - `?team=<TEAM-A>&team=<OR-TEAM-B>`
 //   - `?team=<TEAM-A>,<AND-TEAM-B>&team=<OR-TEAM-C>`
-func EndpointFilters(parameters map[string][]string) (funcs map[string]data.IStoreFilterFunc[*std.Repository]) {
+func FilterFunctions(parameters map[string][]string, response *resp.Response) (funcs map[string]data.IStoreFilterFunc[*std.Repository]) {
+	slog.Debug("[github/standards] FilterFunctions",
+		slog.String("parameters", fmt.Sprintf("%+v", parameters)))
 
+	response.Metadata["filters"] = parameters
 	// -- setup for the archived check
 	// By default, we only want non-archived repos
 	//  - Use the last value in the parameters

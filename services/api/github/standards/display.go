@@ -10,7 +10,7 @@ import (
 	"sort"
 )
 
-var DisplayRow endpoint.DisplayRowFunc[*std.Repository] = func(store data.IStore[*std.Repository], resp *resp.Response) (rows []*row.Row) {
+var DisplayRow endpoint.DisplayRowFunc[*std.Repository] = func(group string, store data.IStore[*std.Repository], resp *resp.Response) (rows []*row.Row) {
 	rows = []*row.Row{}
 	// sort alphabetically
 	list := store.List()

@@ -19,10 +19,10 @@ func Register(mux *http.ServeMux, store data.IStore[*std.Repository]) {
 	qp := endpoint.NewQueryable(allowedParameters)
 
 	mux.HandleFunc("/github/standards/{version}/list/{$}", func(w http.ResponseWriter, r *http.Request) {
-		parameters := qp.Parse(r)
-		filterFuncs := EndpointFilters(parameters)
-
 		resp := resp.New()
+		parameters := qp.Parse(r)
+		filterFuncs := FilterFunctions(parameters, resp)
+
 		data := endpoint.NewEndpointData[*std.Repository](store, nil, filterFuncs)
 		display := endpoint.NewEndpointDisplay[*std.Repository](nil, DisplayRow, nil)
 		ep := endpoint.New[*std.Repository]("test", resp, data, display, parameters)

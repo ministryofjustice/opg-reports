@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-func TestServicesApiGithubStandardsFiltersForGetParameters(t *testing.T) {
+func TestServicesApiGithubStandardsFilters(t *testing.T) {
 	logger.LogSetup()
 	// --- SETUP
 	mux := testhelpers.Mux()
