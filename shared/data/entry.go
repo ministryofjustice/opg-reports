@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"opg-reports/shared/server/response"
 	"time"
 )
 
@@ -80,51 +79,5 @@ func FromJson[T IEntry](content []byte) (item T, err error) {
 func FromJsonList[T IEntry](content []byte) (items []T, err error) {
 	err = json.Unmarshal(content, &items)
 	slog.Debug("[data/entry] FromJsonList", slog.String("err", fmt.Sprintf("%v", err)))
-	return
-}
-
-// ToRow converts an IEntry into a response.Row using ToMap.
-// Each key & value of the map are converted into a cell, and added
-// to the row
-func ToRow[T IEntry](item T) (row response.IRow[response.ICell]) {
-	mapped, _ := ToMap(item)
-	cells := []response.ICell{}
-	for k, v := range mapped {
-		cells = append(cells, response.NewCell(k, v))
-	}
-	row = response.NewRow(cells...)
-	return
-}
-func ToRowC[T IEntry](item T) (row *response.Row[*response.Cell]) {
-	mapped, _ := ToMap(item)
-	cells := []*response.Cell{}
-	for k, v := range mapped {
-		c := response.NewCell(k, v).(*response.Cell)
-		cells = append(cells, c)
-	}
-	row = response.NewRow[*response.Cell](cells...).(*response.Row[*response.Cell])
-	return
-}
-
-// FromRow allows conversion back to an IEntry from a response.Row presuming
-// followed the same structure as ToRow.
-// Each cell within the row is presumed to be a key value pair for a map
-// and is used to generate one.
-// FromMap is then called to create an IEntry
-func FromRow[T IEntry](row *response.Row[*response.Cell]) (item T) {
-	mapped := map[string]interface{}{}
-	for _, c := range row.GetAll() {
-		mapped[c.Name] = c.Value
-	}
-	item, _ = FromMap[T](mapped)
-	return
-}
-
-func FromRows[T IEntry](rows []*response.Row[*response.Cell]) (items []T) {
-	items = []T{}
-	for _, row := range rows {
-		item := FromRow[T](row)
-		items = append(items, item)
-	}
 	return
 }

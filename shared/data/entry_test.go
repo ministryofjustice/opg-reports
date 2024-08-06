@@ -1,7 +1,6 @@
 package data
 
 import (
-	"fmt"
 	"opg-reports/shared/logger"
 	"testing"
 	"time"
@@ -38,24 +37,6 @@ func (i *testEntryExt) TS() time.Time {
 }
 func (i *testEntryExt) Valid() bool {
 	return true
-}
-
-func TestSharedDataEntryToRowFromRow(t *testing.T) {
-	logger.LogSetup()
-	test := &testEntryExt{Id: "01", Tag: "tag1", Category: "cat1"}
-	r := ToRowC(test)
-
-	if len(r.GetAll()) != 3 {
-		t.Errorf("should have created 3 cells")
-	}
-
-	from := FromRow[*testEntryExt](r)
-
-	if from.Id != test.Id || from.Tag != test.Tag || from.Category != test.Category {
-		t.Errorf("conversion failed")
-		fmt.Printf("%+v\n", from)
-		fmt.Printf("%+v\n", test)
-	}
 }
 
 func TestSharedDataEntryComparable(t *testing.T) {
