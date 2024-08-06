@@ -3,9 +3,9 @@ package table
 import "opg-reports/shared/server/resp/row"
 
 type Table struct {
-	Head *row.Row
-	Body []*row.Row
-	Foot *row.Row
+	Head *row.Row   `json:"head"`
+	Body []*row.Row `json:"body"`
+	Foot *row.Row   `json:"foot"`
 }
 
 func (t *Table) SetBody(rows ...*row.Row) {
