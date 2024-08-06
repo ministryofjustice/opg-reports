@@ -12,14 +12,6 @@ import (
 	"opg-reports/shared/server/resp/row"
 )
 
-func headerMonths(months []string) (cells []*cell.Cell) {
-	cells = []*cell.Cell{}
-	for _, m := range months {
-		cells = append(cells, cell.New(m, m, false, false))
-	}
-	return
-}
-
 // DisplayHeadFunctions
 func DisplayHeadFunctions(parameters map[string][]string) (funcs map[string]endpoint.DisplayHeadFunc) {
 	// -- get the start & end dates as well as list of all months
@@ -31,7 +23,7 @@ func DisplayHeadFunctions(parameters map[string][]string) (funcs map[string]endp
 		slog.String("months", fmt.Sprintf("%+v", months)),
 		slog.String("parameters", fmt.Sprintf("%+v", parameters)))
 
-	hMonths := headerMonths(months)
+	hMonths := HeaderMonths(months)
 	// -- monthly totals
 	// This has a split on in tax is included or not and then
 	// a final col for the line total
@@ -108,7 +100,7 @@ func DisplayRowFunctions(parameters map[string][]string) (funcs map[string]endpo
 			cells := []*cell.Cell{}
 			cells = append(cells, cell.New(label, label, true, false))
 			// get the cells for the months
-			rowTotal, monthCells := totalPerMonth(s, months)
+			rowTotal, monthCells := TotalPerMonth(s, months)
 			cells = append(cells, monthCells...)
 			// add extra row total data
 			cells = append(cells, cell.New("Totals", rowTotal, false, true))
@@ -125,7 +117,7 @@ func DisplayRowFunctions(parameters map[string][]string) (funcs map[string]endpo
 			cell.New(first.AccountUnit, first.AccountUnit, true, false),
 		}
 		// get the row months
-		rowTotal, monthCells := totalPerMonth(store, months)
+		rowTotal, monthCells := TotalPerMonth(store, months)
 		cells = append(cells, monthCells...)
 		// totals
 		cells = append(cells, cell.New("Totals", rowTotal, false, true))
@@ -142,7 +134,7 @@ func DisplayRowFunctions(parameters map[string][]string) (funcs map[string]endpo
 			cell.New(first.AccountEnvironment, first.AccountEnvironment, true, false),
 		}
 		// get the row months
-		rowTotal, monthCells := totalPerMonth(store, months)
+		rowTotal, monthCells := TotalPerMonth(store, months)
 		cells = append(cells, monthCells...)
 		// totals
 		cells = append(cells, cell.New("Totals", rowTotal, false, true))
@@ -161,7 +153,7 @@ func DisplayRowFunctions(parameters map[string][]string) (funcs map[string]endpo
 			cell.New(first.Service, first.Service, true, false),
 		}
 		// get the row months
-		rowTotal, monthCells := totalPerMonth(store, months)
+		rowTotal, monthCells := TotalPerMonth(store, months)
 		cells = append(cells, monthCells...)
 		// totals
 		cells = append(cells, cell.New("Totals", rowTotal, false, true))

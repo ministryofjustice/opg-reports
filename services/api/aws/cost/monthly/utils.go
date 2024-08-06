@@ -9,6 +9,14 @@ import (
 	"time"
 )
 
+func HeaderMonths(months []string) (cells []*cell.Cell) {
+	cells = []*cell.Cell{}
+	for _, m := range months {
+		cells = append(cells, cell.New(m, m, false, false))
+	}
+	return
+}
+
 func startEnd(parameters map[string][]string) (time.Time, time.Time) {
 	now := time.Now().UTC()
 	firstDay := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
@@ -24,7 +32,7 @@ func startEnd(parameters map[string][]string) (time.Time, time.Time) {
 	return startDate, endDate
 }
 
-func totalPerMonth(store data.IStore[*cost.Cost], months []string) (rowTotal float64, cells []*cell.Cell) {
+func TotalPerMonth(store data.IStore[*cost.Cost], months []string) (rowTotal float64, cells []*cell.Cell) {
 	cells = []*cell.Cell{}
 	rowTotal = 0.0
 	for _, m := range months {
