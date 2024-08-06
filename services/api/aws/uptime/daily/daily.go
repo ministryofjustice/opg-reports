@@ -46,4 +46,23 @@ func Register(mux *http.ServeMux, store data.IStore[*uptime.Uptime]) {
 		mw.Middleware(ep.ProcessRequest, mw.Logging, mw.SecurityHeaders)(w, r)
 	})
 
+	mux.HandleFunc("/aws/uptime/{version}/daily/{start}/{end}/unit/{$}", func(w http.ResponseWriter, r *http.Request) {
+		response := resp.New()
+		key := "monthlyByAccountUnit"
+
+		parameters := qp.Parse(r)
+		filterFuncs := FilterFunctions(parameters, response)
+		displayHeadFuncs := DisplayHeadFunctions(parameters)
+		displayRowFuncs := DisplayRowFunctions(parameters)
+
+		head := displayHeadFuncs[key]
+		row := displayRowFuncs[key]
+
+		data := endpoint.NewEndpointData[*uptime.Uptime](store, byUnit, filterFuncs)
+		display := endpoint.NewEndpointDisplay[*uptime.Uptime](head, row, nil)
+		ep := endpoint.New[*uptime.Uptime]("aws-uptime-daily-unit", response, data, display, parameters)
+
+		mw.Middleware(ep.ProcessRequest, mw.Logging, mw.SecurityHeaders)(w, r)
+	})
+
 }

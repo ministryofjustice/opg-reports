@@ -36,37 +36,3 @@ func AvgPerMonth(store data.IStore[*uptime.Uptime], months []string) (rowAvg flo
 	rowAvg = rowCount / float64(l)
 	return
 }
-
-// func columnTotals(rows []*row.Row) (totalRow *row.Row) {
-// 	var totals []float64
-// 	totalRow = row.New()
-// 	headingsCount := 0
-// 	if len(rows) > 0 {
-// 		first := rows[0]
-// 		firstCells := first.All()
-// 		l := len(firstCells)
-// 		totals = make([]float64, l)
-// 		for i := 0; i < l; i++ {
-// 			totals[i] = 0.0
-// 		}
-// 		headingsCount = len(first.Headers)
-// 	}
-
-// 	for _, r := range rows {
-// 		cells := r.All()
-// 		for x := headingsCount; x < len(cells); x++ {
-// 			totals[x] += cells[x].Value.(float64)
-// 		}
-// 	}
-
-// 	for i, total := range totals {
-// 		var c *cell.Cell
-// 		if i < headingsCount {
-// 			c = cell.New("Total", total, true, false)
-// 		} else {
-// 			c = cell.New("Total", total, false, true)
-// 		}
-// 		totalRow.Add(c)
-// 	}
-// 	return
-// }

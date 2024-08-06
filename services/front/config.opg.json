@@ -41,6 +41,14 @@
                                 "list": "/aws/uptime/v1/daily/{month:-3}/{month}/"
                             },
                             "template": "dynamic-aws-uptime-monthly"
+                        },
+                        {
+                            "name": "Unit Averages",
+                            "href": "/uptime/monthly/service/",
+                            "api": {
+                                "list": "/aws/uptime/v1/daily/{month:-3}/{month}/unit/"
+                            },
+                            "template": "dynamic-aws-uptime-monthly-unit"
                         }
                     ]
                 },
