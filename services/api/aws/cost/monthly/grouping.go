@@ -30,6 +30,3 @@ var byUnitEnv = func(item *cost.Cost) string {
 var byUnitEnvService = func(item *cost.Cost) string {
 	return data.ToIdxF(item, account_id, unit, account_env, service)
 }
-var byAccountService = func(item *cost.Cost) string {
-	return data.ToIdxF(item, account_id, unit, account_env, service)
-}

@@ -8,7 +8,7 @@ import (
 	"opg-reports/shared/data"
 	"opg-reports/shared/dates"
 	"opg-reports/shared/fake"
-	"opg-reports/shared/server/response"
+	"opg-reports/shared/server/resp"
 	"time"
 )
 
@@ -41,14 +41,12 @@ func mockAwsCostApiResponse(route string, min time.Time, max time.Time, df strin
 		fk := cost.Fake(nil, min, max, df)
 		store.Add(fk)
 	}
-	fs := th.Fs()
-	mux := th.Mux()
 
-	resp := response.NewResponse[response.ICell, response.IRow[response.ICell]]()
-	api := monthly.New(store, fs, resp)
-	api.Register(mux)
+	mux := th.Mux()
+	monthly.Register(mux, store)
+
 	w, r := th.WRGet(route)
 	mux.ServeHTTP(w, r)
-	str, _ := response.Stringify(w.Result())
+	str, _ := resp.Stringify(w.Result())
 	return str
 }
