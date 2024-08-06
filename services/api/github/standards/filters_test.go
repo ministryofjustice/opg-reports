@@ -44,7 +44,7 @@ func TestServicesApiGithubStandardsFilters(t *testing.T) {
 	w, r := testhelpers.WRGet(route)
 	mux.ServeHTTP(w, r)
 
-	str, b := response.Stringify(w.Result())
+	str, b := resp.Stringify(w.Result())
 	res := resp.New()
 	err := resp.FromJson(b, res)
 

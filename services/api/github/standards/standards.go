@@ -25,7 +25,7 @@ func Register(mux *http.ServeMux, store data.IStore[*std.Repository]) {
 
 		data := endpoint.NewEndpointData[*std.Repository](store, nil, filterFuncs)
 		display := endpoint.NewEndpointDisplay[*std.Repository](nil, DisplayRow, nil)
-		ep := endpoint.New[*std.Repository]("test", resp, data, display, parameters)
+		ep := endpoint.New[*std.Repository]("github-standards", resp, data, display, parameters)
 
 		server.Middleware(ep.ProcessRequest, server.LoggingMW, server.SecurityHeadersMW)(w, r)
 	})
