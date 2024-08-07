@@ -26,7 +26,12 @@ readonly MAKEFILE_AWS_PROFILE="shared-development-operator"
 
 readonly BUCKET_NAME_DEV="report-data-development"
 readonly BUCKET_DOWNLOAD_ROLE_DEV="arn:aws:iam::679638075911:role/docs-and-metadata-ci"
-readonly BUCKET_DOWNLOAD_ROLE_PROD="arn:aws:iam::679638075911:role/docs-and-metadata-ci"
+# readonly BUCKET_DOWNLOAD_ROLE_PROD="arn:aws:iam::679638075911:role/docs-and-metadata-ci"
+readonly BUCKET_UPLOAD_ROLE_DEV="arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
+# readonly BUCKET_UPLOAD_ROLE_PROD="arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
+
+readonly ECR_PUSH_ROLE_DEV="arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
+# readonly ECR_PUSH_ROLE_PROD="arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
 ################################################
 
 # set the default log level to info

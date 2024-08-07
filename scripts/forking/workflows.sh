@@ -80,3 +80,60 @@ gh_workflow_replace_bucket_download_role() {
     log ${INFO} "${Y} generated example workflow"
 
 }
+
+
+gh_workflow_replace_bucket_upload_role() {
+    local directory="${1}"
+    local workflow="${2}"
+    local original="${directory}/${workflow}"
+    local updated="${original}.updated"
+    local current="${3}"
+    local replacement="${4}"
+    local content=""
+
+    log ${INFO} "[updating bucket upload role in workflow]"
+    log ${DEBUG} "directory: ${directory}"
+    log ${DEBUG} "workflow: ${workflow}"
+    log ${DEBUG} "current: ${current}"
+    log ${DEBUG} "replacement: ${replacement}"
+    log ${INFO} ""
+
+    content=$(cat "${original}")
+    # sed doesnt like the : in the arn
+    echo "${content//aws_role_bucket_upload: \"${current}\"/aws_role_bucket_upload: \"${replacement}\"}" > ${updated}
+
+    LIVE && \
+        mv "${updated}" "${original}" && \
+        rm -f "${updated}" && \
+        log ${INFO} "${Y} updated bucket upload role: ${workflow}" || \
+    log ${INFO} "${Y} generated example workflow"
+
+}
+
+gh_workflow_replace_ecr_push_role() {
+    local directory="${1}"
+    local workflow="${2}"
+    local original="${directory}/${workflow}"
+    local updated="${original}.updated"
+    local current="${3}"
+    local replacement="${4}"
+    local content=""
+
+    log ${INFO} "[updating ecr push role in workflow]"
+    log ${DEBUG} "directory: ${directory}"
+    log ${DEBUG} "workflow: ${workflow}"
+    log ${DEBUG} "current: ${current}"
+    log ${DEBUG} "replacement: ${replacement}"
+    log ${INFO} ""
+
+    content=$(cat "${original}")
+    # sed doesnt like the : in the arn
+    echo "${content//aws_role_ecr_login_and_push: \"${current}\"/aws_role_ecr_login_and_push: \"${replacement}\"}" > ${updated}
+
+    LIVE && \
+        mv "${updated}" "${original}" && \
+        rm -f "${updated}" && \
+        log ${INFO} "${Y} updated ecr push role: ${workflow}" || \
+    log ${INFO} "${Y} generated example workflow"
+
+}
