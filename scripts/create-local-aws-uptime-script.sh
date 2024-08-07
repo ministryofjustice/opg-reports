@@ -37,7 +37,7 @@ RELEASE_DIR="${WORKING_DIR}/releases"
 DATA_SOURCE="${RELEASE_DIR}/${SOURCE_FILE}"
 TARGET_FILE="${WORKING_DIR}/${TARGET_NAME}"
 # Download latest release into local directory
-function download_realease() {
+download_realease() {
     local working_dir="${WORKING_DIR}"
     local release_dir="${RELEASE_DIR}"
 
@@ -55,7 +55,7 @@ function download_realease() {
 }
 
 # Create the header of the generated bash file
-function generate_file_head() {
+generate_file_head() {
     # shebang
     echo '#!/usr/bin/env bash'
     # file variables used in other segments
@@ -73,7 +73,7 @@ rm -Rf ./data/
 }
 
 # generate content that asks for user input for the start & end date
-function generate_file_date_input() {
+generate_file_date_input() {
     echo '
 # ask for start and end dates
 read -p "Start date [${start_date}]: " start
@@ -85,7 +85,7 @@ end="${end:-$end_date}"
 }
 
 # generate content that starts the looping over dates
-function generate_file_date_loop_start(){
+generate_file_date_loop_start(){
     echo '
 # loop over date range provided
 day="${start}"
@@ -96,7 +96,7 @@ while [ "${day}" != "${end}" ]; do
 }
 
 # loop end and iterate month
-function generate_file_date_loop_end() {
+generate_file_date_loop_end() {
     echo '  day=$(date -j -v +1d -f "%Y-%m-%d" ${day} +%Y-%m-%d)'
     echo 'done'
 
@@ -113,7 +113,7 @@ function generate_file_date_loop_end() {
 #  - replace \\n with a new line: jq uses string value, replace it for real version
 #  - remove " at starting of line: jq outputs wrapping string quotes, strip those out
 ########
-function generate_aws_command() {
+generate_aws_command() {
     local source_file="${DATA_SOURCE}"
 jq 'map(
 "  aws-vault exec \(.label)-\(.environment)-breakglass -- ./${binary_file} ~
@@ -129,7 +129,7 @@ jq 'map(
 }
 
 # generate string of the aws upload
-function generate_upload_command() {
+generate_upload_command() {
     echo '
 read -p "upload to s3?: (Y|N) " up
 if [[ "${up}" == [Yy] ]]; then
@@ -141,7 +141,7 @@ fi'
 }
 
 # generate the complete bash file
-function generate_file() {
+generate_file() {
     local file="${TARGET_FILE}"
 
     generate_file_head > ${file}
@@ -157,7 +157,7 @@ function generate_file() {
 }
 
 # move the binary we want to correct location
-function move_binary() {
+move_binary() {
     local source="${BUILD_DIR}/reports/${BINARY}"
     local dest="${WORKING_DIR}"
 
@@ -167,7 +167,7 @@ function move_binary() {
     echo "  - [${dest}]"
 }
 
-function cleanup() {
+cleanup() {
     local release_dir="${RELEASE_DIR}"
     rm -Rf ${release_dir}
     echo "✅ Cleaned up release assets"
@@ -177,7 +177,7 @@ function cleanup() {
 ################################################
 # MAIN FUNCTION
 ################################################
-function main() {
+main() {
     echo "------------------------------------------"
     download_realease
     generate_file
