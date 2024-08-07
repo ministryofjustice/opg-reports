@@ -1,0 +1,164 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+################################################
+# LOG LEVELS
+################################################
+readonly ERROR=1
+readonly INFO=2
+readonly DEBUG=3
+# set the default log level
+LOG_LEVEL=2
+
+log() {
+    local level=${1:-INFO}
+    local msg="${2}"
+    local output=$(test ${LOG_LEVEL} -ge ${level} && echo "true" || echo "false")
+    if [[ "${output}" == "true" ]]; then
+        echo "${msg}"
+    fi
+    if [[ "${level}" == "${ERROR}" ]]; then
+        exit 1
+    fi
+}
+
+# dirty function to remove any relative paths
+d() {
+    cd "${1}"
+    pwd
+}
+
+################################################
+# DRY RUN FLAGS - DRY RUN IS TRUE BY DEFAULT
+################################################
+# base to compare DRY_RUN AGAINST
+readonly DRY=1
+DRY_RUN=1
+
+################################################
+readonly Y="✅"
+readonly N="❌"
+# this scripts current directory
+readonly SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+# this is the root directory of the project repository
+readonly ROOT_DIR=$(d "${SCRIPT_DIR}/../")
+#
+
+# removes workflows that a fork should not require
+remove_unused_github_workflow_reports() {
+    local path="${ROOT_DIR}/.github/workflows"
+    local pattern="report_*.yml"
+    local keep="report_repository_standards.yml"
+
+    log ${INFO} "[removing github workflow reports]"
+
+    for file in ${path}/${pattern}; do
+        local f=$(basename "${file}")
+        local delete="true"
+        if [[ "${f}" == "${keep}" ]]; then
+            delete="false"
+        fi
+        log ${INFO} "  file: ${f}"
+
+        if [[ "${DRY_RUN}" != "${DRY}" && "${delete}" == "true" ]] ; then
+            rm -f "${file}"
+            log ${INFO} "${Y} - deleted: ${file}"
+        fi
+    done
+    log ${INFO} "done"
+    log ${INFO} ""
+}
+
+# remove this projects terraform directory
+remove_terraform_directory() {
+    local short="terraform"
+    local path="${ROOT_DIR}/${short}"
+    local status="false"
+
+    log ${INFO} "[removing terraform directory]"
+    log ${INFO} "terraform directory: ${path}"
+
+    # if this isnt a dry run, then delete
+    if [[ "${DRY_RUN}" != "${DRY}" ]] ; then
+        status=$(rm -Rf "${path}" && echo "true" || echo "false")
+        # if delete worked, then show
+        if [[ "${status}" == "true" ]]; then
+            log ${INFO} "${Y} deleted: ${path}"
+        # if delete failed, error and exit
+        else
+            log ${ERROR} "${N} failed to delete: ${path}"
+        fi
+    fi
+    log ${INFO} "done"
+    log ${INFO} ""
+}
+
+remove_jobs() {
+    local original_file="${1}"
+    local file1="${original_file}.bk"
+    local file2="${original_file}.fork"
+    local short=$(basename "${file2}")
+
+    # remove blocks of the workflow that are wrapped
+    # in markers
+    sed '/#--fork-remove-start/,/#--fork-remove-end/d' ${original_file} > ${file1}
+    if [ ! -f "${file1}" ]; then
+        log ${ERROR} "${N} tmp workflow file missing: ${file1}"
+    fi
+
+    # remove part of lines that have this in front as a comment
+    # - this is intended to allow the file to contain
+    #   an alternative when a job has been removed (eg different 'needs: []')
+    sed 's/#--fork-replacement//g' ${file1} > ${file2}
+    if [ ! -f "${file2}" ]; then
+        log ${ERROR} "${N} tmp workflow file missing: ${file2}"
+    fi
+
+    rm -f ${file1}
+    # if this isnt a dry run, then replace the main file
+    if [[ "${DRY_RUN}" != "${DRY}" ]] ; then
+        mv ${file2} ${original_file}
+        rm -f ${file2}
+        log ${INFO} "${Y} removed jobs"
+    # otherwise, show the path to the generated one
+    else
+        log ${INFO} "${Y} removed jobs in tmp file: ${short}"
+    fi
+}
+# remove terraform and similar elements from the workflows
+remove_jobs_in_workflow() {
+    local path="${ROOT_DIR}/.github/workflows"
+    local short="${1}"
+    local file="${path}/${short}"
+    local content=""
+
+    log ${INFO} "[removing terraform from pr workflow]"
+    log ${INFO} "workflow: ${short}"
+
+    if [ ! -f "${file}" ]; then
+        log ${ERROR} "${N} workflow missing: ${file}"
+    fi
+
+    content=$(cat "${file}")
+    remove_jobs "${file}"
+    log ${INFO} "done"
+    log ${INFO} ""
+}
+
+################################################
+# MAIN FUNCTION
+################################################
+
+main() {
+    local workflow_pr="workflow_pr.yml"
+    local workflow_live="workflow_path_to_live.yml"
+    echo "------------------------------------------"
+    # remove_unused_github_workflow_reports
+    # remove_terraform_directory
+    remove_jobs_in_workflow "${workflow_pr}"
+    remove_jobs_in_workflow "${workflow_live}"
+    echo "------------------------------------------"
+
+}
+
+main
