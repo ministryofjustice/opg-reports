@@ -1,6 +1,6 @@
 {{ define "dynamic-aws-costs-totals" }}
     {{ template "head" . }}
-    {{ $hc := .HeadingCounter }}
+
     <h1 class="govuk-heading-l">Totals</h1>
 
     <p class="govuk-body">Displaying AWS Costs between <strong>[{{ .StartDate.Format "2006-01" }}]</strong> and <strong>[{{ .EndDate.Format "2006-01" }}]</strong>.</p>

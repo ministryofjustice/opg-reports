@@ -1,6 +1,7 @@
 package standards
 
 import (
+	"log/slog"
 	"net/http"
 	"opg-reports/shared/data"
 	"opg-reports/shared/github/std"
@@ -15,7 +16,9 @@ var allowedParameters = []string{
 }
 
 func Register(mux *http.ServeMux, store data.IStore[*std.Repository]) {
-
+	slog.Info("registering routes",
+		slog.String("handler", "github-standards"),
+		slog.Int("datastore count", store.Length()))
 	qp := endpoint.NewQueryable(allowedParameters)
 
 	mux.HandleFunc("/github/standards/{version}/list/{$}", func(w http.ResponseWriter, r *http.Request) {

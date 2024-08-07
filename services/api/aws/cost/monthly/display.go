@@ -6,6 +6,7 @@ import (
 	"opg-reports/shared/aws/cost"
 	"opg-reports/shared/data"
 	"opg-reports/shared/dates"
+	"opg-reports/shared/server"
 	"opg-reports/shared/server/endpoint"
 	"opg-reports/shared/server/resp"
 	"opg-reports/shared/server/resp/cell"
@@ -15,7 +16,7 @@ import (
 // DisplayHeadFunctions
 func DisplayHeadFunctions(parameters map[string][]string) (funcs map[string]endpoint.DisplayHeadFunc) {
 	// -- get the start & end dates as well as list of all months
-	startDate, endDate := startEnd(parameters)
+	startDate, endDate := server.GetStartEndDates(parameters)
 	months := dates.Strings(dates.Months(startDate, endDate), dates.FormatYM)
 	slog.Debug("[aws/costs/monthly] DisplayHeadFunctions",
 		slog.String("start", startDate.String()),
@@ -80,7 +81,7 @@ func DisplayHeadFunctions(parameters map[string][]string) (funcs map[string]endp
 // DisplayRowFunctions
 func DisplayRowFunctions(parameters map[string][]string) (funcs map[string]endpoint.DisplayRowFunc[*cost.Cost]) {
 	// -- get the start & end dates as well as list of all months
-	startDate, endDate := startEnd(parameters)
+	startDate, endDate := server.GetStartEndDates(parameters)
 	months := dates.Strings(dates.Months(startDate, endDate), dates.FormatYM)
 	slog.Debug("[aws/costs/monthly] DisplayHeadFunctions",
 		slog.String("start", startDate.String()),
@@ -175,7 +176,7 @@ func DisplayRowFunctions(parameters map[string][]string) (funcs map[string]endpo
 // DisplayFootFunctions
 func DisplayFootFunctions(parameters map[string][]string) (funcs map[string]endpoint.DisplayFootFunc) {
 	// -- get the start & end dates as well as list of all months
-	startDate, endDate := startEnd(parameters)
+	startDate, endDate := server.GetStartEndDates(parameters)
 	months := dates.Strings(dates.Months(startDate, endDate), dates.FormatYM)
 	slog.Debug("[aws/costs/monthly] DisplayFootFunctions",
 		slog.String("start", startDate.String()),

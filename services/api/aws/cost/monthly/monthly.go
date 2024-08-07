@@ -1,6 +1,7 @@
 package monthly
 
 import (
+	"log/slog"
 	"net/http"
 	"opg-reports/shared/aws/cost"
 	"opg-reports/shared/data"
@@ -20,7 +21,9 @@ var allowedParameters = []string{
 }
 
 func Register(mux *http.ServeMux, store data.IStore[*cost.Cost]) {
-
+	slog.Info("registering routes",
+		slog.String("handler", "aws-costs-monthly"),
+		slog.Int("datastore count", store.Length()))
 	qp := endpoint.NewQueryable(allowedParameters)
 
 	// Returns cost data split into with & without tax segments, then grouped by the month

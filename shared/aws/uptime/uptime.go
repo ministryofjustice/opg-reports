@@ -56,6 +56,16 @@ func (i *Uptime) Valid() (valid bool) {
 
 var _ data.IEntry = &Uptime{}
 
+func Average(items []*Uptime) (avg float64) {
+	sum := 0.0
+	for _, i := range items {
+		sum += i.Average
+	}
+	count := len(items)
+	avg = sum / float64(count)
+	return
+}
+
 // New creates an Uptime with the uid passed or
 // c=a new uuid if that is nil
 func New(uid *string) *Uptime {

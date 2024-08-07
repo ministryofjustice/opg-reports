@@ -19,20 +19,24 @@ type Data[V data.IEntry] struct {
 func (d *Data[V]) ApplyFilters() (store data.IStore[V]) {
 	store = d.store
 	for name, f := range d.filters {
-		slog.Info("applying filter", slog.String("name", name))
 		store = store.Filter(f)
+		slog.Info("applied filter",
+			slog.String("name", name),
+			slog.Int("datastore count", store.Length()))
 	}
 	d.store = store
 	return
 }
 
 func (d *Data[V]) ApplyGroupBy() (g map[string]data.IStore[V]) {
-	slog.Info("applying groupby")
+
 	// provide a default group of the store
 	g = map[string]data.IStore[V]{"all": d.store}
 	if d.groupBy != nil {
 		g = d.store.Group(d.groupBy)
 	}
+	slog.Info("applied groupby",
+		slog.Int("datastore groups", len(g)))
 	return
 }
 

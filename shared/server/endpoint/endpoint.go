@@ -49,9 +49,15 @@ func (e *Endpoint[V]) ProcessRequest(w http.ResponseWriter, r *http.Request) {
 		lines := display.Rows(key, g, response)
 		bdy = append(bdy, lines...)
 		// add the timestamp data
-		for _, i := range g.List() {
+		list := g.List()
+		for _, i := range list {
 			response.AddDataAge(i.TS())
 		}
+		slog.Info("group to rows",
+			slog.String("group", key),
+			slog.Int("rows generated", len(lines)),
+			slog.Int("items in group", len(list)),
+		)
 	}
 	table.Body = bdy
 	table.Foot = display.Foot(bdy)

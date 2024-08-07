@@ -1,0 +1,18 @@
+{{ define "dynamic-aws-uptime-monthly-unit" }}
+    {{ template "head" . }}
+    <h1 class="govuk-heading-l">Uptime Per Month &amp; Per unit</h1>
+
+    <p class="govuk-body">Displaying uptime data between <strong>[{{ .StartDate.Format "2006-01" }}]</strong> and <strong>[{{ .EndDate.Format "2006-01" }}]</strong>.</p>
+    <p class="govuk-body">Uptime calculations are based on AWS heatlh check percentages with a 1 minute interval.</p>
+    <p class="govuk-body">Unit is analogous to a team which maintains multiple products.</p>
+
+    {{if .Result }}
+        {{ template "dynamic-uptime-table" . }}
+        {{ template "result-notes" . }}
+    {{ else }}
+        {{ template "no-result" . }}
+    {{end}}
+
+    {{ template "foot" . }}
+
+{{ end }}

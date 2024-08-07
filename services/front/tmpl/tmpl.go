@@ -78,6 +78,11 @@ func Funcs() map[string]interface{} {
 		"day": func(d time.Time) string {
 			return d.Format(dates.FormatYMD)
 		},
+		// -- uptime
+		"percentage": func(f float64) string {
+			p := message.NewPrinter(language.English)
+			return p.Sprintf("%.4f%%", f)
+		},
 		// -- Costs
 		"dollar": func(f float64) string {
 			p := message.NewPrinter(language.English)

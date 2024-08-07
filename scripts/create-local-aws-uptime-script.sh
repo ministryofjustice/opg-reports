@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# This script generates another script that contains a series of bash commands fetch
-# monthly aws costs for all known accounts.
+# This script generates another script that contains a series of bash commands to
+# fetch historical uptime data from our accounts
 #
-# Fetches the accounts.aws.json data from the latest opg-metadata release, and uses
+# Fetches the accounts.aws.uptime.json data from the latest opg-metadata release, and uses
 # jq and sed to parse and convert the content into command to run
 #
 # Variable naming
@@ -11,19 +11,19 @@
 # - locals in this script are lower case as well
 set -eo pipefail
 
-now=$(date +%Y-%m)
-end_date=$(date -v-1m -j -f "%Y-%m" ${now} +%Y-%m)
-start_date=$(date -v-12m -j -f "%Y-%m" ${end_date} +%Y-%m)
-bucket_path="aws/cost/monthly"
+now=$(date +%Y-%m-%d)
+end_date=$(date -j -v-1d -f "%Y-%m-%d" ${now} +%Y-%m-%d)
+start_date=$(date -j -v-14d -f "%Y-%m-%d" ${end_date} +%Y-%m-%d)
+bucket_path="aws/uptime/daily"
 profile="shared-development-operator"
 bucket="report-data-development"
 
 #
 OPEN_VSCODE=${1:-n}
-SUBDIR="aws-cost-monthly"
+SUBDIR="aws-uptime-daily"
 TARGET_NAME="run"
-BINARY="aws_cost_monthly"
-SOURCE_FILE="accounts.aws.json"
+BINARY="aws_uptime_daily"
+SOURCE_FILE="accounts.aws.uptime.json"
 # OS info
 OS=$(uname | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m | sed 's/x86_64/amd64/')
@@ -68,7 +68,7 @@ bucket=\"${bucket}\"
 bucket_path=\"${bucket_path}\"
 binary_file=\"${BINARY}\"
 
-rm -Rf ./data
+rm -Rf ./data/
 "
 }
 
@@ -88,15 +88,16 @@ end="${end:-$end_date}"
 function generate_file_date_loop_start(){
     echo '
 # loop over date range provided
-month="${start}"
-while [ "${month}" != "${end}" ]; do
-  echo "month: ${month}"
+day="${start}"
+while [ "${day}" != "${end}" ]; do
+  echo "day: ${day}"
 '
+
 }
 
 # loop end and iterate month
 function generate_file_date_loop_end() {
-    echo '  month=$(date -v+1m -j -f "%Y-%m" ${month} +%Y-%m)'
+    echo '  day=$(date -j -v +1d -f "%Y-%m-%d" ${day} +%Y-%m-%d)'
     echo 'done'
 
 }
@@ -116,18 +117,15 @@ function generate_aws_command() {
     local source_file="${DATA_SOURCE}"
 jq 'map(
 "  aws-vault exec \(.label)-\(.environment)-breakglass -- ./${binary_file} ~
-    -month=|${month}|~
-    -account_id=|\(.id)|~
-    -account_name=|\(.name)|~
-    -account_unit=|\(.billing_unit)|~
-    -account_label=|\(.label)|~
-    -account_environment=|\(.environment)|
+    -day=|${day}|~
+    -account_unit=|\(.billing_unit)|
 ") | join("\n")' ${source_file} \
     | sed 's/~/ \\/g' \
     | sed 's/|/"/g' \
     | sed 's/-null-/-/g' \
     | sed 's/\\n/\
 /g' | sed 's/^"\(.*\)/\1/'
+
 }
 
 # generate string of the aws upload
