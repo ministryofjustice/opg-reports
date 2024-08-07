@@ -27,10 +27,12 @@ jobs:
     outputs:
       aws_role_s3_download: "arn:aws:iam::679638075911:role/docs-and-metadata-ci"
       aws_role_ecr_login_and_push: "arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
+      #--fork-remove-start
       terraform_workspace_production: "production"
       terraform_workspace_development: "development"
       terraform_version_account: ${{ steps.terraform_account_version.outputs.version }}
       terraform_version_environment: ${{ steps.terraform_environment_version.outputs.version }}
+      #--fork-remove-end
       branch_name: ${{ steps.semver_tag.outputs.branch_safe }}
       semver_tag: ${{ steps.semver_tag.outputs.created_tag }}
     steps:
@@ -41,6 +43,7 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
+      #--fork-remove-start
       # Find the terraform version details for account & env
       - name: "Parse terraform account version"
         id: terraform_account_version
@@ -52,6 +55,7 @@ jobs:
         uses: ministryofjustice/opg-github-actions/.github/actions/terraform-version@v3.0.6
         with:
           terraform_directory: ./terraform/environment
+      #--fork-remove-end
       # Generate a semver tag for this workflow
       - name: "Generate semver tag"
         id: semver_tag
@@ -137,6 +141,7 @@ jobs:
           scan_image: false
           path_to_live: true
 
+  #--fork-remove-start
   # Run the terraform for development workspace
   terraform_development:
     name: "[Terraform] Development"
@@ -175,11 +180,15 @@ jobs:
           version: ${{ needs.setup.outputs.terraform_version_environment }}
 
   # TODO: terraform production!
+  #--fork-remove-end
 
   # do the release
   release:
     name: "Create release"
+    #--fork-remove-start
     needs: [terraform_development, setup]
+    #--fork-remove-end
+    #--fork-replacementneeds: [setup]
     runs-on: ubuntu-latest
     outputs:
       artifact: ${{ steps.build_go.outputs.artifact }}
@@ -226,6 +235,7 @@ jobs:
           echo "| --- | --- |"  >> $GITHUB_STEP_SUMMARY
           echo "| Branch | ${{ needs.setup.outputs.branch_name }} |"  >> $GITHUB_STEP_SUMMARY
           echo "| Semver tag | ${{ needs.setup.outputs.semver_tag }} |"  >> $GITHUB_STEP_SUMMARY
+      #--fork-remove-start
       - name: "Terraform"
         run: |
           echo "### Terraform info" >> $GITHUB_STEP_SUMMARY
@@ -235,6 +245,7 @@ jobs:
           echo "| terraform workspace production | ${{ needs.setup.outputs.terraform_workspace_production }} |"  >> $GITHUB_STEP_SUMMARY
           echo "| terraform account version | ${{ needs.setup.outputs.terraform_version_account }} |"  >> $GITHUB_STEP_SUMMARY
           echo "| terraform environment version | ${{ needs.setup.outputs.terraform_version_environment }} |"  >> $GITHUB_STEP_SUMMARY
+      #--fork-remove-end
       - name: "Release"
         run: |
           echo "### Release info" >> $GITHUB_STEP_SUMMARY
