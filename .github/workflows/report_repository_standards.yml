@@ -25,6 +25,9 @@ jobs:
     outputs:
       aws_s3_bucket: "report-data-development"
       aws_role_bucket_upload: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
+    steps:
+      - name: "End"
+        run: echo "end"
 
   report:
     name: "Run repository standards report"
