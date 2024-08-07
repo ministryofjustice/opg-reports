@@ -19,10 +19,17 @@ permissions:
   contents: read
 
 jobs:
+  setup:
+    name: "Setup"
+    runs-on: ubuntu-latest
+    outputs:
+      aws_s3_bucket: "report-data-development"
+      aws_role_bucket_upload: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
 
   report:
     name: "Run repository standards report"
     runs-on: ubuntu-latest
+    needs: [setup]
     steps:
       - name: "Checkout"
         id: checkout
@@ -43,12 +50,12 @@ jobs:
         with:
           aws-region: "eu-west-1"
           role-duration-seconds: 900
-          role-to-assume: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
-          role-session-name: opg-reports-upload-github-standards-to-s3
+          role-to-assume: ${{ needs.setup.outputs.aws_role_bucket_upload }}
+          role-session-name: reports-upload-github-standards-to-s3
       - name: "Upload to s3"
         id: upload_to_s3
         uses: ./.github/actions/s3_upload
         with:
           directory: ${{ steps.run.outputs.data_folder }}
-          bucket: "report-data-development"
+          bucket: ${{ needs.setup.outputs.aws_s3_bucket }}
           bucket_path: "github/standards"
