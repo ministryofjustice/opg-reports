@@ -81,7 +81,7 @@ func Funcs() map[string]interface{} {
 		// -- uptime
 		"percentage": func(f float64) string {
 			p := message.NewPrinter(language.English)
-			return p.Sprintf("%.2f%%", f)
+			return p.Sprintf("%.4f%%", f)
 		},
 		// -- Costs
 		"dollar": func(f float64) string {

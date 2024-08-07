@@ -2,6 +2,9 @@
     {{ template "head" . }}
     <h1 class="govuk-heading-l">Overall uptime averages</h1>
 
+    <p class="govuk-body">Displaying uptime data between <strong>[{{ .StartDate.Format "2006-01" }}]</strong> and <strong>[{{ .EndDate.Format "2006-01" }}]</strong>.</p>
+    <p class="govuk-body">Uptime calculations are based on AWS heatlh check percentages with a 1 minute interval.</p>
+
     {{if .Result }}
         {{ template "dynamic-uptime-table" . }}
         {{ template "result-notes" . }}
