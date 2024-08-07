@@ -71,6 +71,10 @@ jobs:
       aws_s3_bucket: "report-data-development"
       aws_role_s3_download: "arn:aws:iam::679638075911:role/docs-and-metadata-ci"
       aws_role_ecr_login_and_push: "arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
+      ecr_registry_id: "311462405659"
+      ecr_repository_api: "opg-reports/api"
+      ecr_repository_front: "opg-reports/front"
+
       #--fork-remove-start
       terraform_workspace_production: "production"
       terraform_workspace_development: "development"
@@ -168,21 +172,26 @@ jobs:
         id: build_api
         uses: ./.github/actions/docker_build_scan_push
         with:
-          ecr_repository: "opg-reports/api"
+          ecr_registry_id: ${{ needs.setup.outputs.ecr_registry_id}}
+          ecr_repository: ${{ needs.setup.outputs.ecr_repository_api}}
           branch_name: ${{ needs.setup.outputs.branch_name }}
           tag: ${{ needs.setup.outputs.semver_tag }}
           dockerfile: './docker/api/Dockerfile'
           scan_image: false
+          path_to_live: false
       # build front
       - name: "Build [front]"
         id: build_front
         uses: ./.github/actions/docker_build_scan_push
         with:
-          ecr_repository: "opg-reports/front"
+          ecr_registry_id: ${{ needs.setup.outputs.ecr_registry_id}}
+          ecr_repository: ${{ needs.setup.outputs.ecr_repository_front}}
           branch_name: ${{ needs.setup.outputs.branch_name }}
           tag: ${{ needs.setup.outputs.semver_tag }}
           dockerfile: './docker/front/Dockerfile'
           scan_image: false
+          path_to_live: false
+
 
   #--fork-remove-start
   # Run the terraform for development workspace
