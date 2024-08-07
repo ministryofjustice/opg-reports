@@ -7,9 +7,9 @@ delete_files() {
     local exclude="${3}"
 
     log ${INFO} "[deleting files from directory]"
-    log ${INFO} "directory: ${directory}"
-    log ${INFO} "pattern: ${pattern}"
-    log ${INFO} "exclude: ${exclude}"
+    log ${DEBUG} "directory: ${directory}"
+    log ${DEBUG} "pattern: ${pattern}"
+    log ${DEBUG} "exclude: ${exclude}"
     log ${INFO} ""
 
     for file in ${directory}/${pattern}; do
@@ -37,7 +37,7 @@ delete_directory() {
     local directory="${1}"
 
     log ${INFO} "[deleting directory]"
-    log ${INFO} "directory: ${directory}"
+    log ${DEBUG} "directory: ${directory}"
     log ${INFO} ""
 
     LIVE && \

@@ -20,9 +20,14 @@ readonly GITHUB_WORKFLOW_PR="workflow_pr.yml"
 readonly GITHUB_WORKFLOW_LIVE="workflow_path_to_live.yml"
 
 readonly TERRAFORM_DIR="${ROOT_DIR}/terraform"
+
+readonly MAKEFILE="Makefile"
+
+readonly BUCKET_NAME_DEV="report-data-development"
 ################################################
 
 # set the default log level to info
 LOG_LEVEL=${DEBUG}
 # set if dry run or not - default to true
-DRY_RUN=${TRUE_FLAG}
+DRY_RUN=${FALSE_FLAG}
+# DRY_RUN=${TRUE_FLAG}
