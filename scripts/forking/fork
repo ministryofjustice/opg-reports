@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+# dirty function to remove any relative paths
+d() { cd "${1}"; pwd; }
+
+readonly SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+# this is the root directory of the project repository
+readonly ROOT_DIR=$(d "${SCRIPT_DIR}/../../")
+
+# load in modules
+source ${SCRIPT_DIR}/defaults.sh
+source ${SCRIPT_DIR}/logs.sh
+source ${SCRIPT_DIR}/dry-run.sh
+
+source ${SCRIPT_DIR}/files.sh
+
+
+
+main() {
+    # -- actions that dont require input
+    # delete unused github actions
+    delete_from_directory "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPORT_PATTERN}"
+}
+
+main
