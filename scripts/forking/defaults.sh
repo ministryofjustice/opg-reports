@@ -22,6 +22,7 @@ readonly GITHUB_WORKFLOW_LIVE="workflow_path_to_live.yml"
 readonly TERRAFORM_DIR="${ROOT_DIR}/terraform"
 
 readonly MAKEFILE="Makefile"
+readonly MAKEFILE_AWS_PROFILE="shared-development-operator"
 
 readonly BUCKET_NAME_DEV="report-data-development"
 ################################################
