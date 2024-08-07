@@ -21,38 +21,48 @@ source ${SCRIPT_DIR}/makefile.sh
 
 main() {
     local bucket_dev="${BUCKET_NAME_DEV}"
+    local bucket_download_dev="${BUCKET_DOWNLOAD_ROLE_DEV}"
     local profile_dev="${MAKEFILE_AWS_PROFILE}"
-    # -- actions that dont require input
-    # delete unused github actions
-    delete_files "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPORT_PATTERN}" "${GITHUB_REPORT_KEEP}"
-    # remove the terraform directory
-    delete_directory "${TERRAFORM_DIR}"
-    # remove terraform and related steps from workflows
-    gh_workflow_remove_marked "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}"
-    gh_workflow_remove_marked "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}"
+    # # -- actions that dont require input
+    # # delete unused github actions
+    # delete_files "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPORT_PATTERN}" "${GITHUB_REPORT_KEEP}"
+    # # remove the terraform directory
+    # delete_directory "${TERRAFORM_DIR}"
+    # # remove terraform and related steps from workflows
+    # gh_workflow_remove_marked "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}"
+    # gh_workflow_remove_marked "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}"
 
-    # -- actions that need user input
-    # DEVELOPMENT
-    ### BUCKETS
-    read -p "Provide the name of your *DEVELOPMENT* bucket used for data storage: [${bucket_dev}] " bucket_dev
-    bucket_dev="${bucket_dev:-$BUCKET_NAME_DEV}"
-    echo "value: [${bucket_dev}]"
+    # # -- actions that need user input
+    # # DEVELOPMENT
+    # ### BUCKETS
+    # read -p "Provide the name of your *DEVELOPMENT* bucket used for data storage: [${bucket_dev}] " bucket_dev
+    # bucket_dev="${bucket_dev:-$BUCKET_NAME_DEV}"
+    # echo "value: [${bucket_dev}]"
+    # log ${INFO} ""
+
+    # # update workflow
+    # gh_workflow_replace_bucket "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${BUCKET_NAME_DEV}" "${bucket_dev}"
+    # gh_workflow_replace_bucket "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${BUCKET_NAME_DEV}" "${bucket_dev}"
+    # gh_workflow_replace_bucket "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPORT_KEEP}" "${BUCKET_NAME_DEV}" "${bucket_dev}"
+    # # - only for dev
+    # makefile_replace_bucket "${ROOT_DIR}" "${MAKEFILE}" "${BUCKET_NAME_DEV}" "${bucket_dev}"
+
+    # ### AWS PROFILE
+    # # - only for dev
+    # read -p "Provide your *DEVELOPMENT* aws profile for local s3 download [${profile_dev}] " profile_dev
+    # profile_dev="${profile_dev:-$MAKEFILE_AWS_PROFILE}"
+    # echo "value: [${profile_dev}]"
+    # log ${INFO} ""
+
+    # makefile_replace_aws_profile "${ROOT_DIR}" "${MAKEFILE}" "${MAKEFILE_AWS_PROFILE}" "${profile_dev}"
+
+    ### WORKFLOW S3 DOWNLOAD ROLE
+    read -p "Provide the *DEVELOPMENT* role ARN to use for downloading from the s3 bucket [${bucket_download_dev}] " bucket_download_dev
+    bucket_download_dev="${bucket_download_dev:-$BUCKET_DOWNLOAD_ROLE_DEV}"
+    echo "value: [${bucket_download_dev}]"
     log ${INFO} ""
 
-    # update workflow
-    gh_workflow_replace_bucket "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${BUCKET_NAME_DEV}" "${bucket_dev}"
-    gh_workflow_replace_bucket "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${BUCKET_NAME_DEV}" "${bucket_dev}"
-    gh_workflow_replace_bucket "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPORT_KEEP}" "${BUCKET_NAME_DEV}" "${bucket_dev}"
-    # - only for dev
-    makefile_replace_bucket "${ROOT_DIR}" "${MAKEFILE}" "${BUCKET_NAME_DEV}" "${bucket_dev}"
-
-    ### AWS PROFILE
-    # - only for dev
-    read -p "Provide your *DEVELOPMENT* aws profile for local s3 download [${profile_dev}] " profile_dev
-    profile_dev="${profile_dev:-$MAKEFILE_AWS_PROFILE}"
-    echo "value: [${profile_dev}]"
-    log ${INFO} ""
-    makefile_replace_aws_profile "${ROOT_DIR}" "${MAKEFILE}" "${MAKEFILE_AWS_PROFILE}" "${profile_dev}"
+    gh_workflow_replace_bucket_download_role "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${BUCKET_DOWNLOAD_ROLE_DEV}" "${bucket_download_dev}"
 
 }
 
