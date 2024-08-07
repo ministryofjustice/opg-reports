@@ -42,7 +42,16 @@ readonly N="❌"
 readonly SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 # this is the root directory of the project repository
 readonly ROOT_DIR=$(d "${SCRIPT_DIR}/../")
-#
+
+# bucket names
+readonly BUCKET_NAME_DEV="report-data-development"
+readonly BUCKET_NAME_PROD="report-data-development"
+# S3 bucket download roles for building the docker images
+readonly S3_BUCKET_ROLE_DEV="arn:aws:iam::679638075911:role/docs-and-metadata-ci"
+readonly S3_BUCKET_ROLE_PROD="arn:aws:iam::679638075911:role/docs-and-metadata-ci"
+# ecr login role for docker images
+readonly ECR_ROLE_DEV="arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
+readonly ECR_ROLE_PROD="arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
 
 # removes workflows that a fork should not require
 remove_unused_github_workflow_reports() {
@@ -58,14 +67,14 @@ remove_unused_github_workflow_reports() {
         if [[ "${f}" == "${keep}" ]]; then
             delete="false"
         fi
-        log ${INFO} "  file: ${f}"
+        log ${INFO} "file: ${f}"
 
         if [[ "${DRY_RUN}" != "${DRY}" && "${delete}" == "true" ]] ; then
             rm -f "${file}"
-            log ${INFO} "${Y} - deleted: ${file}"
+            log ${INFO} "${Y} - deleted: ${f}"
         fi
     done
-    log ${INFO} "done"
+
     log ${INFO} ""
 }
 
@@ -76,20 +85,21 @@ remove_terraform_directory() {
     local status="false"
 
     log ${INFO} "[removing terraform directory]"
-    log ${INFO} "terraform directory: ${path}"
+    log ${INFO} "root directory: ${ROOT_DIR}"
+    log ${INFO} "terraform directory: ./${short}"
 
     # if this isnt a dry run, then delete
     if [[ "${DRY_RUN}" != "${DRY}" ]] ; then
         status=$(rm -Rf "${path}" && echo "true" || echo "false")
         # if delete worked, then show
         if [[ "${status}" == "true" ]]; then
-            log ${INFO} "${Y} deleted: ${path}"
+            log ${INFO} "${Y} deleted: ./${short}"
         # if delete failed, error and exit
         else
-            log ${ERROR} "${N} failed to delete: ${path}"
+            log ${ERROR} "${N} failed to delete: ./${short}"
         fi
     fi
-    log ${INFO} "done"
+
     log ${INFO} ""
 }
 
@@ -132,7 +142,8 @@ remove_jobs_in_workflow() {
     local file="${path}/${short}"
     local content=""
 
-    log ${INFO} "[removing terraform from pr workflow]"
+    log ${INFO} "[removing jobs from workflow]"
+    log ${INFO} "root directory: ${ROOT_DIR}"
     log ${INFO} "workflow: ${short}"
 
     if [ ! -f "${file}" ]; then
@@ -141,8 +152,41 @@ remove_jobs_in_workflow() {
 
     content=$(cat "${file}")
     remove_jobs "${file}"
-    log ${INFO} "done"
+
     log ${INFO} ""
+}
+
+# update dev bucket names
+update_bucket_name_dev() {
+    local current="${BUCKET_NAME_DEV}"
+    local path="${ROOT_DIR}"
+    local mk="Makefile"
+    local makefile="${path}/${mk}"
+    local makefileBk="${makefile}.bk"
+    local basemakefileBk=$(basename "${makefileBk}")
+    local wf="report_repository_standards.yml"
+    local workflow="${path}/.github/workflows/${wf}"
+    local workflowBk="${workflow}.bk"
+    local baseworkflowBk=$(basename "${workflowBk}")
+    local content=""
+    local name=""
+
+    read -p "Provide the name of your *DEVELOPMENT* bucket for data storage:  [${current}] " name
+    name="${name:-$current}"
+    echo "Value: [${name}]"
+
+    sed "s/BUCKET ?= report-data-development/BUCKET ?= ${name}/g" ${makefile} > ${makefileBk}
+    sed "s/bucket: \"report-data-development\"/bucket: \"${name}\"/g" ${workflow} > ${workflowBk}
+
+    if [[ "${DRY_RUN}" != "${DRY}" ]] ; then
+        mv ${makefileBk} ${makefile}
+        mv ${workflowBk} ${workflow}
+        log ${INFO} "${Y} updated Makefile: ${mk}"
+        log ${INFO} "${Y} updated workflow: ${wf}"
+    else
+        log ${INFO} "${Y} generated new Makefile: ${basemakefileBk}"
+        log ${INFO} "${Y} generated new workflow: ${baseworkflowBk}"
+    fi
 }
 
 ################################################
@@ -155,8 +199,11 @@ main() {
     echo "------------------------------------------"
     # remove_unused_github_workflow_reports
     # remove_terraform_directory
-    remove_jobs_in_workflow "${workflow_pr}"
-    remove_jobs_in_workflow "${workflow_live}"
+    # remove_jobs_in_workflow "${workflow_pr}"
+    # remove_jobs_in_workflow "${workflow_live}"
+
+    update_bucket_name_dev
+
     echo "------------------------------------------"
 
 }
