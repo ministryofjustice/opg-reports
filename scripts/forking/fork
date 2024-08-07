@@ -14,13 +14,20 @@ source ${SCRIPT_DIR}/logs.sh
 source ${SCRIPT_DIR}/dry-run.sh
 
 source ${SCRIPT_DIR}/files.sh
+source ${SCRIPT_DIR}/workflows.sh
 
 
 
 main() {
     # -- actions that dont require input
     # delete unused github actions
-    delete_from_directory "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPORT_PATTERN}"
+    delete_files "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPORT_PATTERN}" "${GITHUB_REPORT_KEEP}"
+    # remove the terraform directory
+    delete_directory "${TERRAFORM_DIR}"
+    # remove terraform steps from jobs
+    gh_workflow_remove_marked "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}"
+
+
 }
 
 main

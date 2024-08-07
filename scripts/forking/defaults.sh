@@ -15,10 +15,14 @@ readonly N="❌"
 readonly GITHUB_DIR="${ROOT_DIR}/.github"
 readonly GITHUB_WORKFLOW_DIR="${GITHUB_DIR}/workflows"
 readonly GITHUB_REPORT_PATTERN="report_*.yml"
-readonly GITHUB_REPORT_KEEP="report_repository_standards"
+readonly GITHUB_REPORT_KEEP="report_repository_standards.yml"
+readonly GITHUB_WORKFLOW_PR="workflow_pr.yml"
+readonly GITHUB_WORKFLOW_LIVE="workflow_path_to_live.yml"
+
+readonly TERRAFORM_DIR="${ROOT_DIR}/terraform"
 ################################################
 
 # set the default log level to info
 LOG_LEVEL=${DEBUG}
 # set if dry run or not - default to true
-DRY_RUN=${FALSE_FLAG}
+DRY_RUN=${TRUE_FLAG}
