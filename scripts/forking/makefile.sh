@@ -17,7 +17,7 @@ makefile_replace_bucket() {
         debug "${Y}" "updated makefile bucket" "${file}" || \
     debug "${SKIP}" "generated makefile example"
 
-    info "${Y}" "replaced makefile default s3 bucket"
+    info "${Y}" "Replaced makefile default s3 bucket"
     divider
 }
 
@@ -38,6 +38,6 @@ makefile_replace_aws_profile() {
         debug "${Y}" "updated makefile aws profile" "${file}" || \
     debug "${SKIP}" "generated makefile example"
 
-    info "${Y}" "replaced makefile aws profile"
+    info "${Y}" "Replaced makefile aws profile"
     divider
 }

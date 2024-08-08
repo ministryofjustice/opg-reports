@@ -49,13 +49,14 @@ main() {
     ecr_push_dev="${ecr_push_dev:-$ECR_PUSH_ROLE_DEV}"
 
     divider
-    info "CONFIG:"
-    info "name:" "${bucket_dev}"
-    info "aws profile for *LOCAL* s3 bucket *DOWNLOAD*:" "${profile_dev}"
-    info "aws role arn for *WORKFLOW* s3 bucket *DOWNLOAD*:" "${bucket_download_dev}"
-    info "aws role arn for *WORKFLOW* s3 bucket *UPLOAD*:" "${bucket_upload_dev}"
-    info "ecr registry id:" "${ecr_registry_id}"
-    info "aws OIDC role arn for *WORKFLOW* ecr login and push" "${ecr_push_dev}"
+    info "CONFIG"
+    divider
+    info "name:" "[${bucket_dev}]"
+    info "AWS profile for *LOCAL* s3 bucket *DOWNLOAD*:" "[${profile_dev}]"
+    info "AWS role arn for *WORKFLOW* s3 bucket *DOWNLOAD*:" "[${bucket_download_dev}]"
+    info "AWS role arn for *WORKFLOW* s3 bucket *UPLOAD*:" "[${bucket_upload_dev}]"
+    info "AWS ECCR registry id:" "[${ecr_registry_id}]"
+    info "AWS OIDC role arn for the *WORKFLOW* ecr login and push:" "[${ecr_push_dev}]"
 
     divider
 
@@ -64,7 +65,7 @@ main() {
     if [[ "${continue}" != [Yy] ]]; then
         err "exiting..."
     fi
-
+    divider
     # delete unused github actions
     delete_files "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPORT_PATTERN}" GITHUB_REPORTS_TO_KEEP
     # remove the terraform directory

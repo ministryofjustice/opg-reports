@@ -20,7 +20,7 @@ docker_compose_replace_registry() {
         debug "${Y}" "updated docker compose" "${file}" || \
     debug "${SKIP}" "generated example docker compose" "${base}"
 
-    info "${Y}" "replaced docker compose registry id"
+    info "${Y}" "Replaced docker compose registry id"
     divider
 
 }
