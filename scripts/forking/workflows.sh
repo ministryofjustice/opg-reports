@@ -36,7 +36,6 @@ gh_workflow_replace_key(){
     local updated="${original}.updated"
     local base=$(basename "${updated}")
 
-
     log ${DEBUG} "directory: ${directory}"
     log ${DEBUG} "workflow: ${workflow}"
     log ${DEBUG} "current: ${current}"
@@ -52,7 +51,6 @@ gh_workflow_replace_key(){
         rm -f "${updated}" && \
         log ${INFO} "${Y} updated workflow: ${workflow}" || \
     log ${INFO} "${Y} generated workflow: ${base}"
-
 
 }
 
