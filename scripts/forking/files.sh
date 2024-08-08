@@ -5,6 +5,7 @@ delete_files() {
     local directory="${1}"
     local pattern="${2}"
     local -n exclusions="${3}"
+    local live=$(LIVE && echo "true" || echo "false")
 
     for file in ${directory}/${pattern}; do
         local base=$(basename "${file}")
@@ -17,7 +18,11 @@ delete_files() {
             debug "${SKIP}" "delete" "[${base}]"
             continue
         fi
-
+        # if its a dry run, skip the file delete
+        if [[ "${live}" != "true" ]]; then
+            debug "${SKIP}" "delete" "[${base}]"
+            continue
+        fi
         # delete the file
         LIVE && \
             rm -f "${file}" && \

@@ -42,5 +42,5 @@ readonly DOCKER_COMPOSE_FILE="docker-compose.yml"
 # set the default log level to info
 LOG_LEVEL=${DEBUG}
 # set if dry run or not - default to true
-DRY_RUN=${FALSE_FLAG}
-# DRY_RUN=${TRUE_FLAG}
+# DRY_RUN=${FALSE_FLAG}
+DRY_RUN=${TRUE_FLAG}
