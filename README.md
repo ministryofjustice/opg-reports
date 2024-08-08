@@ -26,7 +26,7 @@ While this code base makes use of a lot of configuration, the default and checke
 
 ## Automated
 
-To make this process simple, we have included a bash script (`./scripts/fork`) that automates the forking process with sensible defaults. It will ask you for the following information:
+To make this process as simple as we can, we have included a bash script (`./scripts/fork.sh`) that automates the forking process with sensible defaults. It will ask you for the following information:
 
 - Name of business unit (`--business-unit`)
 - Name of the *DEVELOPMENT* S3 bucket used for data storage (`--development-bucket-name`)
@@ -37,6 +37,10 @@ To make this process simple, we have included a bash script (`./scripts/fork`) t
 - The *DEVELOPMENT* OIDC role ARN to use for pushing to ECR (`--ecr-login-push-arn`)
 - The github organisation slug (`--gh-org`)
 - The github team slug (`--gh-team`)
+
+It will then go over the code base and update all the relevent files - you should then be able to commit those changes and have a functional version.
+
+*Note:* Assumes infrastructure will be handled external to this repository.
 
 ## Manual
 
