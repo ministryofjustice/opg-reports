@@ -3,11 +3,11 @@ set -eo pipefail
 
 docker_compose_replace_registry() {
     local directory="${1}"
-    local workflow="${2}"
+    local file="${2}"
     local current="${3}"
     local replacement="${4}"
     local field="image"
-    local original="${directory}/${workflow}"
+    local original="${directory}/${file}"
     local updated="${original}.updated"
     local base=$(basename "${updated}")
 
@@ -17,7 +17,10 @@ docker_compose_replace_registry() {
     LIVE && \
         mv "${updated}" "${original}" && \
         rm -f "${updated}" && \
-        log ${INFO} "${Y} updated workflow: ${workflow}" || \
-    log ${INFO} "${Y} generated workflow: ${base}"
+        debug "${Y}" "updated docker compose" "${file}" || \
+    debug "${SKIP}" "generated example docker compose" "${base}"
+
+    info "${Y}" "replaced docker compose registry id"
+    divider
 
 }

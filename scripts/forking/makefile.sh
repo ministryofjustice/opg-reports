@@ -9,22 +9,16 @@ makefile_replace_bucket() {
     local current="${3}"
     local replacement="${4}"
 
-    log ${INFO} "[updating bucket name in makefile]"
-    log ${DEBUG} "directory: ${directory}"
-    log ${DEBUG} "makefile: ${file}"
-    log ${DEBUG} "current: ${current}"
-    log ${DEBUG} "replacement: ${replacement}"
-    log ${INFO} ""
-
     sed "s/BUCKET ?= ${current}/BUCKET ?= ${replacement}/g" ${original} > ${updated}
 
     LIVE && \
         mv "${updated}" "${original}" && \
         rm -f "${updated}" && \
-        log ${INFO} "${Y} updated bucket: ${file}" || \
-    log ${INFO} "${Y} generated example makefile"
+        debug "${Y}" "updated makefile bucket" "${file}" || \
+    debug "${SKIP}" "generated makefile example"
 
-    log ${INFO} ""
+    info "${Y}" "replaced makefile default s3 bucket"
+    divider
 }
 
 
@@ -36,20 +30,14 @@ makefile_replace_aws_profile() {
     local current="${3}"
     local replacement="${4}"
 
-    log ${INFO} "[updating aws profile in makefile]"
-    log ${DEBUG} "directory: ${directory}"
-    log ${DEBUG} "makefile: ${file}"
-    log ${DEBUG} "current: ${current}"
-    log ${DEBUG} "replacement: ${replacement}"
-    log ${INFO} ""
-
     sed "s/AWS_PROFILE ?= ${current}/AWS_PROFILE ?= ${replacement}/g" ${original} > ${updated}
 
     LIVE && \
         mv "${updated}" "${original}" && \
         rm -f "${updated}" && \
-        log ${INFO} "${Y} updated aws profile: ${file}" || \
-    log ${INFO} "${Y} generated example makefile"
+        debug "${Y}" "updated makefile aws profile" "${file}" || \
+    debug "${SKIP}" "generated makefile example"
 
-    log ${INFO} ""
+    info "${Y}" "replaced makefile aws profile"
+    divider
 }

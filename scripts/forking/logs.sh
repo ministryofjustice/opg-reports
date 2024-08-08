@@ -13,6 +13,8 @@ divider() {
 
 err(){
     info "$@"
+    flush
+    exit 1
 }
 
 debug() {
