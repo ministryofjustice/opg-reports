@@ -130,7 +130,7 @@ link(){
     rm -f "./${target}"
     ln -s "./${source}" "./${target}" && p "${Y}" "symlinked" "[${target}]" || \
         p "${N}" "failed to link" "[${target}]"
-    cd -
+    cd - 2>&1 >/dev/null
     p "${END}" "Updated symlink"
 }
 
