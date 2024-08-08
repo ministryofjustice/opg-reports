@@ -287,12 +287,12 @@ reads(){
     fi
     # download
     if [[ "${BUCKET_DOWNLOAD_ROLE_DEV}" == "" ]]; then
-        read -p "The *DEVELOPMENT* role ARN to use for *DOWNLOADING* from the S3 bucket in workflow: [${D_BUCKET_DOWNLOAD_ROLE_DEV}] " BUCKET_DOWNLOAD_ROLE_DEV
+        read -p "The *DEVELOPMENT* role ARN to use for *DOWNLOADING* from the S3 bucket in workflows: [${D_BUCKET_DOWNLOAD_ROLE_DEV}] " BUCKET_DOWNLOAD_ROLE_DEV
         BUCKET_DOWNLOAD_ROLE_DEV="${BUCKET_DOWNLOAD_ROLE_DEV:-$D_BUCKET_DOWNLOAD_ROLE_DEV}"
     fi
     # upload
     if [[ "${BUCKET_UPLOAD_ROLE_DEV}" == "" ]]; then
-        read -p "The *DEVELOPMENT* OIDC role ARN to use for *UPLOADING* to the S3 bucket in workflow: [${D_BUCKET_UPLOAD_ROLE_DEV}] " BUCKET_UPLOAD_ROLE_DEV
+        read -p "The *DEVELOPMENT* OIDC role ARN to use for *UPLOADING* to the S3 bucket in workflows: [${D_BUCKET_UPLOAD_ROLE_DEV}] " BUCKET_UPLOAD_ROLE_DEV
         BUCKET_UPLOAD_ROLE_DEV="${BUCKET_UPLOAD_ROLE_DEV:-$D_BUCKET_UPLOAD_ROLE_DEV}"
     fi
     # ecr
