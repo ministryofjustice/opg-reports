@@ -69,7 +69,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       aws_s3_bucket: "report-data-development"
-      aws_role_s3_download: "arn:aws:iam::679638075911:role/docs-and-metadata-ci"
+      aws_role_s3_download: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
       aws_role_ecr_login_and_push: "arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
       ecr_registry_id: "311462405659"
       ecr_repository_api: "opg-reports/api"
@@ -145,9 +145,8 @@ jobs:
         id: configure_aws_creds_s3
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
           aws-region: "eu-west-1"
+          role-duration-seconds: 900
           role-to-assume: ${{ needs.setup.outputs.aws_role_s3_download }}
           role-session-name: opg-reports-download-s3-assets
       # download the s3 assets locally
