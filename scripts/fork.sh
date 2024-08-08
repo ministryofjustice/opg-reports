@@ -119,11 +119,13 @@ link(){
     local dir="${1}"
     local source="${2}"
     local target="${3}"
+    p "${START}" "Updating symlink"
     cd "${dir}"
     rm -f "./${target}"
     ln -s "./${source}" "./${target}" && p "${Y}" "symlinked" "[${target}]" || \
         p "${N}" "failed to link" "[${target}]"
     cd -
+    p "${END}" "Updated symlink"
 }
 
 ############## FIND / REPLACE
@@ -136,9 +138,12 @@ remove_chunk() {
     local destination="${source}.copy"
     local base=$(basename "${source}")
 
+    p "${START}" "Removing chunk"
     sed "/${start}/,/${end}/d" ${source} > ${destination}
     mv "${destination}" "${source}" && p "${Y}" "removed chunk" "[${base}]" || \
         p "${N}" "failed removing chunk" "[${base}]"
+
+    p "${END}" "Removed chunk"
 }
 
 remove_text() {
@@ -149,9 +154,12 @@ remove_text() {
     local destination="${source}.copy"
     local base=$(basename "${source}")
 
+    p "${START}" "Removing text"
     sed "s/${original}//g" ${source} > ${destination}
     mv "${destination}" "${source}" && p "${Y}" "removed text" "[${base}]" || \
         p "${N}" "failed removing text" "[${base}]"
+
+    p "${END}" "Removed text"
 }
 
 replace_compose_attr(){
@@ -164,11 +172,14 @@ replace_compose_attr(){
     local destination="${source}.copy"
     local base=$(basename "${source}")
 
+    p "${START}" "Replacing compose attribute"
     content=$(cat "${source}")
     echo "${content//${field}: ${original}/${field}: ${replacement}}" > ${destination}
 
     mv "${destination}" "${source}" && p "${Y}" "replaced attr" "[${base}]" || \
         p "${N}" "failed replaced attr" "[${base}]"
+
+    p "${END}" "Replaed compose attribute"
 }
 
 replace_yaml_attr() {
@@ -181,11 +192,14 @@ replace_yaml_attr() {
     local destination="${source}.copy"
     local base=$(basename "${source}")
 
+    p "${START}" "Replacing yaml attribute"
     content=$(cat "${source}")
     echo "${content//${field}: \"${original}\"/${field}: \"${replacement}\"}" > ${destination}
 
     mv "${destination}" "${source}" && p "${Y}" "replaced attr" "[${base}]" || \
         p "${N}" "failed replaced attr" "[${base}]"
+
+    p "${END}" "Replaced yaml attribute"
 }
 
 replace_makefile_var() {
@@ -198,10 +212,12 @@ replace_makefile_var() {
     local destination="${source}.copy"
     local base=$(basename "${source}")
 
+    p "${START}" "Replacing makefile var"
     sed "s/${field} ?= ${original}/${field} ?= ${replacement}/g" ${source} > ${destination}
 
     mv "${destination}" "${source}" && p "${Y}" "replaced makefile var" "[${base}]" || \
         p "${N}" "failed replace var" "[${base}]"
+    p "${END}" "Replaced makefile var"
 }
 
 replace_config_attr() {
@@ -214,11 +230,13 @@ replace_config_attr() {
     local destination="${source}.copy"
     local base=$(basename "${source}")
 
+    p "${START}" "Replacing config attr"
     content=$(cat "${source}")
     echo "${content//\"${field}\": \"${original}\"/\"${field}\": \"${replacement}\"}" > ${destination}
 
     mv "${destination}" "${source}" && p "${Y}" "replaced attr" "[${base}]" || \
         p "${N}" "failed replaced attr" "[${base}]"
+    p "${END}" "Replaced config attr"
 
 }
 ################################################
@@ -328,6 +346,10 @@ main(){
     delete_files "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPORT_PATTERN}" GITHUB_REPORTS_TO_KEEP
     # remove terraform directory
     delete_directory "${TERRAFORM_DIR}"
+    # swap config files to simple version & replace org
+    link "${SERVICE_FRONT_DIR}" "${FRONT_CONFIG_FILE}" "${FRONT_CONFIG_LINK}"
+    replace_config_attr "${SERVICE_FRONT_DIR}" "${FRONT_CONFIG_FILE}" "${CONFIG_UNIT}" "${D_UNIT}" "${UNIT}"
+
     ############## DEVELOPMENT
     # remove terraform chunks from workflows
     remove_chunk "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${CHUNK_START}" "${CHUNK_END}"
@@ -344,9 +366,6 @@ main(){
     replace_compose_attr "${ROOT_DIR}" "${DOCKER_COMPOSE_FILE}" "${DOCKER_REGISTRY}" "${D_ECR_REGISTRY_ID}" "${ECR_REGISTRY_ID}"
 
     ############## PRODUCTION
-
-    link "${SERVICE_FRONT_DIR}" "${FRONT_CONFIG_FILE}" "${FRONT_CONFIG_LINK}"
-    replace_config_attr "${SERVICE_FRONT_DIR}" "${FRONT_CONFIG_FILE}" "${CONFIG_UNIT}" "${D_UNIT}" "${UNIT}"
     # remove terraform chunks from workflows
     remove_chunk "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${CHUNK_START}" "${CHUNK_END}"
     remove_text "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${TEXT_REPLACE}"
