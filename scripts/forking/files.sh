@@ -5,12 +5,7 @@ delete_files() {
     local directory="${1}"
     local pattern="${2}"
     local -n exclusions="${3}"
-
-    printf '1: %s\n' "${directory}"
-    printf '2: %s\n' "${pattern}"
-    printf '3: %q\n' "${exclusions[@]}"
-
-
+    divider
     for file in ${directory}/${pattern}; do
         local base=$(basename "${file}")
         local should_delete="true"
@@ -19,61 +14,38 @@ delete_files() {
 
         # this file matches an excluded file, so skip it
         if [[ "${is_excluded}" == "1" ]]; then
-            info "${base}" "delete" "${SKIP}"
+            debug "${SKIP}" "delete" "${base}"
             continue
         fi
 
         # delete the file
         LIVE && \
             rm -f "${file}" && \
-            info "${base}" "delete" "${Y}"
+            debug "${Y}" "delete" "${base}" || \
+        err "${N}" "delete" "${base}"
 
     done
 
-    flush
-    # for file in ${directory}/${pattern}; do
-    #     local base=$(basename "${file}")
-    #     local should_delete="true"
-    #     local deleted="${N}"
-
-    #     # check all excluded files
-    #     for exclude in "${excludeArray[@]}"; do
-    #         if [[ "${base}" == "${exclude}" ]]; then
-    #           should_delete="false"
-    #         fi
-    #     done
-
-
-    #     # if [[ "${base}" == "${exclude}" ]]; then
-    #     #     should_delete="false"
-    #     # fi
-
-    #     # if [[ "${should_delete}" == "true" ]]; then
-
-    #     #     # LIVE && rm -f "${file}" && deleted="${Y}" ||
-    #     #     # if [[ -f "${file}" ]]; then
-    #     #     # fi
-
-    #     # else
-    #     #     deleted="${SKIP}"
-    #     # fi
-
-    #     # info "${base}" "delete?" "${should_delete}" "${deleted}"
-    # done
-    log ${INFO} "-"
+    info "${Y}" "Deleted files"
+    divider
 }
 
 delete_directory() {
     local directory="${1}"
+    local live=$(LIVE && echo "true" || echo "false")
 
-    log ${INFO} "[deleting directory]"
-    log ${DEBUG} "directory: ${directory}"
-    log ${INFO} ""
-
-    LIVE && \
+    divider
+    # if this isnt a live run, then output info
+    if [[ "${live}" != "true" ]]; then
+        debug "${SKIP}" "delete" "${directory}"
+    # if its live and works, output info, otherwise flag error
+    else
         rm -Rf "${directory}" && \
-        log ${INFO} "${Y} deleted: ${directory}" || \
-    log ${DEBUG} "dry run - skipping"
+            debug "${Y}" "delete" "${directory}" || \
+            err "${N}" "delete" "${directory}"
+    fi
+    info "${Y}" "Deleted directory"
+    divider
 
-    log ${INFO} "-"
+
 }

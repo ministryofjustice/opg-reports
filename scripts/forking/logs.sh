@@ -2,41 +2,38 @@
 set -eo pipefail
 
 ################################################
-_buffer_info=""
+buffer=""
 ################################################
 
-log() {
-    local level=${1:-INFO}
-    local msg="${2}"
-    local output=$(test ${LOG_LEVEL} -ge ${level} && echo "true" || echo "false")
-    if [[ "${output}" == "true" ]]; then
-        echo "${msg}"
-    fi
-    if [[ "${level}" == "${ERROR}" ]]; then
-        exit 1
-    fi
+divider() {
+    local dev="------------------------------"
+    info "${dev}"
+    flush
 }
 
+err(){
+    info "$@"
+}
 
 debug() {
-    echo ""
+    info "$@"
 }
 
 info() {
+    local n=$'\n'
 
     for i in "$@"; do
-        local l="${#i}"
-        printf -v ${_buffer_info} "%-${l}s   " "${i}"
+        local buff=""
+        printf -v buff "%s\t" "${i}"
+        buffer="${buffer}${buff}"
     done
-    printf -v ${_buffer_info} "\n"
+    buffer="${buffer}${n}"
 
 }
 
-err() {
-
-}
 
 
 flush() {
-    echo "${_buffer_info}" | column -s: -t
+    echo "${buffer}" | column -s: -t
+    buffer=""
 }

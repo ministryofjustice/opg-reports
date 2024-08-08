@@ -76,9 +76,9 @@ main() {
     # fi
     # -- actions that dont require input
     # delete unused github actions
-    delete_files "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPORT_PATTERN}" GITHUB_REPORTS_TO_KEEP
+    # delete_files "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPORT_PATTERN}" GITHUB_REPORTS_TO_KEEP
     # remove the terraform directory
-    # delete_directory "${TERRAFORM_DIR}"
+    delete_directory "${TERRAFORM_DIR}"
     # # remove terraform and related steps from workflows
     # gh_workflow_remove_marked "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}"
     # gh_workflow_remove_marked "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}"
