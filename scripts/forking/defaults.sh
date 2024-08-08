@@ -9,9 +9,21 @@ readonly DEBUG=3
 readonly TRUE_FLAG=1
 readonly FALSE_FLAG=0
 
-readonly Y="✅"
-readonly N="❌"
-readonly SKIP="⏩"
+readonly RED=$'\e[0;31m'
+readonly GREEN=$'\e[0;32m'
+readonly BLUE=$'\e[0;34m'
+readonly NC=$'\e[0m'
+
+readonly _y=$'\u2714'
+readonly _n=$'\u274c'
+readonly _s=$'\u21E5'
+readonly Y="${GREEN}${_y}${NC}"
+readonly N="${RED}${_n}${NC}"
+readonly SKIP="${BLUE}${_s}${NC}"
+readonly R='-'
+readonly L='-'
+
+readonly UNIT="OPG"
 
 readonly GITHUB_DIR="${ROOT_DIR}/.github"
 readonly GITHUB_WORKFLOW_DIR="${GITHUB_DIR}/workflows"

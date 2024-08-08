@@ -7,6 +7,8 @@ delete_files() {
     local -n exclusions="${3}"
     local live=$(LIVE && echo "true" || echo "false")
 
+    info "${R}" "Deleting files" "${L}"
+
     for file in ${directory}/${pattern}; do
         local base=$(basename "${file}")
         local should_delete="true"
@@ -31,14 +33,15 @@ delete_files() {
 
     done
 
-    info "${Y}" "Deleted files"
-    divider
+    info "${Y}" "Deleted files" "${L}"
+
 }
 
 delete_directory() {
     local directory="${1}"
     local live=$(LIVE && echo "true" || echo "false")
 
+    info "${R}" "Deleting directory" "${L}"
     # if this isnt a live run, then output info
     if [[ "${live}" != "true" ]]; then
         debug "${SKIP}" "delete" "[${directory}]"
@@ -49,6 +52,5 @@ delete_directory() {
             err "${N}" "delete" "[${directory}]"
     fi
 
-    info "${Y}" "Deleted directory"
-    divider
+    info "${Y}" "Deleted directory" "${L}"
 }

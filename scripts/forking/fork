@@ -21,6 +21,7 @@ source ${SCRIPT_DIR}/docker.sh
 
 main() {
     local continue="Y"
+    local unit="${UNIT}"
     local bucket_dev="${BUCKET_NAME_DEV}"
     local bucket_download_dev="${BUCKET_DOWNLOAD_ROLE_DEV}"
     local bucket_upload_dev="${BUCKET_UPLOAD_ROLE_DEV}"
@@ -29,6 +30,9 @@ main() {
     local ecr_push_dev="${ECR_PUSH_ROLE_DEV}"
 
     # capture user inputs
+    read -p "Name of business unit: [${unit}] " unit
+    unit="${unit:-$UNIT}"
+
     read -p "Name of the *DEVELOPMENT* bucket used for data storage: [${bucket_dev}] " bucket_dev
     bucket_dev="${bucket_dev:-$BUCKET_NAME_DEV}"
 
@@ -50,13 +54,14 @@ main() {
     divider
     info "CONFIG"
     divider
-    info "name:" "[${bucket_dev}]"
+    info "Business unit name:" "[${unit}]"
+    info "AWS S3 nucket name:" "[${bucket_dev}]"
     info "AWS profile for *LOCAL* s3 bucket *DOWNLOAD*:" "[${profile_dev}]"
     info "AWS role arn for *WORKFLOW* s3 bucket *DOWNLOAD*:" "[${bucket_download_dev}]"
     info "AWS role arn for *WORKFLOW* s3 bucket *UPLOAD*:" "[${bucket_upload_dev}]"
-    info "AWS ECCR registry id:" "[${ecr_registry_id}]"
+    info "AWS ECR registry id:" "[${ecr_registry_id}]"
     info "AWS OIDC role arn for the *WORKFLOW* ecr login and push:" "[${ecr_push_dev}]"
-
+    flush
     divider
 
     read -p "Contine using the above details? (Y|N) [${continue}] " continue
@@ -66,45 +71,49 @@ main() {
     fi
     divider
     # delete unused github actions
-    delete_files "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPORT_PATTERN}" GITHUB_REPORTS_TO_KEEP
+    # delete_files "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPORT_PATTERN}" GITHUB_REPORTS_TO_KEEP
     # remove the terraform directory
-    delete_directory "${TERRAFORM_DIR}"
-    # remove terraform and related steps from workflows
-    gh_workflow_remove_marked "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}"
-    gh_workflow_remove_marked "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}"
+    # delete_directory "${TERRAFORM_DIR}"
+    # # remove terraform and related steps from workflows
+    # gh_workflow_remove_marked "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}"
+    # gh_workflow_remove_marked "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}"
 
-    # DEVELOPMENT
-    # bucket name
-    gh_workflow_replace_bucket "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${BUCKET_NAME_DEV}" "${bucket_dev}"
-    gh_workflow_replace_bucket "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPOSITORY_REPORT}" "${BUCKET_NAME_DEV}" "${bucket_dev}"
-    makefile_replace_bucket "${ROOT_DIR}" "${MAKEFILE}" "${BUCKET_NAME_DEV}" "${bucket_dev}"
+    # # DEVELOPMENT
+    # # bucket name
+    # gh_workflow_replace_bucket "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${BUCKET_NAME_DEV}" "${bucket_dev}"
+    # gh_workflow_replace_bucket "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPOSITORY_REPORT}" "${BUCKET_NAME_DEV}" "${bucket_dev}"
+    # makefile_replace_bucket "${ROOT_DIR}" "${MAKEFILE}" "${BUCKET_NAME_DEV}" "${bucket_dev}"
 
-    # aws config profile name for use in makefile
-    makefile_replace_aws_profile "${ROOT_DIR}" "${MAKEFILE}" "${MAKEFILE_AWS_PROFILE}" "${profile_dev}"
+    # # aws config profile name for use in makefile
+    # makefile_replace_aws_profile "${ROOT_DIR}" "${MAKEFILE}" "${MAKEFILE_AWS_PROFILE}" "${profile_dev}"
 
-    # workflow s3 downloader role
-    gh_workflow_replace_bucket_download_role "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${BUCKET_DOWNLOAD_ROLE_DEV}" "${bucket_download_dev}"
+    # # workflow s3 downloader role
+    # gh_workflow_replace_bucket_download_role "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${BUCKET_DOWNLOAD_ROLE_DEV}" "${bucket_download_dev}"
 
-    # workflow s3 uploader role
-    gh_workflow_replace_bucket_upload_role "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPOSITORY_REPORT}" "${BUCKET_UPLOAD_ROLE_DEV}" "${bucket_upload_dev}"
+    # # workflow s3 uploader role
+    # gh_workflow_replace_bucket_upload_role "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPOSITORY_REPORT}" "${BUCKET_UPLOAD_ROLE_DEV}" "${bucket_upload_dev}"
 
-    # workflow replace registry id
-    gh_workflow_replace_ecr_registry_id "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${ECR_REGISTRY_ID}" "${ecr_registry_id}"
-    # - do live as well, as registry id should be the same
-    gh_workflow_replace_ecr_registry_id "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${ECR_REGISTRY_ID}" "${ecr_registry_id}"
-    # docker compose
-    docker_compose_replace_registry "${ROOT_DIR}" "${DOCKER_COMPOSE_FILE}" "${ECR_REGISTRY_ID}" "${ecr_registry_id}"
+    # # workflow replace registry id
+    # # - do live as well, as registry id should be the same
+    # gh_workflow_replace_ecr_registry_id "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${ECR_REGISTRY_ID}" "${ecr_registry_id}"
+    # gh_workflow_replace_ecr_registry_id "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${ECR_REGISTRY_ID}" "${ecr_registry_id}"
 
-    # ecr registry login and push role
-    gh_workflow_replace_ecr_push_role "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${ECR_PUSH_ROLE_DEV}" "${ecr_push_dev}"
+    # # docker compose
+    # docker_compose_replace_registry "${ROOT_DIR}" "${DOCKER_COMPOSE_FILE}" "${ECR_REGISTRY_ID}" "${ecr_registry_id}"
 
-    # ### front/config.json setup
+    # # ecr registry login and push role
+    # gh_workflow_replace_ecr_push_role "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${ECR_PUSH_ROLE_DEV}" "${ecr_push_dev}"
 
-    # PRODUCTION - as we currently use dev everywhere, just repeat in the production files
-    gh_workflow_replace_bucket "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${BUCKET_NAME_DEV}" "${bucket_dev}"
-    gh_workflow_replace_bucket_download_role "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${BUCKET_DOWNLOAD_ROLE_DEV}" "${bucket_download_dev}"
-    gh_workflow_replace_ecr_push_role "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${ECR_PUSH_ROLE_DEV}" "${ecr_push_dev}"
+    # # ### front/config.json setup
+
+    # # change github org and team name
+
+    # # PRODUCTION - as we currently use dev everywhere, just repeat in the production files
+    # gh_workflow_replace_bucket "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${BUCKET_NAME_DEV}" "${bucket_dev}"
+    # gh_workflow_replace_bucket_download_role "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${BUCKET_DOWNLOAD_ROLE_DEV}" "${bucket_download_dev}"
+    # gh_workflow_replace_ecr_push_role "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${ECR_PUSH_ROLE_DEV}" "${ecr_push_dev}"
 
 }
 
 main
+flush

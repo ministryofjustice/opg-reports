@@ -21,6 +21,4 @@ docker_compose_replace_registry() {
     debug "${SKIP}" "generated example docker compose" "[${base}]"
 
     info "${Y}" "Replaced docker compose registry id"
-    divider
-
 }

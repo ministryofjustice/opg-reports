@@ -19,7 +19,6 @@ gh_workflow_remove_marked() {
     debug "${SKIP}" "generated example workflows" "[${base}]"
 
     info "${Y}" "Removed workflow segments"
-    divider
 }
 
 gh_workflow_replace_key(){
@@ -53,7 +52,6 @@ gh_workflow_replace_bucket() {
 
     gh_workflow_replace_key "${field}" "${directory}" "${workflow}" "${current}" "${replacement}"
     info "${Y}" "Replaced s3 bucket name"
-    divider
 }
 
 
@@ -66,7 +64,6 @@ gh_workflow_replace_bucket_download_role() {
 
     gh_workflow_replace_key "${field}" "${directory}" "${workflow}" "${current}" "${replacement}"
     info "${Y}" "Replaced s3 download role"
-    divider
 
 }
 
@@ -80,7 +77,6 @@ gh_workflow_replace_bucket_upload_role() {
 
     gh_workflow_replace_key "${field}" "${directory}" "${workflow}" "${current}" "${replacement}"
     info "${Y}" "Replaced s3 upload role"
-    divider
 
 }
 
@@ -93,7 +89,6 @@ gh_workflow_replace_ecr_registry_id(){
 
     gh_workflow_replace_key "${field}" "${directory}" "${workflow}" "${current}" "${replacement}"
     info "${Y}" "Replaced ecr registry id"
-    divider
 }
 
 gh_workflow_replace_ecr_push_role() {
@@ -105,5 +100,4 @@ gh_workflow_replace_ecr_push_role() {
 
     gh_workflow_replace_key "${field}" "${directory}" "${workflow}" "${current}" "${replacement}"
     info "${Y}" "Replaced ecr login and push role"
-    divider
 }

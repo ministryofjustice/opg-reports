@@ -7,8 +7,7 @@ buffer=""
 
 divider() {
     local dev="------------------------------"
-    info "${dev}"
-    flush
+    echo "${dev}"
 }
 
 err(){
@@ -26,8 +25,8 @@ info() {
 
     for i in "$@"; do
         local buff=""
-        printf -v buff "%s\t" "${i}"
-        buffer="${buffer}${buff}"
+        printf -v buff "%s" "${i}"
+        buffer=$(echo "${buffer}${buff}@" | tr -s '[:space:]')
     done
     buffer="${buffer}${n}"
 
@@ -36,6 +35,6 @@ info() {
 
 
 flush() {
-    echo "${buffer}" | column -s: -t
+    echo "${buffer}"| column -c 3 -s@ -t
     buffer=""
 }
