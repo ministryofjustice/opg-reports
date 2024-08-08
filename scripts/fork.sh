@@ -246,6 +246,16 @@ replace_config_attr() {
 
 }
 ################################################
+# MESSAGES
+################################################
+secrets() {
+    echo "------------------"
+    echo "!! You will need to set the following secrets on your fork !!"
+    echo "GH_ORG_ACCESS_TOKEN"
+    echo "This is a token with access to all public and private repositories in the org and team you want report on."
+    echo "------------------"
+}
+################################################
 # ARGUMENT HANDLING
 ################################################
 # read in cli flags to the vars to skip the read -p calls
@@ -400,6 +410,8 @@ main(){
     # swap the org & team for the workflow run
     replace_yaml_attr "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPOSITORY_REPORT}" "${GH_ORG_KEY}" "${D_GITHUB_ORG}" "${GITHUB_ORG}"
     replace_yaml_attr "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPOSITORY_REPORT}" "${GH_TEAM_KEY}" "${D_GITHUB_TEAM}" "${GITHUB_TEAM}"
+
+    secrets
 }
 
 
