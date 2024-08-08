@@ -26,9 +26,9 @@ While this code base makes use of a lot of configuration, the default and checke
 
 ## Automated
 
-To make this process as simple as we can, we have included a [bash script](./scripts/fork.sh) that automates the forking process with sensible defaults.
+To make this process as simple as we can, we have included a [bash script](./scripts/fork.sh) that should be run after you have forked the original repository to update the settings.
 
-Run this by calling from the root of this repository:
+Run this by calling from the root of the forked repository:
 
 ```bash
 ./scripts/fork.sh
