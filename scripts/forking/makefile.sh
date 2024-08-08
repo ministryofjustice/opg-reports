@@ -15,7 +15,7 @@ makefile_replace_bucket() {
     LIVE && \
         mv "${updated}" "${original}" && \
         rm -f "${updated}" && \
-        debug "${Y}" "updated makefile bucket" "[${file}]" || \
+        debug "${Y}" "updated bucket" "[${file}]" || \
     debug "${SKIP}" "generated makefile example" "[${base}]"
 
     info "${Y}" "Replaced makefile default s3 bucket"
@@ -37,7 +37,7 @@ makefile_replace_aws_profile() {
     LIVE && \
         mv "${updated}" "${original}" && \
         rm -f "${updated}" && \
-        debug "${Y}" "updated makefile aws profile" "[${file}]" || \
+        debug "${Y}" "updated aws profile" "[${file}]" || \
     debug "${SKIP}" "generated makefile example" "[${base}]"
 
     info "${Y}" "Replaced makefile aws profile"
