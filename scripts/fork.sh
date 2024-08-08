@@ -9,7 +9,7 @@ set -eo pipefail
 readonly D_UNIT="OPG"
 readonly D_AWS_PROFILE="shared-development-operator"
 readonly D_BUCKET_NAME_DEV="report-data-development"
-readonly D_BUCKET_DOWNLOAD_ROLE_DEV="arn:aws:iam::679638075911:role/docs-and-metadata-ci"
+readonly D_BUCKET_DOWNLOAD_ROLE_DEV="arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
 readonly D_BUCKET_UPLOAD_ROLE_DEV="arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
 readonly D_ECR_REGISTRY_ID="311462405659"
 readonly D_ECR_PUSH_ROLE_DEV="arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
@@ -70,7 +70,7 @@ readonly TEXT_REPLACE="#--fork-replacement"
 #
 readonly YAML_BUCKET="aws_s3_bucket"
 readonly YAML_S3_DOWNLOAD="aws_role_s3_download"
-readonly YAML_S3_UPLOAD="aws_role_bucket_upload"
+readonly YAML_S3_UPLOAD="aws_role_s3_upload"
 readonly YAML_ECR_REGISTRY_ID="ecr_registry_id"
 readonly YAML_ECR_PUSH="aws_role_ecr_login_and_push"
 readonly MAKEFILE_BUCKET="BUCKET"
@@ -287,7 +287,7 @@ reads(){
     fi
     # download
     if [[ "${BUCKET_DOWNLOAD_ROLE_DEV}" == "" ]]; then
-        read -p "The *DEVELOPMENT* role ARN to use for *DOWNLOADING* from the S3 bucket in workflows: [${D_BUCKET_DOWNLOAD_ROLE_DEV}] " BUCKET_DOWNLOAD_ROLE_DEV
+        read -p "The *DEVELOPMENT* OIDC role ARN to use for *DOWNLOADING* from the S3 bucket in workflows: [${D_BUCKET_DOWNLOAD_ROLE_DEV}] " BUCKET_DOWNLOAD_ROLE_DEV
         BUCKET_DOWNLOAD_ROLE_DEV="${BUCKET_DOWNLOAD_ROLE_DEV:-$D_BUCKET_DOWNLOAD_ROLE_DEV}"
     fi
     # upload
