@@ -26,7 +26,15 @@ While this code base makes use of a lot of configuration, the default and checke
 
 ## Automated
 
-To make this process as simple as we can, we have included a bash script (`./scripts/fork.sh`) that automates the forking process with sensible defaults. It will ask you for the following information:
+To make this process as simple as we can, we have included a [bash script](./scripts/fork.sh) that automates the forking process with sensible defaults.
+
+Run this by calling from the root of this repository:
+
+```bash
+./scripts/fork.sh
+```
+
+The script will ask for following details:
 
 - Name of business unit (`--business-unit`)
 - Name of the *DEVELOPMENT* S3 bucket used for data storage (`--development-bucket-name`)
@@ -38,7 +46,18 @@ To make this process as simple as we can, we have included a bash script (`./scr
 - The github organisation slug (`--gh-org`)
 - The github team slug (`--gh-team`)
 
+You can also pass these values as cli arguments and the script will use the passed value instead of asking, like:
+
+```bash
+./scripts/fork.sh \
+  --business-unit OPG \
+  --gh-team opg \
+  --aws-profile operator
+```
+
 It will then go over the code base and update all the relevent files - you should then be able to commit those changes and have a functional version.
+
+You can use the argument names
 
 *Note:* Assumes infrastructure will be handled external to this repository.
 
