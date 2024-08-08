@@ -35,6 +35,8 @@ readonly ROOT_DIR=$(d "${SCRIPT_DIR}/../")
 readonly GITHUB_DIR="${ROOT_DIR}/.github"
 readonly GITHUB_WORKFLOW_DIR="${GITHUB_DIR}/workflows"
 readonly TERRAFORM_DIR="${ROOT_DIR}/terraform"
+readonly SERVICE_DIR="${ROOT_DIR}/services"
+readonly SERVICE_FRONT_DIR="${ROOT_DIR}/services/front"
 ################################################
 # FILES
 ################################################
@@ -45,6 +47,8 @@ readonly GITHUB_REPOSITORY_REPORT="report_repository_standards.yml"
 readonly GITHUB_WORKFLOW_PR="workflow_pr.yml"
 readonly GITHUB_WORKFLOW_LIVE="workflow_path_to_live.yml"
 readonly DOCKER_COMPOSE_FILE="docker-compose.yml"
+readonly FRONT_CONFIG_FILE="config.simple.json"
+readonly FRONT_CONFIG_LINK="config.json"
 ################################################
 # OUTPUT ICONS
 ################################################
@@ -58,6 +62,17 @@ readonly N="𐄂"
 ################################################
 readonly CHUNK_START="#--fork-remove-start"
 readonly CHUNK_END="#--fork-remove-end"
+readonly TEXT_REPLACE="#--fork-replacement"
+#
+readonly YAML_BUCKET="aws_s3_bucket"
+readonly YAML_S3_DOWNLOAD="aws_role_s3_download"
+readonly YAML_S3_UPLOAD="aws_role_bucket_upload"
+readonly YAML_ECR_REGISTRY_ID="ecr_registry_id"
+readonly YAML_ECR_PUSH="aws_role_ecr_login_and_push"
+readonly MAKEFILE_BUCKET="BUCKET"
+readonly MAKEFILE_PROFILE="AWS_PROFILE"
+readonly DOCKER_REGISTRY="image"
+readonly CONFIG_UNIT="organisation"
 ################################################
 # FUNCTIONS
 ################################################
@@ -72,19 +87,17 @@ delete_files() {
     local directory="${1}"
     local pattern="${2}"
     local -n exclusions="${3}"
-
     p "${START}" "Deleting files..."
 
     for file in ${directory}/${pattern}; do
         local base=$(basename "${file}")
         local is_excluded=$(echo ${exclusions[@]} | grep -ow "${base}" | wc -w | tr -d ' ')
-
         # this file matches an excluded file, so skip it
         if [[ "${is_excluded}" == "1" ]]; then
             p "${SKIP}" "excluded" "[${base}]"
             continue
         fi
-
+        # remove the file, show error if fails
         rm -f "${file}" && p "${Y}" "deleted" "[${base}]" || \
             p "${N}" "failed to delete" "[${base}]"
     done
@@ -93,27 +106,121 @@ delete_files() {
 # Delete the directory passed
 delete_directory() {
     local directory="${1}"
-
+    local base=$(basename "${directory}")
     p "${START}" "Deleting directory..."
 
-    rm -Rf "${directory}" && p "${Y}" "deleted" "[${directory}]" || \
-        p "${N}" "failed to delete" "[${directory}]"
+    rm -Rf "${directory}" && p "${Y}" "deleted" "[${base}]" || \
+        p "${N}" "failed to delete" "[${base}]"
 
     p "${END}" "Deleted directory"
 }
 
-############## DELETE CHUNKS
+link(){
+    local dir="${1}"
+    local source="${2}"
+    local target="${3}"
+    cd "${dir}"
+    rm -f "./${target}"
+    ln -s "./${source}" "./${target}" && p "${Y}" "symlinked" "[${target}]" || \
+        p "${N}" "failed to link" "[${target}]"
+    cd -
+}
+
+############## FIND / REPLACE
 remove_chunk() {
     local dir="${1}"
     local file="${2}"
     local start="${3}"
     local end="${4}"
-    local original="${1}/${2}"
-    local copy="${original}.copy"
+    local source="${1}/${2}"
+    local destination="${source}.copy"
+    local base=$(basename "${source}")
 
-    sed "/${start}/,/${end}/d" ${original} > ${copy}
+    sed "/${start}/,/${end}/d" ${source} > ${destination}
+    mv "${destination}" "${source}" && p "${Y}" "removed chunk" "[${base}]" || \
+        p "${N}" "failed removing chunk" "[${base}]"
 }
 
+remove_text() {
+    local dir="${1}"
+    local file="${2}"
+    local original="${3}"
+    local source="${1}/${2}"
+    local destination="${source}.copy"
+    local base=$(basename "${source}")
+
+    sed "s/${original}//g" ${source} > ${destination}
+    mv "${destination}" "${source}" && p "${Y}" "removed text" "[${base}]" || \
+        p "${N}" "failed removing text" "[${base}]"
+}
+
+replace_compose_attr(){
+    local dir="${1}"
+    local file="${2}"
+    local field="${3}"
+    local original="${4}"
+    local replacement="${5}"
+    local source="${1}/${2}"
+    local destination="${source}.copy"
+    local base=$(basename "${source}")
+
+    content=$(cat "${source}")
+    echo "${content//${field}: ${original}/${field}: ${replacement}}" > ${destination}
+
+    mv "${destination}" "${source}" && p "${Y}" "replaced attr" "[${base}]" || \
+        p "${N}" "failed replaced attr" "[${base}]"
+}
+
+replace_yaml_attr() {
+    local dir="${1}"
+    local file="${2}"
+    local field="${3}"
+    local original="${4}"
+    local replacement="${5}"
+    local source="${1}/${2}"
+    local destination="${source}.copy"
+    local base=$(basename "${source}")
+
+    content=$(cat "${source}")
+    echo "${content//${field}: \"${original}\"/${field}: \"${replacement}\"}" > ${destination}
+
+    mv "${destination}" "${source}" && p "${Y}" "replaced attr" "[${base}]" || \
+        p "${N}" "failed replaced attr" "[${base}]"
+}
+
+replace_makefile_var() {
+    local dir="${1}"
+    local file="${2}"
+    local field="${3}"
+    local original="${4}"
+    local replacement="${5}"
+    local source="${1}/${2}"
+    local destination="${source}.copy"
+    local base=$(basename "${source}")
+
+    sed "s/${field} ?= ${original}/${field} ?= ${replacement}/g" ${source} > ${destination}
+
+    mv "${destination}" "${source}" && p "${Y}" "replaced makefile var" "[${base}]" || \
+        p "${N}" "failed replace var" "[${base}]"
+}
+
+replace_config_attr() {
+    local dir="${1}"
+    local file="${2}"
+    local field="${3}"
+    local original="${4}"
+    local replacement="${5}"
+    local source="${1}/${2}"
+    local destination="${source}.copy"
+    local base=$(basename "${source}")
+
+    content=$(cat "${source}")
+    echo "${content//\"${field}\": \"${original}\"/\"${field}\": \"${replacement}\"}" > ${destination}
+
+    mv "${destination}" "${source}" && p "${Y}" "replaced attr" "[${base}]" || \
+        p "${N}" "failed replaced attr" "[${base}]"
+
+}
 ################################################
 # ARGUMENT HANDLING
 ################################################
@@ -176,7 +283,11 @@ reads(){
 
 # show the set values
 show_conf(){
-    echo "CONFIG:
+    echo "
+------------------
+CONFIG:"
+
+echo "
 Business unit name:@[${UNIT}]@
 AWS S3 nucket name:@[${BUCKET_NAME_DEV}]
 AWS profile for *LOCAL* s3 bucket *DOWNLOAD*:@[${AWS_PROFILE}]
@@ -184,6 +295,7 @@ AWS role arn for *WORKFLOW* s3 bucket *DOWNLOAD*:@[${BUCKET_DOWNLOAD_ROLE_DEV}]
 AWS role arn for *WORKFLOW* s3 bucket *UPLOAD*:@[${BUCKET_UPLOAD_ROLE_DEV}]
 AWS ECR registry id:@[${ECR_REGISTRY_ID}]
 AWS OIDC role arn for the *WORKFLOW* ecr login and push:@[${ECR_PUSH_ROLE_DEV}]" | column -s@ -t
+echo ""
 }
 ################################################
 # PROCESS CONTROL
@@ -193,30 +305,60 @@ should_continue() {
     local continue="Y"
     if [[ "${CONFIRM}" == "true" ]]; then
         read -p "Contine using the above details? (Y|N) [${continue}] " continue
+        echo ""
         continue="${continue:-"Y"}"
         if [[ "${continue}" != [Yy] ]]; then
             echo "exiting..."
             exit 1
         fi
     fi
+
 }
 ################################################
 # MAIN
 ################################################
 main(){
     # setup calls
-    # args "$@"
-    # reads
-    # show_conf
-    # should_continue
+    args "$@"
+    reads
+    show_conf
+    should_continue
 
     # delete unused files
     delete_files "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPORT_PATTERN}" GITHUB_REPORTS_TO_KEEP
     # remove terraform directory
-    # delete_directory "${TERRAFORM_DIR}"
-
+    delete_directory "${TERRAFORM_DIR}"
+    ############## DEVELOPMENT
     # remove terraform chunks from workflows
     remove_chunk "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${CHUNK_START}" "${CHUNK_END}"
+    remove_text "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${TEXT_REPLACE}"
+    # replace bucket & ecr properties
+    replace_makefile_var "${ROOT_DIR}" "${MAKEFILE}" "${MAKEFILE_BUCKET}" "${D_BUCKET_NAME_DEV}" "${BUCKET_NAME_DEV}"
+    replace_makefile_var "${ROOT_DIR}" "${MAKEFILE}" "${MAKEFILE_PROFILE}" "${D_AWS_PROFILE}" "${AWS_PROFILE}"
+    # workflows
+    replace_yaml_attr "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${YAML_BUCKET}" "${D_BUCKET_NAME_DEV}" "${BUCKET_NAME_DEV}"
+    replace_yaml_attr "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${YAML_S3_DOWNLOAD}" "${D_BUCKET_DOWNLOAD_ROLE_DEV}" "${BUCKET_DOWNLOAD_ROLE_DEV}"
+    replace_yaml_attr "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${YAML_ECR_REGISTRY_ID}" "${D_ECR_REGISTRY_ID}" "${ECR_REGISTRY_ID}"
+    replace_yaml_attr "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${YAML_ECR_PUSH}" "${D_ECR_PUSH_ROLE_DEV}" "${ECR_PUSH_ROLE_DEV}"
+    # replace in docker compose
+    replace_compose_attr "${ROOT_DIR}" "${DOCKER_COMPOSE_FILE}" "${DOCKER_REGISTRY}" "${D_ECR_REGISTRY_ID}" "${ECR_REGISTRY_ID}"
+
+    ############## PRODUCTION
+
+    link "${SERVICE_FRONT_DIR}" "${FRONT_CONFIG_FILE}" "${FRONT_CONFIG_LINK}"
+    replace_config_attr "${SERVICE_FRONT_DIR}" "${FRONT_CONFIG_FILE}" "${CONFIG_UNIT}" "${D_UNIT}" "${UNIT}"
+    # remove terraform chunks from workflows
+    remove_chunk "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${CHUNK_START}" "${CHUNK_END}"
+    remove_text "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${TEXT_REPLACE}"
+
+    # replace bucket & ecr properties
+    replace_yaml_attr "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${YAML_BUCKET}" "${D_BUCKET_NAME_DEV}" "${BUCKET_NAME_DEV}"
+    replace_yaml_attr "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${YAML_S3_DOWNLOAD}" "${D_BUCKET_DOWNLOAD_ROLE_DEV}" "${BUCKET_DOWNLOAD_ROLE_DEV}"
+    replace_yaml_attr "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${YAML_ECR_REGISTRY_ID}" "${D_ECR_REGISTRY_ID}" "${ECR_REGISTRY_ID}"
+    replace_yaml_attr "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${YAML_ECR_PUSH}" "${D_ECR_PUSH_ROLE_DEV}" "${ECR_PUSH_ROLE_DEV}"
+
+    replace_yaml_attr "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPOSITORY_REPORT}" "${YAML_BUCKET}" "${D_BUCKET_NAME_DEV}" "${BUCKET_NAME_DEV}"
+    replace_yaml_attr "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPOSITORY_REPORT}" "${YAML_S3_UPLOAD}" "${D_BUCKET_UPLOAD_ROLE_DEV}" "${BUCKET_UPLOAD_ROLE_DEV}"
 }
 
 
