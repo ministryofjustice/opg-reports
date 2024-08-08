@@ -13,6 +13,8 @@ readonly D_BUCKET_DOWNLOAD_ROLE_DEV="arn:aws:iam::679638075911:role/docs-and-met
 readonly D_BUCKET_UPLOAD_ROLE_DEV="arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
 readonly D_ECR_REGISTRY_ID="311462405659"
 readonly D_ECR_PUSH_ROLE_DEV="arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
+readonly D_GITHUB_ORG="ministryofjustice"
+readonly D_GITHUB_TEAM="opg"
 # when true, will ask before executing
 CONFIRM="true"
 # empty ones for setup with inputs / read
@@ -23,6 +25,8 @@ BUCKET_DOWNLOAD_ROLE_DEV=""
 BUCKET_UPLOAD_ROLE_DEV=""
 ECR_REGISTRY_ID=""
 ECR_PUSH_ROLE_DEV=""
+GITHUB_ORG=""
+GITHUB_TEAM=""
 ################################################
 # DIRECTORY HELPER
 ################################################
@@ -72,6 +76,8 @@ readonly YAML_ECR_PUSH="aws_role_ecr_login_and_push"
 readonly MAKEFILE_BUCKET="BUCKET"
 readonly MAKEFILE_PROFILE="AWS_PROFILE"
 readonly DOCKER_REGISTRY="image"
+readonly GH_ORG_KEY="github_org"
+readonly GH_TEAM_KEY="github_team"
 readonly CONFIG_UNIT="organisation"
 ################################################
 # FUNCTIONS
@@ -255,6 +261,8 @@ args() {
             --development-bucket-upload-arn) BUCKET_UPLOAD_ROLE_DEV="${2}"; shift ;;
             --ecr-registry-id) ECR_REGISTRY_ID="${2}"; shift ;;
             --ecr-login-push-arn) ECR_PUSH_ROLE_DEV="${2}"; shift ;;
+            --gh-org) GITHUB_ORG="${2}"; shift ;;
+            --gh-team) GITHUB_TEAM="${2}"; shift ;;
             *) echo "Unknown parameter passed: $1"; exit 1 ;;
         esac
         shift
@@ -292,10 +300,19 @@ reads(){
         read -p "The AWS ECR registry id: [${D_ECR_REGISTRY_ID}] " ECR_REGISTRY_ID
         ECR_REGISTRY_ID="${ECR_REGISTRY_ID:-$D_ECR_REGISTRY_ID}"
     fi
-    # ecr
+    # ecr role
     if [[ "${ECR_PUSH_ROLE_DEV}" == "" ]]; then
         read -p "The *DEVELOPMENT* OIDC role ARN to use for pushing to ECR: [${D_ECR_PUSH_ROLE_DEV}] " ECR_PUSH_ROLE_DEV
         ECR_PUSH_ROLE_DEV="${ECR_PUSH_ROLE_DEV:-$D_ECR_PUSH_ROLE_DEV}"
+    fi
+
+    if [[ "${GITHUB_ORG}" == "" ]]; then
+        read -p "The github organisation slug: [${D_GITHUB_ORG}] " GITHUB_ORG
+        GITHUB_ORG="${GITHUB_ORG:-$D_GITHUB_ORG}"
+    fi
+    if [[ "${GITHUB_TEAM}" == "" ]]; then
+        read -p "The github parent teams slug: [${D_GITHUB_TEAM}] " GITHUB_TEAM
+        GITHUB_TEAM="${GITHUB_TEAM:-$D_GITHUB_TEAM}"
     fi
 }
 
@@ -376,8 +393,13 @@ main(){
     replace_yaml_attr "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${YAML_ECR_REGISTRY_ID}" "${D_ECR_REGISTRY_ID}" "${ECR_REGISTRY_ID}"
     replace_yaml_attr "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${YAML_ECR_PUSH}" "${D_ECR_PUSH_ROLE_DEV}" "${ECR_PUSH_ROLE_DEV}"
 
+    # main report - swap props
     replace_yaml_attr "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPOSITORY_REPORT}" "${YAML_BUCKET}" "${D_BUCKET_NAME_DEV}" "${BUCKET_NAME_DEV}"
     replace_yaml_attr "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPOSITORY_REPORT}" "${YAML_S3_UPLOAD}" "${D_BUCKET_UPLOAD_ROLE_DEV}" "${BUCKET_UPLOAD_ROLE_DEV}"
+
+    # swap the org & team for the workflow run
+    replace_yaml_attr "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPOSITORY_REPORT}" "${GH_ORG_KEY}" "${D_GITHUB_ORG}" "${GITHUB_ORG}"
+    replace_yaml_attr "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPOSITORY_REPORT}" "${GH_TEAM_KEY}" "${D_GITHUB_TEAM}" "${GITHUB_TEAM}"
 }
 
 

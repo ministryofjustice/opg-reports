@@ -25,6 +25,8 @@ jobs:
     outputs:
       aws_s3_bucket: "report-data-development"
       aws_role_bucket_upload: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
+      github_org: "ministryofjustice"
+      github_team: "opg"
     steps:
       - name: "End"
         run: echo "end"
@@ -45,7 +47,7 @@ jobs:
         with:
           name: "Repository standards"
           cmd: "github_standards"
-          arguments: '-organisation ministryofjustice -team opg'
+          arguments: '-organisation ${{ needs.setup.outputs.github_org }} -team ${{ needs.setup.outputs.github_team }}'
       # configure the aws role
       - name: "Configure AWS credentials for S3 upload"
         id: configure_aws_creds_s3_upload
