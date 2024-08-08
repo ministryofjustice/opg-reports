@@ -30,6 +30,7 @@ readonly BUCKET_DOWNLOAD_ROLE_DEV="arn:aws:iam::679638075911:role/docs-and-metad
 readonly BUCKET_UPLOAD_ROLE_DEV="arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
 # readonly BUCKET_UPLOAD_ROLE_PROD="arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
 
+readonly ECR_REGISTRY_ID="311462405659"
 readonly ECR_PUSH_ROLE_DEV="arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
 # readonly ECR_PUSH_ROLE_PROD="arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
 ################################################

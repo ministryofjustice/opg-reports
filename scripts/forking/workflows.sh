@@ -26,29 +26,45 @@ gh_workflow_remove_marked() {
     log ${INFO} "-"
 }
 
-
-gh_workflow_replace_bucket() {
-    local directory="${1}"
-    local workflow="${2}"
+gh_workflow_replace_key(){
+    local field="${1}"
+    local directory="${2}"
+    local workflow="${3}"
+    local current="${4}"
+    local replacement="${5}"
     local original="${directory}/${workflow}"
     local updated="${original}.updated"
-    local current="${3}"
-    local replacement="${4}"
+    local base=$(basename "${updated}")
 
-    log ${INFO} "[updating bucket name in workflow]"
+
     log ${DEBUG} "directory: ${directory}"
     log ${DEBUG} "workflow: ${workflow}"
     log ${DEBUG} "current: ${current}"
     log ${DEBUG} "replacement: ${replacement}"
     log ${INFO} ""
 
-    sed "s/aws_s3_bucket: \"${current}\"/aws_s3_bucket: \"${replacement}\"/g" ${original} > ${updated}
+    content=$(cat "${original}")
+    # sed doesnt like the : in the arn
+    echo "${content//${field}: \"${current}\"/${field}: \"${replacement}\"}" > ${updated}
 
     LIVE && \
         mv "${updated}" "${original}" && \
         rm -f "${updated}" && \
-        log ${INFO} "${Y} updated bucket: ${workflow}" || \
-    log ${INFO} "${Y} generated example workflow"
+        log ${INFO} "${Y} updated workflow: ${workflow}" || \
+    log ${INFO} "${Y} generated workflow: ${base}"
+
+
+}
+
+gh_workflow_replace_bucket() {
+    local directory="${1}"
+    local workflow="${2}"
+    local current="${3}"
+    local replacement="${4}"
+    local field="aws_s3_bucket"
+
+    log ${INFO} "[updating bucket name in workflow]"
+    gh_workflow_replace_key "${field}" "${directory}" "${workflow}" "${current}" "${replacement}"
 
 }
 
@@ -56,28 +72,12 @@ gh_workflow_replace_bucket() {
 gh_workflow_replace_bucket_download_role() {
     local directory="${1}"
     local workflow="${2}"
-    local original="${directory}/${workflow}"
-    local updated="${original}.updated"
     local current="${3}"
     local replacement="${4}"
-    local content=""
+    local field="aws_role_s3_download"
 
     log ${INFO} "[updating bucket download role in workflow]"
-    log ${DEBUG} "directory: ${directory}"
-    log ${DEBUG} "workflow: ${workflow}"
-    log ${DEBUG} "current: ${current}"
-    log ${DEBUG} "replacement: ${replacement}"
-    log ${INFO} ""
-
-    content=$(cat "${original}")
-    # sed doesnt like the : in the arn
-    echo "${content//aws_role_s3_download: \"${current}\"/aws_role_s3_download: \"${replacement}\"}" > ${updated}
-
-    LIVE && \
-        mv "${updated}" "${original}" && \
-        rm -f "${updated}" && \
-        log ${INFO} "${Y} updated bucket download role: ${workflow}" || \
-    log ${INFO} "${Y} generated example workflow"
+    gh_workflow_replace_key "${field}" "${directory}" "${workflow}" "${current}" "${replacement}"
 
 }
 
@@ -85,55 +85,34 @@ gh_workflow_replace_bucket_download_role() {
 gh_workflow_replace_bucket_upload_role() {
     local directory="${1}"
     local workflow="${2}"
-    local original="${directory}/${workflow}"
-    local updated="${original}.updated"
     local current="${3}"
     local replacement="${4}"
-    local content=""
+    local field="aws_role_bucket_upload"
 
     log ${INFO} "[updating bucket upload role in workflow]"
-    log ${DEBUG} "directory: ${directory}"
-    log ${DEBUG} "workflow: ${workflow}"
-    log ${DEBUG} "current: ${current}"
-    log ${DEBUG} "replacement: ${replacement}"
-    log ${INFO} ""
+    gh_workflow_replace_key "${field}" "${directory}" "${workflow}" "${current}" "${replacement}"
 
-    content=$(cat "${original}")
-    # sed doesnt like the : in the arn
-    echo "${content//aws_role_bucket_upload: \"${current}\"/aws_role_bucket_upload: \"${replacement}\"}" > ${updated}
+}
 
-    LIVE && \
-        mv "${updated}" "${original}" && \
-        rm -f "${updated}" && \
-        log ${INFO} "${Y} updated bucket upload role: ${workflow}" || \
-    log ${INFO} "${Y} generated example workflow"
+gh_workflow_replace_ecr_registry_id(){
+    local directory="${1}"
+    local workflow="${2}"
+    local current="${3}"
+    local replacement="${4}"
+    local field="ecr_registry_id"
 
+    log ${INFO} "[updating ecr push role in workflow]"
+    gh_workflow_replace_key "${field}" "${directory}" "${workflow}" "${current}" "${replacement}"
 }
 
 gh_workflow_replace_ecr_push_role() {
     local directory="${1}"
     local workflow="${2}"
-    local original="${directory}/${workflow}"
-    local updated="${original}.updated"
     local current="${3}"
     local replacement="${4}"
-    local content=""
+    local field="aws_role_ecr_login_and_push"
 
     log ${INFO} "[updating ecr push role in workflow]"
-    log ${DEBUG} "directory: ${directory}"
-    log ${DEBUG} "workflow: ${workflow}"
-    log ${DEBUG} "current: ${current}"
-    log ${DEBUG} "replacement: ${replacement}"
-    log ${INFO} ""
-
-    content=$(cat "${original}")
-    # sed doesnt like the : in the arn
-    echo "${content//aws_role_ecr_login_and_push: \"${current}\"/aws_role_ecr_login_and_push: \"${replacement}\"}" > ${updated}
-
-    LIVE && \
-        mv "${updated}" "${original}" && \
-        rm -f "${updated}" && \
-        log ${INFO} "${Y} updated ecr push role: ${workflow}" || \
-    log ${INFO} "${Y} generated example workflow"
+    gh_workflow_replace_key "${field}" "${directory}" "${workflow}" "${current}" "${replacement}"
 
 }
