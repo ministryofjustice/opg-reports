@@ -22,7 +22,7 @@ At the moment, the CI/CD workflows (with `workflow_` prefix) within this project
 
 # Forking<a name="forking"></a>
 
-While this code base makes use of a lot of configuration, the default and checked in versions are set for OPGs requirements. Therefore, for most other users it is sensible to fork this repository to make your reguired changes.
+While this code base makes use of a lot of configuration, the default and checked in versions are set for OPGs requirements. Therefore, for most other users it is sensible to fork this repository to make your required changes.
 
 ## Automated
 
