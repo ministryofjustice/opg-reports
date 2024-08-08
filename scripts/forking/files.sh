@@ -14,15 +14,15 @@ delete_files() {
 
         # this file matches an excluded file, so skip it
         if [[ "${is_excluded}" == "1" ]]; then
-            debug "${SKIP}" "delete" "${base}"
+            debug "${SKIP}" "delete" "[${base}]"
             continue
         fi
 
         # delete the file
         LIVE && \
             rm -f "${file}" && \
-            debug "${Y}" "delete" "${base}" || \
-        err "${N}" "delete" "${base}"
+            debug "${Y}" "delete" "[${base}]" || \
+        err "${N}" "delete" "[${base}]"
 
     done
 
@@ -36,12 +36,12 @@ delete_directory() {
 
     # if this isnt a live run, then output info
     if [[ "${live}" != "true" ]]; then
-        debug "${SKIP}" "delete" "${directory}"
+        debug "${SKIP}" "delete" "[${directory}]"
     # if its live and works, output info, otherwise flag error
     else
         rm -Rf "${directory}" && \
-            debug "${Y}" "delete" "${directory}" || \
-            err "${N}" "delete" "${directory}"
+            debug "${Y}" "delete" "[${directory}]" || \
+            err "${N}" "delete" "[${directory}]"
     fi
 
     info "${Y}" "Deleted directory"

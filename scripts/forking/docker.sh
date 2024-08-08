@@ -17,8 +17,8 @@ docker_compose_replace_registry() {
     LIVE && \
         mv "${updated}" "${original}" && \
         rm -f "${updated}" && \
-        debug "${Y}" "updated docker compose" "${file}" || \
-    debug "${SKIP}" "generated example docker compose" "${base}"
+        debug "${Y}" "updated docker compose" "[${file}]" || \
+    debug "${SKIP}" "generated example docker compose" "[${base}]"
 
     info "${Y}" "Replaced docker compose registry id"
     divider

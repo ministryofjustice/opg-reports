@@ -15,8 +15,8 @@ gh_workflow_remove_marked() {
     LIVE && \
         mv "${updated}" "${original}" && \
         rm -f "${remove}" && \
-        debug "${Y}" "removed marked segments" "${workflow}" || \
-    debug "${SKIP}" "generated example workflows"
+        debug "${Y}" "removed marked segments" "[${workflow}]" || \
+    debug "${SKIP}" "generated example workflows" "[${base}]"
 
     info "${Y}" "Removed workflow segments"
     divider
@@ -39,8 +39,8 @@ gh_workflow_replace_key(){
     LIVE && \
         mv "${updated}" "${original}" && \
         rm -f "${updated}" && \
-        debug "${Y}" "updated workflow" "${workflow}" || \
-    debug "${SKIP}" "generated workflow" "${base}"
+        debug "${Y}" "updated workflow" "[${workflow}]" || \
+    debug "${SKIP}" "generated workflow" "[${base}]"
 
 }
 
