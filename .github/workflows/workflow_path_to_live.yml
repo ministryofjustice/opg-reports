@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       aws_s3_bucket: "report-data-development"
-      aws_role_s3_download: "arn:aws:iam::679638075911:role/docs-and-metadata-ci"
+      aws_role_s3_download: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
       aws_role_ecr_login_and_push: "arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
       ecr_registry_id: "311462405659"
       ecr_repository_api: "opg-reports/api"
