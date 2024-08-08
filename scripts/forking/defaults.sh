@@ -16,6 +16,7 @@ readonly SKIP="⏩"
 readonly GITHUB_DIR="${ROOT_DIR}/.github"
 readonly GITHUB_WORKFLOW_DIR="${GITHUB_DIR}/workflows"
 readonly GITHUB_REPORT_PATTERN="report_*.yml"
+readonly GITHUB_REPORTS_TO_KEEP=( "report_repository_standards.yml" "all.yml" )
 readonly GITHUB_REPOSITORY_REPORT="report_repository_standards.yml"
 readonly GITHUB_WORKFLOW_PR="workflow_pr.yml"
 readonly GITHUB_WORKFLOW_LIVE="workflow_path_to_live.yml"

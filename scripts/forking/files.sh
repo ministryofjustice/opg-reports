@@ -4,32 +4,62 @@ set -eo pipefail
 delete_files() {
     local directory="${1}"
     local pattern="${2}"
-    local exclude="${3}"
+    local -n exclusions="${3}"
 
-    log ${INFO} "[deleting files from directory]"
-    log ${DEBUG} "directory: ${directory}"
-    log ${DEBUG} "pattern: ${pattern}"
-    log ${DEBUG} "exclude: ${exclude}"
-    log ${INFO} ""
+    printf '1: %s\n' "${directory}"
+    printf '2: %s\n' "${pattern}"
+    printf '3: %q\n' "${exclusions[@]}"
+
 
     for file in ${directory}/${pattern}; do
         local base=$(basename "${file}")
         local should_delete="true"
+        local deleted="${N}"
+        local is_excluded=$(echo ${exclusions[@]} | grep -ow "${base}" | wc -w | tr -d ' ')
 
-        if [[ "${base}" == "${exclude}" ]]; then
-            should_delete="false"
+        # this file matches an excluded file, so skip it
+        if [[ "${is_excluded}" == "1" ]]; then
+            info "${base}" "delete" "${SKIP}"
+            continue
         fi
 
-        log ${DEBUG} "file: ${base}"
-        log ${DEBUG} "delete? ${should_delete}"
+        # delete the file
+        LIVE && \
+            rm -f "${file}" && \
+            info "${base}" "delete" "${Y}"
 
-        if [[ "${should_delete}" == "true" ]]; then
-            LIVE && \
-                rm -f "${file}" && \
-                log ${INFO} "${Y} deleted: ${base}" || \
-            log ${DEBUG} "dry run - skipping"
-        fi
     done
+
+    flush
+    # for file in ${directory}/${pattern}; do
+    #     local base=$(basename "${file}")
+    #     local should_delete="true"
+    #     local deleted="${N}"
+
+    #     # check all excluded files
+    #     for exclude in "${excludeArray[@]}"; do
+    #         if [[ "${base}" == "${exclude}" ]]; then
+    #           should_delete="false"
+    #         fi
+    #     done
+
+
+    #     # if [[ "${base}" == "${exclude}" ]]; then
+    #     #     should_delete="false"
+    #     # fi
+
+    #     # if [[ "${should_delete}" == "true" ]]; then
+
+    #     #     # LIVE && rm -f "${file}" && deleted="${Y}" ||
+    #     #     # if [[ -f "${file}" ]]; then
+    #     #     # fi
+
+    #     # else
+    #     #     deleted="${SKIP}"
+    #     # fi
+
+    #     # info "${base}" "delete?" "${should_delete}" "${deleted}"
+    # done
     log ${INFO} "-"
 }
 

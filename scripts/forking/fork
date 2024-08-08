@@ -16,10 +16,11 @@ source ${SCRIPT_DIR}/dry-run.sh
 source ${SCRIPT_DIR}/files.sh
 source ${SCRIPT_DIR}/workflows.sh
 source ${SCRIPT_DIR}/makefile.sh
-
+source ${SCRIPT_DIR}/docker.sh
 
 
 main() {
+    local continue="Y"
     local bucket_dev="${BUCKET_NAME_DEV}"
     local bucket_download_dev="${BUCKET_DOWNLOAD_ROLE_DEV}"
     local bucket_upload_dev="${BUCKET_UPLOAD_ROLE_DEV}"
@@ -28,81 +29,91 @@ main() {
     local ecr_push_dev="${ECR_PUSH_ROLE_DEV}"
 
 
-    # capture user inputs
-    echo "S3 BUCKET"
-    read -p "Provide the name of your *DEVELOPMENT* bucket used for data storage: [${bucket_dev}] " bucket_dev
-    bucket_dev="${bucket_dev:-$BUCKET_NAME_DEV}"
-    log ${INFO} ""
+    # # capture user inputs
+    # read -p "Provide the name of your *DEVELOPMENT* bucket used for data storage: [${bucket_dev}] " bucket_dev
+    # bucket_dev="${bucket_dev:-$BUCKET_NAME_DEV}"
+    # log ${INFO} ""
 
-    read -p "Provide your *DEVELOPMENT* aws profile for local s3 download: [${profile_dev}] " profile_dev
-    profile_dev="${profile_dev:-$MAKEFILE_AWS_PROFILE}"
-    log ${INFO} ""
+    # read -p "Provide your *DEVELOPMENT* aws profile for local s3 download: [${profile_dev}] " profile_dev
+    # profile_dev="${profile_dev:-$MAKEFILE_AWS_PROFILE}"
+    # log ${INFO} ""
 
-    read -p "Provide the *DEVELOPMENT* role ARN to use for downloading from the s3 bucket in workflow: [${bucket_download_dev}] " bucket_download_dev
-    bucket_download_dev="${bucket_download_dev:-$BUCKET_DOWNLOAD_ROLE_DEV}"
-    log ${INFO} ""
+    # read -p "Provide the *DEVELOPMENT* role ARN to use for downloading from the s3 bucket in workflow: [${bucket_download_dev}] " bucket_download_dev
+    # bucket_download_dev="${bucket_download_dev:-$BUCKET_DOWNLOAD_ROLE_DEV}"
+    # log ${INFO} ""
 
-    read -p "Provide the *DEVELOPMENT* OIDC role ARN to use for uploading to the s3 bucket in workflow: [${bucket_upload_dev}] " bucket_upload_dev
-    bucket_upload_dev="${bucket_upload_dev:-$BUCKET_UPLOAD_ROLE_DEV}"
-    log ${INFO} ""
+    # read -p "Provide the *DEVELOPMENT* OIDC role ARN to use for uploading to the s3 bucket in workflow: [${bucket_upload_dev}] " bucket_upload_dev
+    # bucket_upload_dev="${bucket_upload_dev:-$BUCKET_UPLOAD_ROLE_DEV}"
+    # log ${INFO} ""
 
-    echo "ECR REGISTRY"
-    read -p "Provide the id for your AWS ECR registry: [${ecr_registry_id}] " ecr_registry_id
-    ecr_registry_id="${ecr_registry_id:-$ECR_REGISTRY_ID}"
-    log ${INFO} ""
+    # read -p "Provide the id for your AWS ECR registry: [${ecr_registry_id}] " ecr_registry_id
+    # ecr_registry_id="${ecr_registry_id:-$ECR_REGISTRY_ID}"
+    # log ${INFO} ""
 
-    read -p "Provide the *DEVELOPMENT* OIDC role ARN to use for pushing to ecr: [${ecr_push_dev}] " ecr_push_dev
-    ecr_push_dev="${ecr_push_dev:-$ECR_PUSH_ROLE_DEV}"
-    log ${INFO} ""
-
-    # output the entered values to confirm
-    log ${INFO} "[development bucket]"
-    log ${INFO} "name: ${bucket_dev}"
-    log ${INFO} "local download aws profile: ${profile_dev}"
-    log ${INFO} "workflow s3 download role arn: ${bucket_download_dev}"
-    log ${INFO} "workflow s3 upload OIDC role arn: ${bucket_upload_dev}"
-    log ${INFO} "[ecr]"
-    log ${INFO} "id: "
-    log ${INFO} "workflow ecr login and push OIDC role arn: ${ecr_push_dev}"
+    # read -p "Provide the *DEVELOPMENT* OIDC role ARN to use for pushing to ecr: [${ecr_push_dev}] " ecr_push_dev
+    # ecr_push_dev="${ecr_push_dev:-$ECR_PUSH_ROLE_DEV}"
+    # log ${INFO} ""
 
 
+    # # output the entered values to confirm
+    # log ${INFO} "[bucket: development]"
+    # log ${INFO} "name: ${bucket_dev}"
+    # log ${INFO} "local download aws profile: ${profile_dev}"
+    # log ${INFO} "workflow s3 download role arn: ${bucket_download_dev}"
+    # log ${INFO} "workflow s3 upload OIDC role arn: ${bucket_upload_dev}"
+    # log ${INFO} ""
+    # log ${INFO} "[ecr]"
+    # log ${INFO} "registry id: ${ecr_registry_id}"
+    # log ${INFO} "[ecr: development]"
+    # log ${INFO} "workflow ecr login and push OIDC role arn: ${ecr_push_dev}"
+    # log ${INFO} ""
+
+    # read -p "Contine? (Y|N) [${continue}] " continue
+    # log ${INFO} ""
+    # continue="${continue:-"Y"}"
+    # if [[ "${continue}" != [Yy] ]]; then
+    #     log ${ERROR} "exiting..."
+    # fi
     # -- actions that dont require input
     # delete unused github actions
-    delete_files "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPORT_PATTERN}" "${GITHUB_REPORT_KEEP}"
+    delete_files "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPORT_PATTERN}" GITHUB_REPORTS_TO_KEEP
     # remove the terraform directory
-    delete_directory "${TERRAFORM_DIR}"
-    # remove terraform and related steps from workflows
-    gh_workflow_remove_marked "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}"
-    gh_workflow_remove_marked "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}"
+    # delete_directory "${TERRAFORM_DIR}"
+    # # remove terraform and related steps from workflows
+    # gh_workflow_remove_marked "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}"
+    # gh_workflow_remove_marked "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}"
 
-    # DEVELOPMENT
-    # bucket name
-    gh_workflow_replace_bucket "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${BUCKET_NAME_DEV}" "${bucket_dev}"
-    gh_workflow_replace_bucket "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPORT_KEEP}" "${BUCKET_NAME_DEV}" "${bucket_dev}"
-    makefile_replace_bucket "${ROOT_DIR}" "${MAKEFILE}" "${BUCKET_NAME_DEV}" "${bucket_dev}"
+    # # DEVELOPMENT
+    # # bucket name
+    # gh_workflow_replace_bucket "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${BUCKET_NAME_DEV}" "${bucket_dev}"
+    # gh_workflow_replace_bucket "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPOSITORY_REPORT}" "${BUCKET_NAME_DEV}" "${bucket_dev}"
+    # makefile_replace_bucket "${ROOT_DIR}" "${MAKEFILE}" "${BUCKET_NAME_DEV}" "${bucket_dev}"
 
-    # aws config profile name for use in makefile
-    makefile_replace_aws_profile "${ROOT_DIR}" "${MAKEFILE}" "${MAKEFILE_AWS_PROFILE}" "${profile_dev}"
+    # # aws config profile name for use in makefile
+    # makefile_replace_aws_profile "${ROOT_DIR}" "${MAKEFILE}" "${MAKEFILE_AWS_PROFILE}" "${profile_dev}"
 
-    # workflow s3 downloader role
-    gh_workflow_replace_bucket_download_role "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${BUCKET_DOWNLOAD_ROLE_DEV}" "${bucket_download_dev}"
+    # # workflow s3 downloader role
+    # gh_workflow_replace_bucket_download_role "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${BUCKET_DOWNLOAD_ROLE_DEV}" "${bucket_download_dev}"
 
-    # workflow s3 uploader role
-    gh_workflow_replace_bucket_upload_role "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPORT_KEEP}" "${BUCKET_UPLOAD_ROLE_DEV}" "${bucket_upload_dev}"
+    # # workflow s3 uploader role
+    # gh_workflow_replace_bucket_upload_role "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPOSITORY_REPORT}" "${BUCKET_UPLOAD_ROLE_DEV}" "${bucket_upload_dev}"
 
-    # workflow replace registry id
-    gh_workflow_replace_ecr_registry_id "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${ECR_REGISTRY_ID}" "${ecr_registry_id}"
+    # # workflow replace registry id
+    # gh_workflow_replace_ecr_registry_id "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${ECR_REGISTRY_ID}" "${ecr_registry_id}"
+    # # - do live as well, as registry id should be the same
+    # gh_workflow_replace_ecr_registry_id "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${ECR_REGISTRY_ID}" "${ecr_registry_id}"
+    # # docker compose
+    # docker_compose_replace_registry "${ROOT_DIR}" "${DOCKER_COMPOSE_FILE}" "${ECR_REGISTRY_ID}" "${ecr_registry_id}"
 
-    # ecr registry login and push role
-    gh_workflow_replace_ecr_push_role "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${ECR_PUSH_ROLE_DEV}" "${ecr_push_dev}"
+    # # ecr registry login and push role
+    # gh_workflow_replace_ecr_push_role "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_PR}" "${ECR_PUSH_ROLE_DEV}" "${ecr_push_dev}"
 
-    ### front/config.json setup
+    # ### front/config.json setup
 
-
-    # PRODUCTION - as we currently use dev everywhere, just repeat in the production files
-    gh_workflow_replace_bucket "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${BUCKET_NAME_DEV}" "${bucket_dev}"
-    gh_workflow_replace_bucket_download_role "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${BUCKET_DOWNLOAD_ROLE_DEV}" "${bucket_download_dev}"
-    gh_workflow_replace_ecr_push_role "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${ECR_PUSH_ROLE_DEV}" "${ecr_push_dev}"
+    # # PRODUCTION - as we currently use dev everywhere, just repeat in the production files
+    # gh_workflow_replace_bucket "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${BUCKET_NAME_DEV}" "${bucket_dev}"
+    # gh_workflow_replace_bucket_download_role "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${BUCKET_DOWNLOAD_ROLE_DEV}" "${bucket_download_dev}"
+    # gh_workflow_replace_ecr_push_role "${GITHUB_WORKFLOW_DIR}" "${GITHUB_WORKFLOW_LIVE}" "${ECR_PUSH_ROLE_DEV}" "${ecr_push_dev}"
 
 }
 
