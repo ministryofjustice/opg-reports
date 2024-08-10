@@ -27,7 +27,7 @@ func main() {
 	logger.LogSetup()
 	group := flag.NewFlagSet("demo", flag.ExitOnError)
 	which := argument.New(group, "which", "all", "")
-	dir := argument.New(group, "dir", ".", "")
+	dir := argument.New(group, "out", ".", "")
 
 	group.Parse(os.Args[1:])
 
@@ -35,7 +35,7 @@ func main() {
 
 	// only generate data if it doesnt already exist
 	if what == "github_standards" || what == "all" {
-		counter := 2000
+		counter := 1000000
 		owner := fake.String(12)
 
 		d := fmt.Sprintf("%s/github_standards", *dir.Value)

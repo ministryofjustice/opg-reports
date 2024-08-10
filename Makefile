@@ -39,13 +39,13 @@ sqlc:
 ##############################
 # DATABASE SETUPS
 ##############################
-DB="./builds/dbs/github_standards.db"
+DB="./builds/go/dbs/github_standards.db"
 CSV="./builds/csv/github_standards/github_standards.csv"
 SCHEMA="./datastore/github_standards/schema.sql"
 TABLE="github_standards"
 # run db import for github standards
 db-github-standards:
-	@mkdir -p ./builds/dbs
+	@mkdir -p ./builds/go/dbs
 	@if [ ! -f "${DB}" ]; then \
 		sqlite3 "${DB}" "VACUUM;" ; \
 		sqlite3 "${DB}" < "${SCHEMA}"  ; \
@@ -54,14 +54,14 @@ db-github-standards:
 	@sqlite3 "${DB}" "VACUUM;"
 
 dbs: sqlc data-generator db-github-standards
-	@ls -lth "./builds/dbs/"
+	@ls -lth "./builds/go/dbs/"
 ##############################
 # DATA
 # - generate fake data in the build dir if not present
 # - import present files into sqlite
 ##############################
 data-generator:
-	@./builds/go/demo_data_cmd -which all -dir ./builds/csv
+	@./builds/go/demo_data_cmd -which all -out ./builds/csv
 
 ##############################
 # GO BUILD
@@ -73,3 +73,5 @@ go-build: sqlc
 	@rm -f ./builds/go/*.json
 	@rm -f ./builds/go/*.yaml
 
+go-run-api:
+	@cd ./builds/go/ && ./api_server

@@ -11,12 +11,26 @@ before:
 
 
 builds:
+  # data seeding binary - will create fake data for local demo
   - id: demo_data_cmd
     binary: demo_data_cmd
     main: ./demo/
     no_unique_dist_dir: true
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+  # -- servers
+  - id: api_server
+    binary: api_server
+    main: ./servers/api/
+    no_unique_dist_dir: true
+    # generate sample csv files and databases for the api
     hooks:
-      # generate sample csv files and database
       post: make dbs
     env:
       - CGO_ENABLED=1
@@ -26,6 +40,8 @@ builds:
     goarch:
       - amd64
       - arm64
+
+  # -- reports
   - id: github_standards_cmd
     binary: github_standards_cmd
     main: ./commands/github_standards/

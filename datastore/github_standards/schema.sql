@@ -36,5 +36,6 @@ CREATE TABLE github_standards (
     is_archived INT(2) NOT NULL,
     is_private  INT(2) NOT NULL
 
-
 );
+
+CREATE INDEX ghs_archived_idx ON github_standards(is_archived);
