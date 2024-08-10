@@ -1,15 +1,17 @@
 package fake
 
 import (
-	"opg-reports/shared/logger"
 	"slices"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/ministryofjustice/opg-reports/shared/logger"
 )
 
 func TestSharedFakeString(t *testing.T) {
+
 	logger.LogSetup()
 	str := String(5)
 

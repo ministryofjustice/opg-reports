@@ -1,7 +1,9 @@
 #
 **/data/*.json
 **/data*/**/*.json
-**data**/*
+**/data/*.csv
+**/data*/**/*.csv
+*.csv
 # build dir
 builds/*
 build.log
@@ -22,3 +24,5 @@ test-results.json
 
 # generated go docs
 docs/go/**
+
+dist/
