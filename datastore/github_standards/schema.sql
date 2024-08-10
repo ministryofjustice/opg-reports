@@ -34,8 +34,12 @@ CREATE TABLE github_standards (
     has_wiki                            INT(2) NOT NULL,
 
     is_archived INT(2) NOT NULL,
-    is_private  INT(2) NOT NULL
+    is_private  INT(2) NOT NULL,
+    -- all teams for this repo
+    teams TEXT NOT NULL
 
 );
 
 CREATE INDEX ghs_archived_idx ON github_standards(is_archived);
+CREATE INDEX ghs_teams_idx ON github_standards(teams);
+CREATE INDEX ghs_archived_teams_idx ON github_standards(is_archived, teams);

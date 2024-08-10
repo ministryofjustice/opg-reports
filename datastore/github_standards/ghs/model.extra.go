@@ -10,7 +10,7 @@ func (g *GithubStandard) UID() string {
 
 func (g *GithubStandard) ToCSV() (line string) {
 
-	line = fmt.Sprintf(`"%s","%s","%s","%s","%s","%s","%s","%s","%s",%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d`,
+	line = fmt.Sprintf(`"%s","%s","%s","%s","%s","%s","%s","%s","%s",%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,"%s"`,
 		g.Uuid,
 		g.Ts,
 		g.DefaultBranch,
@@ -43,6 +43,7 @@ func (g *GithubStandard) ToCSV() (line string) {
 		g.HasWiki,
 		g.IsArchived,
 		g.IsPrivate,
+		g.Teams,
 	) + "\n"
 	return
 }

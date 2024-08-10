@@ -47,16 +47,18 @@ TABLE="github_standards"
 db-github-standards:
 	@mkdir -p ./builds/go/dbs
 	@if [ ! -f "${DB}" ]; then \
+		echo "importing data to db: [${DB}]" ; \
 		sqlite3 "${DB}" "VACUUM;" ; \
 		sqlite3 "${DB}" < "${SCHEMA}"  ; \
 		sqlite3 "${DB}" ".import --csv ${CSV} ${TABLE}" ; \
 	fi
 	@sqlite3 "${DB}" "VACUUM;"
 
+# called from go releaser
 dbs: sqlc data-generator db-github-standards
 	@ls -lth "./builds/go/dbs/"
 ##############################
-# DATA
+# DATA GENERATOR
 # - generate fake data in the build dir if not present
 # - import present files into sqlite
 ##############################

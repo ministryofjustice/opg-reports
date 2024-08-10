@@ -108,6 +108,15 @@ func mapFromApi(ctx context.Context, client *github.Client, r *github.Repository
 	g.IsArchived = boolToInt(r.GetArchived())
 	g.IsPrivate = boolToInt(r.GetPrivate())
 
+	// -- teams
+	g.Teams = ""
+	if teams, _, err := client.Repositories.ListTeams(ctx, g.Owner, g.Name,
+		&github.ListOptions{PerPage: 100}); err == nil {
+		for _, team := range teams {
+			g.Teams += *team.Name + "#"
+		}
+	}
+
 	return
 }
 

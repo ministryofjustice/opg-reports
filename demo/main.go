@@ -8,20 +8,10 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/commands/shared/argument"
 	"github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
+	"github.com/ministryofjustice/opg-reports/shared/exists"
 	"github.com/ministryofjustice/opg-reports/shared/fake"
 	"github.com/ministryofjustice/opg-reports/shared/logger"
 )
-
-func exists(path string) bool {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true
-	}
-	if os.IsNotExist(err) {
-		return false
-	}
-	return false
-}
 
 func main() {
 	logger.LogSetup()
@@ -35,13 +25,13 @@ func main() {
 
 	// only generate data if it doesnt already exist
 	if what == "github_standards" || what == "all" {
-		counter := 1000000
+		counter := 10000
 		owner := fake.String(12)
 
 		d := fmt.Sprintf("%s/github_standards", *dir.Value)
 		file := d + "/github_standards.csv"
 
-		if !exists(d) {
+		if !exists.FileOrDir(d) {
 			os.MkdirAll(d, os.ModePerm)
 			f, _ := os.OpenFile(file, os.O_APPEND|os.O_WRONLY|os.O_CREATE, os.ModePerm)
 			defer f.Close()

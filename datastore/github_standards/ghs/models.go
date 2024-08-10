@@ -37,4 +37,5 @@ type GithubStandard struct {
 	HasWiki                        int    `json:"has_wiki"`
 	IsArchived                     int    `json:"is_archived"`
 	IsPrivate                      int    `json:"is_private"`
+	Teams                          string `json:"teams"`
 }
