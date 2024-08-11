@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/ministryofjustice/opg-reports/shared/dates"
 	"github.com/ministryofjustice/opg-reports/shared/fake"
 )
 
@@ -16,16 +17,18 @@ func Fake() (gs *GithubStandard) {
 	defTeams := []string{"foo", "bar"}
 	teams := []string{"my-org", "test", "thisteam"}
 
+	now := time.Now().UTC().Format(dates.Format)
+
 	gs = &GithubStandard{
 		Uuid:           uuid.NewString(),
-		Ts:             time.Now().UTC().String(),
+		Ts:             now,
 		DefaultBranch:  fake.Choice[string]([]string{"main", "master"}),
 		FullName:       full,
 		Name:           name,
 		Owner:          owner,
 		License:        fake.Choice[string]([]string{"MIT", "GPL", ""}),
-		LastCommitDate: time.Now().String(),
-		CreatedAt:      time.Now().String(),
+		LastCommitDate: now,
+		CreatedAt:      now,
 		IsArchived:     fake.Choice[int]([]int{0, 1}),
 		Teams:          fmt.Sprintf("%s#%s#", fake.Choice(teams), fake.Choice(defTeams)),
 	}

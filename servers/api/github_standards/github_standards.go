@@ -11,7 +11,12 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
 	"github.com/ministryofjustice/opg-reports/servers/query"
+	"github.com/ministryofjustice/opg-reports/servers/shared/resp"
+	"github.com/ministryofjustice/opg-reports/servers/shared/resp/cell"
+	"github.com/ministryofjustice/opg-reports/servers/shared/resp/row"
+	"github.com/ministryofjustice/opg-reports/servers/shared/resp/table"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
+	"github.com/ministryofjustice/opg-reports/shared/dates"
 	"github.com/ministryofjustice/opg-reports/shared/exists"
 )
 
@@ -47,59 +52,102 @@ func sqlDB(dbPath string) (db *sql.DB, err error) {
 	return
 }
 
-func Register(ctx context.Context, mux *http.ServeMux, dbPath string) (err error) {
+func getResults(
+	ctx context.Context,
+	queries *ghs.Queries, archived string, team string) (results []ghs.GithubStandard, err error) {
 
+	var teamF = ""
+	var archivedF = ""
+	results = []ghs.GithubStandard{}
+
+	// -- fetch the get parameter values
+	// team query, add the like logic here
+	if team != "" {
+		teamF = "%" + team + "#"
+	}
+	// archive query
+	if archived != "" {
+		archivedF = archived
+	}
+
+	// -- run correct query
+	if teamF != "" && archivedF != "" {
+		results, err = queries.ArchivedTeamFilter(ctx, ghs.ArchivedTeamFilterParams{
+			IsArchived: strToInt(archivedF), Teams: teamF,
+		})
+	} else if archivedF != "" {
+		results, err = queries.ArchivedFilter(ctx, strToInt(archivedF))
+	} else if teamF != "" {
+		results, err = queries.TeamFilter(ctx, teamF)
+	} else {
+		results, err = queries.All(ctx)
+	}
+	return
+}
+
+func resultsToRows(results []ghs.GithubStandard, response *resp.Response) (rows []*row.Row) {
+
+	rows = []*row.Row{}
+	for _, item := range results {
+
+		response.AddDataAge(dates.Time(item.Ts))
+		cells := []*cell.Cell{}
+		mapped, _ := convert.ToMap(item)
+		for k, v := range mapped {
+			cells = append(cells, cell.New(k, v, false, false))
+		}
+		r := row.New(cells...)
+		rows = append(rows, r)
+	}
+	return
+}
+
+func Register(ctx context.Context, mux *http.ServeMux, dbPath string) (err error) {
+	// -- allowed filters
 	archived := query.Get("archived")
 	team := query.Get("team")
-
-	// -- actual handler
-	mux.HandleFunc("/github/standards/{version}/{$}", func(w http.ResponseWriter, r *http.Request) {
+	// -- handler functions
+	var list = func(w http.ResponseWriter, r *http.Request) {
 		var err error
-		var teams = ""
-		var is_archived = ""
-		var results []ghs.GithubStandard
+		var response = resp.New()
+		var filters = map[string]string{
+			"archived": query.First(archived.Values(r)),
+			"team":     query.First(team.Values(r)),
+		}
+		response.Start(w, r)
 
 		db, err := sqlDB(dbPath)
 		if err != nil {
+			slog.Error("api error", slog.String("err", err.Error()))
+			response.Errors = append(response.Errors, err)
+			response.End(w, r)
 			return
 		}
+
 		queries := ghs.New(db)
 
-		// -- fetch the get parameter values
-		// team query, add the like logic here
-		if qv := query.First(team.Values(r)); qv != "" {
-			teams = "%" + qv + "#"
-		}
-		// archive query
-		if qv := query.First(archived.Values(r)); qv != "" {
-			is_archived = qv
+		results, err := getResults(ctx, queries, filters["archived"], filters["team"])
+		if err != nil {
+			slog.Error("api error", slog.String("err", err.Error()))
+			response.Errors = append(response.Errors, err)
+			response.End(w, r)
+			return
 		}
 
-		// -- run correct query
-		if teams != "" && is_archived != "" {
-			results, err = queries.ArchivedTeamFilter(ctx, ghs.ArchivedTeamFilterParams{
-				IsArchived: strToInt(is_archived), Teams: teams,
-			})
-		} else if is_archived != "" {
-			results, err = queries.ArchivedFilter(ctx, strToInt(is_archived))
-		} else if teams != "" {
-			results, err = queries.TeamFilter(ctx, teams)
-		} else {
-			results, err = queries.All(ctx)
-		}
+		rows := resultsToRows(results, response)
+		tbl := table.New(rows...)
+		response.Result = tbl
 
-		slog.Info("count",
-			slog.Int("results", len(results)),
-			slog.String("err", fmt.Sprintf("%v", err)))
+		response.Metadata["count"] = len(results)
+		response.Metadata["filters"] = filters
+		response.End(w, r)
 
-		// -- different api response to costs / uptime, those are tabular, this is more raw
 		// -- add compliance
-		c, _ := convert.ListToJson(results)
 
-		w.WriteHeader(200)
-		w.Write(c)
+	}
 
-	})
+	// -- actually register the handler
+	mux.HandleFunc("/github/standards/{version}/{$}", list)
 
 	return nil
 }
