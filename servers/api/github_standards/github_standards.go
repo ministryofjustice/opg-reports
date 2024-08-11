@@ -22,6 +22,8 @@ const dbMode string = "WAL"
 const dbTimeout int = 10000
 const dbFk bool = true
 
+const listRoute string = "/github/standards/{version}/{$}"
+
 func strToInt(s string) int {
 	b, err := strconv.ParseBool(s)
 	if err == nil && b {
@@ -90,7 +92,7 @@ func resultsOut(results []ghs.GithubStandard, response *resp.Response) (rows []m
 
 		response.AddDataAge(dates.Time(item.Ts))
 		if m, err := convert.Map(item); err == nil {
-			bc, ex := Compliant(item)
+			bc, ex := Compliant(&item)
 			m["compliant_baseline"] = bc
 			m["compliant_extended"] = ex
 			//  compliance counters
@@ -109,8 +111,7 @@ func resultsOut(results []ghs.GithubStandard, response *resp.Response) (rows []m
 	return
 }
 
-func Register(ctx context.Context, mux *http.ServeMux, dbPath string) (err error) {
-	// -- allowed filters
+func Handlers(ctx context.Context, mux *http.ServeMux, dbPath string) map[string]func(w http.ResponseWriter, r *http.Request) {
 	archived := query.Get("archived")
 	team := query.Get("team")
 	// -- handler functions
@@ -141,8 +142,7 @@ func Register(ctx context.Context, mux *http.ServeMux, dbPath string) (err error
 			return
 		}
 
-		// -- work out how many comply
-
+		// -- work out how many comply and convert over
 		res, base, ext := resultsOut(results, response)
 		response.Result = res
 		response.Metadata["count"] = map[string]int{
@@ -150,13 +150,19 @@ func Register(ctx context.Context, mux *http.ServeMux, dbPath string) (err error
 			"compliance_baseline": base,
 			"compliance_extended": ext,
 		}
-
 		response.Metadata["filters"] = filters
 		response.End(w, r)
-
 	}
+	return map[string]func(w http.ResponseWriter, r *http.Request){
+		"list": list,
+	}
+}
+
+func Register(ctx context.Context, mux *http.ServeMux, dbPath string) (err error) {
+	funcs := Handlers(ctx, mux, dbPath)
+	list := funcs["list"]
 	// -- actually register the handler
-	mux.HandleFunc("/github/standards/{version}/{$}", mw.Middleware(list, mw.Logging, mw.SecurityHeaders))
+	mux.HandleFunc(listRoute, mw.Middleware(list, mw.Logging, mw.SecurityHeaders))
 
 	return nil
 }

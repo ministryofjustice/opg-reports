@@ -1,10 +1,8 @@
 package github_standards
 
-import (
-	"github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
-)
+import "github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
 
-func Compliant(g ghs.GithubStandard) (baseline bool, extended bool) {
+func Compliant(g *ghs.GithubStandard) (baseline bool, extended bool) {
 	baselineChecks := map[string]bool{
 		"has_default_branch_of_main":         (g.HasDefaultBranchOfMain == 1),
 		"has_license":                        (g.HasLicense == 1),

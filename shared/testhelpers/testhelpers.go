@@ -41,10 +41,6 @@ func WRGet(route string) (*httptest.ResponseRecorder, *http.Request) {
 	return httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, route, nil)
 }
 
-func MockServer(content string, status int) *httptest.Server {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(status)
-		w.Write([]byte(content))
-	}))
-	return server
+func MockServer(f func(w http.ResponseWriter, r *http.Request)) *httptest.Server {
+	return httptest.NewServer(http.HandlerFunc(f))
 }

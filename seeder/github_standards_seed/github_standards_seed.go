@@ -22,7 +22,6 @@ func NewDb(ctx context.Context, dbPath string, schemaPath string) *sql.DB {
 		return nil
 	}
 	schema, _ := os.ReadFile(schemaPath)
-	slog.Info("schemaPath:" + schemaPath)
 	if _, err := db.ExecContext(ctx, string(schema)); err != nil {
 		slog.Error("error creating schema", slog.String("err", err.Error()), slog.String("schemaPath", schemaPath))
 		return nil

@@ -18,7 +18,6 @@ func main() {
 	ctx := context.Background()
 
 	mux := http.NewServeMux()
-
 	github_standards.Register(ctx, mux, github_standards_db)
 
 	addr := env.Get("API_ADDR", consts.API_ADDR)
