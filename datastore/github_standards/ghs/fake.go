@@ -31,6 +31,18 @@ func Fake() (gs *GithubStandard) {
 		CreatedAt:      now,
 		IsArchived:     fake.Choice[int]([]int{0, 1}),
 		Teams:          fmt.Sprintf("%s#%s#", fake.Choice(teams), fake.Choice(defTeams)),
+		// -- compliance
+		HasDefaultBranchOfMain:         fake.Choice[int]([]int{0, 1}),
+		HasLicense:                     fake.Choice[int]([]int{0, 1}),
+		HasIssues:                      fake.Choice[int]([]int{0, 1}),
+		HasDescription:                 fake.Choice[int]([]int{0, 1}),
+		HasRulesEnforcedForAdmins:      fake.Choice[int]([]int{0, 1}),
+		HasPullRequestApprovalRequired: fake.Choice[int]([]int{0, 1}),
+		//
+		HasCodeownerApprovalRequired: fake.Choice[int]([]int{0, 1}),
+		HasReadme:                    fake.Choice[int]([]int{0, 1}),
+		HasCodeOfConduct:             fake.Choice[int]([]int{0, 1}),
+		HasContributingGuide:         fake.Choice[int]([]int{0, 1}),
 	}
 
 	return

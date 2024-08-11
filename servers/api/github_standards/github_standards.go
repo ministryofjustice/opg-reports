@@ -10,11 +10,8 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
-	"github.com/ministryofjustice/opg-reports/servers/query"
+	"github.com/ministryofjustice/opg-reports/servers/shared/query"
 	"github.com/ministryofjustice/opg-reports/servers/shared/resp"
-	"github.com/ministryofjustice/opg-reports/servers/shared/resp/cell"
-	"github.com/ministryofjustice/opg-reports/servers/shared/resp/row"
-	"github.com/ministryofjustice/opg-reports/servers/shared/resp/table"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
 	"github.com/ministryofjustice/opg-reports/shared/dates"
 	"github.com/ministryofjustice/opg-reports/shared/exists"
@@ -69,8 +66,7 @@ func getResults(
 	if archived != "" {
 		archivedF = archived
 	}
-
-	// -- run correct query
+	// -- run query
 	if teamF != "" && archivedF != "" {
 		results, err = queries.ArchivedTeamFilter(ctx, ghs.ArchivedTeamFilterParams{
 			IsArchived: strToInt(archivedF), Teams: teamF,
@@ -85,19 +81,20 @@ func getResults(
 	return
 }
 
-func resultsToRows(results []ghs.GithubStandard, response *resp.Response) (rows []*row.Row) {
+func resultsOut(results []ghs.GithubStandard, response *resp.Response) (rows []map[string]interface{}) {
 
-	rows = []*row.Row{}
+	rows = []map[string]interface{}{}
 	for _, item := range results {
 
 		response.AddDataAge(dates.Time(item.Ts))
-		cells := []*cell.Cell{}
-		mapped, _ := convert.ToMap(item)
-		for k, v := range mapped {
-			cells = append(cells, cell.New(k, v, false, false))
+		if m, err := convert.ToMap(item); err == nil {
+			bc, ex := Compliant(item)
+			m["compliant_baseline"] = bc
+			m["compliant_extended"] = ex
+			rows = append(rows, m)
+		} else {
+			slog.Error("error converting result to map", slog.String("err", err.Error()))
 		}
-		r := row.New(cells...)
-		rows = append(rows, r)
 	}
 	return
 }
@@ -133,16 +130,10 @@ func Register(ctx context.Context, mux *http.ServeMux, dbPath string) (err error
 			response.End(w, r)
 			return
 		}
-
-		rows := resultsToRows(results, response)
-		tbl := table.New(rows...)
-		response.Result = tbl
-
+		response.Result = resultsOut(results, response)
 		response.Metadata["count"] = len(results)
 		response.Metadata["filters"] = filters
 		response.End(w, r)
-
-		// -- add compliance
 
 	}
 
