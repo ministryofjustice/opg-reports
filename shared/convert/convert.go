@@ -3,30 +3,51 @@ package convert
 import (
 	"encoding/json"
 	"io"
+	"log/slog"
 	"net/http"
 )
 
-func ToJson[T any](item T) (content []byte, err error) {
+func Marshal[T any](item T) (content []byte, err error) {
 	return json.MarshalIndent(item, "", "  ")
 }
 
-func ListToJson[T any](items []T) (content []byte, err error) {
-	return json.MarshalIndent(items, "", "  ")
-}
-
-func ToMap[T any](item T) (m map[string]interface{}, err error) {
-	byt, err := json.Marshal(item)
-	if err == nil {
-		err = json.Unmarshal(byt, &m)
+func Unmarshal[T any](content []byte, i T) (item T, err error) {
+	err = json.Unmarshal(content, &i)
+	if err != nil {
+		slog.Error("unmarshal failed", slog.String("err", err.Error()))
+	} else {
+		item = i
 	}
 	return
 }
 
-// FromMap uses json marshaling to convert from a map back to a struct.
-func FromMap[T any](m map[string]interface{}) (item T, err error) {
+func Unmarshals[T any](content []byte, i []T) (items []T, err error) {
+	err = json.Unmarshal(content, &i)
+	if err != nil {
+		slog.Error("unmarshals failed", slog.String("err", err.Error()))
+	} else {
+		items = i
+	}
+	return
+}
+
+func Map[T any](item T) (m map[string]interface{}, err error) {
+	byt, err := json.Marshal(item)
+	if err == nil {
+		err = json.Unmarshal(byt, &m)
+	} else {
+		slog.Error("map failed", slog.String("err", err.Error()))
+	}
+	return
+}
+
+// Unmap uses json marshaling to convert from a map back to a struct.
+func Unmap[T any](m map[string]interface{}) (item T, err error) {
 	jBytes, err := json.Marshal(m)
 	if err == nil {
 		err = json.Unmarshal(jBytes, &item)
+	} else {
+		slog.Error("unmap failed", slog.String("err", err.Error()))
 	}
 
 	return
@@ -35,7 +56,10 @@ func FromMap[T any](m map[string]interface{}) (item T, err error) {
 // Stringify returns the body content of a http.Response as both a string and []byte.
 // Very helpful for debugging, testing and converting back and forth from the api.
 func Stringify(r *http.Response) (s string, b []byte) {
-	b, _ = io.ReadAll(r.Body)
+	b, err := io.ReadAll(r.Body)
+	if err != nil {
+		slog.Error("stringify failed", slog.String("err", err.Error()))
+	}
 	s = string(b)
 
 	return

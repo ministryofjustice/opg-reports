@@ -1,0 +1,14 @@
+{
+    "organisation": "OPG",
+    "navigation": [
+        {
+            "name": "Repository Standards",
+            "uri": "/",
+            "is_header": true,
+            "data_sources": {
+                "list": "/github/standards/v1/?archived=false"
+            },
+            "template": "github-standards"
+        }
+    ]
+}

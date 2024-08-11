@@ -9,6 +9,7 @@ const Format string = time.RFC3339
 const FormatYMD string = "2006-01-02"
 const FormatYM string = "2006-01"
 const FormatY string = "2006"
+const ErrorYear string = "0000"
 
 var ErrorTime time.Time = time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC)
 

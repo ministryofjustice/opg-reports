@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/ministryofjustice/opg-reports/servers/api/github_standards"
+	"github.com/ministryofjustice/opg-reports/shared/consts"
 	"github.com/ministryofjustice/opg-reports/shared/env"
 	"github.com/ministryofjustice/opg-reports/shared/logger"
 )
@@ -20,7 +21,7 @@ func main() {
 
 	github_standards.Register(ctx, mux, github_standards_db)
 
-	addr := env.Get("API_ADDR", ":8081")
+	addr := env.Get("API_ADDR", consts.API_ADDR)
 	server := &http.Server{
 		Addr:    addr,
 		Handler: mux,

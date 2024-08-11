@@ -10,6 +10,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
+	"github.com/ministryofjustice/opg-reports/servers/shared/mw"
 	"github.com/ministryofjustice/opg-reports/servers/shared/query"
 	"github.com/ministryofjustice/opg-reports/servers/shared/resp"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
@@ -87,7 +88,7 @@ func resultsOut(results []ghs.GithubStandard, response *resp.Response) (rows []m
 	for _, item := range results {
 
 		response.AddDataAge(dates.Time(item.Ts))
-		if m, err := convert.ToMap(item); err == nil {
+		if m, err := convert.Map(item); err == nil {
 			bc, ex := Compliant(item)
 			m["compliant_baseline"] = bc
 			m["compliant_extended"] = ex
@@ -136,9 +137,8 @@ func Register(ctx context.Context, mux *http.ServeMux, dbPath string) (err error
 		response.End(w, r)
 
 	}
-
 	// -- actually register the handler
-	mux.HandleFunc("/github/standards/{version}/{$}", list)
+	mux.HandleFunc("/github/standards/{version}/{$}", mw.Middleware(list, mw.Logging, mw.SecurityHeaders))
 
 	return nil
 }

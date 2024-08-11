@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"slices"
 	"time"
-
-	"github.com/ministryofjustice/opg-reports/servers/shared/resp/table"
 )
 
 type RequestTimings struct {
@@ -23,12 +21,12 @@ type DataAge struct {
 }
 
 type Response struct {
-	Timer      *RequestTimings        `json:"request_timings,omitempty"`
-	DataAge    *DataAge               `json:"data_age"`
-	StatusCode int                    `json:"status"`
-	Errors     []error                `json:"errors"`
-	Metadata   map[string]interface{} `json:"metadata"`
-	Result     *table.Table           `json:"result"`
+	Timer      *RequestTimings          `json:"request_timings,omitempty"`
+	DataAge    *DataAge                 `json:"data_age"`
+	StatusCode int                      `json:"status"`
+	Errors     []error                  `json:"errors"`
+	Metadata   map[string]interface{}   `json:"metadata"`
+	Result     []map[string]interface{} `json:"result"`
 }
 
 func (rp *Response) Start(w http.ResponseWriter, r *http.Request) {
@@ -128,7 +126,7 @@ func New() *Response {
 		DataAge:    &DataAge{},
 		StatusCode: http.StatusOK,
 		Errors:     []error{},
+		Result:     []map[string]interface{}{},
 		Metadata:   map[string]interface{}{},
-		Result:     table.New(),
 	}
 }

@@ -8,7 +8,7 @@ import (
 )
 
 func TestDataGithubStandardsCSV(t *testing.T) {
-	create := 1000010
+	create := 10
 	file := "test.csv"
 	f, _ := os.OpenFile(file, os.O_APPEND|os.O_WRONLY|os.O_CREATE, os.ModePerm)
 	defer f.Close()
