@@ -9,12 +9,11 @@ before:
     - go mod tidy
     - go generate ./...
 
-
 builds:
   # data seeding binary - will create fake data for local demo
-  - id: demo_data_cmd
-    binary: demo_data_cmd
-    main: ./demo/
+  - id: seeder_cmd
+    binary: seeder_cmd
+    main: ./seeder/
     no_unique_dist_dir: true
     env:
       - CGO_ENABLED=1
@@ -29,9 +28,6 @@ builds:
     binary: api_server
     main: ./servers/api/
     no_unique_dist_dir: true
-    # generate sample csv files and databases for the api
-    hooks:
-      post: make dbs
     env:
       - CGO_ENABLED=1
     goos:
@@ -40,7 +36,6 @@ builds:
     goarch:
       - amd64
       - arm64
-
   # -- reports
   - id: github_standards_cmd
     binary: github_standards_cmd

@@ -33,6 +33,12 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.archivedTeamFilterStmt, err = db.PrepareContext(ctx, archivedTeamFilter); err != nil {
 		return nil, fmt.Errorf("error preparing query ArchivedTeamFilter: %w", err)
 	}
+	if q.countStmt, err = db.PrepareContext(ctx, count); err != nil {
+		return nil, fmt.Errorf("error preparing query Count: %w", err)
+	}
+	if q.insertStmt, err = db.PrepareContext(ctx, insert); err != nil {
+		return nil, fmt.Errorf("error preparing query Insert: %w", err)
+	}
 	if q.teamFilterStmt, err = db.PrepareContext(ctx, teamFilter); err != nil {
 		return nil, fmt.Errorf("error preparing query TeamFilter: %w", err)
 	}
@@ -54,6 +60,16 @@ func (q *Queries) Close() error {
 	if q.archivedTeamFilterStmt != nil {
 		if cerr := q.archivedTeamFilterStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing archivedTeamFilterStmt: %w", cerr)
+		}
+	}
+	if q.countStmt != nil {
+		if cerr := q.countStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing countStmt: %w", cerr)
+		}
+	}
+	if q.insertStmt != nil {
+		if cerr := q.insertStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing insertStmt: %w", cerr)
 		}
 	}
 	if q.teamFilterStmt != nil {
@@ -103,6 +119,8 @@ type Queries struct {
 	allStmt                *sql.Stmt
 	archivedFilterStmt     *sql.Stmt
 	archivedTeamFilterStmt *sql.Stmt
+	countStmt              *sql.Stmt
+	insertStmt             *sql.Stmt
 	teamFilterStmt         *sql.Stmt
 }
 
@@ -113,6 +131,8 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		allStmt:                q.allStmt,
 		archivedFilterStmt:     q.archivedFilterStmt,
 		archivedTeamFilterStmt: q.archivedTeamFilterStmt,
+		countStmt:              q.countStmt,
+		insertStmt:             q.insertStmt,
 		teamFilterStmt:         q.teamFilterStmt,
 	}
 }

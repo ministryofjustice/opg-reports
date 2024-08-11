@@ -82,8 +82,9 @@ func getResults(
 	return
 }
 
-func resultsOut(results []ghs.GithubStandard, response *resp.Response) (rows []map[string]interface{}) {
-
+func resultsOut(results []ghs.GithubStandard, response *resp.Response) (rows []map[string]interface{}, base int, ext int) {
+	base = 0
+	ext = 0
 	rows = []map[string]interface{}{}
 	for _, item := range results {
 
@@ -92,6 +93,14 @@ func resultsOut(results []ghs.GithubStandard, response *resp.Response) (rows []m
 			bc, ex := Compliant(item)
 			m["compliant_baseline"] = bc
 			m["compliant_extended"] = ex
+			//  compliance counters
+			if bc {
+				base += 1
+			}
+			if ex {
+				ext += 1
+			}
+
 			rows = append(rows, m)
 		} else {
 			slog.Error("error converting result to map", slog.String("err", err.Error()))
@@ -131,8 +140,17 @@ func Register(ctx context.Context, mux *http.ServeMux, dbPath string) (err error
 			response.End(w, r)
 			return
 		}
-		response.Result = resultsOut(results, response)
-		response.Metadata["count"] = len(results)
+
+		// -- work out how many comply
+
+		res, base, ext := resultsOut(results, response)
+		response.Result = res
+		response.Metadata["count"] = map[string]int{
+			"all":                 len(results),
+			"compliance_baseline": base,
+			"compliance_extended": ext,
+		}
+
 		response.Metadata["filters"] = filters
 		response.End(w, r)
 

@@ -204,6 +204,168 @@ func (q *Queries) ArchivedTeamFilter(ctx context.Context, arg ArchivedTeamFilter
 	return items, nil
 }
 
+const count = `-- name: Count :one
+SELECT count(*) FROM github_standards
+`
+
+func (q *Queries) Count(ctx context.Context) (int64, error) {
+	row := q.queryRow(ctx, q.countStmt, count)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const insert = `-- name: Insert :one
+INSERT INTO github_standards(
+    uuid,
+    ts,
+    default_branch,
+    full_name,
+    name,
+    owner,
+    license,
+    last_commit_date,
+    created_at,
+    count_of_clones,
+    count_of_forks,
+    count_of_pull_requests,
+    count_of_web_hooks,
+    has_code_of_conduct,
+    has_codeowner_approval_required,
+    has_contributing_guide,
+    has_default_branch_of_main,
+    has_default_branch_protection,
+    has_delete_branch_on_merge,
+    has_description,
+    has_discussions,
+    has_downloads,
+    has_issues,
+    has_license,
+    has_pages,
+    has_pull_request_approval_required,
+    has_readme,
+    has_rules_enforced_for_admins,
+    has_vulnerability_alerts,
+    has_wiki,
+    is_archived,
+    is_private,
+    teams
+) VALUES (
+    ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?
+) RETURNING uuid, ts, default_branch, full_name, name, owner, license, last_commit_date, created_at, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, teams
+`
+
+type InsertParams struct {
+	Uuid                           string `json:"uuid"`
+	Ts                             string `json:"ts"`
+	DefaultBranch                  string `json:"default_branch"`
+	FullName                       string `json:"full_name"`
+	Name                           string `json:"name"`
+	Owner                          string `json:"owner"`
+	License                        string `json:"license"`
+	LastCommitDate                 string `json:"last_commit_date"`
+	CreatedAt                      string `json:"created_at"`
+	CountOfClones                  int    `json:"count_of_clones"`
+	CountOfForks                   int    `json:"count_of_forks"`
+	CountOfPullRequests            int    `json:"count_of_pull_requests"`
+	CountOfWebHooks                int    `json:"count_of_web_hooks"`
+	HasCodeOfConduct               int    `json:"has_code_of_conduct"`
+	HasCodeownerApprovalRequired   int    `json:"has_codeowner_approval_required"`
+	HasContributingGuide           int    `json:"has_contributing_guide"`
+	HasDefaultBranchOfMain         int    `json:"has_default_branch_of_main"`
+	HasDefaultBranchProtection     int    `json:"has_default_branch_protection"`
+	HasDeleteBranchOnMerge         int    `json:"has_delete_branch_on_merge"`
+	HasDescription                 int    `json:"has_description"`
+	HasDiscussions                 int    `json:"has_discussions"`
+	HasDownloads                   int    `json:"has_downloads"`
+	HasIssues                      int    `json:"has_issues"`
+	HasLicense                     int    `json:"has_license"`
+	HasPages                       int    `json:"has_pages"`
+	HasPullRequestApprovalRequired int    `json:"has_pull_request_approval_required"`
+	HasReadme                      int    `json:"has_readme"`
+	HasRulesEnforcedForAdmins      int    `json:"has_rules_enforced_for_admins"`
+	HasVulnerabilityAlerts         int    `json:"has_vulnerability_alerts"`
+	HasWiki                        int    `json:"has_wiki"`
+	IsArchived                     int    `json:"is_archived"`
+	IsPrivate                      int    `json:"is_private"`
+	Teams                          string `json:"teams"`
+}
+
+func (q *Queries) Insert(ctx context.Context, arg InsertParams) (GithubStandard, error) {
+	row := q.queryRow(ctx, q.insertStmt, insert,
+		arg.Uuid,
+		arg.Ts,
+		arg.DefaultBranch,
+		arg.FullName,
+		arg.Name,
+		arg.Owner,
+		arg.License,
+		arg.LastCommitDate,
+		arg.CreatedAt,
+		arg.CountOfClones,
+		arg.CountOfForks,
+		arg.CountOfPullRequests,
+		arg.CountOfWebHooks,
+		arg.HasCodeOfConduct,
+		arg.HasCodeownerApprovalRequired,
+		arg.HasContributingGuide,
+		arg.HasDefaultBranchOfMain,
+		arg.HasDefaultBranchProtection,
+		arg.HasDeleteBranchOnMerge,
+		arg.HasDescription,
+		arg.HasDiscussions,
+		arg.HasDownloads,
+		arg.HasIssues,
+		arg.HasLicense,
+		arg.HasPages,
+		arg.HasPullRequestApprovalRequired,
+		arg.HasReadme,
+		arg.HasRulesEnforcedForAdmins,
+		arg.HasVulnerabilityAlerts,
+		arg.HasWiki,
+		arg.IsArchived,
+		arg.IsPrivate,
+		arg.Teams,
+	)
+	var i GithubStandard
+	err := row.Scan(
+		&i.Uuid,
+		&i.Ts,
+		&i.DefaultBranch,
+		&i.FullName,
+		&i.Name,
+		&i.Owner,
+		&i.License,
+		&i.LastCommitDate,
+		&i.CreatedAt,
+		&i.CountOfClones,
+		&i.CountOfForks,
+		&i.CountOfPullRequests,
+		&i.CountOfWebHooks,
+		&i.HasCodeOfConduct,
+		&i.HasCodeownerApprovalRequired,
+		&i.HasContributingGuide,
+		&i.HasDefaultBranchOfMain,
+		&i.HasDefaultBranchProtection,
+		&i.HasDeleteBranchOnMerge,
+		&i.HasDescription,
+		&i.HasDiscussions,
+		&i.HasDownloads,
+		&i.HasIssues,
+		&i.HasLicense,
+		&i.HasPages,
+		&i.HasPullRequestApprovalRequired,
+		&i.HasReadme,
+		&i.HasRulesEnforcedForAdmins,
+		&i.HasVulnerabilityAlerts,
+		&i.HasWiki,
+		&i.IsArchived,
+		&i.IsPrivate,
+		&i.Teams,
+	)
+	return i, err
+}
+
 const teamFilter = `-- name: TeamFilter :many
 SELECT uuid, ts, default_branch, full_name, name, owner, license, last_commit_date, created_at, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, teams FROM github_standards
 WHERE teams LIKE ?

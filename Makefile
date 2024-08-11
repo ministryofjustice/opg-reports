@@ -11,17 +11,19 @@ all:
 # run a test based on the $name passed
 # pass along github token from env and setup log levels and destinations
 test:
-	@go clean -testcache
-	@clear && env GITHUB_ACCESS_TOKEN="${GITHUB_TOKEN}" LOG_LEVEL="info" LOG_TO="stdout" go test -race -count=1 -v ./... -run="$(name)"
+	@clear
+	@echo "============== test =============="
+	@env CGO_ENABLED=1 GITHUB_ACCESS_TOKEN="${GITHUB_TOKEN}" LOG_LEVEL="info" LOG_TO="stdout" go test -race -count=1 -v ./... -run="$(name)"
 
 tests:
-	@go clean -testcache
-	@clear && env LOG_LEVEL="warn" LOG_TO="stdout" go test -race -count=1 -cover -covermode=atomic -v ./...
+	@clear
+	@echo "============== tests =============="
+	@env env CGO_ENABLED=1 LOG_LEVEL="warn" LOG_TO="stdout" go test -cover -covermode=atomic -v ./...
 
 coverage:
 	@rm -Rf ./code-coverage.out
 	@go clean -testcache
-	@clear && env LOG_LEVEL="warn" LOG_TO="stdout" go test -count=1 -covermode=count -coverprofile=code-coverage.out -cover -v ./...
+	@clear && env CGO_ENABLED=1 LOG_LEVEL="warn" LOG_TO="stdout" go test -count=1 -covermode=count -coverprofile=code-coverage.out -cover -v ./...
 	@go tool cover -html=code-coverage.out
 
 benchmarks:
@@ -37,43 +39,20 @@ sqlc:
 	@cd ./datastore/github_standards/ && sqlc generate
 
 ##############################
-# DATABASE SETUPS
-##############################
-DB="./builds/go/dbs/github_standards.db"
-CSV="./builds/csv/github_standards/github_standards.csv"
-SCHEMA="./datastore/github_standards/schema.sql"
-TABLE="github_standards"
-# run db import for github standards
-db-github-standards:
-	@mkdir -p ./builds/go/dbs
-	@if [ ! -f "${DB}" ]; then \
-		echo "importing data to db: [${DB}]" ; \
-		sqlite3 "${DB}" "VACUUM;" ; \
-		sqlite3 "${DB}" < "${SCHEMA}"  ; \
-		sqlite3 "${DB}" ".import --csv ${CSV} ${TABLE}" ; \
-	fi
-	@sqlite3 "${DB}" "VACUUM;"
-
-# called from go releaser
-dbs: sqlc data-generator db-github-standards
-	@ls -lth "./builds/go/dbs/"
-##############################
-# DATA GENERATOR
-# - generate fake data in the build dir if not present
-# - import present files into sqlite
-##############################
-data-generator:
-	@./builds/go/demo_data_cmd -which all -out ./builds/csv
-
-##############################
 # GO BUILD
 # - build all go binaries at once and push to ./builds/go/
 #   using goreleaser
 ##############################
 go-build: sqlc
 	@goreleaser build --clean --single-target --skip=validate
+	@mkdir -p ./builds/go/dbs
 	@rm -f ./builds/go/*.json
 	@rm -f ./builds/go/*.yaml
+	@cp ./datastore/github_standards/schema.sql ./builds/go/github_standards.sql
+	@ls -lth ./builds/go/
+	@./builds/go/seeder_cmd -which all -dir ./builds/go
+
+	@ls -lth ./builds/go/dbs
 
 go-run-api:
 	@cd ./builds/go/ && ./api_server

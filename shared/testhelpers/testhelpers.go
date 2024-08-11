@@ -3,8 +3,29 @@ package testhelpers
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"time"
 )
+
+func CopyFile(in string, out string) {
+	r, err := os.Open(in)
+	if err != nil {
+		panic(err)
+	}
+	defer r.Close()
+	w, err := os.Create(out)
+	if err != nil {
+		panic(err)
+	}
+	defer w.Close()
+	w.ReadFrom(r)
+}
+
+func Dir() (dir string) {
+	td := os.TempDir()
+	dir, _ = os.MkdirTemp(td, "test-*")
+	return
+}
 
 func Dates() (min time.Time, max time.Time, df string) {
 	df = time.RFC3339
