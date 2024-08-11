@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log/slog"
 	"os"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -23,6 +24,7 @@ func main() {
 
 	what := *which.Value
 	ctx := context.Background()
+	slog.Info("Seeding tables")
 	// only generate data if it doesnt already exist
 	if what == "github_standards" || what == "all" {
 		d := *dir.Value
@@ -30,6 +32,7 @@ func main() {
 		schema := d + "/github_standards.sql"
 		dbPath := dbDir + "/github_standards.db"
 		if !exists.FileOrDir(dbPath) {
+			slog.Info("Seeding github_standards")
 			os.MkdirAll(d, os.ModePerm)
 			db := github_standards_seed.NewDb(ctx, dbPath, schema)
 			github_standards_seed.Seed(ctx, db, 100)

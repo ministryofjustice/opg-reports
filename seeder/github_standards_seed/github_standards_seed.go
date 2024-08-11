@@ -17,6 +17,7 @@ func NewDb(ctx context.Context, dbPath string, schemaPath string) *sql.DB {
 	os.WriteFile(dbPath, []byte(""), os.ModePerm)
 
 	db, err := sql.Open("sqlite3", dbPath)
+
 	if err != nil {
 		slog.Error("error opening db", slog.String("err", err.Error()))
 		return nil
@@ -33,7 +34,7 @@ func NewDb(ctx context.Context, dbPath string, schemaPath string) *sql.DB {
 func Seed(ctx context.Context, db *sql.DB, counter int) (q *ghs.Queries) {
 
 	owner := fake.String(12)
-
+	db.Ping()
 	q = ghs.New(db)
 
 	for x := 0; x < counter; x++ {
@@ -77,6 +78,8 @@ func Seed(ctx context.Context, db *sql.DB, counter int) (q *ghs.Queries) {
 		})
 		if err != nil {
 			slog.Error("error creating entry", slog.String("err", err.Error()))
+		} else {
+			slog.Debug("created entry", slog.Int("x", x), slog.Int("counter", counter))
 		}
 	}
 	return

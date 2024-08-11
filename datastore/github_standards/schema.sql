@@ -40,7 +40,11 @@ CREATE TABLE github_standards (
     teams TEXT NOT NULL
 
 );
-
-CREATE INDEX ghs_archived_idx ON github_standards(is_archived);
-CREATE INDEX ghs_teams_idx ON github_standards(teams);
-CREATE INDEX ghs_archived_teams_idx ON github_standards(is_archived, teams);
+-- always sorted by name, created_at ASC
+CREATE INDEX ghs_sort_idx ON github_standards(name, created_at);
+-- used by ArchivedFilter to find and sort archived matched rows
+CREATE INDEX ghs_archived_idx ON github_standards(is_archived, name, created_at);
+-- used by TeamFilter
+CREATE INDEX ghs_teams_idx ON github_standards(teams, name, created_at);
+--  used ArchivedTeamFilter
+CREATE INDEX ghs_archived_teams_idx ON github_standards(is_archived, teams, name, created_at);

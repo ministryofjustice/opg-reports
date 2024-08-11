@@ -77,10 +77,13 @@ func BenchmarkServerApiGithubStandardsAll(b *testing.B) {
 	defer os.Remove(dbF)
 	testhelpers.CopyFile(path+"/schema.sql", scF)
 
-	slog.Warn("creating db: " + dbF)
+	slog.Info("creating db: " + dbF)
 	db := github_standards_seed.NewDb(ctx, dbF, scF)
+	db.Ping()
+
+	slog.Info("seeding db", slog.Int("count", create))
 	github_standards_seed.Seed(ctx, db, create)
-	slog.Warn("seeding db", slog.Int("count", create))
+	defer db.Close()
 
 	mux := testhelpers.Mux()
 	funcs := github_standards.Handlers(ctx, mux, dbF)
@@ -88,20 +91,24 @@ func BenchmarkServerApiGithubStandardsAll(b *testing.B) {
 
 	mock := testhelpers.MockServer(list)
 	defer mock.Close()
-	u, _ := url.Parse(mock.URL)
+	uri1, _ := url.Parse(mock.URL)
+	uri2, _ := url.Parse(mock.URL + "?archive=true")
 
-	b.ResetTimer()
-	slog.Warn("calling handler", slog.String("url", mock.URL))
-	hr, err := getter.GetUrl(u)
-	if err != nil || hr.StatusCode != http.StatusOK {
-		b.Fatal("request failed")
-		fmt.Println(err)
-		fmt.Println(hr.StatusCode)
-	} else {
-		_, bytes := convert.Stringify(hr)
-		response := resp.New()
-		convert.Unmarshal(bytes, response)
-		slog.Warn("duration", slog.Float64("seconds", response.Timer.Duration.Seconds()))
+	set := []*url.URL{uri1, uri2}
+	for _, u := range set {
+		b.ResetTimer()
+		slog.Info("calling handler", slog.String("url", mock.URL))
+		hr, err := getter.GetUrl(u)
+		if err != nil || hr.StatusCode != http.StatusOK {
+			b.Fatal("request failed")
+			fmt.Println(err)
+			fmt.Println(hr.StatusCode)
+		} else {
+			_, bytes := convert.Stringify(hr)
+			response := resp.New()
+			convert.Unmarshal(bytes, response)
+			slog.Info("duration", slog.Float64("seconds", response.Timer.Duration.Seconds()))
+		}
 	}
 
 }

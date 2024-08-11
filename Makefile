@@ -23,12 +23,17 @@ tests:
 coverage:
 	@rm -Rf ./code-coverage.out
 	@go clean -testcache
-	@clear && env CGO_ENABLED=1 LOG_LEVEL="warn" LOG_TO="stdout" go test -count=1 -covermode=count -coverprofile=code-coverage.out -cover -v ./...
+	@clear
+	@echo "============== coverage =============="
+	@env CGO_ENABLED=1 LOG_LEVEL="warn" LOG_TO="stdout" go test -count=1 -covermode=count -coverprofile=code-coverage.out -cover -v ./...
 	@go tool cover -html=code-coverage.out
 
 benchmarks:
 	@go clean -testcache
-	@clear && env LOG_LEVEL="warn" LOG_TO="stdout" go test -count=1  -v ./... -bench=. -run=xxx -benchmem
+	@clear
+	@echo "============== benchmarks =============="
+	@echo " SLOW PROCESS - LARGE DATABASE SEEDS"
+	@env LOG_LEVEL="INFO" LOG_TO="stdout" go test -count=1  -v ./... -bench=. -run=xxx -benchmem
 
 
 ##############################
@@ -51,7 +56,6 @@ go-build: sqlc
 	@cp ./datastore/github_standards/schema.sql ./builds/go/github_standards.sql
 	@ls -lth ./builds/go/
 	@./builds/go/seeder_cmd -which all -dir ./builds/go
-
 	@ls -lth ./builds/go/dbs
 
 go-run-api:
