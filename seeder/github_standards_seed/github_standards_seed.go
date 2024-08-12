@@ -77,5 +77,8 @@ func NewSeed(dir string, count int) (db *sql.DB, err error) {
 		slog.Error("error running exec: " + err.Error())
 		return
 	}
+
+	os.Remove(seed.CsvFile)
+	os.Remove(seed.SchemaFile)
 	return
 }

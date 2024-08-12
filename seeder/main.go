@@ -30,8 +30,13 @@ func main() {
 
 		if !exists.FileOrDir(dbDir + "/github_standards.db") {
 			slog.Info("Seeding github_standards")
-			github_standards_seed.NewSeed(dbDir, 1000)
-			slog.Info("Seeded github_standards")
+			db, err := github_standards_seed.NewSeed(dbDir, 1000)
+			defer db.Close()
+			if err == nil {
+				slog.Info("Seeded github_standards")
+			} else {
+				slog.Error("seed error: " + err.Error())
+			}
 		} else {
 			slog.Info("github_standards exists")
 		}
