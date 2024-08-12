@@ -2,19 +2,24 @@
 # - goreleaser build --clean --single-target --skip=validate
 version: 2
 
-dist: ./builds/go
+dist: ./builds/binaries
 
 before:
   hooks:
     - go mod tidy
     - go generate ./...
+    - sh -c "cd ./datastore/github_standards/ && sqlc generate"
+    - sh -c "mkdir -p ./builds/api/ ./builds/front ./builds/commands"
+    - sh -c "cp ./datastore/github_standards/schema.sql ./builds/api/github_standards.sql"
 
 builds:
-  # data seeding binary - will create fake data for local demo
+  # -- data seeder - can create fake data
   - id: seeder_cmd
     binary: seeder_cmd
     main: ./seeder/
     no_unique_dist_dir: true
+    hooks:
+      post: sh -c "cp ./builds/binaries/seeder_cmd ./builds/api/seeder_cmd"
     env:
       - CGO_ENABLED=1
     goos:
@@ -25,9 +30,11 @@ builds:
       - arm64
   # -- servers
   - id: api_server
-    binary: api
+    binary: api_server
     main: ./servers/api/
     no_unique_dist_dir: true
+    hooks:
+      post: sh -c "cp ./builds/binaries/api_server ./builds/api/api_server"
     env:
       - CGO_ENABLED=1
     goos:
@@ -37,9 +44,11 @@ builds:
       - amd64
       - arm64
   - id: front_server
-    binary: front
+    binary: front_server
     main: ./servers/front/
     no_unique_dist_dir: true
+    hooks:
+      post: sh -c "cp ./builds/binaries/front_server ./builds/front/front_server"
     env:
       - CGO_ENABLED=1
     goos:
@@ -53,6 +62,8 @@ builds:
     binary: github_standards_cmd
     main: ./commands/github_standards/
     no_unique_dist_dir: true
+    hooks:
+      post: sh -c "cp ./builds/binaries/github_standards_cmd ./builds/commands/github_standards_cmd"
     env:
       - CGO_ENABLED=1
     goos:
@@ -61,3 +72,4 @@ builds:
     goarch:
       - amd64
       - arm64
+
