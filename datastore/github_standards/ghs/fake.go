@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/ministryofjustice/opg-reports/shared/dates"
 	"github.com/ministryofjustice/opg-reports/shared/fake"
 )
@@ -20,7 +19,6 @@ func Fake() (gs *GithubStandard) {
 	now := time.Now().UTC().Format(dates.Format)
 
 	gs = &GithubStandard{
-		Uuid:           uuid.NewString(),
 		Ts:             now,
 		DefaultBranch:  fake.Choice[string]([]string{"main", "master"}),
 		FullName:       full,
@@ -38,12 +36,13 @@ func Fake() (gs *GithubStandard) {
 		HasDescription:                 fake.Choice[int]([]int{0, 1}),
 		HasRulesEnforcedForAdmins:      fake.Choice[int]([]int{0, 1}),
 		HasPullRequestApprovalRequired: fake.Choice[int]([]int{0, 1}),
-		//
-		HasCodeownerApprovalRequired: fake.Choice[int]([]int{0, 1}),
-		HasReadme:                    fake.Choice[int]([]int{0, 1}),
-		HasCodeOfConduct:             fake.Choice[int]([]int{0, 1}),
-		HasContributingGuide:         fake.Choice[int]([]int{0, 1}),
+		HasCodeownerApprovalRequired:   fake.Choice[int]([]int{0, 1}),
+		HasReadme:                      fake.Choice[int]([]int{0, 1}),
+		HasCodeOfConduct:               fake.Choice[int]([]int{0, 1}),
+		HasContributingGuide:           fake.Choice[int]([]int{0, 1}),
 	}
+
+	gs.UpdateCompliance()
 
 	return
 }

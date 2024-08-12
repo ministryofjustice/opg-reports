@@ -12,8 +12,8 @@ all:
 # pass along github token from env and setup log levels and destinations
 test:
 	@clear
-	@echo "============== test =============="
-	@env CGO_ENABLED=1 GITHUB_ACCESS_TOKEN="${GITHUB_TOKEN}" LOG_LEVEL="info" LOG_TO="stdout" go test -race -count=1 -v ./... -run="$(name)"
+	@echo "============== test: [$(name)] =============="
+	@env CGO_ENABLED=1 GITHUB_ACCESS_TOKEN="${GITHUB_TOKEN}" LOG_LEVEL="info" LOG_TO="stdout" go test -count=1 -v ./... -run="$(name)"
 
 tests:
 	@clear
@@ -32,8 +32,15 @@ benchmarks:
 	@go clean -testcache
 	@clear
 	@echo "============== benchmarks =============="
-	@echo " SLOW PROCESS - LARGE DATABASE SEEDS"
-	@env LOG_LEVEL="INFO" LOG_TO="stdout" go test -count=1  -v ./... -bench=. -run=xxx -benchmem
+	@echo " WARNING: CAN BE SLOW"
+	@env LOG_LEVEL="WARN" LOG_TO="stdout" go test -v ./... -bench=. -run=xxx -benchmem -benchtime=20s
+
+benchmark:
+	@go clean -testcache
+	@clear
+	@echo "============== benchmark: [$(name)] =============="
+	@echo " WARNING: CAN BE SLOW"
+	@env LOG_LEVEL="WARN" LOG_TO="stdout" go test -v ./... -bench=$(name) -run=xxx -benchmem -benchtime=20s
 
 
 ##############################

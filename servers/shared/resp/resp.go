@@ -30,6 +30,7 @@ type Response struct {
 }
 
 func (rp *Response) Start(w http.ResponseWriter, r *http.Request) {
+	rp.StatusCode = http.StatusOK
 
 	slog.Info("request start",
 		slog.String("request_method", r.Method),
@@ -45,11 +46,18 @@ func (rp *Response) End(w http.ResponseWriter, r *http.Request) {
 
 	content, err := json.MarshalIndent(rp, "", "  ")
 	if err != nil {
+		rp.Errors = append(rp.Errors, err)
 		slog.Error(err.Error())
+	}
+
+	// set default error header
+	if len(rp.Errors) > 0 && rp.StatusCode == http.StatusOK {
+		rp.StatusCode = http.StatusBadRequest
 	}
 
 	slog.Info("request end",
 		slog.Int("status", rp.StatusCode),
+		slog.Int("errors", len(rp.Errors)),
 		slog.String("request_method", r.Method),
 		slog.String("request_uri", r.URL.String()))
 

@@ -6,8 +6,9 @@ package ghs
 
 type GithubStandard struct {
 	ID                             int    `json:"id"`
-	Uuid                           string `json:"uuid"`
 	Ts                             string `json:"ts"`
+	CompliantBaseline              int    `json:"compliant_baseline"`
+	CompliantExtended              int    `json:"compliant_extended"`
 	DefaultBranch                  string `json:"default_branch"`
 	Owner                          string `json:"owner"`
 	Name                           string `json:"name"`

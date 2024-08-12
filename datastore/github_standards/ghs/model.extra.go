@@ -5,13 +5,45 @@ import (
 )
 
 func (g *GithubStandard) UID() string {
-	return g.Uuid
+	return g.FullName
+}
+
+func (g *GithubStandard) UpdateCompliance() (baseline int, extended int) {
+	baselineChecks := map[string]bool{
+		"has_default_branch_of_main":         (g.HasDefaultBranchOfMain == 1),
+		"has_license":                        (g.HasLicense == 1),
+		"has_issues":                         (g.HasIssues == 1),
+		"has_description":                    (g.HasDescription == 1),
+		"has_rules_enforced_for_admins":      (g.HasRulesEnforcedForAdmins == 1),
+		"has_pull_request_approval_required": (g.HasPullRequestApprovalRequired == 1),
+	}
+	extendedChecks := map[string]bool{
+		"has_code_owner_approval_required": (g.HasCodeownerApprovalRequired == 1),
+		"has_readme":                       (g.HasReadme == 1),
+		"has_code_of_conduct":              (g.HasCodeOfConduct == 1),
+		"has_contributing_guide":           (g.HasContributingGuide == 1),
+	}
+
+	baseline = 1
+	extended = 1
+
+	for _, is := range baselineChecks {
+		if !is {
+			baseline = 0
+		}
+	}
+	for _, is := range extendedChecks {
+		if !is {
+			extended = 0
+		}
+	}
+
+	return
 }
 
 func (g *GithubStandard) ToCSV() (line string) {
 
-	line = fmt.Sprintf(`"%s","%s","%s","%s","%s","%s","%s","%s","%s",%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,"%s"`,
-		g.Uuid,
+	line = fmt.Sprintf(`"%s","%s","%s","%s","%s","%s","%s","%s",%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,"%s"`,
 		g.Ts,
 		g.DefaultBranch,
 		g.FullName,

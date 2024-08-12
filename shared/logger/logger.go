@@ -11,6 +11,7 @@ import (
 	"log/slog"
 	"os"
 	"slices"
+	"strings"
 )
 
 var (
@@ -46,6 +47,7 @@ func LogSetup() {
 	)
 
 	// setup log level
+	level = strings.ToLower(level)
 	if l, ok := logLevels[level]; ok {
 		logLevel = l
 	} else {

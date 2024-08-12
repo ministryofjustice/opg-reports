@@ -10,7 +10,7 @@ import (
 )
 
 const all = `-- name: All :many
-SELECT id, uuid, ts, default_branch, owner, name, full_name, license, last_commit_date, created_at, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, teams FROM github_standards
+SELECT id, ts, compliant_baseline, compliant_extended, default_branch, owner, name, full_name, license, last_commit_date, created_at, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, teams FROM github_standards
 ORDER BY name, created_at ASC
 `
 
@@ -25,8 +25,9 @@ func (q *Queries) All(ctx context.Context) ([]GithubStandard, error) {
 		var i GithubStandard
 		if err := rows.Scan(
 			&i.ID,
-			&i.Uuid,
 			&i.Ts,
+			&i.CompliantBaseline,
+			&i.CompliantExtended,
 			&i.DefaultBranch,
 			&i.Owner,
 			&i.Name,
@@ -73,7 +74,7 @@ func (q *Queries) All(ctx context.Context) ([]GithubStandard, error) {
 }
 
 const archivedFilter = `-- name: ArchivedFilter :many
-SELECT id, uuid, ts, default_branch, owner, name, full_name, license, last_commit_date, created_at, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, teams FROM github_standards
+SELECT id, ts, compliant_baseline, compliant_extended, default_branch, owner, name, full_name, license, last_commit_date, created_at, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, teams FROM github_standards
 WHERE is_archived = ?
 ORDER BY name, created_at ASC
 `
@@ -89,8 +90,9 @@ func (q *Queries) ArchivedFilter(ctx context.Context, isArchived int) ([]GithubS
 		var i GithubStandard
 		if err := rows.Scan(
 			&i.ID,
-			&i.Uuid,
 			&i.Ts,
+			&i.CompliantBaseline,
+			&i.CompliantExtended,
 			&i.DefaultBranch,
 			&i.Owner,
 			&i.Name,
@@ -137,7 +139,7 @@ func (q *Queries) ArchivedFilter(ctx context.Context, isArchived int) ([]GithubS
 }
 
 const archivedTeamFilter = `-- name: ArchivedTeamFilter :many
-SELECT id, uuid, ts, default_branch, owner, name, full_name, license, last_commit_date, created_at, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, teams FROM github_standards
+SELECT id, ts, compliant_baseline, compliant_extended, default_branch, owner, name, full_name, license, last_commit_date, created_at, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, teams FROM github_standards
 WHERE
     is_archived = ? AND
     teams LIKE ?
@@ -160,8 +162,9 @@ func (q *Queries) ArchivedTeamFilter(ctx context.Context, arg ArchivedTeamFilter
 		var i GithubStandard
 		if err := rows.Scan(
 			&i.ID,
-			&i.Uuid,
 			&i.Ts,
+			&i.CompliantBaseline,
+			&i.CompliantExtended,
 			&i.DefaultBranch,
 			&i.Owner,
 			&i.Name,
@@ -218,9 +221,32 @@ func (q *Queries) Count(ctx context.Context) (int64, error) {
 	return count, err
 }
 
+const countCompliantBaseline = `-- name: CountCompliantBaseline :one
+SELECT count(*) FROM github_standards
+WHERE compliant_baseline=1
+`
+
+func (q *Queries) CountCompliantBaseline(ctx context.Context) (int64, error) {
+	row := q.queryRow(ctx, q.countCompliantBaselineStmt, countCompliantBaseline)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countCompliantExtended = `-- name: CountCompliantExtended :one
+SELECT count(*) FROM github_standards
+WHERE compliant_extended=1
+`
+
+func (q *Queries) CountCompliantExtended(ctx context.Context) (int64, error) {
+	row := q.queryRow(ctx, q.countCompliantExtendedStmt, countCompliantExtended)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const insert = `-- name: Insert :one
 INSERT INTO github_standards(
-    uuid,
     ts,
     default_branch,
     full_name,
@@ -252,14 +278,15 @@ INSERT INTO github_standards(
     has_wiki,
     is_archived,
     is_private,
+    compliant_baseline,
+    compliant_extended,
     teams
 ) VALUES (
-    ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?
-) RETURNING id, uuid, ts, default_branch, owner, name, full_name, license, last_commit_date, created_at, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, teams
+    ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?
+) RETURNING id
 `
 
 type InsertParams struct {
-	Uuid                           string `json:"uuid"`
 	Ts                             string `json:"ts"`
 	DefaultBranch                  string `json:"default_branch"`
 	FullName                       string `json:"full_name"`
@@ -291,12 +318,13 @@ type InsertParams struct {
 	HasWiki                        int    `json:"has_wiki"`
 	IsArchived                     int    `json:"is_archived"`
 	IsPrivate                      int    `json:"is_private"`
+	CompliantBaseline              int    `json:"compliant_baseline"`
+	CompliantExtended              int    `json:"compliant_extended"`
 	Teams                          string `json:"teams"`
 }
 
-func (q *Queries) Insert(ctx context.Context, arg InsertParams) (GithubStandard, error) {
+func (q *Queries) Insert(ctx context.Context, arg InsertParams) (int, error) {
 	row := q.queryRow(ctx, q.insertStmt, insert,
-		arg.Uuid,
 		arg.Ts,
 		arg.DefaultBranch,
 		arg.FullName,
@@ -328,50 +356,17 @@ func (q *Queries) Insert(ctx context.Context, arg InsertParams) (GithubStandard,
 		arg.HasWiki,
 		arg.IsArchived,
 		arg.IsPrivate,
+		arg.CompliantBaseline,
+		arg.CompliantExtended,
 		arg.Teams,
 	)
-	var i GithubStandard
-	err := row.Scan(
-		&i.ID,
-		&i.Uuid,
-		&i.Ts,
-		&i.DefaultBranch,
-		&i.Owner,
-		&i.Name,
-		&i.FullName,
-		&i.License,
-		&i.LastCommitDate,
-		&i.CreatedAt,
-		&i.CountOfClones,
-		&i.CountOfForks,
-		&i.CountOfPullRequests,
-		&i.CountOfWebHooks,
-		&i.HasCodeOfConduct,
-		&i.HasCodeownerApprovalRequired,
-		&i.HasContributingGuide,
-		&i.HasDefaultBranchOfMain,
-		&i.HasDefaultBranchProtection,
-		&i.HasDeleteBranchOnMerge,
-		&i.HasDescription,
-		&i.HasDiscussions,
-		&i.HasDownloads,
-		&i.HasIssues,
-		&i.HasLicense,
-		&i.HasPages,
-		&i.HasPullRequestApprovalRequired,
-		&i.HasReadme,
-		&i.HasRulesEnforcedForAdmins,
-		&i.HasVulnerabilityAlerts,
-		&i.HasWiki,
-		&i.IsArchived,
-		&i.IsPrivate,
-		&i.Teams,
-	)
-	return i, err
+	var id int
+	err := row.Scan(&id)
+	return id, err
 }
 
 const teamFilter = `-- name: TeamFilter :many
-SELECT id, uuid, ts, default_branch, owner, name, full_name, license, last_commit_date, created_at, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, teams FROM github_standards
+SELECT id, ts, compliant_baseline, compliant_extended, default_branch, owner, name, full_name, license, last_commit_date, created_at, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, teams FROM github_standards
 WHERE teams LIKE ?
 ORDER BY name, created_at ASC
 `
@@ -387,8 +382,9 @@ func (q *Queries) TeamFilter(ctx context.Context, teams string) ([]GithubStandar
 		var i GithubStandard
 		if err := rows.Scan(
 			&i.ID,
-			&i.Uuid,
 			&i.Ts,
+			&i.CompliantBaseline,
+			&i.CompliantExtended,
 			&i.DefaultBranch,
 			&i.Owner,
 			&i.Name,

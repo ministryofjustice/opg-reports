@@ -5,6 +5,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"strconv"
 )
 
 func Marshal[T any](item T) (content []byte, err error) {
@@ -63,4 +64,19 @@ func Stringify(r *http.Response) (s string, b []byte) {
 	s = string(b)
 
 	return
+}
+
+func BoolToInt(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
+}
+
+func BoolStringToInt(s string) int {
+	b, err := strconv.ParseBool(s)
+	if err == nil && b {
+		return 1
+	}
+	return 0
 }

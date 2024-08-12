@@ -36,6 +36,12 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.countStmt, err = db.PrepareContext(ctx, count); err != nil {
 		return nil, fmt.Errorf("error preparing query Count: %w", err)
 	}
+	if q.countCompliantBaselineStmt, err = db.PrepareContext(ctx, countCompliantBaseline); err != nil {
+		return nil, fmt.Errorf("error preparing query CountCompliantBaseline: %w", err)
+	}
+	if q.countCompliantExtendedStmt, err = db.PrepareContext(ctx, countCompliantExtended); err != nil {
+		return nil, fmt.Errorf("error preparing query CountCompliantExtended: %w", err)
+	}
 	if q.insertStmt, err = db.PrepareContext(ctx, insert); err != nil {
 		return nil, fmt.Errorf("error preparing query Insert: %w", err)
 	}
@@ -65,6 +71,16 @@ func (q *Queries) Close() error {
 	if q.countStmt != nil {
 		if cerr := q.countStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing countStmt: %w", cerr)
+		}
+	}
+	if q.countCompliantBaselineStmt != nil {
+		if cerr := q.countCompliantBaselineStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing countCompliantBaselineStmt: %w", cerr)
+		}
+	}
+	if q.countCompliantExtendedStmt != nil {
+		if cerr := q.countCompliantExtendedStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing countCompliantExtendedStmt: %w", cerr)
 		}
 	}
 	if q.insertStmt != nil {
@@ -114,25 +130,29 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                     DBTX
-	tx                     *sql.Tx
-	allStmt                *sql.Stmt
-	archivedFilterStmt     *sql.Stmt
-	archivedTeamFilterStmt *sql.Stmt
-	countStmt              *sql.Stmt
-	insertStmt             *sql.Stmt
-	teamFilterStmt         *sql.Stmt
+	db                         DBTX
+	tx                         *sql.Tx
+	allStmt                    *sql.Stmt
+	archivedFilterStmt         *sql.Stmt
+	archivedTeamFilterStmt     *sql.Stmt
+	countStmt                  *sql.Stmt
+	countCompliantBaselineStmt *sql.Stmt
+	countCompliantExtendedStmt *sql.Stmt
+	insertStmt                 *sql.Stmt
+	teamFilterStmt             *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                     tx,
-		tx:                     tx,
-		allStmt:                q.allStmt,
-		archivedFilterStmt:     q.archivedFilterStmt,
-		archivedTeamFilterStmt: q.archivedTeamFilterStmt,
-		countStmt:              q.countStmt,
-		insertStmt:             q.insertStmt,
-		teamFilterStmt:         q.teamFilterStmt,
+		db:                         tx,
+		tx:                         tx,
+		allStmt:                    q.allStmt,
+		archivedFilterStmt:         q.archivedFilterStmt,
+		archivedTeamFilterStmt:     q.archivedTeamFilterStmt,
+		countStmt:                  q.countStmt,
+		countCompliantBaselineStmt: q.countCompliantBaselineStmt,
+		countCompliantExtendedStmt: q.countCompliantExtendedStmt,
+		insertStmt:                 q.insertStmt,
+		teamFilterStmt:             q.teamFilterStmt,
 	}
 }

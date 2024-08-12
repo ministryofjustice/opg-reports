@@ -50,6 +50,12 @@ func First(strs []string) string {
 	}
 	return ""
 }
+func FirstD(strs []string, defaultValue string) string {
+	if len(strs) > 0 && strs[0] != "" {
+		return strs[0]
+	}
+	return defaultValue
+}
 
 func Get(name string) *Query {
 	return &Query{

@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/google/go-github/v62/github"
-	"github.com/google/uuid"
 	"github.com/ministryofjustice/opg-reports/commands/shared/argument"
 	"github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
+	"github.com/ministryofjustice/opg-reports/shared/convert"
 	"github.com/ministryofjustice/opg-reports/shared/dates"
 	"github.com/ministryofjustice/opg-reports/shared/env"
 	"github.com/ministryofjustice/opg-reports/shared/github/cl"
@@ -23,17 +23,9 @@ const readmePath string = "./README.md"
 const codeOfConductPath string = "./CODE_OF_CONDUCT.md"
 const contributingGuidePath string = "./CONTRIBUTING.md"
 
-func boolToInt(b bool) int {
-	if b {
-		return 1
-	}
-	return 0
-}
-
 func mapFromApi(ctx context.Context, client *github.Client, r *github.Repository) (g *ghs.GithubStandard) {
 	g = &ghs.GithubStandard{
-		Uuid: uuid.NewString(),
-		Ts:   time.Now().UTC().String(),
+		Ts: time.Now().UTC().String(),
 	}
 
 	g.DefaultBranch = r.GetDefaultBranch()
@@ -84,30 +76,31 @@ func mapFromApi(ctx context.Context, client *github.Client, r *github.Repository
 		readmePath, nil); err == nil {
 		g.HasReadme = 1
 	}
+
 	g.HasVulnerabilityAlerts = 0
 	if alerts, _, err := client.Repositories.GetVulnerabilityAlerts(ctx, g.Owner, g.Name); err == nil {
-		g.HasVulnerabilityAlerts = boolToInt(alerts)
+		g.HasVulnerabilityAlerts = convert.BoolToInt(alerts)
 	}
 
-	g.HasDefaultBranchOfMain = boolToInt((g.DefaultBranch == "main"))
-	g.HasDeleteBranchOnMerge = boolToInt(r.GetDeleteBranchOnMerge())
-	g.HasDescription = boolToInt((len(r.GetDescription()) > 0))
-	g.HasDiscussions = boolToInt(r.GetHasDiscussions())
-	g.HasDownloads = boolToInt(r.GetHasDownloads())
-	g.HasIssues = boolToInt(r.GetHasIssues())
-	g.HasLicense = boolToInt((len(g.License) > 0))
-	g.HasPages = boolToInt(r.GetHasPages())
-	g.HasWiki = boolToInt(r.GetHasWiki())
+	g.HasDefaultBranchOfMain = convert.BoolToInt((g.DefaultBranch == "main"))
+	g.HasDeleteBranchOnMerge = convert.BoolToInt(r.GetDeleteBranchOnMerge())
+	g.HasDescription = convert.BoolToInt((len(r.GetDescription()) > 0))
+	g.HasDiscussions = convert.BoolToInt(r.GetHasDiscussions())
+	g.HasDownloads = convert.BoolToInt(r.GetHasDownloads())
+	g.HasIssues = convert.BoolToInt(r.GetHasIssues())
+	g.HasLicense = convert.BoolToInt((len(g.License) > 0))
+	g.HasPages = convert.BoolToInt(r.GetHasPages())
+	g.HasWiki = convert.BoolToInt(r.GetHasWiki())
 
 	if protection, _, err := client.Repositories.GetBranchProtection(ctx, g.Owner, g.Name,
 		g.DefaultBranch); err == nil {
-		g.HasRulesEnforcedForAdmins = boolToInt(protection.EnforceAdmins.Enabled)
-		g.HasPullRequestApprovalRequired = boolToInt(protection.RequiredPullRequestReviews.RequiredApprovingReviewCount > 0)
-		g.HasCodeownerApprovalRequired = boolToInt(protection.RequiredPullRequestReviews.RequireCodeOwnerReviews)
+		g.HasRulesEnforcedForAdmins = convert.BoolToInt(protection.EnforceAdmins.Enabled)
+		g.HasPullRequestApprovalRequired = convert.BoolToInt(protection.RequiredPullRequestReviews.RequiredApprovingReviewCount > 0)
+		g.HasCodeownerApprovalRequired = convert.BoolToInt(protection.RequiredPullRequestReviews.RequireCodeOwnerReviews)
 	}
 
-	g.IsArchived = boolToInt(r.GetArchived())
-	g.IsPrivate = boolToInt(r.GetPrivate())
+	g.IsArchived = convert.BoolToInt(r.GetArchived())
+	g.IsPrivate = convert.BoolToInt(r.GetPrivate())
 
 	// -- teams
 	g.Teams = ""

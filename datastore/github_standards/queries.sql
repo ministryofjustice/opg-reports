@@ -1,6 +1,5 @@
 -- name: Insert :one
 INSERT INTO github_standards(
-    uuid,
     ts,
     default_branch,
     full_name,
@@ -32,10 +31,12 @@ INSERT INTO github_standards(
     has_wiki,
     is_archived,
     is_private,
+    compliant_baseline,
+    compliant_extended,
     teams
 ) VALUES (
-    ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?
-) RETURNING *;
+    ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?
+) RETURNING id;
 
 -- name: All :many
 SELECT * FROM github_standards
@@ -44,6 +45,16 @@ ORDER BY name, created_at ASC;
 -- name: Count :one
 SELECT count(*) FROM github_standards;
 
+-- name: CountCompliantBaseline :one
+SELECT count(*) FROM github_standards
+WHERE compliant_baseline=1;
+
+-- name: CountCompliantExtended :one
+SELECT count(*) FROM github_standards
+WHERE compliant_extended=1;
+
+-- name: ExplainArchivedFilter :one
+EXPLAIN QUERY PLAN SELECT * FROM github_standards WHERE is_archived = ? ORDER BY name, created_at ASC;
 -- name: ArchivedFilter :many
 SELECT * FROM github_standards
 WHERE is_archived = ?

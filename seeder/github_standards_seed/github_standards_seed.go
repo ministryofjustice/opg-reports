@@ -8,26 +8,28 @@ import (
 	"os"
 
 	"github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
+	"github.com/ministryofjustice/opg-reports/shared/consts"
 	"github.com/ministryofjustice/opg-reports/shared/fake"
 )
 
-func NewDb(ctx context.Context, dbPath string, schemaPath string) *sql.DB {
+func NewDb(ctx context.Context, dbPath string, schemaPath string) (db *sql.DB, err error) {
 	// delete the db
-	os.Remove(dbPath)
+	// os.Remove(dbPath)
 	os.WriteFile(dbPath, []byte(""), os.ModePerm)
 
-	db, err := sql.Open("sqlite3", dbPath)
+	conn := consts.SQL_CONNECTION_PARAMS
+	db, err = sql.Open("sqlite3", dbPath+conn)
 
 	if err != nil {
 		slog.Error("error opening db", slog.String("err", err.Error()))
-		return nil
+		return
 	}
 	schema, _ := os.ReadFile(schemaPath)
-	if _, err := db.ExecContext(ctx, string(schema)); err != nil {
+	if _, err = db.ExecContext(ctx, string(schema)); err != nil {
 		slog.Error("error creating schema", slog.String("err", err.Error()), slog.String("schemaPath", schemaPath))
-		return nil
+		return
 	}
-	return db
+	return
 
 }
 
@@ -41,8 +43,10 @@ func Seed(ctx context.Context, db *sql.DB, counter int) (q *ghs.Queries) {
 		g := ghs.Fake()
 		g.Owner = owner
 		g.FullName = fmt.Sprintf("%s/%s", owner, g.Name)
+		b, e := g.UpdateCompliance()
 		_, err := q.Insert(ctx, ghs.InsertParams{
-			Uuid:                           g.Uuid,
+			CompliantBaseline:              b,
+			CompliantExtended:              e,
 			Ts:                             g.Ts,
 			DefaultBranch:                  g.DefaultBranch,
 			Owner:                          g.Owner,

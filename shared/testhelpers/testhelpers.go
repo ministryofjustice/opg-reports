@@ -41,6 +41,9 @@ func WRGet(route string) (*httptest.ResponseRecorder, *http.Request) {
 	return httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, route, nil)
 }
 
-func MockServer(f func(w http.ResponseWriter, r *http.Request)) *httptest.Server {
-	return httptest.NewServer(http.HandlerFunc(f))
+func MockServer(f func(w http.ResponseWriter, r *http.Request), loglevel string) *httptest.Server {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		os.Setenv("LOG_LEVEL", loglevel)
+		f(w, r)
+	}))
 }
