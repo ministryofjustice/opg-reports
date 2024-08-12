@@ -68,6 +68,7 @@ assets-front:
 	@mv ${GOVUK_DOWNLOAD_FOLDER}/assets/manifest.json ./servers//front/assets/
 	@rm -Rf ${GOVUK_DOWNLOAD_FOLDER}
 	@echo "[Assets](front) Built."
+
 ##############################
 # SQLC
 ##############################
