@@ -8,7 +8,7 @@ import (
 
 func TestServersApiGithubStandardsCompliance(t *testing.T) {
 
-	g := ghs.Fake()
+	g := ghs.Fake(nil, nil)
 
 	// -- baseline
 	g.HasDefaultBranchOfMain = 1

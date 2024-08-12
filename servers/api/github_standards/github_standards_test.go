@@ -3,6 +3,7 @@ package github_standards_test
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log/slog"
 	"net/http/httptest"
 	"net/url"
@@ -14,11 +15,15 @@ import (
 	"github.com/ministryofjustice/opg-reports/seeder/github_standards_seed"
 	"github.com/ministryofjustice/opg-reports/servers/api/github_standards"
 	"github.com/ministryofjustice/opg-reports/servers/front/getter"
+	"github.com/ministryofjustice/opg-reports/servers/shared/resp"
+	"github.com/ministryofjustice/opg-reports/shared/convert"
+	"github.com/ministryofjustice/opg-reports/shared/logger"
 	"github.com/ministryofjustice/opg-reports/shared/testhelpers"
 )
 
 // seed the database and then run filters to test and view performance
 func TestServersApiGithubStandardsArchivedPerfDBOnly(t *testing.T) {
+	logger.LogSetup()
 	ctx := context.Background()
 	N := 50000
 
@@ -44,7 +49,7 @@ func TestServersApiGithubStandardsArchivedPerfDBOnly(t *testing.T) {
 	}
 
 	s = time.Now().UTC()
-	res, _ := q.ArchivedFilter(ctx, 1)
+	res, _ := q.FilterByIsArchived(ctx, 1)
 	e = time.Now().UTC()
 	dur = e.Sub(s)
 	slog.Warn("archived filter duration",
@@ -53,7 +58,7 @@ func TestServersApiGithubStandardsArchivedPerfDBOnly(t *testing.T) {
 
 	s = time.Now().UTC()
 	team := "%#" + "foo" + "#%"
-	res, _ = q.ArchivedTeamFilter(ctx, ghs.ArchivedTeamFilterParams{IsArchived: 1, Teams: team})
+	res, _ = q.FilterByIsArchivedAndTeam(ctx, ghs.FilterByIsArchivedAndTeamParams{IsArchived: 1, Teams: team})
 	e = time.Now().UTC()
 	dur = e.Sub(s)
 	slog.Warn("archived team filter duration",
@@ -63,10 +68,12 @@ func TestServersApiGithubStandardsArchivedPerfDBOnly(t *testing.T) {
 }
 
 func TestServersApiGithubStandardsArchivedPerfApiCallOnly(t *testing.T) {
-	ctx := context.Background()
+	logger.LogSetup()
+	slog.Warn("start")
+	ctx := context.TODO()
 	N := 50000
-	// dir := t.TempDir()
-	dir := testhelpers.Dir()
+	dir := t.TempDir()
+	// dir := testhelpers.Dir()
 	slog.Warn("dir:" + dir)
 	// defer os.RemoveAll(dir)
 
@@ -80,21 +87,22 @@ func TestServersApiGithubStandardsArchivedPerfApiCallOnly(t *testing.T) {
 		t.Errorf("error with db:" + err.Error())
 	}
 	slog.Warn("seed duration", slog.Float64("seconds", dur.Seconds()))
-	q := ghs.New(db)
 
+	q := ghs.New(db)
+	defer q.Close()
+
+	slog.Warn("counting")
 	l, _ := q.Count(ctx)
 	if l != int64(N) {
 		t.Errorf("records did not create properly: [%d] [%d]", N, l)
 	}
-
+	slog.Warn("mocking api")
 	mock := mockApi(ctx, dir)
 	defer mock.Close()
 	u, _ := url.Parse(mock.URL)
 
 	s = time.Now().UTC()
-
-	getter.GetUrl(u)
-
+	hr, _ := getter.GetUrl(u)
 	e = time.Now().UTC()
 	dur = e.Sub(s)
 
@@ -105,9 +113,22 @@ func TestServersApiGithubStandardsArchivedPerfApiCallOnly(t *testing.T) {
 		slog.String("u", u.String()),
 		slog.String("dir", dir))
 
-	// _, bytes := convert.Stringify(hr)
-	// response := resp.New()
-	// convert.Unmarshal(bytes, response)
+	slog.Warn("end")
+
+	_, bytes := convert.Stringify(hr)
+	response := resp.New()
+	convert.Unmarshal(bytes, response)
+
+	counts := response.Metadata["counters"].(map[string]interface{})
+	// these := counts["this"].(map[string]interface{})
+	all := counts["totals"].(map[string]interface{})
+
+	count := int(all["count"].(float64))
+	if count != N {
+		t.Errorf("total number of rows dont match")
+		fmt.Printf("%+v\n", all)
+	}
+	// fmt.Printf("%+v\n", these)
 
 }
 

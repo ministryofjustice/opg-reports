@@ -60,18 +60,20 @@ func NewSeed(dir string, count int) (db *sql.DB, err error) {
 	// -- generate a csv
 	owner := fake.String(12)
 	for x := 0; x < seed.Count; x++ {
-		g := ghs.Fake()
-		g.ID = 1000 + x
-		g.Owner = owner
-		g.FullName = fmt.Sprintf("%s/%s", owner, g.Name)
+		id := 1000 + x
+		g := ghs.Fake(&id, &owner)
+
+		if x == 0 {
+			f.WriteString(g.CSVHead())
+		}
 
 		line := g.ToCSV()
 		f.WriteString(line)
 	}
 	// -- import csv
-	cmd := exec.Command("bash", "-c", "sqlite3", seed.DbFile, "--csv", fmt.Sprintf(".import %s github_standards", seed.CsvFile))
+	cmd := exec.Command("bash", "-c", "sqlite3", seed.DbFile, "--csv", fmt.Sprintf(".import --skip 1 %s github_standards", seed.CsvFile))
 	err = cmd.Run()
-	cmd = exec.Command("sqlite3", seed.DbFile, "--csv", fmt.Sprintf(".import %s github_standards", seed.CsvFile))
+	cmd = exec.Command("sqlite3", seed.DbFile, "--csv", fmt.Sprintf(".import --skip 1 %s github_standards", seed.CsvFile))
 	err = cmd.Run()
 	if err != nil {
 		slog.Error("error running exec: " + err.Error())
