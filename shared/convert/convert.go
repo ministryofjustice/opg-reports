@@ -72,6 +72,13 @@ func Printify[T any](item T) (s string) {
 	return
 }
 
+func IntToBool(i int) bool {
+	if i == 1 {
+		return true
+	}
+	return false
+}
+
 func BoolToInt(b bool) int {
 	if b {
 		return 1

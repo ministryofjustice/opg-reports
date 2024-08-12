@@ -4,10 +4,51 @@ package ghs
 
 import (
 	"fmt"
+
+	"github.com/ministryofjustice/opg-reports/shared/convert"
 )
 
 func (g *GithubStandard) UID() string {
 	return g.FullName
+}
+
+func (g *GithubStandard) Info() map[string]string {
+	return map[string]string{
+		"archived":                   fmt.Sprintf("%t", convert.IntToBool(g.IsArchived)),
+		"created_at":                 fmt.Sprintf("%s", g.CreatedAt),
+		"branch_name":                g.DefaultBranch,
+		"has_delete_branch_on_merge": fmt.Sprintf("%t", convert.IntToBool(g.HasDeleteBranchOnMerge)),
+		"has_pages":                  fmt.Sprintf("%t", convert.IntToBool(g.HasPages)),
+		"has_downloads":              fmt.Sprintf("%t", convert.IntToBool(g.HasDownloads)),
+		"has_discussions":            fmt.Sprintf("%t", convert.IntToBool(g.HasDiscussions)),
+		"has_wiki":                   fmt.Sprintf("%t", convert.IntToBool(g.HasWiki)),
+		"forks":                      fmt.Sprintf("%d", g.CountOfForks),
+		"webhooks":                   fmt.Sprintf("%d", g.CountOfWebHooks),
+		"open_pull_requests":         fmt.Sprintf("%d", g.CountOfPullRequests),
+		"clone_traffic":              fmt.Sprintf("%d", g.CountOfClones),
+		"is_private":                 fmt.Sprintf("%t", convert.IntToBool(g.IsPrivate)),
+		"last_commit_date":           fmt.Sprintf("%s", g.LastCommitDate),
+	}
+}
+
+func (g *GithubStandard) Baseline() map[string]bool {
+	return map[string]bool{
+		"has_default_branch_of_main":         convert.IntToBool(g.HasDefaultBranchOfMain),
+		"has_license":                        convert.IntToBool(g.HasLicense),
+		"has_issues":                         convert.IntToBool(g.HasIssues),
+		"has_description":                    convert.IntToBool(g.HasDescription),
+		"has_rules_enforced_for_admins":      convert.IntToBool(g.HasRulesEnforcedForAdmins),
+		"has_pull_request_approval_required": convert.IntToBool(g.HasPullRequestApprovalRequired),
+	}
+}
+
+func (g *GithubStandard) Extended() map[string]bool {
+	return map[string]bool{
+		"has_code_owner_approval_required": convert.IntToBool(g.HasCodeownerApprovalRequired),
+		"has_readme":                       convert.IntToBool(g.HasReadme),
+		"has_code_of_conduct":              convert.IntToBool(g.HasCodeOfConduct),
+		"has_contributing_guide":           convert.IntToBool(g.HasContributingGuide),
+	}
 }
 
 func (g *GithubStandard) UpdateCompliance() (baseline int, extended int) {
