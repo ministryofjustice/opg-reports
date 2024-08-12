@@ -13,21 +13,6 @@ before:
     - sh -c "cp ./datastore/github_standards/schema.sql ./builds/api/github_standards.sql"
 
 builds:
-  # -- data seeder - can create fake data
-  - id: seeder_cmd
-    binary: seeder_cmd
-    main: ./seeder/
-    no_unique_dist_dir: true
-    hooks:
-      post: sh -c "cp ./builds/binaries/seeder_cmd ./builds/api/seeder_cmd"
-    env:
-      - CGO_ENABLED=1
-    goos:
-      - linux
-      - darwin
-    goarch:
-      - amd64
-      - arm64
   # -- servers
   - id: api_server
     binary: api_server

@@ -59,20 +59,9 @@ go-build:
 	@rm -f ./builds/binaries/*.yml
 
 
-# # 	copy assets over to the build directory
-# 	@cp ./datastore/github_standards/schema.sql ./builds/go/dbs/github_standards.sql
-# 	@cp ./servers/front/config.json ./builds/go/
-# 	@cp -r ./servers/front/assets ./builds/go/
-# # @ls -lth ./builds/go/
-# 	@./builds/go/seeder_cmd -which all -dir ./builds/go
-# # @ls -lth ./builds/go/dbs
-
 go-run-api: go-build
 	@cd ./builds/api/ && ./api_server
 
-go-run-front:
-	@if [ ! -f "./builds/go/front" ]; then \
-		make go-build; \
-	fi
-	@cd ./builds/go/ && ./front
+go-run-front: go-build
+	@cd ./builds/front/ && ./front_server
 

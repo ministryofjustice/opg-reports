@@ -108,8 +108,7 @@ func TestServersApiGithubStandardsArchivedPerfApiCallAndParse(t *testing.T) {
 
 	slog.Warn("SeededApiCallOnly",
 		slog.Int("N", N),
-		slog.String("u", u.String()),
-		slog.String("dir", dir))
+		slog.String("u", u.String()))
 
 	slog.Warn("end")
 

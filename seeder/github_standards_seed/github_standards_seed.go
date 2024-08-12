@@ -10,6 +10,7 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
 	"github.com/ministryofjustice/opg-reports/shared/consts"
+	"github.com/ministryofjustice/opg-reports/shared/exists"
 	"github.com/ministryofjustice/opg-reports/shared/fake"
 )
 
@@ -49,26 +50,31 @@ func NewSeed(dir string, count int) (db *sql.DB, err error) {
 		return
 	}
 
-	// -- create dummy data into csv file
-	os.WriteFile(seed.CsvFile, []byte(""), os.ModePerm)
-	f, err := os.OpenFile(seed.CsvFile, os.O_APPEND|os.O_WRONLY, 0777)
-	defer f.Close()
-	if err != nil {
-		slog.Error("error reading csv: "+err.Error(), slog.String("file", seed.CsvFile))
-		return
-	}
-	// -- generate a csv
-	owner := fake.String(12)
-	for x := 0; x < seed.Count; x++ {
-		id := 1000 + x
-		g := ghs.Fake(&id, &owner)
-
-		if x == 0 {
-			f.WriteString(g.CSVHead())
+	// -- if a csv data file is not present, then create a dummy set
+	if !exists.FileOrDir(seed.CsvFile) {
+		slog.Info("creating csv file")
+		// -- create dummy data into csv file
+		os.WriteFile(seed.CsvFile, []byte(""), os.ModePerm)
+		f, err := os.OpenFile(seed.CsvFile, os.O_APPEND|os.O_WRONLY, 0777)
+		defer f.Close()
+		if err != nil {
+			slog.Error("error reading csv: "+err.Error(), slog.String("file", seed.CsvFile))
+			return nil, err
 		}
-
-		line := g.ToCSV()
-		f.WriteString(line)
+		// -- generate a csv
+		owner := fake.String(12)
+		for x := 0; x < seed.Count; x++ {
+			id := 1000 + x
+			g := ghs.Fake(&id, &owner)
+			// first loop, add header
+			if x == 0 {
+				f.WriteString(g.CSVHead())
+			}
+			line := g.ToCSV()
+			f.WriteString(line)
+		}
+	} else {
+		slog.Info("csv already exists, will use that")
 	}
 	// -- import csv
 	cmd := exec.Command("bash", "-c", "sqlite3", seed.DbFile, "--csv", fmt.Sprintf(".import --skip 1 %s github_standards", seed.CsvFile))
