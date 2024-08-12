@@ -28,7 +28,7 @@ func Fake() (gs *GithubStandard) {
 		LastCommitDate: now,
 		CreatedAt:      now,
 		IsArchived:     fake.Choice[int]([]int{0, 1}),
-		Teams:          fmt.Sprintf("%s#%s#", fake.Choice(teams), fake.Choice(defTeams)),
+		Teams:          fmt.Sprintf("#%s#%s#", fake.Choice(teams), fake.Choice(defTeams)),
 		// -- compliance
 		HasDefaultBranchOfMain:         fake.Choice[int]([]int{0, 1}),
 		HasLicense:                     fake.Choice[int]([]int{0, 1}),

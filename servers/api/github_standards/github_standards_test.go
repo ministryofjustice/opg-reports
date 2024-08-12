@@ -17,9 +17,10 @@ import (
 	"github.com/ministryofjustice/opg-reports/shared/testhelpers"
 )
 
+// seed the database and then run filters to test and view performance
 func TestServersApiGithubStandardsArchivedPerfDBOnly(t *testing.T) {
 	ctx := context.Background()
-	N := 500000
+	N := 50000
 
 	dir := t.TempDir()
 	// dir := testhelpers.Dir()
@@ -50,11 +51,20 @@ func TestServersApiGithubStandardsArchivedPerfDBOnly(t *testing.T) {
 		slog.Float64("seconds", dur.Seconds()),
 		slog.Int("records", len(res)))
 
+	s = time.Now().UTC()
+	team := "%#" + "foo" + "#%"
+	res, _ = q.ArchivedTeamFilter(ctx, ghs.ArchivedTeamFilterParams{IsArchived: 1, Teams: team})
+	e = time.Now().UTC()
+	dur = e.Sub(s)
+	slog.Warn("archived team filter duration",
+		slog.Float64("seconds", dur.Seconds()),
+		slog.Int("records", len(res)))
+
 }
 
 func TestServersApiGithubStandardsArchivedPerfApiCallOnly(t *testing.T) {
 	ctx := context.Background()
-	N := 500000
+	N := 50000
 	// dir := t.TempDir()
 	dir := testhelpers.Dir()
 	slog.Warn("dir:" + dir)
@@ -94,16 +104,11 @@ func TestServersApiGithubStandardsArchivedPerfApiCallOnly(t *testing.T) {
 		slog.Int("N", N),
 		slog.String("u", u.String()),
 		slog.String("dir", dir))
-	// hr, _ := getter.GetUrl(u)
 
-	// s, bytes := convert.Stringify(hr)
+	// _, bytes := convert.Stringify(hr)
 	// response := resp.New()
 	// convert.Unmarshal(bytes, response)
 
-	//	if len(response.Result) != create {
-	//		t.Errorf("incorrect amount returned")
-	//		fmt.Println(s)
-	//	}
 }
 
 func seedDb(dir string, num int) (*sql.DB, error) {

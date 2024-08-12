@@ -51,7 +51,7 @@ func getResults(ctx context.Context, queries *ghs.Queries, archived string, team
 	// -- fetch the get parameter values
 	// team query, add the like logic here
 	if team != "" {
-		teamF = "%" + team + "#"
+		teamF = "%#" + team + "#%"
 	}
 	// archive query
 	if archived != "" {
