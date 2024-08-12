@@ -12,6 +12,7 @@ before:
     - sh -c "mkdir -p ./builds/api/ ./builds/front ./builds/commands"
     - sh -c "cp ./datastore/github_standards/schema.sql ./builds/api/github_standards.sql"
 
+
 builds:
   # -- servers
   - id: api_server
@@ -33,7 +34,11 @@ builds:
     main: ./servers/front/
     no_unique_dist_dir: true
     hooks:
-      post: sh -c "cp ./builds/binaries/front_server ./builds/front/front_server"
+      post:
+        - sh -c "cp ./builds/binaries/front_server ./builds/front/front_server"
+        - sh -c "cp ./servers/front/config.json ./builds/front/config.json"
+        - sh -c "cp -r ./servers/front/static ./builds/front/"
+        - sh -c "cp -r ./servers/front/templates ./builds/front/"
     env:
       - CGO_ENABLED=1
     goos:

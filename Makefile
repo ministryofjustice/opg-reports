@@ -53,6 +53,8 @@ GOVUK_DOWNLOAD_FOLDER := ./builds/govuk-frontend
 # - build all go binaries at once and push to ./builds/go/
 #   using goreleaser
 ##############################
+clean:
+	@rm -Rf ./builds
 go-build:
 	@goreleaser build --clean --single-target --skip=validate
 	@rm -f ./builds/binaries/*.json
