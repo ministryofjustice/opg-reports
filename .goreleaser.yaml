@@ -25,8 +25,20 @@ builds:
       - arm64
   # -- servers
   - id: api_server
-    binary: api_server
+    binary: api
     main: ./servers/api/
+    no_unique_dist_dir: true
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+  - id: front_server
+    binary: front
+    main: ./servers/front/
     no_unique_dist_dir: true
     env:
       - CGO_ENABLED=1

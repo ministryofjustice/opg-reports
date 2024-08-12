@@ -2,6 +2,7 @@ package github_standards
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -18,7 +19,12 @@ func Register(ctx context.Context, mux *http.ServeMux, conf *config.Config, temp
 	navItem := navigation.ForTemplate(template, nav)
 
 	var list = func(w http.ResponseWriter, r *http.Request) {
-		getter.Api(conf, navItem, r)
+		data := getter.Api(conf, navItem, r)
+		// fmt.Println(convert.Printify(data))
+		for k, _ := range data {
+			fmt.Println(k)
+		}
+
 		// -- template rendering!
 		// t, err := template.New(navItem.Template).Funcs(tmpl.Funcs()).ParseFiles(templates...)
 		// if err != nil {

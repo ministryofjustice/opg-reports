@@ -42,7 +42,32 @@ benchmark:
 	@echo " WARNING: CAN BE SLOW"
 	@env LOG_LEVEL="info" LOG_TO="stdout" go test -v ./... -bench=$(name) -run=xxx -benchmem -benchtime=10s
 
+##############################
+# FRONT END ASSETS
+##############################
+GOVUK_FRONT_VERSION := "v5.4.0"
+GOVUK_DOWNLOAD_FOLDER := ./builds/govuk-frontend
 
+assets-front:
+	@echo "-----"
+	@echo "[Assets](front) Building..."
+	@echo "	source: [alphagov/govuk-frontend@${GOVUK_FRONT_VERSION}]"
+	@echo "	target: [./servers//front/assets/]"
+	@rm -Rf ${GOVUK_DOWNLOAD_FOLDER}
+	@rm -Rf ./servers//front/assets/css/
+	@rm -Rf ./servers//front/assets/fonts/
+	@rm -Rf ./servers//front/assets/images/
+	@rm -Rf ./servers//front/assets/manifest.json
+	@mkdir -p ${GOVUK_DOWNLOAD_FOLDER}
+	@cd ${GOVUK_DOWNLOAD_FOLDER} && gh release download ${GOVUK_FRONT_VERSION} -R alphagov/govuk-frontend
+	@cd ${GOVUK_DOWNLOAD_FOLDER} && unzip -qq release-${GOVUK_FRONT_VERSION}.zip
+	@cd ${GOVUK_DOWNLOAD_FOLDER} && mkdir -p ./assets/css/ && mv govuk-frontend-*.css* ./assets/css/
+	@mv ${GOVUK_DOWNLOAD_FOLDER}/assets/css/ ./servers//front/assets/
+	@mv ${GOVUK_DOWNLOAD_FOLDER}/assets/fonts/ ./servers//front/assets/
+	@mv ${GOVUK_DOWNLOAD_FOLDER}/assets/images/ ./servers//front/assets/
+	@mv ${GOVUK_DOWNLOAD_FOLDER}/assets/manifest.json ./servers//front/assets/
+	@rm -Rf ${GOVUK_DOWNLOAD_FOLDER}
+	@echo "[Assets](front) Built."
 ##############################
 # SQLC
 ##############################
@@ -60,11 +85,22 @@ go-build: sqlc
 	@mkdir -p ./builds/go/dbs
 	@rm -f ./builds/go/*.json
 	@rm -f ./builds/go/*.yaml
+# 	copy assets over to the build directory
 	@cp ./datastore/github_standards/schema.sql ./builds/go/dbs/github_standards.sql
+	@cp ./servers/front/config.json ./builds/go/
 # @ls -lth ./builds/go/
 	@./builds/go/seeder_cmd -which all -dir ./builds/go
 # @ls -lth ./builds/go/dbs
 
 go-run-api:
-	@cd ./builds/go/ && ./api_server
+	@if [ ! -f "./builds/go/api" ]; then \
+		make go-build; \
+	fi
+	@cd ./builds/go/ && ./api
+
+go-run-front:
+	@if [ ! -f "./builds/go/front" ]; then \
+		make go-build; \
+	fi
+	@cd ./builds/go/ && ./front
 

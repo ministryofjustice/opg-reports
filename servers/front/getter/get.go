@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/ministryofjustice/opg-reports/servers/front/config"
 	"github.com/ministryofjustice/opg-reports/servers/front/config/navigation"
@@ -29,6 +30,13 @@ func GetUrl(url *url.URL) (resp *http.Response, err error) {
 	return
 }
 
+// Api uses the passed in nav item to work out the api urls to call, fetches the data
+// and returns map of that
+// - api urls have substitutions like {month} resolved before calling
+// - multiple apis urls to call generate data with prefix based on their config name
+//   - "list": "/url"
+//   - "home": "/home"
+//     would generate List<Key> and Home<key> data
 func Api(conf *config.Config, nav *navigation.NavigationItem, r *http.Request) (data map[string]interface{}) {
 	var apiScheme = env.Get("API_SCHEME", consts.API_SCHEME)
 	var apiAddr = env.Get("API_ADDR", consts.API_ADDR)
@@ -48,16 +56,22 @@ func Api(conf *config.Config, nav *navigation.NavigationItem, r *http.Request) (
 		endpoint := source.Parsed()
 		url := urls.Parse(apiScheme, apiAddr, endpoint)
 
-		slog.Info("getting data from api...",
+		s := time.Now().UTC()
+		slog.Debug("getting data from api",
 			slog.String("key", key),
 			slog.String("endpoint", endpoint),
 			slog.String("url", url.String()))
 
 		httpResponse, err := GetUrl(url)
+		e := time.Now().UTC()
+		duration := e.Sub(s)
+
 		// if failed, skip rest of loop
 		if err != nil || httpResponse.StatusCode != http.StatusOK {
 			slog.Error("api call failed",
+				slog.String("err", fmt.Sprintf("%+v", err)),
 				slog.String("key", key),
+				slog.Int("status", httpResponse.StatusCode),
 				slog.String("endpoint", endpoint),
 				slog.String("url", url.String()))
 			continue
@@ -66,6 +80,13 @@ func Api(conf *config.Config, nav *navigation.NavigationItem, r *http.Request) (
 		_, bytes := convert.Stringify(httpResponse)
 		response := resp.New()
 		convert.Unmarshal(bytes, response)
+
+		slog.Info("api call details",
+			slog.String("metadata", fmt.Sprintf("%+v", response.Metadata)),
+			slog.Float64("duration (s)", duration.Seconds()),
+			slog.String("key", key),
+			slog.String("endpoint", endpoint),
+			slog.String("url", url.String()))
 
 		prefix := c.String(key)
 		if !withPrefix {

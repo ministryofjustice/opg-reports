@@ -66,6 +66,12 @@ func Stringify(r *http.Response) (s string, b []byte) {
 	return
 }
 
+func Printify[T any](item T) (s string) {
+	bytes, _ := Marshal(item)
+	s = string(bytes)
+	return
+}
+
 func BoolToInt(b bool) int {
 	if b {
 		return 1
