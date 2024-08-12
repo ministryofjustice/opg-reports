@@ -33,14 +33,14 @@ benchmarks:
 	@clear
 	@echo "============== benchmarks =============="
 	@echo " WARNING: CAN BE SLOW"
-	@env LOG_LEVEL="WARN" LOG_TO="stdout" go test -v ./... -bench=. -run=xxx -benchmem -benchtime=20s
+	@env LOG_LEVEL="warn" LOG_TO="stdout" go test -v ./... -bench=. -run=xxx -benchmem -benchtime=10s
 
 benchmark:
 	@go clean -testcache
 	@clear
 	@echo "============== benchmark: [$(name)] =============="
 	@echo " WARNING: CAN BE SLOW"
-	@env LOG_LEVEL="WARN" LOG_TO="stdout" go test -v ./... -bench=$(name) -run=xxx -benchmem -benchtime=20s
+	@env LOG_LEVEL="info" LOG_TO="stdout" go test -v ./... -bench=$(name) -run=xxx -benchmem -benchtime=10s
 
 
 ##############################
@@ -60,7 +60,7 @@ go-build: sqlc
 	@mkdir -p ./builds/go/dbs
 	@rm -f ./builds/go/*.json
 	@rm -f ./builds/go/*.yaml
-	@cp ./datastore/github_standards/schema.sql ./builds/go/github_standards.sql
+	@cp ./datastore/github_standards/schema.sql ./builds/go/dbs/github_standards.sql
 # @ls -lth ./builds/go/
 	@./builds/go/seeder_cmd -which all -dir ./builds/go
 # @ls -lth ./builds/go/dbs

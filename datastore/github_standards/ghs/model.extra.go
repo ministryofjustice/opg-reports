@@ -43,19 +43,18 @@ func (g *GithubStandard) UpdateCompliance() (baseline int, extended int) {
 
 func (g *GithubStandard) ToCSV() (line string) {
 
-	line = fmt.Sprintf(`"%s","%s","%s","%s","%s","%s","%s","%s",%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,"%s"`,
+	line = fmt.Sprintf(`%d,"%s",%d,%d,%d,%d,%d,%d,"%s","%s","%s",%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,"%s","%s","%s","%s","%s"`,
+		g.ID,
 		g.Ts,
-		g.DefaultBranch,
-		g.FullName,
-		g.Name,
-		g.Owner,
-		g.License,
-		g.LastCommitDate,
-		g.CreatedAt,
+		g.CompliantBaseline,
+		g.CompliantExtended,
 		g.CountOfClones,
 		g.CountOfForks,
 		g.CountOfPullRequests,
 		g.CountOfWebHooks,
+		g.CreatedAt,
+		g.DefaultBranch,
+		g.FullName,
 		g.HasCodeOfConduct,
 		g.HasCodeownerApprovalRequired,
 		g.HasContributingGuide,
@@ -75,6 +74,10 @@ func (g *GithubStandard) ToCSV() (line string) {
 		g.HasWiki,
 		g.IsArchived,
 		g.IsPrivate,
+		g.License,
+		g.LastCommitDate,
+		g.Name,
+		g.Owner,
 		g.Teams,
 	) + "\n"
 	return

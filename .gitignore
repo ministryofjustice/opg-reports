@@ -5,7 +5,7 @@
 **/data*/**/*.csv
 *.csv
 # build dir
-builds/*
+*builds/**
 build.log
 # code coverage and test output files
 code-coverage.out

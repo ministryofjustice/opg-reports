@@ -9,17 +9,13 @@ type GithubStandard struct {
 	Ts                             string `json:"ts"`
 	CompliantBaseline              int    `json:"compliant_baseline"`
 	CompliantExtended              int    `json:"compliant_extended"`
-	DefaultBranch                  string `json:"default_branch"`
-	Owner                          string `json:"owner"`
-	Name                           string `json:"name"`
-	FullName                       string `json:"full_name"`
-	License                        string `json:"license"`
-	LastCommitDate                 string `json:"last_commit_date"`
-	CreatedAt                      string `json:"created_at"`
 	CountOfClones                  int    `json:"count_of_clones"`
 	CountOfForks                   int    `json:"count_of_forks"`
 	CountOfPullRequests            int    `json:"count_of_pull_requests"`
 	CountOfWebHooks                int    `json:"count_of_web_hooks"`
+	CreatedAt                      string `json:"created_at"`
+	DefaultBranch                  string `json:"default_branch"`
+	FullName                       string `json:"full_name"`
 	HasCodeOfConduct               int    `json:"has_code_of_conduct"`
 	HasCodeownerApprovalRequired   int    `json:"has_codeowner_approval_required"`
 	HasContributingGuide           int    `json:"has_contributing_guide"`
@@ -39,5 +35,9 @@ type GithubStandard struct {
 	HasWiki                        int    `json:"has_wiki"`
 	IsArchived                     int    `json:"is_archived"`
 	IsPrivate                      int    `json:"is_private"`
+	License                        string `json:"license"`
+	LastCommitDate                 string `json:"last_commit_date"`
+	Name                           string `json:"name"`
+	Owner                          string `json:"owner"`
 	Teams                          string `json:"teams"`
 }

@@ -10,7 +10,7 @@ import (
 )
 
 const all = `-- name: All :many
-SELECT id, ts, compliant_baseline, compliant_extended, default_branch, owner, name, full_name, license, last_commit_date, created_at, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, teams FROM github_standards
+SELECT id, ts, compliant_baseline, compliant_extended, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, created_at, default_branch, full_name, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, license, last_commit_date, name, owner, teams FROM github_standards
 ORDER BY name, created_at ASC
 `
 
@@ -28,17 +28,13 @@ func (q *Queries) All(ctx context.Context) ([]GithubStandard, error) {
 			&i.Ts,
 			&i.CompliantBaseline,
 			&i.CompliantExtended,
-			&i.DefaultBranch,
-			&i.Owner,
-			&i.Name,
-			&i.FullName,
-			&i.License,
-			&i.LastCommitDate,
-			&i.CreatedAt,
 			&i.CountOfClones,
 			&i.CountOfForks,
 			&i.CountOfPullRequests,
 			&i.CountOfWebHooks,
+			&i.CreatedAt,
+			&i.DefaultBranch,
+			&i.FullName,
 			&i.HasCodeOfConduct,
 			&i.HasCodeownerApprovalRequired,
 			&i.HasContributingGuide,
@@ -58,6 +54,10 @@ func (q *Queries) All(ctx context.Context) ([]GithubStandard, error) {
 			&i.HasWiki,
 			&i.IsArchived,
 			&i.IsPrivate,
+			&i.License,
+			&i.LastCommitDate,
+			&i.Name,
+			&i.Owner,
 			&i.Teams,
 		); err != nil {
 			return nil, err
@@ -74,7 +74,7 @@ func (q *Queries) All(ctx context.Context) ([]GithubStandard, error) {
 }
 
 const archivedFilter = `-- name: ArchivedFilter :many
-SELECT id, ts, compliant_baseline, compliant_extended, default_branch, owner, name, full_name, license, last_commit_date, created_at, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, teams FROM github_standards
+SELECT id, ts, compliant_baseline, compliant_extended, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, created_at, default_branch, full_name, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, license, last_commit_date, name, owner, teams FROM github_standards
 WHERE is_archived = ?
 ORDER BY name, created_at ASC
 `
@@ -93,17 +93,13 @@ func (q *Queries) ArchivedFilter(ctx context.Context, isArchived int) ([]GithubS
 			&i.Ts,
 			&i.CompliantBaseline,
 			&i.CompliantExtended,
-			&i.DefaultBranch,
-			&i.Owner,
-			&i.Name,
-			&i.FullName,
-			&i.License,
-			&i.LastCommitDate,
-			&i.CreatedAt,
 			&i.CountOfClones,
 			&i.CountOfForks,
 			&i.CountOfPullRequests,
 			&i.CountOfWebHooks,
+			&i.CreatedAt,
+			&i.DefaultBranch,
+			&i.FullName,
 			&i.HasCodeOfConduct,
 			&i.HasCodeownerApprovalRequired,
 			&i.HasContributingGuide,
@@ -123,6 +119,10 @@ func (q *Queries) ArchivedFilter(ctx context.Context, isArchived int) ([]GithubS
 			&i.HasWiki,
 			&i.IsArchived,
 			&i.IsPrivate,
+			&i.License,
+			&i.LastCommitDate,
+			&i.Name,
+			&i.Owner,
 			&i.Teams,
 		); err != nil {
 			return nil, err
@@ -139,7 +139,7 @@ func (q *Queries) ArchivedFilter(ctx context.Context, isArchived int) ([]GithubS
 }
 
 const archivedTeamFilter = `-- name: ArchivedTeamFilter :many
-SELECT id, ts, compliant_baseline, compliant_extended, default_branch, owner, name, full_name, license, last_commit_date, created_at, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, teams FROM github_standards
+SELECT id, ts, compliant_baseline, compliant_extended, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, created_at, default_branch, full_name, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, license, last_commit_date, name, owner, teams FROM github_standards
 WHERE
     is_archived = ? AND
     teams LIKE ?
@@ -165,17 +165,13 @@ func (q *Queries) ArchivedTeamFilter(ctx context.Context, arg ArchivedTeamFilter
 			&i.Ts,
 			&i.CompliantBaseline,
 			&i.CompliantExtended,
-			&i.DefaultBranch,
-			&i.Owner,
-			&i.Name,
-			&i.FullName,
-			&i.License,
-			&i.LastCommitDate,
-			&i.CreatedAt,
 			&i.CountOfClones,
 			&i.CountOfForks,
 			&i.CountOfPullRequests,
 			&i.CountOfWebHooks,
+			&i.CreatedAt,
+			&i.DefaultBranch,
+			&i.FullName,
 			&i.HasCodeOfConduct,
 			&i.HasCodeownerApprovalRequired,
 			&i.HasContributingGuide,
@@ -195,6 +191,10 @@ func (q *Queries) ArchivedTeamFilter(ctx context.Context, arg ArchivedTeamFilter
 			&i.HasWiki,
 			&i.IsArchived,
 			&i.IsPrivate,
+			&i.License,
+			&i.LastCommitDate,
+			&i.Name,
+			&i.Owner,
 			&i.Teams,
 		); err != nil {
 			return nil, err
@@ -366,7 +366,7 @@ func (q *Queries) Insert(ctx context.Context, arg InsertParams) (int, error) {
 }
 
 const teamFilter = `-- name: TeamFilter :many
-SELECT id, ts, compliant_baseline, compliant_extended, default_branch, owner, name, full_name, license, last_commit_date, created_at, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, teams FROM github_standards
+SELECT id, ts, compliant_baseline, compliant_extended, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, created_at, default_branch, full_name, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, license, last_commit_date, name, owner, teams FROM github_standards
 WHERE teams LIKE ?
 ORDER BY name, created_at ASC
 `
@@ -385,17 +385,13 @@ func (q *Queries) TeamFilter(ctx context.Context, teams string) ([]GithubStandar
 			&i.Ts,
 			&i.CompliantBaseline,
 			&i.CompliantExtended,
-			&i.DefaultBranch,
-			&i.Owner,
-			&i.Name,
-			&i.FullName,
-			&i.License,
-			&i.LastCommitDate,
-			&i.CreatedAt,
 			&i.CountOfClones,
 			&i.CountOfForks,
 			&i.CountOfPullRequests,
 			&i.CountOfWebHooks,
+			&i.CreatedAt,
+			&i.DefaultBranch,
+			&i.FullName,
 			&i.HasCodeOfConduct,
 			&i.HasCodeownerApprovalRequired,
 			&i.HasContributingGuide,
@@ -415,6 +411,10 @@ func (q *Queries) TeamFilter(ctx context.Context, teams string) ([]GithubStandar
 			&i.HasWiki,
 			&i.IsArchived,
 			&i.IsPrivate,
+			&i.License,
+			&i.LastCommitDate,
+			&i.Name,
+			&i.Owner,
 			&i.Teams,
 		); err != nil {
 			return nil, err

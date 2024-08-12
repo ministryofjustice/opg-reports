@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"log/slog"
@@ -23,21 +22,18 @@ func main() {
 	group.Parse(os.Args[1:])
 
 	what := *which.Value
-	ctx := context.Background()
 	slog.Info("Seeding tables")
 	// only generate data if it doesnt already exist
-	if what == "github_standards" || what == "all" {
+	if what == "github_standards" || what == "all" || what == "" {
 		d := *dir.Value
 		dbDir := fmt.Sprintf("%s/dbs", d)
-		schema := d + "/github_standards.sql"
-		dbPath := dbDir + "/github_standards.db"
-		if !exists.FileOrDir(dbPath) {
+
+		if !exists.FileOrDir(dbDir + "/github_standards.db") {
 			slog.Info("Seeding github_standards")
-			os.MkdirAll(dbDir, os.ModePerm)
-			db, _ := github_standards_seed.NewDb(ctx, dbPath, schema)
-			q := github_standards_seed.Seed(ctx, db, 1000)
-			l, _ := q.Count(ctx)
-			slog.Info("Seeded github_standards", slog.Int("count", int(l)))
+			github_standards_seed.NewSeed(dbDir, 1000)
+			slog.Info("Seeded github_standards")
+		} else {
+			slog.Info("github_standards exists")
 		}
 	}
 

@@ -53,8 +53,6 @@ WHERE compliant_baseline=1;
 SELECT count(*) FROM github_standards
 WHERE compliant_extended=1;
 
--- name: ExplainArchivedFilter :one
-EXPLAIN QUERY PLAN SELECT * FROM github_standards WHERE is_archived = ? ORDER BY name, created_at ASC;
 -- name: ArchivedFilter :many
 SELECT * FROM github_standards
 WHERE is_archived = ?

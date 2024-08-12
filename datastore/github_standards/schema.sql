@@ -4,7 +4,6 @@ CREATE TABLE github_standards (
     id INTEGER PRIMARY KEY,
     -- timestamp for when we generated this record
     ts TEXT NOT NULL,
-
     -- -- from github data
     -- compliance flags
     compliant_baseline INTEGER NOT NULL DEFAULT 0,
@@ -57,8 +56,6 @@ CREATE TABLE github_standards (
     -- all teams for this repo
     teams TEXT NOT NULL
 ) STRICT;
--- always sorted by name, created_at ASC
-CREATE INDEX ghs_sort_idx ON github_standards(name, created_at);
 -- used by ArchivedFilter to find and sort archived matched rows
 CREATE INDEX ghs_archived_idx ON github_standards(is_archived, name, created_at);
 -- used by TeamFilter
