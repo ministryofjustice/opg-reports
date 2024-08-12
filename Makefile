@@ -54,9 +54,10 @@ go-build: sqlc
 	@rm -f ./builds/go/*.json
 	@rm -f ./builds/go/*.yaml
 	@cp ./datastore/github_standards/schema.sql ./builds/go/github_standards.sql
-	@ls -lth ./builds/go/
+# @ls -lth ./builds/go/
 	@./builds/go/seeder_cmd -which all -dir ./builds/go
-	@ls -lth ./builds/go/dbs
+# @ls -lth ./builds/go/dbs
 
 go-run-api:
 	@cd ./builds/go/ && ./api_server
+

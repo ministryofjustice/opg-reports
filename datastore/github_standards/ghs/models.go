@@ -5,12 +5,13 @@
 package ghs
 
 type GithubStandard struct {
+	ID                             int    `json:"id"`
 	Uuid                           string `json:"uuid"`
 	Ts                             string `json:"ts"`
 	DefaultBranch                  string `json:"default_branch"`
-	FullName                       string `json:"full_name"`
-	Name                           string `json:"name"`
 	Owner                          string `json:"owner"`
+	Name                           string `json:"name"`
+	FullName                       string `json:"full_name"`
 	License                        string `json:"license"`
 	LastCommitDate                 string `json:"last_commit_date"`
 	CreatedAt                      string `json:"created_at"`

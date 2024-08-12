@@ -33,9 +33,9 @@ func main() {
 		dbPath := dbDir + "/github_standards.db"
 		if !exists.FileOrDir(dbPath) {
 			slog.Info("Seeding github_standards")
-			os.MkdirAll(d, os.ModePerm)
+			os.MkdirAll(dbDir, os.ModePerm)
 			db := github_standards_seed.NewDb(ctx, dbPath, schema)
-			github_standards_seed.Seed(ctx, db, 100)
+			github_standards_seed.Seed(ctx, db, 1000)
 		}
 	}
 

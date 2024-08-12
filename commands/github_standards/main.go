@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/ministryofjustice/opg-reports/commands/shared/argument"
 	"github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
+	"github.com/ministryofjustice/opg-reports/shared/dates"
 	"github.com/ministryofjustice/opg-reports/shared/env"
 	"github.com/ministryofjustice/opg-reports/shared/github/cl"
 	"github.com/ministryofjustice/opg-reports/shared/github/repos"
@@ -39,7 +40,7 @@ func mapFromApi(ctx context.Context, client *github.Client, r *github.Repository
 	g.FullName = r.GetFullName()
 	g.Name = r.GetName()
 	g.Owner = r.GetOwner().GetLogin()
-	r.GetCreatedAt()
+	g.CreatedAt = r.GetCreatedAt().Format(dates.Format)
 	//
 	if l := r.GetLicense(); l != nil {
 		g.License = l.GetName()
