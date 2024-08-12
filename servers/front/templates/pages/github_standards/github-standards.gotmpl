@@ -7,7 +7,8 @@
 
     {{ if .Result }}
         <h2 class="govuk-heading-m">Pass rate</h2>
-        <p class="govuk-body">There are <strong>{{ .PassedBaseline }}</strong> out of <strong>{{ .Total }}</strong> <strong>({{ .Percentage }}%)</strong> repositories passing the baseline standards.</p>
+        {{ template "github-standards-pass-rate" .}}
+        {{ template "github-standards-filters" .}}
 
         <table id="standards-dataset" class="standards-table govuk-table">
             <thead class="govuk-table__head">
@@ -26,8 +27,7 @@
             </tbody>
         </table>
 
-
-
+        {{ template "result-notes" . }}
     {{ else }}
         {{ template "no-result" . }}
     {{end}}
