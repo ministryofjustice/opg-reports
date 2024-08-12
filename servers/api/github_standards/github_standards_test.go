@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"path/filepath"
@@ -28,8 +29,6 @@ func TestServersApiGithubStandardsArchivedPerfDBOnly(t *testing.T) {
 	N := 50000
 
 	dir := t.TempDir()
-	// dir := testhelpers.Dir()
-	slog.Warn("dir:" + dir)
 
 	s := time.Now().UTC()
 	db, err := seedDb(dir, N)
@@ -67,14 +66,13 @@ func TestServersApiGithubStandardsArchivedPerfDBOnly(t *testing.T) {
 
 }
 
-func TestServersApiGithubStandardsArchivedPerfApiCallOnly(t *testing.T) {
+func TestServersApiGithubStandardsArchivedPerfApiCallAndParse(t *testing.T) {
 	logger.LogSetup()
 	slog.Warn("start")
 	ctx := context.TODO()
 	N := 50000
 	dir := t.TempDir()
 	// dir := testhelpers.Dir()
-	slog.Warn("dir:" + dir)
 	// defer os.RemoveAll(dir)
 
 	s := time.Now().UTC()
@@ -91,12 +89,12 @@ func TestServersApiGithubStandardsArchivedPerfApiCallOnly(t *testing.T) {
 	q := ghs.New(db)
 	defer q.Close()
 
-	slog.Warn("counting")
+	// slog.Warn("counting")
 	l, _ := q.Count(ctx)
 	if l != int64(N) {
 		t.Errorf("records did not create properly: [%d] [%d]", N, l)
 	}
-	slog.Warn("mocking api")
+	// slog.Warn("mocking api")
 	mock := mockApi(ctx, dir)
 	defer mock.Close()
 	u, _ := url.Parse(mock.URL)
@@ -128,7 +126,22 @@ func TestServersApiGithubStandardsArchivedPerfApiCallOnly(t *testing.T) {
 		t.Errorf("total number of rows dont match")
 		fmt.Printf("%+v\n", all)
 	}
-	// fmt.Printf("%+v\n", these)
+
+	// -- call other api urls and check response
+	list := []string{"?archived=true", "?archived=true&team=foo", "?team=foo"}
+	for _, l := range list {
+		s = time.Now().UTC()
+		call := u.String() + l
+		ur, _ := url.Parse(call)
+		hr, _ = getter.GetUrl(ur)
+
+		e = time.Now().UTC()
+		dur = e.Sub(s)
+		slog.Warn("api call duration", slog.Float64("seconds", dur.Seconds()), slog.String("url", ur.String()))
+		if hr.StatusCode != http.StatusOK {
+			t.Errorf("api call failed")
+		}
+	}
 
 }
 
