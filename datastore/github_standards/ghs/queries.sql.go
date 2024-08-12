@@ -73,143 +73,6 @@ func (q *Queries) All(ctx context.Context) ([]GithubStandard, error) {
 	return items, nil
 }
 
-const archivedFilter = `-- name: ArchivedFilter :many
-SELECT id, ts, compliant_baseline, compliant_extended, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, created_at, default_branch, full_name, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, license, last_commit_date, name, owner, teams FROM github_standards
-WHERE is_archived = ?
-ORDER BY name, created_at ASC
-`
-
-func (q *Queries) ArchivedFilter(ctx context.Context, isArchived int) ([]GithubStandard, error) {
-	rows, err := q.query(ctx, q.archivedFilterStmt, archivedFilter, isArchived)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GithubStandard
-	for rows.Next() {
-		var i GithubStandard
-		if err := rows.Scan(
-			&i.ID,
-			&i.Ts,
-			&i.CompliantBaseline,
-			&i.CompliantExtended,
-			&i.CountOfClones,
-			&i.CountOfForks,
-			&i.CountOfPullRequests,
-			&i.CountOfWebHooks,
-			&i.CreatedAt,
-			&i.DefaultBranch,
-			&i.FullName,
-			&i.HasCodeOfConduct,
-			&i.HasCodeownerApprovalRequired,
-			&i.HasContributingGuide,
-			&i.HasDefaultBranchOfMain,
-			&i.HasDefaultBranchProtection,
-			&i.HasDeleteBranchOnMerge,
-			&i.HasDescription,
-			&i.HasDiscussions,
-			&i.HasDownloads,
-			&i.HasIssues,
-			&i.HasLicense,
-			&i.HasPages,
-			&i.HasPullRequestApprovalRequired,
-			&i.HasReadme,
-			&i.HasRulesEnforcedForAdmins,
-			&i.HasVulnerabilityAlerts,
-			&i.HasWiki,
-			&i.IsArchived,
-			&i.IsPrivate,
-			&i.License,
-			&i.LastCommitDate,
-			&i.Name,
-			&i.Owner,
-			&i.Teams,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const archivedTeamFilter = `-- name: ArchivedTeamFilter :many
-SELECT id, ts, compliant_baseline, compliant_extended, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, created_at, default_branch, full_name, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, license, last_commit_date, name, owner, teams FROM github_standards
-WHERE
-    is_archived = ? AND
-    teams LIKE ?
-ORDER BY name, created_at ASC
-`
-
-type ArchivedTeamFilterParams struct {
-	IsArchived int    `json:"is_archived"`
-	Teams      string `json:"teams"`
-}
-
-func (q *Queries) ArchivedTeamFilter(ctx context.Context, arg ArchivedTeamFilterParams) ([]GithubStandard, error) {
-	rows, err := q.query(ctx, q.archivedTeamFilterStmt, archivedTeamFilter, arg.IsArchived, arg.Teams)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GithubStandard
-	for rows.Next() {
-		var i GithubStandard
-		if err := rows.Scan(
-			&i.ID,
-			&i.Ts,
-			&i.CompliantBaseline,
-			&i.CompliantExtended,
-			&i.CountOfClones,
-			&i.CountOfForks,
-			&i.CountOfPullRequests,
-			&i.CountOfWebHooks,
-			&i.CreatedAt,
-			&i.DefaultBranch,
-			&i.FullName,
-			&i.HasCodeOfConduct,
-			&i.HasCodeownerApprovalRequired,
-			&i.HasContributingGuide,
-			&i.HasDefaultBranchOfMain,
-			&i.HasDefaultBranchProtection,
-			&i.HasDeleteBranchOnMerge,
-			&i.HasDescription,
-			&i.HasDiscussions,
-			&i.HasDownloads,
-			&i.HasIssues,
-			&i.HasLicense,
-			&i.HasPages,
-			&i.HasPullRequestApprovalRequired,
-			&i.HasReadme,
-			&i.HasRulesEnforcedForAdmins,
-			&i.HasVulnerabilityAlerts,
-			&i.HasWiki,
-			&i.IsArchived,
-			&i.IsPrivate,
-			&i.License,
-			&i.LastCommitDate,
-			&i.Name,
-			&i.Owner,
-			&i.Teams,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const count = `-- name: Count :one
 SELECT count(*) FROM github_standards
 `
@@ -221,28 +84,206 @@ func (q *Queries) Count(ctx context.Context) (int64, error) {
 	return count, err
 }
 
-const countCompliantBaseline = `-- name: CountCompliantBaseline :one
-SELECT count(*) FROM github_standards
-WHERE compliant_baseline=1
+const filterByIsArchived = `-- name: FilterByIsArchived :many
+SELECT id, ts, compliant_baseline, compliant_extended, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, created_at, default_branch, full_name, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, license, last_commit_date, name, owner, teams FROM github_standards
+WHERE is_archived = ?
+ORDER BY name, created_at ASC
 `
 
-func (q *Queries) CountCompliantBaseline(ctx context.Context) (int64, error) {
-	row := q.queryRow(ctx, q.countCompliantBaselineStmt, countCompliantBaseline)
-	var count int64
-	err := row.Scan(&count)
-	return count, err
+func (q *Queries) FilterByIsArchived(ctx context.Context, isArchived int) ([]GithubStandard, error) {
+	rows, err := q.query(ctx, q.filterByIsArchivedStmt, filterByIsArchived, isArchived)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GithubStandard
+	for rows.Next() {
+		var i GithubStandard
+		if err := rows.Scan(
+			&i.ID,
+			&i.Ts,
+			&i.CompliantBaseline,
+			&i.CompliantExtended,
+			&i.CountOfClones,
+			&i.CountOfForks,
+			&i.CountOfPullRequests,
+			&i.CountOfWebHooks,
+			&i.CreatedAt,
+			&i.DefaultBranch,
+			&i.FullName,
+			&i.HasCodeOfConduct,
+			&i.HasCodeownerApprovalRequired,
+			&i.HasContributingGuide,
+			&i.HasDefaultBranchOfMain,
+			&i.HasDefaultBranchProtection,
+			&i.HasDeleteBranchOnMerge,
+			&i.HasDescription,
+			&i.HasDiscussions,
+			&i.HasDownloads,
+			&i.HasIssues,
+			&i.HasLicense,
+			&i.HasPages,
+			&i.HasPullRequestApprovalRequired,
+			&i.HasReadme,
+			&i.HasRulesEnforcedForAdmins,
+			&i.HasVulnerabilityAlerts,
+			&i.HasWiki,
+			&i.IsArchived,
+			&i.IsPrivate,
+			&i.License,
+			&i.LastCommitDate,
+			&i.Name,
+			&i.Owner,
+			&i.Teams,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
-const countCompliantExtended = `-- name: CountCompliantExtended :one
-SELECT count(*) FROM github_standards
-WHERE compliant_extended=1
+const filterByIsArchivedAndTeam = `-- name: FilterByIsArchivedAndTeam :many
+SELECT id, ts, compliant_baseline, compliant_extended, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, created_at, default_branch, full_name, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, license, last_commit_date, name, owner, teams FROM github_standards
+WHERE
+    is_archived = ? AND
+    teams LIKE ?
+ORDER BY name, created_at ASC
 `
 
-func (q *Queries) CountCompliantExtended(ctx context.Context) (int64, error) {
-	row := q.queryRow(ctx, q.countCompliantExtendedStmt, countCompliantExtended)
-	var count int64
-	err := row.Scan(&count)
-	return count, err
+type FilterByIsArchivedAndTeamParams struct {
+	IsArchived int    `json:"is_archived"`
+	Teams      string `json:"teams"`
+}
+
+func (q *Queries) FilterByIsArchivedAndTeam(ctx context.Context, arg FilterByIsArchivedAndTeamParams) ([]GithubStandard, error) {
+	rows, err := q.query(ctx, q.filterByIsArchivedAndTeamStmt, filterByIsArchivedAndTeam, arg.IsArchived, arg.Teams)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GithubStandard
+	for rows.Next() {
+		var i GithubStandard
+		if err := rows.Scan(
+			&i.ID,
+			&i.Ts,
+			&i.CompliantBaseline,
+			&i.CompliantExtended,
+			&i.CountOfClones,
+			&i.CountOfForks,
+			&i.CountOfPullRequests,
+			&i.CountOfWebHooks,
+			&i.CreatedAt,
+			&i.DefaultBranch,
+			&i.FullName,
+			&i.HasCodeOfConduct,
+			&i.HasCodeownerApprovalRequired,
+			&i.HasContributingGuide,
+			&i.HasDefaultBranchOfMain,
+			&i.HasDefaultBranchProtection,
+			&i.HasDeleteBranchOnMerge,
+			&i.HasDescription,
+			&i.HasDiscussions,
+			&i.HasDownloads,
+			&i.HasIssues,
+			&i.HasLicense,
+			&i.HasPages,
+			&i.HasPullRequestApprovalRequired,
+			&i.HasReadme,
+			&i.HasRulesEnforcedForAdmins,
+			&i.HasVulnerabilityAlerts,
+			&i.HasWiki,
+			&i.IsArchived,
+			&i.IsPrivate,
+			&i.License,
+			&i.LastCommitDate,
+			&i.Name,
+			&i.Owner,
+			&i.Teams,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const filterByTeam = `-- name: FilterByTeam :many
+SELECT id, ts, compliant_baseline, compliant_extended, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, created_at, default_branch, full_name, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, license, last_commit_date, name, owner, teams FROM github_standards
+WHERE teams LIKE ?
+ORDER BY name, created_at ASC
+`
+
+func (q *Queries) FilterByTeam(ctx context.Context, teams string) ([]GithubStandard, error) {
+	rows, err := q.query(ctx, q.filterByTeamStmt, filterByTeam, teams)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GithubStandard
+	for rows.Next() {
+		var i GithubStandard
+		if err := rows.Scan(
+			&i.ID,
+			&i.Ts,
+			&i.CompliantBaseline,
+			&i.CompliantExtended,
+			&i.CountOfClones,
+			&i.CountOfForks,
+			&i.CountOfPullRequests,
+			&i.CountOfWebHooks,
+			&i.CreatedAt,
+			&i.DefaultBranch,
+			&i.FullName,
+			&i.HasCodeOfConduct,
+			&i.HasCodeownerApprovalRequired,
+			&i.HasContributingGuide,
+			&i.HasDefaultBranchOfMain,
+			&i.HasDefaultBranchProtection,
+			&i.HasDeleteBranchOnMerge,
+			&i.HasDescription,
+			&i.HasDiscussions,
+			&i.HasDownloads,
+			&i.HasIssues,
+			&i.HasLicense,
+			&i.HasPages,
+			&i.HasPullRequestApprovalRequired,
+			&i.HasReadme,
+			&i.HasRulesEnforcedForAdmins,
+			&i.HasVulnerabilityAlerts,
+			&i.HasWiki,
+			&i.IsArchived,
+			&i.IsPrivate,
+			&i.License,
+			&i.LastCommitDate,
+			&i.Name,
+			&i.Owner,
+			&i.Teams,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const insert = `-- name: Insert :one
@@ -365,67 +406,26 @@ func (q *Queries) Insert(ctx context.Context, arg InsertParams) (int, error) {
 	return id, err
 }
 
-const teamFilter = `-- name: TeamFilter :many
-SELECT id, ts, compliant_baseline, compliant_extended, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, created_at, default_branch, full_name, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, license, last_commit_date, name, owner, teams FROM github_standards
-WHERE teams LIKE ?
-ORDER BY name, created_at ASC
+const totalCountCompliantBaseline = `-- name: TotalCountCompliantBaseline :one
+SELECT count(*) FROM github_standards
+WHERE compliant_baseline=1
 `
 
-func (q *Queries) TeamFilter(ctx context.Context, teams string) ([]GithubStandard, error) {
-	rows, err := q.query(ctx, q.teamFilterStmt, teamFilter, teams)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GithubStandard
-	for rows.Next() {
-		var i GithubStandard
-		if err := rows.Scan(
-			&i.ID,
-			&i.Ts,
-			&i.CompliantBaseline,
-			&i.CompliantExtended,
-			&i.CountOfClones,
-			&i.CountOfForks,
-			&i.CountOfPullRequests,
-			&i.CountOfWebHooks,
-			&i.CreatedAt,
-			&i.DefaultBranch,
-			&i.FullName,
-			&i.HasCodeOfConduct,
-			&i.HasCodeownerApprovalRequired,
-			&i.HasContributingGuide,
-			&i.HasDefaultBranchOfMain,
-			&i.HasDefaultBranchProtection,
-			&i.HasDeleteBranchOnMerge,
-			&i.HasDescription,
-			&i.HasDiscussions,
-			&i.HasDownloads,
-			&i.HasIssues,
-			&i.HasLicense,
-			&i.HasPages,
-			&i.HasPullRequestApprovalRequired,
-			&i.HasReadme,
-			&i.HasRulesEnforcedForAdmins,
-			&i.HasVulnerabilityAlerts,
-			&i.HasWiki,
-			&i.IsArchived,
-			&i.IsPrivate,
-			&i.License,
-			&i.LastCommitDate,
-			&i.Name,
-			&i.Owner,
-			&i.Teams,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+func (q *Queries) TotalCountCompliantBaseline(ctx context.Context) (int64, error) {
+	row := q.queryRow(ctx, q.totalCountCompliantBaselineStmt, totalCountCompliantBaseline)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const totalCountCompliantExtended = `-- name: TotalCountCompliantExtended :one
+SELECT count(*) FROM github_standards
+WHERE compliant_extended=1
+`
+
+func (q *Queries) TotalCountCompliantExtended(ctx context.Context) (int64, error) {
+	row := q.queryRow(ctx, q.totalCountCompliantExtendedStmt, totalCountCompliantExtended)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }

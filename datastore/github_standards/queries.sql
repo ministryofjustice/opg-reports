@@ -45,25 +45,25 @@ ORDER BY name, created_at ASC;
 -- name: Count :one
 SELECT count(*) FROM github_standards;
 
--- name: CountCompliantBaseline :one
+-- name: TotalCountCompliantBaseline :one
 SELECT count(*) FROM github_standards
 WHERE compliant_baseline=1;
 
--- name: CountCompliantExtended :one
+-- name: TotalCountCompliantExtended :one
 SELECT count(*) FROM github_standards
 WHERE compliant_extended=1;
 
--- name: ArchivedFilter :many
+-- name: FilterByIsArchived :many
 SELECT * FROM github_standards
 WHERE is_archived = ?
 ORDER BY name, created_at ASC;
 
--- name: TeamFilter :many
+-- name: FilterByTeam :many
 SELECT * FROM github_standards
 WHERE teams LIKE ?
 ORDER BY name, created_at ASC;
 
--- name: ArchivedTeamFilter :many
+-- name: FilterByIsArchivedAndTeam :many
 SELECT * FROM github_standards
 WHERE
     is_archived = ? AND

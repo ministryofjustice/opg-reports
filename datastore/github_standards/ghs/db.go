@@ -27,26 +27,26 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.allStmt, err = db.PrepareContext(ctx, all); err != nil {
 		return nil, fmt.Errorf("error preparing query All: %w", err)
 	}
-	if q.archivedFilterStmt, err = db.PrepareContext(ctx, archivedFilter); err != nil {
-		return nil, fmt.Errorf("error preparing query ArchivedFilter: %w", err)
-	}
-	if q.archivedTeamFilterStmt, err = db.PrepareContext(ctx, archivedTeamFilter); err != nil {
-		return nil, fmt.Errorf("error preparing query ArchivedTeamFilter: %w", err)
-	}
 	if q.countStmt, err = db.PrepareContext(ctx, count); err != nil {
 		return nil, fmt.Errorf("error preparing query Count: %w", err)
 	}
-	if q.countCompliantBaselineStmt, err = db.PrepareContext(ctx, countCompliantBaseline); err != nil {
-		return nil, fmt.Errorf("error preparing query CountCompliantBaseline: %w", err)
+	if q.filterByIsArchivedStmt, err = db.PrepareContext(ctx, filterByIsArchived); err != nil {
+		return nil, fmt.Errorf("error preparing query FilterByIsArchived: %w", err)
 	}
-	if q.countCompliantExtendedStmt, err = db.PrepareContext(ctx, countCompliantExtended); err != nil {
-		return nil, fmt.Errorf("error preparing query CountCompliantExtended: %w", err)
+	if q.filterByIsArchivedAndTeamStmt, err = db.PrepareContext(ctx, filterByIsArchivedAndTeam); err != nil {
+		return nil, fmt.Errorf("error preparing query FilterByIsArchivedAndTeam: %w", err)
+	}
+	if q.filterByTeamStmt, err = db.PrepareContext(ctx, filterByTeam); err != nil {
+		return nil, fmt.Errorf("error preparing query FilterByTeam: %w", err)
 	}
 	if q.insertStmt, err = db.PrepareContext(ctx, insert); err != nil {
 		return nil, fmt.Errorf("error preparing query Insert: %w", err)
 	}
-	if q.teamFilterStmt, err = db.PrepareContext(ctx, teamFilter); err != nil {
-		return nil, fmt.Errorf("error preparing query TeamFilter: %w", err)
+	if q.totalCountCompliantBaselineStmt, err = db.PrepareContext(ctx, totalCountCompliantBaseline); err != nil {
+		return nil, fmt.Errorf("error preparing query TotalCountCompliantBaseline: %w", err)
+	}
+	if q.totalCountCompliantExtendedStmt, err = db.PrepareContext(ctx, totalCountCompliantExtended); err != nil {
+		return nil, fmt.Errorf("error preparing query TotalCountCompliantExtended: %w", err)
 	}
 	return &q, nil
 }
@@ -58,29 +58,24 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing allStmt: %w", cerr)
 		}
 	}
-	if q.archivedFilterStmt != nil {
-		if cerr := q.archivedFilterStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing archivedFilterStmt: %w", cerr)
-		}
-	}
-	if q.archivedTeamFilterStmt != nil {
-		if cerr := q.archivedTeamFilterStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing archivedTeamFilterStmt: %w", cerr)
-		}
-	}
 	if q.countStmt != nil {
 		if cerr := q.countStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing countStmt: %w", cerr)
 		}
 	}
-	if q.countCompliantBaselineStmt != nil {
-		if cerr := q.countCompliantBaselineStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing countCompliantBaselineStmt: %w", cerr)
+	if q.filterByIsArchivedStmt != nil {
+		if cerr := q.filterByIsArchivedStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing filterByIsArchivedStmt: %w", cerr)
 		}
 	}
-	if q.countCompliantExtendedStmt != nil {
-		if cerr := q.countCompliantExtendedStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing countCompliantExtendedStmt: %w", cerr)
+	if q.filterByIsArchivedAndTeamStmt != nil {
+		if cerr := q.filterByIsArchivedAndTeamStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing filterByIsArchivedAndTeamStmt: %w", cerr)
+		}
+	}
+	if q.filterByTeamStmt != nil {
+		if cerr := q.filterByTeamStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing filterByTeamStmt: %w", cerr)
 		}
 	}
 	if q.insertStmt != nil {
@@ -88,9 +83,14 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing insertStmt: %w", cerr)
 		}
 	}
-	if q.teamFilterStmt != nil {
-		if cerr := q.teamFilterStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing teamFilterStmt: %w", cerr)
+	if q.totalCountCompliantBaselineStmt != nil {
+		if cerr := q.totalCountCompliantBaselineStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing totalCountCompliantBaselineStmt: %w", cerr)
+		}
+	}
+	if q.totalCountCompliantExtendedStmt != nil {
+		if cerr := q.totalCountCompliantExtendedStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing totalCountCompliantExtendedStmt: %w", cerr)
 		}
 	}
 	return err
@@ -130,29 +130,29 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                         DBTX
-	tx                         *sql.Tx
-	allStmt                    *sql.Stmt
-	archivedFilterStmt         *sql.Stmt
-	archivedTeamFilterStmt     *sql.Stmt
-	countStmt                  *sql.Stmt
-	countCompliantBaselineStmt *sql.Stmt
-	countCompliantExtendedStmt *sql.Stmt
-	insertStmt                 *sql.Stmt
-	teamFilterStmt             *sql.Stmt
+	db                              DBTX
+	tx                              *sql.Tx
+	allStmt                         *sql.Stmt
+	countStmt                       *sql.Stmt
+	filterByIsArchivedStmt          *sql.Stmt
+	filterByIsArchivedAndTeamStmt   *sql.Stmt
+	filterByTeamStmt                *sql.Stmt
+	insertStmt                      *sql.Stmt
+	totalCountCompliantBaselineStmt *sql.Stmt
+	totalCountCompliantExtendedStmt *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                         tx,
-		tx:                         tx,
-		allStmt:                    q.allStmt,
-		archivedFilterStmt:         q.archivedFilterStmt,
-		archivedTeamFilterStmt:     q.archivedTeamFilterStmt,
-		countStmt:                  q.countStmt,
-		countCompliantBaselineStmt: q.countCompliantBaselineStmt,
-		countCompliantExtendedStmt: q.countCompliantExtendedStmt,
-		insertStmt:                 q.insertStmt,
-		teamFilterStmt:             q.teamFilterStmt,
+		db:                              tx,
+		tx:                              tx,
+		allStmt:                         q.allStmt,
+		countStmt:                       q.countStmt,
+		filterByIsArchivedStmt:          q.filterByIsArchivedStmt,
+		filterByIsArchivedAndTeamStmt:   q.filterByIsArchivedAndTeamStmt,
+		filterByTeamStmt:                q.filterByTeamStmt,
+		insertStmt:                      q.insertStmt,
+		totalCountCompliantBaselineStmt: q.totalCountCompliantBaselineStmt,
+		totalCountCompliantExtendedStmt: q.totalCountCompliantExtendedStmt,
 	}
 }
