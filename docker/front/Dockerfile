@@ -1,44 +1,41 @@
+# base requires gcc, sqlite
+# install sqlc
 FROM golang:1.22-alpine AS base
 WORKDIR /app
-# setup gobin to top level dir so its not copied over
-ENV CGO_ENABLED=1 GOOS=linux GOBIN=/gobin
-RUN mkdir -p /gobin
+ENV CGO_ENABLED=1 GOOS=linux
+RUN apk --update --no-cache add build-base
 RUN update-ca-certificates
-# add
-#   gcc for cgo (used by the sqlite3 lib) via build-base
-#   sqlite for the sqlite3 lib
-#   git for goreleaser
-RUN apk --update --no-cache add \
-    build-base \
-    sqlite \
-    git
-# add go releaser thats used in build process
-RUN go install github.com/goreleaser/goreleaser/v2@v2.1.0
-# install sqlc
-RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.27.0
 
 FROM base AS build
 WORKDIR /app
-# setup path vars - make sure gobin is included
-ENV CGO_ENABLED=1 GOOS=linux GOBIN=/gobin PATH=$GOBIN:$PATH
+ENV CGO_ENABLED=1 GOOS=linux
 COPY . .
-# call the make file build step
-RUN make go-build
+RUN mkdir -p /go/bin/front
+RUN go build -o /go/bin/front/front_server ./servers/front/main.go
+RUN pwd
+RUN ls -lh /go/bin/
+RUN ls -lh /go/bin/front
+
 
 FROM build AS dev
-EXPOSE 8081
-WORKDIR /go/bin
-# copy everying in the api folder
-COPY --from=build /app/builds/front* ./
+EXPOSE 8080
+WORKDIR /go/bin/front
+ENV CGO_ENABLED=1 GOOS=linux
+RUN mkdir -p ./static/
+COPY --from=build /app/servers/front/static/* ./static/
+COPY --from=build /app/servers/front/config.json ./
+COPY --from=build /go/bin/front* ./
+RUN pwd
+RUN ls -lh ./
 ENTRYPOINT ["./front_server"]
 
-FROM alpine:3
+# PRODUCTION
+FROM alpine:3.20.2
 WORKDIR /go/bin
-RUN apk --update --no-cache add \
-    ca-certificates \
-    tzdata
-# patch vulnerabilities
-RUN apk upgrade --no-cache busybox libcrypto3 libssl3
-# copy everying in the api folder
-COPY --from=build /app/builds/front* ./
+ENV CGO_ENABLED=1 GOOS=linux
+COPY --from=build /app/servers/front/static/* ./static/
+COPY --from=build /app/servers/front/config.json ./
+COPY --from=build /go/bin/front* ./
+RUN pwd
+RUN ls -lh ./
 ENTRYPOINT ["./front_server"]

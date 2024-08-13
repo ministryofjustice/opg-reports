@@ -1,11 +1,10 @@
-#
-**/data/*.json
-**/data*/**/*.json
+# data files and directories
 **/data/*.csv
 **/data*/**/*.csv
 *.csv
 # build dir
 *builds/**
+*bin/**
 build.log
 # code coverage and test output files
 code-coverage.out
@@ -18,8 +17,5 @@ test-results.json
 *.tfstate
 *.tfstate.*
 *.tfvars
-
 # generated go docs
 docs/go/**
-
-dist/

@@ -37,7 +37,7 @@ func GetUrl(url *url.URL) (resp *http.Response, err error) {
 //   - "list": "/url"
 //   - "home": "/home"
 //     would generate List<Key> and Home<key> data
-func Api(conf *config.Config, nav *navigation.NavigationItem, r *http.Request) (data map[string]interface{}) {
+func Api(conf *config.Config, nav *navigation.NavigationItem, r *http.Request) (data map[string]interface{}, dataErr error) {
 	var apiScheme = env.Get("API_SCHEME", consts.API_SCHEME)
 	var apiAddr = env.Get("API_ADDR", consts.API_ADDR)
 	// for title case
@@ -67,7 +67,15 @@ func Api(conf *config.Config, nav *navigation.NavigationItem, r *http.Request) (
 		duration := e.Sub(s)
 
 		// if failed, skip rest of loop
-		if err != nil || httpResponse.StatusCode != http.StatusOK {
+		if err != nil {
+			dataErr = err
+			slog.Error("api call failed",
+				slog.String("err", fmt.Sprintf("%+v", err)),
+				slog.String("key", key),
+				slog.String("endpoint", endpoint),
+				slog.String("url", url.String()))
+			continue
+		} else if httpResponse.StatusCode != http.StatusOK {
 			slog.Error("api call failed",
 				slog.String("err", fmt.Sprintf("%+v", err)),
 				slog.String("key", key),

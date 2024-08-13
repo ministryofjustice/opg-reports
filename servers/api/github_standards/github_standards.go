@@ -108,7 +108,7 @@ func Handlers(ctx context.Context, mux *http.ServeMux, dbPath string) map[string
 		var err error
 		var response = resp.New()
 		var filters = map[string]string{
-			"archived": query.FirstD(archived.Values(r), "true"),
+			"archived": query.FirstD(archived.Values(r), "false"),
 			"team":     query.First(team.Values(r)),
 		}
 		response.Start(w, r)

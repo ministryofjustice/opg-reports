@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/ministryofjustice/opg-reports/servers/front/config"
+	"github.com/ministryofjustice/opg-reports/servers/front/dl"
 	"github.com/ministryofjustice/opg-reports/servers/front/github_standards"
 	"github.com/ministryofjustice/opg-reports/servers/shared/templ"
 	"github.com/ministryofjustice/opg-reports/shared/env"
@@ -19,8 +20,7 @@ const defaultAddr string = ":8080"
 
 // download gov uk resources as a zip and extract
 func init() {
-	slog.Warn("Downloading govuk assets", slog.String("v", govukVersion))
-	DonwloadGovUKAssets()
+	dl.DownloadGovUKAssets()
 }
 
 func main() {

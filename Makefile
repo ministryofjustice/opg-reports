@@ -8,7 +8,6 @@ all:
 ##############################
 AWS_VAULT_PROFILE ?= shared-development-operator
 AWS_BUCKET ?= report-data-development
-RUN_DOWNLOAD ?= yes
 ##############################
 AWS_VAULT_COMMAND = echo "using session token" &&
 ##############################
@@ -49,9 +48,6 @@ benchmark:
 	@echo "============== benchmark: [$(name)] =============="
 	@env LOG_LEVEL="info" LOG_TO="stdout" go test -v ./... -bench=$(name) -run=xxx -benchmem -benchtime=10s
 
-clean: docker-clean
-	@rm -Rf ./builds
-
 
 ##############################
 # DATA
@@ -59,13 +55,11 @@ clean: docker-clean
 csv: vars
 # 	download github_standards data
 	@mkdir -p ./builds/api/github_standards
-	@if [[ "${RUN_DOWNLOAD}" == "yes" ]]; then \
-		${AWS_VAULT_COMMAND} aws s3 sync s3://${AWS_BUCKET}/github_standards ./builds/api/github_standards/ ; \
-	fi
+	${AWS_VAULT_COMMAND} aws s3 sync s3://${AWS_BUCKET}/github_standards ./builds/api/github_standards/ ; \
+
 
 
 vars:
-	@echo "RUN_DOWNLOAD: ${RUN_DOWNLOAD}"
 	@echo "AWS_VAULT_PROFILE: ${AWS_VAULT_PROFILE}"
 	@echo "AWS_BUCKET: ${AWS_BUCKET}"
 	@echo "AWS_VAULT_COMMAND: ${AWS_VAULT_COMMAND}"
@@ -73,30 +67,33 @@ vars:
 ##############################
 # DOCKER BUILD
 ##############################
-docker-clean: docker-down
+down:
+	@docker compose down
+
+clean: down
+	@rm -Rf ./builds
+	@mkdir -p ./builds
 	@docker container prune -f
 	@docker image prune -f --filter="dangling=true"
 
-docker-build: csv
+build: csv
 	@env DOCKER_BUILDKIT=0 docker compose \
 		--verbose \
 		-f docker-compose.yml \
 		-f docker/docker-compose.dev.yml \
 		build
 
-docker-build-production: csv
+build-production: csv
 	@env DOCKER_BUILDKIT=0 docker compose \
 		--verbose \
 		-f docker-compose.yml \
 		build
 
-docker-up: docker-clean csv
+up: csv
 	@env DOCKER_BUILDKIT=0 docker compose \
 		--verbose \
 		-f docker-compose.yml \
 		-f docker/docker-compose.dev.yml \
 		up \
-		-d api
+		-d front
 
-docker-down:
-	@docker compose down

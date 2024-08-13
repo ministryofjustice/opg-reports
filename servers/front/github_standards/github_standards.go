@@ -22,23 +22,23 @@ func Register(ctx context.Context, mux *http.ServeMux, conf *config.Config, temp
 	navItem := navigation.ForTemplate(templateName, nav)
 
 	var list = func(w http.ResponseWriter, r *http.Request) {
-		data := getter.Api(conf, navItem, r)
+		data := map[string]interface{}{}
+		// if theres no error, then process the response normally
+		if data, err := getter.Api(conf, navItem, r); err == nil {
+			metadata := data["Metadata"].(map[string]interface{})
+			counters := metadata["counters"].(map[string]interface{})
+			this := counters["this"].(map[string]interface{})
+			total := (this["count"].(float64))
+			base := (this["compliant_baseline"].(float64))
+			ext := (this["compliant_extended"].(float64))
+			percent := base / (total / 100)
 
-		// sort out counters
-		metadata := data["Metadata"].(map[string]interface{})
-		counters := metadata["counters"].(map[string]interface{})
-		this := counters["this"].(map[string]interface{})
-		total := (this["count"].(float64))
-		base := (this["compliant_baseline"].(float64))
-		ext := (this["compliant_extended"].(float64))
-		percent := base / (total / 100)
+			data["Total"] = total
+			data["PassedBaseline"] = base
+			data["PassedExtended"] = ext
+			data["Percentage"] = fmt.Sprintf("%.2f", percent)
 
-		data["Total"] = total
-		data["PassedBaseline"] = base
-		data["PassedExtended"] = ext
-		data["Percentage"] = fmt.Sprintf("%.2f", percent)
-
-		fmt.Printf("%+v\n", this)
+		}
 		// sort out navigation
 		top, active := navigation.Level(conf.Navigation, r)
 		data["NavigationTop"] = top
