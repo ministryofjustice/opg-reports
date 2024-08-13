@@ -4,6 +4,8 @@
 all:
 	@echo "Nothing to run, choose a target."
 
+
+
 ##############################
 # TESTS
 ##############################
@@ -42,21 +44,20 @@ benchmark:
 	@echo " WARNING: CAN BE SLOW"
 	@env LOG_LEVEL="info" LOG_TO="stdout" go test -v ./... -bench=$(name) -run=xxx -benchmem -benchtime=10s
 
-##############################
-# FRONT END ASSETS
-##############################
-GOVUK_FRONT_VERSION := "v5.4.0"
-GOVUK_DOWNLOAD_FOLDER := ./builds/govuk-frontend
+clean:
+	@rm -Rf ./builds
 
 ##############################
 # GO BUILD
 # - build all go binaries at once and push to ./builds/go/
 #   using goreleaser
 ##############################
-clean:
-	@rm -Rf ./builds
+
+AWS_VAULT_PROFILE ?= shared-development-operator
+AWS_BUCKET ?= report-data-development
+
 go-build:
-	@goreleaser build --clean --single-target --skip=validate
+	@env AWS_VAULT_PROFILE=${AWS_VAULT_PROFILE} AWS_BUCKET=${AWS_BUCKET} goreleaser build --clean --single-target --skip=validate
 	@rm -f ./builds/binaries/*.json
 	@rm -f ./builds/binaries/*.yml
 
