@@ -24,7 +24,8 @@ func Register(ctx context.Context, mux *http.ServeMux, conf *config.Config, temp
 	var list = func(w http.ResponseWriter, r *http.Request) {
 		data := map[string]interface{}{}
 		// if theres no error, then process the response normally
-		if data, err := getter.Api(conf, navItem, r); err == nil {
+		if apiData, err := getter.Api(conf, navItem, r); err == nil {
+			data = apiData
 			metadata := data["Metadata"].(map[string]interface{})
 			counters := metadata["counters"].(map[string]interface{})
 			this := counters["this"].(map[string]interface{})
@@ -45,7 +46,6 @@ func Register(ctx context.Context, mux *http.ServeMux, conf *config.Config, temp
 		top, active := navigation.Level(conf.Navigation, r)
 		data["NavigationTop"] = top
 		data["NavigationSide"] = active.Navigation
-
 		// -- template rendering!
 		status := http.StatusOK
 		t, err := template.New(navItem.Template).Funcs(template_functions.Funcs()).ParseFiles(templates...)

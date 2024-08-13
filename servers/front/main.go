@@ -24,7 +24,7 @@ func init() {
 }
 
 func main() {
-	fmt.Println("main")
+	fmt.Println("front running")
 	logger.LogSetup()
 	var ctx = context.Background()
 	var err error
