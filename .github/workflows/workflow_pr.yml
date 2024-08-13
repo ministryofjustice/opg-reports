@@ -19,48 +19,6 @@ permissions:
   statuses: none
 
 jobs:
-  #--fork-remove-start
-  #####################
-  # Matrix test
-  # Check the remote matrix fetch is still working ok
-  #####################
-  load_matrix:
-    name: "Load matrix"
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.account_matrix.outputs.matrix }}
-    steps:
-      - name: "Checkout"
-        id: checkout
-        uses: actions/checkout@v4
-      - name: "get account matrix"
-        id: account_matrix
-        uses: "./.github/actions/get_opg_metadata"
-        with:
-          github_token: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
-          prereleases: false
-
-  load_matrix_test:
-    name: "Test matrix load"
-    runs-on: ubuntu-latest
-    needs: [load_matrix]
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJson(needs.load_matrix.outputs.matrix) }}
-    steps:
-      - name: "test matrix values"
-        env:
-          unit: ${{ matrix.billing_unit }}
-          label: ${{ matrix.label }}
-          name: ${{ matrix.name }}
-          id: ${{ matrix.id }}
-          environment: ${{ matrix.environment }}
-        run: |
-          echo "name: ${{ env.name }}"
-          echo "unit: ${{ env.unit }}"
-          echo "label: ${{ env.label }}"
-          echo "environment: ${{ env.environment }}"
-  #--fork-remove-end
 
   # setup series of variables either calculated or fixed for this workflow that
   # are used though out the other jobs / steps
