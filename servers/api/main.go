@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -16,7 +17,9 @@ import (
 	"github.com/ministryofjustice/opg-reports/shared/logger"
 )
 
-var github_standards_db = "./github_standards/github_standards.db"
+var databases map[string]string = map[string]string{
+	"github_standards": "./github_standards/github_standards.db",
+}
 
 func init() {
 	logger.LogSetup()
@@ -45,7 +48,7 @@ func init() {
 		{
 			Label:  "built",
 			Table:  "github_standards",
-			DB:     github_standards_db,
+			DB:     databases["github_standards"],
 			Schema: "./github_standards/github_standards.sql",
 			Source: []string{"./github_standards/github_standards.csv"},
 			Dummy:  []string{},
@@ -70,9 +73,11 @@ func init() {
 			defer db.Close()
 			if err != nil {
 				slog.Error("error with seeding", slog.String("err", err.Error()))
-			} else {
-				github_standards_db = sl.DB
 			}
+		}
+		// -- set the db to use
+		if exists.FileOrDir(sl.DB) {
+			databases[sl.Table] = sl.DB
 		}
 
 	}
@@ -81,15 +86,15 @@ func init() {
 func main() {
 	logger.LogSetup()
 	ctx := context.Background()
-	slog.Info("databases", slog.String("github_standards", github_standards_db))
+	slog.Info("databases", slog.String("db:", fmt.Sprintf("%+v", databases)))
 
 	mux := http.NewServeMux()
 	// -- github standards
-	if !exists.FileOrDir(github_standards_db) {
-		slog.Error("database missing for github_standards", slog.String("db", github_standards_db))
+	if !exists.FileOrDir(databases["github_standards"]) {
+		slog.Error("database missing for github_standards", slog.String("db", databases["github_standards"]))
 		os.Exit(1)
 	}
-	github_standards.Register(ctx, mux, github_standards_db)
+	github_standards.Register(ctx, mux, databases["github_standards"])
 
 	addr := env.Get("API_ADDR", consts.API_ADDR)
 	server := &http.Server{
