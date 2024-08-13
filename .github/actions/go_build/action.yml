@@ -10,6 +10,12 @@ outputs:
   artifact:
     description: "Artifact tar ball containing the built binaries"
     value: ${{ steps.create_artifact.outputs.artifact }}
+  build_dir:
+    description: "top level build dir"
+    value: ${{ steps.build.outputs.built }}
+  dir:
+    description: "top level build dir"
+    value: "${{ steps.build.outputs.built }}/${{ steps.build.outputs.os_arch }}"
 
 
 runs:
@@ -49,7 +55,7 @@ runs:
         go build -o ./builds/bin/${os_arch}/github_standards_cmd ./commands/github_standards/main.go
 
         echo "os_arch=${os_arch}" >> $GITHUB_OUTPUT
-        echo "built=./builds/bin}" >> $GITHUB_OUTPUT
+        echo "built=./builds/bin" >> $GITHUB_OUTPUT
 
     - name: "Create artifact [${{ inputs.create_artifact }}]"
       id: create_artifact

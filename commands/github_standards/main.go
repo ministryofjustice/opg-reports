@@ -129,7 +129,7 @@ func main() {
 	org := argument.New(group, "organisation", "ministryofjustice", "Organisation slug")
 	team := argument.New(group, "team", "opg", "Team slug")
 	csv := argument.New(group, "output", "github_standards", "filename")
-	d := argument.New(group, "dir", "github_standards", "sub dir")
+	d := argument.New(group, "dir", "data", "sub dir")
 
 	group.Parse(os.Args[1:])
 

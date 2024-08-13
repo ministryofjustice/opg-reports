@@ -1,11 +1,11 @@
 name: "[Reports] Repository Standards"
 
 on:
-  # pull_request:
-  #   branches:
-  #     - "main"
-  #   paths:
-  #     - '.github/workflows/report_repository_standards.yml'
+  pull_request:
+    branches:
+      - "main"
+    paths:
+      - '.github/workflows/report_repository_standards.yml'
 
   schedule:
     # 9am saturday
@@ -63,4 +63,4 @@ jobs:
         with:
           directory: ${{ steps.run.outputs.data_folder }}
           bucket: ${{ needs.setup.outputs.aws_s3_bucket }}
-          bucket_path: "github/standards"
+          bucket_path: "github_standards"

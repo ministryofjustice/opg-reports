@@ -15,7 +15,6 @@ Here is a short form, typical usage of the action:
       branch_name: "safe-branch-name"
       tag: "v0.11.1"
       dockerfile: './docker/api/Dockerfile'
-      scan_image: true
 ```
 
 Here is a more complete version of using this action with all input options setup:
@@ -33,6 +32,5 @@ Here is a more complete version of using this action with all input options setu
       ecr_repository: "opg-reports/api-test"
       ecr_registry_id: "311462405658"
       checkout_repo: false
-      scan_image: false
       path_to_live: true
 ```

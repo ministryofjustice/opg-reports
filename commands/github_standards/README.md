@@ -4,7 +4,7 @@ This command returns all the repositories for the organsiation and team set that
 
 ### Generation
 
-The command will generate a csv file (`./github_standards/github_standards.csv`):
+The command will generate a csv file (`./data/github_standards.csv`):
 
 ```bash
 env GITHUB_ACCESS_TOKEN=${GITHUB_TOKEN} go run main.go \
@@ -18,7 +18,7 @@ Upload the generated file by running:
 
 ```bash
 aws-vault exec shared-development-operator -- aws s3 cp \
-	--recursive ./github_standards s3://report-data-development/github_standards \
+	--recursive ./data s3://report-data-development/github_standards \
 	--sse AES256
 ```
 
