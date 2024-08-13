@@ -27,14 +27,16 @@ builds:
       # if there is an active aws session token, then presume you have auth and dont run aws-vault
       # - the aws vault command uses ${AWS_VAULT_PROFILE}
       - VAULT_CMD={{ if index .Env "AWS_SESSION_TOKEN" }}{{ else }}aws-vault exec {{ .Env.AWS_VAULT_PROFILE }} -- {{ end }}
-      - AWS_BUCKET={{ .Env.AWS_BUCKET }}
+      # use the bucket from the environment, if its not found, set to a dummy value
+      - AWS_BUCKET={{ if index .Env "AWS_BUCKET" }}{{ .Env.AWS_BUCKET }}{{ else }}fake-bucket{{ end }}
     hooks:
       post:
         - sh -c "cp ./builds/binaries/api_server ./builds/api/api_server"
         # copy database schema over - if there isnt a database file it will create one using this
         - sh -c "cp ./datastore/github_standards/schema.sql ./builds/api/github_standards/github_standards.sql"
         # download the s3 bucket files for the api
-        - sh -c "${VAULT_CMD} aws s3 sync s3://${AWS_BUCKET}/github_standards ./builds/api/github_standards/"
+        # - the bucket may not exist and the seeding tool generate dummy versions, so dont fail on this step
+        - sh -c "${VAULT_CMD} aws s3 sync s3://${AWS_BUCKET}/github_standards ./builds/api/github_standards/ || echo 'no-bucket'"
     goos:
       - linux
       - darwin
