@@ -15,8 +15,7 @@ import (
 )
 
 const defaultConfig string = "./config.json"
-
-// https://github.com/alphagov/govuk-frontend/releases/download/v5.4.0/release-v5.4.0.zip
+const defaultAddr string = ":8080"
 
 // download gov uk resources as a zip and extract
 func init() {
@@ -27,13 +26,13 @@ func init() {
 func main() {
 	fmt.Println("main")
 	logger.LogSetup()
-	ctx := context.Background()
+	var ctx = context.Background()
 	var err error
 	var templates []string
 	var configContent []byte
+	var mux = http.NewServeMux()
 
-	mux := http.NewServeMux()
-	// static assets
+	// handle static assets as directly from file system
 	mux.Handle("/govuk/", http.StripPrefix("/govuk/", http.FileServer(http.Dir("govuk"))))
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	// favicon ignore
@@ -47,10 +46,10 @@ func main() {
 		slog.Debug("template file", slog.String("path", f))
 	}
 
-	// // -- get config
+	// -- get config
 	configFile := env.Get("CONFIG_FILE", defaultConfig)
 	if configContent, err = os.ReadFile(configFile); err != nil {
-		slog.Error("error starting front...", slog.String("err", err.Error()))
+		slog.Error("error starting front - config file", slog.String("err", err.Error()))
 		return
 	}
 	conf := config.New(configContent)
@@ -58,13 +57,13 @@ func main() {
 	// -- call github
 	github_standards.Register(ctx, mux, conf, templates)
 
-	addr := env.Get("FRONT_ADDR", ":8080")
+	addr := env.Get("FRONT_ADDR", defaultAddr)
 	server := &http.Server{
 		Addr:    addr,
 		Handler: mux,
 	}
 
-	slog.Info("starting web server",
+	slog.Info("starting front server",
 		slog.String("log_level", logger.Level().String()),
 		slog.String("address", addr),
 	)

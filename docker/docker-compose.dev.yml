@@ -12,7 +12,7 @@ services:
       - ./seeder:/app/seeder
       - ./servers:/app/servers
       - ./shared:/app/shared
-      - ./Makefile:/app/
+      - ./Makefile:/app/Makefile
       - ./go.mod:/app/go.mod
       - ./go.sum:/app/go.sum
   front:
@@ -26,6 +26,6 @@ services:
       - ./seeder:/app/seeder
       - ./servers:/app/servers
       - ./shared:/app/shared
-      - ./Makefile:/app/
+      - ./Makefile:/app/Makefile
       - ./go.mod:/app/go.mod
       - ./go.sum:/app/go.sum

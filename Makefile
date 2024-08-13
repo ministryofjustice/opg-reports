@@ -45,17 +45,26 @@ benchmark:
 	@env LOG_LEVEL="info" LOG_TO="stdout" go test -v ./... -bench=$(name) -run=xxx -benchmem -benchtime=10s
 
 clean:
-	@clean
+	@clear
 	@rm -Rf ./builds
+	@docker container prune -f
+	@docker image prune -f --filter="dangling=true"
 
 ##############################
 # DOCKER BUILD
 ##############################
 docker-build:
-	@env DOCKER_BUILDKIT=0 docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml build
+	@env DOCKER_BUILDKIT=0 docker compose --verbose -f docker-compose.yml -f docker/docker-compose.dev.yml build
+docker-up:
+	@env DOCKER_BUILDKIT=0 docker compose --verbose -f docker-compose.yml -f docker/docker-compose.dev.yml up -d api front
+docker-down:
+	@docker compose down
 
+# production versions
 docker-build-production:
-	@env DOCKER_BUILDKIT=0 docker compose -f docker-compose.yml build
+	@env DOCKER_BUILDKIT=0 docker compose --verbose -f docker-compose.yml build
+docker-up-production:
+	@env DOCKER_BUILDKIT=0 docker compose --verbose -f docker-compose.yml up -d api front
 
 ##############################
 # GO BUILD
