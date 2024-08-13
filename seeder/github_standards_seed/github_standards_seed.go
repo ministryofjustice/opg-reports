@@ -14,6 +14,12 @@ import (
 	"github.com/ministryofjustice/opg-reports/shared/fake"
 )
 
+const (
+	db_file     string = "github_standards.db"
+	schema_file string = "github_standards.sql"
+	csv_file    string = "github_standards.csv"
+)
+
 type Seed struct {
 	BaseDir    string
 	Count      int
@@ -26,9 +32,9 @@ func NewSeed(dir string, count int) (db *sql.DB, err error) {
 	seed := &Seed{BaseDir: dir, Count: count}
 
 	// -- file name
-	seed.CsvFile = filepath.Join(dir, "github_standards.csv")
-	seed.SchemaFile = filepath.Join(dir, "github_standards.sql")
-	seed.DbFile = filepath.Join(dir, "github_standards.db")
+	seed.CsvFile = filepath.Join(dir, csv_file)
+	seed.SchemaFile = filepath.Join(dir, schema_file)
+	seed.DbFile = filepath.Join(dir, db_file)
 
 	os.MkdirAll(seed.BaseDir, os.ModePerm)
 
