@@ -2,6 +2,7 @@
 **/data/*.csv
 **/data*/**/*.csv
 *.csv
+*.db*
 # build dir
 *builds/**
 *bin/**

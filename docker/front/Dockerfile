@@ -22,6 +22,8 @@ EXPOSE 8080
 WORKDIR /go/bin/front
 ENV CGO_ENABLED=1 GOOS=linux
 RUN mkdir -p ./static/
+RUN mkdir -p ./templates/
+COPY --from=build /app/servers/front/templates/* ./templates/
 COPY --from=build /app/servers/front/static/* ./static/
 COPY --from=build /app/servers/front/config.json ./
 COPY --from=build /go/bin/front* ./
@@ -33,6 +35,9 @@ ENTRYPOINT ["./front_server"]
 FROM alpine:3.20.2
 WORKDIR /go/bin
 ENV CGO_ENABLED=1 GOOS=linux
+RUN mkdir -p ./static/
+RUN mkdir -p ./templates/
+COPY --from=build /app/servers/front/templates/* ./templates/
 COPY --from=build /app/servers/front/static/* ./static/
 COPY --from=build /app/servers/front/config.json ./
 COPY --from=build /go/bin/front* ./

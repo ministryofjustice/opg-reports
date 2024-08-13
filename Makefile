@@ -95,5 +95,5 @@ up: csv
 		-f docker-compose.yml \
 		-f docker/docker-compose.dev.yml \
 		up \
-		-d front
+		-d api front
 

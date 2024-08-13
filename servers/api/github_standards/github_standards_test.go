@@ -2,7 +2,6 @@ package github_standards_test
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -13,11 +12,12 @@ import (
 	"time"
 
 	"github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
-	"github.com/ministryofjustice/opg-reports/seeder/github_standards_seed"
+	"github.com/ministryofjustice/opg-reports/seeder"
 	"github.com/ministryofjustice/opg-reports/servers/api/github_standards"
 	"github.com/ministryofjustice/opg-reports/servers/front/getter"
 	"github.com/ministryofjustice/opg-reports/servers/shared/resp"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
+	"github.com/ministryofjustice/opg-reports/shared/fake"
 	"github.com/ministryofjustice/opg-reports/shared/logger"
 	"github.com/ministryofjustice/opg-reports/shared/testhelpers"
 )
@@ -29,10 +29,13 @@ func TestServersApiGithubStandardsArchivedPerfDBOnly(t *testing.T) {
 	N := 50000
 
 	dir := t.TempDir()
+	dbName := filepath.Join(dir, "github_standards.db")
+	seed := testSeed(dbName, N)
 
 	s := time.Now().UTC()
-	db, err := seedDb(dir, N)
+	db, err := seeder.New(seed)
 	defer db.Close()
+
 	e := time.Now().UTC()
 	dur := e.Sub(s)
 
@@ -72,11 +75,11 @@ func TestServersApiGithubStandardsArchivedPerfApiCallAndParse(t *testing.T) {
 	ctx := context.TODO()
 	N := 50000
 	dir := t.TempDir()
-	// dir := testhelpers.Dir()
-	// defer os.RemoveAll(dir)
+	dbName := filepath.Join(dir, "github_standards.db")
+	seed := testSeed(dbName, N)
 
 	s := time.Now().UTC()
-	db, err := seedDb(dir, N)
+	db, err := seeder.New(seed)
 	defer db.Close()
 	e := time.Now().UTC()
 	dur := e.Sub(s)
@@ -143,16 +146,6 @@ func TestServersApiGithubStandardsArchivedPerfApiCallAndParse(t *testing.T) {
 
 }
 
-func seedDb(dir string, num int) (*sql.DB, error) {
-	path := "../../../datastore/github_standards"
-	target := filepath.Join(dir, "github_standards.sql")
-	source := filepath.Join(path, "schema.sql")
-	testhelpers.CopyFile(source, target)
-
-	return github_standards_seed.NewSeed(dir, num)
-
-}
-
 func mockApi(ctx context.Context, dir string) *httptest.Server {
 	dbF := filepath.Join(dir, "github_standards.db")
 	mux := testhelpers.Mux()
@@ -160,4 +153,26 @@ func mockApi(ctx context.Context, dir string) *httptest.Server {
 	list := funcs["list"]
 
 	return testhelpers.MockServer(list, "warn")
+}
+
+func testSeed(dbName string, N int) *seeder.Seed {
+	lines := []string{}
+	owner := fake.String(12)
+	for x := 0; x < N; x++ {
+		id := N + x
+		g := ghs.Fake(&id, &owner)
+		if x == 0 {
+			lines = append(lines, g.CSVHead())
+		}
+		lines = append(lines, g.ToCSV())
+	}
+
+	return &seeder.Seed{
+		Label:  "test",
+		Table:  "github_standards",
+		DB:     dbName,
+		Schema: "../../../datastore/github_standards/github_standards.sql",
+		Source: []string{},
+		Dummy:  lines,
+	}
 }

@@ -38,6 +38,8 @@ func Register(ctx context.Context, mux *http.ServeMux, conf *config.Config, temp
 			data["PassedExtended"] = ext
 			data["Percentage"] = fmt.Sprintf("%.2f", percent)
 
+		} else {
+			slog.Error("had error back from api getter", slog.String("err", err.Error()))
 		}
 		// sort out navigation
 		top, active := navigation.Level(conf.Navigation, r)
