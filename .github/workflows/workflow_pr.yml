@@ -225,10 +225,7 @@ jobs:
   summary:
     name: "Workflow summary"
     if: always()
-    #--fork-remove-start
-    needs: [setup, release, load_matrix_test]
-    #--fork-remove-end
-    #--fork-replacementneeds: [setup, release]
+    needs: [setup, release]
     runs-on: ubuntu-latest
     steps:
       - name: "AWS Roles"
@@ -263,7 +260,6 @@ jobs:
           echo "| --- | --- |"  >> $GITHUB_STEP_SUMMARY
           echo "| tag | ${{ needs.setup.outputs.semver_tag }} |"  >> $GITHUB_STEP_SUMMARY
           echo "| artifact | ${{ needs.release.outputs.artifact }} |"  >> $GITHUB_STEP_SUMMARY
-
 
   end:
     name: 'End of workflow'

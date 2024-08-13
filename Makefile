@@ -45,7 +45,17 @@ benchmark:
 	@env LOG_LEVEL="info" LOG_TO="stdout" go test -v ./... -bench=$(name) -run=xxx -benchmem -benchtime=10s
 
 clean:
+	@clean
 	@rm -Rf ./builds
+
+##############################
+# DOCKER BUILD
+##############################
+docker-build:
+	@env DOCKER_BUILDKIT=0 docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml build
+
+docker-build-production:
+	@env DOCKER_BUILDKIT=0 docker compose -f docker-compose.yml build
 
 ##############################
 # GO BUILD
@@ -55,9 +65,11 @@ clean:
 
 AWS_VAULT_PROFILE ?= shared-development-operator
 AWS_BUCKET ?= report-data-development
+GO_RELEASER = $(shell which goreleaser)
 
 go-build:
-	@env AWS_VAULT_PROFILE=${AWS_VAULT_PROFILE} AWS_BUCKET=${AWS_BUCKET} goreleaser build --clean --single-target --skip=validate
+	@echo "goreleaser: ${GO_RELEASER}"
+	@env AWS_VAULT_PROFILE=${AWS_VAULT_PROFILE} AWS_BUCKET=${AWS_BUCKET} ${GO_RELEASER} build --clean --single-target --skip=validate
 	@rm -f ./builds/binaries/*.json
 	@rm -f ./builds/binaries/*.yml
 

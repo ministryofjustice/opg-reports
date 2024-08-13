@@ -2,7 +2,8 @@ version: "3.6"
 
 services:
   api:
-    image: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/opg-reports/api:latest
+    # image: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/opg-reports/api:latest
+    image: opg-reports/api:latest
     platform: linux/amd64
     build:
       context: .
@@ -13,7 +14,8 @@ services:
       - "8081:8081"
 
   front:
-    image: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/opg-reports/front:latest
+    # image: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/opg-reports/front:latest
+    image: opg-reports/front:latest
     platform: linux/amd64
     build:
       context: .
