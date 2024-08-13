@@ -3,7 +3,7 @@ sql:
   - name: "github_standards"
     engine: "sqlite"
     queries: "queries.sql"
-    schema: "schema.sql"
+    schema: "github_standards.sql"
     gen:
       go:
         package: "ghs"

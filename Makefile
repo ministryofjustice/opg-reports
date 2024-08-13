@@ -5,6 +5,17 @@ all:
 	@echo "Nothing to run, choose a target."
 
 
+##############################
+AWS_VAULT_PROFILE ?= shared-development-operator
+AWS_BUCKET ?= report-data-development
+RUN_DOWNLOAD ?= yes
+##############################
+AWS_VAULT_COMMAND = echo "using session token" &&
+GO_RELEASER = $(shell which goreleaser)
+##############################
+ifndef AWS_SESSION_TOKEN
+AWS_VAULT_COMMAND = aws-vault exec ${AWS_VAULT_PROFILE} --
+endif
 
 ##############################
 # TESTS
@@ -42,45 +53,52 @@ benchmark:
 clean: docker-clean
 	@rm -Rf ./builds
 
+
+##############################
+# DATA
+##############################
+csv: vars
+# 	download github_standards data
+	@mkdir -p ./builds/api/github_standards
+	@if [[ "${RUN_DOWNLOAD}" == "yes" ]]; then \
+		${AWS_VAULT_COMMAND} aws s3 sync s3://${AWS_BUCKET}/github_standards ./builds/api/github_standards/ ; \
+	fi
+
+
+vars:
+	@echo "RUN_DOWNLOAD: ${RUN_DOWNLOAD}"
+	@echo "AWS_VAULT_PROFILE: ${AWS_VAULT_PROFILE}"
+	@echo "AWS_BUCKET: ${AWS_BUCKET}"
+	@echo "AWS_VAULT_COMMAND: ${AWS_VAULT_COMMAND}"
+	@echo "GO_RELEASER: ${GO_RELEASER}"
+
 ##############################
 # DOCKER BUILD
 ##############################
 docker-clean: docker-down
 	@docker container prune -f
 	@docker image prune -f --filter="dangling=true"
-docker-build:
-	@env DOCKER_BUILDKIT=0 docker compose --verbose -f docker-compose.yml -f docker/docker-compose.dev.yml build
-docker-up:
-	@env DOCKER_BUILDKIT=0 docker compose --verbose -f docker-compose.yml -f docker/docker-compose.dev.yml up -d api front
+
+docker-build: csv
+	@env DOCKER_BUILDKIT=0 docker compose \
+		--verbose \
+		-f docker-compose.yml \
+		-f docker/docker-compose.dev.yml \
+		build
+
+docker-build-production: csv
+	@env DOCKER_BUILDKIT=0 docker compose \
+		--verbose \
+		-f docker-compose.yml \
+		build
+
+docker-up: docker-clean csv
+	@env DOCKER_BUILDKIT=0 docker compose \
+		--verbose \
+		-f docker-compose.yml \
+		-f docker/docker-compose.dev.yml \
+		up \
+		-d api
+
 docker-down:
 	@docker compose down
-
-# production versions
-docker-build-production:
-	@env DOCKER_BUILDKIT=0 docker compose --verbose -f docker-compose.yml build
-docker-up-production:
-	@env DOCKER_BUILDKIT=0 docker compose --verbose -f docker-compose.yml up -d api front
-
-##############################
-# GO BUILD
-# - build all go binaries at once and push to ./builds/go/
-#   using goreleaser
-##############################
-
-AWS_VAULT_PROFILE ?= shared-development-operator
-AWS_BUCKET ?= report-data-development
-GO_RELEASER = $(shell which goreleaser)
-
-go-build:
-	@echo "goreleaser: ${GO_RELEASER}"
-	@env AWS_VAULT_PROFILE=${AWS_VAULT_PROFILE} AWS_BUCKET=${AWS_BUCKET} ${GO_RELEASER} build --clean --single-target --skip=validate
-	@rm -f ./builds/binaries/*.json
-	@rm -f ./builds/binaries/*.yml
-
-
-go-run-api: go-build
-	@cd ./builds/api/ && ./api_server
-
-go-run-front: go-build
-	@cd ./builds/front/ && ./front_server
-

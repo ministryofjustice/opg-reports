@@ -157,7 +157,7 @@ func main() {
 	for i, repo := range repositories {
 		slog.Info(fmt.Sprintf("[%d] %s", i+1, repo.GetFullName()))
 		r := mapFromApi(ctx, client, repo)
-		r.ID = (1000 + i)
+		r.ID = (1 + i)
 		if i == 0 {
 			f.WriteString(r.CSVHead())
 		}
