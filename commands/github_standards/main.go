@@ -113,7 +113,7 @@ func mapFromApi(ctx context.Context, client *github.Client, r *github.Repository
 			g.Teams += *team.Name + "#"
 		}
 	}
-
+	g.UpdateCompliance()
 	return
 }
 
@@ -157,6 +157,7 @@ func main() {
 	for i, repo := range repositories {
 		slog.Info(fmt.Sprintf("[%d] %s", i+1, repo.GetFullName()))
 		r := mapFromApi(ctx, client, repo)
+		r.ID = (1000 + i)
 		if i == 0 {
 			f.WriteString(r.CSVHead())
 		}
