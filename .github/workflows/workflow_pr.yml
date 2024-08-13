@@ -195,9 +195,9 @@ jobs:
   release:
     name: "Create ${{ env.creating }}"
     #--fork-remove-start
-    needs: [terraform_development, setup]
+    needs: [terraform_development, docker_build, setup]
     #--fork-remove-end
-    #--fork-replacementneeds: [setup]
+    #--fork-replacementneeds: [setup, docker_build]
     runs-on: ubuntu-latest
     outputs:
       artifact: ${{ steps.build_go.outputs.artifact }}
