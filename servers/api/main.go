@@ -20,7 +20,7 @@ const (
 )
 
 func init() {
-
+	// -- seed databases
 	if !exists.FileOrDir(github_standards_db) && exists.FileOrDir(github_standards_schema) {
 		slog.Info("creating a seeded database...")
 		db, err := github_standards_seed.NewSeed("./", github_standards_N)

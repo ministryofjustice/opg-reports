@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/google/go-github/v62/github"
@@ -23,6 +24,8 @@ const readmePath string = "./README.md"
 const codeOfConductPath string = "./CODE_OF_CONDUCT.md"
 const contributingGuidePath string = "./CONTRIBUTING.md"
 
+// mapFromApi generates a GithubStandard item from api data
+// - its a chunky one
 func mapFromApi(ctx context.Context, client *github.Client, r *github.Repository) (g *ghs.GithubStandard) {
 	g = &ghs.GithubStandard{
 		Ts: time.Now().UTC().String(),
@@ -132,7 +135,7 @@ func main() {
 
 	dir := fmt.Sprintf("./%s/", *d.Value)
 	os.MkdirAll(dir, os.ModePerm)
-	filename := dir + *csv.Value + ".csv"
+	filename := filepath.Join(dir, *csv.Value+".csv")
 
 	slog.Info("getting standards...",
 		slog.String("org", *org.Value),
@@ -153,8 +156,11 @@ func main() {
 	defer f.Close()
 	for i, repo := range repositories {
 		slog.Info(fmt.Sprintf("[%d] %s", i+1, repo.GetFullName()))
-		std := mapFromApi(ctx, client, repo)
-		f.WriteString(std.ToCSV())
+		r := mapFromApi(ctx, client, repo)
+		if i == 0 {
+			f.WriteString(r.CSVHead())
+		}
+		f.WriteString(r.ToCSV())
 	}
 
 }

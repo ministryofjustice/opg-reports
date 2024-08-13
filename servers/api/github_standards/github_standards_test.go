@@ -117,7 +117,6 @@ func TestServersApiGithubStandardsArchivedPerfApiCallAndParse(t *testing.T) {
 	convert.Unmarshal(bytes, response)
 
 	counts := response.Metadata["counters"].(map[string]interface{})
-	// these := counts["this"].(map[string]interface{})
 	all := counts["totals"].(map[string]interface{})
 
 	count := int(all["count"].(float64))
