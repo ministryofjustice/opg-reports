@@ -24,35 +24,30 @@ tests:
 
 coverage:
 	@rm -Rf ./code-coverage.out
-	@go clean -testcache
 	@clear
 	@echo "============== coverage =============="
 	@env CGO_ENABLED=1 LOG_LEVEL="warn" LOG_TO="stdout" go test -count=1 -covermode=count -coverprofile=code-coverage.out -cover -v ./...
 	@go tool cover -html=code-coverage.out
 
 benchmarks:
-	@go clean -testcache
 	@clear
 	@echo "============== benchmarks =============="
-	@echo " WARNING: CAN BE SLOW"
 	@env LOG_LEVEL="warn" LOG_TO="stdout" go test -v ./... -bench=. -run=xxx -benchmem -benchtime=10s
 
 benchmark:
-	@go clean -testcache
 	@clear
 	@echo "============== benchmark: [$(name)] =============="
-	@echo " WARNING: CAN BE SLOW"
 	@env LOG_LEVEL="info" LOG_TO="stdout" go test -v ./... -bench=$(name) -run=xxx -benchmem -benchtime=10s
 
-clean:
-	@clear
+clean: docker-clean
 	@rm -Rf ./builds
-	@docker container prune -f
-	@docker image prune -f --filter="dangling=true"
 
 ##############################
 # DOCKER BUILD
 ##############################
+docker-clean: docker-down
+	@docker container prune -f
+	@docker image prune -f --filter="dangling=true"
 docker-build:
 	@env DOCKER_BUILDKIT=0 docker compose --verbose -f docker-compose.yml -f docker/docker-compose.dev.yml build
 docker-up:
