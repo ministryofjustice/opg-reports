@@ -11,7 +11,6 @@ AWS_BUCKET ?= report-data-development
 RUN_DOWNLOAD ?= yes
 ##############################
 AWS_VAULT_COMMAND = echo "using session token" &&
-GO_RELEASER = $(shell which goreleaser)
 ##############################
 ifndef AWS_SESSION_TOKEN
 AWS_VAULT_COMMAND = aws-vault exec ${AWS_VAULT_PROFILE} --
@@ -70,7 +69,6 @@ vars:
 	@echo "AWS_VAULT_PROFILE: ${AWS_VAULT_PROFILE}"
 	@echo "AWS_BUCKET: ${AWS_BUCKET}"
 	@echo "AWS_VAULT_COMMAND: ${AWS_VAULT_COMMAND}"
-	@echo "GO_RELEASER: ${GO_RELEASER}"
 
 ##############################
 # DOCKER BUILD
