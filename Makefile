@@ -57,8 +57,6 @@ csv: vars
 	@mkdir -p ./builds/api/github_standards
 	${AWS_VAULT_COMMAND} aws s3 sync s3://${AWS_BUCKET}/github_standards ./builds/api/github_standards/ ; \
 
-
-
 vars:
 	@echo "AWS_VAULT_PROFILE: ${AWS_VAULT_PROFILE}"
 	@echo "AWS_BUCKET: ${AWS_BUCKET}"
@@ -83,12 +81,6 @@ build: csv
 		-f docker/docker-compose.dev.yml \
 		build
 
-build-production: csv
-	@env DOCKER_BUILDKIT=0 docker compose \
-		--verbose \
-		-f docker-compose.yml \
-		build
-
 up: csv
 	@env DOCKER_BUILDKIT=0 docker compose \
 		--verbose \
@@ -97,3 +89,15 @@ up: csv
 		up \
 		-d api front
 
+build-production: csv
+	@env DOCKER_BUILDKIT=0 docker compose \
+		--verbose \
+		-f docker-compose.yml \
+		build
+
+up-production: csv
+	@env DOCKER_BUILDKIT=0 docker compose \
+		--verbose \
+		-f docker-compose.yml \
+		up \
+		-d api front

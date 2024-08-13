@@ -6,7 +6,7 @@
             "uri": "/",
             "is_header": true,
             "data_sources": {
-                "list": "/github/standards/v1/?archived=false"
+                "list": "/github/standards/v1/list/?archived=false"
             },
             "template": "github-standards"
         }

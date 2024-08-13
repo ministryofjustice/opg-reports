@@ -96,6 +96,7 @@ func main() {
 	}
 	github_standards.Register(ctx, mux, databases["github_standards"])
 
+	// -- start the server
 	addr := env.Get("API_ADDR", consts.API_ADDR)
 	server := &http.Server{
 		Addr:    addr,

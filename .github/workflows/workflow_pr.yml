@@ -18,6 +18,12 @@ permissions:
   repository-projects: none
   statuses: none
 
+
+env:
+  creating: "pre-release"
+  prerelease: "true"
+  path_to_live: "false"
+
 jobs:
 
   # setup series of variables either calculated or fixed for this workflow that
@@ -67,7 +73,7 @@ jobs:
         id: semver_tag
         uses: ministryofjustice/opg-github-actions/.github/actions/semver-tag@v3.0.6
         with:
-          prerelease: true
+          prerelease: ${{ env.prerelease }}
           releases_enabled: false
 
   # build & test go
@@ -85,8 +91,6 @@ jobs:
       - name: "Build"
         id: "go_build"
         uses: ./.github/actions/go_build
-        with:
-          target: "all"
 
   # Run docker build
   docker_build:
@@ -114,7 +118,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           bucket: ${{ needs.setup.outputs.aws_s3_bucket }}
         run: |
-          make assets BUCKET="${{ env.bucket }}"
+          make csv AWS_BUCKET="${{ env.bucket }}"
       # switch aws creds for ecr push
       - name: "Configure AWS credentials for ECR"
         id: configure_aws_creds_ecr
@@ -134,8 +138,7 @@ jobs:
           branch_name: ${{ needs.setup.outputs.branch_name }}
           tag: ${{ needs.setup.outputs.semver_tag }}
           dockerfile: './docker/api/Dockerfile'
-          scan_image: false
-          path_to_live: false
+          path_to_live: ${{ env.path_to_live }}
       # build front
       - name: "Build [front]"
         id: build_front
@@ -146,8 +149,7 @@ jobs:
           branch_name: ${{ needs.setup.outputs.branch_name }}
           tag: ${{ needs.setup.outputs.semver_tag }}
           dockerfile: './docker/front/Dockerfile'
-          scan_image: false
-          path_to_live: false
+          path_to_live: ${{ env.path_to_live }}
 
 
   #--fork-remove-start
@@ -191,7 +193,7 @@ jobs:
 
   # do the release
   release:
-    name: "Create pre-release"
+    name: "Create ${{ env.creating }}"
     #--fork-remove-start
     needs: [terraform_development, setup]
     #--fork-remove-end
@@ -207,7 +209,6 @@ jobs:
         id: "build_go"
         uses: ./.github/actions/go_build
         with:
-          target: "all"
           create_artifact: true
       - name: "Create a release"
         id: create_release
@@ -217,7 +218,7 @@ jobs:
           tag: ${{ needs.setup.outputs.semver_tag }}
           name: ${{ needs.setup.outputs.semver_tag }}
           draft: false
-          prerelease: true
+          prerelease: ${{ env.prerelease }}
           artifacts: '${{ steps.build_go.outputs.artifact }}'
 
 

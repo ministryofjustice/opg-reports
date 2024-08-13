@@ -2,24 +2,11 @@ name: "Go: Build"
 description: "Build the go code within the opg-reports repository so it can then be released"
 
 inputs:
-  target:
-    description: "Decide what part of the code base to build. Options:[all, api, front, reports] Default: all"
-    default: "all"
-    required: true
   create_artifact:
     description: "Boolean when set to true will create a tarball containing all binaries"
     default: "false"
 
 outputs:
-  build_folder:
-    description: "Folder path where all builds are stored"
-    value: ${{ steps.build.outputs.build_folder }}
-  build_arch_folder:
-    description: "Path to the folder containing the built versions of the code base for this architecture"
-    value: ${{ steps.build.outputs.build_arch_folder }}
-  target_folder:
-    description: "Folder path where the input.target binaries are"
-    value: ${{ steps.target_folder.outputs.target_folder }}
   artifact:
     description: "Artifact tar ball containing the built binaries"
     value: ${{ steps.create_artifact.outputs.artifact }}
@@ -46,52 +33,38 @@ runs:
     ###############
     #   BUILD
     ###############
-    - name: "Build go [${{ inputs.target }}]"
+    - name: "Build all go"
       id: build
       shell: bash
-      env:
-        target: "go-${{ inputs.target == '' && 'all' || inputs.target }}"
       run: |
-        echo "Build go using makefile."
+        echo "Build go"
+        os="$(uname | tr '[:upper:]' '[:lower:]')"
+        arch="$(uname -m | sed 's/x86_64/amd64/')"
+        os_arch="${os}_${arch}"
+        mkdir -p ./builds/bin/${os_arch}
 
-        echo "  Setting default github output values"
-        echo "arch=" >> $GITHUB_OUTPUT
-        echo "build_folder=" >> $GITHUB_OUTPUT
-        echo "build_arch_folder=" >> $GITHUB_OUTPUT
+        go mod tidy
+        go build -o ./builds/bin/${os_arch}/api_server ./servers/api/main.go
+        go build -o ./builds/bin/${os_arch}/front_server ./servers/front/main.go
+        go build -o ./builds/bin/${os_arch}/github_standards_cmd ./commands/github_standards/main.go
 
-        make ${{ env.target }}
+        echo "os_arch=${os_arch}" >> $GITHUB_OUTPUT
+        echo "built=./builds/bin}" >> $GITHUB_OUTPUT
 
-        echo "  Setting github output values from makefile build log"
-        while read -r a b; do
-          echo "${a}=${b}" >> $GITHUB_OUTPUT
-        done < ./build.log
-
-    - name: "Target folder"
-      id: target_folder
-      env:
-        base_folder: ${{ steps.build.outputs.build_arch_folder }}
-        target: ${{ inputs.target }}
-      shell: bash
-      run: |
-        echo "Setting folder path for the requested target. Will be empty if requested 'all'."
-        if [[ "${{ env.target }}" != "all" ]]; then
-          echo "target_folder=${{ env.base_folder }}/${{ env.target }}" >> $GITHUB_OUTPUT
-        else
-          echo "target_folder=" >> $GITHUB_OUTPUT
-        fi
     - name: "Create artifact [${{ inputs.create_artifact }}]"
       id: create_artifact
       shell: bash
       if: ${{ inputs.create_artifact == 'true' }}
       env:
-        arch: ${{ steps.build.outputs.arch }}
-        tarball: "${{ steps.build.outputs.arch }}.tar.gz"
-      working-directory: ${{ steps.build.outputs.build_folder }}
+        dir: ${{ steps.build.outputs.built }}
+        arch: ${{ steps.build.outputs.os_arch }}
+        tarball: "${{ steps.build.outputs.os_arch }}.tar.gz"
+      working-directory: ${{ steps.build.outputs.built }}
       run: |
         echo "Creating tarball artifact"
         rm -f ${{ env.tarball }}
-        tar -czvf ${{ env.tarball }} ${{ steps.build.outputs.arch }}
-        echo "artifact=${{ steps.build.outputs.build_folder }}/${{ env.tarball }}" >> $GITHUB_OUTPUT
+        tar -czvf ${{ env.tarball }} ${{ env.arch }}
+        echo "artifact=${{ env.dir }}/${{ env.tarball }}" >> $GITHUB_OUTPUT
 
     ###############
     #   SUMMARY
@@ -103,19 +76,5 @@ runs:
         echo "### Go Build Summary" >> $GITHUB_STEP_SUMMARY
         echo "| Variable | Value |" >> $GITHUB_STEP_SUMMARY
         echo "| --- | --- |"  >> $GITHUB_STEP_SUMMARY
-        echo "| target | ${{ inputs.target }} |"  >> $GITHUB_STEP_SUMMARY
-        echo "| arch | ${{ steps.build.outputs.arch }} |"  >> $GITHUB_STEP_SUMMARY
-        echo "| build folder | ${{ steps.build.outputs.build_folder }} |"  >> $GITHUB_STEP_SUMMARY
-        echo "| build arch folder | ${{ steps.build.outputs.build_arch_folder }} |"  >> $GITHUB_STEP_SUMMARY
-        echo "| target folder | ${{ steps.target_folder.outputs.target_folder }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| os_arch | ${{ steps.build.outputs.os_arch }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| artifact | ${{ steps.create_artifact.outputs.artifact }} |"  >> $GITHUB_STEP_SUMMARY
-
-    ###############
-    #   CLEAN UP
-    ###############
-    - name: "Clean up"
-      id: cleanup
-      if: always()
-      shell: bash
-      run: |
-        rm -f ./build.log

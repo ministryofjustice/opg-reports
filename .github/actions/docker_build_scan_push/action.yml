@@ -34,10 +34,6 @@ inputs:
     description: "Force a checkout of the repository"
     default: "false"
 
-  scan_image:
-    description: "When set to true, uses trivy to scan the docker image just created."
-    default: 'true'
-
   path_to_live:
     description: "When set to true, pushes images following production conventions."
     default: "false"
@@ -91,22 +87,6 @@ runs:
       env:
         SOURCE_DATE_EPOCH: 0
 
-    # Scan the image
-    - name: "Trivy image vulnerability scanner [repository: ${{ inputs.ecr_repository }}]"
-      id: trivy_scan
-      if: ${{ inputs.scan_image == 'true' }}
-      uses: aquasecurity/trivy-action@0.24.0
-      with:
-        image-ref: ${{ inputs.ecr_repository }}:${{ inputs.tag }}
-        severity: 'HIGH,CRITICAL'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-    - name: "Upload Trivy scan results to GitHub security tab [repository: ${{ inputs.ecr_repository }}]"
-      id: trivy_upload_sarif
-      uses: github/codeql-action/upload-sarif@v3.25.11
-      if: ${{ inputs.scan_image == 'true' }}
-      with:
-        sarif_file: 'trivy-results.sarif'
 
     # Push the image
     # for a PR

@@ -21,7 +21,7 @@ import (
 const dbMode string = "WAL"
 const dbTimeout int = 50000
 
-const listRoute string = "/github/standards/{version}/{$}"
+const listRoute string = "/github/standards/{version}/list/{$}"
 
 // connection to the db
 func sqlDB(dbPath string) (db *sql.DB, err error) {
@@ -160,7 +160,9 @@ func Handlers(ctx context.Context, mux *http.ServeMux, dbPath string) map[string
 		}
 		response.Metadata["filters"] = filters
 		response.End(w, r)
+		return
 	}
+
 	return map[string]func(w http.ResponseWriter, r *http.Request){
 		"list": list,
 	}
