@@ -28,8 +28,6 @@ runs:
     - name: "Build"
       id: "build_go"
       uses: ./.github/actions/go_build
-      with:
-        target: "reports"
     - name: "Setup data directory"
       id: setup_data_dir
       working-directory: ${{ steps.build_go.outputs.dir }}
@@ -47,6 +45,7 @@ runs:
         data_folder: ./data
         cmd_args: ${{ inputs.arguments }}
       run: |
+        ls -lah
         ./${{ inputs.cmd }} ${{ env.cmd_args }}
         ls -lah ${{ env.data_folder }}
     ###############

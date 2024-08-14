@@ -193,7 +193,7 @@ jobs:
 
   # do the release
   release:
-    name: "Create ${{ env.creating }}"
+    name: "Create pre-release"
     #--fork-remove-start
     needs: [terraform_development, docker_build, setup]
     #--fork-remove-end

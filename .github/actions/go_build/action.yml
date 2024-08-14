@@ -83,4 +83,6 @@ runs:
         echo "| Variable | Value |" >> $GITHUB_STEP_SUMMARY
         echo "| --- | --- |"  >> $GITHUB_STEP_SUMMARY
         echo "| os_arch | ${{ steps.build.outputs.os_arch }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| dir | ${{ steps.build.outputs.built }}/${{ steps.build.outputs.os_arch }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| artifact | ${{ steps.create_artifact.outputs.artifact }} |"  >> $GITHUB_STEP_SUMMARY
+
