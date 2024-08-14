@@ -70,25 +70,27 @@ func Seed(ctx context.Context, dbF string, schemaF string, dataF string, table s
 		}
 	}
 
-	var insert insertF = nil
+	var insertFunc insertF = nil
 	// import files, assume list of
 	if ik, ok := inserts[table]; ok {
-		insert = ik
+		insertFunc = ik
 	}
 	for _, file := range files {
 		slog.Info("data file", slog.String("file", file))
-		if insert != nil && exists.FileOrDir(file) {
-			slog.Info("file exists and have insert function", slog.String("file", file))
+		if insertFunc != nil && exists.FileOrDir(file) {
+			slog.Info("file exists and found insert function", slog.String("file", file))
 			content, err := os.ReadFile(file)
 			if err != nil {
 				db.Close()
 				return nil, err
 			}
 			// try inserting
-			err = insert(content, db)
+			err = insertFunc(ctx, content, db)
 			if err != nil {
 				db.Close()
 				return nil, err
+			} else {
+				defer os.Remove(file)
 			}
 		}
 	}

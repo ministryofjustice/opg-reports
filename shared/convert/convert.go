@@ -16,6 +16,7 @@ func Marshals[T any](items []T) (content []byte, err error) {
 	return json.MarshalIndent(items, "", "  ")
 }
 
+// todo: dont use a passed in version..
 func Unmarshal[T any](content []byte, i T) (item T, err error) {
 	err = json.Unmarshal(content, &i)
 	if err != nil {
@@ -26,7 +27,8 @@ func Unmarshal[T any](content []byte, i T) (item T, err error) {
 	return
 }
 
-func Unmarshals[T any](content []byte, i []T) (items []T, err error) {
+func Unmarshals[T any](content []byte) (items []T, err error) {
+	var i []T
 	err = json.Unmarshal(content, &i)
 	if err != nil {
 		slog.Error("unmarshals failed", slog.String("err", err.Error()))

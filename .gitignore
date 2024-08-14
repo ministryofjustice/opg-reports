@@ -2,6 +2,9 @@
 **/data/*.csv
 **/data*/**/*.csv
 *.csv
+**/data/*.json
+**/data*/**/*.json
+*.json
 *.db*
 # build dir
 *builds/**

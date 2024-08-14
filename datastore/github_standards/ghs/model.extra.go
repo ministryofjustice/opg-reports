@@ -8,6 +8,10 @@ import (
 	"github.com/ministryofjustice/opg-reports/shared/convert"
 )
 
+func (g *GithubStandard) UID() string {
+	return g.FullName
+}
+
 func (g *GithubStandard) Insertable() InsertParams {
 	return InsertParams{
 		Ts:                             g.Ts,
@@ -44,10 +48,6 @@ func (g *GithubStandard) Insertable() InsertParams {
 		CompliantExtended:              g.CompliantExtended,
 		Teams:                          g.Teams,
 	}
-}
-
-func (g *GithubStandard) UID() string {
-	return g.FullName
 }
 
 func (g *GithubStandard) Info() map[string]string {

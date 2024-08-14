@@ -13,7 +13,7 @@ import (
 
 type generatorF func(ctx context.Context, num int, db *sql.DB) error
 
-// map of funcs that generate fake data for seeding
+// map of funcs that inset data from files
 var fakes map[string]generatorF = map[string]generatorF{
 	// -- githu standards
 	// use go concurrency for speed
