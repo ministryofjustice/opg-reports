@@ -46,7 +46,7 @@ jobs:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
         with:
           name: "Repository standards"
-          cmd: "github_standards"
+          cmd: "github_standards_cmd"
           arguments: '-organisation ${{ needs.setup.outputs.github_org }} -team ${{ needs.setup.outputs.github_team }}'
       # configure the aws role
       - name: "Configure AWS credentials for S3 upload"
