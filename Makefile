@@ -55,10 +55,10 @@ benchmark:
 ##############################
 # DATA
 ##############################
-csv: vars
+data: vars
 # 	download github_standards data
-	@mkdir -p ./builds/api/github_standards/csv
-	${AWS_VAULT_COMMAND} aws s3 sync s3://${AWS_BUCKET}/github_standards ./builds/api/github_standards/csv/ || echo bucket-failed; \
+	@mkdir -p ./builds/api/github_standards/data
+	${AWS_VAULT_COMMAND} aws s3 sync s3://${AWS_BUCKET}/github_standards ./builds/api/github_standards/data/ || echo bucket-failed; \
 
 vars:
 	@echo "AWS_VAULT_PROFILE: ${AWS_VAULT_PROFILE}"
@@ -89,7 +89,7 @@ clean: down
 	@docker container prune -f
 	@docker image prune -f --filter="dangling=true"
 
-build: csv
+build: data
 	@env DOCKER_BUILDKIT=0 docker compose \
 		--verbose \
 		-f docker-compose.yml \
@@ -106,7 +106,7 @@ up: build
 		-d ${SERVICES}
 
 # production versions
-build-production: csv
+build-production: data
 	@env DOCKER_BUILDKIT=0 docker compose \
 		--verbose \
 		-f docker-compose.yml \
