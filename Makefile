@@ -6,10 +6,10 @@ all:
 
 ##############################
 AWS_VAULT_PROFILE ?= shared-development-operator
-AWS_BUCKET ?= report-data-development
+AWS_BUCKET ?= report-data-developments
 SERVICES ?= api front
 ##############################
-AWS_VAULT_COMMAND = echo "using session token" &&
+AWS_VAULT_COMMAND = echo "using existing session token" &&
 ##############################
 ifndef AWS_SESSION_TOKEN
 AWS_VAULT_COMMAND = aws-vault exec ${AWS_VAULT_PROFILE} --
@@ -55,8 +55,8 @@ benchmark:
 ##############################
 csv: vars
 # 	download github_standards data
-	@mkdir -p ./builds/api/github_standards
-	${AWS_VAULT_COMMAND} aws s3 sync s3://${AWS_BUCKET}/github_standards ./builds/api/github_standards/ || echo bucket-failed; \
+	@mkdir -p ./builds/api/github_standards/csv
+	${AWS_VAULT_COMMAND} aws s3 sync s3://${AWS_BUCKET}/github_standards ./builds/api/github_standards/csv/ || echo bucket-failed; \
 
 vars:
 	@echo "AWS_VAULT_PROFILE: ${AWS_VAULT_PROFILE}"
@@ -77,6 +77,9 @@ start:
 	@docker compose start ${SERVICES}
 
 clean: down
+	@rm -f ./servers/api/*.db
+	@rm -f ./servers/api/*.csv
+# @rm -Rf ./servers/front/govuk
 	@rm -Rf ./builds
 	@mkdir -p ./builds
 	@docker image rm $(image) || echo "ok"
@@ -114,3 +117,19 @@ up-production:
 		-f docker-compose.yml \
 		up \
 		-d ${SERVICES}
+
+
+##############################
+# close approx of the dockerfile for local trial
+##############################
+# mirror-api: clean
+# 	mkdir -p ./builds/api/github_standards/csv
+# 	go build -o ./builds/api/api_server ./servers/api/main.go
+# 	go build -o ./builds/api/seed_cmd ./commands/seed/main.go
+# 	cp ./datastore/github_standards/github_standards*.sql ./builds/api/github_standards/
+# 	./builds/api/seed_cmd \
+# 		-table github_standards \
+# 		-db ./builds/api/github_standards.db \
+# 		-schema ./builds/api/github_standards/github_standards.sql \
+# 		-csv "./builds/api/github_standards/*.csv"
+

@@ -16,30 +16,37 @@ WORKDIR /app
 # setup path vars - make sure gobin is included
 ENV CGO_ENABLED=1 GOOS=linux GOBIN=/gobin PATH=$GOBIN:$PATH
 COPY . .
-RUN mkdir -p /go/bin/api
+RUN mkdir -p /go/bin/api/github_standards/csv/
+RUN ls -lRh /app/builds/api/github_standards/csv*
 # sqlc generation
-RUN cd ./datastore/github_standards/ && sqlc generate && cd -
+RUN cd /app/datastore/github_standards/ && sqlc generate && cd -
+# data migration
+RUN cp /app/datastore/github_standards/github_standards*.sql /go/bin/api/github_standards/
+RUN cp /app/builds/api/github_standards/csv/* /go/bin/api/github_standards/csv/ || echo "skip csvs"
 RUN go build -o /go/bin/api/api_server ./servers/api/main.go
+RUN go build -o /go/bin/api/seed_cmd ./commands/seed/main.go
 # debug info
 RUN pwd
-RUN ls -lh /go/bin/
-RUN ls -lh /go/bin/api
+RUN ls -lRh /go/bin/
+# run the db seeding
+RUN /go/bin/api/seed_cmd \
+    -table github_standards \
+    -schema /go/bin/api/github_standards/github_standards.sql \
+    -db /go/bin/api/github_standards.db \
+    -csv "/go/bin/api/github_standards/csv/*.csv"
+RUN sqlite3 /go/bin/api/github_standards.db "select count(*) from github_standards;"
+RUN ls -lRh /go/bin/
+
 
 FROM build AS dev
 EXPOSE 8081
 WORKDIR /go/bin/api
 ENV CGO_ENABLED=1 GOOS=linux
 RUN apk --update --no-cache add "sqlite=~3.45"
-RUN mkdir -p ./github_standards
-# copy schemas
-COPY --from=build /app/datastore/github_standards/github_standards*.sql ./github_standards/
-# copy bucket data
-COPY --from=build /app/builds/api/github_standards/csv* ./github_standards/
-# copy binary
-COPY --from=build /go/bin/api* ./
+COPY --from=build /go/bin/api/api_server ./
+COPY --from=build /go/bin/api/github_standards.db ./
 RUN pwd
-RUN ls -lh ./
-RUN ls -lh ./github_standards/
+RUN ls -lRh ./
 ENTRYPOINT ["./api_server"]
 
 # PRODUCTION
