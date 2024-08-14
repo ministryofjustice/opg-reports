@@ -10,6 +10,6 @@ Default endpoints:
 You can spin up versions of the code base using the provided docker compose files (`docker-compose.yml` and `./docker/docker-compose.dev.yml`). We have targets in the makefile for this, to build the local images for development, run:
 
 ```bash
-make clean && make docker-up
+make clean && make up
 ```
 

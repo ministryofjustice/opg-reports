@@ -18,6 +18,7 @@ func (g *GithubStandard) Insertable() InsertParams {
 		DefaultBranch:                  g.DefaultBranch,
 		Name:                           g.Name,
 		Owner:                          g.Owner,
+		FullName:                       g.FullName,
 		License:                        g.License,
 		LastCommitDate:                 g.LastCommitDate,
 		CreatedAt:                      g.CreatedAt,
