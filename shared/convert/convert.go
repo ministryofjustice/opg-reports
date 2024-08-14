@@ -12,6 +12,10 @@ func Marshal[T any](item T) (content []byte, err error) {
 	return json.MarshalIndent(item, "", "  ")
 }
 
+func Marshals[T any](items []T) (content []byte, err error) {
+	return json.MarshalIndent(items, "", "  ")
+}
+
 func Unmarshal[T any](content []byte, i T) (item T, err error) {
 	err = json.Unmarshal(content, &i)
 	if err != nil {

@@ -128,19 +128,19 @@ func main() {
 	group := flag.NewFlagSet("github_standards", flag.ExitOnError)
 	org := argument.New(group, "organisation", "ministryofjustice", "Organisation slug")
 	team := argument.New(group, "team", "opg", "Team slug")
-	csv := argument.New(group, "output", "github_standards", "filename")
+	out := argument.New(group, "output", "github_standards.json", "filename")
 	d := argument.New(group, "dir", "data", "sub dir")
 
 	group.Parse(os.Args[1:])
 
 	dir := fmt.Sprintf("./%s/", *d.Value)
 	os.MkdirAll(dir, os.ModePerm)
-	filename := filepath.Join(dir, *csv.Value+".csv")
+	filename := filepath.Join(dir, *out.Value)
 
-	slog.Info("getting standards...",
+	slog.Info("getting standards",
 		slog.String("org", *org.Value),
 		slog.String("team", *team.Value),
-		slog.String("csv", *csv.Value))
+		slog.String("output file", *out.Value))
 
 	ctx := context.Background()
 	limiter, _ := cl.RateLimitedHttpClient()
@@ -152,16 +152,19 @@ func main() {
 		return
 	}
 
-	f, _ := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, os.ModePerm)
-	defer f.Close()
-	for i, repo := range repositories {
-		slog.Info(fmt.Sprintf("[%d] %s", i+1, repo.GetFullName()))
-		r := mapFromApi(ctx, client, repo)
-		r.ID = (1 + i)
-		if i == 0 {
-			f.WriteString(r.CSVHead())
-		}
-		f.WriteString(r.ToCSV())
+	mapped := []ghs.GithubStandard{}
+	total := len(repositories)
+	for i, r := range repositories {
+		slog.Info(fmt.Sprintf("[%d/%d] %s", i+1, total, *r.FullName))
+		mapped = append(mapped, *mapFromApi(ctx, client, r))
 	}
+
+	content, err := convert.Marshals(mapped)
+	if err != nil {
+		slog.Error("error marshaling", slog.String("err", err.Error()))
+		os.Exit(1)
+	}
+
+	os.WriteFile(filename, content, os.ModePerm)
 
 }

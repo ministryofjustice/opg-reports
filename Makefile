@@ -23,14 +23,16 @@ images := $(shell docker images -a | grep 'opg-reports/*' | awk '{print $$1":"$$
 # run a test based on the $name passed
 # pass along github token from env and setup log levels and destinations
 test:
+	@go clean -testcache
 	@clear
 	@echo "============== test: [$(name)] =============="
 	@env CGO_ENABLED=1 GITHUB_ACCESS_TOKEN="${GITHUB_TOKEN}" LOG_LEVEL="info" LOG_TO="stdout" go test -count=1 -v ./... -run="$(name)"
 
 tests:
+	@go clean -testcache
 	@clear
 	@echo "============== tests =============="
-	@env env CGO_ENABLED=1 LOG_LEVEL="warn" LOG_TO="stdout" go test -cover -covermode=atomic -v ./...
+	@env env CGO_ENABLED=1 LOG_LEVEL="warn" LOG_TO="stdout" go test -count=1 -cover -covermode=atomic -v ./...
 
 coverage:
 	@rm -Rf ./code-coverage.out
@@ -133,3 +135,5 @@ up-production:
 # 		-schema ./builds/api/github_standards/github_standards.sql \
 # 		-csv "./builds/api/github_standards/*.csv"
 
+sqlc:
+	@cd ./datastore/github_standards && sqlc generate

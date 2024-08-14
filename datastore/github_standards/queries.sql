@@ -1,4 +1,4 @@
--- name: Insert :one
+-- name: Insert :exec
 INSERT INTO github_standards(
     ts,
     default_branch,
@@ -36,7 +36,7 @@ INSERT INTO github_standards(
     teams
 ) VALUES (
     ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?
-) RETURNING id;
+);
 
 -- name: All :many
 SELECT * FROM github_standards

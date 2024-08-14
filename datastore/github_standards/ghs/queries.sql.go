@@ -286,7 +286,7 @@ func (q *Queries) FilterByTeam(ctx context.Context, teams string) ([]GithubStand
 	return items, nil
 }
 
-const insert = `-- name: Insert :one
+const insert = `-- name: Insert :exec
 INSERT INTO github_standards(
     ts,
     default_branch,
@@ -324,7 +324,7 @@ INSERT INTO github_standards(
     teams
 ) VALUES (
     ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?
-) RETURNING id
+)
 `
 
 type InsertParams struct {
@@ -364,8 +364,8 @@ type InsertParams struct {
 	Teams                          string `json:"teams"`
 }
 
-func (q *Queries) Insert(ctx context.Context, arg InsertParams) (int, error) {
-	row := q.queryRow(ctx, q.insertStmt, insert,
+func (q *Queries) Insert(ctx context.Context, arg InsertParams) error {
+	_, err := q.exec(ctx, q.insertStmt, insert,
 		arg.Ts,
 		arg.DefaultBranch,
 		arg.FullName,
@@ -401,9 +401,7 @@ func (q *Queries) Insert(ctx context.Context, arg InsertParams) (int, error) {
 		arg.CompliantExtended,
 		arg.Teams,
 	)
-	var id int
-	err := row.Scan(&id)
-	return id, err
+	return err
 }
 
 const totalCountCompliantBaseline = `-- name: TotalCountCompliantBaseline :one

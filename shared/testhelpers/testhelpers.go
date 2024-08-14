@@ -1,6 +1,7 @@
 package testhelpers
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -46,4 +47,25 @@ func MockServer(f func(w http.ResponseWriter, r *http.Request), loglevel string)
 		os.Setenv("LOG_LEVEL", loglevel)
 		f(w, r)
 	}))
+}
+
+type Ts struct {
+	S time.Time
+	E time.Time
+}
+
+func (t *Ts) Stop() *Ts {
+	t.E = time.Now().UTC()
+	return t
+}
+func (t *Ts) Seconds() string {
+	if t.E.Year() == 0 {
+		t.Stop()
+	}
+	dur := t.E.Sub(t.S)
+	return fmt.Sprintf("%f", dur.Seconds())
+}
+
+func T() *Ts {
+	return &Ts{S: time.Now().UTC()}
 }

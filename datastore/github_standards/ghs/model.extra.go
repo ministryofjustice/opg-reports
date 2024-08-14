@@ -8,6 +8,44 @@ import (
 	"github.com/ministryofjustice/opg-reports/shared/convert"
 )
 
+func (g *GithubStandard) Insertable() InsertParams {
+	return InsertParams{
+		Ts:                             g.Ts,
+		DefaultBranch:                  g.DefaultBranch,
+		Name:                           g.Name,
+		Owner:                          g.Owner,
+		License:                        g.License,
+		LastCommitDate:                 g.LastCommitDate,
+		CreatedAt:                      g.CreatedAt,
+		CountOfClones:                  g.CountOfClones,
+		CountOfForks:                   g.CountOfForks,
+		CountOfPullRequests:            g.CountOfPullRequests,
+		CountOfWebHooks:                g.CountOfWebHooks,
+		HasCodeOfConduct:               g.HasCodeOfConduct,
+		HasCodeownerApprovalRequired:   g.HasCodeownerApprovalRequired,
+		HasContributingGuide:           g.HasContributingGuide,
+		HasDefaultBranchOfMain:         g.HasDefaultBranchOfMain,
+		HasDefaultBranchProtection:     g.HasDefaultBranchProtection,
+		HasDeleteBranchOnMerge:         g.HasDeleteBranchOnMerge,
+		HasDescription:                 g.HasDescription,
+		HasDiscussions:                 g.HasDiscussions,
+		HasDownloads:                   g.HasDownloads,
+		HasIssues:                      g.HasIssues,
+		HasLicense:                     g.HasLicense,
+		HasPages:                       g.HasPages,
+		HasPullRequestApprovalRequired: g.HasPullRequestApprovalRequired,
+		HasReadme:                      g.HasReadme,
+		HasRulesEnforcedForAdmins:      g.HasRulesEnforcedForAdmins,
+		HasVulnerabilityAlerts:         g.HasVulnerabilityAlerts,
+		HasWiki:                        g.HasWiki,
+		IsArchived:                     g.IsArchived,
+		IsPrivate:                      g.IsPrivate,
+		CompliantBaseline:              g.CompliantBaseline,
+		CompliantExtended:              g.CompliantExtended,
+		Teams:                          g.Teams,
+	}
+}
+
 func (g *GithubStandard) UID() string {
 	return g.FullName
 }
@@ -83,88 +121,5 @@ func (g *GithubStandard) UpdateCompliance() (baseline int, extended int) {
 	g.CompliantBaseline = baseline
 	g.CompliantExtended = extended
 
-	return
-}
-
-func (g *GithubStandard) ToCSV() (line string) {
-
-	line = fmt.Sprintf(`%d,"%s",%d,%d,%d,%d,%d,%d,"%s","%s","%s",%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,"%s","%s","%s","%s","%s"`,
-		g.ID,
-		g.Ts,
-		g.CompliantBaseline,
-		g.CompliantExtended,
-		g.CountOfClones,
-		g.CountOfForks,
-		g.CountOfPullRequests,
-		g.CountOfWebHooks,
-		g.CreatedAt,
-		g.DefaultBranch,
-		g.FullName,
-		g.HasCodeOfConduct,
-		g.HasCodeownerApprovalRequired,
-		g.HasContributingGuide,
-		g.HasDefaultBranchOfMain,
-		g.HasDefaultBranchProtection,
-		g.HasDeleteBranchOnMerge,
-		g.HasDescription,
-		g.HasDiscussions,
-		g.HasDownloads,
-		g.HasIssues,
-		g.HasLicense,
-		g.HasPages,
-		g.HasPullRequestApprovalRequired,
-		g.HasReadme,
-		g.HasRulesEnforcedForAdmins,
-		g.HasVulnerabilityAlerts,
-		g.HasWiki,
-		g.IsArchived,
-		g.IsPrivate,
-		g.License,
-		g.LastCommitDate,
-		g.Name,
-		g.Owner,
-		g.Teams,
-	) + "\n"
-	return
-}
-
-func (g *GithubStandard) CSVHead() (line string) {
-	line = fmt.Sprintf(`"%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s"`,
-		"id",
-		"ts",
-		"compliant_baseline",
-		"compliant_extended",
-		"count_of_clones",
-		"count_of_forks",
-		"count_of_pull_requests",
-		"count_of_web_hooks",
-		"created_at",
-		"default_branch",
-		"full_name",
-		"has_code_of_conduct",
-		"has_codeowner_approval_required",
-		"has_contributing_guide",
-		"has_default_branch_of_main",
-		"has_default_branch_protection",
-		"has_delete_branch_on_merge",
-		"has_description",
-		"has_discussions",
-		"has_downloads",
-		"has_issues",
-		"has_license",
-		"has_pages",
-		"has_pull_request_approval_required",
-		"has_readme",
-		"has_rules_enforced_for_admins",
-		"has_vulnerability_alerts",
-		"has_wiki",
-		"is_archived",
-		"is_private",
-		"license",
-		"last_commit_date",
-		"name",
-		"owner",
-		"teams",
-	) + "\n"
 	return
 }

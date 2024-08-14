@@ -4,7 +4,7 @@ This command returns all the repositories for the organsiation and team set that
 
 ### Generation
 
-The command will generate a csv file (`./data/github_standards.csv`):
+The command will generate a csv file (`./data/github_standards.json`):
 
 ```bash
 env GITHUB_ACCESS_TOKEN=${GITHUB_TOKEN} go run main.go \
