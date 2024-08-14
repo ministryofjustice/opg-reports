@@ -32,9 +32,10 @@ func main() {
 		tableV  string = *table.Value
 		N       int    = *n.Value
 	)
-
-	if _, err := seeder.Seed(ctx, dbV, schemaV, dataV, tableV, N); err != nil {
+	db, err := seeder.Seed(ctx, dbV, schemaV, dataV, tableV, N)
+	if err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
 	}
+	db.Close()
 }

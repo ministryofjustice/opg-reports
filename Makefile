@@ -6,7 +6,7 @@ all:
 
 ##############################
 AWS_VAULT_PROFILE ?= shared-development-operator
-AWS_BUCKET ?= report-data-developments
+AWS_BUCKET ?= report-data-development
 SERVICES ?= api front
 ##############################
 AWS_VAULT_COMMAND = echo "using existing session token" &&
@@ -124,16 +124,16 @@ up-production:
 ##############################
 # close approx of the dockerfile for local trial
 ##############################
-# mirror-api: clean
-# 	mkdir -p ./builds/api/github_standards/csv
-# 	go build -o ./builds/api/api_server ./servers/api/main.go
-# 	go build -o ./builds/api/seed_cmd ./commands/seed/main.go
-# 	cp ./datastore/github_standards/github_standards*.sql ./builds/api/github_standards/
-# 	./builds/api/seed_cmd \
-# 		-table github_standards \
-# 		-db ./builds/api/github_standards.db \
-# 		-schema ./builds/api/github_standards/github_standards.sql \
-# 		-csv "./builds/api/github_standards/*.csv"
+mirror-api: clean data
+	mkdir -p ./builds/api/github_standards/data
+	go build -o ./builds/api/api_server ./servers/api/main.go
+	go build -o ./builds/api/seed_cmd ./commands/seed/main.go
+	cp ./datastore/github_standards/github_standards*.sql ./builds/api/github_standards/
+	./builds/api/seed_cmd \
+		-table github_standards \
+		-db ./builds/api/github_standards.db \
+		-schema ./builds/api/github_standards/github_standards.sql \
+		-data "./builds/api/github_standards/data/*.json"
 
 sqlc:
 	@cd ./datastore/github_standards && sqlc generate

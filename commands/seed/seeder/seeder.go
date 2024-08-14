@@ -34,13 +34,9 @@ func Seed(ctx context.Context, dbF string, schemaF string, dataF string, table s
 	}
 	// -- generate connection
 	db, err = DB(dbF)
-	if err != nil && db != nil {
-		defer db.Close()
-		return
-	} else if err != nil {
+	if err != nil {
 		return
 	}
-
 	// if the schema does not exist, error
 	schemaExists := exists.FileOrDir(schemaF)
 	if !schemaExists {
@@ -94,24 +90,6 @@ func Seed(ctx context.Context, dbF string, schemaF string, dataF string, table s
 			}
 		}
 	}
-
-	// // -- now load files into the database
-	// for _, file := range files {
-	// 	slog.Info("data source", slog.String("csv", file))
-	// 	if exists.FileOrDir(file) {
-
-	// 		cmd := exec.Command("sqlite3", dbF, "--csv", fmt.Sprintf(".import --skip 1 %s %s", file, table))
-
-	// 		slog.Info("importing csv", slog.String("csv", file), slog.String("cmd", cmd.String()))
-	// 		err = cmd.Run()
-	// 		if err != nil {
-	// 			return
-	// 		}
-	// 		// remove the file
-	// 		// defer os.Remove(file)
-	// 	}
-	// }
-	// // close and re-open the
 
 	return
 }
