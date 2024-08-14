@@ -12,8 +12,7 @@ type Config struct {
 }
 
 func NewConfig(content []byte) (*Config, error) {
-	c := &Config{}
-	return convert.Unmarshal[*Config](content, c)
+	return convert.Unmarshal[*Config](content)
 }
 
 func New(content []byte) *Config {

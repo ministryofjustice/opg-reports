@@ -82,8 +82,13 @@ func Api(conf *config.Config, nav *navigation.NavigationItem, r *http.Request) (
 		}
 
 		_, bytes := convert.Stringify(httpResponse)
-		response := resp.New()
-		convert.Unmarshal(bytes, response)
+		// response := resp.New()
+		response, err := convert.Unmarshal[*resp.Response](bytes)
+		if err != nil {
+			dataErr = err
+			slog.Error("failed to unmarshal api result")
+			continue
+		}
 
 		slog.Info("api call details",
 			slog.String("metadata", fmt.Sprintf("%+v", response.Metadata)),

@@ -8,16 +8,21 @@ import (
 	"strconv"
 )
 
+// Marshal is a local wrapper around json.MarshalIndent for
+// consistency
 func Marshal[T any](item T) (content []byte, err error) {
 	return json.MarshalIndent(item, "", "  ")
 }
 
+// Marshals is also a wraper around MarshalIndent, used to keep naming
+// convention of unmarshaling versions
 func Marshals[T any](items []T) (content []byte, err error) {
 	return json.MarshalIndent(items, "", "  ")
 }
 
-// todo: dont use a passed in version..
-func Unmarshal[T any](content []byte, i T) (item T, err error) {
+// Unmarshal wraper json.Unmarshal and handles error messages etc
+func Unmarshal[T any](content []byte) (item T, err error) {
+	var i T
 	err = json.Unmarshal(content, &i)
 	if err != nil {
 		slog.Error("unmarshal failed", slog.String("err", err.Error()))
@@ -27,6 +32,8 @@ func Unmarshal[T any](content []byte, i T) (item T, err error) {
 	return
 }
 
+// Unmarshals wrapper for mutliple types for shorthand and deals with error
+// logging
 func Unmarshals[T any](content []byte) (items []T, err error) {
 	var i []T
 	err = json.Unmarshal(content, &i)

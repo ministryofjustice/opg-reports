@@ -75,8 +75,8 @@ func TestServersApiGithubStandardsArchivedApiCallAndParse(t *testing.T) {
 
 	// -- check values of the response
 	_, bytes := convert.Stringify(hr)
-	response := resp.New()
-	convert.Unmarshal(bytes, response)
+	// response := resp.New()
+	response, _ := convert.Unmarshal[*resp.Response](bytes)
 
 	// -- check the counters match with generated number
 	counts := response.Metadata["counters"].(map[string]interface{})

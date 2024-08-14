@@ -49,8 +49,8 @@ func ForTemplate(templateName string, navs []*NavigationItem) (found *Navigation
 }
 
 func NewNav(content []byte) ([]*NavigationItem, error) {
-	n := []*NavigationItem{}
-	return convert.Unmarshal(content, n)
+	// n := []*NavigationItem{}
+	return convert.Unmarshals[*NavigationItem](content)
 }
 
 func New(content []byte) []*NavigationItem {
