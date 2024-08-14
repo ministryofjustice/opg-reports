@@ -144,4 +144,4 @@ runs:
         echo "tags:"  >> $GITHUB_STEP_SUMMARY
         echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
         echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:main-${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
-        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:latestY"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:latest"  >> $GITHUB_STEP_SUMMARY
