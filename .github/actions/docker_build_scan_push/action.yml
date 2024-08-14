@@ -113,7 +113,6 @@ runs:
       shell: bash
       if: ${{ inputs.path_to_live != 'true' }}
       run: |
-        echo "### Docker Summary" >> $GITHUB_STEP_SUMMARY
         echo "tags:"  >> $GITHUB_STEP_SUMMARY
         echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
         echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:development-${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
@@ -142,7 +141,6 @@ runs:
       shell: bash
       if: ${{ inputs.path_to_live == 'true' }}
       run: |
-        echo "### Docker Summary" >> $GITHUB_STEP_SUMMARY
         echo "tags:"  >> $GITHUB_STEP_SUMMARY
         echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
         echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:main-${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
