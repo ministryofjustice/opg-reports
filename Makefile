@@ -4,7 +4,6 @@
 all:
 	@echo "Nothing to run, choose a target."
 
-
 ##############################
 AWS_VAULT_PROFILE ?= shared-development-operator
 AWS_BUCKET ?= report-data-development
@@ -18,7 +17,6 @@ endif
 ##############################
 # TESTS
 ##############################
-
 # run a test based on the $name passed
 # pass along github token from env and setup log levels and destinations
 test:
@@ -55,7 +53,7 @@ benchmark:
 csv: vars
 # 	download github_standards data
 	@mkdir -p ./builds/api/github_standards
-	${AWS_VAULT_COMMAND} aws s3 sync s3://${AWS_BUCKET}/github_standards ./builds/api/github_standards/ ; \
+	${AWS_VAULT_COMMAND} aws s3 sync s3://${AWS_BUCKET}/github_standards ./builds/api/github_standards/ || echo bucket-failed; \
 
 vars:
 	@echo "AWS_VAULT_PROFILE: ${AWS_VAULT_PROFILE}"
@@ -68,9 +66,12 @@ vars:
 down:
 	@docker compose down
 
+image := $(shell docker images -a | grep 'opg-reports/*' | awk '{print $$1":"$$2}')
 clean: down
 	@rm -Rf ./builds
 	@mkdir -p ./builds
+	@docker image rm $(image)
+	@docker compose rm api front
 	@docker container prune -f
 	@docker image prune -f --filter="dangling=true"
 
@@ -79,9 +80,10 @@ build: csv
 		--verbose \
 		-f docker-compose.yml \
 		-f docker/docker-compose.dev.yml \
-		build
+		build api front \
+		--parallel
 
-up: csv
+up: build
 	@env DOCKER_BUILDKIT=0 docker compose \
 		--verbose \
 		-f docker-compose.yml \
@@ -89,13 +91,15 @@ up: csv
 		up \
 		-d api front
 
+# production versions
 build-production: csv
 	@env DOCKER_BUILDKIT=0 docker compose \
 		--verbose \
 		-f docker-compose.yml \
-		build
+		build api front \
+		--parallel
 
-up-production: csv
+up-production: build-production
 	@env DOCKER_BUILDKIT=0 docker compose \
 		--verbose \
 		-f docker-compose.yml \
