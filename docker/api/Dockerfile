@@ -23,7 +23,7 @@ RUN ls -lRh /app/builds/api/github_standards/*
 RUN cd /app/datastore/github_standards/ && sqlc generate && cd -
 # data migration
 RUN cp /app/datastore/github_standards/github_standards*.sql /go/bin/api/github_standards/
-RUN cp /app/builds/api/github_standards/data/* /go/bin/api/github_standards/data/ || echo "skip data"
+RUN cp /app/builds/api/github_standards/data* /go/bin/api/github_standards/ || echo "skip data"
 RUN go build -o /go/bin/api/api_server ./servers/api/main.go
 RUN go build -o /go/bin/api/seed_cmd ./commands/seed/main.go
 # debug info
