@@ -93,6 +93,8 @@ runs:
     - name: "Push image to ECR [PR]"
       if: ${{ inputs.path_to_live != 'true' }}
       uses: docker/build-push-action@v6.3.0
+      env:
+        SOURCE_DATE_EPOCH: 0
       with:
         context: .
         file: ${{ inputs.dockerfile }}
@@ -106,8 +108,16 @@ runs:
           ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:development-latest
         build-args: |
           TAG=${{ inputs.tag }}
-      env:
-        SOURCE_DATE_EPOCH: 0
+
+    - name: "Summary"
+      shell: bash
+      if: ${{ inputs.path_to_live != 'true' }}
+      run: |
+        echo "### Docker Summary" >> $GITHUB_STEP_SUMMARY
+        echo "tags:"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:development-${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:development-latest"  >> $GITHUB_STEP_SUMMARY
 
     # For live
     - name: "Push image to ECR [Path to live]"
@@ -128,3 +138,12 @@ runs:
           TAG=${{ inputs.tag }}
       env:
         SOURCE_DATE_EPOCH: 0
+    - name: "Summary [path to live]"
+      shell: bash
+      if: ${{ inputs.path_to_live == 'true' }}
+      run: |
+        echo "### Docker Summary" >> $GITHUB_STEP_SUMMARY
+        echo "tags:"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:main-${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:latestY"  >> $GITHUB_STEP_SUMMARY

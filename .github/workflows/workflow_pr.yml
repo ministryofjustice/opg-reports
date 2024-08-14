@@ -20,7 +20,6 @@ permissions:
 
 
 env:
-  creating: "pre-release"
   prerelease: "true"
   path_to_live: "false"
 
