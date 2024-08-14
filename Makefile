@@ -7,12 +7,15 @@ all:
 ##############################
 AWS_VAULT_PROFILE ?= shared-development-operator
 AWS_BUCKET ?= report-data-development
+SERVICES ?= api front
 ##############################
 AWS_VAULT_COMMAND = echo "using session token" &&
 ##############################
 ifndef AWS_SESSION_TOKEN
 AWS_VAULT_COMMAND = aws-vault exec ${AWS_VAULT_PROFILE} --
 endif
+# docker images
+images := $(shell docker images -a | grep 'opg-reports/*' | awk '{print $$1":"$$2}')
 
 ##############################
 # TESTS
@@ -59,6 +62,7 @@ vars:
 	@echo "AWS_VAULT_PROFILE: ${AWS_VAULT_PROFILE}"
 	@echo "AWS_BUCKET: ${AWS_BUCKET}"
 	@echo "AWS_VAULT_COMMAND: ${AWS_VAULT_COMMAND}"
+	@echo "SERVICES: ${SERVICES}"
 
 ##############################
 # DOCKER BUILD
@@ -66,11 +70,16 @@ vars:
 down:
 	@docker compose down
 
-image := $(shell docker images -a | grep 'opg-reports/*' | awk '{print $$1":"$$2}')
+stop:
+	@docker compose stop ${SERVICES}
+
+start:
+	@docker compose start ${SERVICES}
+
 clean: down
 	@rm -Rf ./builds
 	@mkdir -p ./builds
-	@docker image rm $(image)
+	@docker image rm $(image) || echo "ok"
 	@docker compose rm api front
 	@docker container prune -f
 	@docker image prune -f --filter="dangling=true"
@@ -80,7 +89,7 @@ build: csv
 		--verbose \
 		-f docker-compose.yml \
 		-f docker/docker-compose.dev.yml \
-		build api front \
+		build ${SERVICES} \
 		--parallel
 
 up: build
@@ -89,19 +98,19 @@ up: build
 		-f docker-compose.yml \
 		-f docker/docker-compose.dev.yml \
 		up \
-		-d api front
+		-d ${SERVICES}
 
 # production versions
 build-production: csv
 	@env DOCKER_BUILDKIT=0 docker compose \
 		--verbose \
 		-f docker-compose.yml \
-		build api front \
+		build ${SERVICES} \
 		--parallel
 
-up-production: build-production
+up-production:
 	@env DOCKER_BUILDKIT=0 docker compose \
 		--verbose \
 		-f docker-compose.yml \
 		up \
-		-d api front
+		-d ${SERVICES}
