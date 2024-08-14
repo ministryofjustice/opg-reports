@@ -16,7 +16,7 @@ import (
 
 func Seed(ctx context.Context, dbF string, schemaF string, dataF string, table string, N int) (db *sql.DB, err error) {
 	logger.LogSetup()
-	slog.Info("starting to seed ",
+	slog.Info("starting to seed",
 		slog.String("db", dbF),
 		slog.String("schema", schemaF),
 		slog.String("dataFiles", dataF),

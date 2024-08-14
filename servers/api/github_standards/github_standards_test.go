@@ -1,138 +1,121 @@
 package github_standards_test
 
-const dbSchema string = "../../../datastore/github_standards/github_standards.sql"
+import (
+	"context"
+	"fmt"
+	"log"
+	"log/slog"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"path/filepath"
+	"testing"
 
-// // seed the database and then run filters to test and view performance
-// func TestServersApiGithubStandardsArchivedPerfDBOnly(t *testing.T) {
-// 	logger.LogSetup()
-// 	ctx := context.Background()
-// 	N := 50000
+	"github.com/ministryofjustice/opg-reports/commands/seed/seeder"
+	"github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
+	"github.com/ministryofjustice/opg-reports/servers/api/github_standards"
+	"github.com/ministryofjustice/opg-reports/servers/front/getter"
+	"github.com/ministryofjustice/opg-reports/servers/shared/resp"
+	"github.com/ministryofjustice/opg-reports/shared/convert"
+	"github.com/ministryofjustice/opg-reports/shared/logger"
+	"github.com/ministryofjustice/opg-reports/shared/testhelpers"
+)
 
-// 	// dir := t.TempDir()
-// 	dir := testhelpers.Dir()
+const realSchema string = "../../../datastore/github_standards/github_standards.sql"
 
-// 	// -- seeding block
-// 	dbName := filepath.Join(dir, "github_standards.db")
-// 	csvs := filepath.Join(dir, "*.csv")
-// 	s := time.Now().UTC()
-// 	db, err := seeder.Seed(dbName, dbSchema, csvs, "github_standards", N)
-// 	defer db.Close()
-// 	e := time.Now().UTC()
-// 	dur := e.Sub(s)
-// 	if err != nil {
-// 		t.Errorf("error with db:" + err.Error())
-// 	}
-// 	slog.Warn("seed duration", slog.Float64("seconds", dur.Seconds()))
-// 	// -- end seeding block
+// test that creating and then callign an endpoint for github standards returns all
+// the data we would expect
+func TestServersApiGithubStandardsArchivedApiCallAndParse(t *testing.T) {
+	logger.LogSetup()
+	ctx := context.TODO()
+	N := 500
+	dir := t.TempDir()
 
-// 	q := ghs.New(db)
+	dbF := filepath.Join(dir, "ghs.db")
+	schemaF := filepath.Join(dir, "ghs.sql")
+	dataF := filepath.Join(dir, "dummy.json")
 
-// 	l, _ := q.Count(ctx)
-// 	if l != int64(N) {
-// 		t.Errorf("records did not create properly: [%d] [%d]", N, l)
-// 	}
+	testhelpers.CopyFile(realSchema, schemaF)
+	tick := testhelpers.T()
+	db, err := seeder.Seed(ctx, dbF, schemaF, dataF, "github_standards", N)
+	tick.Stop()
+	if err != nil {
+		slog.Error(err.Error())
+		log.Fatal(err.Error())
+	}
+	defer db.Close()
+	slog.Warn("seed duration", slog.String("seconds", tick.Seconds()))
 
-// 	s = time.Now().UTC()
-// 	res, _ := q.FilterByIsArchived(ctx, 1)
-// 	e = time.Now().UTC()
-// 	dur = e.Sub(s)
-// 	slog.Warn("archived filter duration",
-// 		slog.Float64("seconds", dur.Seconds()),
-// 		slog.Int("records", len(res)))
+	// check the count of records
+	q := ghs.New(db)
+	defer q.Close()
+	l, _ := q.Count(ctx)
+	if l != int64(N) {
+		t.Errorf("records did not create properly: [%d] [%d]", N, l)
+	}
+	// -- setup a mock api thats bound to the correct handler func
+	mock := mockApi(ctx, dbF)
+	defer mock.Close()
+	u, err := url.Parse(mock.URL)
+	if err != nil {
+		slog.Error(err.Error())
+		log.Fatal(err.Error())
+	}
 
-// 	s = time.Now().UTC()
-// 	team := "%#" + "foo" + "#%"
-// 	res, _ = q.FilterByIsArchivedAndTeam(ctx, ghs.FilterByIsArchivedAndTeamParams{IsArchived: 1, Teams: team})
-// 	e = time.Now().UTC()
-// 	dur = e.Sub(s)
-// 	slog.Warn("archived team filter duration",
-// 		slog.Float64("seconds", dur.Seconds()),
-// 		slog.Int("records", len(res)))
+	// -- call the api - time its duration
+	tick = testhelpers.T()
+	hr, err := getter.GetUrl(u)
+	tick.Stop()
+	if err != nil {
+		slog.Error(err.Error())
+		log.Fatal(err.Error())
+	}
 
-// }
+	slog.Warn("api call duration", slog.String("seconds", tick.Seconds()), slog.String("u", u.String()))
 
-// func TestServersApiGithubStandardsArchivedPerfApiCallAndParse(t *testing.T) {
-// 	logger.LogSetup()
-// 	slog.Warn("start")
-// 	ctx := context.TODO()
-// 	N := 50000
-// 	dir := t.TempDir()
-// 	// -- seeding block
-// 	dbName := filepath.Join(dir, "github_standards.db")
-// 	csvs := filepath.Join(dir, "*.csv")
-// 	s := time.Now().UTC()
-// 	db, err := seeder.Seed(dbName, dbSchema, csvs, "github_standards", N)
-// 	defer db.Close()
-// 	e := time.Now().UTC()
-// 	dur := e.Sub(s)
-// 	if err != nil {
-// 		t.Errorf("error with db:" + err.Error())
-// 	}
-// 	slog.Warn("seed duration", slog.Float64("seconds", dur.Seconds()))
-// 	// -- end seeding block
+	// -- check values of the response
+	_, bytes := convert.Stringify(hr)
+	response := resp.New()
+	convert.Unmarshal(bytes, response)
 
-// 	q := ghs.New(db)
-// 	defer q.Close()
+	// -- check the counters match with generated number
+	counts := response.Metadata["counters"].(map[string]interface{})
+	all := counts["totals"].(map[string]interface{})
+	count := int(all["count"].(float64))
+	if count != N {
+		t.Errorf("total number of rows dont match")
+		fmt.Printf("%+v\n", all)
+	}
 
-// 	// slog.Warn("counting")
-// 	l, _ := q.Count(ctx)
-// 	if l != int64(N) {
-// 		t.Errorf("records did not create properly: [%d] [%d]", N, l)
-// 	}
-// 	// slog.Warn("mocking api")
-// 	mock := mockApi(ctx, dir)
-// 	defer mock.Close()
-// 	u, _ := url.Parse(mock.URL)
+	// -- call with filters to check status is correct
+	list := []string{"?archived=true", "?archived=true&team=foo", "?team=foo"}
+	for _, l := range list {
+		tick = testhelpers.T()
+		call := u.String() + l
+		ur, err := url.Parse(call)
+		if err != nil {
+			slog.Error(err.Error())
+			log.Fatal(err.Error())
+		}
+		hr, err = getter.GetUrl(ur)
+		if err != nil {
+			slog.Error(err.Error())
+			log.Fatal(err.Error())
+		}
+		tick.Stop()
 
-// 	s = time.Now().UTC()
-// 	hr, _ := getter.GetUrl(u)
-// 	e = time.Now().UTC()
-// 	dur = e.Sub(s)
+		slog.Warn("api call duration", slog.String("seconds", tick.Seconds()), slog.String("url", ur.String()))
+		if hr.StatusCode != http.StatusOK {
+			t.Errorf("api call failed")
+		}
+	}
 
-// 	slog.Warn("api call duration", slog.Float64("seconds", dur.Seconds()))
+}
 
-// 	slog.Warn("SeededApiCallOnly",
-// 		slog.Int("N", N),
-// 		slog.String("u", u.String()))
+func mockApi(ctx context.Context, dbF string) *httptest.Server {
+	mux := testhelpers.Mux()
+	funcs := github_standards.Handlers(ctx, mux, dbF)
+	list := funcs["list"]
 
-// 	slog.Warn("end")
-
-// 	_, bytes := convert.Stringify(hr)
-// 	response := resp.New()
-// 	convert.Unmarshal(bytes, response)
-
-// 	counts := response.Metadata["counters"].(map[string]interface{})
-// 	all := counts["totals"].(map[string]interface{})
-
-// 	count := int(all["count"].(float64))
-// 	if count != N {
-// 		t.Errorf("total number of rows dont match")
-// 		fmt.Printf("%+v\n", all)
-// 	}
-
-// 	// -- call other api urls and check response
-// 	list := []string{"?archived=true", "?archived=true&team=foo", "?team=foo"}
-// 	for _, l := range list {
-// 		s = time.Now().UTC()
-// 		call := u.String() + l
-// 		ur, _ := url.Parse(call)
-// 		hr, _ = getter.GetUrl(ur)
-
-// 		e = time.Now().UTC()
-// 		dur = e.Sub(s)
-// 		slog.Warn("api call duration", slog.Float64("seconds", dur.Seconds()), slog.String("url", ur.String()))
-// 		if hr.StatusCode != http.StatusOK {
-// 			t.Errorf("api call failed")
-// 		}
-// 	}
-
-// }
-
-// func mockApi(ctx context.Context, dir string) *httptest.Server {
-// 	dbF := filepath.Join(dir, "github_standards.db")
-// 	mux := testhelpers.Mux()
-// 	funcs := github_standards.Handlers(ctx, mux, dbF)
-// 	list := funcs["list"]
-
-// 	return testhelpers.MockServer(list, "warn")
-// }
+	return testhelpers.MockServer(list, "warn")
+}
