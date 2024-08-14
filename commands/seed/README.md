@@ -12,9 +12,8 @@ go run main.go \
     -data "./builds/api/github_standards/data/*.json"
 ```
 
-- `table`: the name of the table to import data into
+- `-table`: the name of the table to import data into
   - *Note:* this is also used as the key to determine how to generate / insert data, so has to be a known value
 - `-db`: the path to create the database at. If this exists, the command will exit
-- `schema`: the database schema sql file to use to create the database
-- `data`: a file pattern to find data files. If these don't exist, fake table will be created
-
+- `-schema`: the database schema sql file to use to create the database
+- `-data`: a file pattern to find data files. If these don't exist, fake table will be created
