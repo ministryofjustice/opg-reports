@@ -13,3 +13,45 @@ You can spin up versions of the code base using the provided docker compose file
 make clean && make up
 ```
 
+*Note:* Currently there is not hot reload
+
+### Build only
+
+You can run only the build by calling:
+
+```bash
+make build
+```
+
+You can also limit that to a set of services by adding argument:
+
+```bash
+make build SERVICES="<A> <B> <C>"
+```
+
+
+## Running test suite
+
+Call the make targets for the various types of testing:
+
+All tests:
+```bash
+make tests
+```
+
+Named test:
+```bash
+make test name="<pattern>"
+```
+
+All benchmarks:
+```bash
+make benchmarks
+```
+
+Named benchmark
+```bash
+make benchmark name="<pattern>"
+```
+
+

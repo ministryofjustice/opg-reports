@@ -106,6 +106,8 @@ func TestSeedSeederNewDbWithSchemaNoDataFiles(t *testing.T) {
 
 }
 
+// Benchmark the perofmrance of injecting 1000 recrods in N times
+// to track duration
 func BenchmarkSeedSeederNewDbWithSchemaNoDataFiles1k(b *testing.B) {
 	logger.LogSetup()
 	ctx := context.TODO()
