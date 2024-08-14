@@ -116,7 +116,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           bucket: ${{ needs.setup.outputs.aws_s3_bucket }}
         run: |
-          make csv AWS_BUCKET="${{ env.bucket }}"
+          make data AWS_BUCKET="${{ env.bucket }}"
       # switch aws creds for ecr push
       - name: "Configure AWS credentials for ECR"
         id: configure_aws_creds_ecr
