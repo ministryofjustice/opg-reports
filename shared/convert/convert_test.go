@@ -49,3 +49,39 @@ func TestSharedConvertMarshalUnmarshal(t *testing.T) {
 	}
 
 }
+
+// test converting struct back and forth from a map
+func TestTestSharedConvertMapUnmap(t *testing.T) {
+	now := time.Now().UTC()
+	ts := &testhelpers.Ts{S: now, E: now}
+
+	tsM, err := convert.Map(ts)
+	if err != nil {
+		t.Errorf("failed to map :%s", err.Error())
+	}
+	if _, ok := tsM["start"]; !ok {
+		t.Errorf("failed to map")
+	}
+	tsU, err := convert.Unmap[*testhelpers.Ts](tsM)
+	if err != nil {
+		t.Errorf("failed to unmap :%s", err.Error())
+	}
+
+	if tsU.S != ts.S || tsU.E != ts.E {
+		t.Errorf("failed to convert back")
+		fmt.Printf("%+v\n", ts)
+		fmt.Printf("%+v\n", tsU)
+	}
+}
+
+func TestTestSharedConvertString(t *testing.T) {
+
+	s := &testhelpers.Simple{Name: "test name"}
+	expected := `{"name": "test name"}`
+	str := convert.String(s)
+	if expected != str {
+		t.Errorf("got an invalid result")
+		fmt.Println(str)
+	}
+
+}

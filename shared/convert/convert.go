@@ -6,18 +6,21 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 )
+
+const indentWith string = "  "
 
 // Marshal is a local wrapper around json.MarshalIndent for
 // consistency
 func Marshal[T any](item T) (content []byte, err error) {
-	return json.MarshalIndent(item, "", "  ")
+	return json.MarshalIndent(item, "", indentWith)
 }
 
 // Marshals is also a wraper around MarshalIndent, used to keep naming
 // convention of unmarshaling versions
 func Marshals[T any](items []T) (content []byte, err error) {
-	return json.MarshalIndent(items, "", "  ")
+	return json.MarshalIndent(items, "", indentWith)
 }
 
 // Unmarshal wraper json.Unmarshal and handles error messages etc
@@ -79,12 +82,19 @@ func Stringify(r *http.Response) (s string, b []byte) {
 	return
 }
 
-func Printify[T any](item T) (s string) {
+// String uses the json marshal to quickly convert any
+// struct into a string for display
+func String[T any](item T) (s string) {
 	bytes, _ := Marshal(item)
 	s = string(bytes)
+	s = strings.ReplaceAll(s, "\n", "")
+	s = strings.ReplaceAll(s, indentWith, "")
 	return
 }
 
+// IntToBool helper used with sql conversion as sqlite has no
+// boolean type, they are stored as 1 (true) or 0, this maps them back to
+// a bool
 func IntToBool(i int) bool {
 	if i == 1 {
 		return true
@@ -92,6 +102,8 @@ func IntToBool(i int) bool {
 	return false
 }
 
+// IntToBool helper used with sql conversion as sqlite has no
+// boolean type, they are stored as 1 (true) or 0
 func BoolToInt(b bool) int {
 	if b {
 		return 1
@@ -99,6 +111,8 @@ func BoolToInt(b bool) int {
 	return 0
 }
 
+// BoolStringToInt helper to deal with get param bools
+// that convert over to 1 | 0 for the db
 func BoolStringToInt(s string) int {
 	b, err := strconv.ParseBool(s)
 	if err == nil && b {
