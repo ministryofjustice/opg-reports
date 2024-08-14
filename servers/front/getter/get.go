@@ -43,11 +43,7 @@ func Api(conf *config.Config, nav *navigation.NavigationItem, r *http.Request) (
 	// for title case
 	c := cases.Title(language.English)
 
-	data = map[string]interface{}{
-		"Organisation": conf.Organisation,
-		"PageTitle":    nav.Name,
-		"Result":       nil,
-	}
+	data = map[string]interface{}{}
 	dataSources := nav.DataSources
 
 	withPrefix := len(dataSources) > 1

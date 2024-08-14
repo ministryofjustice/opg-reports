@@ -20,10 +20,10 @@ RUN mkdir -p /go/bin/api
 # sqlc generation
 RUN cd ./datastore/github_standards/ && sqlc generate && cd -
 RUN go build -o /go/bin/api/api_server ./servers/api/main.go
+# debug info
 RUN pwd
 RUN ls -lh /go/bin/
 RUN ls -lh /go/bin/api
-
 
 FROM build AS dev
 EXPOSE 8081
@@ -34,7 +34,7 @@ RUN mkdir -p ./github_standards
 # copy schemas
 COPY --from=build /app/datastore/github_standards/github_standards*.sql ./github_standards/
 # copy bucket data
-COPY --from=build /app/builds/api/github_standards/*.csv ./github_standards/
+COPY --from=build /app/builds/api/github_standards/csv* ./github_standards/
 # copy binary
 COPY --from=build /go/bin/api* ./
 RUN pwd
@@ -49,7 +49,7 @@ ENV CGO_ENABLED=1 GOOS=linux
 RUN apk --update --no-cache add "sqlite=~3.45"
 RUN mkdir -p ./github_standards
 COPY --from=build /app/datastore/github_standards/github_standards*.sql ./github_standards/
-COPY --from=build /app/builds/api/github_standards/*.csv ./github_standards/
+COPY --from=build /app/builds/api/github_standards/csv* ./github_standards/
 COPY --from=build /go/bin/api* ./
 RUN pwd
 RUN ls -lh ./

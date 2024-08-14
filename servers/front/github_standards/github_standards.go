@@ -22,7 +22,8 @@ func Register(ctx context.Context, mux *http.ServeMux, conf *config.Config, temp
 	navItem := navigation.ForTemplate(templateName, nav)
 
 	var list = func(w http.ResponseWriter, r *http.Request) {
-		data := map[string]interface{}{}
+		data := map[string]interface{}{"Result": nil}
+
 		// if theres no error, then process the response normally
 		if apiData, err := getter.Api(conf, navItem, r); err == nil {
 			data = apiData
@@ -42,6 +43,8 @@ func Register(ctx context.Context, mux *http.ServeMux, conf *config.Config, temp
 		} else {
 			slog.Error("had error back from api getter", slog.String("err", err.Error()))
 		}
+		data["Organisation"] = conf.Organisation
+		data["PageTitle"] = navItem.Name + " "
 		// sort out navigation
 		top, active := navigation.Level(conf.Navigation, r)
 		data["NavigationTop"] = top
