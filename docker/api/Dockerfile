@@ -29,6 +29,7 @@ RUN go build -o /go/bin/api/seed_cmd ./commands/seed/main.go
 # debug info
 RUN pwd
 RUN ls -lRh /go/bin/
+# check the copy did preserve times
 RUN stat /go/bin/api/*/data/*.json
 # run the db seeding -- github standards
 RUN /go/bin/api/seed_cmd \
