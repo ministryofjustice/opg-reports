@@ -34,10 +34,6 @@ inputs:
     description: "Force a checkout of the repository"
     default: "false"
 
-  scan_image:
-    description: "When set to true, uses trivy to scan the docker image just created."
-    default: 'true'
-
   path_to_live:
     description: "When set to true, pushes images following production conventions."
     default: "false"
@@ -91,28 +87,14 @@ runs:
       env:
         SOURCE_DATE_EPOCH: 0
 
-    # Scan the image
-    - name: "Trivy image vulnerability scanner [repository: ${{ inputs.ecr_repository }}]"
-      id: trivy_scan
-      if: ${{ inputs.scan_image == 'true' }}
-      uses: aquasecurity/trivy-action@0.24.0
-      with:
-        image-ref: ${{ inputs.ecr_repository }}:${{ inputs.tag }}
-        severity: 'HIGH,CRITICAL'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-    - name: "Upload Trivy scan results to GitHub security tab [repository: ${{ inputs.ecr_repository }}]"
-      id: trivy_upload_sarif
-      uses: github/codeql-action/upload-sarif@v3.25.11
-      if: ${{ inputs.scan_image == 'true' }}
-      with:
-        sarif_file: 'trivy-results.sarif'
 
     # Push the image
     # for a PR
     - name: "Push image to ECR [PR]"
       if: ${{ inputs.path_to_live != 'true' }}
       uses: docker/build-push-action@v6.3.0
+      env:
+        SOURCE_DATE_EPOCH: 0
       with:
         context: .
         file: ${{ inputs.dockerfile }}
@@ -126,8 +108,15 @@ runs:
           ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:development-latest
         build-args: |
           TAG=${{ inputs.tag }}
-      env:
-        SOURCE_DATE_EPOCH: 0
+
+    - name: "Summary"
+      shell: bash
+      if: ${{ inputs.path_to_live != 'true' }}
+      run: |
+        echo "tags:"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:development-${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:development-latest"  >> $GITHUB_STEP_SUMMARY
 
     # For live
     - name: "Push image to ECR [Path to live]"
@@ -148,3 +137,11 @@ runs:
           TAG=${{ inputs.tag }}
       env:
         SOURCE_DATE_EPOCH: 0
+    - name: "Summary [path to live]"
+      shell: bash
+      if: ${{ inputs.path_to_live == 'true' }}
+      run: |
+        echo "tags:"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:main-${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:latest"  >> $GITHUB_STEP_SUMMARY

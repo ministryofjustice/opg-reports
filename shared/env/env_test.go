@@ -1,13 +1,15 @@
 package env
 
 import (
-	"opg-reports/shared/logger"
 	"os"
 	"testing"
+
+	"github.com/ministryofjustice/opg-reports/shared/logger"
 )
 
 func TestGet(t *testing.T) {
 	logger.LogSetup()
+
 	if Get("PATH", "123") != os.Getenv("PATH") {
 		t.Errorf("path mismatch")
 	}

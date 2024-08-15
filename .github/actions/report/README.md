@@ -2,7 +2,6 @@
 
 Build the local `go` code and then run the binary whose name is passed along as the `cmd` input.
 
-The outputed variable `data_folder` can then be used by `s3_upload` action to push data to the s3 bucket.
 
 Please ensure any authentication (AWS creds, github tokens etc) are done before calling this action within your job.
 

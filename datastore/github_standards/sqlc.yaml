@@ -1,0 +1,17 @@
+version: "2"
+sql:
+  - name: "github_standards"
+    engine: "sqlite"
+    queries: "queries.sql"
+    schema: "github_standards.sql"
+    gen:
+      go:
+        package: "ghs"
+        out: "ghs"
+        emit_prepared_queries: true
+        emit_json_tags: true
+        overrides:
+          - db_type: "INTEGER"
+            go_type: "int"
+
+

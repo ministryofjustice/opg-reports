@@ -39,8 +39,8 @@ readonly ROOT_DIR=$(d "${SCRIPT_DIR}/../")
 readonly GITHUB_DIR="${ROOT_DIR}/.github"
 readonly GITHUB_WORKFLOW_DIR="${GITHUB_DIR}/workflows"
 readonly TERRAFORM_DIR="${ROOT_DIR}/terraform"
-readonly SERVICE_DIR="${ROOT_DIR}/services"
-readonly SERVICE_FRONT_DIR="${ROOT_DIR}/services/front"
+readonly SERVICE_DIR="${ROOT_DIR}/servers"
+readonly SERVICE_FRONT_DIR="${ROOT_DIR}/servers/front"
 ################################################
 # FILES
 ################################################
@@ -51,7 +51,7 @@ readonly GITHUB_REPOSITORY_REPORT="report_repository_standards.yml"
 readonly GITHUB_WORKFLOW_PR="workflow_pr.yml"
 readonly GITHUB_WORKFLOW_LIVE="workflow_path_to_live.yml"
 readonly DOCKER_COMPOSE_FILE="docker-compose.yml"
-readonly FRONT_CONFIG_FILE="config.simple.json"
+readonly FRONT_CONFIG_FILE="config.base.json"
 readonly FRONT_CONFIG_LINK="config.json"
 ################################################
 # OUTPUT ICONS
@@ -64,17 +64,18 @@ readonly N="𐄂"
 ################################################
 # FIND / REPLACE
 ################################################
+# markers within the workflows to remove
 readonly CHUNK_START="#--fork-remove-start"
 readonly CHUNK_END="#--fork-remove-end"
 readonly TEXT_REPLACE="#--fork-replacement"
-#
+# keys to look for in the workflows
 readonly YAML_BUCKET="aws_s3_bucket"
 readonly YAML_S3_DOWNLOAD="aws_role_s3_download"
 readonly YAML_S3_UPLOAD="aws_role_s3_upload"
 readonly YAML_ECR_REGISTRY_ID="ecr_registry_id"
 readonly YAML_ECR_PUSH="aws_role_ecr_login_and_push"
 readonly MAKEFILE_BUCKET="BUCKET"
-readonly MAKEFILE_PROFILE="AWS_PROFILE"
+readonly MAKEFILE_PROFILE="AWS_VAULT_PROFILE"
 readonly DOCKER_REGISTRY="image"
 readonly GH_ORG_KEY="github_org"
 readonly GH_TEAM_KEY="github_team"
@@ -339,7 +340,9 @@ AWS profile for *LOCAL* s3 bucket *DOWNLOAD*:@[${AWS_PROFILE}]
 AWS role arn for *WORKFLOW* s3 bucket *DOWNLOAD*:@[${BUCKET_DOWNLOAD_ROLE_DEV}]
 AWS role arn for *WORKFLOW* s3 bucket *UPLOAD*:@[${BUCKET_UPLOAD_ROLE_DEV}]
 AWS ECR registry id:@[${ECR_REGISTRY_ID}]
-AWS OIDC role arn for the *WORKFLOW* ecr login and push:@[${ECR_PUSH_ROLE_DEV}]" | column -s@ -t
+AWS OIDC role arn for the *WORKFLOW* ecr login and push:@[${ECR_PUSH_ROLE_DEV}]
+GITHUB organisation:@[${GITHUB_ORG}]
+GITHUB parent team:@[${GITHUB_TEAM}]" | column -s@ -t
 echo ""
 }
 ################################################

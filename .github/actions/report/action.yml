@@ -17,8 +17,7 @@ inputs:
 outputs:
   data_folder:
     description: "Path to the folder containing the built versions of the code base"
-    value: ${{ steps.setup_data_dir.outputs.DATA_FOLDER }}
-
+    value: "${{ steps.build_go.outputs.dir }}/data"
 
 runs:
   using: "composite"
@@ -29,27 +28,26 @@ runs:
     - name: "Build"
       id: "build_go"
       uses: ./.github/actions/go_build
-      with:
-        target: "reports"
     - name: "Setup data directory"
       id: setup_data_dir
-      working-directory: ${{ steps.build_go.outputs.target_folder }}
+      working-directory: ${{ steps.build_go.outputs.dir }}
       shell: bash
       env:
-        data_folder: ${{ steps.build_go.outputs.target_folder }}/data
+        data_folder: ./data
       run: |
         rm -Rf ${{ env.data_folder }}
         mkdir -p ${{ env.data_folder }}
-        echo "DATA_FOLDER=${{ env.data_folder }}" >> $GITHUB_OUTPUT
     - name: "Run report"
       id: run_report
       shell: bash
-      working-directory: ${{ steps.build_go.outputs.target_folder }}
+      working-directory: ${{ steps.build_go.outputs.dir }}
       env:
+        data_folder: ./data
         cmd_args: ${{ inputs.arguments }}
       run: |
+        ls -lah
         ./${{ inputs.cmd }} ${{ env.cmd_args }}
-        ls -lah ${{ steps.setup_data_dir.outputs.DATA_FOLDER }}
+        ls -lah ${{ env.data_folder }}
     ###############
     #   SUMMARY
     ###############
@@ -63,5 +61,4 @@ runs:
         echo "| name | ${{ inputs.name }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| cmd | ${{ inputs.cmd }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| arguments | ${{ inputs.arguments }} |"  >> $GITHUB_STEP_SUMMARY
-        echo "| directory | ${{ steps.build_go.outputs.target_folder }} |"  >> $GITHUB_STEP_SUMMARY
-        echo "| data folder | ${{ steps.setup_data_dir.outputs.DATA_FOLDER }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| directory | ${{ steps.build_go.outputs.dir }} |"  >> $GITHUB_STEP_SUMMARY
