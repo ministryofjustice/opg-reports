@@ -7,44 +7,7 @@ package awsc
 
 import (
 	"context"
-	"database/sql"
 )
-
-const byMonth = `-- name: ByMonth :many
-SELECT
-    SUM(cost) as total,
-    strftime("%Y-%m", date) as month
-FROM aws_costs
-GROUP BY strftime("%Y-%m", date)
-`
-
-type ByMonthRow struct {
-	Total sql.NullFloat64 `json:"total"`
-	Month interface{}     `json:"month"`
-}
-
-func (q *Queries) ByMonth(ctx context.Context) ([]ByMonthRow, error) {
-	rows, err := q.query(ctx, q.byMonthStmt, byMonth)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []ByMonthRow
-	for rows.Next() {
-		var i ByMonthRow
-		if err := rows.Scan(&i.Total, &i.Month); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
 
 const count = `-- name: Count :one
 SELECT count(*) FROM aws_costs
@@ -108,35 +71,91 @@ func (q *Queries) Insert(ctx context.Context, arg InsertParams) (int, error) {
 	return id, err
 }
 
+const monthlyTotalsTaxSplit = `-- name: MonthlyTotalsTaxSplit :many
+
+SELECT
+    'WithTax' as service,
+    coalesce(SUM(cost), 0) as total,
+    strftime("%Y-%m", date) as month
+FROM aws_costs
+GROUP BY strftime("%Y-%m", date)
+UNION
+SELECT
+    'WithoutTax' as service,
+    coalesce(SUM(cost), 0) as total,
+    strftime("%Y-%m", date) as month
+FROM aws_costs
+WHERE service != 'Tax'
+GROUP BY strftime("%Y-%m", date)
+`
+
+type MonthlyTotalsTaxSplitRow struct {
+	Service string      `json:"service"`
+	Total   interface{} `json:"total"`
+	Month   interface{} `json:"month"`
+}
+
+func (q *Queries) MonthlyTotalsTaxSplit(ctx context.Context) ([]MonthlyTotalsTaxSplitRow, error) {
+	rows, err := q.query(ctx, q.monthlyTotalsTaxSplitStmt, monthlyTotalsTaxSplit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MonthlyTotalsTaxSplitRow
+	for rows.Next() {
+		var i MonthlyTotalsTaxSplitRow
+		if err := rows.Scan(&i.Service, &i.Total, &i.Month); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const oldest = `-- name: Oldest :one
 ;
 
-SELECT MIN(date) FROM aws_costs_tracker LIMIT 1
+SELECT run_date FROM aws_costs_tracker ORDER BY run_date ASC LIMIT 1
 `
 
-func (q *Queries) Oldest(ctx context.Context) (interface{}, error) {
+func (q *Queries) Oldest(ctx context.Context) (string, error) {
 	row := q.queryRow(ctx, q.oldestStmt, oldest)
-	var min interface{}
-	err := row.Scan(&min)
-	return min, err
+	var run_date string
+	err := row.Scan(&run_date)
+	return run_date, err
 }
 
 const track = `-- name: Track :exec
+
 INSERT INTO aws_costs_tracker (run_date) VALUES(?)
 `
 
+// -- name: ByMonth :many
+// SELECT
+//
+//	SUM(cost) as total,
+//	strftime("%Y-%m", date) as month
+//
+// FROM aws_costs
+// GROUP BY strftime("%Y-%m", date);
 func (q *Queries) Track(ctx context.Context, runDate string) error {
 	_, err := q.exec(ctx, q.trackStmt, track, runDate)
 	return err
 }
 
 const youngest = `-- name: Youngest :one
-SELECT MAX(date) FROM aws_costs_tracker LIMIT 1
+SELECT run_date FROM aws_costs_tracker ORDER BY run_date DESC LIMIT 1
 `
 
-func (q *Queries) Youngest(ctx context.Context) (interface{}, error) {
+func (q *Queries) Youngest(ctx context.Context) (string, error) {
 	row := q.queryRow(ctx, q.youngestStmt, youngest)
-	var max interface{}
-	err := row.Scan(&max)
-	return max, err
+	var run_date string
+	err := row.Scan(&run_date)
+	return run_date, err
 }

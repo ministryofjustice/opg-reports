@@ -57,6 +57,15 @@ func Map[T any](item T) (m map[string]interface{}, err error) {
 	}
 	return
 }
+func Maps[T any](item []T) (m []map[string]interface{}, err error) {
+	bytes, err := Marshals(item)
+	if err == nil {
+		m, err = Unmarshals[map[string]interface{}](bytes)
+	} else {
+		slog.Error("map failed", slog.String("err", err.Error()))
+	}
+	return
+}
 
 // Unmap uses json marshaling to convert from a map back to a struct.
 func Unmap[T any](m map[string]interface{}) (item T, err error) {

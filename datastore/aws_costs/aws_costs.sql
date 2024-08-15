@@ -16,6 +16,7 @@ CREATE TABLE aws_costs (
     region TEXT NOT NULL,
     date TEXT NOT NULL,
     cost TEXT NOT NULL
+    --
 ) STRICT;
 
 -- used to track the dates of when the data was pulled
@@ -23,3 +24,6 @@ CREATE TABLE aws_costs_tracker (
     id INTEGER PRIMARY KEY,
     run_date TEXT NOT NULL
 ) STRICT ;
+
+--
+CREATE INDEX aws_costs_date_idx ON aws_costs(date);

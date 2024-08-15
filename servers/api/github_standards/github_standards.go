@@ -2,46 +2,20 @@ package github_standards
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 	"log/slog"
 	"net/http"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
+	"github.com/ministryofjustice/opg-reports/servers/shared/apidb"
 	"github.com/ministryofjustice/opg-reports/servers/shared/mw"
 	"github.com/ministryofjustice/opg-reports/servers/shared/query"
 	"github.com/ministryofjustice/opg-reports/servers/shared/resp"
-	"github.com/ministryofjustice/opg-reports/shared/consts"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
-	"github.com/ministryofjustice/opg-reports/shared/exists"
 	"github.com/ministryofjustice/opg-reports/shared/logger"
 )
 
-const dbMode string = "WAL"
-const dbTimeout int = 50000
-
-const listRoute string = "/github/standards/{version}/list/{$}"
-
-// connection to the db
-func sqlDB(dbPath string) (db *sql.DB, err error) {
-	if exists.FileOrDir(dbPath) != true {
-		err = fmt.Errorf("database [%s] does not exist", dbPath)
-		return
-	}
-	// connection string to set modes etc
-	conn := consts.SQL_CONNECTION_PARAMS
-	slog.Debug("connecting to db...", slog.String("dbPath", dbPath), slog.String("connection", conn))
-
-	// try to connect to db
-	db, err = sql.Open("sqlite3", dbPath+conn)
-	if err != nil {
-		slog.Error("error connecting to DB", slog.String("err", err.Error()))
-		return
-	}
-	slog.Info("connected to db", slog.String("dbPath", dbPath), slog.String("connection", conn))
-	return
-}
+const listRoute string = "/github-standards/{version}/list/{$}"
 
 // getResults handles determining which query to call based on the get param values
 func getResults(ctx context.Context, queries *ghs.Queries, archived string, team string) (results []ghs.GithubStandard, err error) {
@@ -114,7 +88,7 @@ func Handlers(ctx context.Context, mux *http.ServeMux, dbPath string) map[string
 		response.Start(w, r)
 
 		// -- setup db connection
-		db, err := sqlDB(dbPath)
+		db, err := apidb.SqlDB(dbPath)
 		defer db.Close()
 
 		if err != nil {

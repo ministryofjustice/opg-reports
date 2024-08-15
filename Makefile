@@ -142,15 +142,17 @@ mirror-api: clean data go-build
 	@mkdir -p ./builds/api/github_standards/data
 	@mkdir -p ./builds/api/aws_costs/data
 #	github_standards
-# @cp ./datastore/github_standards/github_standards*.sql ./builds/api/github_standards/
-# ./builds/api/seed_cmd \
-# 	-table github_standards \
-# 	-db ./builds/api/github_standards.db \
-# 	-schema ./builds/api/github_standards/github_standards.sql \
-# 	-data "./builds/api/github_standards/data/*.json"
+	@cp ./datastore/github_standards/github_standards*.sql ./builds/api/github_standards/
+	@echo "seeding github_standards"
+	@./builds/api/seed_cmd \
+		-table github_standards \
+		-db ./builds/api/github_standards.db \
+		-schema ./builds/api/github_standards/github_standards.sql \
+		-data "./builds/api/github_standards/data/*.json"
 #	aws_costs
 	@cp ./datastore/aws_costs/aws_costs*.sql ./builds/api/aws_costs/
-	./builds/api/seed_cmd \
+	@echo "seeding aws_costs"
+	@./builds/api/seed_cmd \
 		-table aws_costs \
 		-db ./builds/api/aws_costs.db \
 		-schema ./builds/api/aws_costs/aws_costs.sql \

@@ -19,16 +19,17 @@ INSERT INTO aws_costs(
 SELECT count(*) FROM aws_costs;
 
 -- name: MonthlyTotalsTaxSplit :many
+
 SELECT
-    'WithTax' as tax,
-    SUM(cost) as total,
+    'WithTax' as service,
+    coalesce(SUM(cost), 0) as total,
     strftime("%Y-%m", date) as month
 FROM aws_costs
 GROUP BY strftime("%Y-%m", date)
 UNION
 SELECT
-    'WithoutTax' as tax,
-    SUM(cost) as total,
+    'WithoutTax' as service,
+    coalesce(SUM(cost), 0) as total,
     strftime("%Y-%m", date) as month
 FROM aws_costs
 WHERE service != 'Tax'
@@ -45,7 +46,7 @@ GROUP BY strftime("%Y-%m", date);
 INSERT INTO aws_costs_tracker (run_date) VALUES(?) ;
 
 -- name: Oldest :one
-SELECT MIN(date) FROM aws_costs_tracker LIMIT 1;
+SELECT run_date FROM aws_costs_tracker ORDER BY run_date ASC LIMIT 1;
 
 -- name: Youngest :one
-SELECT MAX(date) FROM aws_costs_tracker LIMIT 1;
+SELECT run_date FROM aws_costs_tracker ORDER BY run_date DESC LIMIT 1;

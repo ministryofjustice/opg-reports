@@ -24,14 +24,14 @@ func New(db DBTX) *Queries {
 func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	q := Queries{db: db}
 	var err error
-	if q.byMonthStmt, err = db.PrepareContext(ctx, byMonth); err != nil {
-		return nil, fmt.Errorf("error preparing query ByMonth: %w", err)
-	}
 	if q.countStmt, err = db.PrepareContext(ctx, count); err != nil {
 		return nil, fmt.Errorf("error preparing query Count: %w", err)
 	}
 	if q.insertStmt, err = db.PrepareContext(ctx, insert); err != nil {
 		return nil, fmt.Errorf("error preparing query Insert: %w", err)
+	}
+	if q.monthlyTotalsTaxSplitStmt, err = db.PrepareContext(ctx, monthlyTotalsTaxSplit); err != nil {
+		return nil, fmt.Errorf("error preparing query MonthlyTotalsTaxSplit: %w", err)
 	}
 	if q.oldestStmt, err = db.PrepareContext(ctx, oldest); err != nil {
 		return nil, fmt.Errorf("error preparing query Oldest: %w", err)
@@ -47,11 +47,6 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 
 func (q *Queries) Close() error {
 	var err error
-	if q.byMonthStmt != nil {
-		if cerr := q.byMonthStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing byMonthStmt: %w", cerr)
-		}
-	}
 	if q.countStmt != nil {
 		if cerr := q.countStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing countStmt: %w", cerr)
@@ -60,6 +55,11 @@ func (q *Queries) Close() error {
 	if q.insertStmt != nil {
 		if cerr := q.insertStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing insertStmt: %w", cerr)
+		}
+	}
+	if q.monthlyTotalsTaxSplitStmt != nil {
+		if cerr := q.monthlyTotalsTaxSplitStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing monthlyTotalsTaxSplitStmt: %w", cerr)
 		}
 	}
 	if q.oldestStmt != nil {
@@ -114,25 +114,25 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db           DBTX
-	tx           *sql.Tx
-	byMonthStmt  *sql.Stmt
-	countStmt    *sql.Stmt
-	insertStmt   *sql.Stmt
-	oldestStmt   *sql.Stmt
-	trackStmt    *sql.Stmt
-	youngestStmt *sql.Stmt
+	db                        DBTX
+	tx                        *sql.Tx
+	countStmt                 *sql.Stmt
+	insertStmt                *sql.Stmt
+	monthlyTotalsTaxSplitStmt *sql.Stmt
+	oldestStmt                *sql.Stmt
+	trackStmt                 *sql.Stmt
+	youngestStmt              *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:           tx,
-		tx:           tx,
-		byMonthStmt:  q.byMonthStmt,
-		countStmt:    q.countStmt,
-		insertStmt:   q.insertStmt,
-		oldestStmt:   q.oldestStmt,
-		trackStmt:    q.trackStmt,
-		youngestStmt: q.youngestStmt,
+		db:                        tx,
+		tx:                        tx,
+		countStmt:                 q.countStmt,
+		insertStmt:                q.insertStmt,
+		monthlyTotalsTaxSplitStmt: q.monthlyTotalsTaxSplitStmt,
+		oldestStmt:                q.oldestStmt,
+		trackStmt:                 q.trackStmt,
+		youngestStmt:              q.youngestStmt,
 	}
 }
