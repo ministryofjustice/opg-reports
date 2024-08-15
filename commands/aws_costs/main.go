@@ -107,7 +107,7 @@ func main() {
 		slog.String("dir", *dir.Value),
 		slog.String("out", *out.Value))
 
-	raw, err := aws.CostAndUsage(startDate, endDate, costexplorer.GranularityMonthly, dates.FormatYMD)
+	raw, err := aws.CostAndUsage(startDate, endDate, costexplorer.GranularityDaily, dates.FormatYMD)
 	costs, err := Flat(raw, *id.Value, *org.Value, *unit.Value, *name.Value, *label.Value, *env.Value)
 
 	if err != nil {

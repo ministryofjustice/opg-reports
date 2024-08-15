@@ -57,22 +57,12 @@ func Handlers(ctx context.Context, mux *http.ServeMux, dbPath string) map[string
 		response.Result, _ = convert.Maps(results)
 
 		// // -- get overall counters
-		// all, _ := queries.Count(ctx)
-		// tBase, _ := queries.TotalCountCompliantBaseline(ctx)
-		// tExt, _ := queries.TotalCountCompliantExtended(ctx)
-
-		// response.Metadata["counters"] = map[string]map[string]int{
-		// 	"totals": {
-		// 		"count":              int(all),
-		// 		"compliant_baseline": int(tBase),
-		// 		"compliant_extended": int(tExt),
-		// 	},
-		// 	"this": {
-		// 		"count":              len(res),
-		// 		"compliant_baseline": base,
-		// 		"compliant_extended": ext,
-		// 	},
-		// }
+		all, _ := queries.Count(ctx)
+		response.Metadata["counters"] = map[string]map[string]int{
+			"totals": {
+				"count": int(all),
+			},
+		}
 		response.Metadata["filters"] = filters
 		// -- add the date min / max values
 		min, err := queries.Oldest(ctx)
