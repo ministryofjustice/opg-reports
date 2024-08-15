@@ -29,9 +29,11 @@ func TestSharedDatesFileCreationTime(t *testing.T) {
 		t.Errorf("error getting time, this might be os related!")
 		fmt.Println(err)
 	}
-	if ts.Format(dates.FormatYMDHMS) != created {
+	actual := ts.Format(dates.FormatYMDHMS)
+	if actual != created {
 		t.Errorf("created date failed")
-		fmt.Println(ts.String())
+		fmt.Println(actual)
+		fmt.Println(created)
 	}
 
 }

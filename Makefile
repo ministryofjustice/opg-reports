@@ -55,6 +55,9 @@ benchmark:
 ##############################
 # DATA
 ##############################
+sqlc:
+	@cd ./datastore/github_standards && sqlc generate
+
 data: vars
 # 	download github_standards data
 	@mkdir -p ./builds/api/github_standards/data
@@ -122,7 +125,7 @@ up-production:
 
 
 ##############################
-# close approx of the dockerfile for local trial
+# close approx of the dockerfile for setup without docker
 ##############################
 mirror-api: clean data
 	mkdir -p ./builds/api/github_standards/data
@@ -134,6 +137,3 @@ mirror-api: clean data
 		-db ./builds/api/github_standards.db \
 		-schema ./builds/api/github_standards/github_standards.sql \
 		-data "./builds/api/github_standards/data/*.json"
-
-sqlc:
-	@cd ./datastore/github_standards && sqlc generate
