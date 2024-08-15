@@ -2,9 +2,10 @@ package dates_test
 
 import (
 	"fmt"
-	"os/exec"
+	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/ministryofjustice/opg-reports/shared/dates"
 )
@@ -12,13 +13,14 @@ import (
 func TestSharedDatesFileCreationTime(t *testing.T) {
 
 	dir := t.TempDir()
-	// dir := testhelpers.Dir()
-	created := "2024-02-29T01:02:00"
-	// expected := "2024-02-29T01:02:00"
-	f := filepath.Join(dir, "test-creation")
-	fmt.Println(f)
-	cmd := exec.Command("touch", "-d", created, f)
-	err := cmd.Run()
+	f := filepath.Join(dir, "test-time")
+	os.WriteFile(f, []byte(""), os.ModePerm)
+
+	now := time.Now().UTC()
+	m := time.Date(2024, 2, 29, 1, 1, 0, 0, time.UTC)
+
+	err := os.Chtimes(f, now, m)
+
 	if err != nil {
 		t.Errorf("error forcing time change, this might be os related!")
 		fmt.Println(err)
@@ -30,10 +32,11 @@ func TestSharedDatesFileCreationTime(t *testing.T) {
 		fmt.Println(err)
 	}
 	actual := ts.Format(dates.FormatYMDHMS)
-	if actual != created {
+	expected := m.Format(dates.FormatYMDHMS)
+	if actual != expected {
 		t.Errorf("created date failed")
 		fmt.Println(actual)
-		fmt.Println(created)
+		fmt.Println(expected)
 	}
 
 }

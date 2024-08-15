@@ -21,20 +21,22 @@ RUN mkdir -p /go/bin/api/github_standards/data/
 RUN ls -lRh /app/builds/api/github_standards/*
 # sqlc generation
 RUN cd /app/datastore/github_standards/ && sqlc generate && cd -
-# data migration
-RUN cp /app/datastore/github_standards/github_standards*.sql /go/bin/api/github_standards/
-RUN cp -r /app/builds/api/github_standards/data /go/bin/api/github_standards/ || echo "skip data"
+# data migration, preserve timestamps as the seeder will use modtime as report date
+RUN cp -p /app/datastore/github_standards/github_standards*.sql /go/bin/api/github_standards/
+RUN cp -r -p /app/builds/api/github_standards/data /go/bin/api/github_standards/ || echo "skip data"
 RUN go build -o /go/bin/api/api_server ./servers/api/main.go
 RUN go build -o /go/bin/api/seed_cmd ./commands/seed/main.go
 # debug info
 RUN pwd
 RUN ls -lRh /go/bin/
-# run the db seeding
+RUN stat /go/bin/api/*/data/*.json
+# run the db seeding -- github standards
 RUN /go/bin/api/seed_cmd \
     -table github_standards \
     -schema /go/bin/api/github_standards/github_standards.sql \
     -db /go/bin/api/github_standards.db \
     -data "/go/bin/api/github_standards/data/*.json"
+# test the import worked by getting the count
 RUN sqlite3 /go/bin/api/github_standards.db "select count(*) from github_standards;"
 RUN ls -lRh /go/bin/
 
