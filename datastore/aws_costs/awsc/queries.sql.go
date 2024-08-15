@@ -39,17 +39,17 @@ INSERT INTO aws_costs(
 `
 
 type InsertParams struct {
-	Ts           string  `json:"ts"`
-	Organisation string  `json:"organisation"`
-	AccountID    string  `json:"account_id"`
-	AccountName  string  `json:"account_name"`
-	Unit         string  `json:"unit"`
-	Label        string  `json:"label"`
-	Environment  string  `json:"environment"`
-	Service      string  `json:"service"`
-	Region       string  `json:"region"`
-	Date         string  `json:"date"`
-	Cost         float64 `json:"cost"`
+	Ts           string `json:"ts"`
+	Organisation string `json:"organisation"`
+	AccountID    string `json:"account_id"`
+	AccountName  string `json:"account_name"`
+	Unit         string `json:"unit"`
+	Label        string `json:"label"`
+	Environment  string `json:"environment"`
+	Service      string `json:"service"`
+	Region       string `json:"region"`
+	Date         string `json:"date"`
+	Cost         string `json:"cost"`
 }
 
 func (q *Queries) Insert(ctx context.Context, arg InsertParams) (int, error) {

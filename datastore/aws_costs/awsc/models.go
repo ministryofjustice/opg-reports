@@ -5,18 +5,18 @@
 package awsc
 
 type AwsCost struct {
-	ID           int     `json:"id"`
-	Ts           string  `json:"ts"`
-	Organisation string  `json:"organisation"`
-	AccountID    string  `json:"account_id"`
-	AccountName  string  `json:"account_name"`
-	Unit         string  `json:"unit"`
-	Label        string  `json:"label"`
-	Environment  string  `json:"environment"`
-	Service      string  `json:"service"`
-	Region       string  `json:"region"`
-	Date         string  `json:"date"`
-	Cost         float64 `json:"cost"`
+	ID           int    `json:"id"`
+	Ts           string `json:"ts"`
+	Organisation string `json:"organisation"`
+	AccountID    string `json:"account_id"`
+	AccountName  string `json:"account_name"`
+	Unit         string `json:"unit"`
+	Label        string `json:"label"`
+	Environment  string `json:"environment"`
+	Service      string `json:"service"`
+	Region       string `json:"region"`
+	Date         string `json:"date"`
+	Cost         string `json:"cost"`
 }
 
 type AwsCostsTracker struct {

@@ -15,7 +15,8 @@ CREATE TABLE aws_costs (
     service TEXT NOT NULL,
     region TEXT NOT NULL,
     date TEXT NOT NULL,
-    cost REAL NOT NULL
+    cost TEXT NOT NULL,
+    FOREIGN KEY(account_key) REFERENCES aws_account(id)
 
 ) STRICT;
 
