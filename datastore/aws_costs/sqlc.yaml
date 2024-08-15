@@ -1,0 +1,15 @@
+version: "2"
+sql:
+  - name: "aws_costs"
+    engine: "sqlite"
+    queries: "queries.sql"
+    schema: "aws_costs.sql"
+    gen:
+      go:
+        package: "awsc"
+        out: "awsc"
+        emit_prepared_queries: true
+        emit_json_tags: true
+        overrides:
+          - db_type: "INTEGER"
+            go_type: "int"

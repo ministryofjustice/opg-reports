@@ -57,11 +57,15 @@ benchmark:
 ##############################
 sqlc:
 	@cd ./datastore/github_standards && sqlc generate
+	@cd ./datastore/aws_costs && sqlc generate
 
 data: vars
 # 	download github_standards data
 	@mkdir -p ./builds/api/github_standards/data
-	${AWS_VAULT_COMMAND} aws s3 sync s3://${AWS_BUCKET}/github_standards ./builds/api/github_standards/data/ || echo bucket-failed; \
+# 	download aws_costs data
+	@mkdir -p ./builds/api/aws_costs/data
+	${AWS_VAULT_COMMAND} aws s3 sync s3://${AWS_BUCKET}/github_standards ./builds/api/github_standards/data/ || echo bucket_github_standards_failed; \
+	${AWS_VAULT_COMMAND} aws s3 sync s3://${AWS_BUCKET}/aws_costs ./builds/api/aws_costs/data/ || echo bucket_aws_costs_failed; \
 
 vars:
 	@echo "AWS_VAULT_PROFILE: ${AWS_VAULT_PROFILE}"
@@ -129,11 +133,21 @@ up-production:
 ##############################
 mirror-api: clean data
 	mkdir -p ./builds/api/github_standards/data
+	mkdir -p ./builds/api/aws_costs/data
+#	build steps
 	go build -o ./builds/api/api_server ./servers/api/main.go
 	go build -o ./builds/api/seed_cmd ./commands/seed/main.go
+#	github_standards
 	cp ./datastore/github_standards/github_standards*.sql ./builds/api/github_standards/
 	./builds/api/seed_cmd \
 		-table github_standards \
 		-db ./builds/api/github_standards.db \
 		-schema ./builds/api/github_standards/github_standards.sql \
 		-data "./builds/api/github_standards/data/*.json"
+#	aws_costs
+	cp ./datastore/aws_costs/aws_costs*.sql ./builds/api/aws_costs/
+	./builds/api/seed_cmd \
+		-table aws_costs \
+		-db ./builds/api/aws_costs.db \
+		-schema ./builds/api/aws_costs/aws_costs.sql \
+		-data "./builds/api/aws_costs/data/*.json"
