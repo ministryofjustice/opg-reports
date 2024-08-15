@@ -15,9 +15,7 @@ CREATE TABLE aws_costs (
     service TEXT NOT NULL,
     region TEXT NOT NULL,
     date TEXT NOT NULL,
-    cost TEXT NOT NULL,
-    FOREIGN KEY(account_key) REFERENCES aws_account(id)
-
+    cost TEXT NOT NULL
 ) STRICT;
 
 -- used to track the dates of when the data was pulled

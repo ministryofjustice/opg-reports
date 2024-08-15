@@ -18,6 +18,29 @@ INSERT INTO aws_costs(
 -- name: Count :one
 SELECT count(*) FROM aws_costs;
 
+-- name: MonthlyTotalsTaxSplit :many
+SELECT
+    'WithTax' as tax,
+    SUM(cost) as total,
+    strftime("%Y-%m", date) as month
+FROM aws_costs
+GROUP BY strftime("%Y-%m", date)
+UNION
+SELECT
+    'WithoutTax' as tax,
+    SUM(cost) as total,
+    strftime("%Y-%m", date) as month
+FROM aws_costs
+WHERE service != 'Tax'
+GROUP BY strftime("%Y-%m", date);
+
+-- -- name: ByMonth :many
+-- SELECT
+--     SUM(cost) as total,
+--     strftime("%Y-%m", date) as month
+-- FROM aws_costs
+-- GROUP BY strftime("%Y-%m", date);
+
 -- name: Track :exec
 INSERT INTO aws_costs_tracker (run_date) VALUES(?) ;
 

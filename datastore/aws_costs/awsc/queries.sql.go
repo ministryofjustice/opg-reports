@@ -7,7 +7,44 @@ package awsc
 
 import (
 	"context"
+	"database/sql"
 )
+
+const byMonth = `-- name: ByMonth :many
+SELECT
+    SUM(cost) as total,
+    strftime("%Y-%m", date) as month
+FROM aws_costs
+GROUP BY strftime("%Y-%m", date)
+`
+
+type ByMonthRow struct {
+	Total sql.NullFloat64 `json:"total"`
+	Month interface{}     `json:"month"`
+}
+
+func (q *Queries) ByMonth(ctx context.Context) ([]ByMonthRow, error) {
+	rows, err := q.query(ctx, q.byMonthStmt, byMonth)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ByMonthRow
+	for rows.Next() {
+		var i ByMonthRow
+		if err := rows.Scan(&i.Total, &i.Month); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
 
 const count = `-- name: Count :one
 SELECT count(*) FROM aws_costs

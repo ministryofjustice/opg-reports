@@ -1,5 +1,5 @@
 .DEFAULT_GOAL: all
-.PHONY: test tests benchmarks coverage go-build
+.PHONY: test tests benchmarks coverage clean data go-build
 
 all:
 	@echo "Nothing to run, choose a target."
@@ -60,12 +60,11 @@ sqlc:
 	@cd ./datastore/aws_costs && sqlc generate
 
 data: vars
-# 	download github_standards data
 	@mkdir -p ./builds/api/github_standards/data
-# 	download aws_costs data
 	@mkdir -p ./builds/api/aws_costs/data
-	${AWS_VAULT_COMMAND} aws s3 sync s3://${AWS_BUCKET}/github_standards ./builds/api/github_standards/data/ || echo bucket_github_standards_failed; \
-	${AWS_VAULT_COMMAND} aws s3 sync s3://${AWS_BUCKET}/aws_costs ./builds/api/aws_costs/data/ || echo bucket_aws_costs_failed; \
+
+	${AWS_VAULT_COMMAND} aws s3 sync --quiet s3://${AWS_BUCKET}/github_standards ./builds/api/github_standards/data/ || echo bucket_github_standards_failed; \
+	${AWS_VAULT_COMMAND} aws s3 sync --quiet s3://${AWS_BUCKET}/aws_costs ./builds/api/aws_costs/data/ || echo bucket_aws_costs_failed; \
 
 vars:
 	@echo "AWS_VAULT_PROFILE: ${AWS_VAULT_PROFILE}"
@@ -143,12 +142,12 @@ mirror-api: clean data go-build
 	@mkdir -p ./builds/api/github_standards/data
 	@mkdir -p ./builds/api/aws_costs/data
 #	github_standards
-	@cp ./datastore/github_standards/github_standards*.sql ./builds/api/github_standards/
-	./builds/api/seed_cmd \
-		-table github_standards \
-		-db ./builds/api/github_standards.db \
-		-schema ./builds/api/github_standards/github_standards.sql \
-		-data "./builds/api/github_standards/data/*.json"
+# @cp ./datastore/github_standards/github_standards*.sql ./builds/api/github_standards/
+# ./builds/api/seed_cmd \
+# 	-table github_standards \
+# 	-db ./builds/api/github_standards.db \
+# 	-schema ./builds/api/github_standards/github_standards.sql \
+# 	-data "./builds/api/github_standards/data/*.json"
 #	aws_costs
 	@cp ./datastore/aws_costs/aws_costs*.sql ./builds/api/aws_costs/
 	./builds/api/seed_cmd \
