@@ -159,6 +159,12 @@ func Handlers(ctx context.Context, mux *http.ServeMux, dbPath string) map[string
 			},
 		}
 		response.Metadata["filters"] = filters
+		// -- add the date min / max values
+		age, err := queries.Age(ctx)
+		if err == nil {
+			response.DataAge.Min = age
+			response.DataAge.Max = age
+		}
 		response.End(w, r)
 		return
 	}

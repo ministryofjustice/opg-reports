@@ -1,6 +1,9 @@
 package dates
 
-import "time"
+import (
+	"slices"
+	"time"
+)
 
 type Interval string
 
@@ -41,4 +44,17 @@ func Range(start time.Time, end time.Time, interval Interval) []time.Time {
 	}
 
 	return times
+}
+
+func MaxTime(times []time.Time) time.Time {
+	max := slices.MaxFunc(times, func(a time.Time, b time.Time) int {
+		if a.After(b) {
+			return 1
+		}
+		if a.Before(b) {
+			return -1
+		}
+		return 0
+	})
+	return max
 }

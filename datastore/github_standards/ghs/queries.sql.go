@@ -9,6 +9,19 @@ import (
 	"context"
 )
 
+const age = `-- name: Age :one
+;
+
+SELECT run_date FROM github_standards_tracker LIMIT 1
+`
+
+func (q *Queries) Age(ctx context.Context) (string, error) {
+	row := q.queryRow(ctx, q.ageStmt, age)
+	var run_date string
+	err := row.Scan(&run_date)
+	return run_date, err
+}
+
 const all = `-- name: All :many
 SELECT id, ts, compliant_baseline, compliant_extended, count_of_clones, count_of_forks, count_of_pull_requests, count_of_web_hooks, created_at, default_branch, full_name, has_code_of_conduct, has_codeowner_approval_required, has_contributing_guide, has_default_branch_of_main, has_default_branch_protection, has_delete_branch_on_merge, has_description, has_discussions, has_downloads, has_issues, has_license, has_pages, has_pull_request_approval_required, has_readme, has_rules_enforced_for_admins, has_vulnerability_alerts, has_wiki, is_archived, is_private, license, last_commit_date, name, owner, teams FROM github_standards
 ORDER BY name, created_at ASC
@@ -428,4 +441,13 @@ func (q *Queries) TotalCountCompliantExtended(ctx context.Context) (int64, error
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const track = `-- name: Track :exec
+INSERT INTO github_standards_tracker (run_date) VALUES(?)
+`
+
+func (q *Queries) Track(ctx context.Context, runDate string) error {
+	_, err := q.exec(ctx, q.trackStmt, track, runDate)
+	return err
 }

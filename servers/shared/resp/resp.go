@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
-	"slices"
 	"time"
 )
 
@@ -15,9 +14,8 @@ type RequestTimings struct {
 }
 
 type DataAge struct {
-	Min *time.Time `json:"min"`
-	Max *time.Time `json:"max"`
-	All []int64    `json:"-"`
+	Min string `json:"min"`
+	Max string `json:"max"`
 }
 
 type Response struct {
@@ -41,8 +39,6 @@ func (rp *Response) Start(w http.ResponseWriter, r *http.Request) {
 func (rp *Response) End(w http.ResponseWriter, r *http.Request) {
 	rp.TimerEnd()
 	rp.TimerDuration()
-	rp.GetDataAgeMin()
-	rp.GetDataAgeMax()
 
 	content, err := json.MarshalIndent(rp, "", "  ")
 	if err != nil {
@@ -86,46 +82,6 @@ func (r *Response) TimerEnd() {
 func (r *Response) TimerDuration() time.Duration {
 	r.Timer.Duration = r.Timer.End.Sub(r.Timer.Start)
 	return r.Timer.Duration
-}
-
-// AddDataAge is used to track the created times of the data
-// associated with this api response. This provides a way
-// to show messages about when the data was created / updated
-// in front ends
-func (r *Response) AddDataAge(times ...time.Time) {
-	if times == nil {
-		r.DataAge.All = []int64{}
-	} else {
-		for _, t := range times {
-			r.DataAge.All = append(r.DataAge.All, t.UnixMicro())
-		}
-	}
-}
-
-// GetDataAgeMin returns the min date stored within the
-// data in this api response (effectively the "oldest")
-func (r *Response) GetDataAgeMin() (t time.Time) {
-	if r.DataAge.Min != nil {
-		return *r.DataAge.Min
-	} else if len(r.DataAge.All) > 0 {
-		min := slices.Min(r.DataAge.All)
-		t = time.UnixMicro(min).UTC()
-		r.DataAge.Min = &t
-	}
-	return t
-}
-
-// GetDataAgeMax returns the max date stored within the
-// data in this api response (effectively the "youngest")
-func (r *Response) GetDataAgeMax() (t time.Time) {
-	if r.DataAge.Max != nil {
-		return *r.DataAge.Max
-	} else if len(r.DataAge.All) > 0 {
-		max := slices.Max(r.DataAge.All)
-		t = time.UnixMicro(max).UTC()
-		r.DataAge.Max = &t
-	}
-	return t
 }
 
 func New() *Response {

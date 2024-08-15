@@ -35,6 +35,7 @@ func TestSeedSeederNewDbWithSchemaFromDataFiles(t *testing.T) {
 	for x := 0; x < n; x++ {
 		list = append(list, ghs.Fake(nil, &owner))
 	}
+
 	// write to dummy file
 	content, err := convert.Marshals(list)
 	if err != nil {
@@ -44,11 +45,11 @@ func TestSeedSeederNewDbWithSchemaFromDataFiles(t *testing.T) {
 
 	// -- now seed the database
 	tick := testhelpers.T()
-	slog.Info("starting seed")
+
 	db, err := Seed(ctx, dbF, schemaF, dataF, "github_standards", n)
 	defer db.Close()
-	slog.Info("ending seed")
 	tick.Stop()
+
 	if err != nil {
 		t.Errorf("error with db:" + err.Error())
 	}

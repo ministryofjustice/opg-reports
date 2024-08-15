@@ -65,3 +65,9 @@ CREATE INDEX ghs_archived_teams_idx ON github_standards(is_archived, teams, name
 --
 CREATE INDEX ghs_baseline_idx ON github_standards(compliant_baseline);
 CREATE INDEX ghs_extended_idx ON github_standards(compliant_extended);
+
+-- track the date the report ran
+CREATE TABLE github_standards_tracker (
+    id INTEGER PRIMARY KEY,
+    run_date TEXT NOT NULL
+) STRICT ;

@@ -24,6 +24,9 @@ func New(db DBTX) *Queries {
 func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	q := Queries{db: db}
 	var err error
+	if q.ageStmt, err = db.PrepareContext(ctx, age); err != nil {
+		return nil, fmt.Errorf("error preparing query Age: %w", err)
+	}
 	if q.allStmt, err = db.PrepareContext(ctx, all); err != nil {
 		return nil, fmt.Errorf("error preparing query All: %w", err)
 	}
@@ -48,11 +51,19 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.totalCountCompliantExtendedStmt, err = db.PrepareContext(ctx, totalCountCompliantExtended); err != nil {
 		return nil, fmt.Errorf("error preparing query TotalCountCompliantExtended: %w", err)
 	}
+	if q.trackStmt, err = db.PrepareContext(ctx, track); err != nil {
+		return nil, fmt.Errorf("error preparing query Track: %w", err)
+	}
 	return &q, nil
 }
 
 func (q *Queries) Close() error {
 	var err error
+	if q.ageStmt != nil {
+		if cerr := q.ageStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing ageStmt: %w", cerr)
+		}
+	}
 	if q.allStmt != nil {
 		if cerr := q.allStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing allStmt: %w", cerr)
@@ -91,6 +102,11 @@ func (q *Queries) Close() error {
 	if q.totalCountCompliantExtendedStmt != nil {
 		if cerr := q.totalCountCompliantExtendedStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing totalCountCompliantExtendedStmt: %w", cerr)
+		}
+	}
+	if q.trackStmt != nil {
+		if cerr := q.trackStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing trackStmt: %w", cerr)
 		}
 	}
 	return err
@@ -132,6 +148,7 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 type Queries struct {
 	db                              DBTX
 	tx                              *sql.Tx
+	ageStmt                         *sql.Stmt
 	allStmt                         *sql.Stmt
 	countStmt                       *sql.Stmt
 	filterByIsArchivedStmt          *sql.Stmt
@@ -140,12 +157,14 @@ type Queries struct {
 	insertStmt                      *sql.Stmt
 	totalCountCompliantBaselineStmt *sql.Stmt
 	totalCountCompliantExtendedStmt *sql.Stmt
+	trackStmt                       *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
 		db:                              tx,
 		tx:                              tx,
+		ageStmt:                         q.ageStmt,
 		allStmt:                         q.allStmt,
 		countStmt:                       q.countStmt,
 		filterByIsArchivedStmt:          q.filterByIsArchivedStmt,
@@ -154,5 +173,6 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		insertStmt:                      q.insertStmt,
 		totalCountCompliantBaselineStmt: q.totalCountCompliantBaselineStmt,
 		totalCountCompliantExtendedStmt: q.totalCountCompliantExtendedStmt,
+		trackStmt:                       q.trackStmt,
 	}
 }

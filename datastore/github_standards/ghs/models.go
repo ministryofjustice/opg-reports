@@ -41,3 +41,8 @@ type GithubStandard struct {
 	Owner                          string `json:"owner"`
 	Teams                          string `json:"teams"`
 }
+
+type GithubStandardsTracker struct {
+	ID      int    `json:"id"`
+	RunDate string `json:"run_date"`
+}

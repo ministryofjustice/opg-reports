@@ -58,10 +58,11 @@ var functions map[string]SubstitutionFunc = map[string]SubstitutionFunc{
 	"month": month,
 }
 
-// SubstitutionFunc type used for signature mapping
-// key - the section of the url to be replaced: {month} | {month:-2}
-// fragment - would be the -2 in {month:-2}
-// url - the original url
+// month is a SubstitutionFunc type used for signature mapping
+//
+//	key: the section of the url to be replaced: {month} | {month:-2}
+//	fragment: would be the -2 in {month:-2}
+//	url: the original url
 func month(key string, fragment string, url string, d *time.Time) (m string) {
 	m = url
 	date := dates.ResetMonth(*d)

@@ -13,7 +13,7 @@ import (
 
 type insertF func(ctx context.Context, fileContent []byte, db *sql.DB) error
 
-var inserts map[string]insertF = map[string]insertF{
+var INSERT_FUNCTIONS map[string]insertF = map[string]insertF{
 	"github_standards": func(ctx context.Context, fileContent []byte, db *sql.DB) (err error) {
 		// unmarshal that content
 		repos := []*ghs.GithubStandard{}
@@ -32,7 +32,7 @@ var inserts map[string]insertF = map[string]insertF{
 		q := ghs.New(db)
 		qtx := q.WithTx(tx)
 
-		slog.Info("starting insertion", slog.String("for", "github_standards"), slog.Int("count", len(repos)))
+		slog.Debug("inserting content", slog.String("for", "github_standards"), slog.Int("count", len(repos)))
 		tick := testhelpers.T()
 		for _, item := range repos {
 			wg.Add(1)
@@ -45,7 +45,10 @@ var inserts map[string]insertF = map[string]insertF{
 		}
 
 		wg.Wait()
-		slog.Info("generation complete", slog.String("seconds", tick.Stop().Seconds()), slog.String("for", "github_standards"))
+		slog.Info("insert complete",
+			slog.Int("count", len(repos)),
+			slog.String("seconds", tick.Stop().Seconds()),
+			slog.String("for", "github_standards"))
 
 		return tx.Commit()
 	},

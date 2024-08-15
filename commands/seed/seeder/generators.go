@@ -14,7 +14,7 @@ import (
 type generatorF func(ctx context.Context, num int, db *sql.DB) error
 
 // map of funcs that inset data from files
-var fakes map[string]generatorF = map[string]generatorF{
+var GENERATOR_FUNCTIONS map[string]generatorF = map[string]generatorF{
 	// -- githu standards
 	// use go concurrency for speed
 	"github_standards": func(ctx context.Context, num int, db *sql.DB) (err error) {

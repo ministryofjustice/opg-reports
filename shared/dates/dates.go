@@ -5,7 +5,9 @@ import (
 	"time"
 )
 
+// 2006-01-02T15:04:05Z07:00
 const Format string = time.RFC3339
+const FormatYMDHMS string = "2006-01-02T15:04:05"
 const FormatYMD string = "2006-01-02"
 const FormatYM string = "2006-01"
 const FormatY string = "2006"

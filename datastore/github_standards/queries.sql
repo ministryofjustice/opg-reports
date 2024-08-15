@@ -69,3 +69,9 @@ WHERE
     is_archived = ? AND
     teams LIKE ?
 ORDER BY name, created_at ASC;
+
+-- name: Track :exec
+INSERT INTO github_standards_tracker (run_date) VALUES(?) ;
+
+-- name: Age :one
+SELECT run_date FROM github_standards_tracker LIMIT 1;
