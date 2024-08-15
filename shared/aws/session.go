@@ -45,7 +45,7 @@ func NewSessionFromEnvWithRegion(region string) (*session.Session, error) {
 	id := env.Get("AWS_ACCESS_KEY_ID", "")
 	secret := env.Get("AWS_SECRET_ACCESS_KEY", "")
 	token := env.Get("AWS_SESSION_TOKEN", "")
-	slog.Info("AWS session", slog.String("region", region))
+	slog.Debug("AWS session region", slog.String("region", region))
 	return session.NewSession(&aws.Config{
 		Credentials: credentials.NewStaticCredentials(id, secret, token),
 		Region:      aws.String(region),

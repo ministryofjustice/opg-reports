@@ -372,6 +372,8 @@ main(){
     show_conf
     should_continue
 
+    # delete very specifc files
+    rm -f "${ROOT_DIR}/scripts/create-local-aws-costs-script"
     # delete unused files
     delete_files "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPORT_PATTERN}" GITHUB_REPORTS_TO_KEEP
     # remove terraform directory

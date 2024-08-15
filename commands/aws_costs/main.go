@@ -91,8 +91,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	startDate := *month.Value
+	endDate := startDate.AddDate(0, 1, 0)
+
 	slog.Info("getting costs",
 		slog.String("month", month.Value.Format(dates.FormatYM)),
+		slog.String("start", startDate.Format(dates.FormatYMD)),
+		slog.String("end", endDate.Format(dates.FormatYMD)),
 		slog.String("id", *id.Value),
 		slog.String("name", *name.Value),
 		slog.String("label", *label.Value),
@@ -101,11 +106,6 @@ func main() {
 		slog.String("environment", *env.Value),
 		slog.String("dir", *dir.Value),
 		slog.String("out", *out.Value))
-
-	startDate := *month.Value
-	endDate := startDate.AddDate(0, 1, 0)
-
-	slog.Info("dates", slog.String("start", startDate.Format(dates.FormatYMD)), slog.String("end", endDate.Format(dates.FormatYMD)))
 
 	raw, err := aws.CostAndUsage(startDate, endDate, costexplorer.GranularityMonthly, dates.FormatYMD)
 	costs, err := Flat(raw, *id.Value, *org.Value, *unit.Value, *name.Value, *label.Value, *env.Value)
@@ -121,7 +121,7 @@ func main() {
 	}
 
 	os.MkdirAll(*dir.Value, os.ModePerm)
-	filename := filepath.Join(*dir.Value, fmt.Sprintf("%s_%s", *id.Value, *out.Value))
+	filename := filepath.Join(*dir.Value, fmt.Sprintf("%s_%s_%s", *id.Value, startDate.Format(dates.FormatYM), *out.Value))
 
 	os.WriteFile(filename, content, os.ModePerm)
 

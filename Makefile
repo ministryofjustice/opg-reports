@@ -127,25 +127,30 @@ up-production:
 		up \
 		-d ${SERVICES}
 
+##############################
+go-build: clean
+	@go build -o ./builds/front/front_server ./servers/front/main.go
+	@go build -o ./builds/api/api_server ./servers/api/main.go
+	@go build -o ./builds/api/seed_cmd ./commands/seed/main.go
+	@go build -o ./builds/commands/github_standards ./commands/github_standards/main.go
+	@go build -o ./builds/commands/aws_costs ./commands/aws_costs/main.go
+
 
 ##############################
 # close approx of the dockerfile for setup without docker
 ##############################
-mirror-api: clean data
-	mkdir -p ./builds/api/github_standards/data
-	mkdir -p ./builds/api/aws_costs/data
-#	build steps
-	go build -o ./builds/api/api_server ./servers/api/main.go
-	go build -o ./builds/api/seed_cmd ./commands/seed/main.go
+mirror-api: clean data go-build
+	@mkdir -p ./builds/api/github_standards/data
+	@mkdir -p ./builds/api/aws_costs/data
 #	github_standards
-	cp ./datastore/github_standards/github_standards*.sql ./builds/api/github_standards/
+	@cp ./datastore/github_standards/github_standards*.sql ./builds/api/github_standards/
 	./builds/api/seed_cmd \
 		-table github_standards \
 		-db ./builds/api/github_standards.db \
 		-schema ./builds/api/github_standards/github_standards.sql \
 		-data "./builds/api/github_standards/data/*.json"
 #	aws_costs
-	cp ./datastore/aws_costs/aws_costs*.sql ./builds/api/aws_costs/
+	@cp ./datastore/aws_costs/aws_costs*.sql ./builds/api/aws_costs/
 	./builds/api/seed_cmd \
 		-table aws_costs \
 		-db ./builds/api/aws_costs.db \
