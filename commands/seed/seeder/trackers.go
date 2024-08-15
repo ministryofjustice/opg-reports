@@ -8,8 +8,6 @@ import (
 	"github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
 )
 
-type trackerF func(ctx context.Context, ts time.Time, db *sql.DB) error
-
 var TRACKER_FUNCTIONS map[string]trackerF = map[string]trackerF{
 	"github_standards": func(ctx context.Context, ts time.Time, db *sql.DB) (err error) {
 		q := ghs.New(db)

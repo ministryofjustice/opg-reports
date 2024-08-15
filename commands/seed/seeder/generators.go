@@ -11,8 +11,6 @@ import (
 	"github.com/ministryofjustice/opg-reports/shared/testhelpers"
 )
 
-type generatorF func(ctx context.Context, num int, db *sql.DB) error
-
 // map of funcs that inset data from files
 var GENERATOR_FUNCTIONS map[string]generatorF = map[string]generatorF{
 	// -- githu standards

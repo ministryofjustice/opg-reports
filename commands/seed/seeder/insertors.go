@@ -11,8 +11,6 @@ import (
 	"github.com/ministryofjustice/opg-reports/shared/testhelpers"
 )
 
-type insertF func(ctx context.Context, fileContent []byte, db *sql.DB) error
-
 var INSERT_FUNCTIONS map[string]insertF = map[string]insertF{
 	"github_standards": func(ctx context.Context, fileContent []byte, db *sql.DB) (err error) {
 		// unmarshal that content

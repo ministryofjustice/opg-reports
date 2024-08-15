@@ -1,3 +1,14 @@
+// Package seeder main function is to generate sqlite3 databases for use with the api.
+//
+// It uses schemas from sqlc to create the tagles within the database and will either seed
+// those tables with data from a series of existing files or by generating new|fake data.
+//
+// Seed is the main function to call and will create the database and insert
+// data.
+//
+// Used by:
+//   - ./commands/seed (which in turn is called within Dockerfile)
+//   - various test files to create dummy data to test against the api
 package seeder
 
 import (
@@ -16,10 +27,37 @@ import (
 	"github.com/ministryofjustice/opg-reports/shared/logger"
 )
 
+type generatorF func(ctx context.Context, num int, db *sql.DB) error
+type insertF func(ctx context.Context, fileContent []byte, db *sql.DB) error
+type trackerF func(ctx context.Context, ts time.Time, db *sql.DB) error
+
+// Seed tries to create a database at the filepath set (`dbF`) and return the db pointer.
+// This pointer is *NOT* closed, it will need to be handled outside of this function
+//
+// If there is already a file at `dbF` location, this will exit without error, but will *NOT* create a new version.
+//
+// A database connection is created (and returned) using the consts.SQL_CONNECTION_PARAMS. The schema file (`schemaF`)
+// is then read and passed into the database to execute and generate the empty tables and indexes. This schema is part
+// of this projects use of sqlc
+//
+// An insert and tracker function are then checked for, comparing the table name (`table`) against the known list. These are
+// required to be used, so the function will error if a match is not found. See generators.go, insertors.go and trackers.go
+// for list of current versions.
+//
+// The file pattern (`dataF`) is then used with Glob to find matching files. If they are found, they are iterated over
+// and their contents passed into the insertor function - this function will handle marshaling / coversion and the db
+// record creation
+//
+// If no files are found but there is a generator function, this will be called instead to place dummy data into the
+// database. The amount of records created is controlled by the `N` parameter
 func Seed(ctx context.Context, dbF string, schemaF string, dataF string, table string, N int) (db *sql.DB, err error) {
 	logger.LogSetup()
-	var insertFunc insertF = nil
-	var trackFunc trackerF = nil
+	var (
+		ok         bool       = false
+		insertFunc insertF    = nil
+		trackFunc  trackerF   = nil
+		genFunc    generatorF = nil
+	)
 
 	// -- debug info
 	slog.Debug("starting to seed",
@@ -65,15 +103,27 @@ func Seed(ctx context.Context, dbF string, schemaF string, dataF string, table s
 
 	slog.Debug("data files found", slog.Int("count", len(files)))
 
-	// look for import and tracking functions
-	if ik, ok := INSERT_FUNCTIONS[table]; ok {
-		insertFunc = ik
+	// look for import, generator and tracking functions
+	insertFunc, ok = haveFuncforTable(table, INSERT_FUNCTIONS)
+	if !ok {
+		err = fmt.Errorf("no seeder insertion function found for table: %s", table)
+		return
 	}
-	if tk, ok := TRACKER_FUNCTIONS[table]; ok {
-		trackFunc = tk
+	genFunc, ok = haveFuncforTable(table, GENERATOR_FUNCTIONS)
+	if !ok {
+		err = fmt.Errorf("no generator function found for table: %s", table)
+		return
+	}
+	trackFunc, ok = haveFuncforTable(table, TRACKER_FUNCTIONS)
+	if !ok {
+		err = fmt.Errorf("no tracker function found for table: %s", table)
+		return
 	}
 
-	if len(files) > 0 && insertFunc != nil {
+	// if we have files and a function, try and insert the content of them into the database
+	// otherwise, insert dummy data via the generator function
+	// - both will also call the track
+	if len(files) > 0 {
 		times := []time.Time{}
 		for _, file := range files {
 			var ts *time.Time = nil
@@ -90,15 +140,22 @@ func Seed(ctx context.Context, dbF string, schemaF string, dataF string, table s
 			trackFunc(ctx, max, db)
 		}
 
-	} else if fk, ok := GENERATOR_FUNCTIONS[table]; ok && len(files) == 0 {
+	} else if genFunc != nil {
 		slog.Info("no files, but generator function - creating dummy data")
-		if err = fk(ctx, N, db); err != nil {
+		err = genFunc(ctx, N, db)
+		if err != nil {
 			return
 		}
 		// -- track the generation
 		trackFunc(ctx, time.Now().UTC(), db)
 	}
 
+	return
+}
+
+// haveFuncforTable is a mall helper to check we have a function for this table
+func haveFuncforTable[T insertF | generatorF | trackerF](table string, set map[string]T) (f T, found bool) {
+	f, found = set[table]
 	return
 }
 
