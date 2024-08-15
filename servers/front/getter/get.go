@@ -109,6 +109,13 @@ func Api(conf *config.Config, nav *navigation.NavigationItem, r *http.Request) (
 			data[f] = v
 		}
 
+		if response.DataAge.Max != "" {
+			data["DataAgeMax"] = response.DataAge.Max
+		}
+		if response.DataAge.Min != "" {
+			data["DataAgeMin"] = response.DataAge.Min
+		}
+
 	}
 
 	return

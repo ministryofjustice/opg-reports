@@ -47,7 +47,8 @@ func Funcs() map[string]interface{} {
 		"month": func(d time.Time) string {
 			return d.Format(dates.FormatYM)
 		},
-		"day": func(d time.Time) string {
+		"day": func(t string) string {
+			d := dates.Time(t)
 			return d.Format(dates.FormatYMD)
 		},
 		// -- casting

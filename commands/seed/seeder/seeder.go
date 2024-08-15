@@ -159,6 +159,10 @@ func haveFuncforTable[T insertF | generatorF | trackerF](table string, set map[s
 	return
 }
 
+// InsertFile checks the file exists and reads its content into the insertFunc along with the db pointer.
+//
+// Small wrapper that also find the modification time of the file. This time is then used to track the age of the
+// data being used
 func InsertFile(ctx context.Context, file string, insertFunc insertF, db *sql.DB) (err error, ts *time.Time) {
 	var ct time.Time
 	ts = nil
