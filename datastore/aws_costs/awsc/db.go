@@ -36,6 +36,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.oldestStmt, err = db.PrepareContext(ctx, oldest); err != nil {
 		return nil, fmt.Errorf("error preparing query Oldest: %w", err)
 	}
+	if q.totalStmt, err = db.PrepareContext(ctx, total); err != nil {
+		return nil, fmt.Errorf("error preparing query Total: %w", err)
+	}
 	if q.trackStmt, err = db.PrepareContext(ctx, track); err != nil {
 		return nil, fmt.Errorf("error preparing query Track: %w", err)
 	}
@@ -65,6 +68,11 @@ func (q *Queries) Close() error {
 	if q.oldestStmt != nil {
 		if cerr := q.oldestStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing oldestStmt: %w", cerr)
+		}
+	}
+	if q.totalStmt != nil {
+		if cerr := q.totalStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing totalStmt: %w", cerr)
 		}
 	}
 	if q.trackStmt != nil {
@@ -120,6 +128,7 @@ type Queries struct {
 	insertStmt                *sql.Stmt
 	monthlyTotalsTaxSplitStmt *sql.Stmt
 	oldestStmt                *sql.Stmt
+	totalStmt                 *sql.Stmt
 	trackStmt                 *sql.Stmt
 	youngestStmt              *sql.Stmt
 }
@@ -132,6 +141,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		insertStmt:                q.insertStmt,
 		monthlyTotalsTaxSplitStmt: q.monthlyTotalsTaxSplitStmt,
 		oldestStmt:                q.oldestStmt,
+		totalStmt:                 q.totalStmt,
 		trackStmt:                 q.trackStmt,
 		youngestStmt:              q.youngestStmt,
 	}

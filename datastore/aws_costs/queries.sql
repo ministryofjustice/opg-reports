@@ -19,22 +19,35 @@ INSERT INTO aws_costs(
 SELECT count(*) FROM aws_costs;
 
 -- name: MonthlyTotalsTaxSplit :many
-
 SELECT
     'WithTax' as service,
     coalesce(SUM(cost), 0) as total,
     strftime("%Y-%m", date) as month
-FROM aws_costs
-GROUP BY strftime("%Y-%m", date)
-UNION
+FROM aws_costs as incTax
+WHERE
+    incTax.date >= @start
+    AND incTax.date < @end
+GROUP BY strftime("%Y-%m", incTax.date)
+UNION ALL
 SELECT
     'WithoutTax' as service,
     coalesce(SUM(cost), 0) as total,
     strftime("%Y-%m", date) as month
-FROM aws_costs
-WHERE service != 'Tax'
-GROUP BY strftime("%Y-%m", date);
+FROM aws_costs as excTax
+WHERE
+    excTax.service != 'Tax'
+    AND excTax.date >= @start
+    AND excTax.date < @end
+GROUP BY strftime("%Y-%m", date)
+ORDER by month ASC;
 
+-- name: Total :one
+SELECT
+    coalesce(SUM(cost), 0) as total
+FROM aws_costs
+WHERE
+    date >= @start AND date < @end
+;
 -- -- name: ByMonth :many
 -- SELECT
 --     SUM(cost) as total,

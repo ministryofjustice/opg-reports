@@ -62,8 +62,8 @@ data: vars
 	@mkdir -p ./builds/api/github_standards/data
 	@mkdir -p ./builds/api/aws_costs/data
 
-	${AWS_VAULT_COMMAND} aws s3 sync --quiet s3://${AWS_BUCKET}/github_standards ./builds/api/github_standards/data/ && echo bucket_github_standards_done || echo bucket_github_standards_failed; \
-	${AWS_VAULT_COMMAND} aws s3 sync --quiet s3://${AWS_BUCKET}/aws_costs ./builds/api/aws_costs/data/ && echo bucket_aws_costs_done || echo bucket_aws_costs_failed; \
+	@echo "getting github_standards" && ${AWS_VAULT_COMMAND} aws s3 sync --quiet s3://${AWS_BUCKET}/github_standards ./builds/api/github_standards/data/ && echo bucket_github_standards_done || echo bucket_github_standards_failed;
+	@echo "getting aws_costs" && ${AWS_VAULT_COMMAND} aws s3 sync --quiet s3://${AWS_BUCKET}/aws_costs ./builds/api/aws_costs/data/ && echo bucket_aws_costs_done || echo bucket_aws_costs_failed;
 
 vars:
 	@echo "AWS_VAULT_PROFILE: ${AWS_VAULT_PROFILE}"
@@ -110,7 +110,9 @@ up: build
 		up \
 		-d ${SERVICES}
 
+###############################
 # production versions
+##############################
 build-production: data
 	@env DOCKER_BUILDKIT=0 docker compose \
 		--verbose \
@@ -133,11 +135,10 @@ go-build: clean
 	@go build -o ./builds/commands/github_standards ./commands/github_standards/main.go
 	@go build -o ./builds/commands/aws_costs ./commands/aws_costs/main.go
 
-
 ##############################
 # close approx of the dockerfile for setup without docker
 ##############################
-mirror-api: clean data go-build
+seed-api: data
 	@mkdir -p ./builds/api/github_standards/data
 	@mkdir -p ./builds/api/aws_costs/data
 #	github_standards
@@ -156,3 +157,5 @@ mirror-api: clean data go-build
 		-db ./builds/api/aws_costs.db \
 		-schema ./builds/api/aws_costs/aws_costs.sql \
 		-data "./builds/api/aws_costs/data/*.json"
+
+mirror-api: sqlc go-build seed-api

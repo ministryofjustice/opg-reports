@@ -15,7 +15,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/shared/logger"
 )
 
-const listRoute string = "/github-standards/{version}/list/{$}"
+const listRoute string = "/{version}/github-standards/{$}"
 
 // getResults handles determining which query to call based on the get param values
 func getResults(ctx context.Context, queries *ghs.Queries, archived string, team string) (results []ghs.GithubStandard, err error) {

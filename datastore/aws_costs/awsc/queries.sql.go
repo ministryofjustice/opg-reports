@@ -72,22 +72,33 @@ func (q *Queries) Insert(ctx context.Context, arg InsertParams) (int, error) {
 }
 
 const monthlyTotalsTaxSplit = `-- name: MonthlyTotalsTaxSplit :many
-
 SELECT
     'WithTax' as service,
     coalesce(SUM(cost), 0) as total,
     strftime("%Y-%m", date) as month
-FROM aws_costs
-GROUP BY strftime("%Y-%m", date)
-UNION
+FROM aws_costs as incTax
+WHERE
+    incTax.date >= ?1
+    AND incTax.date < ?2
+GROUP BY strftime("%Y-%m", incTax.date)
+UNION ALL
 SELECT
     'WithoutTax' as service,
     coalesce(SUM(cost), 0) as total,
     strftime("%Y-%m", date) as month
-FROM aws_costs
-WHERE service != 'Tax'
+FROM aws_costs as excTax
+WHERE
+    excTax.service != 'Tax'
+    AND excTax.date >= ?1
+    AND excTax.date < ?2
 GROUP BY strftime("%Y-%m", date)
+ORDER by month ASC
 `
+
+type MonthlyTotalsTaxSplitParams struct {
+	Start string `json:"start"`
+	End   string `json:"end"`
+}
 
 type MonthlyTotalsTaxSplitRow struct {
 	Service string      `json:"service"`
@@ -95,8 +106,8 @@ type MonthlyTotalsTaxSplitRow struct {
 	Month   interface{} `json:"month"`
 }
 
-func (q *Queries) MonthlyTotalsTaxSplit(ctx context.Context) ([]MonthlyTotalsTaxSplitRow, error) {
-	rows, err := q.query(ctx, q.monthlyTotalsTaxSplitStmt, monthlyTotalsTaxSplit)
+func (q *Queries) MonthlyTotalsTaxSplit(ctx context.Context, arg MonthlyTotalsTaxSplitParams) ([]MonthlyTotalsTaxSplitRow, error) {
+	rows, err := q.query(ctx, q.monthlyTotalsTaxSplitStmt, monthlyTotalsTaxSplit, arg.Start, arg.End)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +142,28 @@ func (q *Queries) Oldest(ctx context.Context) (string, error) {
 	return run_date, err
 }
 
+const total = `-- name: Total :one
+SELECT
+    coalesce(SUM(cost), 0) as total
+FROM aws_costs
+WHERE
+    date >= ?1 AND date < ?2
+`
+
+type TotalParams struct {
+	Start string `json:"start"`
+	End   string `json:"end"`
+}
+
+func (q *Queries) Total(ctx context.Context, arg TotalParams) (interface{}, error) {
+	row := q.queryRow(ctx, q.totalStmt, total, arg.Start, arg.End)
+	var total interface{}
+	err := row.Scan(&total)
+	return total, err
+}
+
 const track = `-- name: Track :exec
+;
 
 INSERT INTO aws_costs_tracker (run_date) VALUES(?)
 `

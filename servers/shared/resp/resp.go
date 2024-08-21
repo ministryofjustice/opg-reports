@@ -8,9 +8,9 @@ import (
 )
 
 type RequestTimings struct {
-	Start    time.Time     `json:"start"`
-	End      time.Time     `json:"end"`
-	Duration time.Duration `json:"duration"`
+	Start    time.Time `json:"start"`
+	End      time.Time `json:"end"`
+	Duration float64   `json:"duration"`
 }
 
 type DataAge struct {
@@ -80,8 +80,9 @@ func (r *Response) TimerEnd() {
 // a http request has taken to be processed. This informaton
 // is helpful for assessing performance over the api
 func (r *Response) TimerDuration() time.Duration {
-	r.Timer.Duration = r.Timer.End.Sub(r.Timer.Start)
-	return r.Timer.Duration
+	dur := r.Timer.End.Sub(r.Timer.Start)
+	r.Timer.Duration = dur.Seconds()
+	return dur
 }
 
 func New() *Response {

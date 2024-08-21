@@ -65,8 +65,9 @@ ENV CGO_ENABLED=1 GOOS=linux
 RUN apk --update --no-cache add "sqlite=~3.45"
 COPY --from=build /go/bin/api/api_server ./
 COPY --from=build /go/bin/api/github_standards.db ./
-RUN pwd
-RUN ls -lRh ./
+### remove raw data files
+RUN rm -f /go/bin/api/github_standards/data/*.json
+RUN rm -f /go/bin/api/aws_costs/data/*.json
 ENTRYPOINT ["./api_server"]
 
 # PRODUCTION
@@ -76,6 +77,7 @@ ENV CGO_ENABLED=1 GOOS=linux
 RUN apk --update --no-cache add "sqlite=~3.45"
 COPY --from=build /go/bin/api/api_server ./
 COPY --from=build /go/bin/api/github_standards.db ./
-RUN pwd
-RUN ls -lRh ./
+### remove raw data files
+RUN rm -f /go/bin/api/github_standards/data/*.json
+RUN rm -f /go/bin/api/aws_costs/data/*.json
 ENTRYPOINT ["./api_server"]

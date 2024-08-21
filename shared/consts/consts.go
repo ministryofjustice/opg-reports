@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-// const BillingDay int = 13
+const BILLING_DATE int = 15
 
 const API_SCHEME string = "http"
 const API_ADDR string = ":8081"
