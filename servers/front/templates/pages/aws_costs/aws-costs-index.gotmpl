@@ -1,0 +1,17 @@
+{{ define "aws-costs-index" }}
+    {{ template "head" . }}
+
+    <h1 class="govuk-heading-l">AWS Costs</h1>
+
+    {{ if .Result }}
+        <p class="govuk-body">Total AWS Costs between <strong>[{{ .StartDate.Format "2006-01-02" }}]</strong> and <strong>[{{ .EndDate.Format "2006-01-02" }}]</strong> are <strong class="currency">{{ currency .Total "$" }}</strong></p>
+
+        {{ template "result-notes" . }}
+    {{ else }}
+        {{ template "no-result" . }}
+    {{end}}
+
+
+    {{ template "foot" . }}
+
+{{ end }}

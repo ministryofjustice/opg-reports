@@ -1,10 +1,12 @@
-{{ define "aws-costs-monthly-tax" }}
+{{ define "aws-costs-monthly-totals" }}
     {{ template "head" . }}
 
-    <h1 class="govuk-heading-l">AWS Costs</h1>
+    <h1 class="govuk-heading-l">AWS Monthly Totals</h1>
+
+    <p class="govuk-body">Our AWS costs grouped by month with one row excluding tax for comparison with finance figures and cross-hosting charges.</p>
 
     {{ if .Result }}
-        {{ $months := .Months }}
+        {{ $dates := .DateRange }}
         {{ $result := .Result }}
         {{ $columns := .Columns }}
         <table
@@ -12,36 +14,35 @@
             <thead class="govuk-table__head">
                 <tr class="govuk-table__row">
                     <th class="govuk-table__header"><span></span></th>
-                    {{ range $i, $ym := $months }}
+                    {{ range $i, $ym := $dates }}
                         <th class="govuk-table__header data-cell" data-col="{{$i}}"><span>{{ $ym }}</span></th>
                     {{ end }}
+                    <th class="govuk-table__header data-cell"><span>Totals</span></th>
                 </tr>
             </thead>
 
             <tbody class="govuk-table__body">
                 {{ range $x, $col := $columns }}
                     {{ range $y, $choice := $col }}
+                        {{ $row := 0.0 }}
                         <tr class="govuk-table__row">
                             <th class="govuk-table__header"><span>{{ $choice }}</span></th>
 
-                            {{ range $z, $ym := $months }}
-                                <!-- {{ $ym }} -->
+                            {{ range $z, $ym := $dates }}
                                 {{ range $i, $raw := $result }}
-                                    <!-- {{ $i }} -->
                                     {{ $item := modelAWSCTax $raw }}
                                     {{ $isCol := eq $choice $item.Service }}
                                     {{ $isMonth := eq $ym $item.Month }}
-                                    <!-- isCol {{ $isCol }} choice {{ $choice }} service {{ $item.Service }}-->
 
                                     {{ if and $isCol $isMonth }}
+                                        {{ $row = add $row $item.Total }}
                                         <td class="govuk-table__cell data-cell"><span title="{{ $item.Total }}">{{ currency $item.Total "$" }}</span></td>
                                     {{ end }}
 
                                 {{ end }}
 
-
                             {{ end }}
-
+                            <td class="govuk-table__cell data-cell"><span title="{{ $row }}">{{ currency $row "$" }}</span></td>
                         </tr>
                     {{ end }}
                 {{ end }}

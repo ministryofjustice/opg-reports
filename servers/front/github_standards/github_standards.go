@@ -44,7 +44,7 @@ func Register(ctx context.Context, mux *http.ServeMux, conf *config.Config, temp
 			slog.Error("had error back from api getter", slog.String("err", err.Error()))
 		}
 		data["Organisation"] = conf.Organisation
-		data["PageTitle"] = navItem.Name + " "
+		data["PageTitle"] = navItem.Name + " - "
 		// sort out navigation
 		top, active := navigation.Level(conf.Navigation, r)
 		data["NavigationTop"] = top

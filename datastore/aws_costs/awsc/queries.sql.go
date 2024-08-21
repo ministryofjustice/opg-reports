@@ -20,6 +20,167 @@ func (q *Queries) Count(ctx context.Context) (int64, error) {
 	return count, err
 }
 
+const dailyCostsDetailed = `-- name: DailyCostsDetailed :many
+SELECT
+    account_id,
+    unit,
+    environment,
+    service,
+    coalesce(SUM(cost), 0) as total,
+    strftime("%Y-%m-%d", date) as interval
+FROM aws_costs
+WHERE
+    date >= ?1 AND
+    date < ?2
+GROUP BY account_id, unit, environment, service, strftime("%Y-%m-%d", date)
+ORDER by strftime("%Y-%m-%d", date) ASC
+`
+
+type DailyCostsDetailedParams struct {
+	Start string `json:"start"`
+	End   string `json:"end"`
+}
+
+type DailyCostsDetailedRow struct {
+	AccountID   string      `json:"account_id"`
+	Unit        string      `json:"unit"`
+	Environment string      `json:"environment"`
+	Service     string      `json:"service"`
+	Total       interface{} `json:"total"`
+	Interval    interface{} `json:"interval"`
+}
+
+func (q *Queries) DailyCostsDetailed(ctx context.Context, arg DailyCostsDetailedParams) ([]DailyCostsDetailedRow, error) {
+	rows, err := q.query(ctx, q.dailyCostsDetailedStmt, dailyCostsDetailed, arg.Start, arg.End)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []DailyCostsDetailedRow
+	for rows.Next() {
+		var i DailyCostsDetailedRow
+		if err := rows.Scan(
+			&i.AccountID,
+			&i.Unit,
+			&i.Environment,
+			&i.Service,
+			&i.Total,
+			&i.Interval,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const dailyCostsPerUnit = `-- name: DailyCostsPerUnit :many
+SELECT
+    unit,
+    coalesce(SUM(cost), 0) as total,
+    strftime("%Y-%m-%d", date) as interval
+FROM aws_costs
+WHERE
+    date >= ?1 AND
+    date < ?2
+GROUP BY unit, strftime("%Y-%m-%d", date)
+ORDER by strftime("%Y-%m-%d", date) ASC
+`
+
+type DailyCostsPerUnitParams struct {
+	Start string `json:"start"`
+	End   string `json:"end"`
+}
+
+type DailyCostsPerUnitRow struct {
+	Unit     string      `json:"unit"`
+	Total    interface{} `json:"total"`
+	Interval interface{} `json:"interval"`
+}
+
+func (q *Queries) DailyCostsPerUnit(ctx context.Context, arg DailyCostsPerUnitParams) ([]DailyCostsPerUnitRow, error) {
+	rows, err := q.query(ctx, q.dailyCostsPerUnitStmt, dailyCostsPerUnit, arg.Start, arg.End)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []DailyCostsPerUnitRow
+	for rows.Next() {
+		var i DailyCostsPerUnitRow
+		if err := rows.Scan(&i.Unit, &i.Total, &i.Interval); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const dailyCostsPerUnitEnvironment = `-- name: DailyCostsPerUnitEnvironment :many
+SELECT
+    unit,
+    environment,
+    coalesce(SUM(cost), 0) as total,
+    strftime("%Y-%m-%d", date) as interval
+FROM aws_costs
+WHERE
+    date >= ?1 AND
+    date < ?2
+GROUP BY unit, environment, strftime("%Y-%m-%d", date)
+ORDER by strftime("%Y-%m-%d", date) ASC
+`
+
+type DailyCostsPerUnitEnvironmentParams struct {
+	Start string `json:"start"`
+	End   string `json:"end"`
+}
+
+type DailyCostsPerUnitEnvironmentRow struct {
+	Unit        string      `json:"unit"`
+	Environment string      `json:"environment"`
+	Total       interface{} `json:"total"`
+	Interval    interface{} `json:"interval"`
+}
+
+func (q *Queries) DailyCostsPerUnitEnvironment(ctx context.Context, arg DailyCostsPerUnitEnvironmentParams) ([]DailyCostsPerUnitEnvironmentRow, error) {
+	rows, err := q.query(ctx, q.dailyCostsPerUnitEnvironmentStmt, dailyCostsPerUnitEnvironment, arg.Start, arg.End)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []DailyCostsPerUnitEnvironmentRow
+	for rows.Next() {
+		var i DailyCostsPerUnitEnvironmentRow
+		if err := rows.Scan(
+			&i.Unit,
+			&i.Environment,
+			&i.Total,
+			&i.Interval,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const insert = `-- name: Insert :one
 INSERT INTO aws_costs(
     ts,
@@ -69,6 +230,167 @@ func (q *Queries) Insert(ctx context.Context, arg InsertParams) (int, error) {
 	var id int
 	err := row.Scan(&id)
 	return id, err
+}
+
+const monthlyCostsDetailed = `-- name: MonthlyCostsDetailed :many
+SELECT
+    account_id,
+    unit,
+    environment,
+    service,
+    coalesce(SUM(cost), 0) as total,
+    strftime("%Y-%m", date) as interval
+FROM aws_costs
+WHERE
+    date >= ?1 AND
+    date < ?2
+GROUP BY account_id, unit, environment, service, strftime("%Y-%m", date)
+ORDER by strftime("%Y-%m", date) ASC
+`
+
+type MonthlyCostsDetailedParams struct {
+	Start string `json:"start"`
+	End   string `json:"end"`
+}
+
+type MonthlyCostsDetailedRow struct {
+	AccountID   string      `json:"account_id"`
+	Unit        string      `json:"unit"`
+	Environment string      `json:"environment"`
+	Service     string      `json:"service"`
+	Total       interface{} `json:"total"`
+	Interval    interface{} `json:"interval"`
+}
+
+func (q *Queries) MonthlyCostsDetailed(ctx context.Context, arg MonthlyCostsDetailedParams) ([]MonthlyCostsDetailedRow, error) {
+	rows, err := q.query(ctx, q.monthlyCostsDetailedStmt, monthlyCostsDetailed, arg.Start, arg.End)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MonthlyCostsDetailedRow
+	for rows.Next() {
+		var i MonthlyCostsDetailedRow
+		if err := rows.Scan(
+			&i.AccountID,
+			&i.Unit,
+			&i.Environment,
+			&i.Service,
+			&i.Total,
+			&i.Interval,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const monthlyCostsPerUnit = `-- name: MonthlyCostsPerUnit :many
+SELECT
+    unit,
+    coalesce(SUM(cost), 0) as total,
+    strftime("%Y-%m", date) as interval
+FROM aws_costs
+WHERE
+    date >= ?1 AND
+    date < ?2
+GROUP BY unit, strftime("%Y-%m", date)
+ORDER by strftime("%Y-%m", date) ASC
+`
+
+type MonthlyCostsPerUnitParams struct {
+	Start string `json:"start"`
+	End   string `json:"end"`
+}
+
+type MonthlyCostsPerUnitRow struct {
+	Unit     string      `json:"unit"`
+	Total    interface{} `json:"total"`
+	Interval interface{} `json:"interval"`
+}
+
+func (q *Queries) MonthlyCostsPerUnit(ctx context.Context, arg MonthlyCostsPerUnitParams) ([]MonthlyCostsPerUnitRow, error) {
+	rows, err := q.query(ctx, q.monthlyCostsPerUnitStmt, monthlyCostsPerUnit, arg.Start, arg.End)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MonthlyCostsPerUnitRow
+	for rows.Next() {
+		var i MonthlyCostsPerUnitRow
+		if err := rows.Scan(&i.Unit, &i.Total, &i.Interval); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const monthlyCostsPerUnitEnvironment = `-- name: MonthlyCostsPerUnitEnvironment :many
+SELECT
+    unit,
+    environment,
+    coalesce(SUM(cost), 0) as total,
+    strftime("%Y-%m", date) as interval
+FROM aws_costs
+WHERE
+    date >= ?1 AND
+    date < ?2
+GROUP BY unit, environment, strftime("%Y-%m", date)
+ORDER by strftime("%Y-%m", date) ASC
+`
+
+type MonthlyCostsPerUnitEnvironmentParams struct {
+	Start string `json:"start"`
+	End   string `json:"end"`
+}
+
+type MonthlyCostsPerUnitEnvironmentRow struct {
+	Unit        string      `json:"unit"`
+	Environment string      `json:"environment"`
+	Total       interface{} `json:"total"`
+	Interval    interface{} `json:"interval"`
+}
+
+func (q *Queries) MonthlyCostsPerUnitEnvironment(ctx context.Context, arg MonthlyCostsPerUnitEnvironmentParams) ([]MonthlyCostsPerUnitEnvironmentRow, error) {
+	rows, err := q.query(ctx, q.monthlyCostsPerUnitEnvironmentStmt, monthlyCostsPerUnitEnvironment, arg.Start, arg.End)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MonthlyCostsPerUnitEnvironmentRow
+	for rows.Next() {
+		var i MonthlyCostsPerUnitEnvironmentRow
+		if err := rows.Scan(
+			&i.Unit,
+			&i.Environment,
+			&i.Total,
+			&i.Interval,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const monthlyTotalsTaxSplit = `-- name: MonthlyTotalsTaxSplit :many
@@ -163,19 +485,9 @@ func (q *Queries) Total(ctx context.Context, arg TotalParams) (interface{}, erro
 }
 
 const track = `-- name: Track :exec
-;
-
 INSERT INTO aws_costs_tracker (run_date) VALUES(?)
 `
 
-// -- name: ByMonth :many
-// SELECT
-//
-//	SUM(cost) as total,
-//	strftime("%Y-%m", date) as month
-//
-// FROM aws_costs
-// GROUP BY strftime("%Y-%m", date);
 func (q *Queries) Track(ctx context.Context, runDate string) error {
 	_, err := q.exec(ctx, q.trackStmt, track, runDate)
 	return err

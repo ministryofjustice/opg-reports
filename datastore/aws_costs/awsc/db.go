@@ -27,8 +27,26 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.countStmt, err = db.PrepareContext(ctx, count); err != nil {
 		return nil, fmt.Errorf("error preparing query Count: %w", err)
 	}
+	if q.dailyCostsDetailedStmt, err = db.PrepareContext(ctx, dailyCostsDetailed); err != nil {
+		return nil, fmt.Errorf("error preparing query DailyCostsDetailed: %w", err)
+	}
+	if q.dailyCostsPerUnitStmt, err = db.PrepareContext(ctx, dailyCostsPerUnit); err != nil {
+		return nil, fmt.Errorf("error preparing query DailyCostsPerUnit: %w", err)
+	}
+	if q.dailyCostsPerUnitEnvironmentStmt, err = db.PrepareContext(ctx, dailyCostsPerUnitEnvironment); err != nil {
+		return nil, fmt.Errorf("error preparing query DailyCostsPerUnitEnvironment: %w", err)
+	}
 	if q.insertStmt, err = db.PrepareContext(ctx, insert); err != nil {
 		return nil, fmt.Errorf("error preparing query Insert: %w", err)
+	}
+	if q.monthlyCostsDetailedStmt, err = db.PrepareContext(ctx, monthlyCostsDetailed); err != nil {
+		return nil, fmt.Errorf("error preparing query MonthlyCostsDetailed: %w", err)
+	}
+	if q.monthlyCostsPerUnitStmt, err = db.PrepareContext(ctx, monthlyCostsPerUnit); err != nil {
+		return nil, fmt.Errorf("error preparing query MonthlyCostsPerUnit: %w", err)
+	}
+	if q.monthlyCostsPerUnitEnvironmentStmt, err = db.PrepareContext(ctx, monthlyCostsPerUnitEnvironment); err != nil {
+		return nil, fmt.Errorf("error preparing query MonthlyCostsPerUnitEnvironment: %w", err)
 	}
 	if q.monthlyTotalsTaxSplitStmt, err = db.PrepareContext(ctx, monthlyTotalsTaxSplit); err != nil {
 		return nil, fmt.Errorf("error preparing query MonthlyTotalsTaxSplit: %w", err)
@@ -55,9 +73,39 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing countStmt: %w", cerr)
 		}
 	}
+	if q.dailyCostsDetailedStmt != nil {
+		if cerr := q.dailyCostsDetailedStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing dailyCostsDetailedStmt: %w", cerr)
+		}
+	}
+	if q.dailyCostsPerUnitStmt != nil {
+		if cerr := q.dailyCostsPerUnitStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing dailyCostsPerUnitStmt: %w", cerr)
+		}
+	}
+	if q.dailyCostsPerUnitEnvironmentStmt != nil {
+		if cerr := q.dailyCostsPerUnitEnvironmentStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing dailyCostsPerUnitEnvironmentStmt: %w", cerr)
+		}
+	}
 	if q.insertStmt != nil {
 		if cerr := q.insertStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing insertStmt: %w", cerr)
+		}
+	}
+	if q.monthlyCostsDetailedStmt != nil {
+		if cerr := q.monthlyCostsDetailedStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing monthlyCostsDetailedStmt: %w", cerr)
+		}
+	}
+	if q.monthlyCostsPerUnitStmt != nil {
+		if cerr := q.monthlyCostsPerUnitStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing monthlyCostsPerUnitStmt: %w", cerr)
+		}
+	}
+	if q.monthlyCostsPerUnitEnvironmentStmt != nil {
+		if cerr := q.monthlyCostsPerUnitEnvironmentStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing monthlyCostsPerUnitEnvironmentStmt: %w", cerr)
 		}
 	}
 	if q.monthlyTotalsTaxSplitStmt != nil {
@@ -122,27 +170,39 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                        DBTX
-	tx                        *sql.Tx
-	countStmt                 *sql.Stmt
-	insertStmt                *sql.Stmt
-	monthlyTotalsTaxSplitStmt *sql.Stmt
-	oldestStmt                *sql.Stmt
-	totalStmt                 *sql.Stmt
-	trackStmt                 *sql.Stmt
-	youngestStmt              *sql.Stmt
+	db                                 DBTX
+	tx                                 *sql.Tx
+	countStmt                          *sql.Stmt
+	dailyCostsDetailedStmt             *sql.Stmt
+	dailyCostsPerUnitStmt              *sql.Stmt
+	dailyCostsPerUnitEnvironmentStmt   *sql.Stmt
+	insertStmt                         *sql.Stmt
+	monthlyCostsDetailedStmt           *sql.Stmt
+	monthlyCostsPerUnitStmt            *sql.Stmt
+	monthlyCostsPerUnitEnvironmentStmt *sql.Stmt
+	monthlyTotalsTaxSplitStmt          *sql.Stmt
+	oldestStmt                         *sql.Stmt
+	totalStmt                          *sql.Stmt
+	trackStmt                          *sql.Stmt
+	youngestStmt                       *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                        tx,
-		tx:                        tx,
-		countStmt:                 q.countStmt,
-		insertStmt:                q.insertStmt,
-		monthlyTotalsTaxSplitStmt: q.monthlyTotalsTaxSplitStmt,
-		oldestStmt:                q.oldestStmt,
-		totalStmt:                 q.totalStmt,
-		trackStmt:                 q.trackStmt,
-		youngestStmt:              q.youngestStmt,
+		db:                                 tx,
+		tx:                                 tx,
+		countStmt:                          q.countStmt,
+		dailyCostsDetailedStmt:             q.dailyCostsDetailedStmt,
+		dailyCostsPerUnitStmt:              q.dailyCostsPerUnitStmt,
+		dailyCostsPerUnitEnvironmentStmt:   q.dailyCostsPerUnitEnvironmentStmt,
+		insertStmt:                         q.insertStmt,
+		monthlyCostsDetailedStmt:           q.monthlyCostsDetailedStmt,
+		monthlyCostsPerUnitStmt:            q.monthlyCostsPerUnitStmt,
+		monthlyCostsPerUnitEnvironmentStmt: q.monthlyCostsPerUnitEnvironmentStmt,
+		monthlyTotalsTaxSplitStmt:          q.monthlyTotalsTaxSplitStmt,
+		oldestStmt:                         q.oldestStmt,
+		totalStmt:                          q.totalStmt,
+		trackStmt:                          q.trackStmt,
+		youngestStmt:                       q.youngestStmt,
 	}
 }

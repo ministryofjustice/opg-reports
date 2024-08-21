@@ -29,6 +29,9 @@ func Funcs() map[string]interface{} {
 			}
 			return symbol + "0.0"
 		},
+		"add": func(a float64, b float64) float64 {
+			return a + b
+		},
 		"percent": func(got int, total int) string {
 			x := float64(got)
 			y := float64(total)

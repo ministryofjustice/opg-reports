@@ -96,6 +96,9 @@
 }
 
 /* main content */
+strong.currency{
+    font-family: monospace;
+}
 .app-content{
     padding: 15px;
 }

@@ -50,6 +50,17 @@ func First(strs []string) string {
 	}
 	return ""
 }
+
+func AllD(strs []string, defaultValue string) (v []string) {
+	v = []string{}
+	if len(strs) > 0 {
+		v = strs
+	} else {
+		v = append(v, defaultValue)
+	}
+	return
+}
+
 func FirstD(strs []string, defaultValue string) string {
 	if len(strs) > 0 && strs[0] != "" {
 		return strs[0]

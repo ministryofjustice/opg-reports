@@ -46,14 +46,89 @@ SELECT
     coalesce(SUM(cost), 0) as total
 FROM aws_costs
 WHERE
-    date >= @start AND date < @end
-;
--- -- name: ByMonth :many
--- SELECT
---     SUM(cost) as total,
---     strftime("%Y-%m", date) as month
--- FROM aws_costs
--- GROUP BY strftime("%Y-%m", date);
+    date >= @start AND date < @end;
+
+-- name: MonthlyCostsPerUnit :many
+SELECT
+    unit,
+    coalesce(SUM(cost), 0) as total,
+    strftime("%Y-%m", date) as interval
+FROM aws_costs
+WHERE
+    date >= @start AND
+    date < @end
+GROUP BY unit, strftime("%Y-%m", date)
+ORDER by strftime("%Y-%m", date) ASC;
+
+-- name: MonthlyCostsPerUnitEnvironment :many
+SELECT
+    unit,
+    environment,
+    coalesce(SUM(cost), 0) as total,
+    strftime("%Y-%m", date) as interval
+FROM aws_costs
+WHERE
+    date >= @start AND
+    date < @end
+GROUP BY unit, environment, strftime("%Y-%m", date)
+ORDER by strftime("%Y-%m", date) ASC;
+
+-- name: MonthlyCostsDetailed :many
+SELECT
+    account_id,
+    unit,
+    environment,
+    service,
+    coalesce(SUM(cost), 0) as total,
+    strftime("%Y-%m", date) as interval
+FROM aws_costs
+WHERE
+    date >= @start AND
+    date < @end
+GROUP BY account_id, unit, environment, service, strftime("%Y-%m", date)
+ORDER by strftime("%Y-%m", date) ASC;
+
+-- name: DailyCostsPerUnit :many
+SELECT
+    unit,
+    coalesce(SUM(cost), 0) as total,
+    strftime("%Y-%m-%d", date) as interval
+FROM aws_costs
+WHERE
+    date >= @start AND
+    date < @end
+GROUP BY unit, strftime("%Y-%m-%d", date)
+ORDER by strftime("%Y-%m-%d", date) ASC;
+
+-- name: DailyCostsPerUnitEnvironment :many
+SELECT
+    unit,
+    environment,
+    coalesce(SUM(cost), 0) as total,
+    strftime("%Y-%m-%d", date) as interval
+FROM aws_costs
+WHERE
+    date >= @start AND
+    date < @end
+GROUP BY unit, environment, strftime("%Y-%m-%d", date)
+ORDER by strftime("%Y-%m-%d", date) ASC;
+
+-- name: DailyCostsDetailed :many
+SELECT
+    account_id,
+    unit,
+    environment,
+    service,
+    coalesce(SUM(cost), 0) as total,
+    strftime("%Y-%m-%d", date) as interval
+FROM aws_costs
+WHERE
+    date >= @start AND
+    date < @end
+GROUP BY account_id, unit, environment, service, strftime("%Y-%m-%d", date)
+ORDER by strftime("%Y-%m-%d", date) ASC;
+
+
 
 -- name: Track :exec
 INSERT INTO aws_costs_tracker (run_date) VALUES(?) ;

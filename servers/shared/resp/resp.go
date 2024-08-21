@@ -36,6 +36,12 @@ func (rp *Response) Start(w http.ResponseWriter, r *http.Request) {
 	rp.TimerStart()
 }
 
+func (rp *Response) ErrorAndEnd(err error, w http.ResponseWriter, r *http.Request) {
+	slog.Error("ending response due to error", slog.String("err", err.Error()))
+	rp.Errors = append(rp.Errors, err)
+	rp.End(w, r)
+}
+
 func (rp *Response) End(w http.ResponseWriter, r *http.Request) {
 	rp.TimerEnd()
 	rp.TimerDuration()
