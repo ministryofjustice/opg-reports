@@ -1,0 +1,64 @@
+{{ define "aws-costs-monthly-tax" }}
+    {{ template "head" . }}
+
+    <h1 class="govuk-heading-l">AWS Costs</h1>
+
+    {{ if .Result }}
+        {{ $months := .Months }}
+        {{ $result := .Result }}
+        {{ $columns := .Columns }}
+        <table
+            class="dataframe currency-table govuk-table highlight js-table-sorter {{ .NavigationActive.ClassName }}">
+            <thead class="govuk-table__head">
+                <tr class="govuk-table__row">
+                    <th class="govuk-table__header"><span></span></th>
+                    {{ range $i, $ym := $months }}
+                        <th class="govuk-table__header data-cell" data-col="{{$i}}"><span>{{ $ym }}</span></th>
+                    {{ end }}
+                </tr>
+            </thead>
+
+            <tbody class="govuk-table__body">
+                {{ range $x, $col := $columns }}
+                    {{ range $y, $choice := $col }}
+                        <tr class="govuk-table__row">
+                            <th class="govuk-table__header"><span>{{ $choice }}</span></th>
+
+                            {{ range $z, $ym := $months }}
+                                <!-- {{ $ym }} -->
+                                {{ range $i, $raw := $result }}
+                                    <!-- {{ $i }} -->
+                                    {{ $item := modelAWSCTax $raw }}
+                                    {{ $isCol := eq $choice $item.Service }}
+                                    {{ $isMonth := eq $ym $item.Month }}
+                                    <!-- isCol {{ $isCol }} choice {{ $choice }} service {{ $item.Service }}-->
+
+                                    {{ if and $isCol $isMonth }}
+                                        <td class="govuk-table__cell data-cell"><span title="{{ $item.Total }}">{{ currency $item.Total "$" }}</span></td>
+                                    {{ end }}
+
+                                {{ end }}
+
+
+                            {{ end }}
+
+                        </tr>
+                    {{ end }}
+                {{ end }}
+
+            </tbody>
+
+
+        </table>
+
+
+
+        {{ template "result-notes" . }}
+    {{ else }}
+        {{ template "no-result" . }}
+    {{end}}
+
+
+    {{ template "foot" . }}
+
+{{ end }}

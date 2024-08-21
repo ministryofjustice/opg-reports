@@ -91,7 +91,6 @@ func Api(conf *config.Config, nav *navigation.NavigationItem, r *http.Request) (
 		}
 
 		slog.Info("api call details",
-			slog.String("metadata", fmt.Sprintf("%+v", response.Metadata)),
 			slog.Float64("duration (s)", duration.Seconds()),
 			slog.String("key", key),
 			slog.String("endpoint", endpoint),

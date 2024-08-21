@@ -73,7 +73,7 @@ func (q *Queries) Insert(ctx context.Context, arg InsertParams) (int, error) {
 
 const monthlyTotalsTaxSplit = `-- name: MonthlyTotalsTaxSplit :many
 SELECT
-    'WithTax' as service,
+    'Including Tax' as service,
     coalesce(SUM(cost), 0) as total,
     strftime("%Y-%m", date) as month
 FROM aws_costs as incTax
@@ -83,7 +83,7 @@ WHERE
 GROUP BY strftime("%Y-%m", incTax.date)
 UNION ALL
 SELECT
-    'WithoutTax' as service,
+    'Excluding Tax' as service,
     coalesce(SUM(cost), 0) as total,
     strftime("%Y-%m", date) as month
 FROM aws_costs as excTax

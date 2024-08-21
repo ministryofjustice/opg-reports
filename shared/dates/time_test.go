@@ -8,18 +8,19 @@ import (
 )
 
 func TestSharedDatesBillingDates(t *testing.T) {
-
+	var s time.Time
+	var e time.Time
 	// billing date of the 5th
 	// current date of the 4th
 	// ask for 3 months
 	var (
 		billingday int       = 5
-		current    time.Time = time.Date(2023, 10, 4, 0, 0, 0, 0, time.UTC)
 		months     int       = 3
+		current    time.Time = time.Date(2023, 10, 4, 0, 0, 0, 0, time.UTC)
 		expectedS  time.Time = time.Date(2023, 6, 1, 0, 0, 0, 0, time.UTC)
 		expectedE  time.Time = time.Date(2023, 9, 1, 0, 0, 0, 0, time.UTC)
 	)
-	s, e := dates.BillingDates(current, billingday, months)
+	s, e = dates.BillingDates(current, billingday, months)
 
 	if s.Format(dates.FormatYMD) != expectedS.Format(dates.FormatYMD) {
 		t.Errorf("start date mis match expected [%s] actual [%s]", expectedS.String(), s.String())
@@ -34,10 +35,10 @@ func TestSharedDatesBillingDates(t *testing.T) {
 	// current date of the 28th
 	// ask for 6 months
 	billingday = 5
-	current = time.Date(2023, 11, 28, 0, 0, 0, 0, time.UTC)
 	months = 6
+	current = time.Date(2023, 11, 28, 0, 0, 0, 0, time.UTC)
 	expectedS = time.Date(2023, 5, 1, 0, 0, 0, 0, time.UTC)
-	expectedE = time.Date(2023, 10, 31, 0, 0, 0, 0, time.UTC)
+	expectedE = time.Date(2023, 11, 1, 0, 0, 0, 0, time.UTC)
 	s, e = dates.BillingDates(current, billingday, months)
 
 	if s.Format(dates.FormatYMD) != expectedS.Format(dates.FormatYMD) {
@@ -49,4 +50,13 @@ func TestSharedDatesBillingDates(t *testing.T) {
 
 	}
 
+	billingday = 15
+	months = 11
+	current = time.Date(2024, 8, 21, 0, 0, 0, 0, time.UTC)
+	expectedE = time.Date(2024, 8, 1, 0, 0, 0, 0, time.UTC)
+	_, e = dates.BillingDates(current, billingday, months)
+
+	if e.Format(dates.FormatYMD) != expectedE.Format(dates.FormatYMD) {
+		t.Errorf("end date mis match expected [%s] actual [%s]", expectedE.String(), e.String())
+	}
 }

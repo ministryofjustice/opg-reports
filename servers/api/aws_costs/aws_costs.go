@@ -112,10 +112,14 @@ func Handlers(ctx context.Context, mux *http.ServeMux, dbPath string) map[string
 		queries := awsc.New(db)
 		defer queries.Close()
 
-		// -- fetch the raw results
-		startDate, endDate := dates.BillingDates(time.Now().UTC(), consts.BILLING_DATE, 11)
+		// get date range
+		startDate, endDate := dates.BillingDates(time.Now().UTC(), consts.BILLING_DATE, 12)
 		// add the months to the metadata
-		response.Metadata["months"] = dates.Strings(dates.Range(startDate, endDate, dates.MONTH), dates.FormatYM)
+		response.Metadata["start_date"] = startDate.Format(dates.Format)
+		response.Metadata["end_date"] = endDate.Format(dates.Format)
+		response.Metadata["months"] = dates.Strings(dates.Range(startDate, endDate.AddDate(0, -1, 0), dates.MONTH), dates.FormatYM)
+
+		// -- fetch the raw results
 		slog.Info("about to get results, limiting to date range",
 			slog.String("end", endDate.Format(dates.FormatYMD)),
 			slog.String("start", startDate.Format(dates.FormatYMD)))
@@ -130,6 +134,10 @@ func Handlers(ctx context.Context, mux *http.ServeMux, dbPath string) map[string
 			response.Errors = append(response.Errors, err)
 			response.End(w, r)
 			return
+		}
+		// -- add columns
+		response.Metadata["columns"] = map[string][]string{
+			"service": {"Including Tax", "Excluding Tax"},
 		}
 
 		// -- convert results over to output format

@@ -83,7 +83,7 @@ func BillingEndDate(when time.Time, billingDay int) (m time.Time) {
 	if when.Day() < billingDay {
 		m = ResetMonth(when).AddDate(0, -1, 0)
 	} else {
-		m = ResetMonth(when).AddDate(0, 0, -1)
+		m = ResetMonth(when).AddDate(0, 0, 0)
 	}
 	return
 }

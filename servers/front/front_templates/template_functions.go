@@ -2,19 +2,33 @@ package front_templates
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/ministryofjustice/opg-reports/datastore/aws_costs/awsc"
 	"github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
 	"github.com/ministryofjustice/opg-reports/shared/dates"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 func Funcs() map[string]interface{} {
 
 	return map[string]interface{}{
+		"currency": func(s interface{}, symbol string) string {
+			p := message.NewPrinter(language.English)
+			switch s.(type) {
+			case string:
+				f, _ := strconv.ParseFloat(s.(string), 10)
+				return symbol + p.Sprintf("%.2f", symbol, f)
+			case float64:
+				return symbol + p.Sprintf("%.2f", s.(float64))
+			}
+			return symbol + "0.0"
+		},
 		"percent": func(got int, total int) string {
 			x := float64(got)
 			y := float64(total)
@@ -54,6 +68,10 @@ func Funcs() map[string]interface{} {
 		// -- casting
 		"modelGHS": func(m map[string]interface{}) (g *ghs.GithubStandard) {
 			g, _ = convert.Unmap[*ghs.GithubStandard](m)
+			return
+		},
+		"modelAWSCTax": func(m map[string]interface{}) (i *awsc.MonthlyTotalsTaxSplitRow) {
+			i, _ = convert.Unmap[*awsc.MonthlyTotalsTaxSplitRow](m)
 			return
 		},
 	}

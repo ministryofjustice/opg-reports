@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/ministryofjustice/opg-reports/servers/front/aws_costs"
 	"github.com/ministryofjustice/opg-reports/servers/front/config"
 	"github.com/ministryofjustice/opg-reports/servers/front/dl"
 	"github.com/ministryofjustice/opg-reports/servers/front/front_templates"
@@ -41,7 +42,6 @@ func main() {
 	})
 
 	// -- get templates
-
 	templates = front_templates.GetTemplates("./templates")
 	for _, f := range templates {
 		slog.Debug("template file", slog.String("path", f))
@@ -57,6 +57,8 @@ func main() {
 
 	// -- call github
 	github_standards.Register(ctx, mux, conf, templates)
+	// -- call aws_costs
+	aws_costs.Register(ctx, mux, conf, templates)
 
 	addr := env.Get("FRONT_ADDR", defaultAddr)
 	server := &http.Server{
