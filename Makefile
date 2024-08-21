@@ -1,8 +1,7 @@
 .DEFAULT_GOAL: all
 .PHONY: test tests benchmarks coverage clean data go-build
 
-all:
-	@echo "Nothing to run, choose a target."
+all: up
 
 ##############################
 AWS_VAULT_PROFILE ?= shared-development-operator
@@ -63,8 +62,8 @@ data: vars
 	@mkdir -p ./builds/api/github_standards/data
 	@mkdir -p ./builds/api/aws_costs/data
 
-	${AWS_VAULT_COMMAND} aws s3 sync --quiet s3://${AWS_BUCKET}/github_standards ./builds/api/github_standards/data/ || echo bucket_github_standards_failed; \
-	${AWS_VAULT_COMMAND} aws s3 sync --quiet s3://${AWS_BUCKET}/aws_costs ./builds/api/aws_costs/data/ || echo bucket_aws_costs_failed; \
+	${AWS_VAULT_COMMAND} aws s3 sync --quiet s3://${AWS_BUCKET}/github_standards ./builds/api/github_standards/data/ && echo bucket_github_standards_done || echo bucket_github_standards_failed; \
+	${AWS_VAULT_COMMAND} aws s3 sync --quiet s3://${AWS_BUCKET}/aws_costs ./builds/api/aws_costs/data/ && echo bucket_aws_costs_done || echo bucket_aws_costs_failed; \
 
 vars:
 	@echo "AWS_VAULT_PROFILE: ${AWS_VAULT_PROFILE}"
@@ -87,7 +86,7 @@ start:
 clean: down
 	@rm -f ./servers/api/*.db
 	@rm -f ./servers/api/*.csv
-# @rm -Rf ./servers/front/govuk
+	@rm -Rf ./servers/front/govuk
 	@rm -Rf ./builds
 	@mkdir -p ./builds
 	@docker image rm $(image) || echo "ok"

@@ -47,16 +47,15 @@ RUN /go/bin/api/seed_cmd \
     -schema /go/bin/api/github_standards/github_standards.sql \
     -db /go/bin/api/github_standards.db \
     -data "/go/bin/api/github_standards/data/*.json"
-RUN sqlite3 /go/bin/api/github_standards.db "select count(*) from github_standards;"
-    # aws costs
+# aws costs
 RUN /go/bin/api/seed_cmd \
     -table aws_costs \
     -schema /go/bin/api/aws_costs/aws_costs.sql \
     -db /go/bin/api/aws_costs.db \
     -data "/go/bin/api/aws_costs/data/*.json"
 # test the import worked by getting the count
+RUN sqlite3 /go/bin/api/github_standards.db "select count(*) from github_standards;"
 RUN sqlite3 /go/bin/api/aws_costs.db "select count(*) from aws_costs;"
-RUN ls -lRh /go/bin/
 
 
 FROM build AS dev
