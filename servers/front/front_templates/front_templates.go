@@ -1,4 +1,4 @@
-package templ
+package front_templates
 
 import (
 	"os"

@@ -9,8 +9,8 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/servers/front/config"
 	"github.com/ministryofjustice/opg-reports/servers/front/dl"
+	"github.com/ministryofjustice/opg-reports/servers/front/front_templates"
 	"github.com/ministryofjustice/opg-reports/servers/front/github_standards"
-	"github.com/ministryofjustice/opg-reports/servers/shared/templ"
 	"github.com/ministryofjustice/opg-reports/shared/env"
 	"github.com/ministryofjustice/opg-reports/shared/logger"
 )
@@ -41,7 +41,8 @@ func main() {
 	})
 
 	// -- get templates
-	templates = templ.GetTemplates("./templates")
+
+	templates = front_templates.GetTemplates("./templates")
 	for _, f := range templates {
 		slog.Debug("template file", slog.String("path", f))
 	}

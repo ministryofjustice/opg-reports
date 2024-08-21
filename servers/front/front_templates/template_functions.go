@@ -1,10 +1,12 @@
-package templ
+package front_templates
 
 import (
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
+	"github.com/ministryofjustice/opg-reports/shared/convert"
 	"github.com/ministryofjustice/opg-reports/shared/dates"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -45,8 +47,14 @@ func Funcs() map[string]interface{} {
 		"month": func(d time.Time) string {
 			return d.Format(dates.FormatYM)
 		},
-		"day": func(d time.Time) string {
+		"day": func(t string) string {
+			d := dates.Time(t)
 			return d.Format(dates.FormatYMD)
+		},
+		// -- casting
+		"modelGHS": func(m map[string]interface{}) (g *ghs.GithubStandard) {
+			g, _ = convert.Unmap[*ghs.GithubStandard](m)
+			return
 		},
 	}
 
