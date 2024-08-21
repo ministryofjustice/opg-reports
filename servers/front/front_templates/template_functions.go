@@ -77,6 +77,10 @@ func Funcs() map[string]interface{} {
 			i, _ = convert.Unmap[*awsc.MonthlyTotalsTaxSplitRow](m)
 			return
 		},
+		"modelAWSMonthlyPerUnit": func(m map[string]interface{}) (i *awsc.MonthlyCostsPerUnitRow) {
+			i, _ = convert.Unmap[*awsc.MonthlyCostsPerUnitRow](m)
+			return
+		},
 	}
 
 }

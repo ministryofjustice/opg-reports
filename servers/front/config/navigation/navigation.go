@@ -25,7 +25,18 @@ func Level(items []*NavigationItem, r *http.Request) (nav map[string]*Navigation
 		}
 		nav[n.Uri] = n
 	}
+	if active != nil {
+		Activate(active.Navigation, r)
+	}
 	return
+}
+
+func Activate(items []*NavigationItem, r *http.Request) {
+	f := map[string]*NavigationItem{}
+	flat(items, f)
+	for _, n := range f {
+		n.Active = n.Matches(r.URL.Path)
+	}
 }
 
 func Flat(items []*NavigationItem, r *http.Request) (f map[string]*NavigationItem) {
@@ -43,6 +54,18 @@ func ForTemplate(templateName string, navs []*NavigationItem) (found *Navigation
 	for _, n := range fl {
 		if n.Template == templateName {
 			found = n
+		}
+	}
+	return
+}
+
+func ForTemplateList(templateName string, navs []*NavigationItem) (found []*NavigationItem) {
+	fl := map[string]*NavigationItem{}
+	found = []*NavigationItem{}
+	flat(navs, fl)
+	for _, n := range fl {
+		if n.Template == templateName {
+			found = append(found, n)
 		}
 	}
 	return

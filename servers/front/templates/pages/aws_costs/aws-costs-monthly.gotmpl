@@ -1,9 +1,7 @@
-{{ define "aws-costs-monthly-totals" }}
+{{ define "aws-costs-monthly" }}
     {{ template "head" . }}
 
-    <h1 class="govuk-heading-l">AWS Monthly Totals</h1>
-
-    <p class="govuk-body">Our AWS costs grouped by month with one row excluding tax for comparison with finance figures and cross-hosting charges.</p>
+    <h1 class="govuk-heading-l">AWS Costs Per Month By Unit</h1>
 
     {{ if .Result }}
         {{ $dates := .DateRange }}
@@ -13,9 +11,11 @@
             class="dataframe currency-table govuk-table highlight js-table-sorter {{ .NavigationActive.ClassName }}">
             <thead class="govuk-table__head">
                 <tr class="govuk-table__row">
-                    <th class="govuk-table__header"><span></span></th>
-                    {{ range $i, $ym := $dates }}
-                        <th class="govuk-table__header data-cell" data-col="{{$i}}"><span>{{ $ym }}</span></th>
+                    {{ range $col, $v := $columns }}
+                        <th class="govuk-table__header"><span>{{ title $col }}</span></th>
+                    {{ end }}
+                    {{ range $i, $d := $dates }}
+                        <th class="govuk-table__header data-cell" data-col="{{$i}}"><span>{{ $d }}</span></th>
                     {{ end }}
                     <th class="govuk-table__header data-cell"><span>Totals</span></th>
                 </tr>
@@ -28,11 +28,11 @@
                         <tr class="govuk-table__row">
                             <th class="govuk-table__header"><span>{{ $choice }}</span></th>
 
-                            {{ range $z, $ym := $dates }}
+                            {{ range $z, $d := $dates }}
                                 {{ range $i, $raw := $result }}
-                                    {{ $item := modelAWSCTax $raw }}
-                                    {{ $isCol := eq $choice $item.Service }}
-                                    {{ $isMonth := eq $ym $item.Month }}
+                                    {{ $item := modelAWSMonthlyPerUnit $raw }}
+                                    {{ $isCol := eq $choice $item.Unit }}
+                                    {{ $isMonth := eq $d $item.Interval }}
 
                                     {{ if and $isCol $isMonth }}
                                         {{ $row = add $row $item.Total }}

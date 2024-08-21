@@ -17,85 +17,94 @@ import (
 )
 
 const ytdTemplate string = "aws-costs-index"
-const monthlyTaxTemplateName string = "aws-costs-monthly-totals"
+const monthlyTaxTemplate string = "aws-costs-monthly-tax-totals"
+const monthlyTemplate string = "aws-costs-monthly"
+
+func dataCleanup(data map[string]interface{}, conf *config.Config, navItem *navigation.NavigationItem, r *http.Request) map[string]interface{} {
+	data["Organisation"] = conf.Organisation
+	data["PageTitle"] = navItem.Name + " - "
+	// sort out navigation
+	top, active := navigation.Level(conf.Navigation, r)
+	data["NavigationTop"] = top
+	data["NavigationSide"] = active.Navigation
+	return data
+}
+
+func outputHandler(templates []string, templateName string, data map[string]interface{}, w http.ResponseWriter) {
+	status := http.StatusOK
+	t, err := template.New(ytdTemplate).Funcs(front_templates.Funcs()).ParseFiles(templates...)
+	if err != nil {
+		slog.Error("dynamic error", slog.String("err", fmt.Sprintf("%v", err)))
+		status = http.StatusBadGateway
+	}
+	write.Out(w, status, t, templateName, data)
+}
 
 func Register(ctx context.Context, mux *http.ServeMux, conf *config.Config, templates []string) {
 	nav := conf.Navigation
 
-	// -- ytd page
-	ytdNav := navigation.ForTemplate(ytdTemplate, nav)
-	var ytd = func(w http.ResponseWriter, r *http.Request) {
-		data := map[string]interface{}{"Result": nil}
-
-		// if theres no error, then process the response normally
-		if apiData, err := getter.Api(conf, ytdNav, r); err == nil {
-			data = apiData
-			metadata := data["Metadata"].(map[string]interface{})
-			sd := metadata["start_date"].(interface{})
-			ed := metadata["end_date"].(interface{})
-			data["StartDate"] = dates.Time(sd.(string))
-			data["EndDate"] = dates.Time(ed.(string))
-
-			// total
-			res := data["Result"].([]interface{})
-			first := res[0].(map[string]interface{})
-			data["Total"] = first["total"].(float64)
-		} else {
-			slog.Error("had error back from api getter", slog.String("err", err.Error()))
+	// -- year to date
+	ytds := navigation.ForTemplateList(ytdTemplate, nav)
+	for _, navItem := range ytds {
+		var handler = func(w http.ResponseWriter, r *http.Request) {
+			data := map[string]interface{}{"Result": nil}
+			if apiData, err := getter.Api(conf, navItem, r); err == nil {
+				data = apiData
+				metadata := data["Metadata"].(map[string]interface{})
+				// start & end date
+				sd := metadata["start_date"].(interface{})
+				ed := metadata["end_date"].(interface{})
+				data["StartDate"] = dates.Time(sd.(string))
+				data["EndDate"] = dates.Time(ed.(string))
+				// total
+				res := data["Result"].([]interface{})
+				first := res[0].(map[string]interface{})
+				data["Total"] = first["total"].(float64)
+			}
+			data = dataCleanup(data, conf, navItem, r)
+			outputHandler(templates, navItem.Template, data, w)
 		}
-		data["Organisation"] = conf.Organisation
-		data["PageTitle"] = ytdNav.Name + " - "
-		// sort out navigation
-		top, active := navigation.Level(conf.Navigation, r)
-		data["NavigationTop"] = top
-		data["NavigationSide"] = active.Navigation
-		// -- template rendering!
-		status := http.StatusOK
-		t, err := template.New(ytdNav.Template).Funcs(front_templates.Funcs()).ParseFiles(templates...)
-		if err != nil {
-			slog.Error("dynamic error", slog.String("err", fmt.Sprintf("%v", err)))
-			status = http.StatusBadGateway
-		}
-		write.Out(w, status, t, ytdTemplate, data)
+
+		slog.Info("[front] register", slog.String("endpoint", "aws_costs"), slog.String("ytd", navItem.Uri))
+		mux.HandleFunc(navItem.Uri+"{$}", mw.Middleware(handler, mw.Logging, mw.SecurityHeaders))
 	}
 
-	// -- monthly tax breakdown
-	monthlyTaxNavItem := navigation.ForTemplate(monthlyTaxTemplateName, nav)
-	var monthlyTax = func(w http.ResponseWriter, r *http.Request) {
-		data := map[string]interface{}{"Result": nil, "DateRange": []string{}}
-
-		// if theres no error, then process the response normally
-		if apiData, err := getter.Api(conf, monthlyTaxNavItem, r); err == nil {
-			data = apiData
-			metadata := data["Metadata"].(map[string]interface{})
-			data["DateRange"] = metadata["date_range"].([]interface{})
-			data["Columns"] = metadata["columns"].(map[string]interface{})
-
-		} else {
-			slog.Error("had error back from api getter", slog.String("err", err.Error()))
+	// -- monthly totals with tax split
+	taxes := navigation.ForTemplateList(monthlyTaxTemplate, nav)
+	for _, navItem := range taxes {
+		var handler = func(w http.ResponseWriter, r *http.Request) {
+			data := map[string]interface{}{"Result": nil}
+			if apiData, err := getter.Api(conf, navItem, r); err == nil {
+				data = apiData
+				metadata := data["Metadata"].(map[string]interface{})
+				data["DateRange"] = metadata["date_range"].([]interface{})
+				data["Columns"] = metadata["columns"].(map[string]interface{})
+			}
+			data = dataCleanup(data, conf, navItem, r)
+			outputHandler(templates, navItem.Template, data, w)
 		}
-		data["Organisation"] = conf.Organisation
-		data["PageTitle"] = monthlyTaxNavItem.Name + " - "
-		// sort out navigation
-		top, active := navigation.Level(conf.Navigation, r)
-		data["NavigationTop"] = top
-		data["NavigationSide"] = active.Navigation
-		// -- template rendering!
-		status := http.StatusOK
-		t, err := template.New(monthlyTaxNavItem.Template).Funcs(front_templates.Funcs()).ParseFiles(templates...)
-		if err != nil {
-			slog.Error("dynamic error", slog.String("err", fmt.Sprintf("%v", err)))
-			status = http.StatusBadGateway
-		}
-		write.Out(w, status, t, monthlyTaxTemplateName, data)
+
+		slog.Info("[front] register", slog.String("endpoint", "aws_costs"), slog.String("monthly tax", navItem.Uri))
+		mux.HandleFunc(navItem.Uri+"{$}", mw.Middleware(handler, mw.Logging, mw.SecurityHeaders))
 	}
 
-	// -- register
-	slog.Info("[front] register",
-		slog.String("handler", "aws_costs"),
-		slog.String("monthlyTaxNavItem", monthlyTaxNavItem.Uri),
-		slog.String("ytd", ytdNav.Uri))
+	// -- list by month
+	months := navigation.ForTemplateList(monthlyTemplate, nav)
+	for _, navItem := range months {
+		var handler = func(w http.ResponseWriter, r *http.Request) {
+			data := map[string]interface{}{"Result": nil}
+			if apiData, err := getter.Api(conf, navItem, r); err == nil {
+				data = apiData
+				metadata := data["Metadata"].(map[string]interface{})
+				data["DateRange"] = metadata["date_range"].([]interface{})
+				data["Columns"] = metadata["columns"].(map[string]interface{})
+			}
+			data = dataCleanup(data, conf, navItem, r)
+			outputHandler(templates, navItem.Template, data, w)
+		}
 
-	mux.HandleFunc(monthlyTaxNavItem.Uri+"{$}", mw.Middleware(monthlyTax, mw.Logging, mw.SecurityHeaders))
-	mux.HandleFunc(ytdNav.Uri+"{$}", mw.Middleware(ytd, mw.Logging, mw.SecurityHeaders))
+		slog.Info("[front] register", slog.String("endpoint", "aws_costs"), slog.String("monthly", navItem.Uri))
+		mux.HandleFunc(navItem.Uri+"{$}", mw.Middleware(handler, mw.Logging, mw.SecurityHeaders))
+	}
+
 }
