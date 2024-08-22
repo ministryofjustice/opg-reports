@@ -20,11 +20,9 @@ function highchartRender(container, tableId) {
     let seriesSelector = ".data-cell span"
     // stock config, we know get the rest from the table
     var config = {
-        // chart: {type: 'column'},
         title: {text: ""},
         exporting: {enabled: false},
-        // plotOptions: { line: { dataLabels: { enabled: true }, enableMouseTracking: false } },
-        // plotOptions: { column: { pointPadding: 0.2, borderWidth: 0 } }
+        tooltip: { valuePrefix: "$" }
     }
 
     // get the x-axis from the dates in the thead
