@@ -342,7 +342,7 @@ func (q *Queries) MonthlyCostsPerUnit(ctx context.Context, arg MonthlyCostsPerUn
 const monthlyCostsPerUnitEnvironment = `-- name: MonthlyCostsPerUnitEnvironment :many
 SELECT
     unit,
-    environment,
+    IIF(environment != "null", environment, "production") as environment,
     coalesce(SUM(cost), 0) as total,
     strftime("%Y-%m", date) as interval
 FROM aws_costs
@@ -360,7 +360,7 @@ type MonthlyCostsPerUnitEnvironmentParams struct {
 
 type MonthlyCostsPerUnitEnvironmentRow struct {
 	Unit        string      `json:"unit"`
-	Environment string      `json:"environment"`
+	Environment interface{} `json:"environment"`
 	Total       interface{} `json:"total"`
 	Interval    interface{} `json:"interval"`
 }

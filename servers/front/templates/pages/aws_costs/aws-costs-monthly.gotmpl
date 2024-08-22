@@ -1,46 +1,13 @@
 {{ define "aws-costs-monthly" }}
     {{ template "head" . }}
 
-    <h1 class="govuk-heading-l">AWS Costs Per Month By Unit</h1>
+    <h1 class="govuk-heading-l">AWS Costs</h1>
 
     {{ if .Result }}
-        {{ $dates := .DateRange }}
-        {{ $result := .Result }}
-        {{ $columns := .Columns }}
-        <table
-            class="dataframe currency-table govuk-table highlight js-table-sorter {{ .NavigationActive.ClassName }}">
-            <thead class="govuk-table__head">
-                <tr class="govuk-table__row">
-                    {{ range $col, $v := $columns }}
-                        <th class="govuk-table__header"><span>{{ title $col }}</span></th>
-                    {{ end }}
-                    {{ range $i, $d := $dates }}
-                        <th class="govuk-table__header data-cell" data-col="{{$i}}"><span>{{ $d }}</span></th>
-                    {{ end }}
 
-                </tr>
-            </thead>
-
-            <tbody class="govuk-table__body">
-                {{ range $i, $row := $result }}
-                    {{ $cols := .columns }}
-                    {{ $dateValues := .interval }}
-                    <tr class="govuk-table__row" data-rowcount="{{ $i }}">
-                        {{ range $col, $val := $cols }}
-                            <th data-col="{{ $i }}" class="govuk-table__header"><span>{{ $val }}</span></th>
-                        {{ end }}
-                        {{ range $date, $val := $dateValues }}
-                            <td data-col="{{$i}}" class="govuk-table__cell data-cell"><span title="{{ $val }}">{{ currency $val "$" }}</span></td>
-                        {{ end }}
-                    </tr>
-                {{ end }}
-
-            </tbody>
-
-
-        </table>
-
-
+        <div class='scroller'>
+        {{ template "aws-costs-currency-table" . }}
+        </div>
 
         {{ template "result-notes" . }}
     {{ else }}

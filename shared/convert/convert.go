@@ -100,6 +100,11 @@ func String[T any](item T) (s string) {
 	s = strings.ReplaceAll(s, indentWith, "")
 	return
 }
+func PrettyString[T any](item T) (s string) {
+	bytes, _ := Marshal(item)
+	s = string(bytes)
+	return
+}
 
 // IntToBool helper used with sql conversion as sqlite has no
 // boolean type, they are stored as 1 (true) or 0, this maps them back to

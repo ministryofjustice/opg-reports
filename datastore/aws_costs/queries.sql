@@ -63,7 +63,7 @@ ORDER by strftime("%Y-%m", date) ASC;
 -- name: MonthlyCostsPerUnitEnvironment :many
 SELECT
     unit,
-    environment,
+    IIF(environment != "null", environment, "production") as environment,
     coalesce(SUM(cost), 0) as total,
     strftime("%Y-%m", date) as interval
 FROM aws_costs
