@@ -30,7 +30,7 @@ function highchartRender(container, tableId) {
     document.querySelector("#"+tableId).querySelectorAll(headerSelector).forEach(cell => {
         xAxis.push(cell.textContent)
     })
-    // set the xaix config
+    // set the xAxis config
     config["xAxis"] = {
         categories: xAxis,
         crosshair: true,
