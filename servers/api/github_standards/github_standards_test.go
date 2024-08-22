@@ -44,7 +44,7 @@ func TestServersApiGithubStandardsArchivedApiCallAndParse(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 	defer db.Close()
-	slog.Warn("seed duration", slog.String("seconds", tick.Seconds()))
+	slog.Debug("seed duration", slog.String("seconds", tick.Seconds()))
 
 	// check the count of records
 	q := ghs.New(db)
@@ -57,7 +57,7 @@ func TestServersApiGithubStandardsArchivedApiCallAndParse(t *testing.T) {
 	github_standards.SetDBPath(dbF)
 	github_standards.SetCtx(ctx)
 	// -- setup a mock api thats bound to the correct handler func
-	mock := mockApi(ctx, dbF)
+	mock := mockApi()
 	defer mock.Close()
 	u, err := url.Parse(mock.URL)
 	if err != nil {
@@ -74,11 +74,10 @@ func TestServersApiGithubStandardsArchivedApiCallAndParse(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	slog.Warn("api call duration", slog.String("seconds", tick.Seconds()), slog.String("u", u.String()))
+	slog.Debug("api call duration", slog.String("seconds", tick.Seconds()), slog.String("u", u.String()))
 
 	// -- check values of the response
 	_, bytes := convert.Stringify(hr)
-	// response := resp.New()
 	response, _ := convert.Unmarshal[*resp.Response](bytes)
 
 	// -- check the counters match with generated number
@@ -107,7 +106,7 @@ func TestServersApiGithubStandardsArchivedApiCallAndParse(t *testing.T) {
 		}
 		tick.Stop()
 
-		slog.Warn("api call duration", slog.String("seconds", tick.Seconds()), slog.String("url", ur.String()))
+		slog.Debug("api call duration", slog.String("seconds", tick.Seconds()), slog.String("url", ur.String()))
 		if hr.StatusCode != http.StatusOK {
 			t.Errorf("api call failed")
 		}
@@ -115,6 +114,6 @@ func TestServersApiGithubStandardsArchivedApiCallAndParse(t *testing.T) {
 
 }
 
-func mockApi(ctx context.Context, dbF string) *httptest.Server {
+func mockApi() *httptest.Server {
 	return testhelpers.MockServer(github_standards.ListHandler, "warn")
 }

@@ -42,7 +42,7 @@ func TestServersApiAwsCostsApiYtd(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 	defer db.Close()
-	slog.Warn("seed duration", slog.String("seconds", tick.Seconds()))
+	slog.Debug("seed duration", slog.String("seconds", tick.Seconds()))
 
 	// check the count of records
 	q := awsc.New(db)
@@ -73,7 +73,7 @@ func TestServersApiAwsCostsApiYtd(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	slog.Warn("api call duration", slog.String("seconds", tick.Seconds()), slog.String("u", u.String()))
+	slog.Debug("api call duration", slog.String("seconds", tick.Seconds()), slog.String("u", u.String()))
 
 	// -- check values of the response
 	_, bytes := convert.Stringify(hr)
@@ -109,7 +109,7 @@ func TestServersApiAwsCostsApiMonthlyTax(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 	defer db.Close()
-	slog.Warn("seed duration", slog.String("seconds", tick.Seconds()))
+	slog.Debug("seed duration", slog.String("seconds", tick.Seconds()))
 
 	// check the count of records
 	q := awsc.New(db)
@@ -140,7 +140,7 @@ func TestServersApiAwsCostsApiMonthlyTax(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	slog.Warn("api call duration", slog.String("seconds", tick.Seconds()), slog.String("u", u.String()))
+	slog.Debug("api call duration", slog.String("seconds", tick.Seconds()), slog.String("u", u.String()))
 
 	// -- check values of the response
 	_, bytes := convert.Stringify(hr)
@@ -176,7 +176,7 @@ func TestServersApiAwsCostsApiStandard(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 	defer db.Close()
-	slog.Warn("seed duration", slog.String("seconds", tick.Seconds()))
+	slog.Debug("seed duration", slog.String("seconds", tick.Seconds()))
 
 	// check the count of records
 	q := awsc.New(db)
@@ -207,7 +207,7 @@ func TestServersApiAwsCostsApiStandard(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	slog.Warn("api call duration", slog.String("seconds", tick.Seconds()), slog.String("u", u.String()))
+	slog.Debug("api call duration", slog.String("seconds", tick.Seconds()), slog.String("u", u.String()))
 
 	// -- check values of the response
 	_, bytes := convert.Stringify(hr)
@@ -238,7 +238,7 @@ func TestServersApiAwsCostsApiStandard(t *testing.T) {
 		}
 		tick.Stop()
 
-		slog.Warn("api call duration", slog.String("seconds", tick.Seconds()), slog.String("url", ur.String()))
+		slog.Debug("api call duration", slog.String("seconds", tick.Seconds()), slog.String("url", ur.String()))
 		if hr.StatusCode != http.StatusOK {
 			t.Errorf("api call failed")
 		}

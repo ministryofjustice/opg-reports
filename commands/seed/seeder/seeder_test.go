@@ -55,10 +55,10 @@ func TestSeedSeederNewDbWithSchemaFromDataFiles(t *testing.T) {
 	}
 
 	// -- check counts
-	slog.Warn("seed duration", slog.String("seconds", tick.Seconds()))
+	slog.Debug("seed duration", slog.String("seconds", tick.Seconds()))
 	q := ghs.New(db)
 	l, err := q.Count(ctx)
-	slog.Warn("count check", slog.Int64("found", l), slog.Int("n", n))
+	slog.Debug("count check", slog.Int64("found", l), slog.Int("n", n))
 	if err != nil {
 		t.Errorf("error with db:" + err.Error())
 	}
@@ -84,19 +84,19 @@ func TestSeedSeederNewDbWithSchemaNoDataFiles(t *testing.T) {
 	testhelpers.CopyFile(realSchema, schemaF)
 	// -- seed and check the time
 	tick := testhelpers.T()
-	slog.Info("starting seed")
+	slog.Debug("starting seed")
 	db, err := Seed(ctx, dbF, schemaF, dataF, "github_standards", n)
 	defer db.Close()
-	slog.Info("ending seed")
+	slog.Debug("ending seed")
 	tick.Stop()
 	if err != nil {
 		t.Errorf("error with db:" + err.Error())
 	}
 
-	slog.Warn("seed duration", slog.String("seconds", tick.Seconds()))
+	slog.Debug("seed duration", slog.String("seconds", tick.Seconds()))
 	q := ghs.New(db)
 	l, err := q.Count(ctx)
-	slog.Warn("count check", slog.Int64("found", l), slog.Int("n", n))
+	slog.Debug("count check", slog.Int64("found", l), slog.Int("n", n))
 	if err != nil {
 		t.Errorf("error with db:" + err.Error())
 	}

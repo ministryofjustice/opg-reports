@@ -26,7 +26,7 @@ import (
 const realSchema string = "../../../datastore/aws_costs/aws_costs.sql"
 const templateDir string = "../templates"
 
-func TestServersFrontAwsCostsStandards(t *testing.T) {
+func TestServersFrontAwsCostsStandard(t *testing.T) {
 	logger.LogSetup()
 
 	//--- spin up an api
@@ -73,6 +73,112 @@ func TestServersFrontAwsCostsStandards(t *testing.T) {
 	str, _ := convert.Stringify(r)
 	// now look in the string for expected data
 	title := "<title>test nav - TEST RESPONSE Reports</title>"
+
+	if !strings.Contains(str, title) {
+		t.Errorf("expected to find known title, did not")
+	}
+}
+
+func TestServersFrontAwsCostsYtd(t *testing.T) {
+	logger.LogSetup()
+
+	//--- spin up an api
+	// seed
+	ctx := context.TODO()
+	N := 100
+	dir := t.TempDir()
+	dbF := filepath.Join(dir, "aws.db")
+	schemaF := filepath.Join(dir, "aws.sql")
+	dataF := filepath.Join(dir, "dummy.json")
+	testhelpers.CopyFile(realSchema, schemaF)
+	db, err := seeder.Seed(ctx, dbF, schemaF, dataF, "aws_costs", N)
+	if err != nil {
+		slog.Error(err.Error())
+		log.Fatal(err.Error())
+	}
+	defer db.Close()
+	// set mock api
+	awapi.SetDBPath(dbF)
+	awapi.SetCtx(ctx)
+	mockApi := testhelpers.MockServer(awapi.YtdHandler, "warn")
+	defer mockApi.Close()
+
+	// -- mock local server that calls the local api
+	templates := template_helpers.GetTemplates(templateDir)
+	cfg := &config.Config{Organisation: "TEST RESPONSE"}
+	navItem := &navigation.NavigationItem{
+		Name:     "test ytd",
+		Uri:      "/",
+		Template: "aws-costs-index",
+		DataSources: map[string]src.ApiUrl{
+			"list": src.ApiUrl(mockApi.URL),
+		},
+	}
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		aws_costs.YtdHandler(w, r, templates, cfg, navItem)
+	}
+
+	mockFront := testhelpers.MockServer(handler, "warn")
+	defer mockFront.Close()
+	u := urls.Parse("", "", mockFront.URL)
+	r, _ := getter.GetUrl(u)
+
+	str, _ := convert.Stringify(r)
+	// now look in the string for expected data
+	title := "<title>test ytd - TEST RESPONSE Reports</title>"
+
+	if !strings.Contains(str, title) {
+		t.Errorf("expected to find known title, did not")
+	}
+}
+
+func TestServersFrontAwsCostsTax(t *testing.T) {
+	logger.LogSetup()
+
+	//--- spin up an api
+	// seed
+	ctx := context.TODO()
+	N := 100
+	dir := t.TempDir()
+	dbF := filepath.Join(dir, "aws.db")
+	schemaF := filepath.Join(dir, "aws.sql")
+	dataF := filepath.Join(dir, "dummy.json")
+	testhelpers.CopyFile(realSchema, schemaF)
+	db, err := seeder.Seed(ctx, dbF, schemaF, dataF, "aws_costs", N)
+	if err != nil {
+		slog.Error(err.Error())
+		log.Fatal(err.Error())
+	}
+	defer db.Close()
+	// set mock api
+	awapi.SetDBPath(dbF)
+	awapi.SetCtx(ctx)
+	mockApi := testhelpers.MockServer(awapi.MonthlyTaxHandler, "warn")
+	defer mockApi.Close()
+
+	// -- mock local server that calls the local api
+	templates := template_helpers.GetTemplates(templateDir)
+	cfg := &config.Config{Organisation: "TEST RESPONSE"}
+	navItem := &navigation.NavigationItem{
+		Name:     "test tax",
+		Uri:      "/",
+		Template: "aws-costs-monthly-tax-totals",
+		DataSources: map[string]src.ApiUrl{
+			"list": src.ApiUrl(mockApi.URL),
+		},
+	}
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		aws_costs.MonthlyTaxHandler(w, r, templates, cfg, navItem)
+	}
+
+	mockFront := testhelpers.MockServer(handler, "warn")
+	defer mockFront.Close()
+	u := urls.Parse("", "", mockFront.URL)
+	r, _ := getter.GetUrl(u)
+
+	str, _ := convert.Stringify(r)
+	// now look in the string for expected data
+	title := "<title>test tax - TEST RESPONSE Reports</title>"
 
 	if !strings.Contains(str, title) {
 		t.Errorf("expected to find known title, did not")
