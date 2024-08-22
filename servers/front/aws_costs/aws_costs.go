@@ -10,9 +10,9 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/servers/front/config"
 	"github.com/ministryofjustice/opg-reports/servers/front/config/navigation"
-	"github.com/ministryofjustice/opg-reports/servers/front/front_templates"
 	"github.com/ministryofjustice/opg-reports/servers/front/getter"
 	"github.com/ministryofjustice/opg-reports/servers/front/rows"
+	"github.com/ministryofjustice/opg-reports/servers/front/template_helpers"
 	"github.com/ministryofjustice/opg-reports/servers/front/write"
 	"github.com/ministryofjustice/opg-reports/servers/shared/mw"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
@@ -107,7 +107,7 @@ func dataCleanup(data map[string]interface{}, conf *config.Config, navItem *navi
 
 func outputHandler(templates []string, templateName string, data map[string]interface{}, w http.ResponseWriter) {
 	status := http.StatusOK
-	t, err := template.New(ytdTemplate).Funcs(front_templates.Funcs()).ParseFiles(templates...)
+	t, err := template.New(ytdTemplate).Funcs(template_helpers.Funcs()).ParseFiles(templates...)
 	if err != nil {
 		slog.Error("dynamic error", slog.String("err", fmt.Sprintf("%v", err)))
 		status = http.StatusBadGateway

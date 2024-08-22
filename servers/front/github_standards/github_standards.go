@@ -9,8 +9,8 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/servers/front/config"
 	"github.com/ministryofjustice/opg-reports/servers/front/config/navigation"
-	"github.com/ministryofjustice/opg-reports/servers/front/front_templates"
 	"github.com/ministryofjustice/opg-reports/servers/front/getter"
+	"github.com/ministryofjustice/opg-reports/servers/front/template_helpers"
 	"github.com/ministryofjustice/opg-reports/servers/front/write"
 	"github.com/ministryofjustice/opg-reports/servers/shared/mw"
 )
@@ -51,7 +51,7 @@ func Register(ctx context.Context, mux *http.ServeMux, conf *config.Config, temp
 		data["NavigationSide"] = active.Navigation
 		// -- template rendering!
 		status := http.StatusOK
-		t, err := template.New(navItem.Template).Funcs(front_templates.Funcs()).ParseFiles(templates...)
+		t, err := template.New(navItem.Template).Funcs(template_helpers.Funcs()).ParseFiles(templates...)
 		if err != nil {
 			slog.Error("dynamic error", slog.String("err", fmt.Sprintf("%v", err)))
 			status = http.StatusBadGateway
