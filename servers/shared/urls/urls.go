@@ -7,6 +7,9 @@ import (
 	"strings"
 )
 
+// clean tries to clean up and set correct values for each
+// scheme, host and path
+// replaces a lot of common errors (like host in the path etc)
 func clean(scheme string, host string, path string) string {
 	slog.Debug("cleaning url",
 		slog.String("scheme", scheme),
@@ -44,6 +47,9 @@ func clean(scheme string, host string, path string) string {
 	return fmt.Sprintf("%s://%s%s", scheme, parsedHost, path)
 }
 
+// Parse takes a mix of scheme, host and path strings and generates
+// a url object from those
+// Generally used to generate the url to call for the api from the config data
 func Parse(scheme string, host string, path string) (u *url.URL) {
 
 	var raw string
