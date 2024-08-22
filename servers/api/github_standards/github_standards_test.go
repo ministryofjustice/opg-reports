@@ -53,6 +53,9 @@ func TestServersApiGithubStandardsArchivedApiCallAndParse(t *testing.T) {
 	if l != int64(N) {
 		t.Errorf("records did not create properly: [%d] [%d]", N, l)
 	}
+	// -- set db
+	github_standards.SetDBPath(dbF)
+	github_standards.SetCtx(ctx)
 	// -- setup a mock api thats bound to the correct handler func
 	mock := mockApi(ctx, dbF)
 	defer mock.Close()
@@ -113,9 +116,5 @@ func TestServersApiGithubStandardsArchivedApiCallAndParse(t *testing.T) {
 }
 
 func mockApi(ctx context.Context, dbF string) *httptest.Server {
-	mux := testhelpers.Mux()
-	funcs := github_standards.Handlers(ctx, mux, dbF)
-	list := funcs["list"]
-
-	return testhelpers.MockServer(list, "warn")
+	return testhelpers.MockServer(github_standards.ListHandler, "warn")
 }

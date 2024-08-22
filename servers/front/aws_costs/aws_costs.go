@@ -22,26 +22,6 @@ const ytdTemplate string = "aws-costs-index"
 const monthlyTaxTemplate string = "aws-costs-monthly-tax-totals"
 const monthlyTemplate string = "aws-costs-monthly"
 
-func dataCleanup(data map[string]interface{}, conf *config.Config, navItem *navigation.NavigationItem, r *http.Request) map[string]interface{} {
-	data["Organisation"] = conf.Organisation
-	data["PageTitle"] = navItem.Name + " - "
-	// sort out navigation
-	top, active := navigation.Level(conf.Navigation, r)
-	data["NavigationTop"] = top
-	data["NavigationSide"] = active.Navigation
-	return data
-}
-
-func outputHandler(templates []string, templateName string, data map[string]interface{}, w http.ResponseWriter) {
-	status := http.StatusOK
-	t, err := template.New(ytdTemplate).Funcs(front_templates.Funcs()).ParseFiles(templates...)
-	if err != nil {
-		slog.Error("dynamic error", slog.String("err", fmt.Sprintf("%v", err)))
-		status = http.StatusBadGateway
-	}
-	write.Out(w, status, t, templateName, data)
-}
-
 func Register(ctx context.Context, mux *http.ServeMux, conf *config.Config, templates []string) {
 	nav := conf.Navigation
 
@@ -113,4 +93,24 @@ func Register(ctx context.Context, mux *http.ServeMux, conf *config.Config, temp
 		mux.HandleFunc(navItem.Uri+"{$}", mw.Middleware(handler, mw.Logging, mw.SecurityHeaders))
 	}
 
+}
+
+func dataCleanup(data map[string]interface{}, conf *config.Config, navItem *navigation.NavigationItem, r *http.Request) map[string]interface{} {
+	data["Organisation"] = conf.Organisation
+	data["PageTitle"] = navItem.Name + " - "
+	// sort out navigation
+	top, active := navigation.Level(conf.Navigation, r)
+	data["NavigationTop"] = top
+	data["NavigationSide"] = active.Navigation
+	return data
+}
+
+func outputHandler(templates []string, templateName string, data map[string]interface{}, w http.ResponseWriter) {
+	status := http.StatusOK
+	t, err := template.New(ytdTemplate).Funcs(front_templates.Funcs()).ParseFiles(templates...)
+	if err != nil {
+		slog.Error("dynamic error", slog.String("err", fmt.Sprintf("%v", err)))
+		status = http.StatusBadGateway
+	}
+	write.Out(w, status, t, templateName, data)
 }

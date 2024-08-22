@@ -39,8 +39,10 @@ var ordering = map[string][]string{
 	gByDetailed: {"account_id", "unit", "environment", "service"},
 }
 
-var apiCtx context.Context
-var apiDbPath string
+var (
+	apiCtx    context.Context
+	apiDbPath string
+)
 
 func StandardHandler(w http.ResponseWriter, r *http.Request) {
 	logger.LogSetup()
@@ -181,8 +183,6 @@ func MonthlyTaxHandler(w http.ResponseWriter, r *http.Request) {
 		filters  map[string]interface{} = map[string]interface{}{}
 	)
 	response.Start(w, r)
-
-	// -- setup db connection
 	// -- setup db connection
 	if db, err = apidb.SqlDB(dbPath); err != nil {
 		response.ErrorAndEnd(err, w, r)
@@ -228,11 +228,18 @@ func MonthlyTaxHandler(w http.ResponseWriter, r *http.Request) {
 
 // Register attached the route to the list view
 func Register(ctx context.Context, mux *http.ServeMux, dbPath string) (err error) {
-	apiCtx = ctx
-	apiDbPath = dbPath
+	SetCtx(ctx)
+	SetDBPath(dbPath)
 	// -- registers
 	mux.HandleFunc(taxSplitUrl, mw.Middleware(MonthlyTaxHandler, mw.Logging, mw.SecurityHeaders))
 	mux.HandleFunc(ytdUrl, mw.Middleware(YtdHandler, mw.Logging, mw.SecurityHeaders))
 	mux.HandleFunc(standardUrl, mw.Middleware(StandardHandler, mw.Logging, mw.SecurityHeaders))
 	return nil
+}
+
+func SetDBPath(path string) {
+	apiDbPath = path
+}
+func SetCtx(ctx context.Context) {
+	apiCtx = ctx
 }
