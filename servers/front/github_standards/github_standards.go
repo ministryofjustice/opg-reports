@@ -25,8 +25,8 @@ func Register(ctx context.Context, mux *http.ServeMux, conf *config.Config, temp
 		data := map[string]interface{}{"Result": nil}
 
 		// if theres no error, then process the response normally
-		if apiData, err := getter.Api(conf, navItem, r); err == nil {
-			data = apiData
+		if responses, err := getter.ApiResponses(conf, navItem, r); err == nil {
+			data = getter.ParseApiResponse(responses)
 			metadata := data["Metadata"].(map[string]interface{})
 			counters := metadata["counters"].(map[string]interface{})
 			this := counters["this"].(map[string]interface{})
