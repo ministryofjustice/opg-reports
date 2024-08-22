@@ -13,42 +13,10 @@ func (g *GithubStandard) UID() string {
 }
 
 func (g *GithubStandard) Insertable() InsertParams {
-	return InsertParams{
-		Ts:                             g.Ts,
-		DefaultBranch:                  g.DefaultBranch,
-		Name:                           g.Name,
-		Owner:                          g.Owner,
-		FullName:                       g.FullName,
-		License:                        g.License,
-		LastCommitDate:                 g.LastCommitDate,
-		CreatedAt:                      g.CreatedAt,
-		CountOfClones:                  g.CountOfClones,
-		CountOfForks:                   g.CountOfForks,
-		CountOfPullRequests:            g.CountOfPullRequests,
-		CountOfWebHooks:                g.CountOfWebHooks,
-		HasCodeOfConduct:               g.HasCodeOfConduct,
-		HasCodeownerApprovalRequired:   g.HasCodeownerApprovalRequired,
-		HasContributingGuide:           g.HasContributingGuide,
-		HasDefaultBranchOfMain:         g.HasDefaultBranchOfMain,
-		HasDefaultBranchProtection:     g.HasDefaultBranchProtection,
-		HasDeleteBranchOnMerge:         g.HasDeleteBranchOnMerge,
-		HasDescription:                 g.HasDescription,
-		HasDiscussions:                 g.HasDiscussions,
-		HasDownloads:                   g.HasDownloads,
-		HasIssues:                      g.HasIssues,
-		HasLicense:                     g.HasLicense,
-		HasPages:                       g.HasPages,
-		HasPullRequestApprovalRequired: g.HasPullRequestApprovalRequired,
-		HasReadme:                      g.HasReadme,
-		HasRulesEnforcedForAdmins:      g.HasRulesEnforcedForAdmins,
-		HasVulnerabilityAlerts:         g.HasVulnerabilityAlerts,
-		HasWiki:                        g.HasWiki,
-		IsArchived:                     g.IsArchived,
-		IsPrivate:                      g.IsPrivate,
-		CompliantBaseline:              g.CompliantBaseline,
-		CompliantExtended:              g.CompliantExtended,
-		Teams:                          g.Teams,
-	}
+	bytes, _ := convert.Marshal(g)
+	ip, _ := convert.Unmarshal[InsertParams](bytes)
+
+	return ip
 }
 
 func (g *GithubStandard) Info() map[string]string {

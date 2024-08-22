@@ -16,17 +16,4 @@ func (a *AwsCost) Insertable() InsertParams {
 
 	return ip
 
-	// return InsertParams{
-	// 	Ts:           a.Ts,
-	// 	Organisation: a.Organisation,
-	// 	AccountID:    a.AccountID,
-	// 	AccountName:  a.AccountName,
-	// 	Unit:         a.Unit,
-	// 	Label:        a.Label,
-	// 	Environment:  a.Environment,
-	// 	Service:      a.Service,
-	// 	Region:       a.Region,
-	// 	Date:         a.Date,
-	// 	Cost:         a.Cost,
-	// }
 }
