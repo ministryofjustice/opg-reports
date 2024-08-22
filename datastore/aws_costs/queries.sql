@@ -77,7 +77,7 @@ ORDER by strftime("%Y-%m", date) ASC;
 SELECT
     account_id,
     unit,
-    environment,
+    IIF(environment != "null", environment, "production") as environment,
     service,
     coalesce(SUM(cost), 0) as total,
     strftime("%Y-%m", date) as interval
@@ -103,7 +103,7 @@ ORDER by strftime("%Y-%m-%d", date) ASC;
 -- name: DailyCostsPerUnitEnvironment :many
 SELECT
     unit,
-    environment,
+    IIF(environment != "null", environment, "production") as environment,
     coalesce(SUM(cost), 0) as total,
     strftime("%Y-%m-%d", date) as interval
 FROM aws_costs
@@ -117,7 +117,7 @@ ORDER by strftime("%Y-%m-%d", date) ASC;
 SELECT
     account_id,
     unit,
-    environment,
+    IIF(environment != "null", environment, "production") as environment,
     service,
     coalesce(SUM(cost), 0) as total,
     strftime("%Y-%m-%d", date) as interval

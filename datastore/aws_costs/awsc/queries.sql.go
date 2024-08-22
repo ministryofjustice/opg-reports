@@ -24,7 +24,7 @@ const dailyCostsDetailed = `-- name: DailyCostsDetailed :many
 SELECT
     account_id,
     unit,
-    environment,
+    IIF(environment != "null", environment, "production") as environment,
     service,
     coalesce(SUM(cost), 0) as total,
     strftime("%Y-%m-%d", date) as interval
@@ -44,7 +44,7 @@ type DailyCostsDetailedParams struct {
 type DailyCostsDetailedRow struct {
 	AccountID   string      `json:"account_id"`
 	Unit        string      `json:"unit"`
-	Environment string      `json:"environment"`
+	Environment interface{} `json:"environment"`
 	Service     string      `json:"service"`
 	Total       interface{} `json:"total"`
 	Interval    interface{} `json:"interval"`
@@ -130,7 +130,7 @@ func (q *Queries) DailyCostsPerUnit(ctx context.Context, arg DailyCostsPerUnitPa
 const dailyCostsPerUnitEnvironment = `-- name: DailyCostsPerUnitEnvironment :many
 SELECT
     unit,
-    environment,
+    IIF(environment != "null", environment, "production") as environment,
     coalesce(SUM(cost), 0) as total,
     strftime("%Y-%m-%d", date) as interval
 FROM aws_costs
@@ -148,7 +148,7 @@ type DailyCostsPerUnitEnvironmentParams struct {
 
 type DailyCostsPerUnitEnvironmentRow struct {
 	Unit        string      `json:"unit"`
-	Environment string      `json:"environment"`
+	Environment interface{} `json:"environment"`
 	Total       interface{} `json:"total"`
 	Interval    interface{} `json:"interval"`
 }
@@ -236,7 +236,7 @@ const monthlyCostsDetailed = `-- name: MonthlyCostsDetailed :many
 SELECT
     account_id,
     unit,
-    environment,
+    IIF(environment != "null", environment, "production") as environment,
     service,
     coalesce(SUM(cost), 0) as total,
     strftime("%Y-%m", date) as interval
@@ -256,7 +256,7 @@ type MonthlyCostsDetailedParams struct {
 type MonthlyCostsDetailedRow struct {
 	AccountID   string      `json:"account_id"`
 	Unit        string      `json:"unit"`
-	Environment string      `json:"environment"`
+	Environment interface{} `json:"environment"`
 	Service     string      `json:"service"`
 	Total       interface{} `json:"total"`
 	Interval    interface{} `json:"interval"`

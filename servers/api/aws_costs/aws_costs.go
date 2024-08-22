@@ -96,7 +96,7 @@ func runQueries(ctx context.Context, queries *awsc.Queries, response *resp.Respo
 		columns = map[string]map[string]bool{"unit": {}, "environment": {}}
 		for _, r := range res {
 			columns["unit"][r.Unit] = true
-			columns["environment"][r.Environment] = true
+			columns["environment"][r.Environment.(string)] = true
 		}
 		response.Result, _ = convert.Maps(res)
 	} else if groupby == gByDetailed && interval == dates.MONTH {
@@ -104,7 +104,7 @@ func runQueries(ctx context.Context, queries *awsc.Queries, response *resp.Respo
 		columns = map[string]map[string]bool{"unit": {}, "environment": {}, "account_id": {}, "service": {}}
 		for _, r := range res {
 			columns["unit"][r.Unit] = true
-			columns["environment"][r.Environment] = true
+			columns["environment"][r.Environment.(string)] = true
 			columns["account_id"][r.AccountID] = true
 			columns["service"][r.Service] = true
 		}
@@ -114,7 +114,7 @@ func runQueries(ctx context.Context, queries *awsc.Queries, response *resp.Respo
 		columns = map[string]map[string]bool{"unit": {}, "environment": {}, "account_id": {}, "service": {}}
 		for _, r := range res {
 			columns["unit"][r.Unit] = true
-			columns["environment"][r.Environment] = true
+			columns["environment"][r.Environment.(string)] = true
 			columns["account_id"][r.AccountID] = true
 			columns["service"][r.Service] = true
 		}
@@ -283,7 +283,7 @@ func Handlers(ctx context.Context, mux *http.ServeMux, dbPath string) map[string
 		defer queries.Close()
 
 		// get date range
-		startDate, endDate := dates.BillingDates(time.Now().UTC(), consts.BILLING_DATE, 12)
+		startDate, endDate := dates.BillingDates(time.Now().UTC(), consts.BILLING_DATE, 9)
 		// add the months to the metadata
 		response.Metadata["start_date"] = startDate.Format(dates.Format)
 		response.Metadata["end_date"] = endDate.Format(dates.Format)
