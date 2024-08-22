@@ -119,7 +119,7 @@ func dataCleanup(data map[string]interface{}, conf *config.Config, navItem *navi
 
 func outputHandler(templates []string, templateName string, data map[string]interface{}, w http.ResponseWriter) {
 	status := http.StatusOK
-	t, err := template.New(ytdTemplate).Funcs(template_helpers.Funcs()).ParseFiles(templates...)
+	t, err := template.New(templateName).Funcs(template_helpers.Funcs()).ParseFiles(templates...)
 	if err != nil {
 		slog.Error("dynamic error", slog.String("err", fmt.Sprintf("%v", err)))
 		status = http.StatusBadGateway
