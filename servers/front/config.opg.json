@@ -1,0 +1,65 @@
+{
+    "organisation": "OPG",
+    "navigation": [
+        {
+            "name": "Overview",
+            "uri": "/",
+            "is_header": true,
+            "navigation": [
+                {
+                    "name": "GitHub",
+                    "is_header": true,
+                    "navigation": [
+                        {
+                            "name": "Standards",
+                            "uri": "/github-standards/",
+                            "is_header": true,
+                            "data_sources": {
+                                "list": "/v1/github-standards/?archived=false"
+                            },
+                            "template": "github-standards"
+                        }
+                    ]
+                },
+                {
+                    "name": "AWS Costs",
+                    "is_header": true,
+                    "navigation": [
+                        {
+                            "name": "Year to date",
+                            "uri": "/aws-costs/",
+                            "data_sources": {
+                                "list": "/v1/aws-costs/ytd/"
+                            },
+                            "template": "aws-costs-index"
+                        },
+                        {
+                            "name": "Monthly totals",
+                            "uri": "/aws-costs/monthly/totals/",
+                            "data_sources": {
+                                "list": "/v1/aws-costs/monthly-tax/"
+                            },
+                            "template": "aws-costs-monthly-tax-totals"
+                        },
+                        {
+                            "name": "Monthly, per unit",
+                            "uri": "/aws-costs/monthly/units/",
+                            "data_sources": {
+                                "list": "/v1/aws-costs/?group=unit"
+                            },
+                            "template": "aws-costs-monthly"
+                        },
+                        {
+                            "name": "Monthly, per unit & environment",
+                            "uri": "/aws-costs/monthly/unit-environments/",
+                            "data_sources": {
+                                "list": "/v1/aws-costs/?group=unit-env"
+                            },
+                            "template": "aws-costs-monthly"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
