@@ -4,12 +4,18 @@
     <h1 class="govuk-heading-l">AWS Detailed Costs</h1>
 
     {{ if .Result }}
+
+
+        <div class="chart-area js-compare-chart" data-compare=".js-compare-table table"></div>
+
         {{ $filters := .Filters }}
         {{ $tmplFilters := dict "Filters" $filters "OptionsSource" ".dataframe tbody th"  "FilterRows" ".dataframe tbody tr"}}
 
         {{ template "aws-costs-table-filters" $tmplFilters }}
 
-        <div class='scroller'>
+
+
+        <div class='scroller js-compare-table'>
         {{ template "aws-costs-currency-table" . }}
         </div>
 

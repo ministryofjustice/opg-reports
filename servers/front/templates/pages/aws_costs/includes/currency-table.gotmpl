@@ -3,47 +3,40 @@
 {{ $dates := .DateRange }}
 {{ $result := .Result }}
 {{ $columns := .ColumnsOrdered }}
-<table class="dataframe currency-table govuk-table highlight js-table-sorter {{ .NavigationActive.ClassName }}">
+<table class="dataframe currency-table govuk-table css-highlight js-table-sorter {{ .NavigationActive.ClassName }}">
     <thead class="govuk-table__head">
         <tr class="govuk-table__row">
-            {{ range $x, $col := $columns }}
+            {{- range $x, $col := $columns -}}
                 <th class="govuk-table__header"><span>{{ title $col }}</span></th>
-            {{ end }}
-            {{ range $i, $d := $dates }}
+            {{- end -}}
+            {{- range $i, $d := $dates -}}
                 <th class="govuk-table__header data-cell" data-col="{{$i}}"><span>{{ $d }}</span></th>
-            {{ end }}
-            <th class="govuk-table__header data-cell" ><span>Totals</span></th>
+            {{- end -}}
+            <th class="govuk-table__header data-cellish " ><span>Totals</span></th>
         </tr>
     </thead>
-
     <tbody class="govuk-table__body">
-        {{ $rowCount := 0 }}
-
-        {{ range $i, $row := $result }}
+        {{- $rowCount := 0 -}}
+        {{- range $i, $row := $result -}}
             {{ $cols := .columns }}
             {{ $dateValues := .interval }}
             {{ $rowTotal := 0.0 }}
-            <tr class="govuk-table__row df-row-{{ $rowCount }}" data-row="{{ $rowCount }}">
-                {{ $colCount := 0 }}
-                {{ range $x, $col := $columns }}
-                    <th data-col="{{ $colCount }}" class="govuk-table__header">
-                        {{ if eq $colCount 0 }}
-                        <span class="tick js-compare"><input type="checkbox" name="compare" value="{{ $rowCount }}"></span>
-                        {{ end }}
-                        <span>{{ col $col $cols }}</span>
+            <tr class="govuk-table__row df-row-{{ $rowCount }} js-compare-i-{{ $rowCount }}" data-row="{{ $rowCount }}">
+                {{- $colCount := 0 -}}
+                {{- range $x, $col := $columns -}}
+                    <th data-col="{{ $colCount }}" class="govuk-table__header">{{- if eq $colCount 0 -}}<span class="tick"><input type="checkbox" name="compare" value=".js-compare-i-{{ $rowCount }}" class="js-compare-item"></span>{{- end -}}<span>{{- col $col $cols -}}</span>
                     </th>
-                    {{ $colCount = addInt $colCount 1 }}
-                {{ end }}
-
-                {{ range $date, $val := $dateValues }}
+                    {{- $colCount = addInt $colCount 1 -}}
+                {{- end -}}
+                {{- range $date, $val := $dateValues -}}
                     <td data-col="{{ $colCount }}" class="govuk-table__cell data-cell"><span title="{{ $val }}">{{ currency $val "$" }}</span></td>
-                    {{ $colCount = addInt $colCount 1 }}
-                    {{ $rowTotal = add $rowTotal $val }}
-                {{ end }}
-                <td class="govuk-table__cell data-cell"><span title="{{ $rowTotal }}">{{ currency $rowTotal "$" }}</span></td>
+                    {{- $colCount = addInt $colCount 1 -}}
+                    {{- $rowTotal = add $rowTotal $val -}}
+                {{- end -}}
+                <td class="govuk-table__cell data-cellish js-compare-exclude"><span title="{{ $rowTotal }}">{{ currency $rowTotal "$" }}</span></td>
             </tr>
-            {{ $rowCount = addInt $rowCount 1 }}
-        {{ end }}
+            {{- $rowCount = addInt $rowCount 1 -}}
+        {{- end -}}
 
     </tbody>
 

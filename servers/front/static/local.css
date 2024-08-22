@@ -119,7 +119,8 @@ strong.currency{
     padding: 5px;
 }
 
-.dataframe.govuk-table .data-cell{
+.dataframe.govuk-table .data-cell,
+.dataframe.govuk-table .data-cellish{
     text-align: right;
 }
 .scroller {
@@ -133,7 +134,9 @@ strong.currency{
     font-size: 0.83rem;
 }
 .currency-table.govuk-table tbody .data-cell,
-.currency-table.govuk-table tfoot .data-cell{
+.currency-table.govuk-table tfoot .data-cell,
+.currency-table.govuk-table tbody .data-cellish,
+.currency-table.govuk-table tfoot .data-cellish{
     font-family: monospace;
     font-size: 0.85rem;
 }
@@ -233,23 +236,23 @@ strong.currency{
 }
 
 /* row hightlights */
-.highlight{
+.css-highlight{
     overflow: hidden;
 }
-.highlight td, .highlight th{
+.css-highlight td, .css-highlight th{
     position: relative;
 }
-.highlight tbody tr:hover{
+.css-highlight tbody tr:hover{
     background-color: #FFFFAD;
 }
-.highlight tbody span,
-.highlight thead span,
-.highlight tfoot span{
+.css-highlight tbody span,
+.css-highlight thead span,
+.css-highlight tfoot span{
     position: relative;
     z-index: 10;
 }
-.highlight td:hover::after,
-.highlight th:hover::after {
+.css-highlight td:hover::after,
+.css-highlight th:hover::after {
     background-color: #FFFFAD;
     content: '';
     height: 10000px;
@@ -307,4 +310,58 @@ table.js-table-sorter thead th.sorted span:after{
 .js-table-filter-options .govuk-form-group{
     float:left;
     margin-right:20px;
+}
+
+/* table comparisons */
+.js-compare-table-rendered {
+    margin:15px 0;
+    padding:8px;
+    background-color: #fcfcc1;
+}
+
+/* high charts */
+.highcharts-figure,
+.highcharts-data-table table {
+    min-width: 310px;
+    max-width: 90%;
+    margin: 1em auto;
+}
+
+#container {
+    height: 400px;
+}
+.highcharts-data-table table {
+    font-family: Verdana, sans-serif;
+    border-collapse: collapse;
+    border: 1px solid #ebebeb;
+    margin: 10px auto;
+    text-align: center;
+    width: 100%;
+    max-width: 500px;
+}
+
+.highcharts-data-table caption {
+    padding: 1em 0;
+    font-size: 1.2em;
+    color: #555;
+}
+
+.highcharts-data-table th {
+    font-weight: 600;
+    padding: 0.5em;
+}
+
+.highcharts-data-table td,
+.highcharts-data-table th,
+.highcharts-data-table caption {
+    padding: 0.5em;
+}
+
+.highcharts-data-table thead tr,
+.highcharts-data-table tr:nth-child(even) {
+    background: #f8f8f8;
+}
+
+.highcharts-data-table tr:hover {
+    background: #f1f7ff;
 }

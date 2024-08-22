@@ -6,7 +6,126 @@ function ready(){
     tableSorter()
     generateFormFilterOptions()
     tableOptionFilters()
+
+    done()
 }
+function done() {
+    chartDataTableOnLoad()
+    tableCompareGraph()
+
+}
+function highchartRender(container, tableId) {
+    let headerSelector = "thead .data-cell"
+    let itemSelector = "tbody .js-compare-active"
+    let seriesSelector = ".data-cell span"
+    // stock config, we know get the rest from the table
+    var config = {
+        // chart: {type: 'column'},
+        title: {text: ""},
+        exporting: {enabled: false},
+        // plotOptions: { line: { dataLabels: { enabled: true }, enableMouseTracking: false } },
+        // plotOptions: { column: { pointPadding: 0.2, borderWidth: 0 } }
+    }
+
+    // get the x-axis from the dates in the thead
+    var xAxis = [];
+    document.querySelector("#"+tableId).querySelectorAll(headerSelector).forEach(cell => {
+        xAxis.push(cell.textContent)
+    })
+    // set the xaix config
+    config["xAxis"] = {
+        categories: xAxis,
+        crosshair: true,
+        accessibility: {
+            description: "Months"
+        }
+    }
+    // now generate the series data
+    var series = []
+    // find the activated rows
+    document.querySelector("#"+tableId).querySelectorAll(itemSelector).forEach(row => {
+        // the name is made from the col header cells
+        var name = ""
+        var data = []
+        row.querySelectorAll("th").forEach(th => { name = name + " "+ th.textContent})
+        // the data series is then made from all the data cells
+        row.querySelectorAll(seriesSelector).forEach( cell => {
+            let txt = cell.getAttribute("title").trim()
+            let fl = parseFloat(txt)
+            data.push( parseFloat ( fl.toFixed(2) ))
+        })
+        series.push({ name: name.trim(), data: data})
+    })
+
+    config["series"] = series
+    Highcharts.setOptions({
+        lang: {
+          decimalPoint: '.',
+          thousandsSep: ','
+        }
+    });
+    Highcharts.chart(container, config)
+
+}
+// ==========================
+// TABLE ITEM COMPARISON
+// ==========================
+
+function tableCompareGraph() {
+    let charts = document.querySelectorAll(".js-compare-chart")
+    charts.forEach(chart => {
+        let ts = Date.now()
+        let dataTableSelector = chart.dataset.compare
+        let dataTable = document.querySelector(dataTableSelector)
+        let container = `container-${ts}`
+        // remove any existing graph
+        chart.querySelectorAll(".js-compare-graph").forEach(g => { chart.removeChild(g) })
+
+
+        // now insert one
+        var gph = document.createElement("figure")
+        gph.className = "js-compare-graph highcharts-figure"
+        gph.innerHTML = `<div id="${container}"></div>`
+        chart.insertBefore(gph, chart.firstChild)
+        highchartRender(container, dataTable.id)
+
+    })
+}
+
+// chartDataTableOnLoad ticks the first x number of items
+// in each data table being used as a source
+// - adds listener to checkbox that will toggle a class on each checkbox parent row
+function chartDataTableOnLoad() {
+    let defaultItems = 5
+    let chartSelector = ".js-compare-chart"
+    let checkboxSelector = ".js-compare-item"
+    let activeClass = "js-compare-active"
+    let charts = document.querySelectorAll(chartSelector)
+    charts.forEach(chart => {
+        // find the data table
+        let now = Date.now();
+        let dataTableSelector = chart.dataset.compare
+        let dataTables = document.querySelectorAll(dataTableSelector)
+        // for each table, we now trigger the first 5 items
+        dataTables.forEach(tbl => {
+            tbl.setAttribute("id", "js-compare-chart-tbl-"+now)
+            let checks = tbl.querySelectorAll(checkboxSelector)
+            checks.forEach((ch, i) => {
+                // toggle a class
+                ch.addEventListener("click", function(event){
+                    ch.closest("tr").classList.toggle(activeClass)
+                })
+                if (i < defaultItems) {
+                    ch.click()
+                }
+                ch.addEventListener("click", function(event){
+                    tableCompareGraph()
+                })
+            })
+        })
+    })
+}
+
 
 // ==========================
 // TABLE ITEM VISIBILITY
