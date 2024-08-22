@@ -61,7 +61,7 @@
                             "name": "Monthly detailed",
                             "uri": "/aws-costs/monthly/detailed/",
                             "data_sources": {
-                                "list": "/v1/aws-costs/?group=detailed"
+                                "list": "/v1/aws-costs/?group=detailed&start={billingMonth:-9}&end={billingMonth}"
                             },
                             "template": "aws-costs-monthly"
                         }
