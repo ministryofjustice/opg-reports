@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/ministryofjustice/opg-reports/servers/front/config"
 	"github.com/ministryofjustice/opg-reports/servers/front/config/navigation"
 	"github.com/ministryofjustice/opg-reports/servers/shared/resp"
 	"github.com/ministryofjustice/opg-reports/servers/shared/urls"
@@ -32,7 +31,7 @@ func GetUrl(url *url.URL) (resp *http.Response, err error) {
 }
 
 // ApiResponses calls all the api urls for the nav item
-func ApiResponses(conf *config.Config, nav *navigation.NavigationItem, r *http.Request) (responses map[string]*resp.Response, requestErr error) {
+func ApiResponses(nav *navigation.NavigationItem, r *http.Request) (responses map[string]*resp.Response, requestErr error) {
 	apiScheme := env.Get("API_SCHEME", consts.API_SCHEME)
 	apiAddr := env.Get("API_ADDR", consts.API_ADDR)
 	dataSources := nav.DataSources

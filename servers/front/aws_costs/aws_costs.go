@@ -3,7 +3,6 @@ package aws_costs
 import (
 	"context"
 	"fmt"
-	"html/template"
 	"log/slog"
 	"net/http"
 	"slices"
@@ -11,9 +10,8 @@ import (
 	"github.com/ministryofjustice/opg-reports/servers/front/config"
 	"github.com/ministryofjustice/opg-reports/servers/front/config/navigation"
 	"github.com/ministryofjustice/opg-reports/servers/front/getter"
+	"github.com/ministryofjustice/opg-reports/servers/front/helpers"
 	"github.com/ministryofjustice/opg-reports/servers/front/rows"
-	"github.com/ministryofjustice/opg-reports/servers/front/template_helpers"
-	"github.com/ministryofjustice/opg-reports/servers/front/write"
 	"github.com/ministryofjustice/opg-reports/servers/shared/mw"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
 )
@@ -25,31 +23,32 @@ const monthlyTemplate string = "aws-costs-monthly"
 // YtdHandler
 func YtdHandler(w http.ResponseWriter, r *http.Request, templates []string, conf *config.Config, navItem *navigation.NavigationItem) {
 	data := map[string]interface{}{"Result": nil}
-	if responses, err := getter.ApiResponses(conf, navItem, r); err == nil {
+	if responses, err := getter.ApiResponses(navItem, r); err == nil {
 		data = getter.ParseApiResponse(responses)
 		// total
 		res := data["Result"].([]interface{})
 		first := res[0].(map[string]interface{})
 		data["Total"] = first["total"].(float64)
 	}
-	data = dataCleanup(data, conf, navItem, r)
-	outputHandler(templates, navItem.Template, data, w)
+	data = helpers.DataCleanup(data, conf, navItem, r)
+	helpers.OutputHandler(templates, navItem.Template, data, w)
 }
 
 // MonthlyTaxHandler
 func MonthlyTaxHandler(w http.ResponseWriter, r *http.Request, templates []string, conf *config.Config, navItem *navigation.NavigationItem) {
 	data := map[string]interface{}{"Result": nil}
-	if responses, err := getter.ApiResponses(conf, navItem, r); err == nil {
+	if responses, err := getter.ApiResponses(navItem, r); err == nil {
 		data = getter.ParseApiResponse(responses)
 	}
-	data = dataCleanup(data, conf, navItem, r)
-	outputHandler(templates, navItem.Template, data, w)
+	data = helpers.DataCleanup(data, conf, navItem, r)
+	helpers.OutputHandler(templates, navItem.Template, data, w)
+
 }
 
 // StandardHandler
 func StandardHandler(w http.ResponseWriter, r *http.Request, templates []string, conf *config.Config, navItem *navigation.NavigationItem) {
 	data := map[string]interface{}{"Result": nil}
-	if responses, err := getter.ApiResponses(conf, navItem, r); err == nil {
+	if responses, err := getter.ApiResponses(navItem, r); err == nil {
 		data = getter.ParseApiResponse(responses)
 		// -- get date ranges to use for mapping
 		dataRange := data["DateRange"].([]string)
@@ -68,8 +67,8 @@ func StandardHandler(w http.ResponseWriter, r *http.Request, templates []string,
 		slices.Sort(filters)
 		data["Filters"] = filters
 	}
-	data = dataCleanup(data, conf, navItem, r)
-	outputHandler(templates, navItem.Template, data, w)
+	data = helpers.DataCleanup(data, conf, navItem, r)
+	helpers.OutputHandler(templates, navItem.Template, data, w)
 }
 
 func Register(ctx context.Context, mux *http.ServeMux, conf *config.Config, templates []string) {
@@ -105,24 +104,4 @@ func Register(ctx context.Context, mux *http.ServeMux, conf *config.Config, temp
 		mux.HandleFunc(navItem.Uri+"{$}", mw.Middleware(handler, mw.Logging, mw.SecurityHeaders))
 	}
 
-}
-
-func dataCleanup(data map[string]interface{}, conf *config.Config, navItem *navigation.NavigationItem, r *http.Request) map[string]interface{} {
-	data["Organisation"] = conf.Organisation
-	data["PageTitle"] = navItem.Name + " - "
-	// sort out navigation
-	top, active := navigation.Level(conf.Navigation, r)
-	data["NavigationTop"] = top
-	data["NavigationSide"] = active.Navigation
-	return data
-}
-
-func outputHandler(templates []string, templateName string, data map[string]interface{}, w http.ResponseWriter) {
-	status := http.StatusOK
-	t, err := template.New(templateName).Funcs(template_helpers.Funcs()).ParseFiles(templates...)
-	if err != nil {
-		slog.Error("dynamic error", slog.String("err", fmt.Sprintf("%v", err)))
-		status = http.StatusBadGateway
-	}
-	write.Out(w, status, t, templateName, data)
 }
