@@ -14,7 +14,6 @@ import (
 	"github.com/ministryofjustice/opg-reports/servers/front/rows"
 	"github.com/ministryofjustice/opg-reports/servers/front/write"
 	"github.com/ministryofjustice/opg-reports/servers/shared/mw"
-	"github.com/ministryofjustice/opg-reports/shared/dates"
 )
 
 const ytdTemplate string = "aws-costs-index"
@@ -51,12 +50,6 @@ func Register(ctx context.Context, mux *http.ServeMux, conf *config.Config, temp
 			data := map[string]interface{}{"Result": nil}
 			if apiData, err := getter.Api(conf, navItem, r); err == nil {
 				data = apiData
-				metadata := data["Metadata"].(map[string]interface{})
-				// start & end date
-				sd := metadata["start_date"].(interface{})
-				ed := metadata["end_date"].(interface{})
-				data["StartDate"] = dates.Time(sd.(string))
-				data["EndDate"] = dates.Time(ed.(string))
 				// total
 				res := data["Result"].([]interface{})
 				first := res[0].(map[string]interface{})
@@ -77,9 +70,6 @@ func Register(ctx context.Context, mux *http.ServeMux, conf *config.Config, temp
 			data := map[string]interface{}{"Result": nil}
 			if apiData, err := getter.Api(conf, navItem, r); err == nil {
 				data = apiData
-				metadata := data["Metadata"].(map[string]interface{})
-				data["DateRange"] = metadata["date_range"].([]interface{})
-				data["Columns"] = metadata["columns"].(map[string]interface{})
 			}
 			data = dataCleanup(data, conf, navItem, r)
 			outputHandler(templates, navItem.Template, data, w)
@@ -96,27 +86,11 @@ func Register(ctx context.Context, mux *http.ServeMux, conf *config.Config, temp
 			data := map[string]interface{}{"Result": nil}
 			if apiData, err := getter.Api(conf, navItem, r); err == nil {
 				data = apiData
-				metadata := data["Metadata"].(map[string]interface{})
-				data["DateRange"] = metadata["date_range"].([]interface{})
-
-				// -- convert data ranges to strings
-				dataRange := []string{}
-				for _, dr := range metadata["date_range"].([]interface{}) {
-					dataRange = append(dataRange, dr.(string))
-				}
-				// -- convert columns
-				cols := metadata["columns"].(map[string]interface{})
-				columns := map[string][]interface{}{}
-				for col, val := range cols {
-					columns[col] = val.([]interface{})
-				}
-				// column ordering
-				colNames := []string{}
-				for _, col := range metadata["column_ordering"].([]interface{}) {
-					colNames = append(colNames, col.(string))
-				}
-				data["Columns"] = colNames
-
+				// -- get date ranges to use for mapping
+				dataRange := data["DateRange"].([]string)
+				// -- get detailed columns
+				columns := data["ColumnsDetailed"].(map[string][]interface{})
+				// -- map to rows from the data set
 				intervals := map[string][]string{"interval": dataRange}
 				values := map[string]string{"interval": "total"}
 				res := data["Result"].([]interface{})

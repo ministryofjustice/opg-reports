@@ -14,6 +14,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/servers/shared/urls"
 	"github.com/ministryofjustice/opg-reports/shared/consts"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
+	"github.com/ministryofjustice/opg-reports/shared/dates"
 	"github.com/ministryofjustice/opg-reports/shared/env"
 	"github.com/ministryofjustice/opg-reports/shared/must"
 	"golang.org/x/text/cases"
@@ -63,15 +64,8 @@ func Api(conf *config.Config, nav *navigation.NavigationItem, r *http.Request) (
 		duration := e.Sub(s)
 
 		// if failed, skip rest of loop
-		if err != nil {
+		if err != nil || httpResponse.StatusCode != http.StatusOK {
 			dataErr = err
-			slog.Error("api call failed",
-				slog.String("err", fmt.Sprintf("%+v", err)),
-				slog.String("key", key),
-				slog.String("endpoint", endpoint),
-				slog.String("url", url.String()))
-			continue
-		} else if httpResponse.StatusCode != http.StatusOK {
 			slog.Error("api call failed",
 				slog.String("err", fmt.Sprintf("%+v", err)),
 				slog.String("key", key),
@@ -100,6 +94,7 @@ func Api(conf *config.Config, nav *navigation.NavigationItem, r *http.Request) (
 		if !withPrefix {
 			prefix = ""
 		}
+		// setup key naming
 		for k, v := range must.Must(convert.Map(response)) {
 			f := c.String(strings.ReplaceAll(k, "_", " "))
 			field := fmt.Sprintf("%s%s", prefix, f)
@@ -108,11 +103,51 @@ func Api(conf *config.Config, nav *navigation.NavigationItem, r *http.Request) (
 			data[f] = v
 		}
 
+		// setup common values
 		if response.DataAge.Max != "" {
 			data["DataAgeMax"] = response.DataAge.Max
 		}
 		if response.DataAge.Min != "" {
 			data["DataAgeMin"] = response.DataAge.Min
+		}
+
+		// some common metadata items
+		if _, ok := data["Metadata"]; ok {
+			metadata := data["Metadata"].(map[string]interface{})
+			// start & end date
+			if sd, ok := metadata["start_date"]; ok {
+				data["StartDate"] = dates.Time(sd.(string))
+			}
+			if ed, ok := metadata["end_date"]; ok {
+				data["EndDate"] = dates.Time(ed.(string))
+			}
+			// date range
+			if dr, ok := metadata["date_range"]; ok {
+				dataRange := []string{}
+				for _, dr := range dr.([]interface{}) {
+					dataRange = append(dataRange, dr.(string))
+				}
+				data["DateRange"] = dataRange
+			}
+			// columns - version one, just based on the raw versions
+			if metaCols, ok := metadata["columns"]; ok {
+				cols := metaCols.(map[string]interface{})
+				data["Columns"] = cols
+				detailed := map[string][]interface{}{}
+				for col, val := range cols {
+					detailed[col] = val.([]interface{})
+				}
+				data["ColumnsDetailed"] = detailed
+			}
+			// column ordering
+			if order, ok := metadata["column_ordering"]; ok {
+				colNames := []string{}
+				for _, col := range order.([]interface{}) {
+					colNames = append(colNames, col.(string))
+				}
+				data["Columns"] = colNames
+			}
+
 		}
 
 	}
