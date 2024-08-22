@@ -11,6 +11,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/servers/front/config/navigation"
 	"github.com/ministryofjustice/opg-reports/servers/front/front_templates"
 	"github.com/ministryofjustice/opg-reports/servers/front/getter"
+	"github.com/ministryofjustice/opg-reports/servers/front/rows"
 	"github.com/ministryofjustice/opg-reports/servers/front/write"
 	"github.com/ministryofjustice/opg-reports/servers/shared/mw"
 	"github.com/ministryofjustice/opg-reports/shared/dates"
@@ -98,6 +99,23 @@ func Register(ctx context.Context, mux *http.ServeMux, conf *config.Config, temp
 				metadata := data["Metadata"].(map[string]interface{})
 				data["DateRange"] = metadata["date_range"].([]interface{})
 				data["Columns"] = metadata["columns"].(map[string]interface{})
+
+				// -- convert data ranges to strings
+				dataRange := []string{}
+				for _, dr := range metadata["date_range"].([]interface{}) {
+					dataRange = append(dataRange, dr.(string))
+				}
+				// -- convert columns
+				columns := map[string][]interface{}{}
+				for col, val := range metadata["columns"].(map[string]interface{}) {
+					columns[col] = val.([]interface{})
+				}
+
+				intervals := map[string][]string{"interval": dataRange}
+				values := map[string]string{"interval": "total"}
+				res := data["Result"].([]interface{})
+				data["Result"] = rows.DataToRows(res, columns, intervals, values)
+
 			}
 			data = dataCleanup(data, conf, navItem, r)
 			outputHandler(templates, navItem.Template, data, w)

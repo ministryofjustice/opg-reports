@@ -17,34 +17,22 @@
                     {{ range $i, $d := $dates }}
                         <th class="govuk-table__header data-cell" data-col="{{$i}}"><span>{{ $d }}</span></th>
                     {{ end }}
-                    <th class="govuk-table__header data-cell"><span>Totals</span></th>
+
                 </tr>
             </thead>
 
             <tbody class="govuk-table__body">
-                {{ range $x, $col := $columns }}
-                    {{ range $y, $choice := $col }}
-                        {{ $row := 0.0 }}
-                        <tr class="govuk-table__row">
-                            <th class="govuk-table__header"><span>{{ $choice }}</span></th>
-
-                            {{ range $z, $d := $dates }}
-                                {{ range $i, $raw := $result }}
-                                    {{ $item := modelAWSMonthlyPerUnit $raw }}
-                                    {{ $isCol := eq $choice $item.Unit }}
-                                    {{ $isMonth := eq $d $item.Interval }}
-
-                                    {{ if and $isCol $isMonth }}
-                                        {{ $row = add $row $item.Total }}
-                                        <td class="govuk-table__cell data-cell"><span title="{{ $item.Total }}">{{ currency $item.Total "$" }}</span></td>
-                                    {{ end }}
-
-                                {{ end }}
-
-                            {{ end }}
-                            <td class="govuk-table__cell data-cell"><span title="{{ $row }}">{{ currency $row "$" }}</span></td>
-                        </tr>
-                    {{ end }}
+                {{ range $i, $row := $result }}
+                    {{ $cols := .columns }}
+                    {{ $dateValues := .interval }}
+                    <tr class="govuk-table__row" data-rowcount="{{ $i }}">
+                        {{ range $col, $val := $cols }}
+                            <th data-col="{{ $i }}" class="govuk-table__header"><span>{{ $val }}</span></th>
+                        {{ end }}
+                        {{ range $date, $val := $dateValues }}
+                            <td data-col="{{$i}}" class="govuk-table__cell data-cell"><span title="{{ $val }}">{{ currency $val "$" }}</span></td>
+                        {{ end }}
+                    </tr>
                 {{ end }}
 
             </tbody>

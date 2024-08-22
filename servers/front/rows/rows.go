@@ -3,6 +3,8 @@ package rows
 import (
 	"bytes"
 	"fmt"
+	"slices"
+	"strings"
 )
 
 // permuteStrings generates all possible combinations between the string slices passed
@@ -44,11 +46,12 @@ loop:
 
 // K helper to generate a k with known dividers
 func K(c string, v interface{}) string {
-	return fmt.Sprintf("%s_%v", c, v)
+	return fmt.Sprintf("%s:%v", c, v)
 }
 
 func Key(item map[string]interface{}, cols []string) string {
 	key := ""
+	slices.Sort(cols)
 	for _, c := range cols {
 		key += K(c, item[c]) + "^"
 	}
@@ -58,13 +61,35 @@ func Key(item map[string]interface{}, cols []string) string {
 // flatKeys creates the base map using generated keys
 func flatKeys(columns map[string][]interface{}) (ks [][]string) {
 	ks = [][]string{}
+	cols := []string{}
+	for col, _ := range columns {
+		cols = append(cols, col)
+	}
+	slices.Sort(cols)
 
-	for col, choices := range columns {
+	for _, col := range cols {
 		values := []string{}
+		choices := columns[col]
 		for _, val := range choices {
 			values = append(values, K(col, val)+"^")
 		}
 		ks = append(ks, values)
+	}
+
+	return
+}
+
+// splitKey recreates the column & value pairs from the key string
+func splitKey(key string) (cols map[string]string) {
+	cols = map[string]string{}
+
+	list := strings.Split(key, "^")
+	for _, item := range list {
+		if again := strings.Split(item, ":"); len(again) == 2 {
+			k := again[0]
+			v := again[1]
+			cols[k] = v
+		}
 	}
 	return
 }
@@ -82,48 +107,56 @@ func Skeleton(columns map[string][]interface{}, intervals map[string][]string) (
 		for intName, values := range intervals {
 			i := map[string]interface{}{}
 			for _, val := range values {
-				i[val] = ""
+				i[val] = 0.0
 			}
 			skel[key][intName] = i
 		}
-		cols := map[string]string{}
-		for c, _ := range columns {
-			cols[c] = ""
-		}
-		skel[key]["columns"] = cols
+
+		skel[key]["columns"] = splitKey(key)
 	}
 	return
 
 }
 
-func RowMap(data []interface{}, columns map[string][]interface{}, intervals map[string][]string, values map[string]string) (rows map[string]map[string]interface{}) {
+// DataToRow converts the api data and using the columns and intervals generates a skeleton struct of all possible records and
+// then fills in the interval values where data is found
+// This resulting map can be iterated over as if each item is a row in the table
+func DataToRows(data []interface{}, columns map[string][]interface{}, intervals map[string][]string, values map[string]string) (rows map[string]map[string]interface{}) {
 
 	rows = Skeleton(columns, intervals)
+
 	cols := []string{}
 	for col, _ := range columns {
 		cols = append(cols, col)
 	}
+	slices.Sort(cols)
 
-	// loop over each item
-	for _, i := range data {
-		item := i.(map[string]interface{})
-		key := Key(item, cols)
-		row := rows[key]
-
-		// cols := row["columns"].(map[string]string)
-		// for c, _ := range columns {
-		// 	cols[c] = item[c].(string)
-		// }
-
-		for intCol, _ := range intervals {
-			intervals := row[intCol].(map[string]interface{})
-			intervalValue := item[intCol].(string)
-			valueKey := values[intCol]
-			value := item[valueKey]
-			intervals[intervalValue] = value
+	keyGroup := map[string][]map[string]interface{}{}
+	// -- generate a list of all items from the keys
+	for _, entry := range data {
+		mapped := entry.(map[string]interface{})
+		key := Key(mapped, cols)
+		if _, ok := keyGroup[key]; !ok {
+			keyGroup[key] = []map[string]interface{}{}
 		}
-
+		keyGroup[key] = append(keyGroup[key], mapped)
 	}
+	// -- loop over the grouped items and update the values in the intervals
+	for key, items := range keyGroup {
+		row := rows[key]
+		for _, item := range items {
+			for interval, _ := range intervals {
+				rowSet := row[interval]
+				rowInterval := rowSet.(map[string]interface{})
+				internvalKey := item[interval].(string)
+				valueKey := values[interval]
+				value := item[valueKey]
+				rowInterval[internvalKey] = value
+
+			}
+		}
+	}
+
 	return
 
 }
