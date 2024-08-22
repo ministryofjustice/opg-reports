@@ -145,7 +145,7 @@ func Api(conf *config.Config, nav *navigation.NavigationItem, r *http.Request) (
 				for _, col := range order.([]interface{}) {
 					colNames = append(colNames, col.(string))
 				}
-				data["Columns"] = colNames
+				data["ColumnsOrdered"] = colNames
 			}
 
 		}

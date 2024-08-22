@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"log/slog"
 	"net/http"
+	"slices"
 
 	"github.com/ministryofjustice/opg-reports/servers/front/config"
 	"github.com/ministryofjustice/opg-reports/servers/front/config/navigation"
@@ -14,6 +15,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/servers/front/rows"
 	"github.com/ministryofjustice/opg-reports/servers/front/write"
 	"github.com/ministryofjustice/opg-reports/servers/shared/mw"
+	"github.com/ministryofjustice/opg-reports/shared/convert"
 )
 
 const ytdTemplate string = "aws-costs-index"
@@ -95,7 +97,13 @@ func Register(ctx context.Context, mux *http.ServeMux, conf *config.Config, temp
 				values := map[string]string{"interval": "total"}
 				res := data["Result"].([]interface{})
 				data["Result"] = rows.DataToRows(res, columns, intervals, values)
-
+				// -- need to create the filters for this version
+				filters := []string{}
+				for i, col := range data["ColumnsOrdered"].([]string) {
+					filters = append(filters, fmt.Sprintf("%d.%s", i+1, convert.Title(col)))
+				}
+				slices.Sort(filters)
+				data["Filters"] = filters
 			}
 			data = dataCleanup(data, conf, navItem, r)
 			outputHandler(templates, navItem.Template, data, w)

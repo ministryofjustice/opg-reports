@@ -2,7 +2,7 @@
 
 {{ $dates := .DateRange }}
 {{ $result := .Result }}
-{{ $columns := .Columns }}
+{{ $columns := .ColumnsOrdered }}
 <table class="dataframe currency-table govuk-table highlight js-table-sorter {{ .NavigationActive.ClassName }}">
     <thead class="govuk-table__head">
         <tr class="govuk-table__row">
@@ -17,18 +17,23 @@
     </thead>
 
     <tbody class="govuk-table__body">
+        {{ $rowCount := 0 }}
         {{ range $i, $row := $result }}
             {{ $cols := .columns }}
             {{ $dateValues := .interval }}
-            <tr class="govuk-table__row" data-rowcount="{{ $i }}">
+            <tr class="govuk-table__row" data-rowcount="{{ $rowCount }}">
+                {{ $colCount := 0 }}
                 {{ range $x, $col := $columns }}
-                    <th data-col="{{ $x }}" class="govuk-table__header"><span>{{ col $col $cols }}</span></th>
+                    <th data-col="{{ $colCount }}" class="govuk-table__header"><span>{{ col $col $cols }}</span></th>
+                    {{ $colCount = addInt $colCount 1 }}
                 {{ end }}
 
                 {{ range $date, $val := $dateValues }}
-                    <td data-col="{{$i}}" class="govuk-table__cell data-cell"><span title="{{ $val }}">{{ currency $val "$" }}</span></td>
+                    <td data-col="{{ $colCount }}" class="govuk-table__cell data-cell"><span title="{{ $val }}">{{ currency $val "$" }}</span></td>
+                    {{ $colCount = addInt $colCount 1 }}
                 {{ end }}
             </tr>
+            {{ $rowCount = addInt $rowCount 1 }}
         {{ end }}
 
     </tbody>

@@ -161,7 +161,7 @@ func Handlers(ctx context.Context, mux *http.ServeMux, dbPath string) map[string
 			err      error
 			db       *sql.DB
 			now      time.Time              = time.Now().UTC()
-			s, e                            = dates.BillingDates(now, consts.BILLING_DATE, 9)
+			s, e                            = dates.BillingDates(now, consts.BILLING_DATE, 12)
 			format   string                 = dates.FormatYM
 			response *resp.Response         = resp.New()
 			start    string                 = query.FirstD(startQ.Values(r), s.Format(dates.FormatYM))
