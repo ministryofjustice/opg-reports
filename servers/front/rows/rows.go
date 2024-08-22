@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+const emptyVal float64 = 0.0
+
 // permuteStrings generates all possible combinations between the string slices passed
 func permuteStrings(parts ...[]string) (ret []string) {
 	{
@@ -107,7 +109,7 @@ func Skeleton(columns map[string][]interface{}, intervals map[string][]string) (
 		for intName, values := range intervals {
 			i := map[string]interface{}{}
 			for _, val := range values {
-				i[val] = 0.0
+				i[val] = emptyVal
 			}
 			skel[key][intName] = i
 		}
@@ -159,4 +161,27 @@ func DataToRows(data []interface{}, columns map[string][]interface{}, intervals 
 
 	return
 
+}
+
+// DataRows converts the raw data into row structure (via DataToRows) then removes items
+// with empty data, to reduce the size of data sets for display etc
+func DataRows(data []interface{}, columns map[string][]interface{}, intervals map[string][]string, values map[string]string) (rows map[string]map[string]interface{}) {
+	rows = DataToRows(data, columns, intervals, values)
+	// now we trim off any fully empty versions
+	for key, data := range rows {
+		empty := true
+		for seg, values := range data {
+			if seg != "columns" {
+				for _, v := range values.(map[string]interface{}) {
+					if v != emptyVal {
+						empty = false
+					}
+				}
+			}
+		}
+		if empty {
+			delete(rows, key)
+		}
+	}
+	return
 }

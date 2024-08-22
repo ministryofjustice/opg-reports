@@ -56,6 +56,14 @@
                                 "list": "/v1/aws-costs/?group=unit-env"
                             },
                             "template": "aws-costs-monthly"
+                        },
+                        {
+                            "name": "Monthly detailed",
+                            "uri": "/aws-costs/monthly/detailed/",
+                            "data_sources": {
+                                "list": "/v1/aws-costs/?group=detailed"
+                            },
+                            "template": "aws-costs-monthly"
                         }
                     ]
                 }

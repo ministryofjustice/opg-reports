@@ -96,7 +96,7 @@ func Register(ctx context.Context, mux *http.ServeMux, conf *config.Config, temp
 				intervals := map[string][]string{"interval": dataRange}
 				values := map[string]string{"interval": "total"}
 				res := data["Result"].([]interface{})
-				data["Result"] = rows.DataToRows(res, columns, intervals, values)
+				data["Result"] = rows.DataRows(res, columns, intervals, values)
 				// -- need to create the filters for this version
 				filters := []string{}
 				for i, col := range data["ColumnsOrdered"].([]string) {
