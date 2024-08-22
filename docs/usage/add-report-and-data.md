@@ -1,0 +1,30 @@
+# Adding a report and associated data
+
+- Add new report, use existing one as a base
+  - ensure it has unique name (and match that to folder structures)
+  - ensure it generates json as output
+  - add a workflow to run report and upload it to the bucket
+  - add a read me with examples on how to use the command
+  - add to `./Makefile` `data` target with new bucket locations
+- Create datastore setup
+  - add new folder
+  - create a sqlc file
+  - create a sqlc schema sql file
+  - add simple queries (normally an insert) to queries
+  - add path to the `./Makefile` `sqlc` target and api Dockerfile
+- Create seeder for the data
+  - in `./commands/seed/seeder/` add functions for generation (fake data), insertion (real data) and tracking
+  - make sure to use the same key for these
+  - add to `./Makefile` `seed-api` target with new bucket locations
+  - add to api Dockerfile in base and build stages
+- Add api end point
+  - In `./servers/api/` folder path add a new top level folder of the name
+  - use an existing api as a base
+  - update the api handling to features you need
+  - add tests
+  - update sqlc queries
+- Add front handler
+  - update the config.json with new values
+  - copy existing version into new folder name
+  - create handler for the api end points
+  - create templates
