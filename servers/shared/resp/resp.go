@@ -22,7 +22,7 @@ type Response struct {
 	Timer      *RequestTimings          `json:"request_timings,omitempty"`
 	DataAge    *DataAge                 `json:"data_age"`
 	StatusCode int                      `json:"status"`
-	Errors     []error                  `json:"errors"`
+	Errors     []string                 `json:"errors"`
 	Metadata   map[string]interface{}   `json:"metadata"`
 	Result     []map[string]interface{} `json:"result"`
 }
@@ -38,7 +38,7 @@ func (rp *Response) Start(w http.ResponseWriter, r *http.Request) {
 
 func (rp *Response) ErrorAndEnd(err error, w http.ResponseWriter, r *http.Request) {
 	slog.Error("ending response due to error", slog.String("err", err.Error()))
-	rp.Errors = append(rp.Errors, err)
+	rp.Errors = append(rp.Errors, err.Error())
 	rp.End(w, r)
 }
 
@@ -48,7 +48,7 @@ func (rp *Response) End(w http.ResponseWriter, r *http.Request) {
 
 	content, err := json.MarshalIndent(rp, "", "  ")
 	if err != nil {
-		rp.Errors = append(rp.Errors, err)
+		rp.Errors = append(rp.Errors, err.Error())
 		slog.Error(err.Error())
 	}
 
@@ -96,7 +96,7 @@ func New() *Response {
 		Timer:      &RequestTimings{},
 		DataAge:    &DataAge{},
 		StatusCode: http.StatusOK,
-		Errors:     []error{},
+		Errors:     []string{},
 		Result:     []map[string]interface{}{},
 		Metadata:   map[string]interface{}{},
 	}

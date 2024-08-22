@@ -78,11 +78,13 @@ func StandardHandler(w http.ResponseWriter, r *http.Request) {
 	response.Start(w, r)
 	// -- validate incoming params
 	if !slices.Contains(allowedIntervals, interval) {
-		response.ErrorAndEnd(fmt.Errorf("invalid interval passed"), w, r)
+		iErr := fmt.Errorf("invalid interval passed [%s]", interval)
+		response.ErrorAndEnd(iErr, w, r)
 		return
 	}
 	if !slices.Contains(allowedGroups, groupby) {
-		response.ErrorAndEnd(fmt.Errorf("invalid groupby passed"), w, r)
+		gErr := fmt.Errorf("invalid groupby passed [%s]", groupby)
+		response.ErrorAndEnd(gErr, w, r)
 		return
 	}
 	startDate := dates.Time(start)

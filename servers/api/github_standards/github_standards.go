@@ -93,7 +93,7 @@ func Handlers(ctx context.Context, mux *http.ServeMux, dbPath string) map[string
 
 		if err != nil {
 			slog.Error("api db error", slog.String("err", err.Error()))
-			response.Errors = append(response.Errors, err)
+			response.Errors = append(response.Errors, err.Error())
 			response.End(w, r)
 			return
 		}
@@ -107,7 +107,7 @@ func Handlers(ctx context.Context, mux *http.ServeMux, dbPath string) map[string
 		slog.Info("got results")
 		if err != nil {
 			slog.Error("api error", slog.String("err", err.Error()))
-			response.Errors = append(response.Errors, err)
+			response.Errors = append(response.Errors, err.Error())
 			response.End(w, r)
 			return
 		}
