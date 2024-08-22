@@ -1,4 +1,4 @@
-package github_standards_test
+package aws_costs_test
 
 import (
 	"context"
@@ -10,12 +10,12 @@ import (
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/commands/seed/seeder"
-	ghapi "github.com/ministryofjustice/opg-reports/servers/api/github_standards"
+	awapi "github.com/ministryofjustice/opg-reports/servers/api/aws_costs"
+	"github.com/ministryofjustice/opg-reports/servers/front/aws_costs"
 	"github.com/ministryofjustice/opg-reports/servers/front/config"
 	"github.com/ministryofjustice/opg-reports/servers/front/config/navigation"
 	"github.com/ministryofjustice/opg-reports/servers/front/config/src"
 	"github.com/ministryofjustice/opg-reports/servers/front/getter"
-	"github.com/ministryofjustice/opg-reports/servers/front/github_standards"
 	"github.com/ministryofjustice/opg-reports/servers/front/template_helpers"
 	"github.com/ministryofjustice/opg-reports/servers/shared/urls"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
@@ -23,31 +23,31 @@ import (
 	"github.com/ministryofjustice/opg-reports/shared/testhelpers"
 )
 
-const realSchema string = "../../../datastore/github_standards/github_standards.sql"
+const realSchema string = "../../../datastore/aws_costs/aws_costs.sql"
 const templateDir string = "../templates"
 
-func TestServersFrontGithubStandards(t *testing.T) {
+func TestServersFrontAwsCostsStandards(t *testing.T) {
 	logger.LogSetup()
 
 	//--- spin up an api
 	// seed
 	ctx := context.TODO()
-	N := 10
+	N := 100
 	dir := t.TempDir()
-	dbF := filepath.Join(dir, "ghs.db")
-	schemaF := filepath.Join(dir, "ghs.sql")
+	dbF := filepath.Join(dir, "aws.db")
+	schemaF := filepath.Join(dir, "aws.sql")
 	dataF := filepath.Join(dir, "dummy.json")
 	testhelpers.CopyFile(realSchema, schemaF)
-	db, err := seeder.Seed(ctx, dbF, schemaF, dataF, "github_standards", N)
+	db, err := seeder.Seed(ctx, dbF, schemaF, dataF, "aws_costs", N)
 	if err != nil {
 		slog.Error(err.Error())
 		log.Fatal(err.Error())
 	}
 	defer db.Close()
 	// set mock api
-	ghapi.SetDBPath(dbF)
-	ghapi.SetCtx(ctx)
-	mockApi := testhelpers.MockServer(ghapi.ListHandler, "warn")
+	awapi.SetDBPath(dbF)
+	awapi.SetCtx(ctx)
+	mockApi := testhelpers.MockServer(awapi.StandardHandler, "warn")
 	defer mockApi.Close()
 
 	// -- mock local server that calls the local api
@@ -56,13 +56,13 @@ func TestServersFrontGithubStandards(t *testing.T) {
 	navItem := &navigation.NavigationItem{
 		Name:     "test nav",
 		Uri:      "/",
-		Template: "github-standards",
+		Template: "aws-costs-monthly",
 		DataSources: map[string]src.ApiUrl{
 			"list": src.ApiUrl(mockApi.URL),
 		},
 	}
 	handler := func(w http.ResponseWriter, r *http.Request) {
-		github_standards.ListHandler(w, r, templates, cfg, navItem)
+		aws_costs.StandardHandler(w, r, templates, cfg, navItem)
 	}
 
 	mockFront := testhelpers.MockServer(handler, "warn")
