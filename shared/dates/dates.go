@@ -1,3 +1,7 @@
+// Package dates igroups a series of funcs converting between time.Time and string
+//
+// Provides series of helpers for string to become time.Time and to parse / convert
+// existing times.Time into common formats and structs
 package dates
 
 import (

@@ -51,6 +51,7 @@ func Range(start time.Time, end time.Time, interval Interval) []time.Time {
 	return times
 }
 
+// Strings converts series of times into string versions using the date format passed
 func Strings(dates []time.Time, format string) (strs []string) {
 	strs = []string{}
 	for _, d := range dates {
