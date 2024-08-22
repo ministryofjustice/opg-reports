@@ -53,6 +53,8 @@ func Unmarshals[T any](content []byte) (items []T, err error) {
 	return
 }
 
+// Map converts a structure into the map of interface by using
+// json marshaling to convert between types
 func Map[T any](item T) (m map[string]interface{}, err error) {
 	byt, err := json.Marshal(item)
 	if err == nil {
@@ -62,6 +64,9 @@ func Map[T any](item T) (m map[string]interface{}, err error) {
 	}
 	return
 }
+
+// Maps converts a slice of structures into the map of interface by using
+// json marshaling to convert between types
 func Maps[T any](item []T) (m []map[string]interface{}, err error) {
 	bytes, err := Marshals(item)
 	if err == nil {
@@ -79,6 +84,18 @@ func Unmap[T any](m map[string]interface{}) (item T, err error) {
 		err = json.Unmarshal(jBytes, &item)
 	} else {
 		slog.Error("unmap failed", slog.String("err", err.Error()))
+	}
+
+	return
+}
+
+// Unmaps uses json marshaling to convert from a map back to a struct.
+func Unmaps[T any](m []map[string]interface{}) (items []T, err error) {
+	jBytes, err := json.Marshal(m)
+	if err == nil {
+		err = json.Unmarshal(jBytes, &items)
+	} else {
+		slog.Error("unmaps failed", slog.String("err", err.Error()))
 	}
 
 	return
@@ -105,6 +122,8 @@ func String[T any](item T) (s string) {
 	s = strings.ReplaceAll(s, indentWith, "")
 	return
 }
+
+// PrettyString is similar to String, but retains the indentations
 func PrettyString[T any](item T) (s string) {
 	bytes, _ := Marshal(item)
 	s = string(bytes)
@@ -140,6 +159,10 @@ func BoolStringToInt(s string) int {
 	return 0
 }
 
+// Title is used by template helpers to make a "pretty" versions
+// of a column name
+//
+//	team_a => Team A
 func Title(s string) string {
 	s = strings.ReplaceAll(s, "_", " ")
 	s = strings.ReplaceAll(s, "-", " ")
@@ -148,6 +171,8 @@ func Title(s string) string {
 	return s
 }
 
+// Dict generates a map from an even number of arguments (key, value)
+// Used within templates to merge data
 func Dict(values ...any) (dict map[string]any) {
 	dict = map[string]any{}
 	if len(values)%2 != 0 {
@@ -162,26 +187,37 @@ func Dict(values ...any) (dict map[string]any) {
 	return
 }
 
+// Curr generates a currency formated string from
+// either a string or float64 value and prepends
+// the symbol to the start
+// Will round to nearest .2
+// Returns <symbol>0.0 by default
 func Curr(s interface{}, symbol string) string {
 	p := message.NewPrinter(language.English)
 	switch s.(type) {
 	case string:
 		f, _ := strconv.ParseFloat(s.(string), 10)
-		return symbol + p.Sprintf("%.2f", symbol, f)
+		return symbol + p.Sprintf("%.2f", f)
 	case float64:
 		return symbol + p.Sprintf("%.2f", s.(float64))
 	}
 	return symbol + "0.0"
 }
 
+// StripIntPrefix removes chunk of string before the first '.'
+// - this is used in templates to remove integer indexes from strings
+// - will remove all other . from the source string
 func StripIntPrefix(s string) string {
 	sp := strings.Split(s, ".")
-	if len(sp) > 0 {
+	if len(sp) > 1 {
 		return strings.Join(sp[1:], "")
 	}
 	return s
 }
 
+// Percent works out % value of items
+// Used in templates
+// Returns 2 decimals
 func Percent(got int, total int) string {
 	x := float64(got)
 	y := float64(total)
