@@ -21,9 +21,10 @@
             {{ $cols := .columns }}
             {{ $dateValues := .interval }}
             <tr class="govuk-table__row" data-rowcount="{{ $i }}">
-                {{ range $col, $val := $cols }}
-                    <th data-col="{{ $i }}" class="govuk-table__header"><span>{{ $val }}</span></th>
+                {{ range $x, $col := $columns }}
+                    <th data-col="{{ $x }}" class="govuk-table__header"><span>{{ col $col $cols }}</span></th>
                 {{ end }}
+
                 {{ range $date, $val := $dateValues }}
                     <td data-col="{{$i}}" class="govuk-table__cell data-cell"><span title="{{ $val }}">{{ currency $val "$" }}</span></td>
                 {{ end }}

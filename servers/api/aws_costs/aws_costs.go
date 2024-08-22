@@ -33,6 +33,12 @@ const (
 	standardUrl string = "/{version}/aws-costs/{$}"
 )
 
+var ordering = map[string][]string{
+	gByUnit:     {"unit"},
+	gByUnitEnv:  {"unit", "environment"},
+	gByDetailed: {"account_id", "unit", "environment", "service"},
+}
+
 // metaExtras adds standard extra db calls to the metadata values
 func metaExtras(ctx context.Context, queries *awsc.Queries, response *resp.Response, filters map[string]interface{}) {
 	// -- get overall counters
@@ -82,7 +88,7 @@ func runQueries(ctx context.Context, queries *awsc.Queries, response *resp.Respo
 		columns = map[string]map[string]bool{"unit": {}, "environment": {}}
 		for _, r := range res {
 			columns["unit"][r.Unit] = true
-			columns["environment"][r.Environment] = true
+			columns["environment"][r.Environment.(string)] = true
 		}
 		response.Result, _ = convert.Maps(res)
 	} else if groupby == gByUnitEnv && interval == dates.DAY {
@@ -186,6 +192,7 @@ func Handlers(ctx context.Context, mux *http.ServeMux, dbPath string) map[string
 
 		filters["group"] = groupby
 		filters["interval"] = interval
+		response.Metadata["column_ordering"] = ordering[groupby]
 		response.Metadata["start_date"] = startDate.Format(format)
 		response.Metadata["end_date"] = endDate.Format(format)
 		response.Metadata["date_range"] = dates.Strings(dates.Range(startDate, rangeEnd, inter), format)

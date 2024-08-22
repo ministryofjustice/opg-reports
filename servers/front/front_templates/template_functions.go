@@ -48,6 +48,9 @@ func Funcs() map[string]interface{} {
 		"lower": func(s string) string {
 			return strings.ToLower(s)
 		},
+		"col": func(i string, mapped map[string]string) string {
+			return mapped[i]
+		},
 		"dict": func(values ...any) (dict map[string]any) {
 			dict = map[string]any{}
 			if len(values)%2 != 0 {

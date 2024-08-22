@@ -98,7 +98,6 @@ func Register(ctx context.Context, mux *http.ServeMux, conf *config.Config, temp
 				data = apiData
 				metadata := data["Metadata"].(map[string]interface{})
 				data["DateRange"] = metadata["date_range"].([]interface{})
-				data["Columns"] = metadata["columns"].(map[string]interface{})
 
 				// -- convert data ranges to strings
 				dataRange := []string{}
@@ -106,10 +105,17 @@ func Register(ctx context.Context, mux *http.ServeMux, conf *config.Config, temp
 					dataRange = append(dataRange, dr.(string))
 				}
 				// -- convert columns
+				cols := metadata["columns"].(map[string]interface{})
 				columns := map[string][]interface{}{}
-				for col, val := range metadata["columns"].(map[string]interface{}) {
+				for col, val := range cols {
 					columns[col] = val.([]interface{})
 				}
+				// column ordering
+				colNames := []string{}
+				for _, col := range metadata["column_ordering"].([]interface{}) {
+					colNames = append(colNames, col.(string))
+				}
+				data["Columns"] = colNames
 
 				intervals := map[string][]string{"interval": dataRange}
 				values := map[string]string{"interval": "total"}
