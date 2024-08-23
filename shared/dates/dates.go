@@ -34,3 +34,12 @@ func GetFormat(value string) string {
 	slog.Debug("[dates] GetFormat", slog.String("format", f))
 	return f
 }
+
+func IsDate(str string) (valid bool) {
+	valid = true
+	df := GetFormat(str)
+	if _, err := time.Parse(df, str); err != nil {
+		valid = false
+	}
+	return
+}

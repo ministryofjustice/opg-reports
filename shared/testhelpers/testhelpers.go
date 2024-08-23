@@ -57,6 +57,12 @@ func MockServer(f func(w http.ResponseWriter, r *http.Request), loglevel string)
 	}))
 }
 
+type Nested struct {
+	ID   string  `json:"id"`
+	Who  *Simple `json:"who"`
+	When *Ts     `json:"ts"`
+}
+
 type Simple struct {
 	Name string `json:"name"`
 }
@@ -65,6 +71,10 @@ type Simple struct {
 type Ts struct {
 	S time.Time `json:"start"`
 	E time.Time `json:"end"`
+}
+
+func NewT() *Ts {
+	return &Ts{S: time.Now().UTC()}
 }
 
 // T provides a quick timer method from timer package

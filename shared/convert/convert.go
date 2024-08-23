@@ -170,6 +170,11 @@ func Title(s string) string {
 	s = c.String(s)
 	return s
 }
+func Pascal(s string) string {
+	s = Title(s)
+	s = strings.ReplaceAll(s, " ", "")
+	return s
+}
 
 // Dict generates a map from an even number of arguments (key, value)
 // Used within templates to merge data
