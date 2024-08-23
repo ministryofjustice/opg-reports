@@ -13,8 +13,8 @@
             {{- range $i, $d := $dates -}}
                 <th class="govuk-table__header data-cell" data-col="{{$i}}"><span>{{ $d }}</span></th>
             {{- end -}}
-            <th class="govuk-table__header data-cellish " ><span>Trend</span></th>
-            <th class="govuk-table__header data-cellish " ><span>Totals</span></th>
+            <th class="govuk-table__header data-cellish "><span>Trend</span></th>
+            <th class="govuk-table__header data-cellish "><span>Totals</span></th>
         </tr>
     </thead>
     <tbody class="govuk-table__body">
@@ -23,11 +23,10 @@
             {{ $cols := .columns }}
             {{ $dateValues := .interval }}
             {{ $rowTotal := 0.0 }}
-            <tr class="govuk-table__row df-row-{{ $rowCount }} js-compare-i-{{ $rowCount }}" data-row="{{ $rowCount }}">
+            <tr class="govuk-table__row" data-row="{{ $rowCount }}">
                 {{- $colCount := 0 -}}
                 {{- range $x, $col := $columns -}}
-                    <th data-col="{{ $colCount }}" class="govuk-table__header">{{- if eq $colCount 0 -}}<span class="tick"><input type="checkbox" name="compare" value=".js-compare-i-{{ $rowCount }}" class="js-compare-item"></span>{{- end -}}<span>{{- col $col $cols -}}</span>
-                    </th>
+                    <th data-col="{{ $colCount }}" class="govuk-table__header">{{- if eq $colCount 0 -}}<span class="tick"><input type="checkbox" name="compare" value="{{ $rowCount }}" class="js-compare-item"></span>{{- end -}}<span>{{- col $col $cols -}}</span></th>
                     {{- $colCount = addInt $colCount 1 -}}
                 {{- end -}}
                 {{- range $date, $val := $dateValues -}}

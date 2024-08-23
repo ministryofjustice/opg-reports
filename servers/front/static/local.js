@@ -15,85 +15,7 @@ function ready(){
 // ==========================
 // SPARKLINE
 // ==========================
-/**
- * Create a constructor for sparklines that takes some sensible defaults
- * and merges in the individual chart options.
- */
-Highcharts.SparkLine = function (a, b, c) {
-    const hasRenderToArg = typeof a === 'string' || a.nodeName;
-    let options = arguments[hasRenderToArg ? 1 : 0];
-    const defaultOptions = {
-        chart: {
-            renderTo: (
-                (options.chart && options.chart.renderTo) ||
-                (hasRenderToArg && a)
-            ),
-            backgroundColor: null,
-            borderWidth: 0,
-            type: 'area',
-            margin: [2, 0, 2, 0],
-            height: 20,
-            style: {
-                overflow: 'visible'
-            },
-            // small optimalization, saves 1-2 ms each sparkline
-            skipClone: true
-        },
-        exporting: {enabled: false},
-        title: {
-            text: ''
-        },
-        credits: {
-            enabled: false
-        },
-        xAxis: {
-            labels: { enabled: false },
-            title: { text: null },
-            startOnTick: false,
-            endOnTick: false,
-            tickPositions: []
-        },
-        yAxis: {
-            endOnTick: false,
-            startOnTick: false,
-            labels: { enabled: false },
-            title: { text: null },
-            tickPositions: [0]
-        },
-        legend: {
-            enabled: false
-        },
-        tooltip: {
-            enabled: false,
-        },
-        plotOptions: {
-            series: {
-                animation: false,
-                lineWidth: 1,
-                shadow: false,
-                states: {
-                    hover: {
-                        enabled: false,
-                    }
-                },
-                marker: {
-                    enabled: false,
-                },
-                fillOpacity: 0.25
-            },
-            column: {
-                negativeColor: '#910000',
-                borderColor: 'silver'
-            }
-        }
-    };
 
-    options = Highcharts.merge(defaultOptions, options);
-
-    return hasRenderToArg ?
-        new Highcharts.Chart(a, options, c) :
-        new Highcharts.Chart(options, b);
-};
 
 
 function sparklines() {
@@ -154,6 +76,7 @@ function comparisonToggler() {
             document.querySelectorAll(itemsSelector).forEach(i => { i.classList.toggle(toggle) })
             // - reset charts
             compareGraphClear()
+            compareUncheckAll()
             compareSetup()
         })
     })
@@ -216,17 +139,21 @@ function compareChartRender(container, tableId) {
 
 }
 
+function compareUncheckAll() {
+    let checks = ".js-compare-item"
+    document.querySelectorAll(checks).forEach(ch => { ch.checked = false})
+}
 // compareGraphClear removes any existing chart and deselectes
 // any check boxes
 // - run on page load to setup and then everytime the charts are hidden / shown
 function compareGraphClear() {
     let sel = ".js-compare-chart"
     let graphs = ".js-compare-graph"
-    let checks = ".js-compare-item"
+
     document.querySelectorAll(sel).forEach(chart => {
         chart.querySelectorAll(graphs).forEach(g => { chart.removeChild(g) })
     })
-    document.querySelectorAll(checks).forEach(ch => { ch.checked = false})
+
 }
 
 // compareTableDefaults clisk the first X items in the table for rendering
