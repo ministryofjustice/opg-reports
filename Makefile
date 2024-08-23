@@ -143,7 +143,7 @@ go-build: clean
 ##############################
 # close approx of the dockerfile for setup without docker
 ##############################
-seed-api: data
+seed-api:
 	@mkdir -p ./builds/api/github_standards/data
 #	github_standards
 	@cp ./datastore/github_standards/github_standards*.sql ./builds/api/github_standards/
@@ -165,4 +165,8 @@ seed-api: data
 		-data "./builds/api/aws_costs/data/*.json"
 #--fork-remove-end
 
-mirror-api: sqlc go-build seed-api
+mirror-api: sqlc go-build data seed-api
+	@mv ./builds/api/github_standards.db ./servers/api/github_standards.db
+#--fork-remove-start
+	@mv ./builds/api/aws_costs.db ./servers/api/aws_costs.db
+#--fork-remove-end

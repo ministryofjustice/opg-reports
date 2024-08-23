@@ -53,7 +53,7 @@
                             "name": "Monthly, per unit & environment",
                             "uri": "/aws-costs/monthly/unit-environments/",
                             "data_sources": {
-                                "list": "/v1/aws-costs/?group=unit-env"
+                                "list": "/v1/aws-costs/?group=unit-env&start={billingMonth:-9}&end={billingMonth}"
                             },
                             "template": "aws-costs-monthly"
                         },
