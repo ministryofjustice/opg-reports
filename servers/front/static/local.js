@@ -6,15 +6,43 @@ function ready(){
     tableSorter()
     generateFormFilterOptions()
     tableOptionFilters()
-
-    done()
-}
-function done() {
-    chartDataTableOnLoad()
-    tableCompareGraph()
+    compareGraphClear()
+    comparisonToggler()
+    compareChartItemListeners()
 
 }
-function highchartRender(container, tableId) {
+
+// ==========================
+// COMPARISON GRAPHS
+// ==========================
+
+// compareSetup is run when the charts are shown / hidden
+function compareSetup() {
+    compareTableDefaultSelection()
+    compareGraphInsert()
+}
+
+// comparisonToggler adds listeners to hide / show the charts
+// - run on page load only
+function comparisonToggler() {
+    let selector = ".js-compare-enable .js-compare-toggler"
+    let itemsSelector = ".js-compare-chart, .js-compare-item"
+    let toggle = "js-compare-enabled"
+    document.querySelectorAll(selector).forEach(check => {
+        check.addEventListener("click", function(event){
+            document.querySelectorAll(itemsSelector).forEach(i => { i.classList.toggle(toggle) })
+            // - reset charts
+            compareGraphClear()
+            compareSetup()
+        })
+    })
+}
+
+// compareChartRender sets up the config for the highchart and
+// then triggers the draw of that
+// - uses table structure (thead th, tbody th) to control the
+//      xAxis and series data
+function compareChartRender(container, tableId) {
     let headerSelector = "thead .data-cell"
     let itemSelector = "tbody .js-compare-active"
     let seriesSelector = ".data-cell span"
@@ -56,6 +84,7 @@ function highchartRender(container, tableId) {
     })
 
     config["series"] = series
+    // set the seperators
     Highcharts.setOptions({
         lang: {
           decimalPoint: '.',
@@ -65,41 +94,70 @@ function highchartRender(container, tableId) {
     Highcharts.chart(container, config)
 
 }
-// ==========================
-// TABLE ITEM COMPARISON
-// ==========================
 
-function tableCompareGraph() {
-    let charts = document.querySelectorAll(".js-compare-chart")
-    charts.forEach(chart => {
+// compareGraphClear removes any existing chart and deselectes
+// any check boxes
+// - run on page load to setup and then everytime the charts are hidden / shown
+function compareGraphClear() {
+    let sel = ".js-compare-chart"
+    let graphs = ".js-compare-graph"
+    let checks = ".js-compare-item"
+    document.querySelectorAll(sel).forEach(chart => {
+        chart.querySelectorAll(graphs).forEach(g => { chart.removeChild(g) })
+    })
+    document.querySelectorAll(checks).forEach(ch => { ch.checked = false})
+}
+
+// compareTableDefaults clisk the first X items in the table for rendering
+function compareTableDefaultSelection() {
+    let defaultItems = 5
+    let charts = ".js-compare-chart"
+    let checks = ".js-compare-item"
+    document.querySelectorAll(charts).forEach(chart => {
+        let dataTableSelector = chart.dataset.compare
+        document.querySelectorAll(dataTableSelector).forEach(tbl => {
+            tbl.querySelectorAll(checks).forEach((ch, i) => {
+                if (i < defaultItems) {
+                    ch.checked = true
+                    compareTableEventToggleClass(ch)
+                }
+            })
+        })
+    })
+}
+// compareGraphInsert inserts a new container into each chart block
+// and then calls the chart to be rendered
+function compareGraphInsert() {
+    let charts = ".js-compare-chart"
+    document.querySelectorAll(charts).forEach(chart => {
         let ts = Date.now()
         let dataTableSelector = chart.dataset.compare
         let dataTable = document.querySelector(dataTableSelector)
         let container = `container-${ts}`
-        // remove any existing graph
-        chart.querySelectorAll(".js-compare-graph").forEach(g => { chart.removeChild(g) })
-
-
         // now insert one
         var gph = document.createElement("figure")
         gph.className = "js-compare-graph highcharts-figure"
         gph.innerHTML = `<div id="${container}"></div>`
         chart.insertBefore(gph, chart.firstChild)
-        highchartRender(container, dataTable.id)
-
+        // call the renderer
+        compareChartRender(container, dataTable.id)
     })
 }
+// compareTableEventToggleClass used to toggle active class on the parent row
+function compareTableEventToggleClass(ch) {
+    let activeClass = "js-compare-active"
+    ch.closest("tr").classList.toggle(activeClass)
 
-// chartDataTableOnLoad ticks the first x number of items
-// in each data table being used as a source
+}
+// compareChartItemListeners
 // - adds listener to checkbox that will toggle a class on each checkbox parent row
-function chartDataTableOnLoad() {
-    let defaultItems = 5
+// - adds listner to checkbox that then renders the chart (via compareGraphInsert)
+// - runs on page load only
+function compareChartItemListeners() {
     let chartSelector = ".js-compare-chart"
     let checkboxSelector = ".js-compare-item"
-    let activeClass = "js-compare-active"
-    let charts = document.querySelectorAll(chartSelector)
-    charts.forEach(chart => {
+
+    document.querySelectorAll(chartSelector).forEach(chart => {
         // find the data table
         let now = Date.now();
         let dataTableSelector = chart.dataset.compare
@@ -109,16 +167,15 @@ function chartDataTableOnLoad() {
             tbl.setAttribute("id", "js-compare-chart-tbl-"+now)
             let checks = tbl.querySelectorAll(checkboxSelector)
             checks.forEach((ch, i) => {
+                let clickTriggerClass = function(event){ compareTableEventToggleClass(ch) }
+                let clickTriggerGraph = function(event){ compareGraphInsert(); }
+                // remove listeners
+                ch.removeEventListener("click", clickTriggerClass)
+                ch.removeEventListener("click", clickTriggerGraph)
                 // toggle a class
-                ch.addEventListener("click", function(event){
-                    ch.closest("tr").classList.toggle(activeClass)
-                })
-                if (i < defaultItems) {
-                    ch.click()
-                }
-                ch.addEventListener("click", function(event){
-                    tableCompareGraph()
-                })
+                ch.addEventListener("click",  clickTriggerClass)
+                // toggle chart
+                ch.addEventListener("click", clickTriggerGraph)
             })
         })
     })

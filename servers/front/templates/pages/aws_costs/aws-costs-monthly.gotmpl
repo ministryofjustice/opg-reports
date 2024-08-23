@@ -5,15 +5,11 @@
 
     {{ if .Result }}
 
-
-        <div class="chart-area js-compare-chart" data-compare=".js-compare-table table"></div>
+        {{ template "aws-costs-comparison" . }}
 
         {{ $filters := .Filters }}
         {{ $tmplFilters := dict "Filters" $filters "OptionsSource" ".dataframe tbody th"  "FilterRows" ".dataframe tbody tr"}}
-
         {{ template "aws-costs-table-filters" $tmplFilters }}
-
-
 
         <div class='scroller js-compare-table'>
         {{ template "aws-costs-currency-table" . }}

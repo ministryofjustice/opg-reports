@@ -313,11 +313,20 @@ table.js-table-sorter thead th.sorted span:after{
 }
 
 /* table comparisons */
-.js-compare-table-rendered {
-    margin:15px 0;
-    padding:8px;
-    background-color: #fcfcc1;
+.js-compare-chart,
+.js-compare-item,
+.js-compare-graph {
+    display:none;
 }
+
+.js-compare-item.js-compare-enabled{
+    display:inline;
+}
+.js-compare-chart.js-compare-enabled,
+.js-compare-chart.js-compare-enabled .js-compare-graph{
+    display:block
+}
+
 
 /* high charts */
 .highcharts-figure,
