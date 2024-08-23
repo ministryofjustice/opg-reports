@@ -332,7 +332,7 @@ table.js-table-sorter thead th.sorted span:after{
 .js-compare-chart.js-compare-enabled .js-compare-graph{
     display:block
 }
-.js-compare-active {
+.js-compare-enabled .js-compare-active {
     background-color: rgba(84, 227, 103, 0.1);
 }
 

@@ -67,17 +67,25 @@ function compareSetup() {
 // - run on page load only
 function comparisonToggler() {
     let selector = ".js-compare-enable .js-compare-toggler"
+    let charts = ".js-compare-chart"
     let itemsSelector = ".js-compare-chart, .js-compare-item, .js-compare-intro"
     let toggle = "js-compare-enabled"
     document.querySelectorAll(selector).forEach(check => {
         check.addEventListener("click", function(event){
+            // toggle the classes
             document.querySelectorAll(itemsSelector).forEach(i => { i.classList.toggle(toggle) })
+            document.querySelectorAll(charts).forEach( chart => {
+                document.querySelectorAll(chart.dataset.compare).forEach(tb => { tb.classList.toggle(toggle)})
+
+            })
             // - reset charts
             compareGraphClear()
+            compareRemoveActive()
             compareUncheckAll()
             compareSetup()
         })
     })
+
 }
 
 // compareChartRender sets up the config for the highchart and
@@ -141,13 +149,18 @@ function compareUncheckAll() {
     let checks = ".js-compare-item"
     document.querySelectorAll(checks).forEach(ch => { ch.checked = false})
 }
+function compareRemoveActive(){
+    let active = ".js-compare-active"
+    document.querySelectorAll(active).forEach( a => {
+        a.classList.remove("js-compare-active")
+    })
+}
 // compareGraphClear removes any existing chart and deselectes
 // any check boxes
 // - run on page load to setup and then everytime the charts are hidden / shown
 function compareGraphClear() {
     let sel = ".js-compare-chart"
     let graphs = ".js-compare-graph"
-
     document.querySelectorAll(sel).forEach(chart => {
         chart.querySelectorAll(graphs).forEach(g => { chart.removeChild(g) })
     })
