@@ -16,6 +16,8 @@ function ready(){
 // SPARKLINE
 // ==========================
 
+// sparklines triggers drawSparlines via interval to push to background
+// - does the charts in chunks to reduce performance impact on the page
 function sparklines() {
     let limit = 20
     let delay = 1500
