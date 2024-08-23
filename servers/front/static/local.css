@@ -313,6 +313,10 @@ table.js-table-sorter thead th.sorted span:after{
 }
 
 /* table comparisons */
+.compare-choice{
+    padding:1em 0;
+}
+
 .js-compare-chart,
 .js-compare-item,
 .js-compare-graph {
@@ -332,7 +336,7 @@ table.js-table-sorter thead th.sorted span:after{
 .highcharts-figure,
 .highcharts-data-table table {
     min-width: 310px;
-    max-width: 90%;
+    max-width: 99%;
     margin: 1em auto;
 }
 
