@@ -19,12 +19,13 @@ type DataAge struct {
 }
 
 type Response struct {
-	Timer      *RequestTimings          `json:"request_timings,omitempty"`
-	DataAge    *DataAge                 `json:"data_age"`
-	StatusCode int                      `json:"status"`
-	Errors     []string                 `json:"errors"`
-	Metadata   map[string]interface{}   `json:"metadata"`
-	Result     []map[string]interface{} `json:"result"`
+	Timer      *RequestTimings `json:"request_timings,omitempty"`
+	DataAge    *DataAge        `json:"data_age"`
+	StatusCode int             `json:"status"`
+	Errors     []string        `json:"errors"`
+	// -- will remove these
+	Metadata map[string]interface{}   `json:"metadata"`
+	Result   []map[string]interface{} `json:"result"`
 }
 
 func (rp *Response) Start(w http.ResponseWriter, r *http.Request) {

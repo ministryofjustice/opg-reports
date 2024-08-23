@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"slices"
 
+	"github.com/ministryofjustice/opg-reports/servers/api/aws_costs"
 	"github.com/ministryofjustice/opg-reports/servers/front/config"
 	"github.com/ministryofjustice/opg-reports/servers/front/config/navigation"
 	"github.com/ministryofjustice/opg-reports/servers/front/getter"
@@ -22,15 +23,34 @@ const monthlyTemplate string = "aws-costs-monthly"
 
 // YtdHandler
 func YtdHandler(w http.ResponseWriter, r *http.Request, templates []string, conf *config.Config, navItem *navigation.NavigationItem) {
-	data := map[string]interface{}{"Result": nil}
-	if responses, err := getter.ApiResponses(navItem, r); err == nil {
-		data = getter.ParseApiResponse(responses)
-		// total
-		res := data["Result"].([]interface{})
-		first := res[0].(map[string]interface{})
-		data["Total"] = first["total"].(float64)
+	var data interface{}
+	mapData := map[string]interface{}{}
+	if responses, err := getter.ApiHttpResponses(navItem, r); err == nil {
+		count := len(responses)
+		for key, rep := range responses {
+			ytd, err := convert.UnmarshalR[*aws_costs.YtdResponse](rep)
+			if err != nil {
+				return
+			}
+			// set the nav and org details
+			ytd.Organisation = conf.Organisation
+			ytd.PageTitle = navItem.Name
+			if len(conf.Navigation) > 0 {
+				top, active := navigation.Level(conf.Navigation, r)
+				ytd.NavigationTop = top
+				ytd.NavigationSide = active.Navigation
+			}
+
+			if count > 1 {
+				mapData[key] = ytd
+				data = mapData
+			} else {
+				data = ytd
+			}
+		}
 	}
-	data = helpers.DataCleanup(data, conf, navItem, r)
+
+	// data = helpers.DataCleanup(data, conf, navItem, r)
 	helpers.OutputHandler(templates, navItem.Template, data, w)
 }
 

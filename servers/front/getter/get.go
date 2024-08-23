@@ -30,6 +30,39 @@ func GetUrl(url *url.URL) (resp *http.Response, err error) {
 	return
 }
 
+func ApiHttpResponses(nav *navigation.NavigationItem, r *http.Request) (responses map[string]*http.Response, requestErr error) {
+	apiScheme := env.Get("API_SCHEME", consts.API_SCHEME)
+	apiAddr := env.Get("API_ADDR", consts.API_ADDR)
+	dataSources := nav.DataSources
+	responses = map[string]*http.Response{}
+
+	for key, source := range dataSources {
+		endpoint := source.Parsed()
+		url := urls.Parse(apiScheme, apiAddr, endpoint)
+		tick := timer.New()
+
+		slog.Debug("getting data from api",
+			slog.String("key", key),
+			slog.String("endpoint", endpoint),
+			slog.String("url", url.String()))
+
+		httpResponse, err := GetUrl(url)
+		tick.Stop()
+		if err != nil || httpResponse.StatusCode != http.StatusOK {
+			requestErr = err
+			slog.Error("api call failed",
+				slog.String("err", fmt.Sprintf("%+v", err)),
+				slog.String("key", key),
+				slog.Int("status", httpResponse.StatusCode),
+				slog.String("endpoint", endpoint),
+				slog.String("url", url.String()))
+			continue
+		}
+		responses[key] = httpResponse
+	}
+	return
+}
+
 // ApiResponses calls all the api urls for the nav item
 func ApiResponses(nav *navigation.NavigationItem, r *http.Request) (responses map[string]*resp.Response, requestErr error) {
 	apiScheme := env.Get("API_SCHEME", consts.API_SCHEME)

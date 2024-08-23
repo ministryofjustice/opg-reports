@@ -14,6 +14,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/servers/shared/apidb"
 	"github.com/ministryofjustice/opg-reports/servers/shared/mw"
 	"github.com/ministryofjustice/opg-reports/servers/shared/query"
+	"github.com/ministryofjustice/opg-reports/servers/shared/rbase"
 	"github.com/ministryofjustice/opg-reports/servers/shared/resp"
 	"github.com/ministryofjustice/opg-reports/shared/consts"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
@@ -134,41 +135,47 @@ func YtdHandler(w http.ResponseWriter, r *http.Request) {
 	var (
 		err      error
 		db       *sql.DB
-		dbPath   string                 = apiDbPath
-		ctx      context.Context        = apiCtx
-		response *resp.Response         = resp.New()
-		filters  map[string]interface{} = map[string]interface{}{}
+		dbPath   string          = apiDbPath
+		ctx      context.Context = apiCtx
+		response *YtdResponse    = NewYTDResponse()
 	)
-	response.Start(w, r)
+	rbase.Start(response, w, r)
 
 	// -- setup db connection
 	if db, err = apidb.SqlDB(dbPath); err != nil {
-		response.ErrorAndEnd(err, w, r)
+		rbase.ErrorAndEnd(response, err, w, r)
 		return
 	}
 	defer db.Close()
-
 	// -- setup the sqlc generated queries
 	queries := awsc.New(db)
 	defer queries.Close()
+	// get dates
 	start, end := dates.YearToBillingDate(time.Now(), consts.BILLING_DATE)
-	response.Metadata["start_date"] = start.Format(dates.FormatYM)
-	response.Metadata["end_date"] = end.Format(dates.FormatYM)
 
 	total, err := queries.Total(ctx, awsc.TotalParams{
 		Start: start.Format(dates.FormatYMD),
 		End:   end.Format(dates.FormatYMD),
 	})
 	if err != nil {
-		response.ErrorAndEnd(err, w, r)
+		rbase.ErrorAndEnd(response, err, w, r)
 		return
 	}
-
-	response.Result = []map[string]interface{}{
-		{"total": total},
+	// meta data
+	response.StartDate = start.Format(dates.FormatYM)
+	response.EndDate = end.Format(dates.FormatYM)
+	response.DateRange = dates.Strings(dates.Range(start, end, dates.MONTH), dates.FormatYM)
+	response.Result.Total = total.(float64)
+	all, _ := queries.Count(ctx)
+	response.Counters.Totals.Count = int(all)
+	response.Counters.This.Count = 1
+	if min, err := queries.Oldest(ctx); err == nil {
+		response.DataAge.Min = min
 	}
-	metaExtras(ctx, queries, response, filters)
-	response.End(w, r)
+	if max, err := queries.Youngest(ctx); err == nil {
+		response.DataAge.Max = max
+	}
+	rbase.End(response, w, r)
 	return
 }
 

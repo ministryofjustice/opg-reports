@@ -22,6 +22,11 @@ func Marshal[T any](item T) (content []byte, err error) {
 	return json.MarshalIndent(item, "", indentWith)
 }
 
+func MustMarshal[T any](item T) (content []byte) {
+	content, _ = json.MarshalIndent(item, "", indentWith)
+	return
+}
+
 // Marshals is also a wraper around MarshalIndent, used to keep naming
 // convention of unmarshaling versions
 func Marshals[T any](items []T) (content []byte, err error) {
@@ -38,6 +43,11 @@ func Unmarshal[T any](content []byte) (item T, err error) {
 		item = i
 	}
 	return
+}
+
+func UnmarshalR[T any](r *http.Response) (item T, err error) {
+	_, bytes := Stringify(r)
+	return Unmarshal[T](bytes)
 }
 
 // Unmarshals wrapper for mutliple types for shorthand and deals with error

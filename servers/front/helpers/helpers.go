@@ -27,7 +27,7 @@ func DataCleanup(data map[string]interface{}, conf *config.Config, navItem *navi
 	return data
 }
 
-func OutputHandler(templates []string, templateName string, data map[string]interface{}, w http.ResponseWriter) {
+func OutputHandler(templates []string, templateName string, data any, w http.ResponseWriter) {
 	status := http.StatusOK
 	t, err := template.New(templateName).Funcs(template_helpers.Funcs()).ParseFiles(templates...)
 	if err != nil {

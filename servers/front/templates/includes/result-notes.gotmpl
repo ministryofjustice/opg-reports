@@ -2,8 +2,8 @@
     {{ if .Result }}
         <h2 class="govuk-heading-m">Notes</h2>
         <div class="govuk-inset-text">
-        {{ if .DataAgeMax }}
-            <p class="govuk-body">Data was last generated on {{ day .DataAgeMax }}.</p>
+        {{ if .DataAge.Max }}
+            <p class="govuk-body">Data was last generated on {{ day .DataAge.Max }}.</p>
         {{end }}
 
         </div>
