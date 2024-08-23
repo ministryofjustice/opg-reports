@@ -391,8 +391,8 @@ td.js-sparkline{
     max-width: 110px;
 }
 .js-spark-loading .loader {
-    margin-left: auto;
-    margin-right: auto;
+    margin-right:0;
+    display:inline-block;
     position: relative;
     z-index:10;
 

@@ -16,8 +16,6 @@ function ready(){
 // SPARKLINE
 // ==========================
 
-
-
 function sparklines() {
     let limit = 20
     let delay = 1500
