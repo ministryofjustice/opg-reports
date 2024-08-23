@@ -13,6 +13,7 @@
             {{- range $i, $d := $dates -}}
                 <th class="govuk-table__header data-cell" data-col="{{$i}}"><span>{{ $d }}</span></th>
             {{- end -}}
+            <th class="govuk-table__header data-cellish " ><span>Trend</span></th>
             <th class="govuk-table__header data-cellish " ><span>Totals</span></th>
         </tr>
     </thead>
@@ -34,7 +35,8 @@
                     {{- $colCount = addInt $colCount 1 -}}
                     {{- $rowTotal = add $rowTotal $val -}}
                 {{- end -}}
-                <td class="govuk-table__cell data-cellish js-compare-exclude"><span title="{{ $rowTotal }}">{{ currency $rowTotal "$" }}</span></td>
+                <td class="govuk-table__cell data-cellish js-sparkline js-spark-loading"><div class="loader"></div></td>
+                <td class="govuk-table__cell data-cellish"><span title="{{ $rowTotal }}">{{ currency $rowTotal "$" }}</span></td>
             </tr>
             {{- $rowCount = addInt $rowCount 1 -}}
         {{- end -}}

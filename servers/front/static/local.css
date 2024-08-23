@@ -262,6 +262,9 @@ strong.currency{
     width: 100%;
     z-index: 0;
 }
+.css-highlight .js-sparkline * {
+    z-index: 10 !important;
+}
 /* js table sort */
 .js-table-filter-options .govuk-select{
     font-size: 0.9rem;
@@ -378,3 +381,24 @@ table.js-table-sorter thead th.sorted span:after{
 .highcharts-data-table tr:hover {
     background: #f1f7ff;
 }
+
+/* sparkline loader */
+td.js-sparkline{
+    vertical-align: middle;
+    /* relates to fixed size of the sparkline chart */
+    min-width:100px;
+    max-width: 110px;
+}
+.js-spark-loading .loader {
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+    z-index:10;
+
+    width: 20px;
+    aspect-ratio: 4;
+    background: radial-gradient(circle closest-side,#000 90%,#0000) 0/calc(100%/3) 100% space;
+    clip-path: inset(0 100% 0 0);
+    animation: l1 1s steps(4) infinite;
+  }
+  @keyframes l1 {to{clip-path: inset(0 -34% 0 0)}}

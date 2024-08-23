@@ -9,7 +9,128 @@ function ready(){
     compareGraphClear()
     comparisonToggler()
     compareChartItemListeners()
+    sparklines()
+}
 
+// ==========================
+// SPARKLINE
+// ==========================
+/**
+ * Create a constructor for sparklines that takes some sensible defaults
+ * and merges in the individual chart options.
+ */
+Highcharts.SparkLine = function (a, b, c) {
+    const hasRenderToArg = typeof a === 'string' || a.nodeName;
+    let options = arguments[hasRenderToArg ? 1 : 0];
+    const defaultOptions = {
+        chart: {
+            renderTo: (
+                (options.chart && options.chart.renderTo) ||
+                (hasRenderToArg && a)
+            ),
+            backgroundColor: null,
+            borderWidth: 0,
+            type: 'area',
+            margin: [2, 0, 2, 0],
+            height: 20,
+            style: {
+                overflow: 'visible'
+            },
+            // small optimalization, saves 1-2 ms each sparkline
+            skipClone: true
+        },
+        exporting: {enabled: false},
+        title: {
+            text: ''
+        },
+        credits: {
+            enabled: false
+        },
+        xAxis: {
+            labels: { enabled: false },
+            title: { text: null },
+            startOnTick: false,
+            endOnTick: false,
+            tickPositions: []
+        },
+        yAxis: {
+            endOnTick: false,
+            startOnTick: false,
+            labels: { enabled: false },
+            title: { text: null },
+            tickPositions: [0]
+        },
+        legend: {
+            enabled: false
+        },
+        tooltip: {
+            enabled: false,
+        },
+        plotOptions: {
+            series: {
+                animation: false,
+                lineWidth: 1,
+                shadow: false,
+                states: {
+                    hover: {
+                        enabled: false,
+                    }
+                },
+                marker: {
+                    enabled: false,
+                },
+                fillOpacity: 0.25
+            },
+            column: {
+                negativeColor: '#910000',
+                borderColor: 'silver'
+            }
+        }
+    };
+
+    options = Highcharts.merge(defaultOptions, options);
+
+    return hasRenderToArg ?
+        new Highcharts.Chart(a, options, c) :
+        new Highcharts.Chart(options, b);
+};
+
+
+function sparklines() {
+    let limit = 20
+    let delay = 1500
+    let intervalT = setInterval(function(){
+        done = drawSparklines(limit)
+        if (done < limit) {
+            clearInterval(intervalT)
+        }
+    }, delay)
+}
+
+function drawSparklines(limit) {
+    let sparkSelector = ".js-sparkline:not(.js-sparked)"
+
+    let sparks = [...document.querySelectorAll(sparkSelector)].slice(0, limit)
+    sparks.forEach(spark => {
+        let row = spark.closest("tr")
+        let data = []
+        // get the data in the row
+        row.querySelectorAll(".data-cell span").forEach( cell => {
+            let txt = cell.getAttribute("title").trim()
+            let fl = parseFloat(txt)
+            data.push( parseFloat ( fl.toFixed(2) ))
+        })
+        // remove the loaders
+        spark.querySelectorAll(".loader").forEach(l => { spark.removeChild(l) })
+        Highcharts.SparkLine(spark, {
+            series: [{ data: data, pointStart: 1 }],
+            chart: {}
+        });
+
+        spark.classList.add("js-sparked")
+        spark.classList.remove("js-spark-loading")
+    })
+    return sparks.length
 }
 
 // ==========================
