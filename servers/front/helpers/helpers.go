@@ -14,7 +14,7 @@ import (
 
 func DataCleanup(data map[string]interface{}, conf *config.Config, navItem *navigation.NavigationItem, r *http.Request) map[string]interface{} {
 	data["Organisation"] = conf.Organisation
-	data["PageTitle"] = navItem.Name + " - "
+	data["PageTitle"] = navItem.Name
 	// sort out navigation
 	if len(conf.Navigation) > 0 {
 		top, active := navigation.Level(conf.Navigation, r)

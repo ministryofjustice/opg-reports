@@ -26,7 +26,7 @@ function compareSetup() {
 // - run on page load only
 function comparisonToggler() {
     let selector = ".js-compare-enable .js-compare-toggler"
-    let itemsSelector = ".js-compare-chart, .js-compare-item"
+    let itemsSelector = ".js-compare-chart, .js-compare-item, .js-compare-intro"
     let toggle = "js-compare-enabled"
     document.querySelectorAll(selector).forEach(check => {
         check.addEventListener("click", function(event){

@@ -31,6 +31,14 @@ func Funcs() map[string]interface{} {
 		"title": func(s string) string {
 			return convert.Title(s)
 		},
+		"titles": func(strs ...string) (str string) {
+			str = ""
+			for _, s := range strs {
+				str += s + " - "
+			}
+			str = strings.TrimSuffix(str, " - ")
+			return
+		},
 		"lower": func(s string) string {
 			return strings.ToLower(s)
 		},
