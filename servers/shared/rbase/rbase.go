@@ -40,11 +40,16 @@ type Response struct {
 	DataAge      *DataAge        `json:"data_age"`
 	StatusCode   int             `json:"status"`
 	Errors       []string        `json:"errors"`
+	StartDate    string          `json:"start_date"`
+	EndDate      string          `json:"end_date"`
+	DateRange    []string        `json:"date_range"`
+
 	// hide all of these, only used on the front reader
-	Organisation   string                                `json:"-"`
-	PageTitle      string                                `json:"-"`
-	NavigationTop  map[string]*navigation.NavigationItem `json:"-"`
-	NavigationSide []*navigation.NavigationItem          `json:"-"`
+	Organisation     string                                `json:"-"`
+	PageTitle        string                                `json:"-"`
+	NavigationTop    map[string]*navigation.NavigationItem `json:"-"`
+	NavigationSide   []*navigation.NavigationItem          `json:"-"`
+	NavigationActive *navigation.NavigationItem            `json:"-"`
 }
 
 func (rp *Response) StatusGet() int {

@@ -30,8 +30,7 @@
                             <th class="govuk-table__header"><span>{{ $choice }}</span></th>
 
                             {{ range $z, $ym := $dates }}
-                                {{ range $i, $raw := $result }}
-                                    {{ $item := modelAWSCTax $raw }}
+                                {{ range $i, $item := $result }}
                                     {{ $isCol := eq $choice $item.Service }}
                                     {{ $isMonth := eq $ym $item.Month }}
 

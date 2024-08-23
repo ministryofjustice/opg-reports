@@ -17,7 +17,6 @@ import (
 	"github.com/ministryofjustice/opg-reports/servers/shared/rbase"
 	"github.com/ministryofjustice/opg-reports/servers/shared/resp"
 	"github.com/ministryofjustice/opg-reports/shared/consts"
-	"github.com/ministryofjustice/opg-reports/shared/convert"
 	"github.com/ministryofjustice/opg-reports/shared/dates"
 	"github.com/ministryofjustice/opg-reports/shared/logger"
 )
@@ -166,6 +165,7 @@ func YtdHandler(w http.ResponseWriter, r *http.Request) {
 	response.EndDate = end.Format(dates.FormatYM)
 	response.DateRange = dates.Strings(dates.Range(start, end, dates.MONTH), dates.FormatYM)
 	response.Result.Total = total.(float64)
+	// -- extras
 	all, _ := queries.Count(ctx)
 	response.Counters.Totals.Count = int(all)
 	response.Counters.This.Count = 1
@@ -184,15 +184,14 @@ func MonthlyTaxHandler(w http.ResponseWriter, r *http.Request) {
 	var (
 		err      error
 		db       *sql.DB
-		dbPath   string                 = apiDbPath
-		ctx      context.Context        = apiCtx
-		response *resp.Response         = resp.New()
-		filters  map[string]interface{} = map[string]interface{}{}
+		dbPath   string              = apiDbPath
+		ctx      context.Context     = apiCtx
+		response *MonthlyTaxResponse = NewMonthlyTaxResponse()
 	)
-	response.Start(w, r)
+	rbase.Start(response, w, r)
 	// -- setup db connection
 	if db, err = apidb.SqlDB(dbPath); err != nil {
-		response.ErrorAndEnd(err, w, r)
+		rbase.ErrorAndEnd(response, err, w, r)
 		return
 	}
 	defer db.Close()
@@ -203,9 +202,9 @@ func MonthlyTaxHandler(w http.ResponseWriter, r *http.Request) {
 	// get date range
 	startDate, endDate := dates.BillingDates(time.Now().UTC(), consts.BILLING_DATE, 9)
 	// add the months to the metadata
-	response.Metadata["start_date"] = startDate.Format(dates.Format)
-	response.Metadata["end_date"] = endDate.Format(dates.Format)
-	response.Metadata["date_range"] = dates.Strings(dates.Range(startDate, endDate.AddDate(0, -1, 0), dates.MONTH), dates.FormatYM)
+	response.StartDate = startDate.Format(dates.Format)
+	response.EndDate = endDate.Format(dates.Format)
+	response.DateRange = dates.Strings(dates.Range(startDate, endDate.AddDate(0, -1, 0), dates.MONTH), dates.FormatYM)
 
 	// -- fetch the raw results
 	slog.Info("about to get results, limiting to date range",
@@ -217,19 +216,29 @@ func MonthlyTaxHandler(w http.ResponseWriter, r *http.Request) {
 		End:   endDate.Format(dates.FormatYMD),
 	})
 	if err != nil {
-		response.ErrorAndEnd(err, w, r)
+		rbase.ErrorAndEnd(response, err, w, r)
 		return
 	}
 	slog.Info("got results")
 	// -- add columns
-	response.Metadata["columns"] = map[string][]string{
+	response.Columns = map[string][]string{
 		"service": {"Including Tax", "Excluding Tax"},
 	}
 
-	// -- convert results over to output format
-	response.Result, _ = convert.Maps(results)
-	metaExtras(ctx, queries, response, filters)
-	response.End(w, r)
+	// add result
+	response.Result = results
+	// -- extras
+	all, _ := queries.Count(ctx)
+	response.Counters.Totals.Count = int(all)
+	response.Counters.This.Count = len(results)
+	if min, err := queries.Oldest(ctx); err == nil {
+		response.DataAge.Min = min
+	}
+	if max, err := queries.Youngest(ctx); err == nil {
+		response.DataAge.Max = max
+	}
+	// --
+	rbase.End(response, w, r)
 	return
 }
 
