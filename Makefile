@@ -56,14 +56,17 @@ benchmark:
 ##############################
 sqlc:
 	@cd ./datastore/github_standards && sqlc generate
+#--fork-remove-start
 	@cd ./datastore/aws_costs && sqlc generate
+#--fork-remove-end
 
 data: vars
 	@mkdir -p ./builds/api/github_standards/data
-	@mkdir -p ./builds/api/aws_costs/data
-
 	@echo "getting github_standards" && ${AWS_VAULT_COMMAND} aws s3 sync --quiet s3://${AWS_BUCKET}/github_standards ./builds/api/github_standards/data/ && echo bucket_github_standards_done || echo bucket_github_standards_failed;
+#--fork-remove-start
+	@mkdir -p ./builds/api/aws_costs/data
 	@echo "getting aws_costs" && ${AWS_VAULT_COMMAND} aws s3 sync --quiet s3://${AWS_BUCKET}/aws_costs ./builds/api/aws_costs/data/ && echo bucket_aws_costs_done || echo bucket_aws_costs_failed;
+#--fork-remove-end
 
 vars:
 	@echo "AWS_VAULT_PROFILE: ${AWS_VAULT_PROFILE}"
@@ -133,14 +136,15 @@ go-build: clean
 	@go build -o ./builds/api/api_server ./servers/api/main.go
 	@go build -o ./builds/api/seed_cmd ./commands/seed/main.go
 	@go build -o ./builds/commands/github_standards ./commands/github_standards/main.go
+#--fork-remove-start
 	@go build -o ./builds/commands/aws_costs ./commands/aws_costs/main.go
+#--fork-remove-end
 
 ##############################
 # close approx of the dockerfile for setup without docker
 ##############################
 seed-api: data
 	@mkdir -p ./builds/api/github_standards/data
-	@mkdir -p ./builds/api/aws_costs/data
 #	github_standards
 	@cp ./datastore/github_standards/github_standards*.sql ./builds/api/github_standards/
 	@echo "seeding github_standards"
@@ -149,7 +153,9 @@ seed-api: data
 		-db ./builds/api/github_standards.db \
 		-schema ./builds/api/github_standards/github_standards.sql \
 		-data "./builds/api/github_standards/data/*.json"
+#--fork-remove-start
 #	aws_costs
+	@mkdir -p ./builds/api/aws_costs/data
 	@cp ./datastore/aws_costs/aws_costs*.sql ./builds/api/aws_costs/
 	@echo "seeding aws_costs"
 	@./builds/api/seed_cmd \
@@ -157,5 +163,6 @@ seed-api: data
 		-db ./builds/api/aws_costs.db \
 		-schema ./builds/api/aws_costs/aws_costs.sql \
 		-data "./builds/api/aws_costs/data/*.json"
+#--fork-remove-end
 
 mirror-api: sqlc go-build seed-api

@@ -16,6 +16,18 @@ You can then view the site at:
 - [api](http://localhost:8081)
 
 
+## Comments used in scripts
+
+To help with the automated forking script the code contains blocks marked for removal / changes using the following:
+
+```bash
+#--fork-remove-start
+#--fork-remove-end
+#--fork-replacement
+```
+
+Please make sure to leave those as they are.
+
 ## Forking
 
 This repository comes with a bash script to update values, so afte ryou ahve forked please run:

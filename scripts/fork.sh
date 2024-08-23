@@ -416,6 +416,9 @@ main(){
     replace_yaml_attr "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPOSITORY_REPORT}" "${GH_ORG_KEY}" "${D_GITHUB_ORG}" "${GITHUB_ORG}"
     replace_yaml_attr "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPOSITORY_REPORT}" "${GH_TEAM_KEY}" "${D_GITHUB_TEAM}" "${GITHUB_TEAM}"
 
+    # remove chunks from makefile
+    remove_chunk "${ROOT_DIR}" "${MAKEFILE}" "${CHUNK_START}" "${CHUNK_END}"
+
     secrets
 }
 
