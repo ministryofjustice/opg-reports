@@ -72,7 +72,7 @@ func TestServersFrontGithubStandards(t *testing.T) {
 
 	str, _ := convert.Stringify(r)
 	// now look in the string for expected data
-	title := "<title>test nav - TEST RESPONSE Reports</title>"
+	title := "<title>test nav - TEST RESPONSE - Reports</title>"
 
 	if !strings.Contains(str, title) {
 		t.Errorf("expected to find known title, did not")
