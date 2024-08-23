@@ -168,7 +168,7 @@ function compareChartItemListeners() {
             let checks = tbl.querySelectorAll(checkboxSelector)
             checks.forEach((ch, i) => {
                 let clickTriggerClass = function(event){ compareTableEventToggleClass(ch) }
-                let clickTriggerGraph = function(event){ compareGraphInsert(); }
+                let clickTriggerGraph = function(event){ compareGraphClear(); compareGraphInsert(); }
                 // remove listeners
                 ch.removeEventListener("click", clickTriggerClass)
                 ch.removeEventListener("click", clickTriggerGraph)
