@@ -1,7 +1,9 @@
 {{ define "aws-costs-monthly" }}
     {{ template "head" . }}
 
-    <h1 class="govuk-heading-l">AWS Detailed Costs ({{ lower .PageTitle }})</h1>
+    <h1 class="govuk-heading-l">AWS Costs ({{ lower .PageTitle }})</h1>
+
+    <p class="govuk-body">Our AWS costs grouped by month between <strong>[{{ .StartDate.Format "2006-01-02" }}]</strong> and <strong>[{{ .EndDate.Format "2006-01-02" }}]</strong></p>
 
     {{ if .Result }}
 
