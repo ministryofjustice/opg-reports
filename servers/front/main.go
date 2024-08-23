@@ -35,6 +35,7 @@ func main() {
 
 	// handle static assets as directly from file system
 	mux.Handle("/govuk/", http.StripPrefix("/govuk/", http.FileServer(http.Dir("govuk"))))
+	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("govuk/assets"))))
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	// favicon ignore
 	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {

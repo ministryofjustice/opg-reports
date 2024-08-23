@@ -78,6 +78,7 @@ func DownloadGovUKAssets() {
 				slog.Error("error opening file", slog.String("err", err.Error()))
 				return
 			}
+			slog.Debug("copied file", slog.String("to", path))
 
 		}
 	}
