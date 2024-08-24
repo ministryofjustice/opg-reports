@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
-	"github.com/ministryofjustice/opg-reports/servers/shared/rbase"
+	"github.com/ministryofjustice/opg-reports/servers/shared/apiresponse"
 )
 
 type CountValues struct {
@@ -21,7 +21,7 @@ type Counters struct {
 // -- Standard
 // how to cast result to common type?
 type GHSResponse struct {
-	*rbase.Response
+	*apiresponse.Response
 	Counters     *Counters            `json:"counters,omitempty"`
 	QueryFilters map[string]string    `json:"query_filters,omitempty"`
 	Result       []ghs.GithubStandard `json:"result"`
@@ -29,9 +29,9 @@ type GHSResponse struct {
 
 func NewResponse() *GHSResponse {
 	return &GHSResponse{
-		Response: &rbase.Response{
-			RequestTimer: &rbase.RequestTimings{},
-			DataAge:      &rbase.DataAge{},
+		Response: &apiresponse.Response{
+			RequestTimer: &apiresponse.RequestTimings{},
+			DataAge:      &apiresponse.DataAge{},
 			StatusCode:   http.StatusOK,
 			Errors:       []string{},
 			DateRange:    []string{},

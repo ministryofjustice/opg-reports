@@ -1,4 +1,4 @@
-package rbase
+package apiresponse
 
 import (
 	"context"

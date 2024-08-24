@@ -9,9 +9,9 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
 	"github.com/ministryofjustice/opg-reports/servers/shared/apidb"
+	"github.com/ministryofjustice/opg-reports/servers/shared/apiresponse"
 	"github.com/ministryofjustice/opg-reports/servers/shared/mw"
 	"github.com/ministryofjustice/opg-reports/servers/shared/query"
-	"github.com/ministryofjustice/opg-reports/servers/shared/rbase"
 	"github.com/ministryofjustice/opg-reports/shared/logger"
 )
 
@@ -37,11 +37,11 @@ func ListHandler(w http.ResponseWriter, r *http.Request) {
 			"team":     query.First(team.Values(r)),
 		}
 	)
-	rbase.Start(response, w, r)
+	apiresponse.Start(response, w, r)
 
 	// -- setup db connection
 	if db, err = apidb.SqlDB(dbPath); err != nil {
-		rbase.ErrorAndEnd(response, err, w, r)
+		apiresponse.ErrorAndEnd(response, err, w, r)
 		return
 	}
 	defer db.Close()
@@ -53,7 +53,7 @@ func ListHandler(w http.ResponseWriter, r *http.Request) {
 	results, err := getResults(ctx, queries, filters["archived"], filters["team"])
 	slog.Info("got results")
 	if err != nil {
-		rbase.ErrorAndEnd(response, err, w, r)
+		apiresponse.ErrorAndEnd(response, err, w, r)
 		return
 	}
 	// -- convert results over to output format
@@ -78,7 +78,7 @@ func ListHandler(w http.ResponseWriter, r *http.Request) {
 		response.DataAge.Min = age
 		response.DataAge.Max = age
 	}
-	rbase.End(response, w, r)
+	apiresponse.End(response, w, r)
 
 	return
 

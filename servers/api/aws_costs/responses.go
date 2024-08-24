@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/ministryofjustice/opg-reports/datastore/aws_costs/awsc"
-	"github.com/ministryofjustice/opg-reports/servers/shared/rbase"
+	"github.com/ministryofjustice/opg-reports/servers/shared/apiresponse"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
 )
 
@@ -40,7 +40,7 @@ type CommonResult struct {
 // -- Standard
 // how to cast result to common type?
 type CostResponse struct {
-	*rbase.Response
+	*apiresponse.Response
 	Counters       *Counters              `json:"counters,omitempty"`
 	Columns        map[string][]string    `json:"columns,omitempty"`
 	ColumnOrdering []string               `json:"column_ordering,omitempty"`
@@ -56,9 +56,9 @@ func Common[T PossibleResults](results []T) (common []*CommonResult) {
 
 func NewResponse() *CostResponse {
 	return &CostResponse{
-		Response: &rbase.Response{
-			RequestTimer: &rbase.RequestTimings{},
-			DataAge:      &rbase.DataAge{},
+		Response: &apiresponse.Response{
+			RequestTimer: &apiresponse.RequestTimings{},
+			DataAge:      &apiresponse.DataAge{},
 			StatusCode:   http.StatusOK,
 			Errors:       []string{},
 			DateRange:    []string{},

@@ -12,9 +12,9 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/ministryofjustice/opg-reports/datastore/aws_costs/awsc"
 	"github.com/ministryofjustice/opg-reports/servers/shared/apidb"
+	"github.com/ministryofjustice/opg-reports/servers/shared/apiresponse"
 	"github.com/ministryofjustice/opg-reports/servers/shared/mw"
 	"github.com/ministryofjustice/opg-reports/servers/shared/query"
-	"github.com/ministryofjustice/opg-reports/servers/shared/rbase"
 	"github.com/ministryofjustice/opg-reports/shared/consts"
 	"github.com/ministryofjustice/opg-reports/shared/dates"
 	"github.com/ministryofjustice/opg-reports/shared/logger"
@@ -79,16 +79,16 @@ func StandardHandler(w http.ResponseWriter, r *http.Request) {
 			"group":    groupby,
 		}
 	)
-	rbase.Start(response, w, r)
+	apiresponse.Start(response, w, r)
 	// -- validate incoming params
 	if !slices.Contains(allowedIntervals, interval) {
 		iErr := fmt.Errorf("invalid interval passed [%s]", interval)
-		rbase.ErrorAndEnd(response, iErr, w, r)
+		apiresponse.ErrorAndEnd(response, iErr, w, r)
 		return
 	}
 	if !slices.Contains(allowedGroups, groupby) {
 		gErr := fmt.Errorf("invalid groupby passed [%s]", groupby)
-		rbase.ErrorAndEnd(response, gErr, w, r)
+		apiresponse.ErrorAndEnd(response, gErr, w, r)
 		return
 	}
 	startDate := dates.Time(start)
@@ -110,7 +110,7 @@ func StandardHandler(w http.ResponseWriter, r *http.Request) {
 
 	// -- setup db connection
 	if db, err = apidb.SqlDB(dbPath); err != nil {
-		rbase.ErrorAndEnd(response, err, w, r)
+		apiresponse.ErrorAndEnd(response, err, w, r)
 		return
 	}
 	defer db.Close()
@@ -131,7 +131,7 @@ func StandardHandler(w http.ResponseWriter, r *http.Request) {
 	extras(ctx, queries, response, startDate, endDate, format, inter)
 	response.Counters.This.Count = len(response.Result)
 	// end
-	rbase.End(response, w, r)
+	apiresponse.End(response, w, r)
 	return
 }
 
@@ -144,11 +144,11 @@ func YtdHandler(w http.ResponseWriter, r *http.Request) {
 		ctx      context.Context = apiCtx
 		response *CostResponse   = NewResponse()
 	)
-	rbase.Start(response, w, r)
+	apiresponse.Start(response, w, r)
 
 	// -- setup db connection
 	if db, err = apidb.SqlDB(dbPath); err != nil {
-		rbase.ErrorAndEnd(response, err, w, r)
+		apiresponse.ErrorAndEnd(response, err, w, r)
 		return
 	}
 	defer db.Close()
@@ -163,7 +163,7 @@ func YtdHandler(w http.ResponseWriter, r *http.Request) {
 		End:   end.Format(dates.FormatYMD),
 	})
 	if err != nil {
-		rbase.ErrorAndEnd(response, err, w, r)
+		apiresponse.ErrorAndEnd(response, err, w, r)
 		return
 	}
 
@@ -172,7 +172,7 @@ func YtdHandler(w http.ResponseWriter, r *http.Request) {
 	extras(ctx, queries, response, start, end, dates.FormatYM, dates.MONTH)
 	response.Counters.This.Count = len(response.Result)
 	// end
-	rbase.End(response, w, r)
+	apiresponse.End(response, w, r)
 	return
 }
 
@@ -185,10 +185,10 @@ func MonthlyTaxHandler(w http.ResponseWriter, r *http.Request) {
 		ctx      context.Context = apiCtx
 		response *CostResponse   = NewResponse()
 	)
-	rbase.Start(response, w, r)
+	apiresponse.Start(response, w, r)
 	// -- setup db connection
 	if db, err = apidb.SqlDB(dbPath); err != nil {
-		rbase.ErrorAndEnd(response, err, w, r)
+		apiresponse.ErrorAndEnd(response, err, w, r)
 		return
 	}
 	defer db.Close()
@@ -209,7 +209,7 @@ func MonthlyTaxHandler(w http.ResponseWriter, r *http.Request) {
 		End:   endDate.Format(dates.FormatYMD),
 	})
 	if err != nil {
-		rbase.ErrorAndEnd(response, err, w, r)
+		apiresponse.ErrorAndEnd(response, err, w, r)
 		return
 	}
 	slog.Info("got results")
@@ -224,7 +224,7 @@ func MonthlyTaxHandler(w http.ResponseWriter, r *http.Request) {
 	extras(ctx, queries, response, startDate, endDate, dates.FormatYM, dates.MONTH)
 	response.Counters.This.Count = len(response.Result)
 	// --
-	rbase.End(response, w, r)
+	apiresponse.End(response, w, r)
 	return
 }
 
