@@ -168,7 +168,7 @@ func TestServersFrontAwsCostsTax(t *testing.T) {
 		},
 	}
 	handler := func(w http.ResponseWriter, r *http.Request) {
-		aws_costs.MonthlyTaxHandler(w, r, templates, cfg, navItem)
+		aws_costs.StandardHandler(w, r, templates, cfg, navItem)
 	}
 
 	mockFront := testhelpers.MockServer(handler, "warn")

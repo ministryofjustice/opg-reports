@@ -4,8 +4,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ministryofjustice/opg-reports/datastore/aws_costs/awsc"
 	"github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
+	"github.com/ministryofjustice/opg-reports/servers/api/aws_costs"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
 	"github.com/ministryofjustice/opg-reports/shared/dates"
 )
@@ -55,17 +55,12 @@ func Funcs() map[string]interface{} {
 			d := dates.Time(t)
 			return d.Format(dates.FormatYMD)
 		},
+		"costIdx": func(set []*aws_costs.CommonResult, i int) any {
+			return set[i]
+		},
 		// -- casting
 		"modelGHS": func(m map[string]interface{}) (g *ghs.GithubStandard) {
 			g, _ = convert.Unmap[*ghs.GithubStandard](m)
-			return
-		},
-		"modelAWSCTax": func(m map[string]interface{}) (i *awsc.MonthlyTotalsTaxSplitRow) {
-			i, _ = convert.Unmap[*awsc.MonthlyTotalsTaxSplitRow](m)
-			return
-		},
-		"modelAWSMonthlyPerUnit": func(m map[string]interface{}) (i *awsc.MonthlyCostsPerUnitRow) {
-			i, _ = convert.Unmap[*awsc.MonthlyCostsPerUnitRow](m)
 			return
 		},
 	}

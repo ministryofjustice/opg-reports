@@ -22,7 +22,7 @@ SELECT count(*) FROM aws_costs;
 SELECT
     'Including Tax' as service,
     coalesce(SUM(cost), 0) as total,
-    strftime("%Y-%m", date) as month
+    strftime("%Y-%m", date) as interval
 FROM aws_costs as incTax
 WHERE
     incTax.date >= @start
@@ -32,14 +32,14 @@ UNION ALL
 SELECT
     'Excluding Tax' as service,
     coalesce(SUM(cost), 0) as total,
-    strftime("%Y-%m", date) as month
+    strftime("%Y-%m", date) as interval
 FROM aws_costs as excTax
 WHERE
     excTax.service != 'Tax'
     AND excTax.date >= @start
     AND excTax.date < @end
 GROUP BY strftime("%Y-%m", date)
-ORDER by month ASC;
+ORDER by interval ASC;
 
 -- name: Total :one
 SELECT

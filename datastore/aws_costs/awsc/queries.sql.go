@@ -397,7 +397,7 @@ const monthlyTotalsTaxSplit = `-- name: MonthlyTotalsTaxSplit :many
 SELECT
     'Including Tax' as service,
     coalesce(SUM(cost), 0) as total,
-    strftime("%Y-%m", date) as month
+    strftime("%Y-%m", date) as interval
 FROM aws_costs as incTax
 WHERE
     incTax.date >= ?1
@@ -407,14 +407,14 @@ UNION ALL
 SELECT
     'Excluding Tax' as service,
     coalesce(SUM(cost), 0) as total,
-    strftime("%Y-%m", date) as month
+    strftime("%Y-%m", date) as interval
 FROM aws_costs as excTax
 WHERE
     excTax.service != 'Tax'
     AND excTax.date >= ?1
     AND excTax.date < ?2
 GROUP BY strftime("%Y-%m", date)
-ORDER by month ASC
+ORDER by interval ASC
 `
 
 type MonthlyTotalsTaxSplitParams struct {
@@ -423,9 +423,9 @@ type MonthlyTotalsTaxSplitParams struct {
 }
 
 type MonthlyTotalsTaxSplitRow struct {
-	Service string      `json:"service"`
-	Total   interface{} `json:"total"`
-	Month   interface{} `json:"month"`
+	Service  string      `json:"service"`
+	Total    interface{} `json:"total"`
+	Interval interface{} `json:"interval"`
 }
 
 func (q *Queries) MonthlyTotalsTaxSplit(ctx context.Context, arg MonthlyTotalsTaxSplitParams) ([]MonthlyTotalsTaxSplitRow, error) {
@@ -437,7 +437,7 @@ func (q *Queries) MonthlyTotalsTaxSplit(ctx context.Context, arg MonthlyTotalsTa
 	var items []MonthlyTotalsTaxSplitRow
 	for rows.Next() {
 		var i MonthlyTotalsTaxSplitRow
-		if err := rows.Scan(&i.Service, &i.Total, &i.Month); err != nil {
+		if err := rows.Scan(&i.Service, &i.Total, &i.Interval); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

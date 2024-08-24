@@ -1,10 +1,10 @@
-package rows_test
+package datarow_test
 
 import (
 	"testing"
 	"time"
 
-	"github.com/ministryofjustice/opg-reports/servers/front/rows"
+	"github.com/ministryofjustice/opg-reports/servers/shared/datarow"
 	"github.com/ministryofjustice/opg-reports/shared/dates"
 )
 
@@ -15,25 +15,24 @@ func TestServersFrontRowsSkeleton(t *testing.T) {
 	months := dates.Strings(dates.Range(s, e, dates.MONTH), dates.FormatYM)
 	intervals := map[string][]string{"interval": months}
 
-	columns := map[string][]interface{}{
+	columns := map[string][]string{
 		"unit":    {"foo"},
 		"env":     {"prod"},
 		"account": {"1"},
 	}
-	skel := rows.Skeleton(columns, intervals)
+	skel := datarow.Skeleton(columns, intervals)
 	if len(skel) != 1 {
 		t.Errorf("permuations incorrect")
 	}
 
-	columns = map[string][]interface{}{
+	columns = map[string][]string{
 		"unit":    {"foo", "bar"},
 		"env":     {"prod", "dev"},
 		"account": {"1", "2", "3"},
 	}
 	// math to determine combinations
 	l := len(columns["unit"]) * len(columns["env"]) * len(columns["account"])
-
-	skel = rows.Skeleton(columns, intervals)
+	skel = datarow.Skeleton(columns, intervals)
 	if len(skel) != l {
 		t.Errorf("permuations incorrect")
 	}
@@ -46,13 +45,13 @@ func TestServersFrontRowsDataToRows(t *testing.T) {
 	months := dates.Strings(dates.Range(s, e, dates.MONTH), dates.FormatYM)
 	intervals := map[string][]string{"interval": months}
 
-	columns := map[string][]interface{}{
+	columns := map[string][]string{
 		"unit":    {"foo", "bar"},
 		"env":     {"prod", "dev"},
 		"account": {"1", "2", "3"},
 	}
 
-	data := []interface{}{
+	data := []map[string]interface{}{
 		map[string]interface{}{
 			"unit":     "foo",
 			"env":      "prod",
@@ -80,7 +79,7 @@ func TestServersFrontRowsDataToRows(t *testing.T) {
 		"interval": "cost",
 	}
 
-	rows := rows.DataToRows(data, columns, intervals, values)
+	rows := datarow.DataToRows(data, columns, intervals, values)
 
 	l := len(columns["unit"]) * len(columns["env"]) * len(columns["account"])
 	if len(rows) != l {
@@ -107,8 +106,8 @@ func TestServersFrontRowsDataToRowsRealistic(t *testing.T) {
 	}
 	intervals := map[string][]string{"interval": months}
 
-	columns := map[string][]interface{}{
-		"unit": []interface{}{
+	columns := map[string][]string{
+		"unit": []string{
 			"Foo1",
 			"OldFoo",
 			"FooBar",
@@ -120,7 +119,7 @@ func TestServersFrontRowsDataToRowsRealistic(t *testing.T) {
 		},
 	}
 
-	data := []interface{}{
+	data := []map[string]interface{}{
 		map[string]interface{}{
 			"interval": "2023-11",
 			"total":    3681.1324005098,
@@ -483,7 +482,7 @@ func TestServersFrontRowsDataToRowsRealistic(t *testing.T) {
 		},
 	}
 
-	rows := rows.DataToRows(data, columns, intervals, values)
+	rows := datarow.DataToRows(data, columns, intervals, values)
 
 	// for _, row := range rows {
 	// 	js := convert.PrettyString(row)

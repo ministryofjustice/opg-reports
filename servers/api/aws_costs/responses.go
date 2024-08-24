@@ -5,6 +5,7 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/datastore/aws_costs/awsc"
 	"github.com/ministryofjustice/opg-reports/servers/shared/rbase"
+	"github.com/ministryofjustice/opg-reports/shared/convert"
 )
 
 type CountValues struct {
@@ -12,30 +13,49 @@ type CountValues struct {
 }
 
 type Counters struct {
-	Totals CountValues `json:"totals"`
-	This   CountValues `json:"this"`
+	Totals *CountValues `json:"totals"`
+	This   *CountValues `json:"current"`
 }
 
-// -- YTD
-type YtdResult struct {
-	Total float64 `json:"total"`
+type PossibleResults interface {
+	awsc.MonthlyCostsDetailedRow |
+		awsc.MonthlyCostsPerUnitRow |
+		awsc.MonthlyCostsPerUnitEnvironmentRow |
+		awsc.DailyCostsDetailedRow |
+		awsc.DailyCostsPerUnitRow |
+		awsc.DailyCostsPerUnitEnvironmentRow |
+		awsc.MonthlyTotalsTaxSplitRow
 }
 
-type YtdResponse struct {
+// CommonResult used to cast results
+type CommonResult struct {
+	AccountID   string      `json:"account_id,omitempty"`
+	Unit        string      `json:"unit,omitempty"`
+	Environment interface{} `json:"environment,omitempty"`
+	Service     string      `json:"service,omitempty"`
+	Total       interface{} `json:"total,omitempty"`
+	Interval    interface{} `json:"interval,omitempty"`
+}
+
+// -- Standard
+// how to cast result to common type?
+type CostResponse struct {
 	*rbase.Response
-	Counters Counters   `json:"counters"`
-	Result   *YtdResult `json:"result"`
+	Counters       *Counters              `json:"counters,omitempty"`
+	Columns        map[string][]string    `json:"columns,omitempty"`
+	ColumnOrdering []string               `json:"column_ordering,omitempty"`
+	QueryFilters   map[string]interface{} `json:"query_filters,omitempty"`
+	Result         []*CommonResult        `json:"result"`
 }
 
-type MonthlyTaxResponse struct {
-	*rbase.Response
-	Counters Counters                        `json:"counters"`
-	Result   []awsc.MonthlyTotalsTaxSplitRow `json:"result"`
-	Columns  map[string][]string             `json:"columns"`
+func Common[T PossibleResults](results []T) (common []*CommonResult) {
+	mapList, _ := convert.Maps(results)
+	common, _ = convert.Unmaps[*CommonResult](mapList)
+	return
 }
 
-func NewMonthlyTaxResponse() *MonthlyTaxResponse {
-	return &MonthlyTaxResponse{
+func NewResponse() *CostResponse {
+	return &CostResponse{
 		Response: &rbase.Response{
 			RequestTimer: &rbase.RequestTimings{},
 			DataAge:      &rbase.DataAge{},
@@ -43,19 +63,12 @@ func NewMonthlyTaxResponse() *MonthlyTaxResponse {
 			Errors:       []string{},
 			DateRange:    []string{},
 		},
-		Columns: map[string][]string{},
-		Result:  []awsc.MonthlyTotalsTaxSplitRow{},
-	}
-}
-
-func NewYTDResponse() *YtdResponse {
-	return &YtdResponse{
-		Response: &rbase.Response{
-			RequestTimer: &rbase.RequestTimings{},
-			DataAge:      &rbase.DataAge{},
-			StatusCode:   http.StatusOK,
-			Errors:       []string{},
+		Counters: &Counters{
+			This:   &CountValues{},
+			Totals: &CountValues{},
 		},
-		Result: &YtdResult{},
+		Columns:        map[string][]string{},
+		ColumnOrdering: []string{},
+		Result:         []*CommonResult{},
 	}
 }

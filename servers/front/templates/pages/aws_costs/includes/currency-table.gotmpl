@@ -1,14 +1,14 @@
 {{ define "aws-costs-currency-table" }}
 
 {{ $dates := .DateRange }}
-{{ $result := .Result }}
-{{ $columns := .ColumnsOrdered }}
+{{ $result := .Rows }}
+{{ $columns := .ColumnOrdering }}
 <a name="data-table"></a>
 <table class="dataframe currency-table govuk-table css-highlight js-table-sorter {{ .NavigationActive.ClassName }}">
     <thead class="govuk-table__head">
         <tr class="govuk-table__row">
             {{- range $x, $col := $columns -}}
-                <th class="govuk-table__header"><span>{{ title $col }}</span></th>
+                <th class="govuk-table__header data-header"><span>{{ title $col }}</span></th>
             {{- end -}}
             {{- range $i, $d := $dates -}}
                 <th class="govuk-table__header data-cell" data-col="{{$i}}"><span>{{ $d }}</span></th>

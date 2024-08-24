@@ -4,7 +4,8 @@
     <h1 class="govuk-heading-l">AWS Costs (year to date)</h1>
 
     {{ if .Result }}
-        <p class="govuk-body">Total AWS Costs between <strong>[{{ day .StartDate }}]</strong> and <strong>[{{ day .EndDate }}]</strong> are <strong class="currency">{{ currency .Result.Total "$" }}</strong></p>
+        {{ $total := costIdx .Result 0 }}
+        <p class="govuk-body">Total AWS Costs between <strong>[{{ day .StartDate }}]</strong> and <strong>[{{ day .EndDate }}]</strong> are <strong class="currency">{{ currency $total.Total "$" }}</strong></p>
 
         {{ template "result-notes" . }}
     {{ else }}
