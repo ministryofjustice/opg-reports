@@ -14,7 +14,6 @@ import (
 	"github.com/ministryofjustice/opg-reports/datastore/aws_costs/awsc"
 	"github.com/ministryofjustice/opg-reports/servers/api/aws_costs"
 	"github.com/ministryofjustice/opg-reports/servers/front/getter"
-	"github.com/ministryofjustice/opg-reports/servers/shared/resp"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
 	"github.com/ministryofjustice/opg-reports/shared/logger"
 	"github.com/ministryofjustice/opg-reports/shared/testhelpers"
@@ -77,14 +76,13 @@ func TestServersApiAwsCostsApiYtd(t *testing.T) {
 
 	// -- check values of the response
 	_, bytes := convert.Stringify(hr)
-	response, _ := convert.Unmarshal[*resp.Response](bytes)
+	response, _ := convert.Unmarshal[*aws_costs.CostResponse](bytes)
 
-	counts := response.Metadata["counters"].(map[string]interface{})
-	all := counts["totals"].(map[string]interface{})
-	count := int(all["count"].(float64))
+	counts := response.Counters
+	count := counts.Totals.Count
 	if count != N {
 		t.Errorf("total number of rows dont match")
-		fmt.Printf("%+v\n", all)
+		fmt.Printf("%+v\n", counts)
 	}
 
 }
@@ -144,14 +142,13 @@ func TestServersApiAwsCostsApiMonthlyTax(t *testing.T) {
 
 	// -- check values of the response
 	_, bytes := convert.Stringify(hr)
-	response, _ := convert.Unmarshal[*resp.Response](bytes)
+	response, _ := convert.Unmarshal[*aws_costs.CostResponse](bytes)
 
-	counts := response.Metadata["counters"].(map[string]interface{})
-	all := counts["totals"].(map[string]interface{})
-	count := int(all["count"].(float64))
+	counts := response.Counters
+	count := counts.Totals.Count
 	if count != N {
 		t.Errorf("total number of rows dont match")
-		fmt.Printf("%+v\n", all)
+		fmt.Printf("%+v\n", counts)
 	}
 
 }
@@ -211,14 +208,13 @@ func TestServersApiAwsCostsApiStandard(t *testing.T) {
 
 	// -- check values of the response
 	_, bytes := convert.Stringify(hr)
-	response, _ := convert.Unmarshal[*resp.Response](bytes)
+	response, _ := convert.Unmarshal[*aws_costs.CostResponse](bytes)
 
-	counts := response.Metadata["counters"].(map[string]interface{})
-	all := counts["totals"].(map[string]interface{})
-	count := int(all["count"].(float64))
+	counts := response.Counters
+	count := counts.Totals.Count
 	if count != N {
 		t.Errorf("total number of rows dont match")
-		fmt.Printf("%+v\n", all)
+		fmt.Printf("%+v\n", counts)
 	}
 
 	// -- call with options
