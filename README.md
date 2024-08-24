@@ -7,7 +7,7 @@ This repository acts as a central hub to generate, combine and display series of
 As the codebase will auto-generate databases if they are not present, you can get a local version up and running in docker by:
 
 ```bash
-make clean && make up
+make clean && make docker
 ```
 
 You can then view the site at:

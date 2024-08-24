@@ -21,6 +21,7 @@
   - In `./servers/api/` folder path add a new top level folder of the name
   - use an existing api as a base
   - update the api handling to features you need
+  - add new response type
   - add tests
   - update sqlc queries
 - Add front handler

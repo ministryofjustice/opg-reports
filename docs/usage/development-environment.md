@@ -16,17 +16,17 @@ make tests
 
 Named test:
 ```bash
-make test name="<pattern>"
+make tests/named name="<pattern>"
 ```
 
 All benchmarks:
 ```bash
-make benchmarks
+make tests/benchmarks
 ```
 
 Named benchmark
 ```bash
-make benchmark name="<pattern>"
+make tests/benchmark name="<pattern>"
 ```
 
 
@@ -35,7 +35,7 @@ make benchmark name="<pattern>"
 You can spin up versions of the code base using the provided docker compose files (`docker-compose.yml` and `./docker/docker-compose.dev.yml`). We have targets in the makefile for this, to build the local images for development, run:
 
 ```bash
-make clean && make up
+make clean && make docker
 ```
 
 *Note:* Currently there is not hot reload
@@ -45,11 +45,11 @@ make clean && make up
 You can run only the build by calling:
 
 ```bash
-make build
+make docker/build
 ```
 
 You can also limit that to a set of services by adding argument:
 
 ```bash
-make build SERVICES="<A> <B> <C>"
+make docker/build SERVICES="<A> <B> <C>"
 ```

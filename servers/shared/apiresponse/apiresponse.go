@@ -45,7 +45,6 @@ type Response struct {
 	DateRange    []string        `json:"date_range"`
 
 	// hide all of these, only used on the front reader
-	RowFilters       map[string]interface{}                `json:"row_filters,omitempty"`
 	Organisation     string                                `json:"-"`
 	PageTitle        string                                `json:"-"`
 	NavigationTop    map[string]*navigation.NavigationItem `json:"-"`
