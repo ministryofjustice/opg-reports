@@ -95,6 +95,8 @@ function comparisonToggler() {
 // - uses table structure (thead th, tbody th) to control the
 //      xAxis and series data
 function compareChartRender(container, tableId) {
+    let table = document.getElementById(tableId)
+    let chartType = table.dataset.charttype
     let headerSelector = "thead .data-cell"
     let itemSelector = "tbody .js-compare-active"
     let seriesSelector = ".data-cell span"
@@ -102,12 +104,13 @@ function compareChartRender(container, tableId) {
     var config = {
         title: {text: ""},
         exporting: {enabled: false},
-        tooltip: { valuePrefix: "$" }
+        tooltip: { valuePrefix: "$" },
+        chart: { type: chartType}
     }
 
     // get the x-axis from the dates in the thead
     var xAxis = [];
-    document.querySelector("#"+tableId).querySelectorAll(headerSelector).forEach(cell => {
+    table.querySelectorAll(headerSelector).forEach(cell => {
         xAxis.push(cell.textContent)
     })
     // set the xAxis config
