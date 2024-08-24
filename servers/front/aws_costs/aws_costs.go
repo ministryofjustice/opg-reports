@@ -49,14 +49,7 @@ func YtdHandler(w http.ResponseWriter, r *http.Request, templates []string, conf
 				return
 			}
 			// set the nav and org details
-			ytd.Organisation = conf.Organisation
-			ytd.PageTitle = navItem.Name
-			if len(conf.Navigation) > 0 {
-				top, active := navigation.Level(conf.Navigation, r)
-				ytd.NavigationTop = top
-				ytd.NavigationSide = active.Navigation
-			}
-
+			decorators(ytd, conf, navItem, r)
 			if count > 1 {
 				mapData[key] = ytd
 				data = mapData
@@ -65,7 +58,6 @@ func YtdHandler(w http.ResponseWriter, r *http.Request, templates []string, conf
 			}
 		}
 	}
-
 	helpers.OutputHandler(templates, navItem.Template, data, w)
 }
 

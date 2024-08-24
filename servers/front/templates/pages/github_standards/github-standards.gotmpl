@@ -20,9 +20,8 @@
             </thead>
             <tbody class="govuk-table__body">
 
-            {{ range $row := .Result }}
-                {{ $comp := modelGHS $row }}
-                {{ template "github-standards-row" $comp }}
+            {{ range $item := .Result }}
+                {{ template "github-standards-row" $item }}
             {{ end }}
             </tbody>
         </table>

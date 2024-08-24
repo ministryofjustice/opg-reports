@@ -11,7 +11,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/servers/shared/apidb"
 	"github.com/ministryofjustice/opg-reports/servers/shared/mw"
 	"github.com/ministryofjustice/opg-reports/servers/shared/query"
-	"github.com/ministryofjustice/opg-reports/servers/shared/resp"
+	"github.com/ministryofjustice/opg-reports/servers/shared/rbase"
 	"github.com/ministryofjustice/opg-reports/shared/logger"
 )
 
@@ -29,7 +29,7 @@ func ListHandler(w http.ResponseWriter, r *http.Request) {
 		db       *sql.DB
 		dbPath   string            = apiDbPath
 		ctx      context.Context   = apiCtx
-		response *resp.Response    = resp.New()
+		response *GHSResponse      = NewResponse()
 		archived *query.Query      = query.Get("archived")
 		team     *query.Query      = query.Get("team")
 		filters  map[string]string = map[string]string{
@@ -37,12 +37,11 @@ func ListHandler(w http.ResponseWriter, r *http.Request) {
 			"team":     query.First(team.Values(r)),
 		}
 	)
-
-	response.Start(w, r)
+	rbase.Start(response, w, r)
 
 	// -- setup db connection
 	if db, err = apidb.SqlDB(dbPath); err != nil {
-		response.ErrorAndEnd(err, w, r)
+		rbase.ErrorAndEnd(response, err, w, r)
 		return
 	}
 	defer db.Close()
@@ -54,37 +53,33 @@ func ListHandler(w http.ResponseWriter, r *http.Request) {
 	results, err := getResults(ctx, queries, filters["archived"], filters["team"])
 	slog.Info("got results")
 	if err != nil {
-		response.ErrorAndEnd(err, w, r)
+		rbase.ErrorAndEnd(response, err, w, r)
 		return
 	}
 	// -- convert results over to output format
-	res, base, ext := resultsOut(results, response)
-	response.Result = res
+	base, ext := complianceCounters(results)
+	response.Result = results
 	// -- get overall counters
 	all, _ := queries.Count(ctx)
 	tBase, _ := queries.TotalCountCompliantBaseline(ctx)
 	tExt, _ := queries.TotalCountCompliantExtended(ctx)
 
-	response.Metadata["counters"] = map[string]map[string]int{
-		"totals": {
-			"count":              int(all),
-			"compliant_baseline": int(tBase),
-			"compliant_extended": int(tExt),
-		},
-		"this": {
-			"count":              len(res),
-			"compliant_baseline": base,
-			"compliant_extended": ext,
-		},
-	}
-	response.Metadata["filters"] = filters
+	response.Counters.Totals.Count = int(all)
+	response.Counters.This.CompliantBaseline = int(tBase)
+	response.Counters.Totals.CompliantExtended = int(tExt)
+	response.Counters.This.Count = len(results)
+	response.Counters.This.CompliantBaseline = base
+	response.Counters.This.CompliantExtended = ext
+	response.QueryFilters = filters
+
 	// -- add the date min / max values
 	age, err := queries.Age(ctx)
 	if err == nil {
 		response.DataAge.Min = age
 		response.DataAge.Max = age
 	}
-	response.End(w, r)
+	rbase.End(response, w, r)
+
 	return
 
 }

@@ -2,11 +2,9 @@ package github_standards
 
 import (
 	"context"
-	"log/slog"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
-	"github.com/ministryofjustice/opg-reports/servers/shared/resp"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
 )
 
@@ -44,21 +42,13 @@ func getResults(ctx context.Context, queries *ghs.Queries, archived string, team
 	return
 }
 
-// resultsOut converts the structs to map for output
-func resultsOut(results []ghs.GithubStandard, response *resp.Response) (rows []map[string]interface{}, base int, ext int) {
+// complianceCounters
+func complianceCounters(results []ghs.GithubStandard) (base int, ext int) {
 	base = 0
 	ext = 0
-	rows = []map[string]interface{}{}
 	for _, item := range results {
 		base += item.CompliantBaseline
 		ext += item.CompliantExtended
-
-		if m, err := convert.Map(item); err == nil {
-			rows = append(rows, m)
-		} else {
-			slog.Error("error converting result to map", slog.String("err", err.Error()))
-		}
 	}
-	slog.Info("result out", slog.Int("r", len(response.Errors)))
 	return
 }
