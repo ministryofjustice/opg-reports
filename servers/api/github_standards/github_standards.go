@@ -15,6 +15,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/shared/logger"
 )
 
+// listRoute is the url this handler supports
 const listRoute string = "/{version}/github-standards/{$}"
 
 var (
@@ -22,6 +23,18 @@ var (
 	apiDbPath string
 )
 
+// ListHandler is configure to handler the `listRoute` url requests
+// and will report a GHSResponse.
+//
+//   - Connects to sql db via `apiDbPath`
+//   - Gets result data dependant on the `archived` and `team` get parameters
+//   - Generates compliance counters for the data set and overall
+//   - Finds the run date of the report
+//
+// Sample urls:
+//   - /v1/github-standards/
+//   - /v1/github-standards/?archived=false
+//   - /v1/github-standards/?archived=false&team=<team>
 func ListHandler(w http.ResponseWriter, r *http.Request) {
 	logger.LogSetup()
 	var (
@@ -84,7 +97,8 @@ func ListHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// Register attached the route to the list view
+// Register sets the local context and database paths to the values passed and then
+// attaches the local handles to the url patterns supported by the api
 func Register(ctx context.Context, mux *http.ServeMux, dbPath string) (err error) {
 	SetCtx(ctx)
 	SetDBPath(dbPath)

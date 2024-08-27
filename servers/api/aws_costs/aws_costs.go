@@ -20,29 +20,55 @@ import (
 	"github.com/ministryofjustice/opg-reports/shared/logger"
 )
 
+// group by get parameter options
 const (
-	gByUnit     string = "unit"
-	gByUnitEnv  string = "unit-env"
-	gByDetailed string = "detailed"
+	gByUnit     string = string(consts.GroupByUnit)
+	gByUnitEnv  string = string(consts.GroupByUnitEnvironment)
+	gByDetailed string = string(consts.GroupByDetailed)
 )
 
+// currently supported urls
 const (
 	ytdUrl      string = "/{version}/aws-costs/ytd/{$}"
 	taxSplitUrl string = "/{version}/aws-costs/monthly-tax/{$}"
 	standardUrl string = "/{version}/aws-costs/{$}"
 )
 
+// column ordering for each group by
 var ordering = map[string][]string{
 	gByUnit:     {"unit"},
 	gByUnitEnv:  {"unit", "environment"},
 	gByDetailed: {"account_id", "unit", "environment", "service"},
 }
 
+// db and context
 var (
 	apiCtx    context.Context
 	apiDbPath string
 )
 
+// StandardHandler is configured to deal with `standardUrl` queries and will
+// return a CostResponse. Used by the majority of costs data calls
+//
+//   - Connects to sqlite db via `apiDbPath`
+//   - Uses the group and interval get parameters to determine which db query to run
+//   - Adds columns to the response (driven from group data)
+//   - Adds the unique values of each columns to the response
+//   - Adds date range info to the response
+//
+// Allows following get parameters:
+//   - start: change the start date of the data (default to billingDate - 12)
+//   - interval: group the data by DAY or MONTH (default MONTH)
+//   - group: how to group the data by other fields (allowed: `unit`, `unit-env`, `detailed` default: unit)
+//   - end: change the max date of the data (default to billingDate)
+//
+// NOTE: the end parameter should be the day after the max you want to capture as a less than (`<`) is used
+//
+// Sample urls
+//   - /v1/aws_costs/?group=unit
+//   - /v1/aws_costs/?start=2024-01&end=2024-06
+//   - /v1/aws_costs/?start=2024-01-01&end=2024-02-01&interval=DAY
+//   - /v1/aws_costs/?start=2024-01-01&end=2024-02-01&interval=DAY&group=detailed
 func StandardHandler(w http.ResponseWriter, r *http.Request) {
 	logger.LogSetup()
 	var (
@@ -135,6 +161,17 @@ func StandardHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+// YtdHandler is configured to handle the `ytdUrl` queries and will return
+// a CostResponse. Returns a single cost value for the entire billing year so far.
+// No get parameters are used
+//
+//   - Connects to sqlite db via `apiDbPath`
+//   - Works out the start and end dates (based on billingDate and first of the year)
+//   - Gets the single total value for the year to date
+//   - Formats responseto have one result with the value
+//
+// Sample urls
+//   - /v1/aws_costs/ytd/
 func YtdHandler(w http.ResponseWriter, r *http.Request) {
 	logger.LogSetup()
 	var (
@@ -176,6 +213,17 @@ func YtdHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+// MonthlyTaxHandler handles the `taxSplitUrl` requests and returns a CostRepsonse.
+// Returns total costs including and excluding tax for the last 12 months. Used to
+// make comparing to finace data simpler as that doesnt include tax.
+// No get parameters are used
+//
+//   - Connect to db vai `apiDbPath`
+//   - Run query
+//   - Set the column and column ordering data in response to fixed values
+//
+// Sample urls:
+//   - /v1/aws_costs/monthly-tax/
 func MonthlyTaxHandler(w http.ResponseWriter, r *http.Request) {
 	logger.LogSetup()
 	var (
@@ -228,7 +276,8 @@ func MonthlyTaxHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// Register attached the route to the list view
+// Register sets the local context and database paths to the values passed and then
+// attaches the local handles to the url patterns supported by aws_costs api
 func Register(ctx context.Context, mux *http.ServeMux, dbPath string) (err error) {
 	SetCtx(ctx)
 	SetDBPath(dbPath)

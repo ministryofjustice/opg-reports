@@ -8,10 +8,6 @@ import (
 	"github.com/ministryofjustice/opg-reports/shared/convert"
 )
 
-func (g *GithubStandard) UID() string {
-	return g.FullName
-}
-
 func (g *GithubStandard) Insertable() InsertParams {
 	bytes, _ := convert.Marshal(g)
 	ip, _ := convert.Unmarshal[InsertParams](bytes)

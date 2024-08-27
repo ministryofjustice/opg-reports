@@ -9,6 +9,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/shared/dates"
 )
 
+// extras adds common values into the response to reduce repeating this in each api handler func
 func extras(
 	ctx context.Context,
 	queries *awsc.Queries,

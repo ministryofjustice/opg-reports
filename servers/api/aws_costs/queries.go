@@ -7,6 +7,22 @@ import (
 	"github.com/ministryofjustice/opg-reports/shared/dates"
 )
 
+// runQueries uses the groupby and interval values to determines which query to run and store result.
+// Using the result of the query it then generates the column data
+//
+// The query to use is determined by the following:
+// Interval set to `MONTH`
+//   - group set to `unit` (unit)
+//   - group set to `unit-env` (unit and environment)
+//   - group set to `detailed` (unit, environment, account id and service)
+//
+// Interval set to `DAY`
+//   - group set to `unit` (unit)
+//   - group set to `unit-env` (unit and environment)
+//   - group set to `detailed` (unit, environment, account id and service)
+//
+// Query results are converted to `[]*CommonResult` struct, which inclues all of the possible columns from all queries.
+// This conversion is done via json marshaling
 func runQueries(ctx context.Context, queries *awsc.Queries, response *CostResponse, start string, end string, groupby string, interval dates.Interval) {
 
 	// - per unit, by month

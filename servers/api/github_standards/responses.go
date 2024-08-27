@@ -7,19 +7,24 @@ import (
 	"github.com/ministryofjustice/opg-reports/servers/shared/apiresponse"
 )
 
+// CountValues covers the counters we want to return for the
+// github standards data
 type CountValues struct {
 	Count             int `json:"count"`
 	CompliantBaseline int `json:"compliant_baseline"`
 	CompliantExtended int `json:"compliant_extended"`
 }
 
+// Counters covers Total and This data where Total is for the
+// overal database and This is for the current query
 type Counters struct {
 	Totals *CountValues `json:"totals"`
 	This   *CountValues `json:"current"`
 }
 
-// -- Standard
-// how to cast result to common type?
+// GHSResponse uses base response and adds additional data
+// to capture counters, passed query filters and the result
+// data
 type GHSResponse struct {
 	*apiresponse.Response
 	Counters     *Counters            `json:"counters,omitempty"`
