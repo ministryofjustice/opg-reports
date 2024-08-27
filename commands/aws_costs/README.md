@@ -5,12 +5,12 @@ This command returns cost data for the month provided at a daily granularity.
 ### Generation
 
 ```bash
-aws-vault exec digideps-development-operator -- go run main.go \
-    -id 248804316466 \
-    -name "Digideps test" \
-    -environment "test" \
-    -unit "Digideps" \
-    -label "Digideps" \
+aws-vault exec <aws-profile> -- go run main.go \
+    -id <account-id> \
+    -name "<name>" \
+    -environment "development" \
+    -unit "<unit>" \
+    -label "<label>" \
     -month "-"
 ```
 
@@ -19,8 +19,8 @@ aws-vault exec digideps-development-operator -- go run main.go \
 Upload the generated file by running:
 
 ```bash
-aws-vault exec shared-development-operator -- aws s3 cp \
-	--recursive ./data s3://report-data-development/aws_costs \
+aws-vault exec <aws-profile> -- aws s3 cp \
+	--recursive ./data s3://<bucket>/aws_costs \
 	--sse AES256
 ```
 
@@ -28,5 +28,5 @@ aws-vault exec shared-development-operator -- aws s3 cp \
 ### Download
 
 ```bash
-aws-vault exec shared-development-operator -- aws s3 sync s3://report-data-development/aws_costs ./bucket-data
+aws-vault exec <aws-profile> -- aws s3 sync s3://<bucket>/aws_costs ./bucket-data
 ```
