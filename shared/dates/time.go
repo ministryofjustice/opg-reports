@@ -12,6 +12,14 @@ const (
 	MONTH Interval = "MONTH"
 )
 
+func IntervalFormat(i Interval) (f string) {
+	f = FormatYM
+	if string(i) == string(DAY) {
+		f = FormatYMD
+	}
+	return
+}
+
 func addDay(d time.Time) time.Time {
 	return d.AddDate(0, 0, 1)
 }

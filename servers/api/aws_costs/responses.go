@@ -1,11 +1,14 @@
 package aws_costs
 
 import (
+	"context"
 	"net/http"
+	"time"
 
 	"github.com/ministryofjustice/opg-reports/datastore/aws_costs/awsc"
 	"github.com/ministryofjustice/opg-reports/servers/shared/apiresponse"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
+	"github.com/ministryofjustice/opg-reports/shared/dates"
 )
 
 // CountValues tracks a single counter value
@@ -68,6 +71,46 @@ func Common[T PossibleResults](results []T) (common []*CommonResult) {
 	mapList, _ := convert.Maps(results)
 	common, _ = convert.Unmaps[*CommonResult](mapList)
 	return
+}
+
+// ColumnPermutations uses the result set to create a list of columns and
+// all of their possible values
+// This is normally used to create table headers and the like
+func ColumnPermutations(results []*CommonResult) map[string][]string {
+	columns := map[string]map[string]bool{}
+	colList := map[string][]string{}
+
+	for _, r := range results {
+		setIfFound(r, columns)
+	}
+	for col, values := range columns {
+		colList[col] = []string{}
+		for choice, _ := range values {
+			colList[col] = append(colList[col], choice)
+		}
+	}
+	return colList
+}
+
+// StandardCounters adds the standard counter data
+func StandardCounters(ctx context.Context, q *awsc.Queries, resp *CostResponse) {
+
+	all, _ := q.Count(ctx)
+	min, _ := q.Oldest(ctx)
+	max, _ := q.Youngest(ctx)
+
+	resp.Counters = &Counters{
+		Totals: &CountValues{Count: int(all)},
+		This:   &CountValues{Count: len(resp.Result)},
+	}
+	resp.DataAge = &apiresponse.DataAge{Min: min, Max: max}
+}
+
+func StandardDates(response *CostResponse, start time.Time, end time.Time, rangeEnd time.Time, interval dates.Interval) {
+	df := dates.IntervalFormat(interval)
+	response.StartDate = start.Format(df)
+	response.EndDate = end.Format(df)
+	response.DateRange = dates.Strings(dates.Range(start, rangeEnd, interval), df)
 }
 
 // NewResponse returns a clean response object
