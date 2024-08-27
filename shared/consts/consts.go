@@ -19,12 +19,3 @@ const BILLING_DATE int = 15
 
 // SQL_CONNECTION_PARAMS are our default connections used for performance etc
 const SQL_CONNECTION_PARAMS string = "?_journal=WAL&_busy_timeout=5000&_vacuum=incremental&_synchronous=NORMAL&_cache_size=1000000000"
-
-// GroupBy is used by api / front tohandle group by allowed values
-type GroupBy string
-
-const (
-	GroupByUnit            GroupBy = "unit"     // Group by the unit only
-	GroupByUnitEnvironment GroupBy = "unit-env" // Group by unit and the environment
-	GroupByDetailed        GroupBy = "detailed" // Group by more detailed columns (acocunt id, unit, environment, service)
-)

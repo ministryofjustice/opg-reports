@@ -30,6 +30,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.dailyCostsDetailedStmt, err = db.PrepareContext(ctx, dailyCostsDetailed); err != nil {
 		return nil, fmt.Errorf("error preparing query DailyCostsDetailed: %w", err)
 	}
+	if q.dailyCostsDetailedForUnitStmt, err = db.PrepareContext(ctx, dailyCostsDetailedForUnit); err != nil {
+		return nil, fmt.Errorf("error preparing query DailyCostsDetailedForUnit: %w", err)
+	}
 	if q.dailyCostsPerUnitStmt, err = db.PrepareContext(ctx, dailyCostsPerUnit); err != nil {
 		return nil, fmt.Errorf("error preparing query DailyCostsPerUnit: %w", err)
 	}
@@ -41,6 +44,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.monthlyCostsDetailedStmt, err = db.PrepareContext(ctx, monthlyCostsDetailed); err != nil {
 		return nil, fmt.Errorf("error preparing query MonthlyCostsDetailed: %w", err)
+	}
+	if q.monthlyCostsDetailedForUnitStmt, err = db.PrepareContext(ctx, monthlyCostsDetailedForUnit); err != nil {
+		return nil, fmt.Errorf("error preparing query MonthlyCostsDetailedForUnit: %w", err)
 	}
 	if q.monthlyCostsPerUnitStmt, err = db.PrepareContext(ctx, monthlyCostsPerUnit); err != nil {
 		return nil, fmt.Errorf("error preparing query MonthlyCostsPerUnit: %w", err)
@@ -78,6 +84,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing dailyCostsDetailedStmt: %w", cerr)
 		}
 	}
+	if q.dailyCostsDetailedForUnitStmt != nil {
+		if cerr := q.dailyCostsDetailedForUnitStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing dailyCostsDetailedForUnitStmt: %w", cerr)
+		}
+	}
 	if q.dailyCostsPerUnitStmt != nil {
 		if cerr := q.dailyCostsPerUnitStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing dailyCostsPerUnitStmt: %w", cerr)
@@ -96,6 +107,11 @@ func (q *Queries) Close() error {
 	if q.monthlyCostsDetailedStmt != nil {
 		if cerr := q.monthlyCostsDetailedStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing monthlyCostsDetailedStmt: %w", cerr)
+		}
+	}
+	if q.monthlyCostsDetailedForUnitStmt != nil {
+		if cerr := q.monthlyCostsDetailedForUnitStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing monthlyCostsDetailedForUnitStmt: %w", cerr)
 		}
 	}
 	if q.monthlyCostsPerUnitStmt != nil {
@@ -174,10 +190,12 @@ type Queries struct {
 	tx                                 *sql.Tx
 	countStmt                          *sql.Stmt
 	dailyCostsDetailedStmt             *sql.Stmt
+	dailyCostsDetailedForUnitStmt      *sql.Stmt
 	dailyCostsPerUnitStmt              *sql.Stmt
 	dailyCostsPerUnitEnvironmentStmt   *sql.Stmt
 	insertStmt                         *sql.Stmt
 	monthlyCostsDetailedStmt           *sql.Stmt
+	monthlyCostsDetailedForUnitStmt    *sql.Stmt
 	monthlyCostsPerUnitStmt            *sql.Stmt
 	monthlyCostsPerUnitEnvironmentStmt *sql.Stmt
 	monthlyTotalsTaxSplitStmt          *sql.Stmt
@@ -193,10 +211,12 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		tx:                                 tx,
 		countStmt:                          q.countStmt,
 		dailyCostsDetailedStmt:             q.dailyCostsDetailedStmt,
+		dailyCostsDetailedForUnitStmt:      q.dailyCostsDetailedForUnitStmt,
 		dailyCostsPerUnitStmt:              q.dailyCostsPerUnitStmt,
 		dailyCostsPerUnitEnvironmentStmt:   q.dailyCostsPerUnitEnvironmentStmt,
 		insertStmt:                         q.insertStmt,
 		monthlyCostsDetailedStmt:           q.monthlyCostsDetailedStmt,
+		monthlyCostsDetailedForUnitStmt:    q.monthlyCostsDetailedForUnitStmt,
 		monthlyCostsPerUnitStmt:            q.monthlyCostsPerUnitStmt,
 		monthlyCostsPerUnitEnvironmentStmt: q.monthlyCostsPerUnitEnvironmentStmt,
 		monthlyTotalsTaxSplitStmt:          q.monthlyTotalsTaxSplitStmt,
