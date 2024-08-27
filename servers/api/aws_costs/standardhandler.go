@@ -2,122 +2,131 @@ package aws_costs
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	"log/slog"
 	"net/http"
+	"slices"
 	"time"
 
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/ministryofjustice/opg-reports/datastore/aws_costs/awsc"
+	"github.com/ministryofjustice/opg-reports/servers/shared/apidb"
 	"github.com/ministryofjustice/opg-reports/servers/shared/apiresponse"
-	"github.com/ministryofjustice/opg-reports/shared/convert"
+	"github.com/ministryofjustice/opg-reports/shared/consts"
 	"github.com/ministryofjustice/opg-reports/shared/dates"
+	"github.com/ministryofjustice/opg-reports/shared/logger"
 )
 
-// CountValues tracks a single counter value
-// This is normally used to track the total of the data sets
-type CountValues struct {
-	Count int `json:"count"`
+// GroupBy is used by api / front tohandle group by allowed values
+type GroupBy string
+
+const (
+	GroupByUnit            GroupBy = "unit"     // Group by the unit only
+	GroupByUnitEnvironment GroupBy = "unit-env" // Group by unit and the environment
+	GroupByDetailed        GroupBy = "detailed" // Group by more detailed columns (acocunt id, unit, environment, service)
+)
+
+// column ordering for each group by
+var ordering = map[GroupBy][]string{
+	GroupByUnit:            {"unit"},
+	GroupByUnitEnvironment: {"unit", "environment"},
+	GroupByDetailed:        {"account_id", "unit", "environment", "service"},
 }
 
-// Counters captures multiple count values, in general we
-// return the Total (so everyhing in the database) version
-// and `This` - which is based on the current query result
-type Counters struct {
-	Totals *CountValues `json:"totals"`
-	This   *CountValues `json:"current"`
-}
+// StandardHandler is configured to deal with `standardUrl` queries and will
+// return a ApiResponse. Used by the majority of costs data calls
+//
+//   - Connects to sqlite db via `apiDbPath`
+//   - Uses the group and interval get parameters to determine which db query to run
+//   - Adds columns to the response (driven from group data)
+//   - Adds the unique values of each columns to the response
+//   - Adds date range info to the response
+//
+// Allows following get parameters:
+//   - start: change the start date of the data (default to billingDate - 12)
+//   - interval: group the data by DAY or MONTH (default MONTH)
+//   - group: how to group the data by other fields (allowed: `unit`, `unit-env`, `detailed` default: unit)
+//   - end: change the max date of the data (default to billingDate)
+//
+// NOTE: the end parameter should be the day after the max you want to capture as a less than (`<`) is used
+//
+// Sample urls
+//   - /v1/aws_costs/?group=unit
+//   - /v1/aws_costs/?start=2024-01&end=2024-06
+//   - /v1/aws_costs/?start=2024-01-01&end=2024-02-01&interval=DAY
+//   - /v1/aws_costs/?start=2024-01-01&end=2024-02-01&interval=DAY&group=detailed
+func StandardHandler(w http.ResponseWriter, r *http.Request) {
+	logger.LogSetup()
+	var (
+		// -- main
+		err     error
+		db      *sql.DB
+		dbPath  string          = apiDbPath
+		ctx     context.Context = apiCtx
+		filters map[string]interface{}
+		// -- dates
+		now        time.Time = time.Now().UTC()
+		start, end time.Time = dates.BillingDates(now, consts.BILLING_DATE, 12)
+		// -- request & response
+		response *ApiResponse = NewResponse()
+		req      *ApiRequest  = NewRequest(start, end, dates.MONTH, GroupByUnit)
+		// -- validation
+		allowedIntervals []string = []string{string(dates.DAY), string(dates.MONTH)}
+		allowedGroups    []string = []string{string(GroupByUnit), string(GroupByUnitEnvironment), string(GroupByDetailed)}
+	)
+	// -- process request
+	apiresponse.Start(response, w, r)
+	req.Update(r)
+	// -- the filters being used
+	filters = map[string]interface{}{
+		"interval": req.Interval,
+		"group":    req.GroupBy,
+		"unit":     req.Unit,
+	}
 
-// PossibleResults is used to constrain the type of the value on the Common func
-// and simply is interface for all the know result types
-type PossibleResults interface {
-	awsc.MonthlyCostsDetailedRow |
-		awsc.MonthlyCostsPerUnitRow |
-		awsc.MonthlyCostsPerUnitEnvironmentRow |
-		awsc.DailyCostsDetailedRow |
-		awsc.DailyCostsPerUnitRow |
-		awsc.DailyCostsPerUnitEnvironmentRow |
-		awsc.MonthlyTotalsTaxSplitRow |
-		awsc.MonthlyCostsDetailedForUnitRow |
-		awsc.DailyCostsDetailedForUnitRow
-}
+	// -- validate incoming params
+	if !slices.Contains(allowedIntervals, req.Interval) {
+		iErr := fmt.Errorf("invalid interval passed [%s]", req.Interval)
+		apiresponse.ErrorAndEnd(response, iErr, w, r)
+		return
+	}
+	if !slices.Contains(allowedGroups, req.GroupBy) {
+		gErr := fmt.Errorf("invalid groupby passed [%s]", req.GroupBy)
+		apiresponse.ErrorAndEnd(response, gErr, w, r)
+		return
+	}
+	// -- setup db connection
+	if db, err = apidb.SqlDB(dbPath); err != nil {
+		apiresponse.ErrorAndEnd(response, err, w, r)
+		return
+	}
+	defer db.Close()
+	queries := awsc.New(db)
+	defer queries.Close()
 
-// CommonResult is used instead of the variable versions encapsulated
-// by PossibleResults in the CostResponse struct
-// This is to simplify the parsing on both the api and the consumer
-// in front
-// To be effective, any empty field is omited in the json
-// Converted using `Common` func
-type CommonResult struct {
-	AccountID   string      `json:"account_id,omitempty"`
-	Unit        string      `json:"unit,omitempty"`
-	Label       string      `json:"label,omitempty"`
-	Environment interface{} `json:"environment,omitempty"`
-	Service     string      `json:"service,omitempty"`
-	Total       interface{} `json:"total,omitempty"`
-	Interval    interface{} `json:"interval,omitempty"`
-}
+	slog.Info("running query",
+		slog.String("interval", req.Interval),
+		slog.String("groupby", req.GroupBy),
+		slog.String("format", req.IntervalFormat),
+		slog.String("end", req.End),
+		slog.String("start", req.Start))
 
-// CostResponse is the response object used and returned by the aws_costs
-// api handler
-// Based on apiresponse.Response struct as a common ground and then
-// add additional fields to the struct that are used for this api
-type CostResponse struct {
-	*apiresponse.Response
-	Counters       *Counters              `json:"counters,omitempty"`
-	Columns        map[string][]string    `json:"columns,omitempty"`
-	ColumnOrdering []string               `json:"column_ordering,omitempty"`
-	QueryFilters   map[string]interface{} `json:"query_filters,omitempty"`
-	Result         []*CommonResult        `json:"result"`
-}
-
-// Common func converts from the known aws cost structs to the common result
-// type via json marshaling
-func Common[T PossibleResults](results []T) (common []*CommonResult) {
-	mapList, _ := convert.Maps(results)
-	common, _ = convert.Unmaps[*CommonResult](mapList)
+	// setup response data
+	response.QueryFilters = filters
+	response.ColumnOrdering = ordering[req.GroupByT]
+	// -- run the query
+	response.Result, _ = StandardQueryResults(ctx, queries, req)
+	//
+	response.Columns = ColumnPermutations(response.Result)
+	StandardCounters(ctx, queries, response)
+	StandardDates(response, req.StartT, req.EndT, req.RangeEnd, req.IntervalT)
+	apiresponse.End(response, w, r)
 	return
 }
 
-// ColumnPermutations uses the result set to create a list of columns and
-// all of their possible values
-// This is normally used to create table headers and the like
-func ColumnPermutations(results []*CommonResult) map[string][]string {
-	columns := map[string]map[string]bool{}
-	colList := map[string][]string{}
-
-	for _, r := range results {
-		setIfFound(r, columns)
-	}
-	for col, values := range columns {
-		colList[col] = []string{}
-		for choice, _ := range values {
-			colList[col] = append(colList[col], choice)
-		}
-	}
-	return colList
-}
-
-// StandardCounters adds the standard counter data
-func StandardCounters(ctx context.Context, q *awsc.Queries, resp *CostResponse) {
-
-	all, _ := q.Count(ctx)
-	min, _ := q.Oldest(ctx)
-	max, _ := q.Youngest(ctx)
-
-	resp.Counters = &Counters{
-		Totals: &CountValues{Count: int(all)},
-		This:   &CountValues{Count: len(resp.Result)},
-	}
-	resp.DataAge = &apiresponse.DataAge{Min: min, Max: max}
-}
-
-func StandardDates(response *CostResponse, start time.Time, end time.Time, rangeEnd time.Time, interval dates.Interval) {
-	df := dates.IntervalFormat(interval)
-	response.StartDate = start.Format(df)
-	response.EndDate = end.Format(df)
-	response.DateRange = dates.Strings(dates.Range(start, rangeEnd, interval), df)
-}
-
 // --- all the functions that call the correct queries
+
 type queryWrapperF func(ctx context.Context, req *ApiRequest, q *awsc.Queries) (results []*CommonResult, err error)
 
 func monthlyPerUnit(ctx context.Context, req *ApiRequest, q *awsc.Queries) (results []*CommonResult, err error) {
@@ -184,20 +193,6 @@ func dailyDetailsForUnit(ctx context.Context, req *ApiRequest, q *awsc.Queries) 
 	return
 }
 
-// setIfFound
-func setIfFound(r *CommonResult, columns map[string]map[string]bool) {
-	mapped, _ := convert.Map(r)
-
-	for k, v := range mapped {
-		if k != "total" && k != "interval" {
-			if _, ok := columns[k]; !ok {
-				columns[k] = map[string]bool{}
-			}
-			columns[k][v.(string)] = true
-		}
-	}
-}
-
 // StandardQueryResults uses the group and interval values from the request to determine
 // which db query to run
 //
@@ -238,24 +233,4 @@ func StandardQueryResults(ctx context.Context, q *awsc.Queries, req *ApiRequest)
 		err = fmt.Errorf("error finding query function based on get paremters")
 	}
 	return
-}
-
-// NewResponse returns a clean response object
-func NewResponse() *CostResponse {
-	return &CostResponse{
-		Response: &apiresponse.Response{
-			RequestTimer: &apiresponse.RequestTimings{},
-			DataAge:      &apiresponse.DataAge{},
-			StatusCode:   http.StatusOK,
-			Errors:       []string{},
-			DateRange:    []string{},
-		},
-		Counters: &Counters{
-			This:   &CountValues{},
-			Totals: &CountValues{},
-		},
-		Columns:        map[string][]string{},
-		ColumnOrdering: []string{},
-		Result:         []*CommonResult{},
-	}
 }

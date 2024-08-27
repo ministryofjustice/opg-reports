@@ -62,7 +62,7 @@ func TestServersFrontAwsCostsStandard(t *testing.T) {
 		},
 	}
 	handler := func(w http.ResponseWriter, r *http.Request) {
-		aws_costs.StandardHandler(w, r, templates, cfg, navItem)
+		aws_costs.Handler(w, r, templates, cfg, navItem, navItem.Template)
 	}
 
 	mockFront := testhelpers.MockServer(handler, "warn")
@@ -115,7 +115,7 @@ func TestServersFrontAwsCostsYtd(t *testing.T) {
 		},
 	}
 	handler := func(w http.ResponseWriter, r *http.Request) {
-		aws_costs.YtdHandler(w, r, templates, cfg, navItem)
+		aws_costs.Handler(w, r, templates, cfg, navItem, navItem.Template)
 	}
 
 	mockFront := testhelpers.MockServer(handler, "warn")
@@ -168,7 +168,7 @@ func TestServersFrontAwsCostsTax(t *testing.T) {
 		},
 	}
 	handler := func(w http.ResponseWriter, r *http.Request) {
-		aws_costs.StandardHandler(w, r, templates, cfg, navItem)
+		aws_costs.Handler(w, r, templates, cfg, navItem, navItem.Template)
 	}
 
 	mockFront := testhelpers.MockServer(handler, "warn")
