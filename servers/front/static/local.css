@@ -96,6 +96,9 @@
 }
 
 /* main content */
+strong.currency{
+    font-family: monospace;
+}
 .app-content{
     padding: 15px;
 }
@@ -116,7 +119,8 @@
     padding: 5px;
 }
 
-.dataframe.govuk-table .data-cell{
+.dataframe.govuk-table .data-cell,
+.dataframe.govuk-table .data-cellish{
     text-align: right;
 }
 .scroller {
@@ -130,7 +134,9 @@
     font-size: 0.83rem;
 }
 .currency-table.govuk-table tbody .data-cell,
-.currency-table.govuk-table tfoot .data-cell{
+.currency-table.govuk-table tfoot .data-cell,
+.currency-table.govuk-table tbody .data-cellish,
+.currency-table.govuk-table tfoot .data-cellish{
     font-family: monospace;
     font-size: 0.85rem;
 }
@@ -230,23 +236,23 @@
 }
 
 /* row hightlights */
-.highlight{
+.css-highlight{
     overflow: hidden;
 }
-.highlight td, .highlight th{
+.css-highlight td, .css-highlight th{
     position: relative;
 }
-.highlight tbody tr:hover{
+.css-highlight tbody tr:hover{
     background-color: #FFFFAD;
 }
-.highlight tbody span,
-.highlight thead span,
-.highlight tfoot span{
+.css-highlight tbody span,
+.css-highlight thead span,
+.css-highlight tfoot span{
     position: relative;
     z-index: 10;
 }
-.highlight td:hover::after,
-.highlight th:hover::after {
+.css-highlight td:hover::after,
+.css-highlight th:hover::after {
     background-color: #FFFFAD;
     content: '';
     height: 10000px;
@@ -255,6 +261,9 @@
     top: -5000px;
     width: 100%;
     z-index: 0;
+}
+.css-highlight .js-sparkline * {
+    z-index: 10 !important;
 }
 /* js table sort */
 .js-table-filter-options .govuk-select{
@@ -305,3 +314,98 @@ table.js-table-sorter thead th.sorted span:after{
     float:left;
     margin-right:20px;
 }
+
+/* table comparisons */
+.compare-choice{
+    padding:1em 0;
+}
+.js-compare-chart,
+.js-compare-item,
+.js-compare-graph {
+    display:none;
+}
+
+.js-compare-item.js-compare-enabled{
+    display:inline;
+}
+.js-compare-chart.js-compare-enabled,
+.js-compare-chart.js-compare-enabled .js-compare-graph{
+    display:block
+}
+.js-compare-enabled .js-compare-active {
+    background-color: rgba(84, 227, 103, 0.1);
+}
+
+/* high charts */
+.highcharts-figure,
+.highcharts-data-table table {
+    min-width: 310px;
+    max-width: 99%;
+    margin: 1em auto;
+}
+
+#container {
+    height: 400px;
+}
+.highcharts-data-table table {
+    font-family: Verdana, sans-serif;
+    border-collapse: collapse;
+    border: 1px solid #ebebeb;
+    margin: 10px auto;
+    text-align: center;
+    width: 100%;
+    max-width: 500px;
+}
+
+.highcharts-data-table caption {
+    padding: 1em 0;
+    font-size: 1.2em;
+    color: #555;
+}
+
+.highcharts-data-table th {
+    font-weight: 600;
+    padding: 0.5em;
+}
+
+.highcharts-data-table td,
+.highcharts-data-table th,
+.highcharts-data-table caption {
+    padding: 0.5em;
+}
+
+.highcharts-data-table thead tr,
+.highcharts-data-table tr:nth-child(even) {
+    background: #f8f8f8;
+}
+
+.highcharts-data-table tr:hover {
+    background: #f1f7ff;
+}
+
+/* sparkline loader */
+td.js-sparkline{
+    vertical-align: middle;
+    /* relates to fixed size of the sparkline chart */
+    min-width:100px;
+    max-width: 110px;
+}
+.js-spark-loading .loader {
+    margin-right:0;
+    display:inline-block;
+    position: relative;
+    z-index:10;
+
+    width: 20px;
+    aspect-ratio: 4;
+    background: radial-gradient(circle closest-side,#000 90%,#0000) 0/calc(100%/3) 100% space;
+    clip-path: inset(0 100% 0 0);
+    animation: l1 1s steps(4) infinite;
+  }
+  @keyframes l1 {to{clip-path: inset(0 -34% 0 0)}}
+
+
+  /* hide headers */
+  .hide-service-header .govuk-table__head .data-header {
+    visibility: hidden;
+  }

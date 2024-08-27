@@ -1,4 +1,4 @@
-package templ
+package template_helpers
 
 import (
 	"os"

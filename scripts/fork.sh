@@ -41,6 +41,7 @@ readonly GITHUB_WORKFLOW_DIR="${GITHUB_DIR}/workflows"
 readonly TERRAFORM_DIR="${ROOT_DIR}/terraform"
 readonly SERVICE_DIR="${ROOT_DIR}/servers"
 readonly SERVICE_FRONT_DIR="${ROOT_DIR}/servers/front"
+readonly DOCKER_DIR_API="${ROOT_DIR}/docker/api"
 ################################################
 # FILES
 ################################################
@@ -53,6 +54,7 @@ readonly GITHUB_WORKFLOW_LIVE="workflow_path_to_live.yml"
 readonly DOCKER_COMPOSE_FILE="docker-compose.yml"
 readonly FRONT_CONFIG_FILE="config.base.json"
 readonly FRONT_CONFIG_LINK="config.json"
+readonly DOCKER_FILE="Dockerfile"
 ################################################
 # OUTPUT ICONS
 ################################################
@@ -372,6 +374,8 @@ main(){
     show_conf
     should_continue
 
+    # delete very specifc files
+    rm -f "${ROOT_DIR}/scripts/create-local-aws-costs-script"
     # delete unused files
     delete_files "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPORT_PATTERN}" GITHUB_REPORTS_TO_KEEP
     # remove terraform directory
@@ -413,6 +417,11 @@ main(){
     # swap the org & team for the workflow run
     replace_yaml_attr "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPOSITORY_REPORT}" "${GH_ORG_KEY}" "${D_GITHUB_ORG}" "${GITHUB_ORG}"
     replace_yaml_attr "${GITHUB_WORKFLOW_DIR}" "${GITHUB_REPOSITORY_REPORT}" "${GH_TEAM_KEY}" "${D_GITHUB_TEAM}" "${GITHUB_TEAM}"
+
+    # remove chunks from makefile
+    remove_chunk "${ROOT_DIR}" "${MAKEFILE}" "${CHUNK_START}" "${CHUNK_END}"
+    # remove chunks from dockerfile
+    remove_chunk "${DOCKER_DIR_API}" "${DOCKER_FILE}" "${CHUNK_START}" "${CHUNK_END}"
 
     secrets
 }

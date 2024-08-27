@@ -1,3 +1,7 @@
+// Package dates igroups a series of funcs converting between time.Time and string
+//
+// Provides series of helpers for string to become time.Time and to parse / convert
+// existing times.Time into common formats and structs
 package dates
 
 import (
@@ -29,4 +33,13 @@ func GetFormat(value string) string {
 	f := Format[:l]
 	slog.Debug("[dates] GetFormat", slog.String("format", f))
 	return f
+}
+
+func IsDate(str string) (valid bool) {
+	valid = true
+	df := GetFormat(str)
+	if _, err := time.Parse(df, str); err != nil {
+		valid = false
+	}
+	return
 }

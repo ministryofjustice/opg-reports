@@ -7,10 +7,11 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/ministryofjustice/opg-reports/servers/front/aws_costs"
 	"github.com/ministryofjustice/opg-reports/servers/front/config"
 	"github.com/ministryofjustice/opg-reports/servers/front/dl"
 	"github.com/ministryofjustice/opg-reports/servers/front/github_standards"
-	"github.com/ministryofjustice/opg-reports/servers/shared/templ"
+	"github.com/ministryofjustice/opg-reports/servers/front/template_helpers"
 	"github.com/ministryofjustice/opg-reports/shared/env"
 	"github.com/ministryofjustice/opg-reports/shared/logger"
 )
@@ -34,6 +35,7 @@ func main() {
 
 	// handle static assets as directly from file system
 	mux.Handle("/govuk/", http.StripPrefix("/govuk/", http.FileServer(http.Dir("govuk"))))
+	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("govuk/assets"))))
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	// favicon ignore
 	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
@@ -41,7 +43,7 @@ func main() {
 	})
 
 	// -- get templates
-	templates = templ.GetTemplates("./templates")
+	templates = template_helpers.GetTemplates("./templates")
 	for _, f := range templates {
 		slog.Debug("template file", slog.String("path", f))
 	}
@@ -56,6 +58,8 @@ func main() {
 
 	// -- call github
 	github_standards.Register(ctx, mux, conf, templates)
+	// -- call aws_costs
+	aws_costs.Register(ctx, mux, conf, templates)
 
 	addr := env.Get("FRONT_ADDR", defaultAddr)
 	server := &http.Server{

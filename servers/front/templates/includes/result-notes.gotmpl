@@ -1,11 +1,3 @@
 {{ define "result-notes" }}
-    {{ if .Result }}
-        <h2 class="govuk-heading-m">Notes</h2>
-        <div class="govuk-inset-text">
-        {{ if .DataAgeMax }}
-            <p class="govuk-body">Data was last generated on {{ day .DataAgeMax }}.</p>
-        {{end }}
 
-        </div>
-    {{ end }}
 {{ end }}

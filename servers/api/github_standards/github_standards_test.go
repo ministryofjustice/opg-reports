@@ -15,7 +15,6 @@ import (
 	"github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
 	"github.com/ministryofjustice/opg-reports/servers/api/github_standards"
 	"github.com/ministryofjustice/opg-reports/servers/front/getter"
-	"github.com/ministryofjustice/opg-reports/servers/shared/resp"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
 	"github.com/ministryofjustice/opg-reports/shared/logger"
 	"github.com/ministryofjustice/opg-reports/shared/testhelpers"
@@ -44,7 +43,7 @@ func TestServersApiGithubStandardsArchivedApiCallAndParse(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 	defer db.Close()
-	slog.Warn("seed duration", slog.String("seconds", tick.Seconds()))
+	slog.Debug("seed duration", slog.String("seconds", tick.Seconds()))
 
 	// check the count of records
 	q := ghs.New(db)
@@ -53,8 +52,11 @@ func TestServersApiGithubStandardsArchivedApiCallAndParse(t *testing.T) {
 	if l != int64(N) {
 		t.Errorf("records did not create properly: [%d] [%d]", N, l)
 	}
+	// -- set db
+	github_standards.SetDBPath(dbF)
+	github_standards.SetCtx(ctx)
 	// -- setup a mock api thats bound to the correct handler func
-	mock := mockApi(ctx, dbF)
+	mock := mockApi()
 	defer mock.Close()
 	u, err := url.Parse(mock.URL)
 	if err != nil {
@@ -71,20 +73,18 @@ func TestServersApiGithubStandardsArchivedApiCallAndParse(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	slog.Warn("api call duration", slog.String("seconds", tick.Seconds()), slog.String("u", u.String()))
+	slog.Debug("api call duration", slog.String("seconds", tick.Seconds()), slog.String("u", u.String()))
 
 	// -- check values of the response
 	_, bytes := convert.Stringify(hr)
-	// response := resp.New()
-	response, _ := convert.Unmarshal[*resp.Response](bytes)
+	response, _ := convert.Unmarshal[*github_standards.GHSResponse](bytes)
 
 	// -- check the counters match with generated number
-	counts := response.Metadata["counters"].(map[string]interface{})
-	all := counts["totals"].(map[string]interface{})
-	count := int(all["count"].(float64))
+	counts := response.Counters
+	count := counts.Totals.Count
 	if count != N {
 		t.Errorf("total number of rows dont match")
-		fmt.Printf("%+v\n", all)
+		fmt.Printf("%+v\n", counts)
 	}
 
 	// -- call with filters to check status is correct
@@ -104,7 +104,7 @@ func TestServersApiGithubStandardsArchivedApiCallAndParse(t *testing.T) {
 		}
 		tick.Stop()
 
-		slog.Warn("api call duration", slog.String("seconds", tick.Seconds()), slog.String("url", ur.String()))
+		slog.Debug("api call duration", slog.String("seconds", tick.Seconds()), slog.String("url", ur.String()))
 		if hr.StatusCode != http.StatusOK {
 			t.Errorf("api call failed")
 		}
@@ -112,10 +112,6 @@ func TestServersApiGithubStandardsArchivedApiCallAndParse(t *testing.T) {
 
 }
 
-func mockApi(ctx context.Context, dbF string) *httptest.Server {
-	mux := testhelpers.Mux()
-	funcs := github_standards.Handlers(ctx, mux, dbF)
-	list := funcs["list"]
-
-	return testhelpers.MockServer(list, "warn")
+func mockApi() *httptest.Server {
+	return testhelpers.MockServer(github_standards.ListHandler, "warn")
 }

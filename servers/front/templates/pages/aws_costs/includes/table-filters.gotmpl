@@ -1,0 +1,28 @@
+{{ define "aws-costs-table-filters" }}
+    {{ $filters := .Filters }}
+    {{ if $filters }}
+    <form
+        class='js-table-filter-options js-table-filter-options-generate govuk-clearfix'
+        data-optionssource="{{ .OptionsSource }}"
+        data-filterrows="{{ .FilterRows }}" >
+
+        <fieldset class='govuk-fieldset'>
+            <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">
+                <h2 class="govuk-fieldset__heading">Filters</h2>
+            </legend>
+        </fieldset>
+
+        {{ range $i, $name := $filters }}
+            {{ $nm := stripI $name }}
+            <div class="govuk-form-group govuk-form-group--small js-table-generate-options" data-col="{{ $i }}">
+                <label class="govuk-label" for="f-{{ lower $nm }}">{{ title $nm }}</label>
+                <select class="govuk-select" id="f-{{ lower $nm }}" name="f-{{ lower $nm }}">
+                    <option value="all">All</option>
+                </select>
+            </div>
+        {{ end }}
+
+    </form>
+    {{ end }}
+
+{{ end }}

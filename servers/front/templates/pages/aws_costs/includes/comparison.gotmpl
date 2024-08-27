@@ -1,0 +1,13 @@
+{{ define "aws-costs-comparison" }}
+
+<div class="govuk-checkboxes govuk-checkboxes--small js-compare-enable compare-choice" data-module="govuk-checkboxes">
+    <div class="govuk-checkboxes__item">
+        <input class="govuk-checkboxes__input js-compare-toggler" id="enable-js-comparison" name="enable-js-comparison" type="checkbox" value="enable">
+        <label class="govuk-label govuk-checkboxes__label" for="enable-js-comparison">Show comparison charts?</label>
+    </div>
+</div>
+<p class="govuk-body js-compare-intro">Use the checkboxes in the <a href="#data-table">data table below</a> to toggle what items are show in the chart</p>
+<div class="chart-area js-compare-chart" data-compare=".js-compare-table table"></div>
+
+
+{{ end }}

@@ -1,0 +1,29 @@
+{{ define "aws-costs-monthly" }}
+    {{ template "head" . }}
+
+    <h1 class="govuk-heading-l">AWS Costs ({{ lower .PageTitle }})</h1>
+
+    <p class="govuk-body">Our AWS costs grouped by month between <strong>[{{ day .StartDate }}]</strong> and <strong>[{{ dayBefore .EndDate }}]</strong>.</p>
+    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+    {{ if .Result }}
+
+        {{ template "aws-costs-comparison" . }}
+
+        {{ $filters := .ColumnOrdering }}
+        {{ $tmplFilters := dict "Filters" $filters "OptionsSource" ".dataframe tbody th"  "FilterRows" ".dataframe tbody tr"}}
+        {{ template "aws-costs-table-filters" $tmplFilters }}
+
+        <div class='scroller js-compare-table'>
+        {{ template "aws-costs-currency-table" . }}
+        </div>
+
+        {{ template "result-notes" . }}
+    {{ else }}
+        {{ template "no-result" . }}
+    {{end}}
+
+
+    {{ template "foot" . }}
+
+{{ end }}

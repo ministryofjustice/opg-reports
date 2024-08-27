@@ -2,16 +2,12 @@
 
 This repository acts as a central hub to generate, combine and display series of key data that we report on frequently to both internal and external parties.
 
-Please see guides for more detailed background:
-
-- [Development enviroment](./docs/usage/development-environment.md)
-
 ## Quick startup
 
 As the codebase will auto-generate databases if they are not present, you can get a local version up and running in docker by:
 
 ```bash
-make clean && make up
+make clean && make docker
 ```
 
 You can then view the site at:
@@ -19,6 +15,18 @@ You can then view the site at:
 - [front](http://localhost:8080)
 - [api](http://localhost:8081)
 
+
+## Comments used in scripts
+
+To help with the automated forking script the code contains blocks marked for removal / changes using the following:
+
+```bash
+#--fork-remove-start
+#--fork-remove-end
+#--fork-replacement
+```
+
+Please make sure to leave those as they are.
 
 ## Forking
 
@@ -30,7 +38,7 @@ This repository comes with a bash script to update values, so afte ryou ahve for
 
 The script will ask for following details:
 
-- Name of business unit (`--business-unit`)`
+- Name of business unit (`--business-unit`)
 - Name of the DEVELOPMENT S3 bucket used for data storage (`--development-bucket-name`)
 - The DEVELOPMENT aws profile for local S3 download (`--aws-profile`)
 - The DEVELOPMENT role ARN to use for DOWNLOADING from the S3 bucket in workflow (`--development-bucket-download-arn`)
@@ -56,3 +64,9 @@ Please then commit any changes made into your fork.
 If you want to make changes manually, there is a more [detailed guide available here](./docs/usage/manual-forking-guide.md).
 
 *Note:* Assumes infrastructure will be handled external to this repository.
+
+
+## Docs
+
+
+- [Development enviroment](./docs/usage/development-environment.md)

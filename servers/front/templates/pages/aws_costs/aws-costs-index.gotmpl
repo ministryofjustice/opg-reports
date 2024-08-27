@@ -1,0 +1,18 @@
+{{ define "aws-costs-index" }}
+    {{ template "head" . }}
+
+    <h1 class="govuk-heading-l">AWS Costs (year to date)</h1>
+
+    {{ if .Result }}
+        {{ $total := costIdx .Result 0 }}
+        <p class="govuk-body">Total AWS Costs between <strong>[{{ day .StartDate }}]</strong> and <strong>[{{ day .EndDate }}]</strong> are <strong class="currency">{{ currency $total.Total "$" }}</strong></p>
+
+        {{ template "result-notes" . }}
+    {{ else }}
+        {{ template "no-result" . }}
+    {{end}}
+
+
+    {{ template "foot" . }}
+
+{{ end }}
