@@ -29,8 +29,6 @@ jobs:
     outputs:
       aws_s3_bucket: "report-data-development"
       aws_role_s3_upload: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
-      github_org: "ministryofjustice"
-      github_team: "opg"
     steps:
       - name: "End"
         run: echo "end"
