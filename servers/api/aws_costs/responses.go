@@ -189,7 +189,7 @@ func setIfFound(r *CommonResult, columns map[string]map[string]bool) {
 	mapped, _ := convert.Map(r)
 
 	for k, v := range mapped {
-		if k != "total" {
+		if k != "total" && k != "interval" {
 			if _, ok := columns[k]; !ok {
 				columns[k] = map[string]bool{}
 			}
