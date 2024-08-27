@@ -76,7 +76,7 @@ func TestServersApiAwsCostsApiYtd(t *testing.T) {
 
 	// -- check values of the response
 	_, bytes := convert.Stringify(hr)
-	response, _ := convert.Unmarshal[*aws_costs.CostResponse](bytes)
+	response, _ := convert.Unmarshal[*aws_costs.ApiResponse](bytes)
 
 	counts := response.Counters
 	count := counts.Totals.Count
@@ -142,7 +142,7 @@ func TestServersApiAwsCostsApiMonthlyTax(t *testing.T) {
 
 	// -- check values of the response
 	_, bytes := convert.Stringify(hr)
-	response, _ := convert.Unmarshal[*aws_costs.CostResponse](bytes)
+	response, _ := convert.Unmarshal[*aws_costs.ApiResponse](bytes)
 
 	counts := response.Counters
 	count := counts.Totals.Count
@@ -208,7 +208,7 @@ func TestServersApiAwsCostsApiStandard(t *testing.T) {
 
 	// -- check values of the response
 	_, bytes := convert.Stringify(hr)
-	response, _ := convert.Unmarshal[*aws_costs.CostResponse](bytes)
+	response, _ := convert.Unmarshal[*aws_costs.ApiResponse](bytes)
 
 	counts := response.Counters
 	count := counts.Totals.Count
