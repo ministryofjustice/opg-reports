@@ -10,9 +10,7 @@ endif
 #================================
 images := $(shell docker images -a | grep 'opg-reports/*' | awk '{print $$1":"$$2}')
 
-
-.DEFAULT_GOAL: help
-
+.DEFAULT_GOAL = help
 #================================
 # TESTS
 #================================
@@ -258,7 +256,9 @@ dev/mirror/api:
 ## include generated / fetched data
 usage:
 	@echo ""
-
+#================================
+# HELP
+#================================
 help:
 	@echo "============================"
 	@FILE=Makefile ./scripts/help.mk
