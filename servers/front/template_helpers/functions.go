@@ -55,6 +55,10 @@ func Funcs() map[string]interface{} {
 			d := dates.Time(t)
 			return d.Format(dates.FormatYMD)
 		},
+		"dayBefore": func(t string) string {
+			d := dates.Time(t).AddDate(0, 0, -1)
+			return d.Format(dates.FormatYMD)
+		},
 		"costIdx": func(set []*aws_costs.CommonResult, i int) any {
 			return set[i]
 		},

@@ -187,16 +187,12 @@ clean: docker/down
 ## short form alias for dev/mirror which will build and prep the local env for usage
 dev: dev/mirror
 
-## runs dev process, mirrors api
-## TODO: trigger fron servers
-dev/run: dev/mirror/api
-
 ## run the local api server
-dev/api:
+api dev/api:
 	@cd ./servers/api && go run main.go
 
 ## run the local fron server
-dev/front:
+front dev/front:
 	@cd ./servers/front && go run main.go
 
 ## builds all local binaries, calls clean first
@@ -239,7 +235,7 @@ dev/seed/api:
 dev/mirror: clean data/sqlc dev/build dev/build data/sync dev/seed dev/mirror/api
 
 ## mirror position of data files for the api server
-dev/mirror/api:
+mirror dev/mirror/api:
 	@mv ./builds/api/github_standards.db ./servers/api/github_standards.db
 #--fork-remove-start
 	@mv ./builds/api/aws_costs.db ./servers/api/aws_costs.db

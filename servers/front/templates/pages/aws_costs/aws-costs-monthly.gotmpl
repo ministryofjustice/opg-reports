@@ -3,7 +3,7 @@
 
     <h1 class="govuk-heading-l">AWS Costs ({{ lower .PageTitle }})</h1>
 
-    <p class="govuk-body">Our AWS costs grouped by month between <strong>[{{ day .StartDate }}]</strong> and <strong>[{{ day .EndDate }}]</strong>.</p>
+    <p class="govuk-body">Our AWS costs grouped by month between <strong>[{{ day .StartDate }}]</strong> and <strong>[{{ dayBefore .EndDate }}]</strong>.</p>
     <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
     {{ if .Result }}
