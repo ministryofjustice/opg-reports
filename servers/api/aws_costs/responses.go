@@ -2,6 +2,7 @@ package aws_costs
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -34,7 +35,9 @@ type PossibleResults interface {
 		awsc.DailyCostsDetailedRow |
 		awsc.DailyCostsPerUnitRow |
 		awsc.DailyCostsPerUnitEnvironmentRow |
-		awsc.MonthlyTotalsTaxSplitRow
+		awsc.MonthlyTotalsTaxSplitRow |
+		awsc.MonthlyCostsDetailedForUnitRow |
+		awsc.DailyCostsDetailedForUnitRow
 }
 
 // CommonResult is used instead of the variable versions encapsulated
@@ -46,6 +49,7 @@ type PossibleResults interface {
 type CommonResult struct {
 	AccountID   string      `json:"account_id,omitempty"`
 	Unit        string      `json:"unit,omitempty"`
+	Label       string      `json:"label,omitempty"`
 	Environment interface{} `json:"environment,omitempty"`
 	Service     string      `json:"service,omitempty"`
 	Total       interface{} `json:"total,omitempty"`
@@ -111,6 +115,129 @@ func StandardDates(response *CostResponse, start time.Time, end time.Time, range
 	response.StartDate = start.Format(df)
 	response.EndDate = end.Format(df)
 	response.DateRange = dates.Strings(dates.Range(start, rangeEnd, interval), df)
+}
+
+// --- all the functions that call the correct queries
+type queryWrapperF func(ctx context.Context, req *ApiRequest, q *awsc.Queries) (results []*CommonResult, err error)
+
+func monthlyPerUnit(ctx context.Context, req *ApiRequest, q *awsc.Queries) (results []*CommonResult, err error) {
+	params := awsc.MonthlyCostsPerUnitParams{Start: req.Start, End: req.End}
+	if res, err := q.MonthlyCostsPerUnit(ctx, params); err == nil {
+		results = Common(res)
+	}
+	return
+}
+
+func monthlyPerUnitEnv(ctx context.Context, req *ApiRequest, q *awsc.Queries) (results []*CommonResult, err error) {
+	params := awsc.MonthlyCostsPerUnitEnvironmentParams{Start: req.Start, End: req.End}
+	if res, err := q.MonthlyCostsPerUnitEnvironment(ctx, params); err == nil {
+		results = Common(res)
+	}
+	return
+}
+
+func monthlyDetails(ctx context.Context, req *ApiRequest, q *awsc.Queries) (results []*CommonResult, err error) {
+	params := awsc.MonthlyCostsDetailedParams{Start: req.Start, End: req.End}
+	if res, err := q.MonthlyCostsDetailed(ctx, params); err == nil {
+		results = Common(res)
+	}
+	return
+}
+
+func monthlyDetailsForUnit(ctx context.Context, req *ApiRequest, q *awsc.Queries) (results []*CommonResult, err error) {
+	params := awsc.MonthlyCostsDetailedForUnitParams{Start: req.Start, End: req.End, Unit: req.Unit}
+	if res, err := q.MonthlyCostsDetailedForUnit(ctx, params); err == nil {
+		results = Common(res)
+	}
+	return
+}
+
+func dailyPerUnit(ctx context.Context, req *ApiRequest, q *awsc.Queries) (results []*CommonResult, err error) {
+	params := awsc.DailyCostsPerUnitParams{Start: req.Start, End: req.End}
+	if res, err := q.DailyCostsPerUnit(ctx, params); err == nil {
+		results = Common(res)
+	}
+	return
+}
+
+func dailyPerUnitEnv(ctx context.Context, req *ApiRequest, q *awsc.Queries) (results []*CommonResult, err error) {
+	params := awsc.DailyCostsPerUnitEnvironmentParams{Start: req.Start, End: req.End}
+	if res, err := q.DailyCostsPerUnitEnvironment(ctx, params); err == nil {
+		results = Common(res)
+	}
+	return
+}
+
+func dailyDetails(ctx context.Context, req *ApiRequest, q *awsc.Queries) (results []*CommonResult, err error) {
+	params := awsc.DailyCostsDetailedParams{Start: req.Start, End: req.End}
+	if res, err := q.DailyCostsDetailed(ctx, params); err == nil {
+		results = Common(res)
+	}
+	return
+}
+
+func dailyDetailsForUnit(ctx context.Context, req *ApiRequest, q *awsc.Queries) (results []*CommonResult, err error) {
+	params := awsc.DailyCostsDetailedForUnitParams{Start: req.Start, End: req.End, Unit: req.Unit}
+	if res, err := q.DailyCostsDetailedForUnit(ctx, params); err == nil {
+		results = Common(res)
+	}
+	return
+}
+
+// setIfFound
+func setIfFound(r *CommonResult, columns map[string]map[string]bool) {
+	mapped, _ := convert.Map(r)
+
+	for k, v := range mapped {
+		if k != "total" {
+			if _, ok := columns[k]; !ok {
+				columns[k] = map[string]bool{}
+			}
+			columns[k][v.(string)] = true
+		}
+	}
+}
+
+// StandardQueryResults uses the group and interval values from the request to determine
+// which db query to run
+//
+// The query to use is determined by the following:
+// Interval set to `MONTH`
+//   - group set to `unit` (unit)
+//   - group set to `unit-env` (unit and environment)
+//   - group set to `detailed` (unit, environment, account id and service)
+//
+// Interval set to `DAY`
+//   - group set to `unit` (unit)
+//   - group set to `unit-env` (unit and environment)
+//   - group set to `detailed` (unit, environment, account id and service)
+//
+// Query results are converted to `[]*CommonResult` struct.
+func StandardQueryResults(ctx context.Context, q *awsc.Queries, req *ApiRequest) (results []*CommonResult, err error) {
+	// define the possible functions and params
+	var possibleFuncs = map[string]queryWrapperF{
+		string(dates.MONTH) + string(GroupByUnit):            monthlyPerUnit,
+		string(dates.MONTH) + string(GroupByUnitEnvironment): monthlyPerUnitEnv,
+		string(dates.MONTH) + string(GroupByDetailed):        monthlyDetails,
+		//
+		string(dates.DAY) + string(GroupByUnit):            dailyPerUnit,
+		string(dates.DAY) + string(GroupByUnitEnvironment): dailyPerUnitEnv,
+		string(dates.DAY) + string(GroupByDetailed):        dailyDetails,
+		//
+	}
+
+	key := req.Interval + req.GroupBy
+	// if a filter is set, that over rides the default grouping setup
+	if req.Unit != "" && req.IntervalT == dates.MONTH {
+		results, err = monthlyDetailsForUnit(ctx, req, q)
+	} else if req.Unit != "" && req.IntervalT == dates.DAY {
+		results, err = dailyDetailsForUnit(ctx, req, q)
+	} else if f, ok := possibleFuncs[key]; ok {
+		results, err = f(ctx, req, q)
+	} else {
+		err = fmt.Errorf("error finding query function based on get paremters")
+	}
+	return
 }
 
 // NewResponse returns a clean response object

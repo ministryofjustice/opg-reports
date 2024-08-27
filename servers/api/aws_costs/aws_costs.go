@@ -15,16 +15,17 @@ import (
 	"github.com/ministryofjustice/opg-reports/servers/shared/apiresponse"
 	"github.com/ministryofjustice/opg-reports/servers/shared/mw"
 	"github.com/ministryofjustice/opg-reports/shared/consts"
-	"github.com/ministryofjustice/opg-reports/shared/convert"
 	"github.com/ministryofjustice/opg-reports/shared/dates"
 	"github.com/ministryofjustice/opg-reports/shared/logger"
 )
 
-// group by get parameter options
+// GroupBy is used by api / front tohandle group by allowed values
+type GroupBy string
+
 const (
-	gByUnit     string = string(consts.GroupByUnit)
-	gByUnitEnv  string = string(consts.GroupByUnitEnvironment)
-	gByDetailed string = string(consts.GroupByDetailed)
+	GroupByUnit            GroupBy = "unit"     // Group by the unit only
+	GroupByUnitEnvironment GroupBy = "unit-env" // Group by unit and the environment
+	GroupByDetailed        GroupBy = "detailed" // Group by more detailed columns (acocunt id, unit, environment, service)
 )
 
 // currently supported urls
@@ -35,10 +36,10 @@ const (
 )
 
 // column ordering for each group by
-var ordering = map[string][]string{
-	gByUnit:     {"unit"},
-	gByUnitEnv:  {"unit", "environment"},
-	gByDetailed: {"account_id", "unit", "environment", "service"},
+var ordering = map[GroupBy][]string{
+	GroupByUnit:            {"unit"},
+	GroupByUnitEnvironment: {"unit", "environment"},
+	GroupByDetailed:        {"account_id", "unit", "environment", "service"},
 }
 
 // db and context
@@ -79,14 +80,14 @@ func StandardHandler(w http.ResponseWriter, r *http.Request) {
 		ctx     context.Context = apiCtx
 		filters map[string]interface{}
 		// -- dates
-		now  time.Time = time.Now().UTC()
-		s, e time.Time = dates.BillingDates(now, consts.BILLING_DATE, 12)
+		now        time.Time = time.Now().UTC()
+		start, end time.Time = dates.BillingDates(now, consts.BILLING_DATE, 12)
 		// -- request & response
 		response *CostResponse = NewResponse()
-		req      *ApiRequest   = NewRequest(s, e, dates.MONTH, consts.GroupByUnit)
+		req      *ApiRequest   = NewRequest(start, end, dates.MONTH, GroupByUnit)
 		// -- validation
 		allowedIntervals []string = []string{string(dates.DAY), string(dates.MONTH)}
-		allowedGroups    []string = []string{gByUnit, gByUnitEnv, gByDetailed}
+		allowedGroups    []string = []string{string(GroupByUnit), string(GroupByUnitEnvironment), string(GroupByDetailed)}
 	)
 	// -- process request
 	apiresponse.Start(response, w, r)
@@ -95,9 +96,9 @@ func StandardHandler(w http.ResponseWriter, r *http.Request) {
 	filters = map[string]interface{}{
 		"interval": req.Interval,
 		"group":    req.GroupBy,
+		"unit":     req.Unit,
 	}
 
-	fmt.Println(convert.PrettyString(req))
 	// -- validate incoming params
 	if !slices.Contains(allowedIntervals, req.Interval) {
 		iErr := fmt.Errorf("invalid interval passed [%s]", req.Interval)
@@ -127,7 +128,7 @@ func StandardHandler(w http.ResponseWriter, r *http.Request) {
 
 	// setup response data
 	response.QueryFilters = filters
-	response.ColumnOrdering = ordering[req.GroupBy]
+	response.ColumnOrdering = ordering[req.GroupByT]
 	// -- run the query
 	response.Result, _ = StandardQueryResults(ctx, queries, req)
 	//
