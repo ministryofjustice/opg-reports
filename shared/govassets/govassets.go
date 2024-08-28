@@ -1,4 +1,4 @@
-package dl
+package govassets
 
 import (
 	"archive/zip"
@@ -14,7 +14,7 @@ const govukVersion string = "v5.4.0"
 
 // DonwloadGovUKAssets gets a zip file from govuk-frontend of all assets
 // downloads it locally and populates file system in expected format
-func DownloadGovUKAssets() {
+func DownloadAssets() {
 	slog.Warn("Downloading govuk assets", slog.String("v", govukVersion))
 
 	zipUrl := fmt.Sprintf("https://github.com/alphagov/govuk-frontend/releases/download/%s/release-%s.zip",
