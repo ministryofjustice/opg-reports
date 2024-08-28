@@ -40,7 +40,7 @@ func TestSharedSrvrRequestGet(t *testing.T) {
 	// -- test param with limited options
 	route = "/home/2024-02/test/?archive=foo&archive=false&archive=true"
 	_, r = testhelpers.WRGet(route)
-	g = get.WithChoices("archive", "true", []string{"true", "false"})
+	g = get.WithChoices("archive", []string{"true", "false"})
 	if g.Value(r) != "false" {
 		t.Errorf("failed to get correct param: [%s]", g.Value(r))
 	}

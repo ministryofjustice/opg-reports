@@ -54,8 +54,10 @@ func New(name string, defaultV string) *GetParameter {
 	return &GetParameter{Default: defaultV, Name: name, value: ""}
 }
 
-func WithChoices(name string, defaultV string, allowed []string) (param *GetParameter) {
-	param = New(name, defaultV)
+// WithChoices limits the allowed values of the get parameter
+// Note: sets the first item from allowed as the default value
+func WithChoices(name string, allowed []string) (param *GetParameter) {
+	param = New(name, allowed[0])
 	param.Allowed = allowed
 	return
 }

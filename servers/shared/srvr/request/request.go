@@ -18,6 +18,14 @@ func (req *Request) Param(name string, r *http.Request) (value string) {
 	return
 }
 
+func (req *Request) Mapped(r *http.Request) (mapped map[string]string) {
+	mapped = map[string]string{}
+	for _, param := range req.Parameters {
+		mapped[param.Name] = param.Value(r)
+	}
+	return
+}
+
 func New(params ...*get.GetParameter) (request *Request) {
 	request = &Request{Parameters: map[string]*get.GetParameter{}, Order: []string{}}
 

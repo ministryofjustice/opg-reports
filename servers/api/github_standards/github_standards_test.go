@@ -6,13 +6,13 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
-	"net/http/httptest"
 	"path/filepath"
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/commands/seed/seeder"
 	"github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
 	"github.com/ministryofjustice/opg-reports/servers/api/github_standards"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/api"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/httphandler"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
 	"github.com/ministryofjustice/opg-reports/shared/logger"
@@ -51,11 +51,11 @@ func TestServersApiGithubStandardsArchivedApiCallAndParse(t *testing.T) {
 	if l != int64(N) {
 		t.Errorf("records did not create properly: [%d] [%d]", N, l)
 	}
-	// -- set db
-	github_standards.SetDBPath(dbF)
-	github_standards.SetCtx(ctx)
+	// setup db
+	server := api.New(ctx, dbF)
+	handler := api.Wrap(server, github_standards.ListHandler)
 	// -- setup a mock api thats bound to the correct handler func
-	mock := mockApi()
+	mock := testhelpers.MockServer(handler, "warn")
 	defer mock.Close()
 
 	hr, err := httphandler.Get("", "", mock.URL)
@@ -94,8 +94,4 @@ func TestServersApiGithubStandardsArchivedApiCallAndParse(t *testing.T) {
 		}
 	}
 
-}
-
-func mockApi() *httptest.Server {
-	return testhelpers.MockServer(github_standards.ListHandler, "warn")
 }
