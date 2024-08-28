@@ -10,13 +10,12 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/commands/seed/seeder"
 	ghapi "github.com/ministryofjustice/opg-reports/servers/api/github_standards"
-	"github.com/ministryofjustice/opg-reports/servers/front/getter"
 	"github.com/ministryofjustice/opg-reports/servers/front/github_standards"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/config"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/config/nav"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/template"
-	"github.com/ministryofjustice/opg-reports/servers/shared/urls"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/httphandler"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
 	"github.com/ministryofjustice/opg-reports/shared/logger"
 	"github.com/ministryofjustice/opg-reports/shared/testhelpers"
@@ -27,8 +26,6 @@ const templateDir string = "../templates"
 
 func TestServersFrontGithubStandards(t *testing.T) {
 	logger.LogSetup()
-
-	//--- spin up an api
 	// seed
 	ctx := context.TODO()
 	N := 10
@@ -67,10 +64,12 @@ func TestServersFrontGithubStandards(t *testing.T) {
 
 	mockFront := testhelpers.MockServer(handler, "warn")
 	defer mockFront.Close()
-	u := urls.Parse("", "", mockFront.URL)
-	r, _ := getter.GetUrl(u)
+	resp, err := httphandler.Get("", "", mockFront.URL)
+	if err != nil {
+		t.Errorf("error getting url: %s", err.Error())
+	}
 
-	str, _ := convert.Stringify(r)
+	str, _ := convert.Stringify(resp.Response)
 	// now look in the string for expected data
 	title := "<title>test nav - TEST RESPONSE - Reports</title>"
 
