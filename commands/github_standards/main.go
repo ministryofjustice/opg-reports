@@ -157,14 +157,9 @@ func main() {
 
 	mapped := []ghs.GithubStandard{}
 	total := len(repositories)
-	for i, r := range repositories {
-		if *r.FullName == "ministryofjustice/opg-reports" {
-
-			g := *mapFromApi(ctx, client, r)
-			fmt.Println(convert.PrettyString(g))
-		}
-		slog.Info(fmt.Sprintf("[%d/%d] %s", i+1, total, *r.FullName))
-		// mapped = append(mapped, *mapFromApi(ctx, client, r))
+	for i, repo := range repositories {
+		slog.Info(fmt.Sprintf("[%d/%d] %s", i+1, total, *repo.FullName))
+		mapped = append(mapped, *mapFromApi(ctx, client, repo))
 	}
 
 	content, err := convert.Marshals(mapped)
