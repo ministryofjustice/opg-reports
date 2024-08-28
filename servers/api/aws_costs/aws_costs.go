@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/ministryofjustice/opg-reports/servers/shared/mw"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/api"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/mw"
 )
 
 // currently supported urls
