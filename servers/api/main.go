@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/ministryofjustice/opg-reports/servers/api/aws_costs"
 	"github.com/ministryofjustice/opg-reports/servers/api/github_standards"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/api"
 	"github.com/ministryofjustice/opg-reports/shared/consts"
@@ -35,12 +36,14 @@ func main() {
 		// github_standards.Register(ctx, mux, databases["github_standards"])
 	}
 
-	// // -- aws costs
-	// if !exists.FileOrDir(databases["aws_costs"]) {
-	// 	slog.Error("database missing for aws_costs", slog.String("db", databases["aws_costs"]))
-	// } else {
-	// 	aws_costs.Register(ctx, mux, databases["aws_costs"])
-	// }
+	// -- aws costs
+	if !exists.FileOrDir(databases["aws_costs"]) {
+		slog.Error("database missing for aws_costs", slog.String("db", databases["aws_costs"]))
+	} else {
+		awscServer := api.New(ctx, databases["aws_costs"])
+		aws_costs.Register(mux, awscServer)
+		// aws_costs.Register(ctx, mux, databases["aws_costs"])
+	}
 
 	// -- start the server
 	addr := env.Get("API_ADDR", consts.API_ADDR)

@@ -11,6 +11,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/commands/seed/seeder"
 	awapi "github.com/ministryofjustice/opg-reports/servers/api/aws_costs"
 	"github.com/ministryofjustice/opg-reports/servers/front/aws_costs"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/api"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/config"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/config/nav"
@@ -44,9 +45,9 @@ func TestServersFrontAwsCostsStandard(t *testing.T) {
 	}
 	defer db.Close()
 	// set mock api
-	awapi.SetDBPath(dbF)
-	awapi.SetCtx(ctx)
-	mockApi := testhelpers.MockServer(awapi.StandardHandler, "warn")
+	apiserver := api.New(ctx, dbF)
+	apihandler := api.Wrap(apiserver, awapi.StandardHandler)
+	mockApi := testhelpers.MockServer(apihandler, "warn")
 	defer mockApi.Close()
 
 	// -- mock local server that calls the local api
@@ -99,9 +100,9 @@ func TestServersFrontAwsCostsYtd(t *testing.T) {
 	}
 	defer db.Close()
 	// set mock api
-	awapi.SetDBPath(dbF)
-	awapi.SetCtx(ctx)
-	mockApi := testhelpers.MockServer(awapi.YtdHandler, "warn")
+	apiserver := api.New(ctx, dbF)
+	apihandler := api.Wrap(apiserver, awapi.YtdHandler)
+	mockApi := testhelpers.MockServer(apihandler, "warn")
 	defer mockApi.Close()
 
 	// -- mock local server that calls the local api

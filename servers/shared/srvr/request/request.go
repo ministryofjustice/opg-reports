@@ -18,8 +18,8 @@ func (req *Request) Param(name string, r *http.Request) (value string) {
 	return
 }
 
-func (req *Request) Mapped(r *http.Request) (mapped map[string]string) {
-	mapped = map[string]string{}
+func (req *Request) Mapped(r *http.Request) (mapped map[string]interface{}) {
+	mapped = map[string]interface{}{}
 	for _, param := range req.Parameters {
 		mapped[param.Name] = param.Value(r)
 	}
