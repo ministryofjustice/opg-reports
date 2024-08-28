@@ -180,6 +180,16 @@ func Title(s string) string {
 	s = c.String(s)
 	return s
 }
+
+func Titles(strs ...string) (str string) {
+	str = ""
+	for _, s := range strs {
+		str += s + " - "
+	}
+	str = strings.TrimSuffix(str, " - ")
+	return
+}
+
 func Pascal(s string) string {
 	s = Title(s)
 	s = strings.ReplaceAll(s, " ", "")
