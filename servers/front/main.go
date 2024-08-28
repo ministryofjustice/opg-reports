@@ -12,6 +12,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/template"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
 	"github.com/ministryofjustice/opg-reports/shared/env"
+	"github.com/ministryofjustice/opg-reports/shared/govassets"
 	"github.com/ministryofjustice/opg-reports/shared/logger"
 )
 
@@ -21,7 +22,7 @@ const templateDir string = "./templates"
 
 // download gov uk resources as a zip and extract
 func init() {
-	// dl.DownloadGovUKAssets()
+	govassets.DownloadAssets()
 }
 
 func main() {
