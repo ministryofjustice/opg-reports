@@ -1,9 +1,8 @@
-package datarow
+package convert
 
 import "bytes"
 
-// permuteStrings generates all possible combinations between the string slices passed
-func permuteStrings(parts ...[]string) (ret []string) {
+func PermuteStrings(parts ...[]string) (ret []string) {
 	{
 		var n = 1
 		for _, ar := range parts {

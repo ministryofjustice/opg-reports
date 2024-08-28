@@ -215,10 +215,9 @@ func StandardQueryResults(ctx context.Context, q *awsc.Queries, req *ApiRequest)
 		string(dates.MONTH) + string(GroupByUnit):            monthlyPerUnit,
 		string(dates.MONTH) + string(GroupByUnitEnvironment): monthlyPerUnitEnv,
 		string(dates.MONTH) + string(GroupByDetailed):        monthlyDetails,
-		//
-		string(dates.DAY) + string(GroupByUnit):            dailyPerUnit,
-		string(dates.DAY) + string(GroupByUnitEnvironment): dailyPerUnitEnv,
-		string(dates.DAY) + string(GroupByDetailed):        dailyDetails,
+		string(dates.DAY) + string(GroupByUnit):              dailyPerUnit,
+		string(dates.DAY) + string(GroupByUnitEnvironment):   dailyPerUnitEnv,
+		string(dates.DAY) + string(GroupByDetailed):          dailyDetails,
 		//
 	}
 
