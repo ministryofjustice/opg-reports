@@ -26,18 +26,18 @@ const contributingGuidePath string = "./CONTRIBUTING.md"
 
 // mapFromApi generates a GithubStandard item from api data
 // - its a chunky one
-func mapFromApi(ctx context.Context, client *github.Client, r *github.Repository) (g *ghs.GithubStandard) {
+func mapFromApi(ctx context.Context, client *github.Client, repo *github.Repository) (g *ghs.GithubStandard) {
 	g = &ghs.GithubStandard{
 		Ts: time.Now().UTC().String(),
 	}
 
-	g.DefaultBranch = r.GetDefaultBranch()
-	g.FullName = r.GetFullName()
-	g.Name = r.GetName()
-	g.Owner = r.GetOwner().GetLogin()
-	g.CreatedAt = r.GetCreatedAt().Format(dates.Format)
+	g.DefaultBranch = repo.GetDefaultBranch()
+	g.FullName = repo.GetFullName()
+	g.Name = repo.GetName()
+	g.Owner = repo.GetOwner().GetLogin()
+	g.CreatedAt = repo.GetCreatedAt().Format(dates.Format)
 	//
-	if l := r.GetLicense(); l != nil {
+	if l := repo.GetLicense(); l != nil {
 		g.License = l.GetName()
 	}
 	//
@@ -54,7 +54,7 @@ func mapFromApi(ctx context.Context, client *github.Client, r *github.Repository
 		&github.TrafficBreakdownOptions{Per: "day"}); err == nil {
 		g.CountOfClones = clones.GetCount()
 	}
-	g.CountOfForks = r.GetForksCount()
+	g.CountOfForks = repo.GetForksCount()
 	if prs, _, err := client.PullRequests.List(ctx, g.Owner, g.Name,
 		&github.PullRequestListOptions{State: "open"}); err == nil {
 		g.CountOfPullRequests = len(prs)
@@ -86,14 +86,13 @@ func mapFromApi(ctx context.Context, client *github.Client, r *github.Repository
 	}
 
 	g.HasDefaultBranchOfMain = convert.BoolToInt((g.DefaultBranch == "main"))
-	g.HasDeleteBranchOnMerge = convert.BoolToInt(r.GetDeleteBranchOnMerge())
-	g.HasDescription = convert.BoolToInt((len(r.GetDescription()) > 0))
-	g.HasDiscussions = convert.BoolToInt(r.GetHasDiscussions())
-	g.HasDownloads = convert.BoolToInt(r.GetHasDownloads())
-	g.HasIssues = convert.BoolToInt(r.GetHasIssues())
+	g.HasDescription = convert.BoolToInt((len(repo.GetDescription()) > 0))
+	g.HasDiscussions = convert.BoolToInt(repo.GetHasDiscussions())
+	g.HasDownloads = convert.BoolToInt(repo.GetHasDownloads())
+	g.HasIssues = convert.BoolToInt(repo.GetHasIssues())
 	g.HasLicense = convert.BoolToInt((len(g.License) > 0))
-	g.HasPages = convert.BoolToInt(r.GetHasPages())
-	g.HasWiki = convert.BoolToInt(r.GetHasWiki())
+	g.HasPages = convert.BoolToInt(repo.GetHasPages())
+	g.HasWiki = convert.BoolToInt(repo.GetHasWiki())
 
 	if protection, _, err := client.Repositories.GetBranchProtection(ctx, g.Owner, g.Name,
 		g.DefaultBranch); err == nil {
@@ -102,8 +101,8 @@ func mapFromApi(ctx context.Context, client *github.Client, r *github.Repository
 		g.HasCodeownerApprovalRequired = convert.BoolToInt(protection.RequiredPullRequestReviews.RequireCodeOwnerReviews)
 	}
 
-	g.IsArchived = convert.BoolToInt(r.GetArchived())
-	g.IsPrivate = convert.BoolToInt(r.GetPrivate())
+	g.IsArchived = convert.BoolToInt(repo.GetArchived())
+	g.IsPrivate = convert.BoolToInt(repo.GetPrivate())
 
 	// -- teams
 	g.Teams = ""
@@ -113,6 +112,10 @@ func mapFromApi(ctx context.Context, client *github.Client, r *github.Repository
 			g.Teams += *team.Name + "#"
 		}
 	}
+	// the GetDeleteBranchOnMerge seems to be empty and have to re-fetch the api to get result
+	re, _, _ := client.Repositories.Get(ctx, g.Owner, g.Name)
+	g.HasDeleteBranchOnMerge = convert.BoolToInt(re.GetDeleteBranchOnMerge())
+
 	g.UpdateCompliance()
 	return
 }
@@ -155,8 +158,13 @@ func main() {
 	mapped := []ghs.GithubStandard{}
 	total := len(repositories)
 	for i, r := range repositories {
+		if *r.FullName == "ministryofjustice/opg-reports" {
+
+			g := *mapFromApi(ctx, client, r)
+			fmt.Println(convert.PrettyString(g))
+		}
 		slog.Info(fmt.Sprintf("[%d/%d] %s", i+1, total, *r.FullName))
-		mapped = append(mapped, *mapFromApi(ctx, client, r))
+		// mapped = append(mapped, *mapFromApi(ctx, client, r))
 	}
 
 	content, err := convert.Marshals(mapped)
