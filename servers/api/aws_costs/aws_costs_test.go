@@ -6,14 +6,13 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
-	"net/url"
 	"path/filepath"
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/commands/seed/seeder"
 	"github.com/ministryofjustice/opg-reports/datastore/aws_costs/awsc"
 	"github.com/ministryofjustice/opg-reports/servers/api/aws_costs"
-	"github.com/ministryofjustice/opg-reports/servers/front/getter"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/httphandler"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
 	"github.com/ministryofjustice/opg-reports/shared/logger"
 	"github.com/ministryofjustice/opg-reports/shared/testhelpers"
@@ -57,25 +56,19 @@ func TestServersApiAwsCostsApiYtd(t *testing.T) {
 	// -- setup mock api
 	mock := testhelpers.MockServer(aws_costs.YtdHandler, "warn")
 	defer mock.Close()
-	u, err := url.Parse(mock.URL)
-	if err != nil {
-		slog.Error(err.Error())
-		log.Fatal(err.Error())
-	}
 
 	// -- call the api - time its duration
-	tick = testhelpers.T()
-	hr, err := getter.GetUrl(u)
-	tick.Stop()
+	hr, err := httphandler.Get("", "", mock.URL)
+
 	if err != nil {
 		slog.Error(err.Error())
 		log.Fatal(err.Error())
 	}
 
-	slog.Debug("api call duration", slog.String("seconds", tick.Seconds()), slog.String("u", u.String()))
+	slog.Debug("api call duration", slog.Float64("seconds", hr.Duration), slog.String("url", mock.URL))
 
 	// -- check values of the response
-	_, bytes := convert.Stringify(hr)
+	_, bytes := convert.Stringify(hr.Response)
 	response, _ := convert.Unmarshal[*aws_costs.ApiResponse](bytes)
 
 	counts := response.Counters
@@ -123,25 +116,19 @@ func TestServersApiAwsCostsApiMonthlyTax(t *testing.T) {
 	// -- setup mock api
 	mock := testhelpers.MockServer(aws_costs.MonthlyTaxHandler, "warn")
 	defer mock.Close()
-	u, err := url.Parse(mock.URL)
-	if err != nil {
-		slog.Error(err.Error())
-		log.Fatal(err.Error())
-	}
-
 	// -- call the api - time its duration
-	tick = testhelpers.T()
-	hr, err := getter.GetUrl(u)
-	tick.Stop()
+
+	hr, err := httphandler.Get("", "", mock.URL)
+
 	if err != nil {
 		slog.Error(err.Error())
 		log.Fatal(err.Error())
 	}
 
-	slog.Debug("api call duration", slog.String("seconds", tick.Seconds()), slog.String("u", u.String()))
+	slog.Debug("api call duration", slog.Float64("seconds", hr.Duration), slog.String("url", mock.URL))
 
 	// -- check values of the response
-	_, bytes := convert.Stringify(hr)
+	_, bytes := convert.Stringify(hr.Response)
 	response, _ := convert.Unmarshal[*aws_costs.ApiResponse](bytes)
 
 	counts := response.Counters
@@ -189,25 +176,18 @@ func TestServersApiAwsCostsApiStandard(t *testing.T) {
 	// -- setup mock api
 	mock := testhelpers.MockServer(aws_costs.StandardHandler, "warn")
 	defer mock.Close()
-	u, err := url.Parse(mock.URL)
-	if err != nil {
-		slog.Error(err.Error())
-		log.Fatal(err.Error())
-	}
 
 	// -- call the api - time its duration
-	tick = testhelpers.T()
-	hr, err := getter.GetUrl(u)
-	tick.Stop()
+	hr, err := httphandler.Get("", "", mock.URL)
 	if err != nil {
 		slog.Error(err.Error())
 		log.Fatal(err.Error())
 	}
 
-	slog.Debug("api call duration", slog.String("seconds", tick.Seconds()), slog.String("u", u.String()))
+	slog.Debug("api call duration", slog.Float64("seconds", hr.Duration), slog.String("url", mock.URL))
 
 	// -- check values of the response
-	_, bytes := convert.Stringify(hr)
+	_, bytes := convert.Stringify(hr.Response)
 	response, _ := convert.Unmarshal[*aws_costs.ApiResponse](bytes)
 
 	counts := response.Counters
@@ -220,21 +200,14 @@ func TestServersApiAwsCostsApiStandard(t *testing.T) {
 	// -- call with options
 	list := []string{"?group=unit-env", "?group=detailed", "?group=unit"}
 	for _, l := range list {
-		tick = testhelpers.T()
-		call := u.String() + l
-		ur, err := url.Parse(call)
-		if err != nil {
-			slog.Error(err.Error())
-			log.Fatal(err.Error())
-		}
-		hr, err = getter.GetUrl(ur)
-		if err != nil {
-			slog.Error(err.Error())
-			log.Fatal(err.Error())
-		}
-		tick.Stop()
 
-		slog.Debug("api call duration", slog.String("seconds", tick.Seconds()), slog.String("url", ur.String()))
+		hr, err = httphandler.Get("", "", mock.URL+l)
+		if err != nil {
+			slog.Error(err.Error())
+			log.Fatal(err.Error())
+		}
+
+		slog.Debug("api call duration", slog.Float64("seconds", hr.Duration), slog.String("url", mock.URL+l))
 		if hr.StatusCode != http.StatusOK {
 			t.Errorf("api call failed")
 		}
