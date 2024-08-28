@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
-	"github.com/ministryofjustice/opg-reports/servers/shared/apiresponse"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/response"
 )
 
 // CountValues covers the counters we want to return for the
@@ -26,21 +26,22 @@ type Counters struct {
 // to capture counters, passed query filters and the result
 // data
 type GHSResponse struct {
-	*apiresponse.Response
+	*response.Response
 	Counters     *Counters            `json:"counters,omitempty"`
 	QueryFilters map[string]string    `json:"query_filters,omitempty"`
 	Result       []ghs.GithubStandard `json:"result"`
 }
 
 func NewResponse() *GHSResponse {
+	resp := &response.Response{
+		RequestTimer: &response.RequestTimings{},
+		DataAge:      &response.DataAge{},
+		StatusCode:   http.StatusOK,
+		Errors:       []string{},
+		DateRange:    []string{},
+	}
 	return &GHSResponse{
-		Response: &apiresponse.Response{
-			RequestTimer: &apiresponse.RequestTimings{},
-			DataAge:      &apiresponse.DataAge{},
-			StatusCode:   http.StatusOK,
-			Errors:       []string{},
-			DateRange:    []string{},
-		},
+		Response: resp,
 		Counters: &Counters{
 			This:   &CountValues{},
 			Totals: &CountValues{},

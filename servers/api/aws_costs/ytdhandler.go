@@ -9,7 +9,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/ministryofjustice/opg-reports/datastore/aws_costs/awsc"
 	"github.com/ministryofjustice/opg-reports/servers/shared/apidb"
-	"github.com/ministryofjustice/opg-reports/servers/shared/apiresponse"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/response"
 	"github.com/ministryofjustice/opg-reports/shared/consts"
 	"github.com/ministryofjustice/opg-reports/shared/dates"
 	"github.com/ministryofjustice/opg-reports/shared/logger"
@@ -22,24 +22,24 @@ import (
 //   - Connects to sqlite db via `apiDbPath`
 //   - Works out the start and end dates (based on billingDate and first of the year)
 //   - Gets the single total value for the year to date
-//   - Formats responseto have one result with the value
+//   - Formats apiResponseto have one result with the value
 //
 // Sample urls
 //   - /v1/aws_costs/ytd/
 func YtdHandler(w http.ResponseWriter, r *http.Request) {
 	logger.LogSetup()
 	var (
-		err      error
-		db       *sql.DB
-		dbPath   string          = apiDbPath
-		ctx      context.Context = apiCtx
-		response *ApiResponse    = NewResponse()
+		err         error
+		db          *sql.DB
+		dbPath      string          = apiDbPath
+		ctx         context.Context = apiCtx
+		apiResponse *ApiResponse    = NewResponse()
 	)
-	apiresponse.Start(response, w, r)
+	response.Start(apiResponse, w, r)
 
 	// -- setup db connection
 	if db, err = apidb.SqlDB(dbPath); err != nil {
-		apiresponse.ErrorAndEnd(response, err, w, r)
+		response.ErrorAndEnd(apiResponse, err, w, r)
 		return
 	}
 	defer db.Close()
@@ -54,16 +54,16 @@ func YtdHandler(w http.ResponseWriter, r *http.Request) {
 		End:   end.Format(dates.FormatYMD),
 	})
 	if err != nil {
-		apiresponse.ErrorAndEnd(response, err, w, r)
+		response.ErrorAndEnd(apiResponse, err, w, r)
 		return
 	}
 
-	response.StartDate = start.Format(dates.FormatYMD)
-	response.EndDate = end.Format(dates.FormatYMD)
-	response.Result = []*CommonResult{{Total: total.(float64)}}
-	StandardCounters(ctx, queries, response)
-	StandardDates(response, start, end, end, dates.MONTH)
+	apiResponse.StartDate = start.Format(dates.FormatYMD)
+	apiResponse.EndDate = end.Format(dates.FormatYMD)
+	apiResponse.Result = []*CommonResult{{Total: total.(float64)}}
+	StandardCounters(ctx, queries, apiResponse)
+	StandardDates(apiResponse, start, end, end, dates.MONTH)
 	// end
-	apiresponse.End(response, w, r)
+	response.End(apiResponse, w, r)
 	return
 }

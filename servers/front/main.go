@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/ministryofjustice/opg-reports/servers/front/aws_costs"
 	"github.com/ministryofjustice/opg-reports/servers/front/github_standards"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/config"
@@ -58,19 +59,8 @@ func main() {
 	frontServer := front.New(ctx, conf, templates)
 	// -- github standards
 	github_standards.Register(mux, frontServer)
-
-	// // -- get config
-	// configFile := env.Get("CONFIG_FILE", defaultConfig)
-	// if configContent, err = os.ReadFile(configFile); err != nil {
-	// 	slog.Error("error starting front - config file", slog.String("err", err.Error()))
-	// 	return
-	// }
-	// conf := config.New(configContent)
-
-	// // -- call github
-	// github_standards.Register(ctx, mux, conf, templates)
-	// // -- call aws_costs
-	// aws_costs.Register(ctx, mux, conf, templates)
+	// -- aws costs
+	aws_costs.Register(mux, frontServer)
 
 	addr := env.Get("FRONT_ADDR", defaultAddr)
 	server := &http.Server{

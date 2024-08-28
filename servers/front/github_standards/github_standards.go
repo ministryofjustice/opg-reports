@@ -68,7 +68,7 @@ func Register(mux *http.ServeMux, frontServer *front.FrontServer) {
 	for _, navItem := range navItems {
 		handler := front.Wrap(frontServer, navItem, ListHandler)
 
-		slog.Info("[front] registering", slog.String("endpoint", "githug_standards"), slog.String("uri", navItem.Uri), slog.String("handler", "ListHandler"))
+		slog.Info("[front] registering", slog.String("endpoint", "github_standards"), slog.String("uri", navItem.Uri), slog.String("handler", "ListHandler"))
 		mux.HandleFunc(navItem.Uri+"{$}", mw.Middleware(handler, mw.Logging, mw.SecurityHeaders))
 	}
 

@@ -9,9 +9,9 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
 	"github.com/ministryofjustice/opg-reports/servers/shared/apidb"
-	"github.com/ministryofjustice/opg-reports/servers/shared/apiresponse"
-	"github.com/ministryofjustice/opg-reports/servers/shared/mw"
 	"github.com/ministryofjustice/opg-reports/servers/shared/query"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/mw"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/response"
 	"github.com/ministryofjustice/opg-reports/shared/logger"
 )
 
@@ -38,23 +38,23 @@ var (
 func ListHandler(w http.ResponseWriter, r *http.Request) {
 	logger.LogSetup()
 	var (
-		err      error
-		db       *sql.DB
-		dbPath   string            = apiDbPath
-		ctx      context.Context   = apiCtx
-		response *GHSResponse      = NewResponse()
-		archived *query.Query      = query.Get("archived")
-		team     *query.Query      = query.Get("team")
-		filters  map[string]string = map[string]string{
+		err        error
+		db         *sql.DB
+		dbPath     string            = apiDbPath
+		ctx        context.Context   = apiCtx
+		ghResponse *GHSResponse      = NewResponse()
+		archived   *query.Query      = query.Get("archived")
+		team       *query.Query      = query.Get("team")
+		filters    map[string]string = map[string]string{
 			"archived": query.FirstD(archived.Values(r), "false"),
 			"team":     query.First(team.Values(r)),
 		}
 	)
-	apiresponse.Start(response, w, r)
+	response.Start(ghResponse, w, r)
 
 	// -- setup db connection
 	if db, err = apidb.SqlDB(dbPath); err != nil {
-		apiresponse.ErrorAndEnd(response, err, w, r)
+		response.ErrorAndEnd(ghResponse, err, w, r)
 		return
 	}
 	defer db.Close()
@@ -66,32 +66,32 @@ func ListHandler(w http.ResponseWriter, r *http.Request) {
 	results, err := getResults(ctx, queries, filters["archived"], filters["team"])
 	slog.Info("got results")
 	if err != nil {
-		apiresponse.ErrorAndEnd(response, err, w, r)
+		response.ErrorAndEnd(ghResponse, err, w, r)
 		return
 	}
 	// -- convert results over to output format
 	base, ext := complianceCounters(results)
-	response.Result = results
+	ghResponse.Result = results
 	// -- get overall counters
 	all, _ := queries.Count(ctx)
 	tBase, _ := queries.TotalCountCompliantBaseline(ctx)
 	tExt, _ := queries.TotalCountCompliantExtended(ctx)
 
-	response.Counters.Totals.Count = int(all)
-	response.Counters.This.CompliantBaseline = int(tBase)
-	response.Counters.Totals.CompliantExtended = int(tExt)
-	response.Counters.This.Count = len(results)
-	response.Counters.This.CompliantBaseline = base
-	response.Counters.This.CompliantExtended = ext
-	response.QueryFilters = filters
+	ghResponse.Counters.Totals.Count = int(all)
+	ghResponse.Counters.This.CompliantBaseline = int(tBase)
+	ghResponse.Counters.Totals.CompliantExtended = int(tExt)
+	ghResponse.Counters.This.Count = len(results)
+	ghResponse.Counters.This.CompliantBaseline = base
+	ghResponse.Counters.This.CompliantExtended = ext
+	ghResponse.QueryFilters = filters
 
 	// -- add the date min / max values
 	age, err := queries.Age(ctx)
 	if err == nil {
-		response.DataAge.Min = age
-		response.DataAge.Max = age
+		ghResponse.DataAge.Min = age
+		ghResponse.DataAge.Max = age
 	}
-	apiresponse.End(response, w, r)
+	response.End(ghResponse, w, r)
 
 	return
 
