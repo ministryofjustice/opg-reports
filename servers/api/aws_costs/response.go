@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/ministryofjustice/opg-reports/datastore/aws_costs/awsc"
-	"github.com/ministryofjustice/opg-reports/servers/shared/apiresponse"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/response"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
 	"github.com/ministryofjustice/opg-reports/shared/dates"
 )
@@ -57,10 +57,10 @@ type CommonResult struct {
 
 // ApiResponse is the response object used and returned by the aws_costs
 // api handler
-// Based on apiresponse.Response struct as a common ground and then
+// Based on response.Response struct as a common ground and then
 // add additional fields to the struct that are used for this api
 type ApiResponse struct {
-	*apiresponse.Response
+	*response.Response
 	Counters       *Counters              `json:"counters,omitempty"`
 	Columns        map[string][]string    `json:"columns,omitempty"`
 	ColumnOrdering []string               `json:"column_ordering,omitempty"`
@@ -120,7 +120,7 @@ func StandardCounters(ctx context.Context, q *awsc.Queries, resp *ApiResponse) {
 		Totals: &CountValues{Count: int(all)},
 		This:   &CountValues{Count: len(resp.Result)},
 	}
-	resp.DataAge = &apiresponse.DataAge{Min: min, Max: max}
+	resp.DataAge = &response.DataAge{Min: min, Max: max}
 }
 
 func StandardDates(response *ApiResponse, start time.Time, end time.Time, rangeEnd time.Time, interval dates.Interval) {
@@ -132,14 +132,15 @@ func StandardDates(response *ApiResponse, start time.Time, end time.Time, rangeE
 
 // NewResponse returns a clean response object
 func NewResponse() *ApiResponse {
+	resp := &response.Response{
+		RequestTimer: &response.RequestTimings{},
+		DataAge:      &response.DataAge{},
+		StatusCode:   http.StatusOK,
+		Errors:       []string{},
+		DateRange:    []string{},
+	}
 	return &ApiResponse{
-		Response: &apiresponse.Response{
-			RequestTimer: &apiresponse.RequestTimings{},
-			DataAge:      &apiresponse.DataAge{},
-			StatusCode:   http.StatusOK,
-			Errors:       []string{},
-			DateRange:    []string{},
-		},
+		Response: resp,
 		Counters: &Counters{
 			This:   &CountValues{},
 			Totals: &CountValues{},

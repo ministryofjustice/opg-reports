@@ -28,7 +28,7 @@ tests/all:
 ## run go suite tests that match the file pattern
 ## usage:
 ## `make tests/named name=<pattern>`
-tests/named:
+tests/named test:
 	@go clean -testcache
 	@clear
 	@echo "============== test: [$(name)] =============="

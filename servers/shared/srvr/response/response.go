@@ -1,11 +1,11 @@
-package apiresponse
+package response
 
 import (
 	"context"
 	"net/http"
 	"time"
 
-	"github.com/ministryofjustice/opg-reports/servers/front/config/navigation"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/config/nav"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
 )
 
@@ -45,12 +45,12 @@ type Response struct {
 	DateRange    []string        `json:"date_range"`
 
 	// hide all of these, only used on the front reader
-	Organisation     string                                `json:"-"`
-	PageTitle        string                                `json:"-"`
-	NavigationTop    map[string]*navigation.NavigationItem `json:"-"`
-	NavigationSide   []*navigation.NavigationItem          `json:"-"`
-	NavigationActive *navigation.NavigationItem            `json:"-"`
-	Rows             map[string]map[string]interface{}     `json:"-"`
+	Organisation     string                            `json:"-"`
+	PageTitle        string                            `json:"-"`
+	NavigationTop    map[string]*nav.Nav               `json:"-"`
+	NavigationSide   []*nav.Nav                        `json:"-"`
+	NavigationActive *nav.Nav                          `json:"-"`
+	Rows             map[string]map[string]interface{} `json:"-"`
 }
 
 func (rp *Response) StatusGet() int {

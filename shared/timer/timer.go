@@ -16,12 +16,16 @@ func (t *Ts) Stop() *Ts {
 	t.E = time.Now().UTC()
 	return t
 }
-func (t *Ts) Seconds() string {
+func (t *Ts) Duration() float64 {
 	if t.E.Year() == 0 {
 		t.Stop()
 	}
 	dur := t.E.Sub(t.S)
-	return fmt.Sprintf("%f", dur.Seconds())
+	return dur.Seconds()
+}
+
+func (t *Ts) Seconds() string {
+	return fmt.Sprintf("%f", t.Duration())
 }
 
 func New() *Ts {

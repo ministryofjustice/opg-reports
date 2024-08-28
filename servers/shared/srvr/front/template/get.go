@@ -1,4 +1,4 @@
-package template_helpers
+package template
 
 import (
 	"os"
