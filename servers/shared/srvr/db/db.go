@@ -1,4 +1,4 @@
-package apidb
+package db
 
 import (
 	"database/sql"
@@ -10,8 +10,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/shared/exists"
 )
 
-// connection to the db
-func SqlDB(dbPath string) (db *sql.DB, err error) {
+func Connect(dbPath string) (db *sql.DB, err error) {
 	if exists.FileOrDir(dbPath) != true {
 		err = fmt.Errorf("database [%s] does not exist", dbPath)
 		return

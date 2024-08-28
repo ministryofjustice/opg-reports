@@ -59,6 +59,14 @@ func Range(start time.Time, end time.Time, interval Interval) []time.Time {
 	return times
 }
 
+func RangeEnd(end time.Time, interval Interval) (re time.Time) {
+	re = end.AddDate(0, -1, 0)
+	if interval == DAY {
+		re = end.AddDate(0, 0, -1)
+	}
+	return
+}
+
 // Strings converts series of times into string versions using the date format passed
 func Strings(dates []time.Time, format string) (strs []string) {
 	strs = []string{}

@@ -12,6 +12,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/commands/seed/seeder"
 	"github.com/ministryofjustice/opg-reports/datastore/aws_costs/awsc"
 	"github.com/ministryofjustice/opg-reports/servers/api/aws_costs"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/api"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/httphandler"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
 	"github.com/ministryofjustice/opg-reports/shared/logger"
@@ -51,10 +52,10 @@ func TestServersApiAwsCostsApiYtd(t *testing.T) {
 	}
 
 	// -- set db and context
-	aws_costs.SetDBPath(dbF)
-	aws_costs.SetCtx(ctx)
+	server := api.New(ctx, dbF)
+	handler := api.Wrap(server, aws_costs.YtdHandler)
 	// -- setup mock api
-	mock := testhelpers.MockServer(aws_costs.YtdHandler, "warn")
+	mock := testhelpers.MockServer(handler, "warn")
 	defer mock.Close()
 
 	// -- call the api - time its duration
@@ -111,10 +112,10 @@ func TestServersApiAwsCostsApiMonthlyTax(t *testing.T) {
 	}
 
 	// -- set db and context
-	aws_costs.SetDBPath(dbF)
-	aws_costs.SetCtx(ctx)
+	server := api.New(ctx, dbF)
+	handler := api.Wrap(server, aws_costs.MonthlyTaxHandler)
 	// -- setup mock api
-	mock := testhelpers.MockServer(aws_costs.MonthlyTaxHandler, "warn")
+	mock := testhelpers.MockServer(handler, "warn")
 	defer mock.Close()
 	// -- call the api - time its duration
 
@@ -171,10 +172,10 @@ func TestServersApiAwsCostsApiStandard(t *testing.T) {
 	}
 
 	// -- set db and context
-	aws_costs.SetDBPath(dbF)
-	aws_costs.SetCtx(ctx)
+	server := api.New(ctx, dbF)
+	handler := api.Wrap(server, aws_costs.StandardHandler)
 	// -- setup mock api
-	mock := testhelpers.MockServer(aws_costs.StandardHandler, "warn")
+	mock := testhelpers.MockServer(handler, "warn")
 	defer mock.Close()
 
 	// -- call the api - time its duration

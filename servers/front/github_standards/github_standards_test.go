@@ -11,6 +11,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/commands/seed/seeder"
 	ghapi "github.com/ministryofjustice/opg-reports/servers/api/github_standards"
 	"github.com/ministryofjustice/opg-reports/servers/front/github_standards"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/api"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/config"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/config/nav"
@@ -40,10 +41,11 @@ func TestServersFrontGithubStandards(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 	defer db.Close()
-	// set mock api
-	ghapi.SetDBPath(dbF)
-	ghapi.SetCtx(ctx)
-	mockApi := testhelpers.MockServer(ghapi.ListHandler, "warn")
+
+	apiServer := api.New(ctx, dbF)
+	apihandler := api.Wrap(apiServer, ghapi.ListHandler)
+	// -- setup a mock api thats bound to the correct handler func
+	mockApi := testhelpers.MockServer(apihandler, "warn")
 	defer mockApi.Close()
 
 	// -- mock local server that calls the local api

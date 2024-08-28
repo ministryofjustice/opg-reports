@@ -1,7 +1,6 @@
 package aws_costs
 
 import (
-	"context"
 	"database/sql"
 	"log/slog"
 	"net/http"
@@ -9,7 +8,8 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/ministryofjustice/opg-reports/datastore/aws_costs/awsc"
-	"github.com/ministryofjustice/opg-reports/servers/shared/apidb"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/api"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/db"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/response"
 	"github.com/ministryofjustice/opg-reports/shared/consts"
 	"github.com/ministryofjustice/opg-reports/shared/dates"
@@ -27,25 +27,22 @@ import (
 //
 // Sample urls:
 //   - /v1/aws_costs/monthly-tax/
-func MonthlyTaxHandler(w http.ResponseWriter, r *http.Request) {
+func MonthlyTaxHandler(server *api.ApiServer, w http.ResponseWriter, r *http.Request) {
 	logger.LogSetup()
 	var (
 		err         error
-		db          *sql.DB
-		dbPath      string          = apiDbPath
-		ctx         context.Context = apiCtx
-		apiResponse *ApiResponse    = NewResponse()
+		awsDB       *sql.DB
+		apiResponse *ApiResponse = NewResponse()
 	)
-
 	response.Start(apiResponse, w, r)
 	// -- setup db connection
-	if db, err = apidb.SqlDB(dbPath); err != nil {
+	awsDB, err = db.Connect(server.DbPath)
+	if err != nil {
 		response.ErrorAndEnd(apiResponse, err, w, r)
 		return
 	}
-	defer db.Close()
-	// -- setup the sqlc generated queries
-	queries := awsc.New(db)
+	queries := awsc.New(awsDB)
+	defer awsDB.Close()
 	defer queries.Close()
 
 	// get date range
@@ -55,7 +52,7 @@ func MonthlyTaxHandler(w http.ResponseWriter, r *http.Request) {
 		slog.String("end", endDate.Format(dates.FormatYMD)),
 		slog.String("start", startDate.Format(dates.FormatYMD)))
 
-	results, err := queries.MonthlyTotalsTaxSplit(ctx, awsc.MonthlyTotalsTaxSplitParams{
+	results, err := queries.MonthlyTotalsTaxSplit(server.Ctx, awsc.MonthlyTotalsTaxSplitParams{
 		Start: startDate.Format(dates.FormatYMD),
 		End:   endDate.Format(dates.FormatYMD),
 	})
@@ -70,7 +67,7 @@ func MonthlyTaxHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	apiResponse.ColumnOrdering = []string{"service"}
 	apiResponse.Result = Common(results)
-	StandardCounters(ctx, queries, apiResponse)
+	StandardCounters(server.Ctx, queries, apiResponse)
 	StandardDates(apiResponse, startDate, endDate, endDate.AddDate(0, -1, 0), dates.MONTH)
 	// --
 	response.End(apiResponse, w, r)

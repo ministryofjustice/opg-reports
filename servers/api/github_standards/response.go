@@ -27,9 +27,9 @@ type Counters struct {
 // data
 type GHSResponse struct {
 	*response.Response
-	Counters     *Counters            `json:"counters,omitempty"`
-	QueryFilters map[string]string    `json:"query_filters,omitempty"`
-	Result       []ghs.GithubStandard `json:"result"`
+	Counters     *Counters              `json:"counters,omitempty"`
+	QueryFilters map[string]interface{} `json:"query_filters,omitempty"`
+	Result       []ghs.GithubStandard   `json:"result"`
 }
 
 func NewResponse() *GHSResponse {
