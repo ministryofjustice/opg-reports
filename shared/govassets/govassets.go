@@ -1,3 +1,7 @@
+// Package govassets provides a method to download a set version of govuk frontend assets
+//
+// This is generally used in the build process so we dont have to worry about creating
+// a js build pipeline and can keep the css / js to mimimal amounts
 package govassets
 
 import (
@@ -12,7 +16,7 @@ import (
 
 const govukVersion string = "v5.4.0"
 
-// DonwloadGovUKAssets gets a zip file from govuk-frontend of all assets
+// DownloadAssets gets a zip file from govuk-frontend of all assets
 // downloads it locally and populates file system in expected format
 func DownloadAssets() {
 	slog.Warn("Downloading govuk assets", slog.String("v", govukVersion))
