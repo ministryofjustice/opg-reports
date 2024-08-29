@@ -1,3 +1,7 @@
+// Package much provides generic helpers to ensure values are returned
+//
+// Used as wrappers around functions that return (value, error) to
+// always return a value
 package must
 
 func Must[T any](v T, err error) (t T) {

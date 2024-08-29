@@ -1,3 +1,9 @@
+// Package testhelpers contains some commonly used functions
+// within testing packages
+//
+// Encapsulated here for DRY so tests have a common way
+// of doing things and not recreating all the time in each
+// package
 package testhelpers
 
 import (

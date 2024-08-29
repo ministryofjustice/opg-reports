@@ -1,3 +1,4 @@
+// Package gh provides top level helpers for github
 package gh
 
 import (
