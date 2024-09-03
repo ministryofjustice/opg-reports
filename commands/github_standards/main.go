@@ -28,7 +28,7 @@ const contributingGuidePath string = "./CONTRIBUTING.md"
 // - its a chunky one
 func mapFromApi(ctx context.Context, client *github.Client, repo *github.Repository) (g *ghs.GithubStandard) {
 	g = &ghs.GithubStandard{
-		Ts: time.Now().UTC().String(),
+		Ts: time.Now().UTC().Format(dates.Format),
 	}
 
 	g.DefaultBranch = repo.GetDefaultBranch()

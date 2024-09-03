@@ -26,7 +26,7 @@ func Flat(raw *costexplorer.GetCostAndUsageOutput,
 	accountEnv string,
 ) (costs []awsc.AwsCost, err error) {
 	slog.Debug("Flattening cost data")
-	now := time.Now().UTC().String()
+	now := time.Now().UTC().Format(dates.Format)
 
 	costs = []awsc.AwsCost{}
 
