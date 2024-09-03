@@ -88,7 +88,7 @@ func main() {
 
 	// mkdir and filename
 	os.MkdirAll(*dir.Value, os.ModePerm)
-	filename := filepath.Join(*dir.Value, fmt.Sprintf("%s_%s_%s", *unit.Value, startDate.Format(dates.FormatYMD), *out.Value))
+	filename := filepath.Join(*dir.Value, fmt.Sprintf("%s_%s_%s", startDate.Format(dates.FormatYMD), *unit.Value, *out.Value))
 
 	os.WriteFile(filename, content, os.ModePerm)
 }
