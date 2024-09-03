@@ -93,10 +93,11 @@ jobs:
           role-duration-seconds: 900
           role-to-assume: ${{ needs.setup.outputs.aws_role_s3_upload }}
           role-session-name: reports-upload-github-standards-to-s3
-      # - name: "Upload to s3"
-      #   id: upload_to_s3
-      #   uses: ./.github/actions/s3_upload
-      #   with:
-      #     directory: ${{ steps.run.outputs.data_folder }}
-      #     bucket: ${{ needs.setup.outputs.aws_s3_bucket }}
-      #     bucket_path: "aws_costs"
+      # upload to s3
+      - name: "Upload to s3"
+        id: upload_to_s3
+        uses: ./.github/actions/s3_upload
+        with:
+          directory: ${{ steps.run.outputs.data_folder }}
+          bucket: ${{ needs.setup.outputs.aws_s3_bucket }}
+          bucket_path: "aws_costs"
