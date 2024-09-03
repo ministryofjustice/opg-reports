@@ -1,0 +1,99 @@
+name: "[Reports] AWS Uptime"
+
+on:
+  pull_request:
+    branches:
+      - "main"
+    paths:
+      - '.github/workflows/report_aws_uptime.yml'
+
+  schedule:
+    # 5am everyday
+    - cron: '0 5 * * *'
+
+  workflow_dispatch:
+    inputs:
+      day:
+        description: "YYYY-MM-DD formatted day to get uptime data for."
+        type: string
+        default: "-"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  setup:
+    name: "Setup"
+    runs-on: ubuntu-latest
+    outputs:
+      aws_s3_bucket: "report-data-development"
+      aws_role_s3_upload: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
+    steps:
+      - name: "End"
+        run: echo "end"
+
+  load_matrix:
+    name: "Load matrix"
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.account_matrix.outputs.matrix }}
+    steps:
+      - name: "Checkout"
+        id: checkout
+        uses: actions/checkout@v4
+      - name: "get account matrix"
+        id: account_matrix
+        uses: "./.github/actions/get_opg_metadata"
+        with:
+          file: "accounts.aws.uptime.json"
+          github_token: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
+          prereleases: false
+
+  report:
+    name: "Run aws uptime report"
+    runs-on: ubuntu-latest
+    needs: [setup, load_matrix]
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.load_matrix.outputs.matrix) }}
+
+    steps:
+      - name: "Checkout"
+        id: checkout
+        uses: actions/checkout@v4
+      - name: "Configure AWS credentials for running the report"
+        id: configure_aws_creds_report
+        if: ${{ matrix.type == 'aws' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: "eu-west-1"
+          role-duration-seconds: 900
+          role-to-assume: "arn:aws:iam::${{ matrix.id }}:role/gh-actions-uptime-metrics"
+          role-session-name: opg-reports-get-uptime
+      - name: "Run report"
+        id: run
+        uses: ./.github/actions/report
+        env:
+          day: ${{ inputs.day != '' && inputs.day || '-' }}
+          unit: ${{ matrix.billing_unit }}
+        with:
+          name: "aws uptime"
+          cmd: "aws_uptime_cmd"
+          arguments: '-day "${{ env.day }}"  -unit "${{ env.unit }}" '
+      # configure the aws role
+      - name: "Configure AWS credentials for S3 upload"
+        id: configure_aws_creds_s3_upload
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: "eu-west-1"
+          role-duration-seconds: 900
+          role-to-assume: ${{ needs.setup.outputs.aws_role_s3_upload }}
+          role-session-name: reports-upload-github-standards-to-s3
+      # - name: "Upload to s3"
+      #   id: upload_to_s3
+      #   uses: ./.github/actions/s3_upload
+      #   with:
+      #     directory: ${{ steps.run.outputs.data_folder }}
+      #     bucket: ${{ needs.setup.outputs.aws_s3_bucket }}
+      #     bucket_path: "aws_costs"
