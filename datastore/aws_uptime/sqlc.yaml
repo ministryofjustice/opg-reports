@@ -12,4 +12,4 @@ sql:
         emit_json_tags: true
         overrides:
           - db_type: "INTEGER"
-            go_type: "float64"
+            go_type: "int"

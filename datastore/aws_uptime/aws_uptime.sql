@@ -6,7 +6,7 @@ CREATE TABLE aws_uptime (
     ts TEXT NOT NULL,
     --
     unit TEXT NOT NULL,
-    average INTEGER NOT NULL,
+    average REAL NOT NULL,
     date TEXT NOT NULL
     --
 ) STRICT;

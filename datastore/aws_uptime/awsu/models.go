@@ -5,7 +5,7 @@
 package awsu
 
 type AwsUptime struct {
-	ID      float64 `json:"id"`
+	ID      int     `json:"id"`
 	Ts      string  `json:"ts"`
 	Unit    string  `json:"unit"`
 	Average float64 `json:"average"`
@@ -13,6 +13,6 @@ type AwsUptime struct {
 }
 
 type AwsUptimeTracker struct {
-	ID      float64 `json:"id"`
-	RunDate string  `json:"run_date"`
+	ID      int    `json:"id"`
+	RunDate string `json:"run_date"`
 }

@@ -38,14 +38,14 @@ type InsertParams struct {
 	Average float64 `json:"average"`
 }
 
-func (q *Queries) Insert(ctx context.Context, arg InsertParams) (float64, error) {
+func (q *Queries) Insert(ctx context.Context, arg InsertParams) (int, error) {
 	row := q.queryRow(ctx, q.insertStmt, insert,
 		arg.Ts,
 		arg.Unit,
 		arg.Date,
 		arg.Average,
 	)
-	var id float64
+	var id int
 	err := row.Scan(&id)
 	return id, err
 }
