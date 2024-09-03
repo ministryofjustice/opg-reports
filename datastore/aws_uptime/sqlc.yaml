@@ -1,0 +1,15 @@
+version: "2"
+sql:
+  - name: "aws_uptime"
+    engine: "sqlite"
+    queries: "queries.sql"
+    schema: "aws_uptime.sql"
+    gen:
+      go:
+        package: "awsu"
+        out: "awsu"
+        emit_prepared_queries: true
+        emit_json_tags: true
+        overrides:
+          - db_type: "INTEGER"
+            go_type: "float64"
