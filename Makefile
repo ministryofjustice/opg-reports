@@ -142,6 +142,7 @@ data/sqlc:
 	@cd ./datastore/github_standards && sqlc generate
 #--fork-remove-start
 	@cd ./datastore/aws_costs && sqlc generate
+	@cd ./datastore/aws_uptime && sqlc generate
 #--fork-remove-end
 
 ## download all data from bucket
@@ -155,6 +156,9 @@ data/sync: data/sync/vars
 #	aws_costs
 	@mkdir -p ./builds/api/aws_costs/data
 	@echo "getting aws_costs" && ${AWS_VAULT_COMMAND} aws s3 sync --quiet s3://${AWS_BUCKET}/aws_costs ./builds/api/aws_costs/data/ && echo bucket_aws_costs_done || echo bucket_aws_costs_failed;
+#	aws_uptime
+	@mkdir -p ./builds/api/aws_uptime/data
+	@echo "getting aws_uptime" && ${AWS_VAULT_COMMAND} aws s3 sync --quiet s3://${AWS_BUCKET}/aws_uptime ./builds/api/aws_uptime/data/ && echo bucket_aws_uptime_done || echo bucket_aws_uptime_failed;
 #--fork-remove-end
 
 ## output current values used by data/sync
@@ -183,7 +187,7 @@ clean: docker/down
 #================================
 # DEV
 #================================
-.PHONY: dev dev/build dev/run dev/api dev/front dev/mirror dev/mirror/api dev/seed dev/seed/api
+.PHONY: dev dev/build dev/run dev/api dev/front dev/mirror dev/mirror/api seed seed/api
 ## short form alias for dev/mirror which will build and prep the local env for usage
 dev: dev/mirror
 
@@ -203,13 +207,17 @@ dev/build:
 	@go build -o ./builds/commands/github_standards ./commands/github_standards/main.go
 #--fork-remove-start
 	@go build -o ./builds/commands/aws_costs ./commands/aws_costs/main.go
+	@go build -o ./builds/commands/aws_uptime ./commands/aws_uptime/main.go
 #--fork-remove-end
 
+#================================
+# DATA SEEDING
+#================================
 ## short form alias
-dev/seed: dev/seed/api
+seed: seed/api
 ## seed local databases with data
 ## note: run the build process first as it uses the build file locations
-dev/seed/api:
+seed/api:
 #	github_standards
 	@mkdir -p ./builds/api/github_standards/data
 	@cp ./datastore/github_standards/github_standards*.sql ./builds/api/github_standards/
@@ -229,16 +237,28 @@ dev/seed/api:
 		-db ./builds/api/aws_costs.db \
 		-schema ./builds/api/aws_costs/aws_costs.sql \
 		-data "./builds/api/aws_costs/data/*.json"
+#	aws_uptime
+# @mkdir -p ./builds/api/aws_uptime/data
+# @cp ./datastore/aws_uptime/aws_uptime*.sql ./builds/api/aws_uptime/
+# @echo "seeding aws_uptime"
+# @./builds/api/seed_cmd \
+# 	-table aws_uptime \
+# 	-db ./builds/api/aws_uptime.db \
+# 	-schema ./builds/api/aws_uptime/aws_uptime.sql \
+# 	-data "./builds/api/aws_uptime/data/*.json"
 #--fork-remove-end
 
+#================================
+# MIRROR DOCKER SETUP
+#================================
 ## mirrors build setup
-dev/mirror: clean data/sqlc dev/build dev/build data/sync dev/seed dev/mirror/api
-
+mirror: clean data/sqlc dev/build dev/build data/sync seed mirror/api
 ## mirror position of data files for the api server
-mirror dev/mirror/api:
+mirror/api:
 	@mv ./builds/api/github_standards.db ./servers/api/github_standards.db
 #--fork-remove-start
 	@mv ./builds/api/aws_costs.db ./servers/api/aws_costs.db
+	@mv ./builds/api/aws_uptime.db ./servers/api/aws_uptime.db
 #--fork-remove-end
 
 
