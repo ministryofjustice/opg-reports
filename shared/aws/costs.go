@@ -37,7 +37,7 @@ func CostAndUsageInput(startDate time.Time, endDate time.Time, granularity strin
 
 func CostAndUsage(startDate time.Time, endDate time.Time, granularity string, dateFormat string) (*costexplorer.GetCostAndUsageOutput, error) {
 
-	ceClient, err := ClientFromEnv()
+	ceClient, err := CEClientFromEnv()
 	if err != nil {
 		slog.Error(fmt.Sprintf("error: CostAndUsage client: %v", err.Error()))
 		return nil, err

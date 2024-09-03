@@ -6,9 +6,7 @@ import (
 	"time"
 )
 
-const blank string = "-"
-
-// -- Str
+// Str is a string argument
 type Str struct {
 	Value   *string
 	Default string

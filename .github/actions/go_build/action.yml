@@ -54,6 +54,7 @@ runs:
         go build -o ./builds/bin/${os_arch}/front_server ./servers/front/main.go
         go build -o ./builds/bin/${os_arch}/github_standards_cmd ./commands/github_standards/main.go
         go build -o ./builds/bin/${os_arch}/aws_costs_cmd ./commands/aws_costs/main.go
+        go build -o ./builds/bin/${os_arch}/aws_uptime_cmd ./commands/aws_uptime/main.go
 
         echo "os_arch=${os_arch}" >> $GITHUB_OUTPUT
         echo "built=./builds/bin" >> $GITHUB_OUTPUT
