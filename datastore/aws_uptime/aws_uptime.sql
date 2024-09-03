@@ -18,4 +18,4 @@ CREATE TABLE aws_uptime_tracker (
 ) STRICT ;
 
 --
-CREATE INDEX aws_uptime_date_idx ON aws_costs(date);
+CREATE INDEX aws_uptime_date_idx ON aws_uptime(date);

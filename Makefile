@@ -192,11 +192,11 @@ clean: docker/down
 dev: dev/mirror
 
 ## run the local api server
-api dev/api:
+dev/api api:
 	@cd ./servers/api && go run main.go
 
 ## run the local fron server
-front dev/front:
+dev/front front:
 	@cd ./servers/front && go run main.go
 
 ## builds all local binaries, calls clean first
@@ -227,6 +227,7 @@ seed/api:
 		-db ./builds/api/github_standards.db \
 		-schema ./builds/api/github_standards/github_standards.sql \
 		-data "./builds/api/github_standards/data/*.json"
+	@echo "done github_standards"
 #--fork-remove-start
 #	aws_costs
 	@mkdir -p ./builds/api/aws_costs/data
@@ -237,15 +238,17 @@ seed/api:
 		-db ./builds/api/aws_costs.db \
 		-schema ./builds/api/aws_costs/aws_costs.sql \
 		-data "./builds/api/aws_costs/data/*.json"
+	@echo "done aws_costs"
 #	aws_uptime
-# @mkdir -p ./builds/api/aws_uptime/data
-# @cp ./datastore/aws_uptime/aws_uptime*.sql ./builds/api/aws_uptime/
-# @echo "seeding aws_uptime"
-# @./builds/api/seed_cmd \
-# 	-table aws_uptime \
-# 	-db ./builds/api/aws_uptime.db \
-# 	-schema ./builds/api/aws_uptime/aws_uptime.sql \
-# 	-data "./builds/api/aws_uptime/data/*.json"
+	@mkdir -p ./builds/api/aws_uptime/data
+	@cp ./datastore/aws_uptime/aws_uptime*.sql ./builds/api/aws_uptime/
+	@echo "seeding aws_uptime"
+	@./builds/api/seed_cmd \
+		-table aws_uptime \
+		-db ./builds/api/aws_uptime.db \
+		-schema ./builds/api/aws_uptime/aws_uptime.sql \
+		-data "./builds/api/aws_uptime/data/*.json"
+	@echo "done aws_uptime"
 #--fork-remove-end
 
 #================================
@@ -265,7 +268,7 @@ mirror/api:
 #================================
 ## Running in local dev
 ## To setup local folders with data and faster dev process than docker rebuilds, run
-## `make dev/mirror`
+## `make mirror`
 ## This will clean out everything, create builds, sync and seed data and then move
 ## the databases into the api folder ready
 ## You can then run `make dev/front` or `make dev/api` to run either and they will
