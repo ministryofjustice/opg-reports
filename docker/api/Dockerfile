@@ -50,8 +50,8 @@ WORKDIR /app/datastore/aws_uptime/
 RUN sqlc generate
 WORKDIR /app/datastore/aws_uptime/
 RUN cp -p aws_uptime*.sql /go/bin/api/aws_uptime/
-# WORKDIR /app/builds/api/aws_uptime/data/
-# RUN cp -p *.json /go/bin/api/aws_uptime/data/
+WORKDIR /app/builds/api/aws_uptime/data/
+RUN cp -p *.json /go/bin/api/aws_uptime/data/
 #--fork-remove-end
 ### build binaries
 WORKDIR /app
