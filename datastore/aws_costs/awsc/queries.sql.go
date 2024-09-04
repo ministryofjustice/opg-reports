@@ -32,7 +32,7 @@ FROM aws_costs
 WHERE
     date >= ?1 AND
     date < ?2
-GROUP BY account_id, unit, environment, service, strftime("%Y-%m-%d", date)
+GROUP BY strftime("%Y-%m-%d", date), account_id, unit, environment, service
 ORDER by strftime("%Y-%m-%d", date) ASC
 `
 
@@ -93,7 +93,7 @@ WHERE
     date >= ?1 AND
     date < ?2 AND
     unit = ?3
-GROUP BY account_id, environment, service, strftime("%Y-%m-%d", date)
+GROUP BY strftime("%Y-%m-%d", date), account_id, environment, service
 ORDER by strftime("%Y-%m-%d", date) ASC
 `
 
@@ -151,7 +151,7 @@ FROM aws_costs
 WHERE
     date >= ?1 AND
     date < ?2
-GROUP BY unit, strftime("%Y-%m-%d", date)
+GROUP BY strftime("%Y-%m-%d", date), unit
 ORDER by strftime("%Y-%m-%d", date) ASC
 `
 
@@ -199,7 +199,7 @@ FROM aws_costs
 WHERE
     date >= ?1 AND
     date < ?2
-GROUP BY unit, environment, strftime("%Y-%m-%d", date)
+GROUP BY strftime("%Y-%m-%d", date), unit, environment
 ORDER by strftime("%Y-%m-%d", date) ASC
 `
 
@@ -306,7 +306,7 @@ FROM aws_costs
 WHERE
     date >= ?1 AND
     date < ?2
-GROUP BY account_id, unit, environment, service, strftime("%Y-%m", date)
+GROUP BY strftime("%Y-%m", date), account_id, unit, environment, service
 ORDER by strftime("%Y-%m", date) ASC
 `
 
@@ -367,7 +367,7 @@ WHERE
     date >= ?1 AND
     date < ?2 AND
     unit = ?3
-GROUP BY account_id, unit, environment, service, strftime("%Y-%m", date)
+GROUP BY strftime("%Y-%m", date), account_id, unit, environment, service
 ORDER by strftime("%Y-%m", date) ASC
 `
 
@@ -425,7 +425,7 @@ FROM aws_costs
 WHERE
     date >= ?1 AND
     date < ?2
-GROUP BY unit, strftime("%Y-%m", date)
+GROUP BY strftime("%Y-%m", date), unit
 ORDER by strftime("%Y-%m", date) ASC
 `
 
@@ -473,7 +473,7 @@ FROM aws_costs
 WHERE
     date >= ?1 AND
     date < ?2
-GROUP BY unit, environment, strftime("%Y-%m", date)
+GROUP BY strftime("%Y-%m", date), unit, environment
 ORDER by strftime("%Y-%m", date) ASC
 `
 
@@ -577,7 +577,6 @@ func (q *Queries) MonthlyTotalsTaxSplit(ctx context.Context, arg MonthlyTotalsTa
 
 const oldest = `-- name: Oldest :one
 ;
-
 SELECT run_date FROM aws_costs_tracker ORDER BY run_date ASC LIMIT 1
 `
 

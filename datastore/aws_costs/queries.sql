@@ -57,7 +57,7 @@ FROM aws_costs
 WHERE
     date >= @start AND
     date < @end
-GROUP BY unit, strftime("%Y-%m", date)
+GROUP BY strftime("%Y-%m", date), unit
 ORDER by strftime("%Y-%m", date) ASC;
 
 -- name: MonthlyCostsPerUnitEnvironment :many
@@ -70,7 +70,7 @@ FROM aws_costs
 WHERE
     date >= @start AND
     date < @end
-GROUP BY unit, environment, strftime("%Y-%m", date)
+GROUP BY strftime("%Y-%m", date), unit, environment
 ORDER by strftime("%Y-%m", date) ASC;
 
 -- name: MonthlyCostsDetailed :many
@@ -85,7 +85,7 @@ FROM aws_costs
 WHERE
     date >= @start AND
     date < @end
-GROUP BY account_id, unit, environment, service, strftime("%Y-%m", date)
+GROUP BY strftime("%Y-%m", date), account_id, unit, environment, service
 ORDER by strftime("%Y-%m", date) ASC;
 
 -- name: MonthlyCostsDetailedForUnit :many
@@ -101,7 +101,7 @@ WHERE
     date >= @start AND
     date < @end AND
     unit = @unit
-GROUP BY account_id, unit, environment, service, strftime("%Y-%m", date)
+GROUP BY strftime("%Y-%m", date), account_id, unit, environment, service
 ORDER by strftime("%Y-%m", date) ASC;
 
 -- name: DailyCostsPerUnit :many
@@ -113,7 +113,7 @@ FROM aws_costs
 WHERE
     date >= @start AND
     date < @end
-GROUP BY unit, strftime("%Y-%m-%d", date)
+GROUP BY strftime("%Y-%m-%d", date), unit
 ORDER by strftime("%Y-%m-%d", date) ASC;
 
 -- name: DailyCostsPerUnitEnvironment :many
@@ -126,7 +126,7 @@ FROM aws_costs
 WHERE
     date >= @start AND
     date < @end
-GROUP BY unit, environment, strftime("%Y-%m-%d", date)
+GROUP BY strftime("%Y-%m-%d", date), unit, environment
 ORDER by strftime("%Y-%m-%d", date) ASC;
 
 -- name: DailyCostsDetailed :many
@@ -141,7 +141,7 @@ FROM aws_costs
 WHERE
     date >= @start AND
     date < @end
-GROUP BY account_id, unit, environment, service, strftime("%Y-%m-%d", date)
+GROUP BY strftime("%Y-%m-%d", date), account_id, unit, environment, service
 ORDER by strftime("%Y-%m-%d", date) ASC;
 
 
@@ -158,15 +158,13 @@ WHERE
     date >= @start AND
     date < @end AND
     unit = @unit
-GROUP BY account_id, environment, service, strftime("%Y-%m-%d", date)
+GROUP BY strftime("%Y-%m-%d", date), account_id, environment, service
 ORDER by strftime("%Y-%m-%d", date) ASC;
 
 
 -- name: Track :exec
 INSERT INTO aws_costs_tracker (run_date) VALUES(?) ;
-
 -- name: Oldest :one
 SELECT run_date FROM aws_costs_tracker ORDER BY run_date ASC LIMIT 1;
-
 -- name: Youngest :one
 SELECT run_date FROM aws_costs_tracker ORDER BY run_date DESC LIMIT 1;
