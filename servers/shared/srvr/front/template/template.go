@@ -14,36 +14,38 @@ import (
 // Declare all of the template exposed functions
 
 var (
-	currency  = func(s interface{}, symbol string) string { return convert.Curr(s, symbol) }             // convert interface into string formatted like a currency
-	add       = func(a float64, b float64) float64 { return a + b }                                      // add 2 floats together
-	addInt    = func(a int, b int) int { return a + b }                                                  // add two integers together
-	percent   = func(got int, total int) string { return convert.Percent(got, total) }                   // work out percentage
-	title     = func(s string) string { return convert.Title(s) }                                        // create a string suitable for use in page title
-	titles    = func(strs ...string) (str string) { return convert.Titles(strs...) }                     // create a single tile string from a series of strings
-	lower     = func(s string) string { return strings.ToLower(s) }                                      // lowercase the string passed
-	stripI    = func(s string) string { return convert.StripIntPrefix(s) }                               // remove integer prefix (1.Name => Name)
-	day       = func(t string) string { return dates.Time(t).Format(dates.FormatYMD) }                   // Format the string into a time in YYYY-MM-DD
-	dayBefore = func(t string) string { return dates.Time(t).AddDate(0, 0, -1).Format(dates.FormatYMD) } // Format the string into a time in YYYY-MM-DD and go back one day
-	costIdx   = func(set []*aws_costs.CommonResult, i int) any { return set[i] }                         // Return the entry in the slice at index i
-	dict      = func(values ...any) map[string]any { return convert.Dict(values...) }                    // generate a map[string] from series of passed params
-	col       = func(i string, mapped map[string]string) string { return mapped[i] }
+	currency      = func(s interface{}, symbol string) string { return convert.Curr(s, symbol) }             // convert interface into string formatted like a currency
+	add           = func(a float64, b float64) float64 { return a + b }                                      // add 2 floats together
+	addInt        = func(a int, b int) int { return a + b }                                                  // add two integers together
+	uptimePercent = func(s interface{}) string { return convert.FloatString(s, "%.4f") + " %" }              // return uptime as a % with 4 decimals
+	percent       = func(got int, total int) string { return convert.Percent(got, total) }                   // work out percentage
+	title         = func(s string) string { return convert.Title(s) }                                        // create a string suitable for use in page title
+	titles        = func(strs ...string) (str string) { return convert.Titles(strs...) }                     // create a single tile string from a series of strings
+	lower         = func(s string) string { return strings.ToLower(s) }                                      // lowercase the string passed
+	stripI        = func(s string) string { return convert.StripIntPrefix(s) }                               // remove integer prefix (1.Name => Name)
+	day           = func(t string) string { return dates.Time(t).Format(dates.FormatYMD) }                   // Format the string into a time in YYYY-MM-DD
+	dayBefore     = func(t string) string { return dates.Time(t).AddDate(0, 0, -1).Format(dates.FormatYMD) } // Format the string into a time in YYYY-MM-DD and go back one day
+	costIdx       = func(set []*aws_costs.CommonResult, i int) any { return set[i] }                         // Return the entry in the slice at index i
+	dict          = func(values ...any) map[string]any { return convert.Dict(values...) }                    // generate a map[string] from series of passed params
+	col           = func(i string, mapped map[string]string) string { return mapped[i] }
 )
 
 // functionMap contains all the function to expose within the templates
 var functionMap map[string]interface{} = map[string]interface{}{
-	"currency":  currency,
-	"add":       add,
-	"addInt":    addInt,
-	"percent":   percent,
-	"title":     title,
-	"titles":    titles,
-	"lower":     lower,
-	"stripI":    stripI,
-	"day":       day,
-	"dayBefore": dayBefore,
-	"costIdx":   costIdx,
-	"dict":      dict,
-	"col":       col,
+	"currency":      currency,
+	"add":           add,
+	"addInt":        addInt,
+	"percent":       percent,
+	"uptimePercent": uptimePercent,
+	"title":         title,
+	"titles":        titles,
+	"lower":         lower,
+	"stripI":        stripI,
+	"day":           day,
+	"dayBefore":     dayBefore,
+	"costIdx":       costIdx,
+	"dict":          dict,
+	"col":           col,
 }
 
 // ---------

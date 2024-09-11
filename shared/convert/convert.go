@@ -218,15 +218,19 @@ func Dict(values ...any) (dict map[string]any) {
 // Will round to nearest .2
 // Returns <symbol>0.0 by default
 func Curr(s interface{}, symbol string) string {
+	return symbol + FloatString(s, "%.2f")
+}
+
+func FloatString(s interface{}, layout string) string {
 	p := message.NewPrinter(language.English)
 	switch s.(type) {
 	case string:
 		f, _ := strconv.ParseFloat(s.(string), 10)
-		return symbol + p.Sprintf("%.2f", f)
+		return p.Sprintf(layout, f)
 	case float64:
-		return symbol + p.Sprintf("%.2f", s.(float64))
+		return p.Sprintf(layout, s.(float64))
 	}
-	return symbol + "0.0"
+	return "0.00"
 }
 
 // StripIntPrefix removes chunk of string before the first '.'
