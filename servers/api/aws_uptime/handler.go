@@ -91,8 +91,8 @@ func monthly(ctx context.Context, req *request.Request, q *awsu.Queries, r *http
 		start string = req.Param("start", r)
 		end   string = req.Param("end", r)
 	)
-	params := awsu.UptimePerMonthParams{Start: start, End: end}
-	if res, err := q.UptimePerMonth(ctx, params); err == nil {
+	params := awsu.UptimePerMonthUnitParams{Start: start, End: end}
+	if res, err := q.UptimePerMonthUnit(ctx, params); err == nil {
 		results = Common(res)
 	}
 	return
@@ -116,8 +116,8 @@ func daily(ctx context.Context, req *request.Request, q *awsu.Queries, r *http.R
 		start string = req.Param("start", r)
 		end   string = req.Param("end", r)
 	)
-	params := awsu.UptimePerDayParams{Start: start, End: end}
-	if res, err := q.UptimePerDay(ctx, params); err == nil {
+	params := awsu.UptimePerDayUnitParams{Start: start, End: end}
+	if res, err := q.UptimePerDayUnit(ctx, params); err == nil {
 		results = Common(res)
 	}
 	return
