@@ -2,8 +2,8 @@
 # install sqlc
 FROM golang:1.22-alpine AS base
 WORKDIR /app
-ENV CGO_ENABLED=1 GOOS=linux GOBIN=/gobin PATH=$GOBIN:$PATH
 RUN mkdir -p /gobin
+ENV CGO_ENABLED=1 GOOS=linux GOBIN=/gobin PATH=/gobin:$PATH
 RUN update-ca-certificates
 RUN apk --update --no-cache add build-base
 RUN apk --update --no-cache add "sqlite=~3.45"
@@ -24,8 +24,9 @@ RUN mkdir -p /go/bin/api/aws_uptime/data/
 # build stage - runs seeders
 FROM base AS build
 WORKDIR /app
+RUN mkdir -p /gobin
 # setup path vars - make sure gobin is included
-ENV CGO_ENABLED=1 GOOS=linux GOBIN=/gobin PATH=$GOBIN:$PATH
+ENV CGO_ENABLED=1 GOOS=linux GOBIN=/gobin PATH=/gobin:$PATH
 COPY . .
 ###
 # - update sqlc generators
