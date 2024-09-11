@@ -1,11 +1,11 @@
 name: "[Reports] AWS Uptime"
 
 on:
-  pull_request:
-    branches:
-      - "main"
-    paths:
-      - '.github/workflows/report_aws_uptime.yml'
+  # pull_request:
+  #   branches:
+  #     - "main"
+  #   paths:
+  #     - '.github/workflows/report_aws_uptime.yml'
 
   schedule:
     # 5am everyday
