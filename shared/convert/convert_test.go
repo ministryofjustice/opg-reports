@@ -172,7 +172,7 @@ func TestSharedConvertDict(t *testing.T) {
 
 func TestSharedConvertCurr(t *testing.T) {
 
-	if convert.Curr(1, "$") != "$0.0" {
+	if convert.Curr(1, "$") != "$0.00" {
 		t.Errorf("curr should return default when int is passed")
 	}
 
