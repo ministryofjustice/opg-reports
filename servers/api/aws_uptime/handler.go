@@ -67,8 +67,7 @@ func Handler(server *api.ApiServer, w http.ResponseWriter, r *http.Request) {
 		slog.String("end", end),
 		slog.String("start", start))
 
-	// setup apiResponse data
-	// apiResponse.ColumnOrdering = ordering[groupBy]
+	apiResponse.ColumnOrdering = []string{"unit"}
 	// -- run the query
 	apiResponse.Result, _ = StandardQueryResults(server.Ctx, queries, req, r)
 	//

@@ -8,7 +8,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/shared/dates"
 )
 
-func TestServersFrontRowsSkeleton(t *testing.T) {
+func TestSharedDatarowRowsSkeleton(t *testing.T) {
 
 	s := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 	e := time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC)
@@ -39,7 +39,7 @@ func TestServersFrontRowsSkeleton(t *testing.T) {
 
 }
 
-func TestServersFrontRowsDataToRows(t *testing.T) {
+func TestSharedDatarowRowsDataToRows(t *testing.T) {
 	s := time.Date(2024, 5, 1, 0, 0, 0, 0, time.UTC)
 	e := time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC)
 	months := dates.Strings(dates.Range(s, e, dates.MONTH), dates.FormatYM)
@@ -89,7 +89,7 @@ func TestServersFrontRowsDataToRows(t *testing.T) {
 }
 
 // larger dataset
-func TestServersFrontRowsDataToRowsRealistic(t *testing.T) {
+func TestSharedDatarowRowsDataToRowsRealistic(t *testing.T) {
 	values := map[string]string{
 		"interval": "total",
 	}

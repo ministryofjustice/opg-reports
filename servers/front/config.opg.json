@@ -22,6 +22,20 @@
                     ]
                 },
                 {
+                    "name": "Uptime",
+                    "is_header": true,
+                    "navigation": [
+                        {
+                            "name": "By Unit",
+                            "uri": "/aws-uptime/",
+                            "data_sources": {
+                                "list": "/v1/aws-uptime/?end={month:1}"
+                            },
+                            "template": "aws-uptime"
+                        }
+                    ]
+                },
+                {
                     "name": "AWS Costs",
                     "is_header": true,
                     "navigation": [

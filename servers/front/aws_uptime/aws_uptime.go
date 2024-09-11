@@ -1,0 +1,86 @@
+package aws_uptime
+
+import (
+	"log/slog"
+	"net/http"
+
+	"github.com/ministryofjustice/opg-reports/servers/api/aws_uptime"
+	"github.com/ministryofjustice/opg-reports/servers/shared/datarow"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/config/nav"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/template"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/httphandler"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/mw"
+
+	"github.com/ministryofjustice/opg-reports/shared/convert"
+)
+
+const uptimeTemplate string = "aws-uptime"
+
+func decorators(re *aws_uptime.ApiResponse, server *front.FrontServer, navItem *nav.Nav, r *http.Request) {
+	re.Organisation = server.Config.Organisation
+	re.PageTitle = navItem.Name
+	if len(server.Config.Navigation) > 0 {
+		top, active := nav.Level(server.Config.Navigation, r)
+		re.NavigationActive = active
+		re.NavigationTop = top
+		re.NavigationSide = active.Navigation
+	}
+}
+
+func rows(re *aws_uptime.ApiResponse) {
+	mapped, _ := convert.Maps(re.Result)
+	intervals := map[string][]string{"interval": re.DateRange}
+	values := map[string]string{"interval": "average"}
+	re.Rows = datarow.DataRows(mapped, re.Columns, intervals, values)
+}
+
+func Handler(server *front.FrontServer, navItem *nav.Nav, w http.ResponseWriter, r *http.Request) {
+	var (
+		data         interface{}
+		mapData      = map[string]interface{}{}
+		apiSchema    = server.ApiSchema
+		apiAddr      = server.ApiAddr
+		paths        = navItem.DataSources
+		pageTemplate = template.New(navItem.Template, server.Templates, w)
+	)
+	responses, err := httphandler.GetAll(apiSchema, apiAddr, paths)
+	count := len(responses)
+
+	if err != nil {
+		slog.Error("error getting responses")
+	}
+	for key, handler := range responses {
+		api, err := convert.UnmarshalR[*aws_uptime.ApiResponse](handler.Response)
+		if err != nil {
+			return
+		}
+		decorators(api, server, navItem, r)
+		rows(api)
+		if count > 1 {
+			mapData[key] = api
+			data = mapData
+		} else {
+			data = api
+		}
+	}
+
+	pageTemplate.Run(data)
+
+}
+
+func Register(mux *http.ServeMux, frontServer *front.FrontServer) {
+	navigation := frontServer.Config.Navigation
+	handledTemplates := []string{uptimeTemplate}
+	for _, templateName := range handledTemplates {
+		navItems := nav.ForTemplate(templateName, navigation)
+
+		for _, navItem := range navItems {
+			handler := front.Wrap(frontServer, navItem, Handler)
+
+			slog.Info("[front] registering", slog.String("endpoint", "aws_uptime"), slog.String("uri", navItem.Uri), slog.String("handler", "Handler"))
+			mux.HandleFunc(navItem.Uri+"{$}", mw.Middleware(handler, mw.Logging, mw.SecurityHeaders))
+		}
+	}
+
+}

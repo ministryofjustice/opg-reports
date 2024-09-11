@@ -44,7 +44,7 @@ type Counters struct {
 // To be effective, any empty field is omited in the json
 // Converted using `Common` func
 type Result struct {
-	Avgerage interface{} `json:"avgerage,omitempty"`
+	Average  interface{} `json:"average,omitempty"`
 	Interval interface{} `json:"interval,omitempty"`
 	Unit     string      `json:"unit,omitempty"`
 }
@@ -76,7 +76,7 @@ func setIfFound(r *Result, columns map[string]map[string]bool) {
 	mapped, _ := convert.Map(r)
 
 	for k, v := range mapped {
-		if k != "interval" && k != "avgerage" {
+		if k != "interval" && k != "average" {
 			if _, ok := columns[k]; !ok {
 				columns[k] = map[string]bool{}
 			}
