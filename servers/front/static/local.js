@@ -104,7 +104,6 @@ function compareChartRender(container, tableId) {
     var config = {
         title: {text: ""},
         exporting: {enabled: false},
-        tooltip: { valuePrefix: "$" },
         chart: { type: chartType}
     }
 
