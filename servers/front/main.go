@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/ministryofjustice/opg-reports/servers/front/aws_costs"
+	"github.com/ministryofjustice/opg-reports/servers/front/aws_uptime"
 	"github.com/ministryofjustice/opg-reports/servers/front/github_standards"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/config"
@@ -61,6 +62,8 @@ func main() {
 	github_standards.Register(mux, frontServer)
 	// -- aws costs
 	aws_costs.Register(mux, frontServer)
+	// -- aws uptime
+	aws_uptime.Register(mux, frontServer)
 
 	addr := env.Get("FRONT_ADDR", defaultAddr)
 	server := &http.Server{
