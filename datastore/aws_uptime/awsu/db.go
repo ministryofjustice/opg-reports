@@ -36,6 +36,24 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.trackStmt, err = db.PrepareContext(ctx, track); err != nil {
 		return nil, fmt.Errorf("error preparing query Track: %w", err)
 	}
+	if q.uptimePerDayStmt, err = db.PrepareContext(ctx, uptimePerDay); err != nil {
+		return nil, fmt.Errorf("error preparing query UptimePerDay: %w", err)
+	}
+	if q.uptimePerDayFilterByUnitStmt, err = db.PrepareContext(ctx, uptimePerDayFilterByUnit); err != nil {
+		return nil, fmt.Errorf("error preparing query UptimePerDayFilterByUnit: %w", err)
+	}
+	if q.uptimePerDayUnitStmt, err = db.PrepareContext(ctx, uptimePerDayUnit); err != nil {
+		return nil, fmt.Errorf("error preparing query UptimePerDayUnit: %w", err)
+	}
+	if q.uptimePerMonthStmt, err = db.PrepareContext(ctx, uptimePerMonth); err != nil {
+		return nil, fmt.Errorf("error preparing query UptimePerMonth: %w", err)
+	}
+	if q.uptimePerMonthFilterByUnitStmt, err = db.PrepareContext(ctx, uptimePerMonthFilterByUnit); err != nil {
+		return nil, fmt.Errorf("error preparing query UptimePerMonthFilterByUnit: %w", err)
+	}
+	if q.uptimePerMonthUnitStmt, err = db.PrepareContext(ctx, uptimePerMonthUnit); err != nil {
+		return nil, fmt.Errorf("error preparing query UptimePerMonthUnit: %w", err)
+	}
 	if q.youngestStmt, err = db.PrepareContext(ctx, youngest); err != nil {
 		return nil, fmt.Errorf("error preparing query Youngest: %w", err)
 	}
@@ -62,6 +80,36 @@ func (q *Queries) Close() error {
 	if q.trackStmt != nil {
 		if cerr := q.trackStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing trackStmt: %w", cerr)
+		}
+	}
+	if q.uptimePerDayStmt != nil {
+		if cerr := q.uptimePerDayStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing uptimePerDayStmt: %w", cerr)
+		}
+	}
+	if q.uptimePerDayFilterByUnitStmt != nil {
+		if cerr := q.uptimePerDayFilterByUnitStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing uptimePerDayFilterByUnitStmt: %w", cerr)
+		}
+	}
+	if q.uptimePerDayUnitStmt != nil {
+		if cerr := q.uptimePerDayUnitStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing uptimePerDayUnitStmt: %w", cerr)
+		}
+	}
+	if q.uptimePerMonthStmt != nil {
+		if cerr := q.uptimePerMonthStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing uptimePerMonthStmt: %w", cerr)
+		}
+	}
+	if q.uptimePerMonthFilterByUnitStmt != nil {
+		if cerr := q.uptimePerMonthFilterByUnitStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing uptimePerMonthFilterByUnitStmt: %w", cerr)
+		}
+	}
+	if q.uptimePerMonthUnitStmt != nil {
+		if cerr := q.uptimePerMonthUnitStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing uptimePerMonthUnitStmt: %w", cerr)
 		}
 	}
 	if q.youngestStmt != nil {
@@ -106,23 +154,35 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db           DBTX
-	tx           *sql.Tx
-	countStmt    *sql.Stmt
-	insertStmt   *sql.Stmt
-	oldestStmt   *sql.Stmt
-	trackStmt    *sql.Stmt
-	youngestStmt *sql.Stmt
+	db                             DBTX
+	tx                             *sql.Tx
+	countStmt                      *sql.Stmt
+	insertStmt                     *sql.Stmt
+	oldestStmt                     *sql.Stmt
+	trackStmt                      *sql.Stmt
+	uptimePerDayStmt               *sql.Stmt
+	uptimePerDayFilterByUnitStmt   *sql.Stmt
+	uptimePerDayUnitStmt           *sql.Stmt
+	uptimePerMonthStmt             *sql.Stmt
+	uptimePerMonthFilterByUnitStmt *sql.Stmt
+	uptimePerMonthUnitStmt         *sql.Stmt
+	youngestStmt                   *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:           tx,
-		tx:           tx,
-		countStmt:    q.countStmt,
-		insertStmt:   q.insertStmt,
-		oldestStmt:   q.oldestStmt,
-		trackStmt:    q.trackStmt,
-		youngestStmt: q.youngestStmt,
+		db:                             tx,
+		tx:                             tx,
+		countStmt:                      q.countStmt,
+		insertStmt:                     q.insertStmt,
+		oldestStmt:                     q.oldestStmt,
+		trackStmt:                      q.trackStmt,
+		uptimePerDayStmt:               q.uptimePerDayStmt,
+		uptimePerDayFilterByUnitStmt:   q.uptimePerDayFilterByUnitStmt,
+		uptimePerDayUnitStmt:           q.uptimePerDayUnitStmt,
+		uptimePerMonthStmt:             q.uptimePerMonthStmt,
+		uptimePerMonthFilterByUnitStmt: q.uptimePerMonthFilterByUnitStmt,
+		uptimePerMonthUnitStmt:         q.uptimePerMonthUnitStmt,
+		youngestStmt:                   q.youngestStmt,
 	}
 }

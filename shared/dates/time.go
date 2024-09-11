@@ -119,3 +119,11 @@ func BillingDates(when time.Time, billingDay int, months int) (s time.Time, e ti
 
 	return
 }
+
+func StartEnd(when time.Time, months int) (s time.Time, e time.Time) {
+	diff := (0 - (months))
+	e = ResetMonth(when)
+	s = e.AddDate(0, diff, 1)
+	s = ResetMonth(s)
+	return
+}

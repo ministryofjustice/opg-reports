@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/ministryofjustice/opg-reports/servers/api/aws_costs"
+	"github.com/ministryofjustice/opg-reports/servers/api/aws_uptime"
 	"github.com/ministryofjustice/opg-reports/servers/api/github_standards"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/api"
 	"github.com/ministryofjustice/opg-reports/shared/consts"
@@ -18,6 +19,7 @@ import (
 var databases map[string]string = map[string]string{
 	"github_standards": "./github_standards.db",
 	"aws_costs":        "./aws_costs.db",
+	"aws_uptime":       "./aws_uptime.db",
 }
 
 func main() {
@@ -33,7 +35,6 @@ func main() {
 	} else {
 		ghsServer := api.New(ctx, databases["github_standards"])
 		github_standards.Register(mux, ghsServer)
-		// github_standards.Register(ctx, mux, databases["github_standards"])
 	}
 
 	// -- aws costs
@@ -42,7 +43,14 @@ func main() {
 	} else {
 		awscServer := api.New(ctx, databases["aws_costs"])
 		aws_costs.Register(mux, awscServer)
-		// aws_costs.Register(ctx, mux, databases["aws_costs"])
+	}
+
+	// -- aws uptime
+	if !exists.FileOrDir(databases["aws_uptime"]) {
+		slog.Error("database missing for aws_uptime", slog.String("db", databases["aws_uptime"]))
+	} else {
+		awsuServer := api.New(ctx, databases["aws_uptime"])
+		aws_uptime.Register(mux, awsuServer)
 	}
 
 	// -- start the server

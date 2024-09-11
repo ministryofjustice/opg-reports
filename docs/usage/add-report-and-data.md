@@ -29,11 +29,14 @@
   - create new insertion (real data) handler in `./commands/seed/seeder/insertors.go`
   - create new tracker handler n `./commands/seed/seeder/trackers.go`
   - add to api Dockerfile in base and build stages
+- Api:
+  - create a new folder `./servers/api/<report_name>` using `<report_name>` as the package name
+  - add queries you will use the the `./datastore/<report_name>/queries.sql`
+  - create response objects for the data
+  - create handlers
+  -
 
 
-- Update datastore setup
-  - add simple queries (normally an insert) to queries
-- Create seeder for the data
 
 - Add api end point
   - In `./servers/api/` folder path add a new top level folder of the name
