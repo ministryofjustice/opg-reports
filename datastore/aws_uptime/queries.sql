@@ -34,7 +34,7 @@ WHERE
 GROUP BY strftime("%Y-%m", date), unit
 ORDER by strftime("%Y-%m", date) ASC;
 
--- name: UptimePerMonthPerUnit :many
+-- name: UptimePerMonthFilterByUnit :many
 SELECT
     (coalesce(SUM(average), 0) / count(*) ) as avgerage,
     strftime("%Y-%m", date) as interval,
@@ -70,7 +70,7 @@ WHERE
 GROUP BY strftime("%Y-%m-%d", date), unit
 ORDER by strftime("%Y-%m-%d", date) ASC;
 
--- name: UptimePerDayPerUnit :many
+-- name: UptimePerDayFilterByUnit :many
 SELECT
     (coalesce(SUM(average), 0) / count(*) ) as avgerage,
     strftime("%Y-%m-%d", date) as interval,

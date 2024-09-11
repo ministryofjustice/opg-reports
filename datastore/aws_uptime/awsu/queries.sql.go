@@ -73,7 +73,7 @@ func (q *Queries) Track(ctx context.Context, runDate string) error {
 
 const uptimePerDay = `-- name: UptimePerDay :many
 SELECT
-    (coalesce(SUM(average), 0) / count(*) ) as avg,
+    (coalesce(SUM(average), 0) / count(*) ) as avgerage,
     strftime("%Y-%m-%d", date) as interval
 FROM aws_uptime
 WHERE
@@ -89,7 +89,7 @@ type UptimePerDayParams struct {
 }
 
 type UptimePerDayRow struct {
-	Avg      interface{} `json:"avg"`
+	Avgerage interface{} `json:"avgerage"`
 	Interval interface{} `json:"interval"`
 }
 
@@ -102,7 +102,7 @@ func (q *Queries) UptimePerDay(ctx context.Context, arg UptimePerDayParams) ([]U
 	var items []UptimePerDayRow
 	for rows.Next() {
 		var i UptimePerDayRow
-		if err := rows.Scan(&i.Avg, &i.Interval); err != nil {
+		if err := rows.Scan(&i.Avgerage, &i.Interval); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -116,9 +116,9 @@ func (q *Queries) UptimePerDay(ctx context.Context, arg UptimePerDayParams) ([]U
 	return items, nil
 }
 
-const uptimePerDayPerUnit = `-- name: UptimePerDayPerUnit :many
+const uptimePerDayFilterByUnit = `-- name: UptimePerDayFilterByUnit :many
 SELECT
-    (coalesce(SUM(average), 0) / count(*) ) as avg,
+    (coalesce(SUM(average), 0) / count(*) ) as avgerage,
     strftime("%Y-%m-%d", date) as interval,
     unit
 FROM aws_uptime
@@ -130,28 +130,28 @@ GROUP BY strftime("%Y-%m-%d", date), unit
 ORDER by strftime("%Y-%m-%d", date) ASC
 `
 
-type UptimePerDayPerUnitParams struct {
+type UptimePerDayFilterByUnitParams struct {
 	Start string `json:"start"`
 	End   string `json:"end"`
 	Unit  string `json:"unit"`
 }
 
-type UptimePerDayPerUnitRow struct {
-	Avg      interface{} `json:"avg"`
+type UptimePerDayFilterByUnitRow struct {
+	Avgerage interface{} `json:"avgerage"`
 	Interval interface{} `json:"interval"`
 	Unit     string      `json:"unit"`
 }
 
-func (q *Queries) UptimePerDayPerUnit(ctx context.Context, arg UptimePerDayPerUnitParams) ([]UptimePerDayPerUnitRow, error) {
-	rows, err := q.query(ctx, q.uptimePerDayPerUnitStmt, uptimePerDayPerUnit, arg.Start, arg.End, arg.Unit)
+func (q *Queries) UptimePerDayFilterByUnit(ctx context.Context, arg UptimePerDayFilterByUnitParams) ([]UptimePerDayFilterByUnitRow, error) {
+	rows, err := q.query(ctx, q.uptimePerDayFilterByUnitStmt, uptimePerDayFilterByUnit, arg.Start, arg.End, arg.Unit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []UptimePerDayPerUnitRow
+	var items []UptimePerDayFilterByUnitRow
 	for rows.Next() {
-		var i UptimePerDayPerUnitRow
-		if err := rows.Scan(&i.Avg, &i.Interval, &i.Unit); err != nil {
+		var i UptimePerDayFilterByUnitRow
+		if err := rows.Scan(&i.Avgerage, &i.Interval, &i.Unit); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -167,7 +167,7 @@ func (q *Queries) UptimePerDayPerUnit(ctx context.Context, arg UptimePerDayPerUn
 
 const uptimePerDayUnit = `-- name: UptimePerDayUnit :many
 SELECT
-    (coalesce(SUM(average), 0) / count(*) ) as avg,
+    (coalesce(SUM(average), 0) / count(*) ) as avgerage,
     strftime("%Y-%m-%d", date) as interval,
     unit
 FROM aws_uptime
@@ -184,7 +184,7 @@ type UptimePerDayUnitParams struct {
 }
 
 type UptimePerDayUnitRow struct {
-	Avg      interface{} `json:"avg"`
+	Avgerage interface{} `json:"avgerage"`
 	Interval interface{} `json:"interval"`
 	Unit     string      `json:"unit"`
 }
@@ -198,7 +198,7 @@ func (q *Queries) UptimePerDayUnit(ctx context.Context, arg UptimePerDayUnitPara
 	var items []UptimePerDayUnitRow
 	for rows.Next() {
 		var i UptimePerDayUnitRow
-		if err := rows.Scan(&i.Avg, &i.Interval, &i.Unit); err != nil {
+		if err := rows.Scan(&i.Avgerage, &i.Interval, &i.Unit); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -214,7 +214,7 @@ func (q *Queries) UptimePerDayUnit(ctx context.Context, arg UptimePerDayUnitPara
 
 const uptimePerMonth = `-- name: UptimePerMonth :many
 SELECT
-    (coalesce(SUM(average), 0) / count(*) ) as avg,
+    (coalesce(SUM(average), 0) / count(*) ) as avgerage,
     strftime("%Y-%m", date) as interval
 FROM aws_uptime
 WHERE
@@ -230,7 +230,7 @@ type UptimePerMonthParams struct {
 }
 
 type UptimePerMonthRow struct {
-	Avg      interface{} `json:"avg"`
+	Avgerage interface{} `json:"avgerage"`
 	Interval interface{} `json:"interval"`
 }
 
@@ -243,7 +243,7 @@ func (q *Queries) UptimePerMonth(ctx context.Context, arg UptimePerMonthParams) 
 	var items []UptimePerMonthRow
 	for rows.Next() {
 		var i UptimePerMonthRow
-		if err := rows.Scan(&i.Avg, &i.Interval); err != nil {
+		if err := rows.Scan(&i.Avgerage, &i.Interval); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -257,9 +257,9 @@ func (q *Queries) UptimePerMonth(ctx context.Context, arg UptimePerMonthParams) 
 	return items, nil
 }
 
-const uptimePerMonthPerUnit = `-- name: UptimePerMonthPerUnit :many
+const uptimePerMonthFilterByUnit = `-- name: UptimePerMonthFilterByUnit :many
 SELECT
-    (coalesce(SUM(average), 0) / count(*) ) as avg,
+    (coalesce(SUM(average), 0) / count(*) ) as avgerage,
     strftime("%Y-%m", date) as interval,
     unit
 FROM aws_uptime
@@ -271,28 +271,28 @@ GROUP BY strftime("%Y-%m", date), unit
 ORDER by strftime("%Y-%m", date) ASC
 `
 
-type UptimePerMonthPerUnitParams struct {
+type UptimePerMonthFilterByUnitParams struct {
 	Start string `json:"start"`
 	End   string `json:"end"`
 	Unit  string `json:"unit"`
 }
 
-type UptimePerMonthPerUnitRow struct {
-	Avg      interface{} `json:"avg"`
+type UptimePerMonthFilterByUnitRow struct {
+	Avgerage interface{} `json:"avgerage"`
 	Interval interface{} `json:"interval"`
 	Unit     string      `json:"unit"`
 }
 
-func (q *Queries) UptimePerMonthPerUnit(ctx context.Context, arg UptimePerMonthPerUnitParams) ([]UptimePerMonthPerUnitRow, error) {
-	rows, err := q.query(ctx, q.uptimePerMonthPerUnitStmt, uptimePerMonthPerUnit, arg.Start, arg.End, arg.Unit)
+func (q *Queries) UptimePerMonthFilterByUnit(ctx context.Context, arg UptimePerMonthFilterByUnitParams) ([]UptimePerMonthFilterByUnitRow, error) {
+	rows, err := q.query(ctx, q.uptimePerMonthFilterByUnitStmt, uptimePerMonthFilterByUnit, arg.Start, arg.End, arg.Unit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []UptimePerMonthPerUnitRow
+	var items []UptimePerMonthFilterByUnitRow
 	for rows.Next() {
-		var i UptimePerMonthPerUnitRow
-		if err := rows.Scan(&i.Avg, &i.Interval, &i.Unit); err != nil {
+		var i UptimePerMonthFilterByUnitRow
+		if err := rows.Scan(&i.Avgerage, &i.Interval, &i.Unit); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -308,7 +308,7 @@ func (q *Queries) UptimePerMonthPerUnit(ctx context.Context, arg UptimePerMonthP
 
 const uptimePerMonthUnit = `-- name: UptimePerMonthUnit :many
 SELECT
-    (coalesce(SUM(average), 0) / count(*) ) as avg,
+    (coalesce(SUM(average), 0) / count(*) ) as avgerage,
     strftime("%Y-%m", date) as interval,
     unit
 FROM aws_uptime
@@ -325,7 +325,7 @@ type UptimePerMonthUnitParams struct {
 }
 
 type UptimePerMonthUnitRow struct {
-	Avg      interface{} `json:"avg"`
+	Avgerage interface{} `json:"avgerage"`
 	Interval interface{} `json:"interval"`
 	Unit     string      `json:"unit"`
 }
@@ -339,7 +339,7 @@ func (q *Queries) UptimePerMonthUnit(ctx context.Context, arg UptimePerMonthUnit
 	var items []UptimePerMonthUnitRow
 	for rows.Next() {
 		var i UptimePerMonthUnitRow
-		if err := rows.Scan(&i.Avg, &i.Interval, &i.Unit); err != nil {
+		if err := rows.Scan(&i.Avgerage, &i.Interval, &i.Unit); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
