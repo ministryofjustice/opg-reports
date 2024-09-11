@@ -1,11 +1,11 @@
 name: "[Reports] AWS Uptime"
 
 on:
-  # pull_request:
-  #   branches:
-  #     - "main"
-  #   paths:
-  #     - '.github/workflows/report_aws_uptime.yml'
+  pull_request:
+    branches:
+      - "main"
+    paths:
+      - '.github/workflows/report_aws_uptime.yml'
 
   schedule:
     # 5am everyday
@@ -27,6 +27,10 @@ jobs:
     name: "Setup"
     runs-on: ubuntu-latest
     outputs:
+      aws_role_report_runner: "gh-actions-uptime-metrics"
+      report_cmd: "aws_uptime_cmd"
+      report_name: "aws uptime"
+      aws_s3_bucket_path: "aws_uptime"
       aws_s3_bucket: "report-data-development"
       aws_role_s3_upload: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
     steps:
@@ -62,14 +66,14 @@ jobs:
       - name: "Checkout"
         id: checkout
         uses: actions/checkout@v4
-      - name: "Configure AWS credentials for running the report"
+      - name: "Configure AWS credentials for running the report [${{ needs.setup.outputs.aws_role_report_runner }}]"
         id: configure_aws_creds_report
         if: ${{ matrix.type == 'aws' }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: "eu-west-1"
           role-duration-seconds: 900
-          role-to-assume: "arn:aws:iam::${{ matrix.id }}:role/gh-actions-uptime-metrics"
+          role-to-assume: "arn:aws:iam::${{ matrix.id }}:role/${{ needs.setup.outputs.aws_role_report_runner }}"
           role-session-name: opg-reports-get-uptime
       - name: "Run report"
         id: run
@@ -77,9 +81,11 @@ jobs:
         env:
           day: ${{ inputs.day != '' && inputs.day || '-' }}
           unit: ${{ matrix.billing_unit }}
+          name: ${{ needs.setup.outputs.report_name }}
+          cmd: ${{ needs.setup.outputs.report_cmd }}
         with:
-          name: "aws uptime"
-          cmd: "aws_uptime_cmd"
+          name: "${{ env.name }}"
+          cmd: "${{ env.cmd }}"
           arguments: '-day "${{ env.day }}"  -unit "${{ env.unit }}" '
       # configure the aws role
       - name: "Configure AWS credentials for S3 upload"
@@ -91,10 +97,10 @@ jobs:
           role-to-assume: ${{ needs.setup.outputs.aws_role_s3_upload }}
           role-session-name: reports-upload-github-standards-to-s3
 
-      - name: "Upload to s3"
+      - name: "Upload to s3 [${{ needs.setup.outputs.aws_s3_bucket }}/${{ needs.setup.outputs.aws_s3_bucket_path }}]"
         id: upload_to_s3
         uses: ./.github/actions/s3_upload
         with:
           directory: ${{ steps.run.outputs.data_folder }}
           bucket: ${{ needs.setup.outputs.aws_s3_bucket }}
-          bucket_path: "aws_costs"
+          bucket_path: ${{ needs.setup.outputs.aws_s3_bucket_path }}
