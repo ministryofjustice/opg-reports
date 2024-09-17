@@ -8,6 +8,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/servers/shared/datarow"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/config/nav"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/page"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/template"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/httphandler"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/mw"
@@ -17,17 +18,6 @@ import (
 
 const uptimeTemplate string = "aws-uptime"
 
-func decorators(re *aws_uptime.ApiResponse, server *front.FrontServer, navItem *nav.Nav, r *http.Request) {
-	re.Organisation = server.Config.Organisation
-	re.PageTitle = navItem.Name
-	if len(server.Config.Navigation) > 0 {
-		top, active := nav.Level(server.Config.Navigation, r)
-		re.NavigationActive = active
-		re.NavigationTop = top
-		re.NavigationSide = active.Navigation
-	}
-}
-
 func rows(re *aws_uptime.ApiResponse) {
 	mapped, _ := convert.Maps(re.Result)
 	intervals := map[string][]string{"interval": re.DateRange}
@@ -35,40 +25,35 @@ func rows(re *aws_uptime.ApiResponse) {
 	re.Rows = datarow.DataRows(mapped, re.Columns, intervals, values)
 }
 
+// Handler
+// Implements front.FrontHandlerFunc
 func Handler(server *front.FrontServer, navItem *nav.Nav, w http.ResponseWriter, r *http.Request) {
+
 	var (
-		data         interface{}
-		mapData      = map[string]interface{}{}
-		apiSchema    = server.ApiSchema
-		apiAddr      = server.ApiAddr
-		paths        = navItem.DataSources
+		pg           = page.New[*aws_uptime.ApiResponse](server, navItem)
 		pageTemplate = template.New(navItem.Template, server.Templates, w)
 	)
-	responses, err := httphandler.GetAll(apiSchema, apiAddr, paths)
-	count := len(responses)
+	responses, err := httphandler.GetAll(server.ApiSchema, server.ApiAddr, navItem.DataSources)
 
 	if err != nil {
 		slog.Error("error getting responses")
 	}
+	pg.SetNavigation(server, r)
+
 	for key, handler := range responses {
 		api, err := convert.UnmarshalR[*aws_uptime.ApiResponse](handler.Response)
 		if err != nil {
 			return
 		}
-		decorators(api, server, navItem, r)
 		rows(api)
-		if count > 1 {
-			mapData[key] = api
-			data = mapData
-		} else {
-			data = api
-		}
+		pg.Results[key] = api
 	}
 
-	pageTemplate.Run(data)
+	pageTemplate.Run(pg)
 
 }
 
+// Register
 func Register(mux *http.ServeMux, frontServer *front.FrontServer) {
 	navigation := frontServer.Config.Navigation
 	handledTemplates := []string{uptimeTemplate}
