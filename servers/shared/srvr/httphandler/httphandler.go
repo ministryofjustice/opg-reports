@@ -21,6 +21,14 @@ type HttpHandler struct {
 	Url        *url.URL
 }
 
+func (a *HttpHandler) Result() (response *http.Response, err error) {
+	err = a.Get()
+	if err == nil {
+		response = a.Response
+	}
+	return
+}
+
 // Get calls remotedata source methof to fetch it and
 func (a *HttpHandler) Get() (err error) {
 	if err = a.DataSource.Get(); err == nil {
@@ -38,6 +46,7 @@ func New(scheme string, addr string, path string) *HttpHandler {
 	uri := urls.Parse(scheme, addr, path)
 	return &HttpHandler{
 		DataSource: &HttpGet{Url: uri},
+		Response:   nil,
 		Duration:   0.0,
 		StatusCode: 0,
 		Url:        uri,

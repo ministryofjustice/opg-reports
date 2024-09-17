@@ -6,15 +6,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/ministryofjustice/opg-reports/servers/front/aws_costs"
-	"github.com/ministryofjustice/opg-reports/servers/front/aws_uptime"
-	"github.com/ministryofjustice/opg-reports/servers/front/github_standards"
-	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front"
+	"github.com/ministryofjustice/opg-reports/servers/front/server"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/config"
-	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/config/nav"
-	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/page"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/template"
-	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/response"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
 	"github.com/ministryofjustice/opg-reports/shared/env"
 	"github.com/ministryofjustice/opg-reports/shared/govassets"
@@ -30,30 +24,16 @@ func init() {
 	govassets.DownloadAssets()
 }
 
-func homepage(server *front.FrontServer, navItem *nav.Nav, w http.ResponseWriter, r *http.Request) {
-	pageTemplate := template.New("index", server.Templates, w)
-	data := page.New[*response.Response](server, navItem)
-	data.SetNavigation(server, r)
-	pageTemplate.Run(data)
-}
-
 func main() {
 	logger.LogSetup()
 	var (
 		err           error
 		templates     []string
 		configContent []byte
-		ctx           = context.Background()
-		mux           = http.NewServeMux()
+		frontServer   *server.FrontServer
+		ctx           context.Context = context.Background()
+		mux                           = http.NewServeMux()
 	)
-	// handle static assets as directly from file system
-	mux.Handle("/govuk/", http.StripPrefix("/govuk/", http.FileServer(http.Dir("govuk"))))
-	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("govuk/assets"))))
-	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	// favicon ignore
-	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusNotFound)
-	})
 
 	// -- get templates
 	templates = template.GetTemplates(templateDir)
@@ -66,19 +46,13 @@ func main() {
 		return
 	}
 	conf := config.New(configContent)
-
-	frontServer := front.New(ctx, conf, templates)
-	// -- github standards
-	github_standards.Register(mux, frontServer)
-	// -- aws costs
-	aws_costs.Register(mux, frontServer)
-	// -- aws uptime
-	aws_uptime.Register(mux, frontServer)
+	frontServer = server.New(ctx, mux, conf, templates)
+	frontServer.Register()
 
 	// -- if home page is not set, then give a default
-	if !frontServer.HasHomePage() {
+	if !frontServer.HasHomepage() {
 		home := conf.Navigation[0]
-		frontServer.Register(mux, home, homepage)
+		frontServer.RegisterPage(home.Uri, home)
 	}
 
 	addr := env.Get("FRONT_ADDR", defaultAddr)

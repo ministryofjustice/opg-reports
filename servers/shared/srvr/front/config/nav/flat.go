@@ -24,3 +24,9 @@ func Flat(items []*Nav, r *http.Request) (flatMap map[string]*Nav) {
 	}
 	return
 }
+
+func Flattern(items []*Nav) (flatMap map[string]*Nav) {
+	flatMap = map[string]*Nav{}
+	flat(items, flatMap)
+	return
+}
