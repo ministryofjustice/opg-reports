@@ -7,6 +7,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/servers/api/github_standards"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/config/nav"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/page"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/template"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/httphandler"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/mw"
@@ -15,49 +16,29 @@ import (
 
 const templateName string = "github-standards"
 
-func decorators(re *github_standards.GHSResponse, server *front.FrontServer, navItem *nav.Nav, r *http.Request) {
-	re.Organisation = server.Config.Organisation
-	re.PageTitle = navItem.Name
-	if len(server.Config.Navigation) > 0 {
-		top, active := nav.Level(server.Config.Navigation, r)
-		re.NavigationActive = active
-		re.NavigationTop = top
-		re.NavigationSide = active.Navigation
-	}
-}
-
 // ListHandler
 // Implements front.FrontHandlerFunc
 func ListHandler(server *front.FrontServer, navItem *nav.Nav, w http.ResponseWriter, r *http.Request) {
 	var (
-		data         interface{}
-		mapData      = map[string]interface{}{}
-		apiSchema    = server.ApiSchema
-		apiAddr      = server.ApiAddr
-		paths        = navItem.DataSources
-		pageTemplate = template.New(navItem.Template, server.Templates, w)
+		pg           *page.Page[*github_standards.GHSResponse] = page.New[*github_standards.GHSResponse](server, navItem)
+		pageTemplate                                           = template.New(navItem.Template, server.Templates, w)
 	)
-	responses, err := httphandler.GetAll(apiSchema, apiAddr, paths)
-	count := len(responses)
+	responses, err := httphandler.GetAll(server.ApiSchema, server.ApiAddr, navItem.DataSources)
 
 	if err != nil {
 		slog.Error("error getting responses")
 	}
+	pg.SetNavigation(server, r)
+
 	for key, handler := range responses {
-		gh, err := convert.UnmarshalR[*github_standards.GHSResponse](handler.Response)
+		api, err := convert.UnmarshalR[*github_standards.GHSResponse](handler.Response)
 		if err != nil {
 			return
 		}
-		decorators(gh, server, navItem, r)
-		if count > 1 {
-			mapData[key] = gh
-			data = mapData
-		} else {
-			data = gh
-		}
+		pg.Results[key] = api
 	}
 
-	pageTemplate.Run(data)
+	pageTemplate.Run(pg)
 
 }
 
