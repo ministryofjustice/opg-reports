@@ -11,7 +11,6 @@ import (
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/page"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/template"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/httphandler"
-	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/mw"
 
 	"github.com/ministryofjustice/opg-reports/shared/convert"
 )
@@ -74,10 +73,7 @@ func Register(mux *http.ServeMux, frontServer *front.FrontServer) {
 	for _, templateName := range handledTemplates {
 		navItems := nav.ForTemplate(templateName, navigation)
 		for _, navItem := range navItems {
-			handler := front.Wrap(frontServer, navItem, Handler)
-
-			slog.Info("[front] registering", slog.String("endpoint", "aws_costs"), slog.String("uri", navItem.Uri), slog.String("handler", "Handler"))
-			mux.HandleFunc(navItem.Uri+"{$}", mw.Middleware(handler, mw.Logging, mw.SecurityHeaders))
+			frontServer.Register(mux, navItem, Handler)
 		}
 	}
 
