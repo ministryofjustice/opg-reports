@@ -8,6 +8,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/servers/shared/datarow"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/config/nav"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/page"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/template"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/httphandler"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/mw"
@@ -37,39 +38,33 @@ func rows(re *aws_costs.ApiResponse) {
 	re.Rows = datarow.DataRows(mapped, re.Columns, intervals, values)
 }
 
+// Handler
+// Implements front.FrontHandlerFunc
 func Handler(server *front.FrontServer, navItem *nav.Nav, w http.ResponseWriter, r *http.Request) {
+
 	var (
-		data         interface{}
-		mapData      = map[string]interface{}{}
-		apiSchema    = server.ApiSchema
-		apiAddr      = server.ApiAddr
-		paths        = navItem.DataSources
+		pg           = page.New[*aws_costs.ApiResponse](server, navItem)
 		pageTemplate = template.New(navItem.Template, server.Templates, w)
 	)
-	responses, err := httphandler.GetAll(apiSchema, apiAddr, paths)
-	count := len(responses)
+	responses, err := httphandler.GetAll(server.ApiSchema, server.ApiAddr, navItem.DataSources)
 
 	if err != nil {
 		slog.Error("error getting responses")
 	}
+	pg.SetNavigation(server, r)
+
 	for key, handler := range responses {
 		api, err := convert.UnmarshalR[*aws_costs.ApiResponse](handler.Response)
 		if err != nil {
 			return
 		}
-		decorators(api, server, navItem, r)
-		if pageTemplate.TemplateName != ytdTemplate {
+		if key != "ytd" {
 			rows(api)
 		}
-		if count > 1 {
-			mapData[key] = api
-			data = mapData
-		} else {
-			data = api
-		}
+		pg.Results[key] = api
 	}
 
-	pageTemplate.Run(data)
+	pageTemplate.Run(pg)
 
 }
 

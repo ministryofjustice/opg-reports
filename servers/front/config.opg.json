@@ -43,7 +43,7 @@
                             "name": "Year to date",
                             "uri": "/aws-costs/",
                             "data_sources": {
-                                "list": "/v1/aws-costs/ytd/"
+                                "ytd": "/v1/aws-costs/ytd/"
                             },
                             "template": "aws-costs-index"
                         },

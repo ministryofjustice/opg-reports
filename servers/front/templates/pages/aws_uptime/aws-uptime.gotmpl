@@ -1,21 +1,21 @@
 {{ define "aws-uptime" }}
     {{ template "head" . }}
+    {{ $result := .Get "list" }}
 
     <h1 class="govuk-heading-l">AWS Uptime ({{ lower .PageTitle }})</h1>
 
-    <p class="govuk-body">Our production uptime data between <strong>[{{ day .StartDate }}]</strong> and <strong>[{{ dayBefore .EndDate }}]</strong>.</p>
+    <p class="govuk-body">Our production uptime data between <strong>[{{ day $result.StartDate }}]</strong> and <strong>[{{ dayBefore $result.EndDate }}]</strong>.</p>
     <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
-    {{ if .Result }}
+    {{ if $result }}
 
         {{ template "aws-uptime-comparison" . }}
 
-
         <div class='scroller js-compare-table'>
-        {{ template "aws-uptime-table" . }}
+        {{ template "aws-uptime-table" $result }}
         </div>
 
-        {{ template "result-notes" . }}
+        {{ template "result-notes" $result }}
     {{ else }}
         {{ template "no-result" . }}
     {{end}}
