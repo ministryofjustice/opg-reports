@@ -24,6 +24,12 @@ type FrontServer struct {
 	Registered []string
 }
 
+func (fs *FrontServer) HasHomePage() (hasHome bool) {
+	hasHome = slices.Contains(fs.Registered, "/{$}")
+	return
+}
+
+// Register func deals with adding url handling on the mux and tracks urls
 func (fs *FrontServer) Register(mux *http.ServeMux, navItem *nav.Nav, handler FrontHandlerFunc) {
 	var (
 		httpHandler http.HandlerFunc = Wrap(fs, navItem, handler)
