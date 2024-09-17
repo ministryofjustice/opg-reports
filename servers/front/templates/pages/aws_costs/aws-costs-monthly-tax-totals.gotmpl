@@ -1,18 +1,19 @@
 {{ define "aws-costs-monthly-tax-totals" }}
     {{ template "head" . }}
+    {{ $result := .Get "list" }}
 
     <h1 class="govuk-heading-l">AWS Monthly Totals</h1>
 
     <p class="govuk-body">Our AWS costs grouped by month, seperating out the tax charges for easier comparison to finance data.</p>
     <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
-    {{ if .Result }}
+    {{ if $result }}
 
         <div class='scroller js-compare-table hide-service-header'>
-        {{ template "aws-costs-currency-table" . }}
+        {{ template "aws-costs-currency-table" $result  }}
         </div>
 
-        {{ template "result-notes" . }}
+        {{ template "result-notes" $result }}
     {{ else }}
         {{ template "no-result" . }}
     {{end}}
