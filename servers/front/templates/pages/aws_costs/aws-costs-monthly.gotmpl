@@ -1,6 +1,6 @@
 {{ define "aws-costs-monthly" }}
     {{ template "head" . }}
-    {{ $result := .Get "list" }}
+    {{ $result := .Get "costs" }}
 
     <h1 class="govuk-heading-l">AWS Costs ({{ lower .PageTitle }})</h1>
 

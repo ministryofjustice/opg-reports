@@ -3,8 +3,9 @@
     "navigation": [
         {
             "name": "Overview",
-            "uri": "/",
+            "uri": "/overview/",
             "is_header": true,
+            "template": "index",
             "navigation": [
                 {
                     "name": "GitHub",
@@ -12,7 +13,7 @@
                     "navigation": [
                         {
                             "name": "Standards",
-                            "uri": "/github-standards/",
+                            "uri": "/overview/github-standards/",
                             "data_sources": {
                                 "list": "/v1/github-standards/?archived=false"
                             },
@@ -26,9 +27,9 @@
                     "navigation": [
                         {
                             "name": "By Unit",
-                            "uri": "/aws-uptime/",
+                            "uri": "/overview/aws-uptime/",
                             "data_sources": {
-                                "list": "/v1/aws-uptime/?end={month:1}"
+                                "uptime": "/v1/aws-uptime/?end={month:1}"
                             },
                             "template": "aws-uptime"
                         }
@@ -40,7 +41,7 @@
                     "navigation": [
                         {
                             "name": "Overview",
-                            "uri": "/aws-costs/",
+                            "uri": "/overview/aws-costs/",
                             "data_sources": {
                                 "ytd": "/v1/aws-costs/ytd/",
                                 "tax": "/v1/aws-costs/monthly-tax/"
@@ -49,25 +50,25 @@
                         },
                         {
                             "name": "Monthly, per unit",
-                            "uri": "/aws-costs/monthly/units/",
+                            "uri": "/overview/aws-costs/monthly/units/",
                             "data_sources": {
-                                "list": "/v1/aws-costs/?group=unit"
+                                "costs": "/v1/aws-costs/?group=unit"
                             },
                             "template": "aws-costs-monthly"
                         },
                         {
                             "name": "Monthly, per unit & environment",
-                            "uri": "/aws-costs/monthly/unit-environments/",
+                            "uri": "/overview/aws-costs/monthly/unit-environments/",
                             "data_sources": {
-                                "list": "/v1/aws-costs/?group=unit-env&start={billingMonth:-9}&end={billingMonth}"
+                                "costs": "/v1/aws-costs/?group=unit-env&start={billingMonth:-9}&end={billingMonth}"
                             },
                             "template": "aws-costs-monthly"
                         },
                         {
                             "name": "Monthly detailed",
-                            "uri": "/aws-costs/monthly/detailed/",
+                            "uri": "/overview/aws-costs/monthly/detailed/",
                             "data_sources": {
-                                "list": "/v1/aws-costs/?group=detailed&start={billingMonth:-6}&end={billingMonth}"
+                                "costs": "/v1/aws-costs/?group=detailed&start={billingMonth:-6}&end={billingMonth}"
                             },
                             "template": "aws-costs-monthly"
                         }

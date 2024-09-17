@@ -1,14 +1,12 @@
-package page
+package server
 
 import (
 	"net/http"
 
-	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/config/nav"
-	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/response"
 )
 
-type Page[T response.Respond] struct {
+type Page struct {
 	Organisation string
 	PageTitle    string
 
@@ -17,26 +15,32 @@ type Page[T response.Respond] struct {
 	NavigationActive *nav.Nav
 
 	Rows    map[string]map[string]interface{}
-	Results map[string]T
+	Results map[string]interface{}
 }
 
-func (pg *Page[T]) SetNavigation(server *front.FrontServer, request *http.Request) {
+func (pg *Page) SetNavigation(server *FrontServer, request *http.Request) {
 	if len(server.Config.Navigation) > 0 {
 		top, active := nav.Level(server.Config.Navigation, request)
 		pg.NavigationActive = active
 		pg.NavigationTop = top
-		pg.NavigationSide = active.Navigation
+		if active != nil {
+			pg.NavigationSide = active.Navigation
+		}
 	}
 }
 
-func (pg *Page[T]) Get(key string) T {
+func (pg *Page) Get(key string) interface{} {
 	return pg.Results[key]
 }
 
-func New[T response.Respond](server *front.FrontServer, navItem *nav.Nav) *Page[T] {
-	return &Page[T]{
+func NewPage(server *FrontServer, navItem *nav.Nav, request *http.Request) (pg *Page) {
+	pg = &Page{
 		Organisation: server.Config.Organisation,
 		PageTitle:    navItem.Name,
-		Results:      map[string]T{},
+		Results:      server.PageData,
 	}
+	if request != nil {
+		pg.SetNavigation(server, request)
+	}
+	return
 }

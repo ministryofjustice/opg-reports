@@ -22,6 +22,16 @@ import (
 // value
 type replacerFunc func(url string, matched string, modifier string, when *time.Time) string
 
+func YearStart(url string, matched string, modifier string, when *time.Time) (newUrl string) {
+	newUrl = url
+	date := time.Date(when.Year(), 1, 1, 0, 0, 0, 0, time.UTC)
+	if years, err := strconv.Atoi(modifier); err == nil && modifier != "" {
+		date = date.AddDate(years, 0, 0)
+	}
+	newUrl = strings.ReplaceAll(url, matched, date.Format(dates.FormatYM))
+	return
+}
+
 // Month replaces {month} | {month:<modifier>} patterns with a real value
 //
 // Implements replaceFunc
@@ -102,6 +112,7 @@ var functionMap = map[string]replacerFunc{
 	"billingMonth": BillingMonth,
 	"day":          Day,
 	"billingDay":   BillingDay,
+	"yearStart":    YearStart,
 }
 
 // Path takes the original string and converts it to a parsed version
