@@ -11,7 +11,10 @@ import (
 	"github.com/ministryofjustice/opg-reports/servers/front/github_standards"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/config"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/config/nav"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/page"
 	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/template"
+	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/response"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
 	"github.com/ministryofjustice/opg-reports/shared/env"
 	"github.com/ministryofjustice/opg-reports/shared/govassets"
@@ -25,6 +28,13 @@ const templateDir string = "./templates"
 // download gov uk resources as a zip and extract
 func init() {
 	govassets.DownloadAssets()
+}
+
+func homepage(server *front.FrontServer, navItem *nav.Nav, w http.ResponseWriter, r *http.Request) {
+	pageTemplate := template.New("index", server.Templates, w)
+	data := page.New[*response.Response](server, navItem)
+	data.SetNavigation(server, r)
+	pageTemplate.Run(data)
 }
 
 func main() {
@@ -64,6 +74,12 @@ func main() {
 	aws_costs.Register(mux, frontServer)
 	// -- aws uptime
 	aws_uptime.Register(mux, frontServer)
+
+	// -- if home page is not set, then give a default
+	if !frontServer.HasHomePage() {
+		home := conf.Navigation[0]
+		frontServer.Register(mux, home, homepage)
+	}
 
 	addr := env.Get("FRONT_ADDR", defaultAddr)
 	server := &http.Server{
