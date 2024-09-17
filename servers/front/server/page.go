@@ -23,7 +23,9 @@ func (pg *Page) SetNavigation(server *FrontServer, request *http.Request) {
 		top, active := nav.Level(server.Config.Navigation, request)
 		pg.NavigationActive = active
 		pg.NavigationTop = top
-		pg.NavigationSide = active.Navigation
+		if active != nil {
+			pg.NavigationSide = active.Navigation
+		}
 	}
 }
 
