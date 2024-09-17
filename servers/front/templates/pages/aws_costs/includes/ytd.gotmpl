@@ -1,0 +1,8 @@
+{{ define "aws-costs-ytd" }}
+    <h2 class="govuk-heading-m">Year to date</h2>
+
+    {{ $total := costIdx .Result 0 }}
+    <p class="govuk-body">Total AWS Costs between <strong>[{{ day .StartDate }}]</strong> and <strong>[{{ dayBefore .EndDate }}]</strong> are <strong class="currency">{{ currency $total.Total "$" }}</strong></p>
+    {{ template "result-notes" . }}
+
+{{ end }}

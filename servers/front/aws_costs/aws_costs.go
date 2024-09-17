@@ -16,8 +16,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/shared/convert"
 )
 
-const ytdTemplate string = "aws-costs-index"
-const monthlyTaxTemplate string = "aws-costs-monthly-tax-totals"
+const overviewTemplate string = "aws-costs-overview"
 const monthlyTemplate string = "aws-costs-monthly"
 
 func decorators(re *aws_costs.ApiResponse, server *front.FrontServer, navItem *nav.Nav, r *http.Request) {
@@ -70,7 +69,7 @@ func Handler(server *front.FrontServer, navItem *nav.Nav, w http.ResponseWriter,
 
 func Register(mux *http.ServeMux, frontServer *front.FrontServer) {
 	navigation := frontServer.Config.Navigation
-	handledTemplates := []string{ytdTemplate, monthlyTaxTemplate, monthlyTemplate}
+	handledTemplates := []string{overviewTemplate, monthlyTemplate}
 
 	for _, templateName := range handledTemplates {
 		navItems := nav.ForTemplate(templateName, navigation)
