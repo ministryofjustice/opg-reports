@@ -3,8 +3,9 @@
     "navigation": [
         {
             "name": "Overview",
-            "uri": "/",
+            "uri": "/overview/",
             "is_header": true,
+            "template": "index",
             "navigation": [
                 {
                     "name": "GitHub",
@@ -28,7 +29,7 @@
                             "name": "By Unit",
                             "uri": "/aws-uptime/",
                             "data_sources": {
-                                "list": "/v1/aws-uptime/?end={month:1}"
+                                "uptime": "/v1/aws-uptime/?end={month:1}"
                             },
                             "template": "aws-uptime"
                         }
@@ -51,7 +52,7 @@
                             "name": "Monthly, per unit",
                             "uri": "/aws-costs/monthly/units/",
                             "data_sources": {
-                                "list": "/v1/aws-costs/?group=unit"
+                                "costs": "/v1/aws-costs/?group=unit"
                             },
                             "template": "aws-costs-monthly"
                         },
@@ -59,7 +60,7 @@
                             "name": "Monthly, per unit & environment",
                             "uri": "/aws-costs/monthly/unit-environments/",
                             "data_sources": {
-                                "list": "/v1/aws-costs/?group=unit-env&start={billingMonth:-9}&end={billingMonth}"
+                                "costs": "/v1/aws-costs/?group=unit-env&start={billingMonth:-9}&end={billingMonth}"
                             },
                             "template": "aws-costs-monthly"
                         },
@@ -67,7 +68,7 @@
                             "name": "Monthly detailed",
                             "uri": "/aws-costs/monthly/detailed/",
                             "data_sources": {
-                                "list": "/v1/aws-costs/?group=detailed&start={billingMonth:-6}&end={billingMonth}"
+                                "costs": "/v1/aws-costs/?group=detailed&start={billingMonth:-6}&end={billingMonth}"
                             },
                             "template": "aws-costs-monthly"
                         }
