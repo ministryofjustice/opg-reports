@@ -13,7 +13,6 @@
                         {
                             "name": "Standards",
                             "uri": "/github-standards/",
-                            "is_header": true,
                             "data_sources": {
                                 "list": "/v1/github-standards/?archived=false"
                             },
