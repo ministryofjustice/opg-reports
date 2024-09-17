@@ -68,42 +68,6 @@ func Handler(server *front.FrontServer, navItem *nav.Nav, w http.ResponseWriter,
 
 }
 
-// func Handler(server *front.FrontServer, navItem *nav.Nav, w http.ResponseWriter, r *http.Request) {
-// 	var (
-// 		data         interface{}
-// 		mapData      = map[string]interface{}{}
-// 		apiSchema    = server.ApiSchema
-// 		apiAddr      = server.ApiAddr
-// 		paths        = navItem.DataSources
-// 		pageTemplate = template.New(navItem.Template, server.Templates, w)
-// 	)
-// 	responses, err := httphandler.GetAll(apiSchema, apiAddr, paths)
-// 	count := len(responses)
-
-// 	if err != nil {
-// 		slog.Error("error getting responses")
-// 	}
-// 	for key, handler := range responses {
-// 		api, err := convert.UnmarshalR[*aws_costs.ApiResponse](handler.Response)
-// 		if err != nil {
-// 			return
-// 		}
-// 		decorators(api, server, navItem, r)
-// 		if pageTemplate.TemplateName != ytdTemplate {
-// 			rows(api)
-// 		}
-// 		if count > 1 {
-// 			mapData[key] = api
-// 			data = mapData
-// 		} else {
-// 			data = api
-// 		}
-// 	}
-
-// 	pageTemplate.Run(data)
-
-// }
-
 func Register(mux *http.ServeMux, frontServer *front.FrontServer) {
 	navigation := frontServer.Config.Navigation
 	handledTemplates := []string{ytdTemplate, monthlyTaxTemplate, monthlyTemplate}
