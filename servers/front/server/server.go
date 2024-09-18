@@ -35,6 +35,15 @@ func (svr *FrontServer) RegisterPage(uri string, navItem *nav.Nav) {
 	svr.Mux.HandleFunc(uri+suffix, mw.Middleware(frontHandler, mw.Logging, mw.SecurityHeaders))
 }
 
+func (svr *FrontServer) RedirectPage(origin string, destination string) {
+	suffix := "{$}"
+	redirector := func(w http.ResponseWriter, r *http.Request) {
+		slog.Info("[front] redirecting", slog.String("origin", origin), slog.String("destination", destination))
+		http.Redirect(w, r, destination, http.StatusTemporaryRedirect)
+	}
+	svr.Mux.HandleFunc(origin+suffix, mw.Middleware(redirector, mw.Logging, mw.SecurityHeaders))
+}
+
 func (svr *FrontServer) Register() {
 	statics(svr)
 	allNav := nav.Flattern(svr.Config.Navigation)
