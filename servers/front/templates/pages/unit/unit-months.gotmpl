@@ -4,7 +4,9 @@
     {{ $costs := .Get "costs" }}
 
     <h1 class="govuk-heading-l">Last 6 months</h1>
+    {{ if $uptime }}
     <p class="govuk-body">Data shown below is for the period <strong>[{{ day $uptime.StartDate }}]</strong> until <strong>[{{ dayBefore $uptime.EndDate }}]</strong>.</p>
+    {{ end }}
     <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
     {{ if $uptime }}
@@ -31,6 +33,12 @@
         {{ template "result-notes" $costs }}
 
     {{ end }}
+
+    {{ if and $uptime $costs }}
+    {{ else }}
+        {{ template "no-result" . }}
+    {{ end }}
+
 
     {{ template "foot" . }}
 
