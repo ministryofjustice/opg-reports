@@ -78,6 +78,7 @@ func (f *Template) response(data any, status int) {
 func (f *Template) Run(data any) {
 	status := http.StatusOK
 	tmpl, err := template.New(f.TemplateName).Funcs(functionMap).ParseFiles(f.AllTemplates...)
+
 	if err != nil {
 		slog.Error("[front] template run error", slog.String("err", err.Error()))
 		status = http.StatusBadGateway

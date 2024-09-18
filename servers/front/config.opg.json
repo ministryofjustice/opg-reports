@@ -75,6 +75,35 @@
                     ]
                 }
             ]
+        },
+        {
+            "name": "Sirius",
+            "uri": "/unit/sirius/",
+            "is_header": true,
+            "template": "unit-days",
+            "data_sources": {
+                "uptime": "/v1/aws-uptime/?unit=Sirius&interval=DAY&start={day:-14}&end={day}"
+            },
+            "navigation": [
+                {
+                    "name": "Last 14 days",
+                    "uri": "/unit/sirius/last-fourteen-days/",
+                    "template": "unit-days",
+                    "data_sources": {
+                        "uptime": "/v1/aws-uptime/?unit=Sirius&interval=DAY&start={day:-14}&end={day}"
+                    }
+                },
+                {
+                    "name": "Last 6 months",
+                    "uri": "/unit/sirius/last-six-months/",
+                    "template": "unit-months",
+                    "data_sources": {
+                        "uptime": "/v1/aws-uptime/?unit=Sirius&start={billingMonth:-6}&end={billingMonth}",
+                        "costs": "/v1/aws-costs/?group=detailed&unit=Sirius&start={billingMonth:-6}&end={billingMonth}"
+                    }
+                }
+            ]
         }
+
     ]
 }

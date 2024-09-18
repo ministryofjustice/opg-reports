@@ -85,6 +85,7 @@ func generatePage(svr *FrontServer, navItem *nav.Nav, writer http.ResponseWriter
 			handler.Handle(svr.PageData, key, remote, writer, request)
 		}
 	}
+
 	pageData := NewPage(svr, navItem, request)
 	pageTemplate.Run(pageData)
 }

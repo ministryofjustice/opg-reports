@@ -3,11 +3,9 @@
     {{ $result := .Get "uptime" }}
 
     <h1 class="govuk-heading-l">AWS Uptime ({{ lower .PageTitle }})</h1>
-
-    <p class="govuk-body">Our production uptime data between <strong>[{{ day $result.StartDate }}]</strong> and <strong>[{{ dayBefore $result.EndDate }}]</strong>.</p>
-    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
-
     {{ if $result }}
+        <p class="govuk-body">Our production uptime data between <strong>[{{ day $result.StartDate }}]</strong> and <strong>[{{ dayBefore $result.EndDate }}]</strong>.</p>
+        <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
         {{ template "aws-uptime-comparison" $result }}
 
