@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ministryofjustice/opg-reports/servers/shared/srvr/front/config/nav"
 	"github.com/ministryofjustice/opg-reports/shared/convert"
 )
 
@@ -44,13 +43,7 @@ type Response struct {
 	EndDate      string          `json:"end_date"`
 	DateRange    []string        `json:"date_range"`
 
-	// hide all of these, only used on the front reader
-	Organisation     string                            `json:"-"`
-	PageTitle        string                            `json:"-"`
-	NavigationTop    map[string]*nav.Nav               `json:"-"`
-	NavigationSide   []*nav.Nav                        `json:"-"`
-	NavigationActive *nav.Nav                          `json:"-"`
-	Rows             map[string]map[string]interface{} `json:"-"`
+	Rows map[string]map[string]interface{} `json:"-"`
 }
 
 func (rp *Response) StatusGet() int {

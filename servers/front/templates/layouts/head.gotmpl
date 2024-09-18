@@ -23,7 +23,7 @@
 
     </head>
 
-    <body class="govuk-template__body org-reporting">
+    <body class="govuk-template__body org-reporting top-{{ .ActiveSection.ClassName }} pg-{{ .CurrentPage.ClassName }}" id="page-{{ .CurrentPage.ClassName }}">
         {{ template "banner" . }}
         {{ template "top-navigation" . }}
 

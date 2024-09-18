@@ -10,22 +10,25 @@ type Page struct {
 	Organisation string
 	PageTitle    string
 
-	NavigationTop    map[string]*nav.Nav
-	NavigationSide   []*nav.Nav
-	NavigationActive *nav.Nav
+	NavigationTopbarItems  map[string]*nav.Nav
+	ActiveSection          *nav.Nav
+	NavigationSidebarItems []*nav.Nav
+	CurrentPage            *nav.Nav
 
-	Rows    map[string]map[string]interface{}
 	Results map[string]interface{}
 }
 
 func (pg *Page) SetNavigation(server *FrontServer, request *http.Request) {
 	if len(server.Config.Navigation) > 0 {
-		top, active := nav.Level(server.Config.Navigation, request)
-		pg.NavigationActive = active
-		pg.NavigationTop = top
-		if active != nil {
-			pg.NavigationSide = active.Navigation
+		top, activeSection, activePage := nav.Level(server.Config.Navigation, request)
+		pg.ActiveSection = activeSection
+		pg.CurrentPage = activePage
+		pg.NavigationTopbarItems = top
+
+		if activeSection != nil {
+			pg.NavigationSidebarItems = activeSection.Navigation
 		}
+
 	}
 }
 

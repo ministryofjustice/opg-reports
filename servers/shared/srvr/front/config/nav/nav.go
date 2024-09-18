@@ -18,9 +18,11 @@ type Nav struct {
 }
 
 func (n *Nav) ClassName() string {
-	str := "sect-"
-	str = str + strings.ToLower(n.Name)
-	str = strings.ReplaceAll(str, " ", "-")
+	str := n.Uri
+	str = strings.TrimPrefix(str, "/")
+	str = strings.TrimSuffix(str, "/")
+	str = strings.ReplaceAll(str, "/", "-")
+
 	return str
 }
 
