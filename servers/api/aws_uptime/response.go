@@ -2,7 +2,6 @@ package aws_uptime
 
 import (
 	"context"
-	"log/slog"
 	"net/http"
 	"time"
 
@@ -80,7 +79,6 @@ func setIfFound(r *Result, columns map[string]map[string]bool) {
 			if _, ok := columns[k]; !ok {
 				columns[k] = map[string]bool{}
 			}
-			slog.Info(k)
 			columns[k][v.(string)] = true
 		}
 	}
