@@ -52,7 +52,7 @@ func main() {
 	// -- if home page is not set, then give a default
 	if !frontServer.HasHomepage() {
 		home := conf.Navigation[0]
-		frontServer.RegisterPage("/", home)
+		frontServer.RedirectPage("/", home.Uri)
 	}
 
 	addr := env.Get("FRONT_ADDR", defaultAddr)
