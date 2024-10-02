@@ -8,9 +8,9 @@ resource "aws_subnet" "private" {
 
   tags = merge(
     var.tags,
-    { 
-      Name = "${var.tags.application}-private-${data.aws_availability_zones.all.names[count.index]}"
-      Private = "true" 
+    {
+      Name    = "${var.tags.application}-private-${data.aws_availability_zones.all.names[count.index]}"
+      Private = "true"
     },
   )
 }

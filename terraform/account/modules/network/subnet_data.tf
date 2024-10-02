@@ -8,9 +8,9 @@ resource "aws_subnet" "data" {
 
   tags = merge(
     var.tags,
-    { 
-      Name = "${var.tags.application}-data-${data.aws_availability_zones.all.names[count.index]}"
-      Private = "true" 
+    {
+      Name    = "${var.tags.application}-data-${data.aws_availability_zones.all.names[count.index]}"
+      Private = "true"
     },
   )
 }
@@ -24,7 +24,7 @@ resource "aws_route_table_association" "data" {
 resource "aws_route_table" "data" {
   count  = 3
   vpc_id = aws_vpc.main.id
-  
+
   tags = merge(
     var.tags,
     { Name = "${var.tags.application}-data-route-table" },

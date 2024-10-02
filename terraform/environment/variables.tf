@@ -2,6 +2,15 @@ locals {
   environment_name = lower(replace(terraform.workspace, "_", "-"))
   environment      = contains(keys(var.environments), local.environment_name) ? var.environments[local.environment_name] : var.environments["default"]
 
+  config = {
+    development = {
+      dns_prefix = "dev.reports"
+    }
+    production = {
+      dns_prefix = "reports"
+    }
+  }
+
   mandatory_moj_tags = {
     business-unit    = "OPG"
     application      = "opg-reports"
