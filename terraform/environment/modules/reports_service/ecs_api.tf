@@ -4,7 +4,8 @@ resource "aws_ecs_service" "reports_api" {
   task_definition         = aws_ecs_task_definition.reports_api.arn
   desired_count           = 1
   enable_ecs_managed_tags = true
-  platform_version        = null
+  launch_type             = "FARGATE"
+  platform_version        = "1.4.0"
   propagate_tags          = "TASK_DEFINITION"
   wait_for_steady_state   = true
   tags = {
@@ -45,8 +46,8 @@ locals {
     "essential" = true,
     "image"     = "${data.aws_ecr_repository.reports_api.repository_url}:${var.reports_api_tag}",
     portMappings = [{
-      containerPort = 8080,
-      hostPort      = 8080,
+      containerPort = 8081,
+      hostPort      = 8081,
       protocol      = "tcp"
     }],
     logConfiguration = {

@@ -4,9 +4,11 @@ resource "aws_ecs_service" "reports_frontend" {
   task_definition         = aws_ecs_task_definition.reports_frontend.arn
   desired_count           = 1
   enable_ecs_managed_tags = true
-  platform_version        = null
+  launch_type             = "FARGATE"
+  platform_version        = "1.4.0"
   propagate_tags          = "TASK_DEFINITION"
   wait_for_steady_state   = true
+  depends_on              = [aws_alb_target_group.reports_frontend]
   tags = {
     "Name" : "opg-reports-frontend-ecs-service-${var.environment_name}",
     "Version" : var.reports_frontend_tag
@@ -25,7 +27,7 @@ resource "aws_ecs_service" "reports_frontend" {
   load_balancer {
     target_group_arn = aws_alb_target_group.reports_frontend.arn
     container_name   = "opg-reports-frontend"
-    container_port   = 8000
+    container_port   = 8080
   }
 }
 
@@ -51,17 +53,17 @@ locals {
     "essential" = true,
     "image"     = "${data.aws_ecr_repository.reports_frontend.repository_url}:${var.reports_frontend_tag}",
     portMappings = [{
-      containerPort = 8000,
-      hostPort      = 8000,
+      containerPort = 8080,
+      hostPort      = 8080,
       protocol      = "tcp"
     }],
-    healthCheck = {
-      command     = ["CMD-SHELL", "curl -f http://localhost:8000/overview/ || exit 1"],
-      startPeriod = 30,
-      interval    = 15,
-      timeout     = 10,
-      retries     = 3
-    },
+    # healthCheck = {
+    #   command     = ["CMD-SHELL", "curl -f http://localhost:8080/overview/ || exit 1"],
+    #   startPeriod = 30,
+    #   interval    = 15,
+    #   timeout     = 10,
+    #   retries     = 3
+    # },
     logConfiguration = {
       logDriver = "awslogs",
       options = {

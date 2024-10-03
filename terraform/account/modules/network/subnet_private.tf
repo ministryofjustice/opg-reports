@@ -42,3 +42,16 @@ resource "aws_route" "private_nat_gateway" {
     create = "5m"
   }
 }
+
+data "aws_subnets" "private" {
+  filter {
+    name   = "vpc-id"
+    values = [aws_vpc.main.id]
+  }
+
+  filter {
+    name   = "tag:Name"
+    values = ["${var.tags.application}-private-*"]
+  }
+}
+

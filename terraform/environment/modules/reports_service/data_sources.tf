@@ -40,3 +40,12 @@ data "aws_subnets" "public" {
     values = ["${var.tags.application}-public-*"]
   }
 }
+
+data "aws_prefix_list" "s3" {
+  name = "com.amazonaws.${data.aws_region.current.name}.s3"
+}
+
+data "aws_security_group" "vpc_regional_endpoints" {
+  vpc_id = data.aws_vpc.reports.id
+  name   = "${var.tags.application}-vpc-endpoint-access-private-subnets"
+}

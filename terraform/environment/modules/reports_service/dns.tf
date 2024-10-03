@@ -8,7 +8,7 @@ data "aws_route53_zone" "opg_service_justice_gov_uk" {
   name     = local.dns_suffix
 }
 
-resource "aws_route53_record" "response" {
+resource "aws_route53_record" "reports" {
   provider = aws.management
   zone_id  = data.aws_route53_zone.opg_service_justice_gov_uk.zone_id
   name     = local.dns_prefix
@@ -25,7 +25,7 @@ resource "aws_route53_record" "response" {
   }
 }
 
-resource "aws_acm_certificate" "response" {
+resource "aws_acm_certificate" "reports" {
   domain_name       = local.dns_name
   validation_method = "DNS"
 
@@ -36,7 +36,7 @@ resource "aws_acm_certificate" "response" {
 
 resource "aws_route53_record" "validation" {
   for_each = {
-    for dvo in aws_acm_certificate.response.domain_validation_options : dvo.domain_name => {
+    for dvo in aws_acm_certificate.reports.domain_validation_options : dvo.domain_name => {
       name   = dvo.resource_record_name
       record = dvo.resource_record_value
       type   = dvo.resource_record_type
@@ -51,8 +51,8 @@ resource "aws_route53_record" "validation" {
   zone_id         = data.aws_route53_zone.opg_service_justice_gov_uk.id
 }
 
-resource "aws_acm_certificate_validation" "response" {
-  certificate_arn         = aws_acm_certificate.response.arn
+resource "aws_acm_certificate_validation" "reports" {
+  certificate_arn         = aws_acm_certificate.reports.arn
   validation_record_fqdns = [for record in aws_route53_record.validation : record.fqdn]
   depends_on              = [aws_route53_record.validation]
 }

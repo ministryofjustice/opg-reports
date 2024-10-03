@@ -1,5 +1,5 @@
 resource "aws_lb" "reports" {
-  name               = "opg-reports-${var.environment_name}"
+  name_prefix        = "rep-"
   internal           = false
   load_balancer_type = "application"
   subnets            = data.aws_subnets.public.ids
@@ -8,29 +8,33 @@ resource "aws_lb" "reports" {
     aws_security_group.reports_loadbalancer.id,
   ]
 
+  tags = { Name = "opg-reports-alb-${var.environment_name}" }
+
   lifecycle {
     create_before_destroy = true
   }
 }
 
 resource "aws_alb_target_group" "reports_frontend" {
-  name                 = "reports-lb-tg"
-  port                 = 8000
+  name_prefix          = "reptg-"
+  port                 = 8080
   protocol             = "HTTP"
   target_type          = "ip"
   vpc_id               = data.aws_vpc.reports.id
   deregistration_delay = 0
   depends_on           = [aws_lb.reports]
 
-  health_check {
-    protocol            = "HTTP"
-    path                = "/overview/"
-    interval            = 15
-    timeout             = 10
-    healthy_threshold   = 2
-    unhealthy_threshold = 5
-    matcher             = "200"
-  }
+  # health_check {
+  #   protocol            = "HTTP"
+  #   path                = "/overview/"
+  #   interval            = 15
+  #   timeout             = 10
+  #   healthy_threshold   = 2
+  #   unhealthy_threshold = 5
+  #   matcher             = "200"
+  # }
+
+  tags = { Name = "opg-reports-alb-tg-${var.environment_name}" }
 
   lifecycle {
     create_before_destroy = true
@@ -42,7 +46,7 @@ resource "aws_lb_listener" "https" {
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS-1-2-Ext-2018-06"
-  certificate_arn   = aws_acm_certificate_validation.response.certificate_arn
+  certificate_arn   = aws_acm_certificate_validation.reports.certificate_arn
 
   default_action {
     type             = "forward"
@@ -67,7 +71,7 @@ resource "aws_lb_listener" "http" {
 }
 
 resource "aws_security_group" "reports_loadbalancer" {
-  name        = "opg-reports-lb-${var.environment_name}"
+  name_prefix = "opg-reports-lb-${var.environment_name}-"
   description = "Allow inbound traffic"
   vpc_id      = data.aws_vpc.reports.id
 
@@ -76,7 +80,16 @@ resource "aws_security_group" "reports_loadbalancer" {
   }
 }
 
-resource "aws_security_group_rule" "loadbalancer_ingress" {
+resource "aws_security_group_rule" "loadbalancer_ingress_443" {
+  type              = "ingress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.reports_loadbalancer.id
+}
+
+resource "aws_security_group_rule" "loadbalancer_ingress_80" {
   type              = "ingress"
   from_port         = 80
   to_port           = 80
