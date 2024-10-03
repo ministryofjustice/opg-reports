@@ -1,5 +1,5 @@
 resource "aws_security_group" "reports_frontend" {
-  name_prefix                   = "opg-reports-frontend-${var.environment_name}-"
+  name_prefix            = "opg-reports-frontend-${var.environment_name}-"
   revoke_rules_on_delete = true
   vpc_id                 = data.aws_vpc.reports.id
   description            = "OPG Reports Frontend ECS Service"

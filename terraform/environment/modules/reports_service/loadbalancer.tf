@@ -24,15 +24,15 @@ resource "aws_alb_target_group" "reports_frontend" {
   deregistration_delay = 0
   depends_on           = [aws_lb.reports]
 
-  # health_check {
-  #   protocol            = "HTTP"
-  #   path                = "/overview/"
-  #   interval            = 15
-  #   timeout             = 10
-  #   healthy_threshold   = 2
-  #   unhealthy_threshold = 5
-  #   matcher             = "200"
-  # }
+  health_check {
+    protocol            = "HTTP"
+    path                = "/overview/"
+    interval            = 15
+    timeout             = 10
+    healthy_threshold   = 2
+    unhealthy_threshold = 5
+    matcher             = "200"
+  }
 
   tags = { Name = "opg-reports-alb-tg-${var.environment_name}" }
 
@@ -80,29 +80,35 @@ resource "aws_security_group" "reports_loadbalancer" {
   }
 }
 
-resource "aws_security_group_rule" "loadbalancer_ingress_443" {
-  type              = "ingress"
-  from_port         = 443
-  to_port           = 443
-  protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.reports_loadbalancer.id
+module "allow_list" {
+  source = "git@github.com:ministryofjustice/opg-terraform-aws-moj-ip-allow-list.git?ref=v3.0.2"
 }
 
-resource "aws_security_group_rule" "loadbalancer_ingress_80" {
+resource "aws_security_group_rule" "loadbalancer_ingress_http" {
   type              = "ingress"
   from_port         = 80
   to_port           = 80
   protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
+  cidr_blocks       = module.allow_list.moj_global_protect_vpn
   security_group_id = aws_security_group.reports_loadbalancer.id
+  description       = "Loadbalancer HTTP inbound from the MoJ VPN"
+}
+
+resource "aws_security_group_rule" "loadbalancer_ingress_https" {
+  type              = "ingress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  cidr_blocks       = module.allow_list.moj_global_protect_vpn
+  security_group_id = aws_security_group.reports_loadbalancer.id
+  description       = "Loadbalancer HTTPS inbound from the MoJ VPN"
 }
 
 resource "aws_security_group_rule" "loadbalancer_egress" {
-  type              = "egress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.reports_loadbalancer.id
+  type                     = "egress"
+  protocol                 = "tcp"
+  from_port                = 8080
+  to_port                  = 8080
+  security_group_id        = aws_security_group.reports_loadbalancer.id
+  source_security_group_id = aws_security_group.reports_frontend.id
 }
