@@ -22,6 +22,10 @@ resource "aws_ecs_service" "reports_api" {
     subnets          = data.aws_subnets.private.ids
     assign_public_ip = false
   }
+
+  service_registries {
+    registry_arn = aws_service_discovery_service.reports_api.arn
+  }
 }
 
 resource "aws_ecs_task_definition" "reports_api" {
@@ -58,7 +62,30 @@ locals {
         "awslogs-stream-prefix" = "opg-reports-api"
       }
     },
+    environment = [
+      {
+        name  = "API_ADDR",
+        value = ":8081"
+      }
+    ],
     "mountPoints" = [],
     "volumesFrom" = [],
   })
+}
+
+resource "aws_service_discovery_service" "reports_api" {
+  name = "opg-reports-api"
+
+  dns_config {
+    namespace_id   = aws_service_discovery_private_dns_namespace.reports.id
+    routing_policy = "MULTIVALUE"
+    dns_records {
+      ttl  = 10
+      type = "A"
+    }
+  }
+
+  health_check_custom_config {
+    failure_threshold = 1
+  }
 }

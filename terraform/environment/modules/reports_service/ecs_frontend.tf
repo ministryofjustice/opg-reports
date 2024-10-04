@@ -57,13 +57,31 @@ locals {
       hostPort      = 8080,
       protocol      = "tcp"
     }],
-    # healthCheck = {
-    #   command     = ["CMD-SHELL", "curl -f http://localhost:8080/overview/ || exit 1"],
-    #   startPeriod = 30,
-    #   interval    = 15,
-    #   timeout     = 10,
-    #   retries     = 3
-    # },
+    healthCheck = {
+      command     = ["CMD-SHELL", "wget -O /dev/null -S http://localhost:8080/overview/ 2>&1 || exit 1    "],
+      startPeriod = 30,
+      interval    = 15,
+      timeout     = 10,
+      retries     = 3
+    },
+    environment = [
+      {
+        name  = "API_ADDR",
+        value = "http://${aws_service_discovery_service.reports_api.name}.${aws_service_discovery_private_dns_namespace.reports.name}:8081"
+      },
+      {
+        name  = "API_SCHEME",
+        value = "http"
+      },
+      {
+        name  = "FRONT_ADDR",
+        value = ":8080"
+      },
+      {
+        name  = "CONFIG_FILE",
+        value = "./config.json"
+      }
+    ],
     logConfiguration = {
       logDriver = "awslogs",
       options = {
