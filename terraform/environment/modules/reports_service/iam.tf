@@ -1,15 +1,15 @@
 resource "aws_iam_role" "reports_api" {
-  name               = "${var.tags.application}-api"
+  name               = "opg-reports-${var.environment_name}-api"
   assume_role_policy = data.aws_iam_policy_document.ecs_tasks_assume_policy.json
 }
 
 resource "aws_iam_role" "reports_frontend" {
-  name               = "${var.tags.application}-frontend"
+  name               = "opg-reports-${var.environment_name}-frontend"
   assume_role_policy = data.aws_iam_policy_document.ecs_tasks_assume_policy.json
 }
 
 resource "aws_iam_role" "execution_role" {
-  name               = "${var.tags.application}-execution-role"
+  name               = "opg-reports-${var.environment_name}-execution-role"
   assume_role_policy = data.aws_iam_policy_document.ecs_tasks_assume_policy.json
 }
 

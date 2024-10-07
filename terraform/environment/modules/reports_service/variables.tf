@@ -1,4 +1,14 @@
+variable "cloudwatch_log_group" {
+  type = object({
+    name = string
+  })
+}
+
 variable "dns_prefix" {
+  type = string
+}
+
+variable "environment_name" {
   type = string
 }
 
@@ -16,12 +26,6 @@ variable "tags" {
   type = map(string)
 }
 
-variable "environment_name" {
-  type = string
-}
-
-variable "cloudwatch_log_group" {
-  type = object({
-    name = string
-  })
+locals {
+  name_prefix = "${var.tags.application}-${var.tags.environment-name}"
 }
