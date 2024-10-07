@@ -24,7 +24,7 @@ data "aws_iam_policy_document" "s3_vpc_endpoint" {
 }
 
 data "aws_route_tables" "application" {
-  vpc_id            = module.network.vpc.id
+  vpc_id = module.network.vpc.id
 
   filter {
     name   = "tag:Name"
@@ -33,7 +33,7 @@ data "aws_route_tables" "application" {
 }
 
 data "aws_route_tables" "public" {
-  vpc_id            = module.network.vpc.id
+  vpc_id = module.network.vpc.id
 
   filter {
     name   = "tag:Name"
