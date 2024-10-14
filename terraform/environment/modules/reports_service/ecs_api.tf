@@ -32,8 +32,8 @@ resource "aws_ecs_task_definition" "reports_api" {
   family                   = "opg-reports-api-${var.environment_name}"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
-  cpu                      = 256
-  memory                   = 512
+  cpu                      = 1024
+  memory                   = 2048
   container_definitions    = "[${local.reports_api}]"
   task_role_arn            = aws_iam_role.reports_api.arn
   execution_role_arn       = aws_iam_role.execution_role.arn
