@@ -3,6 +3,7 @@ package datastore
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -25,6 +26,29 @@ const (
 	connectionParams string = "?_journal=WAL&_busy_timeout=5000&_vacuum=incremental&_synchronous=NORMAL&_cache_size=1000000000"
 	driverName       string = "sqlite3"
 )
+
+// Generic returns the in value as an interface instead of its original type
+// to allow single types in responses etc
+func Generic(in interface{}, e error) (result interface{}, err error) {
+	err = e
+	if err == nil {
+		result = in
+	}
+	return
+}
+
+// Concreate casts the interface passed to the
+// type T if possible
+// Generally paired with the output for Generic
+func Concreate[T any](in interface{}) (out T, err error) {
+	value, ok := in.(T)
+	if !ok {
+		err = fmt.Errorf("failed to cast item to concreate type")
+	} else {
+		out = value
+	}
+	return
+}
 
 // New will return a sqlite db connection for the databaseFile passed along.
 // If the file does not exist then the an empty databasefile will be created at

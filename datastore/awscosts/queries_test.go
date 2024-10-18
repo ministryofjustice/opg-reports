@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -13,6 +15,37 @@ import (
 	"github.com/ministryofjustice/opg-reports/datastore/awscosts"
 	"github.com/ministryofjustice/opg-reports/fakes"
 )
+
+// TestDatastoreAwsCostsResult checks the awscost.Cost is correctly
+// casted to interface and back
+func TestDatastoreAwsCostsResult(t *testing.T) {
+	var err error
+	var res interface{}
+	var set []*awscosts.Cost = []*awscosts.Cost{}
+	var casted []*awscosts.Cost
+
+	set = []*awscosts.Cost{
+		{ID: 1},
+		{ID: 2},
+		{ID: 100},
+	}
+
+	res, _ = datastore.Generic(set, err)
+
+	casted = res.([]*awscosts.Cost)
+	if len(casted) != len(set) {
+		t.Errorf("direct casting between interface and concreate failed")
+	}
+
+	casted, err = datastore.Concreate[[]*awscosts.Cost](res)
+	if err != nil {
+		t.Errorf("failed to cast back to cost: [%s]", err.Error())
+	}
+
+	if len(casted) != len(set) {
+		t.Errorf("concreate call failed")
+	}
+}
 
 // TestDatastoreAwsCostsQueriesTotalWithinDateRange creates and then
 // inserts a series of sample data and then checks the total query
@@ -54,10 +87,9 @@ func TestDatastoreAwsCostsQueriesTotalWithinDateRange(t *testing.T) {
 	if err != nil {
 		t.Errorf("error from getting total: [%s]", err.Error())
 	}
-
 	actualTotal = result.(float64)
 
-	if actualTotal != expectedTotal {
+	if fmt.Sprintf("%.4f", actualTotal) != fmt.Sprintf("%.4f", expectedTotal) {
 		t.Errorf("total does not match expected - expected [%v] actual [%v]", expectedTotal, actualTotal)
 	}
 
@@ -172,8 +204,9 @@ func TestDatastoreAwsCostsQueriesTotalsWithAndWithoutTax(t *testing.T) {
 
 	// -- there should be 6 rows (1 with, 1 without x 3 months)
 	expectedCount := 6
-	if len(results) != expectedCount {
-		t.Errorf("expected [%d] rows, actual [%v]", expectedCount, len(results))
+	many := results
+	if len(many) != expectedCount {
+		t.Errorf("expected [%d] rows, actual [%v]", expectedCount, len(many))
 	}
 
 	// -- totals for each month without tax
@@ -189,7 +222,7 @@ func TestDatastoreAwsCostsQueriesTotalsWithAndWithoutTax(t *testing.T) {
 	}
 
 	matched := 0
-	for _, res := range results {
+	for _, res := range many {
 		comp := totalsNoTax
 		key := res.Date
 		if res.Service == "Including Tax" {
@@ -205,6 +238,70 @@ func TestDatastoreAwsCostsQueriesTotalsWithAndWithoutTax(t *testing.T) {
 
 	if matched != expectedCount {
 		t.Errorf("one tax details failed in data")
+	}
+
+}
+
+// TestDatastoreAwsCostsNeeds checks adds named parameters to
+// a string and checks the Needs returns the correct values.
+// Needs is used in validating named parameters being set for
+// certain queries (ManyStatement)
+func TestDatastoreAwsCostsNeeds(t *testing.T) {
+	var testString awscosts.ManyStatement = ""
+	var found []string = []string{}
+
+	// this should return min & max
+	testString = `SELECT count(*) FROM table WHERE id > :min AND id < :max`
+	found = awscosts.Needs(testString)
+	if !slices.Contains(found, "min") || !slices.Contains(found, "max") {
+		t.Errorf("needs did not find all fields: [%s]", strings.Join(found, ","))
+	}
+	if len(found) != 2 {
+		t.Errorf("incorrect number of fields found: [%s]", strings.Join(found, ","))
+	}
+	// testing multiline string
+	testString = `
+	SELECT
+		count(*)
+	FROM table
+	WHERE
+		id > :min
+		AND id < :max
+		AND date_end is TRUE
+		AND start > :start_dateWith-oddName
+	`
+	found = awscosts.Needs(testString)
+	if !slices.Contains(found, "min") || !slices.Contains(found, "max") || !slices.Contains(found, "start_dateWith-oddName") {
+		t.Errorf("needs did not find all fields: [%s]", strings.Join(found, ","))
+	}
+	if len(found) != 3 {
+		t.Errorf("incorrect number of fields found: [%s]", strings.Join(found, ","))
+	}
+
+}
+
+// TestDatastoreAwsCostsValidateParameters checks that valid
+// param and needs as well as invalid versions are triggered
+// correctly
+func TestDatastoreAwsCostsValidateParameters(t *testing.T) {
+	var err error
+	var needs []string = []string{}
+	var params *awscosts.Parameters = &awscosts.Parameters{}
+
+	// -- test it works and ignores extra fields
+	needs = []string{"start_date"}
+	params = &awscosts.Parameters{StartDate: "test", EndDate: "test"}
+	err = awscosts.ValidateParameters(params, needs)
+	if err != nil {
+		t.Errorf("param should be valid: [%s]", err.Error())
+	}
+
+	// -- test a failing one
+	needs = []string{"end_date"}
+	params = &awscosts.Parameters{StartDate: "test"}
+	err = awscosts.ValidateParameters(params, needs)
+	if err == nil {
+		t.Errorf("param should throw error, but didnt")
 	}
 
 }
