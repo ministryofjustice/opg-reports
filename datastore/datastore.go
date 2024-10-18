@@ -1,10 +1,51 @@
 package datastore
 
 import (
-	"github.com/ministryofjustice/opg-reports/datastore/aws_costs/awsc"
-	"github.com/ministryofjustice/opg-reports/datastore/github_standards/ghs"
+	"context"
+	"errors"
+	"log/slog"
+	"os"
+	"path/filepath"
+
+	"github.com/jmoiron/sqlx"
+	_ "github.com/mattn/go-sqlite3"
 )
 
-type Record interface {
-	awsc.AwsCost | awsc.AwsCostsTracker | ghs.GithubStandard | ghs.GithubStandardsTracker
+const (
+	connectionParams string = "?_journal=WAL&_busy_timeout=5000&_vacuum=incremental&_synchronous=NORMAL&_cache_size=1000000000"
+	driverName       string = "sqlite3"
+)
+
+// New will return a sqlite db connection for the databaseFile passed along.
+// If the file does not exist then the an empty databasefile will be created at
+// that location
+// If the file does not exist and cannot be created then the an error will be
+// returned
+func New(ctx context.Context, databaseFile string) (db *sqlx.DB, err error) {
+	slog.Debug("[datastore.New] called", slog.String("databaseFile", databaseFile))
+
+	// if there is no error creating the database, then return the connection
+	if err = createDatabaseFile(databaseFile); err == nil {
+		dataSource := databaseFile + connectionParams
+		db, err = sqlx.ConnectContext(ctx, driverName, dataSource)
+	}
+	return
+}
+
+// createDatabaseFile will look for the filepath specified, if it
+// does not exist then it will create the directory path and an empty
+// version of the file
+// Returns an error if os.WriteFile fails, otherwise returns nil
+func createDatabaseFile(databaseFile string) (err error) {
+
+	if _, err = os.Stat(databaseFile); errors.Is(err, os.ErrNotExist) {
+		// create the directory
+		directory := filepath.Dir(databaseFile)
+		os.MkdirAll(directory, os.ModePerm)
+		// write an empty stub file to the location - if there is an error, panic
+		if err = os.WriteFile(databaseFile, []byte(""), os.ModePerm); err != nil {
+			slog.Error("mustCreateDatabaseFile failed", slog.String("err", err.Error()))
+		}
+	}
+	return
 }
