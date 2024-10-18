@@ -11,6 +11,16 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+type dbVariation struct {
+	YearFormat         string
+	YearMonthFormat    string
+	YearMonthDayFormat string
+}
+
+var (
+	Sqlite *dbVariation = &dbVariation{YearFormat: "%Y", YearMonthFormat: "%Y-%m", YearMonthDayFormat: "%Y-%m-%d"}
+)
+
 const (
 	connectionParams string = "?_journal=WAL&_busy_timeout=5000&_vacuum=incremental&_synchronous=NORMAL&_cache_size=1000000000"
 	driverName       string = "sqlite3"
