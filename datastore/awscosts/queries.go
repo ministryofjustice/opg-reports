@@ -10,9 +10,10 @@ import (
 // Parameters are used to as named parameters on sqlx queries
 // via the Query function and cover all possible
 type Parameters struct {
-	StartDate  string `json:"start_date,omitempty" db:"start_date"`    // StartDate is the lower bound of date based query
-	EndDate    string `json:"end_date,omitempty" db:"end_date"`        // EndDate is the upper bound of date based query
-	DateFormat string `json:"date_format,,omitempty" db:"date_format"` // Date format to use for strftime with query
+	StartDate  string `json:"start_date,omitempty" db:"start_date"`   // StartDate is the lower bound of date based query
+	EndDate    string `json:"end_date,omitempty" db:"end_date"`       // EndDate is the upper bound of date based query
+	DateFormat string `json:"date_format,omitempty" db:"date_format"` // Date format to use for strftime with query
+	Unit       string `json:"unit,omitempty" db:"unit"`               // Unit to filter the data by
 }
 
 // SingularStatement is a string used as enum-esque
@@ -80,21 +81,103 @@ WHERE
     AND excTax.date < :end_date
 	AND excTax.service != 'Tax'
 GROUP BY strftime(:date_format, date)
-ORDER by date ASC;
+ORDER by date ASC
+`
+
+// PerUnit groups the cost data by the time period and unit
+// and limits the data to the date range specfied
+// (>= :start_date, < :end_date) returning the SUM costs
+// for each grouping
+const PerUnit ManyStatement = `
+SELECT
+    unit,
+    coalesce(SUM(cost), 0) as cost,
+    strftime(:date_format, date) as date
+FROM aws_costs
+WHERE
+    date >= :start_date
+    AND date < :end_date
+GROUP BY strftime(:date_format, date), unit
+ORDER by strftime(:date_format, date), unit ASC
+`
+
+// PerUnitEnvironment groups cost date by the date period, unit
+// and environment values in the row and restricts the dataset to the
+// date range passed (>= :start_date, < :end_date) returning the
+// SUM of each grouping as `cost`
+// If the environment field is "null" then we default to "production"
+// as several accounts (like managment / identity ) have only one
+// version
+const PerUnitEnvironment ManyStatement = `
+SELECT
+    unit,
+	IIF(environment != "null", environment, "production") as environment,
+    coalesce(SUM(cost), 0) as cost,
+    strftime(:date_format, date) as date
+FROM aws_costs
+WHERE
+    date >= :start_date
+    AND date < :end_date
+GROUP BY strftime(:date_format, date), unit, environment
+ORDER by strftime(:date_format, date), unit, environment ASC
+`
+
+// Detailed is used to show the cost of each type of service per account and
+// org for the time period passed along - allowing to track costs changes
+// for s3 etc overtime at a granular level
+// Limits the data to the date range expressed (>= :start_date, < :end_date)
+const Detailed ManyStatement = `
+SELECT
+    unit,
+	IIF(environment != "null", environment, "production") as environment,
+	organisation,
+	account_id,
+	account_name,
+	label,
+	service,
+    coalesce(SUM(cost), 0) as cost,
+    strftime(:date_format, date) as date
+FROM aws_costs
+WHERE
+    date >= :start_date
+    AND date < :end_date
+GROUP BY strftime(:date_format, date), unit, environment, organisation, account_id, service
+ORDER by strftime(:date_format, date), unit, environment, account_id ASC
+`
+
+// DetailedForUnit is an extension of Detailed and further restricts the data set
+// to match the unit passed
+const DetailedForUnit ManyStatement = `
+SELECT
+    unit,
+	IIF(environment != "null", environment, "production") as environment,
+	organisation,
+	account_id,
+	account_name,
+	label,
+	service,
+    coalesce(SUM(cost), 0) as cost,
+    strftime(:date_format, date) as date
+FROM aws_costs
+WHERE
+    date >= :start_date
+    AND date < :end_date
+	AND unit = :unit
+GROUP BY strftime(:date_format, date), unit, environment, organisation, account_id, service
+ORDER by strftime(:date_format, date), unit, environment, account_id ASC
 `
 
 // Single returns a raw value from a query statments being used - this is typically a counter or the
 // result of a sum operation ran against a series of rows
 //
-// Uses ordered optional arguments instead of named parameters
+// Uses optional, ordered arguments instead of named parameter struct
 func Single(ctx context.Context, db *sqlx.DB, query SingularStatement, args ...interface{}) (result interface{}, err error) {
 
 	switch query {
 	case RowCount:
-		// RowCount has no arguments
-		err = db.GetContext(ctx, &result, string(query))
+		fallthrough
 	case TotalInDateRange:
-		err = db.GetContext(ctx, &result, string(query), args...)
+		fallthrough
 	case TotalInDateRangeWithoutTax:
 		err = db.GetContext(ctx, &result, string(query), args...)
 	default:
@@ -112,6 +195,14 @@ func Many(ctx context.Context, db *sqlx.DB, query ManyStatement, params *Paramet
 
 	switch query {
 	case TotalsWithAndWithoutTax:
+		fallthrough
+	case PerUnit:
+		fallthrough
+	case PerUnitEnvironment:
+		fallthrough
+	case Detailed:
+		fallthrough
+	case DetailedForUnit:
 		if statement, err = db.PrepareNamedContext(ctx, string(query)); err == nil {
 			err = statement.SelectContext(ctx, &results, params)
 		}
