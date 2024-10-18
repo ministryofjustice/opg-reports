@@ -11,11 +11,62 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/ministryofjustice/opg-reports/datastore"
 	"github.com/ministryofjustice/opg-reports/datastore/awscosts"
+	"github.com/ministryofjustice/opg-reports/fakes"
 )
+
+// TestDatastoreAwsCostsQueriesTotalWithinDateRange creates and then
+// inserts a series of sample data and then checks the total query
+// generated matches the total from the sample data
+// Tests Single function
+func TestDatastoreAwsCostsQueriesTotalWithinDateRange(t *testing.T) {
+	var err error
+	var db *sqlx.DB
+	var dir string = t.TempDir()
+	var dbFile string = filepath.Join(dir, "total.db")
+	var ctx context.Context = context.Background()
+	var insertCount int = 10
+	var inserts []*awscosts.Cost = awscosts.Fakes(insertCount)
+	var expectedTotal float64 = 0.0
+	var actualTotal float64 = 0.0
+
+	db, err = datastore.New(ctx, dbFile)
+	defer db.Close()
+	defer os.Remove(dbFile)
+
+	if err != nil {
+		t.Errorf("unexpected error creating new database (%s): [%s]", dbFile, err.Error())
+	}
+
+	awscosts.Create(ctx, db)
+
+	// -- insert the faked items
+	_, err = awscosts.InsertAll(ctx, db, inserts)
+	if err != nil {
+		t.Errorf("failed to insert multiple records:\n [%s]", err.Error())
+	}
+
+	// work out the expected total
+	for _, faked := range inserts {
+		expectedTotal += faked.Value()
+	}
+
+	result, err := awscosts.Single(ctx, db, awscosts.TotalInDateRange, fakes.MinDate, fakes.MaxDate)
+	if err != nil {
+		t.Errorf("error from getting total: [%s]", err.Error())
+	}
+
+	actualTotal = result.(float64)
+
+	if actualTotal != expectedTotal {
+		t.Errorf("total does not match expected - expected [%v] actual [%v]", expectedTotal, actualTotal)
+	}
+
+}
 
 // TestDatastoreAwsCostsQueriesTotalsWithAndWithoutTax creates and seeds
 // a dummy database then runs query for TotalsWithAndWithoutTax to ensure
 // to totals map to the sample data
+// Tests Many function
 func TestDatastoreAwsCostsQueriesTotalsWithAndWithoutTax(t *testing.T) {
 
 	var err error
@@ -114,7 +165,7 @@ func TestDatastoreAwsCostsQueriesTotalsWithAndWithoutTax(t *testing.T) {
 		EndDate:    "2024-04-01",
 		DateFormat: datastore.Sqlite.YearMonthFormat,
 	}
-	results, err := awscosts.Query(ctx, db, awscosts.TotalsWithAndWithoutTax, params)
+	results, err := awscosts.Many(ctx, db, awscosts.TotalsWithAndWithoutTax, params)
 	if err != nil {
 		t.Errorf("unxpected error on query: [%s]", err.Error())
 	}

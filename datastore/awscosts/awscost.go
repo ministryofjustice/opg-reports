@@ -1,5 +1,7 @@
 package awscosts
 
+import "strconv"
+
 // Cost is used to store the data from cost explorer into the database
 type Cost struct {
 	ID int    `json:"id,omitempty" db:"id"` // ID is a generated primary key
@@ -16,4 +18,11 @@ type Cost struct {
 	Service string `json:"service,omitempty" db:"service"` // The AWS service name
 	Date    string `json:"date,omitempty" db:"date"`       // The data the cost was incurred - provided from the cost explorer result
 	Cost    string `json:"cost,omitempty" db:"cost"`       // The actual cost value as a string - without an currency, but is USD by default
+}
+
+func (self *Cost) Value() (cost float64) {
+	if floated, err := strconv.ParseFloat(self.Cost, 10); err == nil {
+		cost = floated
+	}
+	return
 }
