@@ -3,6 +3,8 @@
 //
 // The datastore package also provides common configurations for databases being used
 // in this project
+//
+// Uses sqlx
 package datastore
 
 import (

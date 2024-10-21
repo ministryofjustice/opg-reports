@@ -10,26 +10,6 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// Parameters are used to as named parameters on sqlx queries
-// via the Query function and cover all possible
-type Parameters struct {
-	StartDate  string `json:"start_date,omitempty" db:"start_date"`   // StartDate is the lower bound of date based query
-	EndDate    string `json:"end_date,omitempty" db:"end_date"`       // EndDate is the upper bound of date based query
-	DateFormat string `json:"date_format,omitempty" db:"date_format"` // Date format to use for strftime with query
-	Unit       string `json:"unit,omitempty" db:"unit"`               // Unit to filter the data by
-}
-
-// Map uses json marshal & unmarshal to return a map version of
-// this struct
-func (self *Parameters) Map() (m map[string]string) {
-	m = map[string]string{}
-
-	if bytes, err := json.Marshal(self); err == nil {
-		json.Unmarshal(bytes, &m)
-	}
-	return
-}
-
 // SingularStatement is a string used as enum-esque
 // type contraints for sql queries that return
 // single value as a result and use series of optional
@@ -196,6 +176,26 @@ func GetOne(ctx context.Context, db *sqlx.DB, query SingularStatement, args ...i
 		err = db.GetContext(ctx, &result, string(query), args...)
 	default:
 		err = fmt.Errorf("unknown SingularStatement passed [%v]", query)
+	}
+	return
+}
+
+// Parameters are used to as named parameters on sqlx queries
+// via the Query function and cover all possible
+type Parameters struct {
+	StartDate  string `json:"start_date,omitempty" db:"start_date"`   // StartDate is the lower bound of date based query
+	EndDate    string `json:"end_date,omitempty" db:"end_date"`       // EndDate is the upper bound of date based query
+	DateFormat string `json:"date_format,omitempty" db:"date_format"` // Date format to use for strftime with query
+	Unit       string `json:"unit,omitempty" db:"unit"`               // Unit to filter the data by
+}
+
+// Map uses json marshal & unmarshal to return a map version of
+// this struct
+func (self *Parameters) Map() (m map[string]string) {
+	m = map[string]string{}
+
+	if bytes, err := json.Marshal(self); err == nil {
+		json.Unmarshal(bytes, &m)
 	}
 	return
 }
