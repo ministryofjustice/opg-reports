@@ -89,6 +89,24 @@ GROUP BY strftime(:date_format, date), unit
 ORDER by strftime(:date_format, date), unit ASC
 `
 
+// PerUnitForUnit operates like PerUnit but also filters
+// the result on unit
+// Excludes tax
+const PerUnitForUnit ManyStatement = `
+SELECT
+    unit,
+    coalesce(SUM(cost), 0) as cost,
+    strftime(:date_format, date) as date
+FROM aws_costs
+WHERE
+    date >= :start_date
+    AND date < :end_date
+	AND service != 'Tax'
+	AND unit = :unit
+GROUP BY strftime(:date_format, date), unit
+ORDER by strftime(:date_format, date), unit ASC
+`
+
 // PerUnitEnvironment groups cost date by the date period, unit
 // and environment values in the row and restricts the dataset to the
 // date range passed (>= :start_date, < :end_date) returning the
@@ -108,6 +126,24 @@ WHERE
     date >= :start_date
     AND date < :end_date
 	AND service != 'Tax'
+GROUP BY strftime(:date_format, date), unit, environment
+ORDER by strftime(:date_format, date), unit, environment ASC
+`
+
+// PerUnitEnvironmentForUnit expands PerUnitEnvironment by allowing
+// filtering by unit
+const PerUnitEnvironmentForUnit ManyStatement = `
+SELECT
+    unit,
+	IIF(environment != "null", environment, "production") as environment,
+    coalesce(SUM(cost), 0) as cost,
+    strftime(:date_format, date) as date
+FROM aws_costs
+WHERE
+    date >= :start_date
+    AND date < :end_date
+	AND service != 'Tax'
+	AND unit = :unit
 GROUP BY strftime(:date_format, date), unit, environment
 ORDER by strftime(:date_format, date), unit, environment ASC
 `

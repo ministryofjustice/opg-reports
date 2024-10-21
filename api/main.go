@@ -71,7 +71,7 @@ func main() {
 			OperationID:   "get-homepage",
 			Method:        http.MethodGet,
 			Path:          "/",
-			Summary:       "Simple page to confirm connectivity.",
+			Summary:       "Home",
 			Description:   "Page is here to operate as the root of the API and a simple target to test connectivity with, but returns no reporting data.",
 			DefaultStatus: http.StatusOK,
 		}, func(ctx context.Context, input *struct{}) (homepage *HomepageResponse, err error) {
