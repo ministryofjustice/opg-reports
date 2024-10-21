@@ -9,6 +9,8 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
 	"github.com/danielgtaylor/huma/v2/humacli"
+	"github.com/jmoiron/sqlx"
+	"github.com/ministryofjustice/opg-reports/api/awscosts"
 	"github.com/ministryofjustice/opg-reports/versions"
 )
 
@@ -25,6 +27,10 @@ type Opts struct {
 	Host  string `doc:"Hostname to listen on." default:"localhost"`
 	Port  int    `doc:"Port to listen on." default:"8081"`
 	Spec  bool   `doc:"When true, the openapi spec will be show on server startup" default:"false"`
+}
+
+var dbList map[string]*sqlx.DB = map[string]*sqlx.DB{
+	"awscosts": nil,
 }
 
 func main() {
@@ -53,10 +59,12 @@ func main() {
 
 		// register homepage action that will return an almost empty result
 		huma.Register(api, huma.Operation{
-			OperationID: "get-homepage",
-			Method:      http.MethodGet,
-			Path:        "/",
-			Description: "Simple result for easier testing of connections",
+			OperationID:   "get-homepage",
+			Method:        http.MethodGet,
+			Path:          "/",
+			Summary:       "Simple page to confirm connectivity.",
+			Description:   "Page is here to operate as the root of the API and a simple target to test connectivity with, but returns no reporting data.",
+			DefaultStatus: http.StatusOK,
 		}, func(ctx context.Context, input *struct{}) (homepage *HomepageResponse, err error) {
 			homepage = &HomepageResponse{}
 			homepage.Body.Message = "Successful connection"
@@ -79,4 +87,20 @@ func main() {
 	})
 
 	cli.Run()
+}
+
+// init is used to fetch stored databases from s3
+// or create dummy versions of them
+func init() {
+	var ctx context.Context = context.Background()
+	var err error
+
+	// run the setups
+	costsdb, err := awscosts.Setup(ctx)
+	defer costsdb.Close()
+	if err != nil {
+		panic(err)
+	} else {
+		dbList["awscosts"] = costsdb
+	}
 }
