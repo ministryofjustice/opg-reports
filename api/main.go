@@ -3,13 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
 	"github.com/danielgtaylor/huma/v2/humacli"
-	"github.com/jmoiron/sqlx"
 	"github.com/ministryofjustice/opg-reports/api/awscosts"
 	"github.com/ministryofjustice/opg-reports/versions"
 )
@@ -29,8 +29,17 @@ type Opts struct {
 	Spec  bool   `doc:"When true, the openapi spec will be show on server startup" default:"false"`
 }
 
-var dbList map[string]*sqlx.DB = map[string]*sqlx.DB{
-	"awscosts": nil,
+type apiRegistrationFunc func(api huma.API, dbPath string)
+type apiSetupFunc func(ctx context.Context) (err error)
+
+type apiSegment struct {
+	DbFile       string
+	RegisterFunc apiRegistrationFunc
+	SetupFunc    apiSetupFunc
+}
+
+var segments map[string]*apiSegment = map[string]*apiSegment{
+	"awscosts": {DbFile: "./dbs/awscosts.db", RegisterFunc: awscosts.Register, SetupFunc: awscosts.Setup},
 }
 
 func main() {
@@ -71,6 +80,11 @@ func main() {
 			return
 		})
 
+		// Register the sub helpers
+		for name, segment := range segments {
+			slog.Info("[api.main] registering", slog.String("segment", name))
+			segment.RegisterFunc(api, segment.DbFile)
+		}
 		// run the server
 		hooks.OnStart(func() {
 			server.ListenAndServe()
@@ -95,12 +109,12 @@ func init() {
 	var ctx context.Context = context.Background()
 	var err error
 
-	// run the setups
-	costsdb, err := awscosts.Setup(ctx)
-	defer costsdb.Close()
-	if err != nil {
-		panic(err)
-	} else {
-		dbList["awscosts"] = costsdb
+	for name, segment := range segments {
+		slog.Info("[api.init] running setup", slog.String("segment", name))
+
+		if err = segment.SetupFunc(ctx); err != nil {
+			panic(err)
+		}
+
 	}
 }

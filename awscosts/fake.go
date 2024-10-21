@@ -21,7 +21,7 @@ func Fake() *Cost {
 		Service:      fakes.Choice[string]([]string{"ecs", "ec2", "r53", "s3", "sqs", "tax", "waf", "rds"}),
 		Region:       fakes.Choice[string]([]string{"eu-west-1", "NoRegion", "eu-west-2", "us-east-1"}),
 		Date:         fakes.DateAsStr(fakes.MinDate, fakes.MaxDate, fakes.DateFormat),
-		Cost:         fakes.FloatAsStr(-500.0, 15000),
+		Cost:         fakes.FloatAsStr(-5.0, 10),
 	}
 
 }

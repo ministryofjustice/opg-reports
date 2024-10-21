@@ -2,12 +2,12 @@ package awscosts
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/ministryofjustice/opg-reports/convert"
 )
 
 // SingularStatement is a string used as enum-esque
@@ -22,18 +22,10 @@ SELECT
 	count(*) as row_count
 FROM aws_costs`
 
-// TotalWithinDateRange returns the sum of cost field for all
+// TotalInDateRange returns the sum of cost field for all
 // records with the date range passed (start_date, end_date)
+// Excludes tax
 const TotalInDateRange SingularStatement = `
-SELECT
-    coalesce(SUM(cost), 0) as total
-FROM aws_costs
-WHERE
-    date >= ?
-	AND date < ?
-LIMIT 1
-`
-const TotalInDateRangeWithoutTax SingularStatement = `
 SELECT
     coalesce(SUM(cost), 0) as total
 FROM aws_costs
@@ -82,6 +74,7 @@ ORDER by date ASC
 // and limits the data to the date range specfied
 // (>= :start_date, < :end_date) returning the SUM costs
 // for each grouping
+// Excludes tax
 const PerUnit ManyStatement = `
 SELECT
     unit,
@@ -91,6 +84,7 @@ FROM aws_costs
 WHERE
     date >= :start_date
     AND date < :end_date
+	AND service != 'Tax'
 GROUP BY strftime(:date_format, date), unit
 ORDER by strftime(:date_format, date), unit ASC
 `
@@ -102,6 +96,7 @@ ORDER by strftime(:date_format, date), unit ASC
 // If the environment field is "null" then we default to "production"
 // as several accounts (like managment / identity ) have only one
 // version
+// Excludes tax
 const PerUnitEnvironment ManyStatement = `
 SELECT
     unit,
@@ -112,6 +107,7 @@ FROM aws_costs
 WHERE
     date >= :start_date
     AND date < :end_date
+	AND service != 'Tax'
 GROUP BY strftime(:date_format, date), unit, environment
 ORDER by strftime(:date_format, date), unit, environment ASC
 `
@@ -120,6 +116,7 @@ ORDER by strftime(:date_format, date), unit, environment ASC
 // org for the time period passed along - allowing to track costs changes
 // for s3 etc overtime at a granular level
 // Limits the data to the date range expressed (>= :start_date, < :end_date)
+// Excludes tax
 const Detailed ManyStatement = `
 SELECT
     unit,
@@ -135,12 +132,14 @@ FROM aws_costs
 WHERE
     date >= :start_date
     AND date < :end_date
+	AND service != 'Tax'
 GROUP BY strftime(:date_format, date), unit, environment, organisation, account_id, service
 ORDER by strftime(:date_format, date), unit, environment, account_id ASC
 `
 
 // DetailedForUnit is an extension of Detailed and further restricts the data set
 // to match the unit passed
+// Excludes tax
 const DetailedForUnit ManyStatement = `
 SELECT
     unit,
@@ -156,6 +155,7 @@ FROM aws_costs
 WHERE
     date >= :start_date
     AND date < :end_date
+	AND service != 'Tax'
 	AND unit = :unit
 GROUP BY strftime(:date_format, date), unit, environment, organisation, account_id, service
 ORDER by strftime(:date_format, date), unit, environment, account_id ASC
@@ -171,8 +171,6 @@ func GetOne(ctx context.Context, db *sqlx.DB, query SingularStatement, args ...i
 	case RowCount:
 		fallthrough
 	case TotalInDateRange:
-		fallthrough
-	case TotalInDateRangeWithoutTax:
 		err = db.GetContext(ctx, &result, string(query), args...)
 	default:
 		err = fmt.Errorf("unknown SingularStatement passed [%v]", query)
@@ -180,29 +178,16 @@ func GetOne(ctx context.Context, db *sqlx.DB, query SingularStatement, args ...i
 	return
 }
 
-// Parameters are used to as named parameters on sqlx queries
-// via the Query function and cover all possible
-type Parameters struct {
-	StartDate  string `json:"start_date,omitempty" db:"start_date"`   // StartDate is the lower bound of date based query
-	EndDate    string `json:"end_date,omitempty" db:"end_date"`       // EndDate is the upper bound of date based query
-	DateFormat string `json:"date_format,omitempty" db:"date_format"` // Date format to use for strftime with query
-	Unit       string `json:"unit,omitempty" db:"unit"`               // Unit to filter the data by
-}
-
-// Map uses json marshal & unmarshal to return a map version of
-// this struct
-func (self *Parameters) Map() (m map[string]string) {
-	m = map[string]string{}
-
-	if bytes, err := json.Marshal(self); err == nil {
-		json.Unmarshal(bytes, &m)
-	}
-	return
+type NamedParameters struct {
+	StartDate  string `json:"start_date,omitempty" db:"start_date"`
+	EndDate    string `json:"end_date,omitempty" db:"end_date"`
+	DateFormat string `json:"date_format,omitempty" db:"date_format"`
+	Unit       string `json:"unit,omitempty" db:"unit"`
 }
 
 // GetMany runs the known statement against using the parameters as named values within them and returns the
 // result as a slice of []*Cost
-func GetMany(ctx context.Context, db *sqlx.DB, query ManyStatement, params *Parameters) (results []*Cost, err error) {
+func GetMany(ctx context.Context, db *sqlx.DB, query ManyStatement, params *NamedParameters) (results []*Cost, err error) {
 	var statement *sqlx.NamedStmt
 	results = []*Cost{}
 	// We have a switch as we do want to restrict what queries are allowed
@@ -245,8 +230,11 @@ func Needs(query ManyStatement) (needs []string) {
 
 // ValidateParameters checks if the parameters passed meets all the required
 // needs for the query being run
-func ValidateParameters(params *Parameters, needs []string) (err error) {
-	mapped := params.Map()
+func ValidateParameters(params *NamedParameters, needs []string) (err error) {
+	mapped, err := convert.Map(params)
+	if err != nil {
+		return
+	}
 	if len(mapped) == 0 {
 		err = fmt.Errorf("parameters passed must contain at least one field")
 		return

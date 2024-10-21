@@ -16,37 +16,6 @@ import (
 	"github.com/ministryofjustice/opg-reports/fakes"
 )
 
-// TestDatastoreAwsCostsResult checks the awscost.Cost is correctly
-// casted to interface and back
-func TestDatastoreAwsCostsResult(t *testing.T) {
-	var err error
-	var res interface{}
-	var set []*awscosts.Cost = []*awscosts.Cost{}
-	var casted []*awscosts.Cost
-
-	set = []*awscosts.Cost{
-		{ID: 1},
-		{ID: 2},
-		{ID: 100},
-	}
-
-	res, _ = datastore.Generic(set, err)
-
-	casted = res.([]*awscosts.Cost)
-	if len(casted) != len(set) {
-		t.Errorf("direct casting between interface and concreate failed")
-	}
-
-	casted, err = datastore.Concreate[[]*awscosts.Cost](res)
-	if err != nil {
-		t.Errorf("failed to cast back to cost: [%s]", err.Error())
-	}
-
-	if len(casted) != len(set) {
-		t.Errorf("concreate call failed")
-	}
-}
-
 // TestDatastoreAwsCostsQueriesTotalWithinDateRange creates and then
 // inserts a series of sample data and then checks the total query
 // generated matches the total from the sample data
@@ -192,7 +161,7 @@ func TestDatastoreAwsCostsQueriesTotalsWithAndWithoutTax(t *testing.T) {
 	}
 
 	// -- run the query for a month
-	params := &awscosts.Parameters{
+	params := &awscosts.NamedParameters{
 		StartDate:  "2024-01-01",
 		EndDate:    "2024-04-01",
 		DateFormat: datastore.Sqlite.YearMonthFormat,
@@ -286,11 +255,11 @@ func TestDatastoreAwsCostsNeeds(t *testing.T) {
 func TestDatastoreAwsCostsValidateParameters(t *testing.T) {
 	var err error
 	var needs []string = []string{}
-	var params *awscosts.Parameters = &awscosts.Parameters{}
+	var params *awscosts.NamedParameters = &awscosts.NamedParameters{}
 
 	// -- test it works and ignores extra fields
 	needs = []string{"start_date"}
-	params = &awscosts.Parameters{StartDate: "test", EndDate: "test"}
+	params = &awscosts.NamedParameters{StartDate: "test", EndDate: "test"}
 	err = awscosts.ValidateParameters(params, needs)
 	if err != nil {
 		t.Errorf("param should be valid: [%s]", err.Error())
@@ -298,7 +267,7 @@ func TestDatastoreAwsCostsValidateParameters(t *testing.T) {
 
 	// -- test a failing one
 	needs = []string{"end_date"}
-	params = &awscosts.Parameters{StartDate: "test"}
+	params = &awscosts.NamedParameters{StartDate: "test"}
 	err = awscosts.ValidateParameters(params, needs)
 	if err == nil {
 		t.Errorf("param should throw error, but didnt")

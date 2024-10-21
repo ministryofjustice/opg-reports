@@ -12,8 +12,8 @@ const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 var (
 	DateFormat = time.RFC3339
-	MaxDate    = time.Date(2024, 3, 1, 0, 0, 0, 0, time.UTC)
-	MinDate    = time.Date(2023, 12, 1, 0, 0, 0, 0, time.UTC)
+	MaxDate    = time.Date(2024, 4, 1, 0, 0, 0, 0, time.UTC)
+	MinDate    = time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)
 )
 
 // String generates a random string of `length“ from a fixed set of characters

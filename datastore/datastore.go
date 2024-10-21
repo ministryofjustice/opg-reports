@@ -10,7 +10,6 @@ package datastore
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -34,29 +33,6 @@ var Sqlite *Config = &Config{
 	YearFormat:         "%Y",
 	YearMonthFormat:    "%Y-%m",
 	YearMonthDayFormat: "%Y-%m-%d",
-}
-
-// Generic returns the in value as an interface instead of its original type
-// to allow single types in responses etc
-func Generic(in interface{}, e error) (result interface{}, err error) {
-	err = e
-	if err == nil {
-		result = in
-	}
-	return
-}
-
-// Concreate casts the interface passed to the
-// type T if possible
-// Generally paired with the output for Generic
-func Concreate[T any](in interface{}) (out T, err error) {
-	value, ok := in.(T)
-	if !ok {
-		err = fmt.Errorf("failed to cast item to concreate type")
-	} else {
-		out = value
-	}
-	return
 }
 
 // New will return a sqlite db connection for the databaseFile passed along.
