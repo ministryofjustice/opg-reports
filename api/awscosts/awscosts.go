@@ -9,15 +9,16 @@ import (
 	"github.com/ministryofjustice/opg-reports/fakes"
 )
 
-const awscostsDbFile string = "./dbs/awscosts.db" // relative location of the database
-var awscostsDb *datastore.Config = datastore.Sqlite
+const dbFile string = "./dbs/awscosts.db" // relative location of the database
+var dbCfg *datastore.Config = datastore.Sqlite
 
-// awscostsSetup will download or generate
-// database for the api to operate from
-func Setup(ctx context.Context) (db *sqlx.DB, err error) {
+// Setup will download or generate a database
+// for the api to operate from
+func Setup(ctx context.Context) (err error) {
+	var db *sqlx.DB
 	var isNewDb bool = false
 
-	db, isNewDb, err = datastore.New(ctx, awscostsDb, awscostsDbFile)
+	db, isNewDb, err = datastore.New(ctx, dbCfg, dbFile)
 	if err != nil {
 		return
 	}
