@@ -1,0 +1,4 @@
+# Ignore database and sql files
+*.db
+*.db-*
+*.sql
