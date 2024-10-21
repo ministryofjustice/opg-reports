@@ -62,7 +62,7 @@ func TestDatastoreAwsCostsQueriesTotalWithinDateRange(t *testing.T) {
 	var expectedTotal float64 = 0.0
 	var actualTotal float64 = 0.0
 
-	db, err = datastore.New(ctx, datastore.Sqlite, dbFile)
+	db, _, err = datastore.New(ctx, datastore.Sqlite, dbFile)
 	defer db.Close()
 	defer os.Remove(dbFile)
 
@@ -108,7 +108,7 @@ func TestDatastoreAwsCostsQueriesTotalsWithAndWithoutTax(t *testing.T) {
 	var dbFile string = filepath.Join(dir, "with-without-tax.db")
 	var ctx context.Context = context.Background()
 
-	db, err = datastore.New(ctx, datastore.Sqlite, dbFile)
+	db, _, err = datastore.New(ctx, datastore.Sqlite, dbFile)
 	defer db.Close()
 	defer os.Remove(dbFile)
 

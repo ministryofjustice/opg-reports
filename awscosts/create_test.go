@@ -21,7 +21,7 @@ func TestDatastoreAwsCostsCreateTable(t *testing.T) {
 	var dbFile string = filepath.Join(dir, "created-table.db")
 	var ctx context.Context = context.Background()
 
-	db, err = datastore.New(ctx, datastore.Sqlite, dbFile)
+	db, _, err = datastore.New(ctx, datastore.Sqlite, dbFile)
 	defer db.Close()
 	defer os.Remove(dbFile)
 

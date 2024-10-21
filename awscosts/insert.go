@@ -42,11 +42,12 @@ const insertCosts string = `INSERT INTO aws_costs(
 // It uses a prepared statement to run the write and will return an error if either
 // the preparation failes or if the exec errors
 func InsertOne(ctx context.Context, db *sqlx.DB, cost *Cost) (insertedId int, err error) {
+	slog.Debug("[awscosts.InsertOne]")
 	var statement *sqlx.NamedStmt
 
 	statement, err = db.PrepareNamedContext(ctx, insertCosts)
 	if err != nil {
-		slog.Error("error preparing awscosts insert statment", slog.String("err", err.Error()))
+		slog.Error("[awscosts.InsetOne] error preparing awscosts insert statment", slog.String("err", err.Error()))
 		return
 	}
 	err = statement.GetContext(ctx, &insertedId, cost)
@@ -65,6 +66,7 @@ func InsertOne(ctx context.Context, db *sqlx.DB, cost *Cost) (insertedId int, er
 //
 // Designed for data import steps to allow large numbers (millions) to be inserted quickly (< 60 seconds)
 func InsertMany(ctx context.Context, db *sqlx.DB, costs []*Cost) (insertedIds []int, err error) {
+	slog.Debug("[awscosts.InsertMany]", slog.Int("count to insert", len(costs)))
 	var errs []error = []error{}
 
 	var transactionOptions *sql.TxOptions = &sql.TxOptions{ReadOnly: false, Isolation: sql.LevelDefault}
@@ -110,12 +112,12 @@ func InsertMany(ctx context.Context, db *sqlx.DB, costs []*Cost) (insertedIds []
 	// commit the transaction
 	err = transaction.Commit()
 	if err != nil {
-		slog.Error("error commiting inserts: [%s]", slog.String("err", err.Error()))
+		slog.Error("[awscosts.InsertMany] error commiting inserts: [%s]", slog.String("err", err.Error()))
 	}
 
 	// stop the timer and output the duration details
 	mainTimer.Stop()
-	slog.Info("multi insert timer", slog.Int("count", len(costs)), slog.Float64("duration", mainTimer.Duration()))
+	slog.Info("[awscosts.InsertMany] timer", slog.Int("count", len(costs)), slog.Float64("duration", mainTimer.Duration()))
 
 	// an error has happened in the go func loops, merge all of them into error
 	if len(errs) > 0 {
@@ -124,13 +126,13 @@ func InsertMany(ctx context.Context, db *sqlx.DB, costs []*Cost) (insertedIds []
 	}
 	// if the count between the requested and actual items dont match, set an error
 	if len(insertedIds) != len(costs) {
-		mismatch := fmt.Errorf("error inserting multiple records - expected [%d] inserts, buy only have [%v] ids", len(costs), len(insertedIds))
+		mismatch := fmt.Errorf("[awscosts.InsertMany] error inserting multiple records - expected [%d] inserts, buy only have [%v] ids", len(costs), len(insertedIds))
 		err = errors.Join(err, mismatch)
 	}
 
 	// rollback if any error if found
 	if err != nil {
-		slog.Info("errors found in multiple inserts, rolling back")
+		slog.Info("[awscosts.InsertMany] errors found in multiple inserts, rolling back")
 		transaction.Rollback()
 	}
 

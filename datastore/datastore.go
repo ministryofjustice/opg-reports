@@ -64,11 +64,11 @@ func Concreate[T any](in interface{}) (out T, err error) {
 // that location
 // If the file does not exist and cannot be created then the an error will be
 // returned
-func New(ctx context.Context, variant *Config, databaseFile string) (db *sqlx.DB, err error) {
+func New(ctx context.Context, variant *Config, databaseFile string) (db *sqlx.DB, isNew bool, err error) {
 	slog.Debug("[datastore.New] called", slog.String("databaseFile", databaseFile))
 
 	// if there is no error creating the database, then return the connection
-	if err = createDatabaseFile(databaseFile); err == nil {
+	if isNew, err = createDatabaseFile(databaseFile); err == nil {
 		dataSource := databaseFile + variant.Connection
 		db, err = sqlx.ConnectContext(ctx, variant.DriverName, dataSource)
 	}
@@ -79,9 +79,11 @@ func New(ctx context.Context, variant *Config, databaseFile string) (db *sqlx.DB
 // does not exist then it will create the directory path and an empty
 // version of the file
 // Returns an error if os.WriteFile fails, otherwise returns nil
-func createDatabaseFile(databaseFile string) (err error) {
-
+func createDatabaseFile(databaseFile string) (isNew bool, err error) {
+	isNew = false
 	if _, err = os.Stat(databaseFile); errors.Is(err, os.ErrNotExist) {
+		isNew = true
+		slog.Debug("[datastore.New] creating new database file", slog.String("databaseFile", databaseFile))
 		// create the directory
 		directory := filepath.Dir(databaseFile)
 		os.MkdirAll(directory, os.ModePerm)

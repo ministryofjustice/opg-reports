@@ -23,7 +23,7 @@ func TestDatastoreAwsCostsInsertItems(t *testing.T) {
 	var insertCount int = 5
 	var inserts []*awscosts.Cost = awscosts.Fakes(insertCount)
 
-	db, err = datastore.New(ctx, datastore.Sqlite, dbFile)
+	db, _, err = datastore.New(ctx, datastore.Sqlite, dbFile)
 	defer db.Close()
 	defer os.Remove(dbFile)
 
@@ -68,7 +68,7 @@ func TestDatastoreAwsCostsInsertAll(t *testing.T) {
 	var inserts []*awscosts.Cost = awscosts.Fakes(insertCount)
 	var ids []int = []int{}
 
-	db, err = datastore.New(ctx, datastore.Sqlite, dbFile)
+	db, _, err = datastore.New(ctx, datastore.Sqlite, dbFile)
 	defer db.Close()
 	defer os.Remove(dbFile)
 

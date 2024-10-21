@@ -16,17 +16,21 @@ import (
 func TestDatastoreNewCreatesDbFile(t *testing.T) {
 	var err error
 	var db *sqlx.DB
+	var isNew bool = true
 
 	dir := t.TempDir()
 	file := filepath.Join(dir, "file-does-not-exist.db")
 	defer os.Remove(file)
 
-	db, err = datastore.New(context.Background(), datastore.Sqlite, file)
+	db, isNew, err = datastore.New(context.Background(), datastore.Sqlite, file)
 	defer db.Close()
 	if err != nil {
 		t.Errorf("error from datastore.New: %s", err.Error())
 	}
 
+	if !isNew {
+		t.Errorf("new database should have returned as being new")
+	}
 	// fail if there is an error stating the file
 	if _, err = os.Stat(file); err != nil {
 		t.Errorf("datastore.New did not create file (%s): [%s]", file, err.Error())
@@ -43,7 +47,7 @@ func TestDatastoreNewPing(t *testing.T) {
 	file := filepath.Join(dir, "ping.db")
 	defer os.Remove(file)
 
-	db, err := datastore.New(ctx, datastore.Sqlite, file)
+	db, _, err := datastore.New(ctx, datastore.Sqlite, file)
 	defer db.Close()
 
 	if err != nil {

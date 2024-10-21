@@ -26,6 +26,52 @@ func Fake() *Cost {
 
 }
 
+// FakeFrom is like Fake, but only adds fake data is it doesnt exist already on the cost
+// struct passed
+func FakeFrom(cost *Cost) *Cost {
+	// generate a fake version of cost to start with
+	faked := Fake()
+
+	if cost.ID == 0 {
+		cost.ID = faked.ID
+	}
+	if cost.Ts == "" {
+		cost.Ts = faked.Ts
+	}
+	if cost.Organisation == "" {
+		cost.Organisation = faked.Organisation
+	}
+	if cost.AccountID == "" {
+		cost.AccountID = faked.AccountID
+	}
+	if cost.AccountName == "" {
+		cost.AccountName = faked.AccountName
+	}
+	if cost.Unit == "" {
+		cost.Unit = faked.Unit
+	}
+	if cost.Label == "" {
+		cost.Label = faked.Label
+	}
+	if cost.Environment == "" {
+		cost.Environment = faked.Environment
+	}
+	if cost.Service == "" {
+		cost.Service = faked.Service
+	}
+	if cost.Region == "" {
+		cost.Region = faked.Region
+	}
+	if cost.Date == "" {
+		cost.Date = faked.Date
+	}
+	if cost.Cost == "" {
+		cost.Cost = faked.Cost
+	}
+
+	return cost
+}
+
 // Fakes generates multiple fake Costs (based on count passed) as is a
 // wrapper for Fake
 func Fakes(count int) (fakes []*Cost) {
@@ -33,6 +79,14 @@ func Fakes(count int) (fakes []*Cost) {
 
 	for i := 0; i < count; i++ {
 		fakes = append(fakes, Fake())
+	}
+	return
+}
+
+func FakesFrom(count int, base *Cost) (fakes []*Cost) {
+	fakes = []*Cost{}
+	for i := 0; i < count; i++ {
+		fakes = append(fakes, FakeFrom(base))
 	}
 	return
 }
