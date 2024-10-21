@@ -16,7 +16,7 @@ import (
 
 type HomepageResponse struct {
 	Body struct {
-		Message string `json:"message" example:"Simple message for confirmining a connection."`
+		Message string `json:"message" example:"Successful connection."`
 	}
 }
 
@@ -45,9 +45,6 @@ var segments map[string]*apiSegment = map[string]*apiSegment{
 func main() {
 
 	cli := humacli.New(func(hooks humacli.Hooks, opts *Opts) {
-		// output info that the server is starting
-		fmt.Printf("Starting api server \n  debug: \t%v\n  host: \t%s\n  port: \t%d\n\nSee [http://%s:%d/docs] for openapi spec.\n",
-			opts.Debug, opts.Host, opts.Port, opts.Host, opts.Port)
 
 		// create the server
 		mux := http.NewServeMux()
@@ -66,7 +63,7 @@ func main() {
 			Method:        http.MethodGet,
 			Path:          "/",
 			Summary:       "Home",
-			Description:   "Page is here to operate as the root of the API and a simple target to test connectivity with, but returns no reporting data.",
+			Description:   "Operates as the root of the API and a simple endpoint to test connectivity with, but returns no reporting data.",
 			DefaultStatus: http.StatusOK,
 		}, func(ctx context.Context, input *struct{}) (homepage *HomepageResponse, err error) {
 			homepage = &HomepageResponse{}
@@ -74,10 +71,12 @@ func main() {
 			return
 		})
 
-		// Register the sub helpers
-		for name, segment := range segments {
-			slog.Info("[api.main] registering", slog.String("segment", name))
-			segment.RegisterFunc(api, segment.DbFile)
+		if !opts.Spec {
+			// Register the sub helpers
+			for name, segment := range segments {
+				slog.Info("[api.main] registering", slog.String("segment", name))
+				segment.RegisterFunc(api, segment.DbFile)
+			}
 		}
 		// run the server or show the spec
 		hooks.OnStart(func() {
@@ -85,6 +84,13 @@ func main() {
 				bytes, _ := api.OpenAPI().YAML()
 				fmt.Println(string(bytes))
 			} else {
+				// output info that the server is starting
+				slog.Info("Starting api server.",
+					slog.Bool("debug", opts.Debug),
+					slog.Bool("spec", opts.Spec),
+					slog.String("host", opts.Host),
+					slog.Int("port", opts.Port))
+				slog.Info(fmt.Sprintf("Docs: [http://%s:%d/docs]", opts.Host, opts.Port))
 				server.ListenAndServe()
 			}
 		})
@@ -109,7 +115,7 @@ func init() {
 	var err error
 
 	for name, segment := range segments {
-		slog.Info("[api.init] running setup", slog.String("segment", name))
+		slog.Debug("[api.init] running setup", slog.String("segment", name))
 
 		if err = segment.SetupFunc(ctx); err != nil {
 			panic(err)
