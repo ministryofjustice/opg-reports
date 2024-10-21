@@ -60,12 +60,6 @@ func main() {
 		versionStr := fmt.Sprintf("%s [%s] (%s)", versions.Build, versions.Timestamp, versions.Commit)
 		api := humago.New(mux, huma.DefaultConfig("Reporting API", versionStr))
 
-		// output the schema if set
-		if opts.Spec {
-			bytes, _ := api.OpenAPI().YAML()
-			fmt.Println(string(bytes))
-		}
-
 		// register homepage action that will return an almost empty result
 		huma.Register(api, huma.Operation{
 			OperationID:   "get-homepage",
@@ -85,9 +79,14 @@ func main() {
 			slog.Info("[api.main] registering", slog.String("segment", name))
 			segment.RegisterFunc(api, segment.DbFile)
 		}
-		// run the server
+		// run the server or show the spec
 		hooks.OnStart(func() {
-			server.ListenAndServe()
+			if opts.Spec {
+				bytes, _ := api.OpenAPI().YAML()
+				fmt.Println(string(bytes))
+			} else {
+				server.ListenAndServe()
+			}
 		})
 
 		// graceful shutdown
