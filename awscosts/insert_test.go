@@ -23,7 +23,7 @@ func TestDatastoreAwsCostsInsertItems(t *testing.T) {
 	var insertCount int = 5
 	var inserts []*awscosts.Cost = awscosts.Fakes(insertCount)
 
-	db, err = datastore.New(ctx, dbFile)
+	db, err = datastore.New(ctx, datastore.Sqlite, dbFile)
 	defer db.Close()
 	defer os.Remove(dbFile)
 
@@ -33,7 +33,7 @@ func TestDatastoreAwsCostsInsertItems(t *testing.T) {
 	awscosts.Create(ctx, db)
 
 	for _, item := range inserts {
-		_, err := awscosts.Insert(ctx, db, item)
+		_, err := awscosts.InsertOne(ctx, db, item)
 		if err != nil {
 			t.Errorf("failed to insert awscost item: [%s]", err.Error())
 		}
@@ -68,7 +68,7 @@ func TestDatastoreAwsCostsInsertAll(t *testing.T) {
 	var inserts []*awscosts.Cost = awscosts.Fakes(insertCount)
 	var ids []int = []int{}
 
-	db, err = datastore.New(ctx, dbFile)
+	db, err = datastore.New(ctx, datastore.Sqlite, dbFile)
 	defer db.Close()
 	defer os.Remove(dbFile)
 
@@ -77,7 +77,7 @@ func TestDatastoreAwsCostsInsertAll(t *testing.T) {
 	}
 	awscosts.Create(ctx, db)
 
-	ids, err = awscosts.InsertAll(ctx, db, inserts)
+	ids, err = awscosts.InsertMany(ctx, db, inserts)
 	if err != nil {
 		t.Errorf("failed to insert multiple records:\n [%s]", err.Error())
 	}

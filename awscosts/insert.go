@@ -38,10 +38,10 @@ const insertCosts string = `INSERT INTO aws_costs(
 	:cost
 ) RETURNING id`
 
-// Insert writes the values of cost into the database and returns the id of that row
+// InsertOne writes the values of cost into the database and returns the id of that row
 // It uses a prepared statement to run the write and will return an error if either
 // the preparation failes or if the exec errors
-func Insert(ctx context.Context, db *sqlx.DB, cost *Cost) (insertedId int, err error) {
+func InsertOne(ctx context.Context, db *sqlx.DB, cost *Cost) (insertedId int, err error) {
 	var statement *sqlx.NamedStmt
 
 	statement, err = db.PrepareNamedContext(ctx, insertCosts)
@@ -54,7 +54,7 @@ func Insert(ctx context.Context, db *sqlx.DB, cost *Cost) (insertedId int, err e
 	return
 }
 
-// InsertAll utilises go func concurrency (with mutex locking) to generate a series of transations
+// InsertMany utilises go func concurrency (with mutex locking) to generate a series of transations
 // to insert mutiple entries at the same time in a more performant fashion then looping and calling
 // Insert.
 // Errors and insert id's are tracked and returned. An error on a particular insert does not stop the
@@ -64,7 +64,7 @@ func Insert(ctx context.Context, db *sqlx.DB, cost *Cost) (insertedId int, err e
 // If any error is found then a Rollback is automatically triggered
 //
 // Designed for data import steps to allow large numbers (millions) to be inserted quickly (< 60 seconds)
-func InsertAll(ctx context.Context, db *sqlx.DB, costs []*Cost) (insertedIds []int, err error) {
+func InsertMany(ctx context.Context, db *sqlx.DB, costs []*Cost) (insertedIds []int, err error) {
 	var errs []error = []error{}
 
 	var transactionOptions *sql.TxOptions = &sql.TxOptions{ReadOnly: false, Isolation: sql.LevelDefault}

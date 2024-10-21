@@ -62,7 +62,7 @@ func TestDatastoreAwsCostsQueriesTotalWithinDateRange(t *testing.T) {
 	var expectedTotal float64 = 0.0
 	var actualTotal float64 = 0.0
 
-	db, err = datastore.New(ctx, dbFile)
+	db, err = datastore.New(ctx, datastore.Sqlite, dbFile)
 	defer db.Close()
 	defer os.Remove(dbFile)
 
@@ -73,7 +73,7 @@ func TestDatastoreAwsCostsQueriesTotalWithinDateRange(t *testing.T) {
 	awscosts.Create(ctx, db)
 
 	// -- insert the faked items
-	_, err = awscosts.InsertAll(ctx, db, inserts)
+	_, err = awscosts.InsertMany(ctx, db, inserts)
 	if err != nil {
 		t.Errorf("failed to insert multiple records:\n [%s]", err.Error())
 	}
@@ -83,7 +83,7 @@ func TestDatastoreAwsCostsQueriesTotalWithinDateRange(t *testing.T) {
 		expectedTotal += faked.Value()
 	}
 
-	result, err := awscosts.Single(ctx, db, awscosts.TotalInDateRange, fakes.MinDate, fakes.MaxDate)
+	result, err := awscosts.GetOne(ctx, db, awscosts.TotalInDateRange, fakes.MinDate, fakes.MaxDate)
 	if err != nil {
 		t.Errorf("error from getting total: [%s]", err.Error())
 	}
@@ -108,7 +108,7 @@ func TestDatastoreAwsCostsQueriesTotalsWithAndWithoutTax(t *testing.T) {
 	var dbFile string = filepath.Join(dir, "with-without-tax.db")
 	var ctx context.Context = context.Background()
 
-	db, err = datastore.New(ctx, dbFile)
+	db, err = datastore.New(ctx, datastore.Sqlite, dbFile)
 	defer db.Close()
 	defer os.Remove(dbFile)
 
@@ -186,7 +186,7 @@ func TestDatastoreAwsCostsQueriesTotalsWithAndWithoutTax(t *testing.T) {
 			Cost:         "7.15",
 		},
 	}
-	_, err = awscosts.InsertAll(ctx, db, inserts)
+	_, err = awscosts.InsertMany(ctx, db, inserts)
 	if err != nil {
 		t.Errorf("unexpected error inserting data: [%s]", err.Error())
 	}
@@ -197,7 +197,7 @@ func TestDatastoreAwsCostsQueriesTotalsWithAndWithoutTax(t *testing.T) {
 		EndDate:    "2024-04-01",
 		DateFormat: datastore.Sqlite.YearMonthFormat,
 	}
-	results, err := awscosts.Many(ctx, db, awscosts.TotalsWithAndWithoutTax, params)
+	results, err := awscosts.GetMany(ctx, db, awscosts.TotalsWithAndWithoutTax, params)
 	if err != nil {
 		t.Errorf("unxpected error on query: [%s]", err.Error())
 	}

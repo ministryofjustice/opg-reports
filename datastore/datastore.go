@@ -1,3 +1,8 @@
+// Package datastore provides a consistnet database creation and wrapper to return sqlx.DB
+// pointer
+//
+// The datastore package also provides common configurations for databases being used
+// in this project
 package datastore
 
 import (
@@ -12,20 +17,22 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type dbVariation struct {
-	YearFormat         string
-	YearMonthFormat    string
-	YearMonthDayFormat string
+// Config provides details for the databae being used that vary by driver
+type Config struct {
+	Connection         string // Connection is connection string settings
+	DriverName         string // DriverName is the string name used in sqlx.Connect call
+	YearFormat         string // YearFormat is the datetime pattern to use to return just the year (yyyy)
+	YearMonthFormat    string // YearMonthFormat is the datetime pattern to return a year and month (yyyy-mm)
+	YearMonthDayFormat string // YearMonthDayFormat is the datetime pattern to return a year, month and day (yyyy-mm-dd)
 }
 
-var (
-	Sqlite *dbVariation = &dbVariation{YearFormat: "%Y", YearMonthFormat: "%Y-%m", YearMonthDayFormat: "%Y-%m-%d"}
-)
-
-const (
-	connectionParams string = "?_journal=WAL&_busy_timeout=5000&_vacuum=incremental&_synchronous=NORMAL&_cache_size=1000000000"
-	driverName       string = "sqlite3"
-)
+var Sqlite *Config = &Config{
+	Connection:         "?_journal=WAL&_busy_timeout=5000&_vacuum=incremental&_synchronous=NORMAL&_cache_size=1000000000",
+	DriverName:         "sqlite3",
+	YearFormat:         "%Y",
+	YearMonthFormat:    "%Y-%m",
+	YearMonthDayFormat: "%Y-%m-%d",
+}
 
 // Generic returns the in value as an interface instead of its original type
 // to allow single types in responses etc
@@ -55,13 +62,13 @@ func Concreate[T any](in interface{}) (out T, err error) {
 // that location
 // If the file does not exist and cannot be created then the an error will be
 // returned
-func New(ctx context.Context, databaseFile string) (db *sqlx.DB, err error) {
+func New(ctx context.Context, variant *Config, databaseFile string) (db *sqlx.DB, err error) {
 	slog.Debug("[datastore.New] called", slog.String("databaseFile", databaseFile))
 
 	// if there is no error creating the database, then return the connection
 	if err = createDatabaseFile(databaseFile); err == nil {
-		dataSource := databaseFile + connectionParams
-		db, err = sqlx.ConnectContext(ctx, driverName, dataSource)
+		dataSource := databaseFile + variant.Connection
+		db, err = sqlx.ConnectContext(ctx, variant.DriverName, dataSource)
 	}
 	return
 }

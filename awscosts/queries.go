@@ -181,11 +181,11 @@ GROUP BY strftime(:date_format, date), unit, environment, organisation, account_
 ORDER by strftime(:date_format, date), unit, environment, account_id ASC
 `
 
-// Single returns a raw value from a query statments being used - this is typically a counter or the
+// GetOne returns a raw value from a query statments being used - this is typically a counter or the
 // result of a sum operation ran against a series of rows
 //
 // Uses optional, ordered arguments instead of named parameter struct
-func Single(ctx context.Context, db *sqlx.DB, query SingularStatement, args ...interface{}) (result interface{}, err error) {
+func GetOne(ctx context.Context, db *sqlx.DB, query SingularStatement, args ...interface{}) (result interface{}, err error) {
 
 	switch query {
 	case RowCount:
@@ -200,9 +200,9 @@ func Single(ctx context.Context, db *sqlx.DB, query SingularStatement, args ...i
 	return
 }
 
-// Many runs the known statement against using the parameters as named values within them and returns the
+// GetMany runs the known statement against using the parameters as named values within them and returns the
 // result as a slice of []*Cost
-func Many(ctx context.Context, db *sqlx.DB, query ManyStatement, params *Parameters) (results []*Cost, err error) {
+func GetMany(ctx context.Context, db *sqlx.DB, query ManyStatement, params *Parameters) (results []*Cost, err error) {
 	var statement *sqlx.NamedStmt
 	results = []*Cost{}
 	// We have a switch as we do want to restrict what queries are allowed

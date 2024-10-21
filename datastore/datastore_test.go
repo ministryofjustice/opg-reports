@@ -21,7 +21,7 @@ func TestDatastoreNewCreatesDbFile(t *testing.T) {
 	file := filepath.Join(dir, "file-does-not-exist.db")
 	defer os.Remove(file)
 
-	db, err = datastore.New(context.Background(), file)
+	db, err = datastore.New(context.Background(), datastore.Sqlite, file)
 	defer db.Close()
 	if err != nil {
 		t.Errorf("error from datastore.New: %s", err.Error())
@@ -43,7 +43,7 @@ func TestDatastoreNewPing(t *testing.T) {
 	file := filepath.Join(dir, "ping.db")
 	defer os.Remove(file)
 
-	db, err := datastore.New(ctx, file)
+	db, err := datastore.New(ctx, datastore.Sqlite, file)
 	defer db.Close()
 
 	if err != nil {
