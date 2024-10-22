@@ -13,17 +13,14 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"slices"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/ministryofjustice/opg-reports/convert"
-	"github.com/ministryofjustice/opg-reports/datastore/awscosts"
 )
 
-type Entity interface {
-	*awscosts.Cost
-}
+// type Entity interface {
+// 	*awscosts.Cost
+// }
 
 // Config provides details for the databae being used that vary by driver
 type Config struct {
@@ -42,12 +39,12 @@ var Sqlite *Config = &Config{
 	YearMonthDayFormat: "%Y-%m-%d",
 }
 
-// New will return a sqlite db connection for the databaseFile passed along.
+// NewDB will return a sqlite db connection for the databaseFile passed along.
 // If the file does not exist then the an empty databasefile will be created at
 // that location
 // If the file does not exist and cannot be created then the an error will be
 // returned
-func New(ctx context.Context, variant *Config, databaseFile string) (db *sqlx.DB, isNew bool, err error) {
+func NewDB(ctx context.Context, variant *Config, databaseFile string) (db *sqlx.DB, isNew bool, err error) {
 	slog.Debug("[datastore.New] called", slog.String("databaseFile", databaseFile))
 
 	// if there is no error creating the database, then return the connection
@@ -78,33 +75,33 @@ func createDatabaseFile(databaseFile string) (isNew bool, err error) {
 	return
 }
 
-// ColumnValues finds all the values within rows passed for each of the columns, returning them
-// as a map.
-func ColumnValues[T Entity](rows []T, columns []string) (values map[string][]interface{}) {
-	slog.Debug("[datastore.ColumnValues] called")
-	values = map[string][]interface{}{}
+// // ColumnValues finds all the values within rows passed for each of the columns, returning them
+// // as a map.
+// func ColumnValues[T Entity](rows []T, columns []string) (values map[string][]interface{}) {
+// 	slog.Debug("[datastore.ColumnValues] called")
+// 	values = map[string][]interface{}{}
 
-	for _, row := range rows {
-		mapped, err := convert.Map(row)
-		if err != nil {
-			slog.Error("to map failed", slog.String("err", err.Error()))
-			continue
-		}
+// 	for _, row := range rows {
+// 		mapped, err := convert.Map(row)
+// 		if err != nil {
+// 			slog.Error("to map failed", slog.String("err", err.Error()))
+// 			continue
+// 		}
 
-		for _, column := range columns {
-			// if not set, set it
-			if _, ok := values[column]; !ok {
-				values[column] = []interface{}{}
-			}
-			// add the value into the slice
-			if rowValue, ok := mapped[column]; ok {
-				// if they arent in there already
-				if !slices.Contains(values[column], rowValue) {
-					values[column] = append(values[column], rowValue)
-				}
-			}
+// 		for _, column := range columns {
+// 			// if not set, set it
+// 			if _, ok := values[column]; !ok {
+// 				values[column] = []interface{}{}
+// 			}
+// 			// add the value into the slice
+// 			if rowValue, ok := mapped[column]; ok {
+// 				// if they arent in there already
+// 				if !slices.Contains(values[column], rowValue) {
+// 					values[column] = append(values[column], rowValue)
+// 				}
+// 			}
 
-		}
-	}
-	return
-}
+// 		}
+// 	}
+// 	return
+// }

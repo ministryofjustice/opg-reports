@@ -1,31 +1,88 @@
 package awscosts
 
 import (
-	"context"
-	"fmt"
-	"regexp"
-	"strings"
-
-	"github.com/jmoiron/sqlx"
-	"github.com/ministryofjustice/opg-reports/convert"
+	"github.com/ministryofjustice/opg-reports/datastore"
 )
 
-// SingularStatement is a string used as enum-esque
-// type contraints for sql queries that return
-// single value as a result and use series of optional
-// arguments rather than named parameter
-type SingularStatement string
+type statements struct {
+	Create         []datastore.CreateStatement
+	Insert         datastore.InsertStatement
+	Count          datastore.SelectStatement
+	Total          datastore.SelectStatement
+	TaxOverview    datastore.NamedSelectStatement
+	Unit           datastore.NamedSelectStatement
+	UnitFilter     datastore.NamedSelectStatement
+	UnitEnv        datastore.NamedSelectStatement
+	UnitEnvFilter  datastore.NamedSelectStatement
+	Detailed       datastore.NamedSelectStatement
+	DetailedFilter datastore.NamedSelectStatement
+}
 
-// RowCount returns the total number of records within the database
-const RowCount SingularStatement = `
+// CreateCostTable is the create table statement for aws_costs
+const createCostTable datastore.CreateStatement = `
+CREATE TABLE IF NOT EXISTS aws_costs (
+    id INTEGER PRIMARY KEY,
+    ts TEXT NOT NULL,
+
+    organisation TEXT NOT NULL,
+    account_id TEXT NOT NULL,
+    account_name TEXT NOT NULL,
+    unit TEXT NOT NULL,
+    label TEXT NOT NULL,
+    environment TEXT NOT NULL,
+
+	region TEXT NOT NULL,
+    service TEXT NOT NULL,
+    date TEXT NOT NULL,
+    cost TEXT NOT NULL
+) STRICT
+;`
+
+// CreateCostTableIndex is the index creation statements
+const createCostTableIndex datastore.CreateStatement = `CREATE INDEX IF NOT EXISTS aws_costs_date_idx ON aws_costs(date);`
+
+// InsertCosts is named parameter statement to insert a single entry to
+// aws_costs table with the new id being returned
+const insertCosts datastore.InsertStatement = `
+INSERT INTO aws_costs(
+    ts,
+    organisation,
+    account_id,
+    account_name,
+    unit,
+    label,
+    environment,
+    service,
+    region,
+    date,
+    cost
+) VALUES (
+    :ts,
+	:organisation,
+	:account_id,
+	:account_name,
+	:unit,
+	:label,
+	:environment,
+	:service,
+	:region,
+	:date,
+	:cost
+) RETURNING id
+;`
+
+// Count returns the total number of records within the database
+const rowCount datastore.SelectStatement = `
 SELECT
 	count(*) as row_count
-FROM aws_costs`
+FROM aws_costs
+LIMIT 1
+;`
 
-// TotalInDateRange returns the sum of cost field for all
+// Total returns the sum of the cost field for all
 // records with the date range passed (start_date, end_date)
 // Excludes tax
-const TotalInDateRange SingularStatement = `
+const total datastore.SelectStatement = `
 SELECT
     coalesce(SUM(cost), 0) as total
 FROM aws_costs
@@ -34,19 +91,13 @@ WHERE
 	AND date < ?
 	AND service != 'Tax'
 LIMIT 1
-`
+;`
 
-// ManyStatement is a string, used as a enum type
-// for the various sql queries we want to run
-// that allows named parameters etc and return
-// multiple results
-type ManyStatement string
-
-// TotalsWithAndWithoutTax is used to calculate the total costs
+// TaxOverview is used to calculate the total costs
 // within the given date range (>= :start_date, < :end_date) and
 // splits that based on the `service` being 'Tax' or not
 // Used to show top line numbers without VAT etc
-const TotalsWithAndWithoutTax ManyStatement = `
+const taxOverview datastore.NamedSelectStatement = `
 SELECT
     'Including Tax' as service,
     coalesce(SUM(cost), 0) as cost,
@@ -68,14 +119,14 @@ WHERE
 	AND excTax.service != 'Tax'
 GROUP BY strftime(:date_format, date)
 ORDER by date ASC
-`
+;`
 
 // PerUnit groups the cost data by the time period and unit
 // and limits the data to the date range specfied
 // (>= :start_date, < :end_date) returning the SUM costs
 // for each grouping
 // Excludes tax
-const PerUnit ManyStatement = `
+const perUnit datastore.NamedSelectStatement = `
 SELECT
     unit,
     coalesce(SUM(cost), 0) as cost,
@@ -92,7 +143,7 @@ ORDER by strftime(:date_format, date), unit ASC
 // PerUnitForUnit operates like PerUnit but also filters
 // the result on unit
 // Excludes tax
-const PerUnitForUnit ManyStatement = `
+const perUnitForUnit datastore.NamedSelectStatement = `
 SELECT
     unit,
     coalesce(SUM(cost), 0) as cost,
@@ -115,7 +166,7 @@ ORDER by strftime(:date_format, date), unit ASC
 // as several accounts (like managment / identity ) have only one
 // version
 // Excludes tax
-const PerUnitEnvironment ManyStatement = `
+const perUnitEnvironment datastore.NamedSelectStatement = `
 SELECT
     unit,
 	IIF(environment != "null", environment, "production") as environment,
@@ -132,7 +183,7 @@ ORDER by strftime(:date_format, date), unit, environment ASC
 
 // PerUnitEnvironmentForUnit expands PerUnitEnvironment by allowing
 // filtering by unit
-const PerUnitEnvironmentForUnit ManyStatement = `
+const perUnitEnvironmentForUnit datastore.NamedSelectStatement = `
 SELECT
     unit,
 	IIF(environment != "null", environment, "production") as environment,
@@ -153,7 +204,7 @@ ORDER by strftime(:date_format, date), unit, environment ASC
 // for s3 etc overtime at a granular level
 // Limits the data to the date range expressed (>= :start_date, < :end_date)
 // Excludes tax
-const Detailed ManyStatement = `
+const detailed datastore.NamedSelectStatement = `
 SELECT
     unit,
 	IIF(environment != "null", environment, "production") as environment,
@@ -176,7 +227,7 @@ ORDER by strftime(:date_format, date), unit, environment, organisation, account_
 // DetailedForUnit is an extension of Detailed and further restricts the data set
 // to match the unit passed
 // Excludes tax
-const DetailedForUnit ManyStatement = `
+const detailedForUnit datastore.NamedSelectStatement = `
 SELECT
     unit,
 	IIF(environment != "null", environment, "production") as environment,
@@ -196,98 +247,3 @@ WHERE
 GROUP BY strftime(:date_format, date), unit, environment, organisation, account_id, service
 ORDER by strftime(:date_format, date), unit, environment, organisation, account_id, service  ASC
 `
-
-// GetOne returns a raw value from a query statments being used - this is typically a counter or the
-// result of a sum operation ran against a series of rows
-//
-// Uses optional, ordered arguments instead of named parameter struct
-func GetOne(ctx context.Context, db *sqlx.DB, query SingularStatement, args ...interface{}) (result interface{}, err error) {
-
-	switch query {
-	case RowCount:
-		fallthrough
-	case TotalInDateRange:
-		err = db.GetContext(ctx, &result, string(query), args...)
-	default:
-		err = fmt.Errorf("unknown SingularStatement passed [%v]", query)
-	}
-	return
-}
-
-type NamedParameters struct {
-	StartDate  string `json:"start_date,omitempty" db:"start_date"`
-	EndDate    string `json:"end_date,omitempty" db:"end_date"`
-	DateFormat string `json:"date_format,omitempty" db:"date_format"`
-	Unit       string `json:"unit,omitempty" db:"unit"`
-}
-
-// GetMany runs the known statement against using the parameters as named values within them and returns the
-// result as a slice of []*Cost
-func GetMany(ctx context.Context, db *sqlx.DB, query ManyStatement, params *NamedParameters) (results []*Cost, err error) {
-	var statement *sqlx.NamedStmt
-	results = []*Cost{}
-	// We have a switch as we do want to restrict what queries are allowed
-	// so result and functions used in sqlx match
-	switch query {
-	case TotalsWithAndWithoutTax:
-		fallthrough
-	case PerUnit:
-		fallthrough
-	case PerUnitEnvironment:
-		fallthrough
-	case Detailed:
-		fallthrough
-	case DetailedForUnit:
-		// Check the parameters passed is valid for the query
-		if err = ValidateParameters(params, Needs(query)); err != nil {
-			return
-		}
-		if statement, err = db.PrepareNamedContext(ctx, string(query)); err == nil {
-			err = statement.SelectContext(ctx, &results, params)
-		}
-	default:
-		err = fmt.Errorf("unknown ManyStatement passed [%v]", query)
-	}
-	return
-}
-
-// Needs is used in part of the validate check of the named parameters and returns
-// the field names the ManyStatment passed in should have
-// Uses a regex to find words starting with :
-func Needs(query ManyStatement) (needs []string) {
-	var namedParamPattern string = `(?m)(:[\w-]+)`
-	var prefix string = ":"
-	var re = regexp.MustCompile(namedParamPattern)
-	for _, match := range re.FindAllString(string(query), -1) {
-		needs = append(needs, strings.TrimPrefix(match, prefix))
-	}
-	return
-}
-
-// ValidateParameters checks if the parameters passed meets all the required
-// needs for the query being run
-func ValidateParameters(params *NamedParameters, needs []string) (err error) {
-	mapped, err := convert.Map(params)
-	if err != nil {
-		return
-	}
-	if len(mapped) == 0 {
-		err = fmt.Errorf("parameters passed must contain at least one field")
-		return
-	}
-
-	missing := []string{}
-	// check each need if that exists as a key in the map
-	for _, need := range needs {
-		if _, ok := mapped[need]; !ok {
-			missing = append(missing, need)
-		}
-	}
-	// if any field is missing then set error
-	if len(missing) > 0 {
-		cols := strings.Join(missing, ",")
-		err = fmt.Errorf("missing required fields for this query: [%s]", cols)
-	}
-
-	return
-}

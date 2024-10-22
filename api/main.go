@@ -10,22 +10,27 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
 	"github.com/danielgtaylor/huma/v2/humacli"
-	"github.com/ministryofjustice/opg-reports/api/awscosts"
+	"github.com/ministryofjustice/opg-reports/awscosts"
 	"github.com/ministryofjustice/opg-reports/versions"
 )
 
-type apiRegistrationFunc func(api huma.API)
-type apiSetupFunc func(ctx context.Context) (err error)
-
 type apiSegment struct {
 	DbFile       string
-	RegisterFunc apiRegistrationFunc
-	SetupFunc    apiSetupFunc
+	SetupFunc    func(ctx context.Context, dbFilepath string)
+	RegisterFunc func(api huma.API)
 }
 
 var segments map[string]*apiSegment = map[string]*apiSegment{
-	awscosts.Segment: {DbFile: "./dbs/awscosts.db", RegisterFunc: awscosts.Register, SetupFunc: awscosts.Setup},
+	awscosts.Segment: {
+		DbFile:       "./dbs/awscosts.db",
+		SetupFunc:    awscosts.Setup,
+		RegisterFunc: awscosts.API.Register,
+	},
 }
+
+// var segments map[string]*apiSegment = map[string]*apiSegment{
+// 	awscosts.Segment: {DbFile: "./dbs/awscosts.db", RegisterFunc: awscosts.Register, SetupFunc: awscosts.Setup},
+// }
 
 type HomepageResponse struct {
 	Body struct {
@@ -126,14 +131,9 @@ func main() {
 // or create dummy versions of them
 func init() {
 	var ctx context.Context = context.Background()
-	var err error
 
 	for name, segment := range segments {
-		slog.Debug("[api.init] running setup", slog.String("segment", name))
-
-		if err = segment.SetupFunc(ctx); err != nil {
-			panic(err)
-		}
-
+		slog.Info("[api.init]", slog.String("segment", name))
+		segment.SetupFunc(ctx, segment.DbFile)
 	}
 }
