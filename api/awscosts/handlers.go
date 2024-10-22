@@ -53,7 +53,7 @@ type TotalResult struct {
 // Total processes the incoming request for /v1/awscosts/total
 // Returns a singular float value for the sum of all costs between the date periods passed
 func Total(ctx context.Context, input *TotalInput) (response *TotalResult, err error) {
-	var databaseFilePath = ctx.Value(segment).(string)
+	var databaseFilePath = ctx.Value(Segment).(string)
 	var startDate string = input.StartDate
 	var endDate string = input.EndDate
 	var db *sqlx.DB
@@ -95,7 +95,7 @@ type TaxOverviewResult struct {
 // Returns a list of costs which are grouped by YYYY-MM and if the sum includes Tax or not
 // Used to provide a monhtly totals with & without tax for comparison
 func TaxOverview(ctx context.Context, input *TaxOverviewInput) (response *TaxOverviewResult, err error) {
-	var databaseFilePath = ctx.Value(segment).(string)
+	var databaseFilePath = ctx.Value(Segment).(string)
 	var db *sqlx.DB
 	var columns = []string{"service"}
 	var params = &awscosts.NamedParameters{
@@ -142,7 +142,7 @@ type StandardResult struct {
 
 // Standard processes the /v1/awscosts/unit/ request
 func Standard(ctx context.Context, input *StandardInput) (response *StandardResult, err error) {
-	var databaseFilePath = ctx.Value(segment).(string)
+	var databaseFilePath = ctx.Value(Segment).(string)
 	var db *sqlx.DB
 	var allColumns = map[string][]string{
 		"unit":             {"unit"},

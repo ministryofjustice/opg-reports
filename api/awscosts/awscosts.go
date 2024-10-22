@@ -1,3 +1,10 @@
+// Package awscosts handles all api requests for /{version}/awscosts*
+//
+// Registers the following endpoints for the api:
+//
+//   - /{version}/awscosts/total
+//   - /{version}/awscosts/tax-overview
+//   - /{version}/awscosts/all/{interval}/{grouping}
 package awscosts
 
 import (
@@ -9,7 +16,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/fakes"
 )
 
-const segment string = "awscosts"         // the name of the api segment this package handles
+const Segment string = "awscosts"         // the name of the api segment this package handles
 const dbFile string = "./dbs/awscosts.db" // relative location of the database
 
 var databaseConfig *datastore.Config = datastore.Sqlite

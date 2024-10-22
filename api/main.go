@@ -24,7 +24,7 @@ type apiSegment struct {
 }
 
 var segments map[string]*apiSegment = map[string]*apiSegment{
-	"awscosts": {DbFile: "./dbs/awscosts.db", RegisterFunc: awscosts.Register, SetupFunc: awscosts.Setup},
+	awscosts.Segment: {DbFile: "./dbs/awscosts.db", RegisterFunc: awscosts.Register, SetupFunc: awscosts.Setup},
 }
 
 type HomepageResponse struct {
