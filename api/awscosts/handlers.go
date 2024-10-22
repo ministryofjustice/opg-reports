@@ -11,11 +11,6 @@ import (
 	"github.com/ministryofjustice/opg-reports/datastore"
 )
 
-const segment string = "awscosts"
-
-var databaseFilePath *string = nil
-var databaseConfig = datastore.Sqlite
-
 // VersionInput is a base input type that we use to as a prefix to version the api - /v1/*
 type VersionInput struct {
 	Version string `json:"version" path:"version" required:"true" doc:"Version prefix for the api" default:"v1" enum:"v1"`
@@ -57,6 +52,7 @@ type TotalWithinDateRangeResult struct {
 
 // TotalWithinDateRange processes the incoming request for /v1/awscosts/total
 func TotalWithinDateRange(ctx context.Context, input *TotalWithinDateRangeInput) (response *TotalWithinDateRangeResult, err error) {
+	var databaseFilePath = ctx.Value(segment).(string)
 	var startDate string = input.StartDate
 	var endDate string = input.EndDate
 	var db *sqlx.DB
@@ -66,7 +62,7 @@ func TotalWithinDateRange(ctx context.Context, input *TotalWithinDateRangeInput)
 	response.Body.Request = input
 	response.Body.Type = "TotalWithinDateRange"
 
-	db, _, err = datastore.New(ctx, databaseConfig, *databaseFilePath)
+	db, _, err = datastore.New(ctx, databaseConfig, databaseFilePath)
 	defer db.Close()
 	if err != nil {
 		return
@@ -96,6 +92,7 @@ type TotalWithAndWithoutTaxResult struct {
 
 // TotalWithAndWithoutTax processes the /v1/awscosts/tax-overview request
 func TotalWithAndWithoutTax(ctx context.Context, input *TotalWithAndWithoutTaxInput) (response *TotalWithAndWithoutTaxResult, err error) {
+	var databaseFilePath = ctx.Value(segment).(string)
 	var db *sqlx.DB
 	var columns = []string{"service"}
 	var params = &awscosts.NamedParameters{
@@ -108,7 +105,7 @@ func TotalWithAndWithoutTax(ctx context.Context, input *TotalWithAndWithoutTaxIn
 	response.Body.Request = input
 	response.Body.Type = "TotalWithAndWithoutTax"
 
-	db, _, err = datastore.New(ctx, databaseConfig, *databaseFilePath)
+	db, _, err = datastore.New(ctx, databaseConfig, databaseFilePath)
 	defer db.Close()
 	if err != nil {
 		return
@@ -142,6 +139,7 @@ type StandardResult struct {
 
 // Standard processes the /v1/awscosts/unit/ request
 func Standard(ctx context.Context, input *StandardInput) (response *StandardResult, err error) {
+	var databaseFilePath = ctx.Value(segment).(string)
 	var db *sqlx.DB
 	var allColumns = map[string][]string{
 		"unit":             {"unit"},
@@ -166,7 +164,7 @@ func Standard(ctx context.Context, input *StandardInput) (response *StandardResu
 
 	response = &StandardResult{}
 
-	db, _, err = datastore.New(ctx, databaseConfig, *databaseFilePath)
+	db, _, err = datastore.New(ctx, databaseConfig, databaseFilePath)
 	defer db.Close()
 	if err != nil {
 		return
@@ -192,7 +190,7 @@ func Standard(ctx context.Context, input *StandardInput) (response *StandardResu
 	} else if input.Grouping == "detailed" {
 		stmt = awscosts.Detailed
 	} else {
-		err = huma.Error400BadRequest("requested group (" + input.Grouping + ") is invalid.")
+		err = huma.Error400BadRequest("requested grouping (" + input.Grouping + ") is invalid.")
 		return
 	}
 
@@ -206,8 +204,7 @@ func Standard(ctx context.Context, input *StandardInput) (response *StandardResu
 }
 
 // Register handles setting up all routes for awscosts
-func Register(api huma.API, dbFile string) {
-	databaseFilePath = &dbFile
+func Register(api huma.API) {
 
 	huma.Register(api, huma.Operation{
 		OperationID:   "get-awscosts-total",

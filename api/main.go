@@ -14,22 +14,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/versions"
 )
 
-type HomepageResponse struct {
-	Body struct {
-		Message string `json:"message" example:"Successful connection."`
-	}
-}
-
-// Opts provides a series of values for the api server that is configured
-// at run time
-type Opts struct {
-	Debug bool   `doc:"When true enables more detailed logging." default:"false"`
-	Host  string `doc:"Hostname to listen on." default:"localhost"`
-	Port  int    `doc:"Port to listen on." default:"8081"`
-	Spec  bool   `doc:"When true, the openapi spec will be show on server startup" default:"false"`
-}
-
-type apiRegistrationFunc func(api huma.API, dbPath string)
+type apiRegistrationFunc func(api huma.API)
 type apiSetupFunc func(ctx context.Context) (err error)
 
 type apiSegment struct {
@@ -42,7 +27,34 @@ var segments map[string]*apiSegment = map[string]*apiSegment{
 	"awscosts": {DbFile: "./dbs/awscosts.db", RegisterFunc: awscosts.Register, SetupFunc: awscosts.Setup},
 }
 
+type HomepageResponse struct {
+	Body struct {
+		Message string `json:"message" example:"Successful connection."`
+	}
+}
+
+// AddDatabasePathsMiddleware is a middleware to add the database file path to
+// context
+func AddDatabasePathsMiddleware(ctx huma.Context, next func(huma.Context)) {
+	for segment, cfg := range segments {
+		ctx = huma.WithValue(ctx, segment, cfg.DbFile)
+	}
+	next(ctx)
+}
+
+// Opts provides a series of values for the api server that is configured
+// at run time
+type Opts struct {
+	Debug bool   `doc:"When true enables more detailed logging." default:"false"`
+	Host  string `doc:"Hostname to listen on." default:"localhost"`
+	Port  int    `doc:"Port to listen on." default:"8081"`
+	Spec  bool   `doc:"When true, the openapi spec will be show on server startup" default:"false"`
+}
+
 func main() {
+	var shutdownDelay = 5 * time.Second
+	var ctx = context.Background()
+	var versionStr = fmt.Sprintf("%s [%s] (%s)", versions.Build, versions.Timestamp, versions.Commit)
 
 	cli := humacli.New(func(hooks humacli.Hooks, opts *Opts) {
 
@@ -54,9 +66,10 @@ func main() {
 		}
 
 		// create the api
-		versionStr := fmt.Sprintf("%s [%s] (%s)", versions.Build, versions.Timestamp, versions.Commit)
-		api := humago.New(mux, huma.DefaultConfig("Reporting API", versionStr))
 
+		api := humago.New(mux, huma.DefaultConfig("Reporting API", versionStr))
+		// Register the middleware
+		api.UseMiddleware(AddDatabasePathsMiddleware)
 		// register homepage action that will return an almost empty result
 		huma.Register(api, huma.Operation{
 			OperationID:   "get-homepage",
@@ -75,8 +88,9 @@ func main() {
 			// Register the sub helpers
 			for name, segment := range segments {
 				slog.Info("[api.main] registering", slog.String("segment", name))
-				segment.RegisterFunc(api, segment.DbFile)
+				segment.RegisterFunc(api)
 			}
+			slog.Info("[api.main] registered.")
 		}
 		// run the server or show the spec
 		hooks.OnStart(func() {
@@ -97,8 +111,7 @@ func main() {
 
 		// graceful shutdown
 		hooks.OnStop(func() {
-			var shutdownDelay = 3 * time.Second
-			ctx, cancel := context.WithTimeout(context.Background(), shutdownDelay)
+			ctx, cancel := context.WithTimeout(ctx, shutdownDelay)
 			defer cancel()
 			server.Shutdown(ctx)
 		})

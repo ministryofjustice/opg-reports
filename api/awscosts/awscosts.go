@@ -9,8 +9,10 @@ import (
 	"github.com/ministryofjustice/opg-reports/fakes"
 )
 
+const segment string = "awscosts"         // the name of the api segment this package handles
 const dbFile string = "./dbs/awscosts.db" // relative location of the database
-var dbCfg *datastore.Config = datastore.Sqlite
+
+var databaseConfig *datastore.Config = datastore.Sqlite
 
 // Setup will download or generate a database
 // for the api to operate from
@@ -18,7 +20,7 @@ func Setup(ctx context.Context) (err error) {
 	var db *sqlx.DB
 	var isNewDb bool = false
 
-	db, isNewDb, err = datastore.New(ctx, dbCfg, dbFile)
+	db, isNewDb, err = datastore.New(ctx, databaseConfig, dbFile)
 	if err != nil {
 		return
 	}
