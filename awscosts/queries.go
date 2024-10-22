@@ -170,7 +170,7 @@ WHERE
     AND date < :end_date
 	AND service != 'Tax'
 GROUP BY strftime(:date_format, date), unit, environment, organisation, account_id, service
-ORDER by strftime(:date_format, date), unit, environment, account_id ASC
+ORDER by strftime(:date_format, date), unit, environment, organisation, account_id, service ASC
 `
 
 // DetailedForUnit is an extension of Detailed and further restricts the data set
@@ -194,7 +194,7 @@ WHERE
 	AND service != 'Tax'
 	AND unit = :unit
 GROUP BY strftime(:date_format, date), unit, environment, organisation, account_id, service
-ORDER by strftime(:date_format, date), unit, environment, account_id ASC
+ORDER by strftime(:date_format, date), unit, environment, organisation, account_id, service  ASC
 `
 
 // GetOne returns a raw value from a query statments being used - this is typically a counter or the

@@ -35,30 +35,31 @@ type BaseBody struct {
 	ColumnOrder []string                 `json:"column_order" doc:"Ordered list of all of the column names. Used for iterating within a display context to show data correctly."`
 }
 
-// TotalWithinDateRangeInput is used for /v1/awscosts/total requests
-type TotalWithinDateRangeInput struct {
+// TotalInput is used for /v1/awscosts/total requests
+type TotalInput struct {
 	VersionInput
 	StartEndDateInput
 }
 
-// TotalWithinDateRangeResult handles the result for /v1/awscosts/total
-type TotalWithinDateRangeResult struct {
+// TotalResult handles the result for /v1/awscosts/total
+type TotalResult struct {
 	Body struct {
-		Type    string                     `json:"type" doc:"States what type of data this is for front end handling"`
-		Request *TotalWithinDateRangeInput `json:"request" doc:"The public parameters originaly specified in the request to this API."`
-		Result  float64                    `json:"result" doc:"The total sum of all costs as a float without currency." example:"1357.7861"`
+		Type    string      `json:"type" doc:"States what type of data this is for front end handling"`
+		Request *TotalInput `json:"request" doc:"The public parameters originaly specified in the request to this API."`
+		Result  float64     `json:"result" doc:"The total sum of all costs as a float without currency." example:"1357.7861"`
 	}
 }
 
-// TotalWithinDateRange processes the incoming request for /v1/awscosts/total
-func TotalWithinDateRange(ctx context.Context, input *TotalWithinDateRangeInput) (response *TotalWithinDateRangeResult, err error) {
+// Total processes the incoming request for /v1/awscosts/total
+// Returns a singular float value for the sum of all costs between the date periods passed
+func Total(ctx context.Context, input *TotalInput) (response *TotalResult, err error) {
 	var databaseFilePath = ctx.Value(segment).(string)
 	var startDate string = input.StartDate
 	var endDate string = input.EndDate
 	var db *sqlx.DB
 
-	slog.Info("[api.awscosts] TotalWithinDateRangeInput", slog.String("startDate", startDate), slog.String("endDate", endDate))
-	response = &TotalWithinDateRangeResult{}
+	slog.Info("[api.awscosts] TotalInput", slog.String("startDate", startDate), slog.String("endDate", endDate))
+	response = &TotalResult{}
 	response.Body.Request = input
 	response.Body.Type = "TotalWithinDateRange"
 
@@ -76,22 +77,24 @@ func TotalWithinDateRange(ctx context.Context, input *TotalWithinDateRangeInput)
 	return
 }
 
-// TotalWithAndWithoutTaxInput handles the inputs for /v1/awscosts/tax-overview
-type TotalWithAndWithoutTaxInput struct {
+// TaxOverviewInput handles the inputs for /v1/awscosts/tax-overview
+type TaxOverviewInput struct {
 	DateGroupingInput
 }
 
-// TotalWithAndWithoutTaxResult captures the result data for /v1/awscosts/tax-overview
-type TotalWithAndWithoutTaxResult struct {
+// TaxOverviewResult captures the result data for /v1/awscosts/tax-overview
+type TaxOverviewResult struct {
 	Body struct {
 		BaseBody
-		Request *TotalWithAndWithoutTaxInput `json:"request" doc:"The public parameters originaly specified in the request to this API."`
-		Result  []*awscosts.Cost             `json:"result" doc:"List of cost information."`
+		Request *TaxOverviewInput `json:"request" doc:"The public parameters originaly specified in the request to this API."`
+		Result  []*awscosts.Cost  `json:"result" doc:"List of cost information."`
 	}
 }
 
-// TotalWithAndWithoutTax processes the /v1/awscosts/tax-overview request
-func TotalWithAndWithoutTax(ctx context.Context, input *TotalWithAndWithoutTaxInput) (response *TotalWithAndWithoutTaxResult, err error) {
+// TaxOverview processes the /v1/awscosts/tax-overview request
+// Returns a list of costs which are grouped by YYYY-MM and if the sum includes Tax or not
+// Used to provide a monhtly totals with & without tax for comparison
+func TaxOverview(ctx context.Context, input *TaxOverviewInput) (response *TaxOverviewResult, err error) {
 	var databaseFilePath = ctx.Value(segment).(string)
 	var db *sqlx.DB
 	var columns = []string{"service"}
@@ -101,7 +104,7 @@ func TotalWithAndWithoutTax(ctx context.Context, input *TotalWithAndWithoutTaxIn
 		DateFormat: databaseConfig.YearMonthFormat,
 	}
 	slog.Info("[api.awscosts] TotalWithAndWithoutTaxInput", slog.String("startDate", input.StartDate), slog.String("endDate", input.EndDate), slog.String("interval", input.Interval))
-	response = &TotalWithAndWithoutTaxResult{}
+	response = &TaxOverviewResult{}
 	response.Body.Request = input
 	response.Body.Type = "TotalWithAndWithoutTax"
 
@@ -214,7 +217,7 @@ func Register(api huma.API) {
 		Description:   "Returns a single total for all the AWS costs between the start and end dates - excluding taxes.",
 		DefaultStatus: http.StatusOK,
 		Tags:          []string{"AWS Costs"},
-	}, TotalWithinDateRange)
+	}, Total)
 
 	huma.Register(api, huma.Operation{
 		OperationID:   "get-awscosts-tax-overview",
@@ -224,14 +227,23 @@ func Register(api huma.API) {
 		Description:   "Provides a list of the total costs per interval with and without tax between the start and end date specified.",
 		DefaultStatus: http.StatusOK,
 		Tags:          []string{"AWS Costs"},
-	}, TotalWithAndWithoutTax)
+	}, TaxOverview)
+
+	description := `Provides a list of the total costs grouped by a date interval and the selected grouping within start (>=) and end (<) dates passed.
+
+**Grouping details:**
+* *unit*: grouped by the value of the 'unit' field
+* *unit-environment*: grouped by 'unit' and 'environment' fields values
+* *detailed*: grouped by 'unit', 'environment', 'organisation', 'account_id', and 'service' field values
+
+Allows for optional filtering on unit field.`
 
 	huma.Register(api, huma.Operation{
 		OperationID:   "get-awscosts-all",
 		Method:        http.MethodGet,
 		Path:          "/{version}/awscosts/all/{interval}/{grouping}",
-		Summary:       "Cost data grouped and (optionally) filtered",
-		Description:   "Provides a list of the total costs grouped by a date interval and the selected grouping within start (>=) and end (<) dates passed. Allows for optional filtering on unit field.",
+		Summary:       "Costs (grouped by month or day)",
+		Description:   description,
 		DefaultStatus: http.StatusOK,
 		Tags:          []string{"AWS Costs"},
 	}, Standard)

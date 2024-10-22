@@ -104,6 +104,7 @@ func main() {
 					slog.Bool("spec", opts.Spec),
 					slog.String("host", opts.Host),
 					slog.Int("port", opts.Port))
+				slog.Info(fmt.Sprintf("API: [http://%s:%d/]", opts.Host, opts.Port))
 				slog.Info(fmt.Sprintf("Docs: [http://%s:%d/docs]", opts.Host, opts.Port))
 				server.ListenAndServe()
 			}
