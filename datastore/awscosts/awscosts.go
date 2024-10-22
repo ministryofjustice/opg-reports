@@ -3,11 +3,7 @@
 package awscosts
 
 import (
-	"log/slog"
-	"slices"
 	"strconv"
-
-	"github.com/ministryofjustice/opg-reports/convert"
 )
 
 // Cost is used to store the data from cost explorer into the database
@@ -32,34 +28,6 @@ type Cost struct {
 func (self *Cost) Value() (cost float64) {
 	if floated, err := strconv.ParseFloat(self.Cost, 10); err == nil {
 		cost = floated
-	}
-	return
-}
-
-func ColumnValues(rows []*Cost, columns []string) (values map[string][]interface{}) {
-	values = map[string][]interface{}{}
-
-	for _, row := range rows {
-		mapped, err := convert.Map(row)
-		if err != nil {
-			slog.Error("to map failed", slog.String("err", err.Error()))
-			continue
-		}
-
-		for _, column := range columns {
-			// if not set, set it
-			if _, ok := values[column]; !ok {
-				values[column] = []interface{}{}
-			}
-			// add the value into the slice
-			if rowValue, ok := mapped[column]; ok {
-				// if they arent in there already
-				if !slices.Contains(values[column], rowValue) {
-					values[column] = append(values[column], rowValue)
-				}
-			}
-
-		}
 	}
 	return
 }

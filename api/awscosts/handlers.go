@@ -7,8 +7,8 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/jmoiron/sqlx"
-	"github.com/ministryofjustice/opg-reports/awscosts"
 	"github.com/ministryofjustice/opg-reports/datastore"
+	"github.com/ministryofjustice/opg-reports/datastore/awscosts"
 )
 
 // VersionInput is a base input type that we use to as a prefix to version the api - /v1/*
@@ -117,7 +117,7 @@ func TaxOverview(ctx context.Context, input *TaxOverviewInput) (response *TaxOve
 	result, err := awscosts.GetMany(ctx, db, awscosts.TotalsWithAndWithoutTax, params)
 	if err == nil {
 		response.Body.ColumnOrder = columns
-		response.Body.Columns = awscosts.ColumnValues(result, columns)
+		response.Body.Columns = datastore.ColumnValues(result, columns)
 
 		response.Body.Result = result
 	}
@@ -200,7 +200,7 @@ func Standard(ctx context.Context, input *StandardInput) (response *StandardResu
 	result, err := awscosts.GetMany(ctx, db, stmt, params)
 	if err == nil {
 		response.Body.ColumnOrder = columns
-		response.Body.Columns = awscosts.ColumnValues(result, columns)
+		response.Body.Columns = datastore.ColumnValues(result, columns)
 		response.Body.Result = result
 	}
 	return

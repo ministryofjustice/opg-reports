@@ -13,10 +13,17 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/ministryofjustice/opg-reports/convert"
+	"github.com/ministryofjustice/opg-reports/datastore/awscosts"
 )
+
+type Entity interface {
+	*awscosts.Cost
+}
 
 // Config provides details for the databae being used that vary by driver
 type Config struct {
@@ -66,6 +73,37 @@ func createDatabaseFile(databaseFile string) (isNew bool, err error) {
 		// write an empty stub file to the location - if there is an error, panic
 		if err = os.WriteFile(databaseFile, []byte(""), os.ModePerm); err != nil {
 			slog.Error("mustCreateDatabaseFile failed", slog.String("err", err.Error()))
+		}
+	}
+	return
+}
+
+// ColumnValues finds all the values within rows passed for each of the columns, returning them
+// as a map.
+func ColumnValues[T Entity](rows []T, columns []string) (values map[string][]interface{}) {
+	slog.Debug("[datastore.ColumnValues] called")
+	values = map[string][]interface{}{}
+
+	for _, row := range rows {
+		mapped, err := convert.Map(row)
+		if err != nil {
+			slog.Error("to map failed", slog.String("err", err.Error()))
+			continue
+		}
+
+		for _, column := range columns {
+			// if not set, set it
+			if _, ok := values[column]; !ok {
+				values[column] = []interface{}{}
+			}
+			// add the value into the slice
+			if rowValue, ok := mapped[column]; ok {
+				// if they arent in there already
+				if !slices.Contains(values[column], rowValue) {
+					values[column] = append(values[column], rowValue)
+				}
+			}
+
 		}
 	}
 	return

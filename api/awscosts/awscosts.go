@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/ministryofjustice/opg-reports/awscosts"
 	"github.com/ministryofjustice/opg-reports/datastore"
+	"github.com/ministryofjustice/opg-reports/datastore/awscosts"
 	"github.com/ministryofjustice/opg-reports/fakes"
 )
 

@@ -2,13 +2,42 @@ package datastore_test
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/ministryofjustice/opg-reports/datastore"
+	"github.com/ministryofjustice/opg-reports/datastore/awscosts"
 )
+
+// TestDatastoreColumnValues checks that all permutations of column
+// values are found correctly for the data
+func TestDatastoreColumnValues(t *testing.T) {
+
+	simple := []*awscosts.Cost{
+		{Organisation: "A", Unit: "A", Label: "One"},
+		{Organisation: "A", Unit: "B", Label: "One"},
+		{Organisation: "A", Unit: "C", Label: "One"},
+		{Organisation: "A", Unit: "1", Label: "Three"},
+		{Organisation: "A", Unit: "Z", Label: "One"},
+		{Organisation: "A", Unit: "Z", Label: "Four"},
+	}
+
+	cols := []string{"organisation", "unit", "label"}
+
+	actual := datastore.ColumnValues(simple, cols)
+	expected := map[string]int{"organisation": 1, "unit": 5, "label": 3}
+	for col, count := range expected {
+		l := len(actual[col])
+		if l != count {
+			t.Errorf("[%s] values dont match - expected [%d] actual [%v]", col, count, l)
+			fmt.Println(actual[col])
+		}
+	}
+
+}
 
 // TestDatastoreNewCreatesDbFile checks that datastore.New
 // successfully creates an empty database if the file
