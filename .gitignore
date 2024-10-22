@@ -2,3 +2,5 @@
 *.db
 *.db-*
 *.sql
+# Ignore code coverage files
+code-coverage.out
