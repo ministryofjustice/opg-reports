@@ -4,3 +4,5 @@
 *.sql
 # Ignore code coverage files
 code-coverage.out
+# Ignore openapi generated spec
+openapi.yaml

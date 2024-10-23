@@ -1,7 +1,7 @@
 
 
 
-.PHONY: tests test coverage
+.PHONY: tests test coverage openapi
 ## run all tests
 tests:
 	@go clean -testcache
@@ -25,3 +25,8 @@ coverage:
 	@echo "============== coverage =============="
 	@env CGO_ENABLED=1 LOG_LEVEL="warn" LOG_TO="stdout" go test -count=1 -covermode=count -coverprofile=code-coverage.out -cover ./...
 	@go tool cover -html=code-coverage.out
+
+
+## Output the open api spec
+openapi:
+	@env CGO_ENABLED=1 go run ./api/main.go openapi > openapi.yaml
