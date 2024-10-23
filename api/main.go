@@ -10,7 +10,6 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
 	"github.com/danielgtaylor/huma/v2/humacli"
-	"github.com/ministryofjustice/opg-reports/awscosts"
 	"github.com/ministryofjustice/opg-reports/versions"
 )
 
@@ -21,11 +20,11 @@ type apiSegment struct {
 }
 
 var segments map[string]*apiSegment = map[string]*apiSegment{
-	awscosts.Segment: {
-		DbFile:       "./dbs/awscosts.db",
-		SetupFunc:    awscosts.Setup,
-		RegisterFunc: awscosts.API.Register,
-	},
+	// awscosts.Segment: {
+	// 	DbFile:       "./dbs/awscosts.db",
+	// 	SetupFunc:    awscosts.Setup,
+	// 	RegisterFunc: awscosts.API.Register,
+	// },
 }
 
 // var segments map[string]*apiSegment = map[string]*apiSegment{

@@ -1,0 +1,241 @@
+// Package costsapi provides the all elements for hum api endpoints relating to cost queries
+//
+// Contains structs for all query inputs (named as `*Input`), all result bodies (as `*Body`) and
+// The actual result structs returned by the end point (named `*Result`).
+//
+// Contains all api handlers as functions (internal, named `api*`)
+//
+// Exposes main `Register` method which accepts a huma api and attaches all the
+// endpoints to that api with suitable descriptions and details
+package costsapi
+
+import (
+	"context"
+	"net/http"
+
+	"github.com/danielgtaylor/huma/v2"
+	"github.com/jmoiron/sqlx"
+	"github.com/ministryofjustice/opg-reports/costs"
+	"github.com/ministryofjustice/opg-reports/costs/costsdb"
+	"github.com/ministryofjustice/opg-reports/datastore"
+)
+
+const Segment string = "costs"
+const Tag string = "Cost Data"
+
+// --- total
+
+var totalDescription string = `Returns a single total for all the AWS costs between the start and end dates - excluding taxes.`
+
+// apiTotal fetches total sum of all costs within the database
+func apiTotal(ctx context.Context, input *TotalInput) (response *TotalResult, err error) {
+	// grab the db from the context
+	var dbFilepath string = ctx.Value(Segment).(string)
+	var db *sqlx.DB
+	var result float64 = 0.0
+	var bdy *TotalBody = &TotalBody{Request: input, Type: "total"}
+	response = &TotalResult{Body: bdy}
+
+	db, _, err = datastore.NewDB(ctx, datastore.Sqlite, dbFilepath)
+	defer db.Close()
+	if err != nil {
+		return
+	}
+
+	if result, err = datastore.Get[float64](ctx, db, costsdb.Total, input.StartDate, input.EndDate); err == nil {
+		response.Body.Result = result
+	}
+
+	return
+}
+
+// --- TaxOverview
+
+var taxOverviewDescription string = `Provides a list of the total costs per interval with and without tax between the start and end date specified.`
+
+// apiTotal fetches total sum of all costs within the database
+func apiTaxOverview(ctx context.Context, input *TaxOverviewInput) (response *TaxOverviewResult, err error) {
+	// grab the db from the context
+	var dbFilepath string = ctx.Value(Segment).(string)
+	var db *sqlx.DB
+	var result []*costs.Cost = []*costs.Cost{}
+	var bdy *TaxOverviewBody = &TaxOverviewBody{
+		OrderedColumns: []string{"service"},
+		Request:        input,
+		Type:           "tax-overview",
+	}
+	response = &TaxOverviewResult{Body: bdy}
+
+	db, _, err = datastore.NewDB(ctx, datastore.Sqlite, dbFilepath)
+	defer db.Close()
+	if err != nil {
+		return
+	}
+
+	if result, err = datastore.Select[[]*costs.Cost](ctx, db, costsdb.TaxOverview, input); err == nil {
+		response.Body.Result = result
+	}
+
+	return
+}
+
+// --- PerUnit
+
+var perUnitDescription string = `Returns a list of cost data grouped by the unit field as well as the date.
+
+Data is limited to the date range (>= start_date < ) and optional unit filter.`
+
+// apiPerUnit handles getting data grouped by unit
+func apiPerUnit(ctx context.Context, input *StandardInput) (response *StandardResult, err error) {
+	// grab the db from the context
+	var dbFilepath string = ctx.Value(Segment).(string)
+	var db *sqlx.DB
+	var result []*costs.Cost = []*costs.Cost{}
+	var bdy *StandardBody = &StandardBody{}
+	var stmt = costsdb.PerUnit
+
+	bdy.OrderedColumns = []string{"unit"}
+	bdy.Request = input
+	bdy.Type = "unit"
+	response = &StandardResult{Body: bdy}
+
+	db, _, err = datastore.NewDB(ctx, datastore.Sqlite, dbFilepath)
+	defer db.Close()
+	if err != nil {
+		return
+	}
+
+	if input.Unit != "" {
+		stmt = costsdb.PerUnitForUnit
+	}
+
+	if result, err = datastore.Select[[]*costs.Cost](ctx, db, stmt, input); err == nil {
+		response.Body.Result = result
+	}
+
+	return
+}
+
+// --- PerUnitEnv
+
+var perUnitEnvDescription string = `Returns a list of cost data grouped by the unit and environment fields as well as the date.
+
+Data is limited to the date range (>= start_date < ) and optional unit filter.`
+
+// apiPerUnit handles getting data grouped by unit
+func apiPerUnitEnv(ctx context.Context, input *StandardInput) (response *StandardResult, err error) {
+	// grab the db from the context
+	var dbFilepath string = ctx.Value(Segment).(string)
+	var db *sqlx.DB
+	var result []*costs.Cost = []*costs.Cost{}
+	var bdy *StandardBody = &StandardBody{}
+	var stmt = costsdb.PerUnitEnvironment
+
+	bdy.OrderedColumns = []string{"unit", "environment"}
+	bdy.Request = input
+	bdy.Type = "unit-environment"
+	response = &StandardResult{Body: bdy}
+
+	db, _, err = datastore.NewDB(ctx, datastore.Sqlite, dbFilepath)
+	defer db.Close()
+	if err != nil {
+		return
+	}
+	if input.Unit != "" {
+		stmt = costsdb.PerUnitEnvironmentForUnit
+	}
+
+	if result, err = datastore.Select[[]*costs.Cost](ctx, db, stmt, input); err == nil {
+		response.Body.Result = result
+	}
+
+	return
+}
+
+var detailDescription string = `Provides a list of the total costs grouped by a date interval, account_id, environment and service within start (>=) and end (<) dates passed.
+
+Data is limited to the date range (>= start_date < ) and optional unit filter.`
+
+// apiDetailed
+func apiDetailed(ctx context.Context, input *StandardInput) (response *StandardResult, err error) {
+	// grab the db from the context
+	var dbFilepath string = ctx.Value(Segment).(string)
+	var db *sqlx.DB
+	var result []*costs.Cost = []*costs.Cost{}
+	var bdy *StandardBody = &StandardBody{}
+	var stmt = costsdb.Detailed
+
+	bdy.OrderedColumns = []string{"account_id", "unit", "environment", "service"}
+	bdy.Request = input
+	bdy.Type = "detail"
+	response = &StandardResult{Body: bdy}
+
+	db, _, err = datastore.NewDB(ctx, datastore.Sqlite, dbFilepath)
+	defer db.Close()
+	if err != nil {
+		return
+	}
+	if input.Unit != "" {
+		stmt = costsdb.DetailedForUnit
+	}
+
+	if result, err = datastore.Select[[]*costs.Cost](ctx, db, stmt, input); err == nil {
+		response.Body.Result = result
+	}
+
+	return
+}
+
+func Register(api huma.API) {
+
+	huma.Register(api, huma.Operation{
+		OperationID:   "get-awscosts-total",
+		Method:        http.MethodGet,
+		Path:          "/{version}/awscosts/total",
+		Summary:       "Total",
+		Description:   totalDescription,
+		DefaultStatus: http.StatusOK,
+		Tags:          []string{Tag},
+	}, apiTotal)
+
+	huma.Register(api, huma.Operation{
+		OperationID:   "get-awscosts-tax-overview",
+		Method:        http.MethodGet,
+		Path:          "/{version}/awscosts/tax-overview/{interval}/",
+		Summary:       "Tax overview",
+		Description:   taxOverviewDescription,
+		DefaultStatus: http.StatusOK,
+		Tags:          []string{Tag},
+	}, apiTaxOverview)
+
+	huma.Register(api, huma.Operation{
+		OperationID:   "get-awscosts-costs-per-unit",
+		Method:        http.MethodGet,
+		Path:          "/{version}/awscosts/unit/{interval}/",
+		Summary:       "Costs per unit",
+		Description:   perUnitDescription,
+		DefaultStatus: http.StatusOK,
+		Tags:          []string{Tag},
+	}, apiPerUnit)
+
+	huma.Register(api, huma.Operation{
+		OperationID:   "get-awscosts-costs-per-unit-environment",
+		Method:        http.MethodGet,
+		Path:          "/{version}/awscosts/unit-environment/{interval}/",
+		Summary:       "Costs per unit & environment",
+		Description:   perUnitEnvDescription,
+		DefaultStatus: http.StatusOK,
+		Tags:          []string{Tag},
+	}, apiPerUnitEnv)
+
+	huma.Register(api, huma.Operation{
+		OperationID:   "get-awscosts-costs-detailed",
+		Method:        http.MethodGet,
+		Path:          "/{version}/awscosts/detailed/{interval}/",
+		Summary:       "Detailed Costs",
+		Description:   detailDescription,
+		DefaultStatus: http.StatusOK,
+		Tags:          []string{Tag},
+	}, apiDetailed)
+
+}

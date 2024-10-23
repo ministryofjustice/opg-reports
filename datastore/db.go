@@ -73,7 +73,7 @@ func InsertOne[R any](ctx context.Context, db *sqlx.DB, insert InsertStatement, 
 			slog.String("stmt", stmt))
 		return
 	}
-	slog.Info("[insert]", slog.String("record", fmt.Sprintf("%+v\n", record)))
+	// slog.Info("[insert]", slog.String("record", fmt.Sprintf("%+v\n", record)))
 
 	if err = statement.GetContext(ctx, &insertedId, record); err != nil {
 		slog.Error("[datastore.InsertOne] error inserting",
