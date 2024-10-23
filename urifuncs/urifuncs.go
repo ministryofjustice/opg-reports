@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ministryofjustice/opg-reports/buildinfo"
 	"github.com/ministryofjustice/opg-reports/consts"
 	"github.com/ministryofjustice/opg-reports/convert"
 )
@@ -187,6 +188,47 @@ func BillingStartDate(uri string, args ...interface{}) (u string) {
 		slog.String("dateStr", dateStr))
 
 	u = strings.ReplaceAll(u, match, dateStr)
+
+	return
+}
+
+// Interval replaces {interval} with suitable value
+// `args`:
+//  1. alternative interval ("year", "month", "day")
+func Interval(uri string, args ...interface{}) (u string) {
+	u = uri
+	var (
+		match    string   = "{interval}"
+		interval string   = "month"
+		allowed  []string = []string{"year", "month", "day"}
+	)
+
+	if len(args) > 0 {
+		if val, ok := args[0].(string); ok && slices.Contains(allowed, val) {
+			interval = val
+		}
+	}
+	slog.Debug("[urifuncs.Interval]",
+		slog.String("uri", uri),
+		slog.String("interval", interval))
+
+	u = strings.ReplaceAll(u, match, interval)
+
+	return
+}
+
+// Version replaces {version} with the current build version info
+// `args` are ignored
+func Version(uri string, args ...interface{}) (u string) {
+	u = uri
+	var match string = "{version}"
+	var version string = buildinfo.ApiVersion
+
+	slog.Debug("[urifuncs.Version]",
+		slog.String("uri", uri),
+		slog.String("version", version))
+
+	u = strings.ReplaceAll(u, match, version)
 
 	return
 }
