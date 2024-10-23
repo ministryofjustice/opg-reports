@@ -3,10 +3,11 @@ package costsapi
 import "github.com/ministryofjustice/opg-reports/costs"
 
 type StandardBody struct {
-	Type           string         `json:"type" doc:"States what type of data this is for front end handling"`
-	Result         []*costs.Cost  `json:"result" doc:"List of call costs grouped by interval for with and without tax costs."`
-	OrderedColumns []string       `json:"ordered_columns" doc:"List of columns set in the order they should be rendered for each row"`
-	Request        *StandardInput `json:"request" doc:"The public parameters originaly specified in the request to this API."`
+	Type           string                   `json:"type" doc:"States what type of data this is for front end handling"`
+	Result         []*costs.Cost            `json:"result" doc:"List of call costs grouped by interval for with and without tax costs."`
+	OrderedColumns []string                 `json:"ordered_columns" doc:"List of columns set in the order they should be rendered for each row."`
+	ColumnValues   map[string][]interface{} `json:"column_values" doc:"Contains all of the ordered columns possible values, to help display rendering."`
+	Request        *StandardInput           `json:"request" doc:"The public parameters originaly specified in the request to this API."`
 }
 type StandardResult struct {
 	Body *StandardBody

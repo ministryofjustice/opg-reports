@@ -51,7 +51,15 @@ func apiTotal(ctx context.Context, input *TotalInput) (response *TotalResult, er
 
 // --- TaxOverview
 
-var taxOverviewDescription string = `Provides a list of the total costs per interval with and without tax between the start and end date specified.`
+var taxOverviewDescription string = `Provides a list of the total costs per interval with and without tax between the start and end date specified.
+
+Each result returned has the following fields:
+
+
+	service (either 'Including Tax' or 'Excluding Tax')
+	date
+	cost
+`
 
 // apiTotal fetches total sum of all costs within the database
 func apiTaxOverview(ctx context.Context, input *TaxOverviewInput) (response *TaxOverviewResult, err error) {
@@ -83,7 +91,15 @@ func apiTaxOverview(ctx context.Context, input *TaxOverviewInput) (response *Tax
 
 var perUnitDescription string = `Returns a list of cost data grouped by the unit field as well as the date.
 
-Data is limited to the date range (>= start_date < ) and optional unit filter.`
+Data is limited to the date range (>= start_date < ) and optional unit filter.
+
+Each result returned has the following fields:
+
+
+	unit
+	date
+	cost
+`
 
 // apiPerUnit handles getting data grouped by unit
 func apiPerUnit(ctx context.Context, input *StandardInput) (response *StandardResult, err error) {
@@ -110,6 +126,7 @@ func apiPerUnit(ctx context.Context, input *StandardInput) (response *StandardRe
 	}
 
 	if result, err = datastore.Select[[]*costs.Cost](ctx, db, stmt, input); err == nil {
+		response.Body.ColumnValues = datastore.ColumnValues(result, bdy.OrderedColumns)
 		response.Body.Result = result
 	}
 
@@ -120,7 +137,16 @@ func apiPerUnit(ctx context.Context, input *StandardInput) (response *StandardRe
 
 var perUnitEnvDescription string = `Returns a list of cost data grouped by the unit and environment fields as well as the date.
 
-Data is limited to the date range (>= start_date < ) and optional unit filter.`
+Data is limited to the date range (>= start_date < ) and optional unit filter.
+
+Each result returned has the following fields:
+
+
+	unit
+	environment
+	date
+	cost
+`
 
 // apiPerUnit handles getting data grouped by unit
 func apiPerUnitEnv(ctx context.Context, input *StandardInput) (response *StandardResult, err error) {
@@ -146,6 +172,7 @@ func apiPerUnitEnv(ctx context.Context, input *StandardInput) (response *Standar
 	}
 
 	if result, err = datastore.Select[[]*costs.Cost](ctx, db, stmt, input); err == nil {
+		response.Body.ColumnValues = datastore.ColumnValues(result, bdy.OrderedColumns)
 		response.Body.Result = result
 	}
 
@@ -154,7 +181,19 @@ func apiPerUnitEnv(ctx context.Context, input *StandardInput) (response *Standar
 
 var detailDescription string = `Provides a list of the total costs grouped by a date interval, account_id, environment and service within start (>=) and end (<) dates passed.
 
-Data is limited to the date range (>= start_date < ) and optional unit filter.`
+Data is limited to the date range (>= start_date < ) and optional unit filter.
+
+Each result returned has the following fields:
+
+
+	account_id
+	unit
+	label
+	environment
+	service
+	date
+	cost
+`
 
 // apiDetailed
 func apiDetailed(ctx context.Context, input *StandardInput) (response *StandardResult, err error) {
@@ -165,7 +204,7 @@ func apiDetailed(ctx context.Context, input *StandardInput) (response *StandardR
 	var bdy *StandardBody = &StandardBody{}
 	var stmt = costsdb.Detailed
 
-	bdy.OrderedColumns = []string{"account_id", "unit", "environment", "service"}
+	bdy.OrderedColumns = []string{"account_id", "unit", "environment", "service", "label"}
 	bdy.Request = input
 	bdy.Type = "detail"
 	response = &StandardResult{Body: bdy}
@@ -180,6 +219,7 @@ func apiDetailed(ctx context.Context, input *StandardInput) (response *StandardR
 	}
 
 	if result, err = datastore.Select[[]*costs.Cost](ctx, db, stmt, input); err == nil {
+		response.Body.ColumnValues = datastore.ColumnValues(result, bdy.OrderedColumns)
 		response.Body.Result = result
 	}
 

@@ -196,7 +196,6 @@ const Detailed datastore.NamedSelectStatement = `
 SELECT
     unit,
 	IIF(environment != "null", environment, "production") as environment,
-	organisation,
 	account_id,
 	account_name,
 	label,
@@ -208,8 +207,8 @@ WHERE
     date >= :start_date
     AND date < :end_date
 	AND service != 'Tax'
-GROUP BY strftime(:date_format, date), unit, environment, organisation, account_id, service
-ORDER by strftime(:date_format, date), unit, environment, organisation, account_id, service ASC
+GROUP BY strftime(:date_format, date), unit, environment, account_id, service
+ORDER by strftime(:date_format, date), unit, environment, account_id, service ASC
 `
 
 // DetailedForUnit is an extension of Detailed and further restricts the data set
@@ -219,7 +218,6 @@ const DetailedForUnit datastore.NamedSelectStatement = `
 SELECT
     unit,
 	IIF(environment != "null", environment, "production") as environment,
-	organisation,
 	account_id,
 	account_name,
 	label,
@@ -232,6 +230,6 @@ WHERE
     AND date < :end_date
 	AND service != 'Tax'
 	AND unit = :unit
-GROUP BY strftime(:date_format, date), unit, environment, organisation, account_id, service
-ORDER by strftime(:date_format, date), unit, environment, organisation, account_id, service  ASC
+GROUP BY strftime(:date_format, date), unit, environment, account_id, service
+ORDER by strftime(:date_format, date), unit, environment, account_id, service  ASC
 `

@@ -214,7 +214,7 @@ func ValidateParameters[P NamedParameters](params P, needs []string) (err error)
 	return
 }
 
-// ColumnValues finds all the values within rows passed for each of the columns, returning them
+// ColumnValues finds all the unique values within rows passed for each of the columns, returning them
 // as a map.
 func ColumnValues[T any](rows []T, columns []string) (values map[string][]interface{}) {
 	slog.Debug("[datastore.ColumnValues] called")
