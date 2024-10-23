@@ -1,4 +1,4 @@
-.PHONY: tests test coverage openapi sdk
+.PHONY: tests test coverage openapi sdk api
 ## run all tests
 tests:
 	@go clean -testcache
@@ -35,3 +35,6 @@ sdk:
 	@oapi-codegen -generate "types,client" -package sdk openapi.yaml > sdk/sdk.go
 	@go mod tidy
 
+## Run the api from dev source
+api:
+	@cd ./api && go run main.go

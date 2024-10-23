@@ -10,9 +10,9 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
 	"github.com/danielgtaylor/huma/v2/humacli"
+	"github.com/ministryofjustice/opg-reports/buildinfo"
 	"github.com/ministryofjustice/opg-reports/costs"
 	"github.com/ministryofjustice/opg-reports/costs/costsapi"
-	"github.com/ministryofjustice/opg-reports/versions"
 	"github.com/spf13/cobra"
 )
 
@@ -30,6 +30,7 @@ var segments map[string]*apiSegment = map[string]*apiSegment{
 	},
 }
 
+// HomepageResponse used for simple / page
 type HomepageResponse struct {
 	Body struct {
 		Message string `json:"message" example:"Successful connection."`
@@ -71,10 +72,10 @@ func main() {
 	var api huma.API
 	var shutdownDelay = 5 * time.Second
 	var ctx = context.Background()
-	var versionStr = fmt.Sprintf("%s [%s] (%s)", versions.Build, versions.Timestamp, versions.Commit)
+	var versionStr = fmt.Sprintf("%s [%s] (%s)", buildinfo.Build, buildinfo.Timestamp, buildinfo.Commit)
+	var apiTitle = fmt.Sprintf("%s Reports API", buildinfo.Organisation)
 
 	cli := humacli.New(func(hooks humacli.Hooks, opts *Opts) {
-
 		// create the server
 		mux := http.NewServeMux()
 		server := http.Server{
@@ -83,15 +84,17 @@ func main() {
 		}
 
 		// create the api
-
-		api = humago.New(mux, huma.DefaultConfig("Reporting API", versionStr))
+		api = humago.New(mux, huma.DefaultConfig(apiTitle, versionStr))
 
 		addBaseSetup(api)
+
+		slog.Info("[api.main] registering...")
 		for name, segment := range segments {
-			slog.Info("[api.main] registering", slog.String("segment", name))
+			slog.Info("[api.main] register segment", slog.String("segment", name))
 			segment.RegisterFunc(api)
 		}
 		slog.Info("[api.main] registered.")
+
 		hooks.OnStart(func() {
 			slog.Info("Starting api server.",
 				slog.Bool("debug", opts.Debug),

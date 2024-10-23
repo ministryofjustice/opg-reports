@@ -283,18 +283,18 @@ func TestCostApiRegister(t *testing.T) {
 	var ctx = context.WithValue(context.Background(), Segment, dbFile)
 	var dummy = exfaker.Many[costs.Cost](50)
 	var urls = []string{
-		"/v1/costs/aws/total?start_date=2024-01-01&end_date=2024-04-01",
-		"/v1/costs/aws/tax-overview/month?start_date=2024-01-01&end_date=2024-04-01",
-		"/v1/costs/aws/tax-overview/day?start_date=2024-01-01&end_date=2024-04-01",
-		"/v1/costs/aws/unit/month?start_date=2024-01-01&end_date=2024-04-01",
-		"/v1/costs/aws/unit/month?start_date=2024-01-01&end_date=2024-04-01&unit=unitA",
-		"/v1/costs/aws/unit/day?start_date=2024-01-01&end_date=2024-04-01",
-		"/v1/costs/aws/unit-environment/month?start_date=2024-01-01&end_date=2024-04-01",
-		"/v1/costs/aws/unit-environment/day?start_date=2024-01-01&end_date=2024-04-01",
-		"/v1/costs/aws/unit-environment/month?start_date=2024-01-01&end_date=2024-04-01&unit=A",
-		"/v1/costs/aws/detailed/month?start_date=2024-01-01&end_date=2024-04-01",
-		"/v1/costs/aws/detailed/day?start_date=2024-01-01&end_date=2024-04-01",
-		"/v1/costs/aws/detailed/month?start_date=2024-01-01&end_date=2024-04-01&unit=A",
+		"/v1/costs/aws/total/2024-01-01/2024-01-01",
+		"/v1/costs/aws/tax-overview/2024-01-01/2024-01-01/month",
+		"/v1/costs/aws/tax-overview/2024-01-01/2024-01-01/day",
+		"/v1/costs/aws/unit/2024-01-01/2024-01-01/month",
+		"/v1/costs/aws/unit/2024-01-01/2024-01-01/month?unit=unitA",
+		"/v1/costs/aws/unit/2024-01-01/2024-01-01/day",
+		"/v1/costs/aws/unit-environment/2024-01-01/2024-01-01/month",
+		"/v1/costs/aws/unit-environment/2024-01-01/2024-01-01/day",
+		"/v1/costs/aws/unit-environment/2024-01-01/2024-01-01/month?unit=A",
+		"/v1/costs/aws/detailed/2024-01-01/2024-01-01/month",
+		"/v1/costs/aws/detailed/2024-01-01/2024-01-01/day",
+		"/v1/costs/aws/detailed/2024-01-01/2024-01-01/month?unit=A",
 	}
 	var middleware = func(ctx huma.Context, next func(huma.Context)) {
 		ctx = huma.WithValue(ctx, Segment, dbFile)

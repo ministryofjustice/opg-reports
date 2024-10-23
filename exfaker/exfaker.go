@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-faker/faker/v4"
 	"github.com/go-faker/faker/v4/pkg/options"
+	"github.com/ministryofjustice/opg-reports/consts"
 )
 
 var added bool = false
@@ -19,10 +20,10 @@ var (
 )
 
 var (
-	TimeStringFormat string    = time.RFC3339                                // DateTime format used in date generation (time_string).
+	TimeStringFormat string    = consts.DateFormat                           // DateTime format used in date generation (time_string).
 	TimeStringMin    time.Time = time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC) // Min time used as lower bound in time_string generation.
 	TimeStringMax    time.Time = time.Date(2024, 4, 1, 0, 0, 0, 0, time.UTC) // Max time used as upper bound in time_string generation.
-	DateStringFormat string    = time.RFC3339[0:10]                          // Capture the YYYY-MM-DD format
+	DateStringFormat string    = consts.DateFormatYearMonthDay               // Capture the YYYY-MM-DD format
 )
 
 // float generates a float64 within the min & max
