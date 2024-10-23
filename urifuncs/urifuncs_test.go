@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ministryofjustice/opg-reports/buildinfo"
 	"github.com/ministryofjustice/opg-reports/consts"
 	"github.com/ministryofjustice/opg-reports/convert"
 	"github.com/ministryofjustice/opg-reports/urifuncs"
@@ -168,6 +169,27 @@ func TestUriFuncsInterval(t *testing.T) {
 	}
 	expected = "/{version}/month/test"
 	actual = urifuncs.Interval(source, -1)
+	if expected != actual {
+		t.Errorf("url returned does not match - expected [%s] actual [%v]", expected, actual)
+	}
+
+}
+
+func TestUriFuncsVersion(t *testing.T) {
+	var source = "/{version}/test"
+	var expected = "/" + buildinfo.ApiVersion + "/test"
+	var actual = urifuncs.Version(source)
+
+	if expected != actual {
+		t.Errorf("url returned does not match - expected [%s] actual [%v]", expected, actual)
+	}
+
+	actual = urifuncs.Version(source, "day")
+	if expected != actual {
+		t.Errorf("url returned does not match - expected [%s] actual [%v]", expected, actual)
+	}
+
+	actual = urifuncs.Version(source, 1)
 	if expected != actual {
 		t.Errorf("url returned does not match - expected [%s] actual [%v]", expected, actual)
 	}
