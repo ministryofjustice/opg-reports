@@ -36,6 +36,8 @@ func (self *Cost) Value() (cost float64) {
 	return
 }
 
+const RecordsToSeed int = 15000
+
 // Setup will ensure a database with records exists in the filepath requested.
 // If there is no database at that location a new sqlite database will
 // be created and populated with series of dummy data - helpful for local testing.
@@ -44,7 +46,7 @@ func Setup(ctx context.Context, dbFilepath string) {
 	var err error
 	var db *sqlx.DB
 	var isNew bool = false
-	var n int = 15000
+	var n int = RecordsToSeed
 	// add custom fakers
 	exfaker.AddProviders()
 
@@ -64,4 +66,5 @@ func Setup(ctx context.Context, dbFilepath string) {
 	if err != nil {
 		panic(err)
 	}
+
 }
