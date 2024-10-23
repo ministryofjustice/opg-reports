@@ -1,13 +1,10 @@
-
-
-
 .PHONY: tests test coverage openapi sdk
 ## run all tests
 tests:
 	@go clean -testcache
 	@clear
 	@echo "============== tests =============="
-	@env env CGO_ENABLED=1 LOG_LEVEL="warn" LOG_TO="stdout" go test -count=1 -cover -covermode=atomic ./... && echo "✅"
+	@env env CGO_ENABLED=1 LOG_LEVEL="warn" LOG_TO="stdout" go test -count=1 -cover -covermode=atomic ./... && echo "" && echo "passed ✅"
 
 ## run go suite tests that match the file pattern
 ## usage:
