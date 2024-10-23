@@ -1,0 +1,98 @@
+package exfaker
+
+import (
+	"fmt"
+	"log/slog"
+	"math/rand/v2"
+	"reflect"
+	"time"
+
+	"github.com/go-faker/faker/v4"
+	"github.com/go-faker/faker/v4/pkg/options"
+)
+
+var added bool = false
+
+var (
+	FloatMin float64 = -10.5 // Min float value used by float & float_string for random generation.
+	FloatMax float64 = 10.5  // Max float value used by float & float_string for random generation.
+)
+
+var (
+	TimeStringFormat string    = time.RFC3339                                // DateTime format used in date generation (time_string).
+	TimeStringMin    time.Time = time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC) // Min time used as lower bound in time_string generation.
+	TimeStringMax    time.Time = time.Date(2024, 4, 1, 0, 0, 0, 0, time.UTC) // Max time used as upper bound in time_string generation.
+)
+
+// float generates a float64 within the min & max
+func float() float64 {
+	var min float64 = FloatMin
+	var max float64 = FloatMax
+	return min + rand.Float64()*(max-min)
+}
+
+// floatString uses float and then converts to a string version
+// using fmt.Sprintf
+func floatString() string {
+	return fmt.Sprintf("%f", float())
+}
+
+// randTime generates a time between min & max values
+func randTime() time.Time {
+	var max = TimeStringMax
+	var min = TimeStringMin
+	diff := max.Unix() - min.Unix()
+	sec := rand.Int64N(diff) + min.Unix()
+	return time.Unix(sec, 0)
+}
+
+// timeString returns randTime but as a string using
+// the set date format
+func timeString() string {
+	return randTime().Format(TimeStringFormat)
+}
+
+// AddProviders to faker for custom versions
+// Mostly to generate floats / dates but return them as strings
+// for the database models
+func AddProviders() {
+	slog.Debug("[exfaker.AddProviders] adding")
+	if added {
+		slog.Debug("[exfaker.AddProviders] already added")
+		return
+	}
+
+	_ = faker.AddProvider("float", func(v reflect.Value) (interface{}, error) {
+		return float(), nil
+	})
+
+	_ = faker.AddProvider("float_string", func(v reflect.Value) (interface{}, error) {
+		return floatString(), nil
+	})
+	_ = faker.AddProvider("time_string", func(v reflect.Value) (interface{}, error) {
+		return timeString(), nil
+	})
+
+	added = true
+}
+
+// Many returns multiple faked versions of T
+func Many[T interface{}](n int, opts ...options.OptionFunc) (faked []*T) {
+	faked = []*T{}
+
+	for i := 0; i < n; i++ {
+		var item T
+		var record = &item
+		if e := faker.FakeData(record, opts...); e == nil {
+			faked = append(faked, record)
+		} else {
+			slog.Error("[exfaker.Many]", slog.String("err", e.Error()))
+		}
+	}
+	faker.ResetUnique()
+	return
+}
+
+func init() {
+	AddProviders()
+}
