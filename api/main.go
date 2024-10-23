@@ -13,6 +13,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/costs"
 	"github.com/ministryofjustice/opg-reports/costs/costsapi"
 	"github.com/ministryofjustice/opg-reports/versions"
+	"github.com/spf13/cobra"
 )
 
 type apiSegment struct {
@@ -29,23 +30,10 @@ var segments map[string]*apiSegment = map[string]*apiSegment{
 	},
 }
 
-// var segments map[string]*apiSegment = map[string]*apiSegment{
-// 	awscosts.Segment: {DbFile: "./dbs/awscosts.db", RegisterFunc: awscosts.Register, SetupFunc: awscosts.Setup},
-// }
-
 type HomepageResponse struct {
 	Body struct {
 		Message string `json:"message" example:"Successful connection."`
 	}
-}
-
-// AddDatabasePathsMiddleware is a middleware to add the database file path to
-// context
-func AddDatabasePathsMiddleware(ctx huma.Context, next func(huma.Context)) {
-	for segment, cfg := range segments {
-		ctx = huma.WithValue(ctx, segment, cfg.DbFile)
-	}
-	next(ctx)
 }
 
 // Opts provides a series of values for the api server that is configured
@@ -54,10 +42,33 @@ type Opts struct {
 	Debug bool   `doc:"When true enables more detailed logging." default:"false"`
 	Host  string `doc:"Hostname to listen on." default:"localhost"`
 	Port  int    `doc:"Port to listen on." default:"8081"`
-	Spec  bool   `doc:"When true, the openapi spec will be show on server startup" default:"false"`
+}
+
+func addBaseSetup(api huma.API) {
+	// Register the middleware
+	api.UseMiddleware(func(ctx huma.Context, next func(huma.Context)) {
+		for segment, cfg := range segments {
+			ctx = huma.WithValue(ctx, segment, cfg.DbFile)
+		}
+		next(ctx)
+	})
+	// register homepage action that will return an almost empty result
+	huma.Register(api, huma.Operation{
+		OperationID:   "get-homepage",
+		Method:        http.MethodGet,
+		Path:          "/",
+		Summary:       "Home",
+		Description:   "Operates as the root of the API and a simple endpoint to test connectivity with, but returns no reporting data.",
+		DefaultStatus: http.StatusOK,
+	}, func(ctx context.Context, input *struct{}) (homepage *HomepageResponse, err error) {
+		homepage = &HomepageResponse{}
+		homepage.Body.Message = "Successful connection"
+		return
+	})
 }
 
 func main() {
+	var api huma.API
 	var shutdownDelay = 5 * time.Second
 	var ctx = context.Background()
 	var versionStr = fmt.Sprintf("%s [%s] (%s)", versions.Build, versions.Timestamp, versions.Commit)
@@ -73,47 +84,23 @@ func main() {
 
 		// create the api
 
-		api := humago.New(mux, huma.DefaultConfig("Reporting API", versionStr))
-		// Register the middleware
-		api.UseMiddleware(AddDatabasePathsMiddleware)
-		// register homepage action that will return an almost empty result
-		huma.Register(api, huma.Operation{
-			OperationID:   "get-homepage",
-			Method:        http.MethodGet,
-			Path:          "/",
-			Summary:       "Home",
-			Description:   "Operates as the root of the API and a simple endpoint to test connectivity with, but returns no reporting data.",
-			DefaultStatus: http.StatusOK,
-		}, func(ctx context.Context, input *struct{}) (homepage *HomepageResponse, err error) {
-			homepage = &HomepageResponse{}
-			homepage.Body.Message = "Successful connection"
-			return
-		})
+		api = humago.New(mux, huma.DefaultConfig("Reporting API", versionStr))
 
-		if !opts.Spec {
-			// Register the sub helpers
-			for name, segment := range segments {
-				slog.Info("[api.main] registering", slog.String("segment", name))
-				segment.RegisterFunc(api)
-			}
-			slog.Info("[api.main] registered.")
+		addBaseSetup(api)
+		for name, segment := range segments {
+			slog.Info("[api.main] registering", slog.String("segment", name))
+			segment.RegisterFunc(api)
 		}
-		// run the server or show the spec
+		slog.Info("[api.main] registered.")
 		hooks.OnStart(func() {
-			if opts.Spec {
-				bytes, _ := api.OpenAPI().YAML()
-				fmt.Println(string(bytes))
-			} else {
-				// output info that the server is starting
-				slog.Info("Starting api server.",
-					slog.Bool("debug", opts.Debug),
-					slog.Bool("spec", opts.Spec),
-					slog.String("host", opts.Host),
-					slog.Int("port", opts.Port))
-				slog.Info(fmt.Sprintf("API: [http://%s:%d/]", opts.Host, opts.Port))
-				slog.Info(fmt.Sprintf("Docs: [http://%s:%d/docs]", opts.Host, opts.Port))
-				server.ListenAndServe()
-			}
+			slog.Info("Starting api server.",
+				slog.Bool("debug", opts.Debug),
+				slog.String("host", opts.Host),
+				slog.Int("port", opts.Port))
+			slog.Info(fmt.Sprintf("API: [http://%s:%d/]", opts.Host, opts.Port))
+			slog.Info(fmt.Sprintf("Docs: [http://%s:%d/docs]", opts.Host, opts.Port))
+
+			server.ListenAndServe()
 		})
 
 		// graceful shutdown
@@ -123,6 +110,17 @@ func main() {
 			server.Shutdown(ctx)
 		})
 
+	})
+	// Add command to dump out yaml
+	cli.Root().AddCommand(&cobra.Command{
+		Use:   "openapi",
+		Short: "Print the OpenAPI spec",
+		Run: func(cmd *cobra.Command, args []string) {
+			// Use downgrade to return OpenAPI 3.0.3 YAML since oapi-codegen doesn't
+			// support OpenAPI 3.1 fully yet. Use `.YAML()` instead for 3.1.
+			b, _ := api.OpenAPI().DowngradeYAML()
+			fmt.Println(string(b))
+		},
 	})
 
 	cli.Run()
