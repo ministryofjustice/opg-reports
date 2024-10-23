@@ -139,3 +139,37 @@ func TestUriFuncsBillingStartDate(t *testing.T) {
 	}
 
 }
+
+func TestUriFuncsInterval(t *testing.T) {
+	var source = "/{version}/{interval}/test"
+	var expected = "/{version}/month/test"
+	var actual = urifuncs.Interval(source)
+
+	if expected != actual {
+		t.Errorf("url returned does not match - expected [%s] actual [%v]", expected, actual)
+	}
+
+	expected = "/{version}/day/test"
+	actual = urifuncs.Interval(source, "day")
+	if expected != actual {
+		t.Errorf("url returned does not match - expected [%s] actual [%v]", expected, actual)
+	}
+
+	expected = "/{version}/year/test"
+	actual = urifuncs.Interval(source, "year")
+	if expected != actual {
+		t.Errorf("url returned does not match - expected [%s] actual [%v]", expected, actual)
+	}
+
+	expected = "/{version}/month/test"
+	actual = urifuncs.Interval(source, "hour")
+	if expected != actual {
+		t.Errorf("url returned does not match - expected [%s] actual [%v]", expected, actual)
+	}
+	expected = "/{version}/month/test"
+	actual = urifuncs.Interval(source, -1)
+	if expected != actual {
+		t.Errorf("url returned does not match - expected [%s] actual [%v]", expected, actual)
+	}
+
+}
