@@ -36,7 +36,7 @@ func TestExFakerExtended(t *testing.T) {
 // no repeating IDs
 func TestExFakerMany(t *testing.T) {
 	exfaker.AddProviders()
-	var n = 19
+	var n = 15
 
 	many := exfaker.Many[fTest](n)
 

@@ -7,7 +7,7 @@ tests:
 	@go clean -testcache
 	@clear
 	@echo "============== tests =============="
-	@env env CGO_ENABLED=1 LOG_LEVEL="warn" LOG_TO="stdout" go test -count=1 -cover -covermode=atomic -v ./...
+	@env env CGO_ENABLED=1 LOG_LEVEL="warn" LOG_TO="stdout" go test -count=1 -cover -covermode=atomic ./...
 
 ## run go suite tests that match the file pattern
 ## usage:
@@ -23,5 +23,5 @@ coverage:
 	@rm -Rf ./code-coverage.out
 	@clear
 	@echo "============== coverage =============="
-	@env CGO_ENABLED=1 LOG_LEVEL="warn" LOG_TO="stdout" go test -count=1 -covermode=count -coverprofile=code-coverage.out -cover -v ./...
+	@env CGO_ENABLED=1 LOG_LEVEL="warn" LOG_TO="stdout" go test -count=1 -covermode=count -coverprofile=code-coverage.out -cover ./...
 	@go tool cover -html=code-coverage.out

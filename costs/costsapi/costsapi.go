@@ -249,7 +249,7 @@ func Register(api huma.API) {
 	huma.Register(api, huma.Operation{
 		OperationID:   "get-costs-aws-tax-overview",
 		Method:        http.MethodGet,
-		Path:          "/{version}/costs/aws/tax-overview/{interval}/",
+		Path:          "/{version}/costs/aws/tax-overview/{interval}",
 		Summary:       "Tax overview",
 		Description:   taxOverviewDescription,
 		DefaultStatus: http.StatusOK,
@@ -259,7 +259,7 @@ func Register(api huma.API) {
 	huma.Register(api, huma.Operation{
 		OperationID:   "get-costs-aws-costs-per-unit",
 		Method:        http.MethodGet,
-		Path:          "/{version}/costs/aws/unit/{interval}/",
+		Path:          "/{version}/costs/aws/unit/{interval}",
 		Summary:       "Costs per unit",
 		Description:   perUnitDescription,
 		DefaultStatus: http.StatusOK,
@@ -269,7 +269,7 @@ func Register(api huma.API) {
 	huma.Register(api, huma.Operation{
 		OperationID:   "get-costs-aws-costs-per-unit-environment",
 		Method:        http.MethodGet,
-		Path:          "/{version}/costs/aws/unit-environment/{interval}/",
+		Path:          "/{version}/costs/aws/unit-environment/{interval}",
 		Summary:       "Costs per unit & environment",
 		Description:   perUnitEnvDescription,
 		DefaultStatus: http.StatusOK,
@@ -279,7 +279,7 @@ func Register(api huma.API) {
 	huma.Register(api, huma.Operation{
 		OperationID:   "get-costs-aws-costs-detailed",
 		Method:        http.MethodGet,
-		Path:          "/{version}/costs/aws/detailed/{interval}/",
+		Path:          "/{version}/costs/aws/detailed/{interval}",
 		Summary:       "Detailed Costs",
 		Description:   detailDescription,
 		DefaultStatus: http.StatusOK,

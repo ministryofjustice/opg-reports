@@ -4,6 +4,7 @@ package costs
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/ministryofjustice/opg-reports/costs/costsdb"
@@ -27,13 +28,13 @@ type Cost struct {
 	Cost         string `json:"cost,omitempty" db:"cost" faker:"float_string" doc:"Cost value."`                                                                         // The actual cost value as a string - without an currency, but is USD by default
 }
 
-// // Value handles converting the string value of Cost into a float64
-// func (self *Cost) Value() (cost float64) {
-// 	if floated, err := strconv.ParseFloat(self.Cost, 10); err == nil {
-// 		cost = floated
-// 	}
-// 	return
-// }
+// Value handles converting the string value of Cost into a float64
+func (self *Cost) Value() (cost float64) {
+	if floated, err := strconv.ParseFloat(self.Cost, 10); err == nil {
+		cost = floated
+	}
+	return
+}
 
 // Setup will ensure a database with records exists in the filepath requested.
 // If there is no database at that location a new sqlite database will

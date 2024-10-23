@@ -114,6 +114,7 @@ func InsertMany[R any](ctx context.Context, db *sqlx.DB, insert InsertStatement,
 		// go function wrapper
 		go func(item R) {
 			mutex.Lock()
+			defer mutex.Unlock()
 			var (
 				id int
 				e  error
@@ -123,7 +124,6 @@ func InsertMany[R any](ctx context.Context, db *sqlx.DB, insert InsertStatement,
 			} else {
 				insertedIds = append(insertedIds, id)
 			}
-			mutex.Unlock()
 			waitgroup.Done()
 		}(record)
 	}
