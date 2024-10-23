@@ -9,7 +9,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/ministryofjustice/opg-reports/datastore"
-	"github.com/ministryofjustice/opg-reports/fakes"
+	"github.com/ministryofjustice/opg-reports/exfaker"
 )
 
 const (
@@ -21,7 +21,7 @@ const (
 
 type dummy struct {
 	ID    int    `json:"id,omitempty" db:"id"`
-	Label string `json:"label,omitempty" db:"label"`
+	Label string `json:"label,omitempty" db:"label" faker:"word"`
 }
 
 type dummyP struct {
@@ -66,9 +66,7 @@ func TestDatastoreDB(t *testing.T) {
 	}
 
 	// -- insert many
-	for i := 0; i < n; i++ {
-		records = append(records, &dummy{Label: fakes.String(12)})
-	}
+	records = exfaker.Many[dummy](n)
 	ids, err := datastore.InsertMany(ctx, db, dummyDbInsert, records)
 	if err != nil {
 		t.Errorf("error inserting many [%s]", err.Error())

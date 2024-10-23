@@ -87,8 +87,9 @@ func AddProviders() {
 
 // Many returns multiple faked versions of T
 func Many[T interface{}](n int, opts ...options.OptionFunc) (faked []*T) {
-	faked = []*T{}
+	slog.Debug("[exfaker.Many] faking many", slog.Int("n", n))
 
+	faked = []*T{}
 	for i := 0; i < n; i++ {
 		var item T
 		var record = &item
