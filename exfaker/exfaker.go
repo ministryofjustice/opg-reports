@@ -14,14 +14,15 @@ import (
 var added bool = false
 
 var (
-	FloatMin float64 = -10.5 // Min float value used by float & float_string for random generation.
-	FloatMax float64 = 10.5  // Max float value used by float & float_string for random generation.
+	FloatMin float64 = -1.5 // Min float value used by float & float_string for random generation.
+	FloatMax float64 = 12.5 // Max float value used by float & float_string for random generation.
 )
 
 var (
 	TimeStringFormat string    = time.RFC3339                                // DateTime format used in date generation (time_string).
 	TimeStringMin    time.Time = time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC) // Min time used as lower bound in time_string generation.
 	TimeStringMax    time.Time = time.Date(2024, 4, 1, 0, 0, 0, 0, time.UTC) // Max time used as upper bound in time_string generation.
+	DateStringFormat string    = time.RFC3339[0:10]                          // Capture the YYYY-MM-DD format
 )
 
 // float generates a float64 within the min & max
@@ -52,6 +53,10 @@ func timeString() string {
 	return randTime().Format(TimeStringFormat)
 }
 
+func dateString() string {
+	return randTime().Format(DateStringFormat)
+}
+
 // AddProviders to faker for custom versions
 // Mostly to generate floats / dates but return them as strings
 // for the database models
@@ -69,8 +74,12 @@ func AddProviders() {
 	_ = faker.AddProvider("float_string", func(v reflect.Value) (interface{}, error) {
 		return floatString(), nil
 	})
+
 	_ = faker.AddProvider("time_string", func(v reflect.Value) (interface{}, error) {
 		return timeString(), nil
+	})
+	_ = faker.AddProvider("date_string", func(v reflect.Value) (interface{}, error) {
+		return dateString(), nil
 	})
 
 	added = true

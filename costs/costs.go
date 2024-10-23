@@ -18,12 +18,12 @@ type Cost struct {
 	Organisation string `json:"organisation,omitempty" db:"organisation" faker:"oneof: foo, bar, foobar" doc:"Name of the organisation."`                               // Organisation is part of the account details and string name
 	AccountID    string `json:"account_id,omitempty" db:"account_id" faker:"oneof: 101, 102, 201, 202, 301, 302" doc:"Account ID this cost comes from."`                // AccountID is the aws account id this row is for
 	AccountName  string `json:"account_name,omitempty" db:"account_name" faker:"word" doc:"A simple name for the account this cost came from."`                         // AccountName is a passed string used to represent the account purpose
-	Unit         string `json:"unit,omitempty" db:"unit" faker:"word" doc:"The name of the unit / team that owns this account."`                                        // Unit is the team that owns this account, passed directly
+	Unit         string `json:"unit,omitempty" db:"unit" faker:"oneof: unitA, unitB, unitC" doc:"The name of the unit / team that owns this account."`                  // Unit is the team that owns this account, passed directly
 	Label        string `json:"label,omitempty" db:"label" faker:"word" doc:"A supplimental lavel to provide extra detail on the account type."`                        // Label is passed string that sets a more exact name - so DB account production
 	Environment  string `json:"environment,omitempty" db:"environment" faker:"oneof: production, pre-production, development" doc:"Environment type."`                  // Environment is passed along to show if this is production, development etc account
 	Region       string `json:"region,omitempty" db:"region" faker:"oneof: NoRegion, eu-west-1, eu-west-2, us-east-2" doc:"Region this cost was generated within."`     // From the cost data, this is the region the service cost aws generated in
 	Service      string `json:"service,omitempty" db:"service" fake:"oneof: Tax, ecs, ec2, s3, sqs, waf, ses, rds" doc:"Name of the service that generated this cost."` // The AWS service name
-	Date         string `json:"date,omitempty" db:"date" faker:"date, boundary_start=2022-12-01, boundary_end=2024-04-01" doc:"Date this cost was generated."`          // The data the cost was incurred - provided from the cost explorer result
+	Date         string `json:"date,omitempty" db:"date" faker:"date_string" doc:"Date this cost was generated."`                                                       // The data the cost was incurred - provided from the cost explorer result
 	Cost         string `json:"cost,omitempty" db:"cost" faker:"float_string" doc:"Cost value."`                                                                        // The actual cost value as a string - without an currency, but is USD by default
 }
 
@@ -58,7 +58,7 @@ func Setup(ctx context.Context, dbFilepath string) {
 
 	if isNew {
 		faked := exfaker.Many[Cost](n)
-		datastore.InsertMany(ctx, db, costsdb.InsertCosts, faked)
+		_, err = datastore.InsertMany(ctx, db, costsdb.InsertCosts, faked)
 	}
 	if err != nil {
 		panic(err)

@@ -186,12 +186,20 @@ func apiDetailed(ctx context.Context, input *StandardInput) (response *StandardR
 	return
 }
 
+// Register attaches all the endpoints this module handles on the passed huma api
+//
+// Currently supports the following endpoints:
+//   - /{version}/costs/aws/total
+//   - /{version}/costs/aws/tax-overview/{interval}
+//   - /{version}/costs/aws/unit/{interval}
+//   - /{version}/costs/aws/unit-environment/{internval}
+//   - /{version}/costs/aws/detailed/{interval}
 func Register(api huma.API) {
 
 	huma.Register(api, huma.Operation{
-		OperationID:   "get-awscosts-total",
+		OperationID:   "get-costs-aws-total",
 		Method:        http.MethodGet,
-		Path:          "/{version}/awscosts/total",
+		Path:          "/{version}/costs/aws/total",
 		Summary:       "Total",
 		Description:   totalDescription,
 		DefaultStatus: http.StatusOK,
@@ -199,9 +207,9 @@ func Register(api huma.API) {
 	}, apiTotal)
 
 	huma.Register(api, huma.Operation{
-		OperationID:   "get-awscosts-tax-overview",
+		OperationID:   "get-costs-aws-tax-overview",
 		Method:        http.MethodGet,
-		Path:          "/{version}/awscosts/tax-overview/{interval}/",
+		Path:          "/{version}/costs/aws/tax-overview/{interval}/",
 		Summary:       "Tax overview",
 		Description:   taxOverviewDescription,
 		DefaultStatus: http.StatusOK,
@@ -209,9 +217,9 @@ func Register(api huma.API) {
 	}, apiTaxOverview)
 
 	huma.Register(api, huma.Operation{
-		OperationID:   "get-awscosts-costs-per-unit",
+		OperationID:   "get-costs-aws-costs-per-unit",
 		Method:        http.MethodGet,
-		Path:          "/{version}/awscosts/unit/{interval}/",
+		Path:          "/{version}/costs/aws/unit/{interval}/",
 		Summary:       "Costs per unit",
 		Description:   perUnitDescription,
 		DefaultStatus: http.StatusOK,
@@ -219,9 +227,9 @@ func Register(api huma.API) {
 	}, apiPerUnit)
 
 	huma.Register(api, huma.Operation{
-		OperationID:   "get-awscosts-costs-per-unit-environment",
+		OperationID:   "get-costs-aws-costs-per-unit-environment",
 		Method:        http.MethodGet,
-		Path:          "/{version}/awscosts/unit-environment/{interval}/",
+		Path:          "/{version}/costs/aws/unit-environment/{interval}/",
 		Summary:       "Costs per unit & environment",
 		Description:   perUnitEnvDescription,
 		DefaultStatus: http.StatusOK,
@@ -229,9 +237,9 @@ func Register(api huma.API) {
 	}, apiPerUnitEnv)
 
 	huma.Register(api, huma.Operation{
-		OperationID:   "get-awscosts-costs-detailed",
+		OperationID:   "get-costs-aws-costs-detailed",
 		Method:        http.MethodGet,
-		Path:          "/{version}/awscosts/detailed/{interval}/",
+		Path:          "/{version}/costs/aws/detailed/{interval}/",
 		Summary:       "Detailed Costs",
 		Description:   detailDescription,
 		DefaultStatus: http.StatusOK,
