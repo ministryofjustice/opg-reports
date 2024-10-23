@@ -1,7 +1,7 @@
 
 
 
-.PHONY: tests test coverage openapi
+.PHONY: tests test coverage openapi sdk
 ## run all tests
 tests:
 	@go clean -testcache
@@ -30,3 +30,11 @@ coverage:
 ## Output the open api spec
 openapi:
 	@env CGO_ENABLED=1 go run ./api/main.go openapi > openapi.yaml
+
+## Generate local SDK from the spec using oapi-codegen v2.4.1 (pinned to sha)
+sdk:
+	@go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@9c09ef9e9d4be639bd3feff31ff2c06961421272
+	@mkdir -p ./sdk
+	@oapi-codegen -generate "types,client" -package sdk openapi.yaml > sdk/sdk.go
+	@go mod tidy
+
