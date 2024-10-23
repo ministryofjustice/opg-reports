@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"regexp"
+	"slices"
 	"strings"
 	"sync"
 
@@ -41,6 +42,8 @@ type NamedSelectStatement SelectStatement
 // within statements
 type NamedParameters interface{}
 
+// Create will uses MustExecContext to run the slice of createStatements passed.
+// Used to create table, add indexes and so on in sequence
 func Create(ctx context.Context, db *sqlx.DB, create []CreateStatement) {
 	slog.Debug("[datastore.Create]")
 	for _, stmt := range create {
@@ -208,5 +211,36 @@ func ValidateParameters[P NamedParameters](params P, needs []string) (err error)
 		err = fmt.Errorf("missing required fields for this query: [%s]", cols)
 	}
 
+	return
+}
+
+// ColumnValues finds all the values within rows passed for each of the columns, returning them
+// as a map.
+func ColumnValues[T any](rows []T, columns []string) (values map[string][]interface{}) {
+	slog.Debug("[datastore.ColumnValues] called")
+	values = map[string][]interface{}{}
+
+	for _, row := range rows {
+		mapped, err := convert.Map(row)
+		if err != nil {
+			slog.Error("[datastore.ColumnValues] to map failed", slog.String("err", err.Error()))
+			return
+		}
+
+		for _, column := range columns {
+			// if not set, set it
+			if _, ok := values[column]; !ok {
+				values[column] = []interface{}{}
+			}
+			// add the value into the slice
+			if rowValue, ok := mapped[column]; ok {
+				// if they arent in there already
+				if !slices.Contains(values[column], rowValue) {
+					values[column] = append(values[column], rowValue)
+				}
+			}
+
+		}
+	}
 	return
 }

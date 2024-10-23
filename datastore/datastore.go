@@ -74,34 +74,3 @@ func createDatabaseFile(databaseFile string) (isNew bool, err error) {
 	}
 	return
 }
-
-// // ColumnValues finds all the values within rows passed for each of the columns, returning them
-// // as a map.
-// func ColumnValues[T Entity](rows []T, columns []string) (values map[string][]interface{}) {
-// 	slog.Debug("[datastore.ColumnValues] called")
-// 	values = map[string][]interface{}{}
-
-// 	for _, row := range rows {
-// 		mapped, err := convert.Map(row)
-// 		if err != nil {
-// 			slog.Error("to map failed", slog.String("err", err.Error()))
-// 			continue
-// 		}
-
-// 		for _, column := range columns {
-// 			// if not set, set it
-// 			if _, ok := values[column]; !ok {
-// 				values[column] = []interface{}{}
-// 			}
-// 			// add the value into the slice
-// 			if rowValue, ok := mapped[column]; ok {
-// 				// if they arent in there already
-// 				if !slices.Contains(values[column], rowValue) {
-// 					values[column] = append(values[column], rowValue)
-// 				}
-// 			}
-
-// 		}
-// 	}
-// 	return
-// }

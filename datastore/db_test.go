@@ -2,6 +2,7 @@ package datastore_test
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -22,6 +23,13 @@ const (
 type dummy struct {
 	ID    int    `json:"id,omitempty" db:"id"`
 	Label string `json:"label,omitempty" db:"label" faker:"word"`
+}
+
+type dummyE struct {
+	ID           int    `json:"id,omitempty" db:"id"`
+	Label        string `json:"label,omitempty" db:"label" faker:"word"`
+	Organisation string `json:"organisation,omitempty"`
+	Unit         string `json:"unit,omitempty"`
 }
 
 type dummyP struct {
@@ -155,6 +163,33 @@ func TestDatastoreDBValidateParameters(t *testing.T) {
 	err = datastore.ValidateParameters(params, needs)
 	if err == nil {
 		t.Errorf("param should throw error, but didnt")
+	}
+
+}
+
+// TestDatastoreColumnValues checks that all permutations of column
+// values are found correctly for the data
+func TestDatastoreColumnValues(t *testing.T) {
+
+	simple := []*dummyE{
+		{Organisation: "A", Unit: "A", Label: "One"},
+		{Organisation: "A", Unit: "B", Label: "One"},
+		{Organisation: "A", Unit: "C", Label: "One"},
+		{Organisation: "A", Unit: "1", Label: "Three"},
+		{Organisation: "A", Unit: "Z", Label: "One"},
+		{Organisation: "A", Unit: "Z", Label: "Four"},
+	}
+
+	cols := []string{"organisation", "unit", "label"}
+
+	actual := datastore.ColumnValues(simple, cols)
+	expected := map[string]int{"organisation": 1, "unit": 5, "label": 3}
+	for col, count := range expected {
+		l := len(actual[col])
+		if l != count {
+			t.Errorf("[%s] values dont match - expected [%d] actual [%v]", col, count, l)
+			fmt.Println(actual[col])
+		}
 	}
 
 }
