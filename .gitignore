@@ -10,3 +10,6 @@ openapi.yaml
 builds/**
 # Ignore data files
 **/data/**
+# Ignore todo / temp files
+todo.txt
+scratch.txt

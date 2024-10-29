@@ -80,7 +80,7 @@ build/servers: build/servers/api
 ## Build the api into build directory
 build/servers/api:
 	@echo -n "[building] servers/sapi .................. "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/servers/sapi ./servers/sapi/main.go && echo "${tick}"
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/sapi ./servers/sapi/main.go && echo "${tick}"
 .PHONY: build/servers/api
 
 ## build all importers
@@ -90,7 +90,7 @@ build/importers: build/importers/isqlite
 ## build the sqlite importer tool
 build/importers/isqlite:
 	@echo -n "[building] importers/isqlite ............. "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/importers/isqlite ./importers/isqlite/main.go && echo "${tick}"
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/isqlite ./importers/isqlite/main.go && echo "${tick}"
 .PHONY: build/importers/sqlite
 
 ## build all collectors
@@ -100,5 +100,5 @@ build/collectors: build/collectors/cawscosts
 ## build the aws costs collector
 build/collectors/cawscosts:
 	@echo -n "[building] collectors/cawscosts .......... "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/collectors/cawscosts ./collectors/cawscosts/main.go && echo "${tick}"
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/cawscosts ./collectors/cawscosts/main.go && echo "${tick}"
 .PHONY: build/collectors/awscosts
