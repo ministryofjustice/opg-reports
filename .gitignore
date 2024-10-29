@@ -8,3 +8,5 @@ code-coverage.out
 openapi.yaml
 # Ignore build folders
 builds/**
+# Ignore data files
+**/data/**

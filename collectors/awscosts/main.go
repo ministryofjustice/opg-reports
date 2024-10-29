@@ -88,5 +88,6 @@ func main() {
 	}
 
 	Run(args)
+	slog.Info("[awscosts.main] done.")
 
 }
