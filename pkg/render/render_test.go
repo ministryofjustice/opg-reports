@@ -21,7 +21,7 @@ func TestRenderExecute(t *testing.T) {
 	expected := `<h1 class='foobar'>TEST</h1>`
 
 	var p = "test"
-	rnd := render.NewPartial(files, funcs)
+	rnd := render.New(files, funcs)
 
 	actual, err := rnd.Execute(p, dummy)
 
@@ -44,7 +44,7 @@ func TestRenderWrite(t *testing.T) {
 	wr := bufio.NewWriter(buf)
 
 	var p = "test"
-	rnd := render.NewPartial(files, funcs)
+	rnd := render.New(files, funcs)
 
 	err := rnd.Write(p, dummy, wr)
 	wr.Flush()

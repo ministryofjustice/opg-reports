@@ -10,13 +10,13 @@ import (
 )
 
 type Render struct {
-	PartialFiles []string
-	Funcs        template.FuncMap
+	TemplateFiles []string
+	Funcs         template.FuncMap
 }
 
 // Template returns a template with correct name, functions and partial files ready to be executed
 func (self *Render) Template(name string) (tmpl *template.Template, err error) {
-	tmpl, err = template.New(name).Funcs(self.Funcs).ParseFiles(self.PartialFiles...)
+	tmpl, err = template.New(name).Funcs(self.Funcs).ParseFiles(self.TemplateFiles...)
 	return
 }
 
@@ -52,10 +52,11 @@ func (self *Render) Execute(name string, data any) (str string, err error) {
 	return
 }
 
-func NewPartial(partials []string, funcs template.FuncMap) *Render {
+// New creates a fresh Render wuth the files and funcs passed
+func New(files []string, funcs template.FuncMap) *Render {
 	return &Render{
-		PartialFiles: partials,
-		Funcs:        funcs,
+		TemplateFiles: files,
+		Funcs:         funcs,
 	}
 }
 
