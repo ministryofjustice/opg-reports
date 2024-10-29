@@ -13,7 +13,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/ministryofjustice/opg-reports/pkg/convert"
-	"github.com/ministryofjustice/opg-reports/timer"
+	"github.com/ministryofjustice/opg-reports/pkg/timer"
 )
 
 // Exec is a string used that contains a
