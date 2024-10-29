@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-faker/faker/v4"
 	"github.com/go-faker/faker/v4/pkg/options"
-	"github.com/ministryofjustice/opg-reports/consts"
+	"github.com/ministryofjustice/opg-reports/pkg/consts"
 )
 
 var added bool = false

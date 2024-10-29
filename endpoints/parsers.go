@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ministryofjustice/opg-reports/consts"
 	"github.com/ministryofjustice/opg-reports/pkg/bi"
+	"github.com/ministryofjustice/opg-reports/pkg/consts"
 	"github.com/ministryofjustice/opg-reports/pkg/convert"
 )
 
