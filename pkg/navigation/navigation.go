@@ -1,6 +1,8 @@
 package navigation
 
-import "github.com/ministryofjustice/opg-reports/pkg/endpoints"
+import (
+	"github.com/ministryofjustice/opg-reports/pkg/endpoints"
+)
 
 type NavigationParameterFunc func(uri string, args ...interface{}) string
 
@@ -14,8 +16,7 @@ type NavigationDisplay struct {
 }
 
 type NavigationData struct {
-	Source  endpoints.ApiEndpoint
-	Parsers []NavigationParameterFunc
+	Source endpoints.ApiEndpoint
 }
 
 // Navigation represents a tree structured navigation that is rendered on the

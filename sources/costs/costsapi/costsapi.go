@@ -16,6 +16,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/jmoiron/sqlx"
 	"github.com/ministryofjustice/opg-reports/pkg/datastore"
+	"github.com/ministryofjustice/opg-reports/pkg/endpoints"
 	"github.com/ministryofjustice/opg-reports/sources/costs"
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsdb"
 )
@@ -225,6 +226,19 @@ func apiDetailed(ctx context.Context, input *StandardInput) (response *StandardR
 
 	return
 }
+
+// List endpoints the costapi will handle ready for use in the navigation structs
+const (
+	UriTotal                  endpoints.ApiEndpoint = "/{version}/costs/aws/total/{billing_date:-11}/{billing_date:0}"
+	UriMonthlyTax             endpoints.ApiEndpoint = "/{version}/costs/aws/tax-overview/{billing_date:-11}/{billing_date:0}/month"
+	UriMonthlyUnit            endpoints.ApiEndpoint = "/{version}/costs/aws/unit/{billing_date:-11}/{billing_date:0}/month"
+	UriMonthlyUnitEnvironment endpoints.ApiEndpoint = "/{version}/costs/aws/unit-environment/{billing_date:-11}/{billing_date:0}/month"
+	UriMonthlyDetailed        endpoints.ApiEndpoint = "/{version}/costs/aws/detailed/{billing_date:-11}/{billing_date:0}/month"
+	UriDailyTax               endpoints.ApiEndpoint = "/{version}/costs/aws/tax-overview/{billing_date:-11}/{billing_date:0}/day"
+	UriDailyUnit              endpoints.ApiEndpoint = "/{version}/costs/aws/unit/{billing_date:-11}/{billing_date:0}/day"
+	UriDailyUnitEnvironment   endpoints.ApiEndpoint = "/{version}/costs/aws/unit-environment/{billing_date:-11}/{billing_date:0}/day"
+	UriDailyDetailed          endpoints.ApiEndpoint = "/{version}/costs/aws/detailed/{billing_date:-11}/{billing_date:0}/day"
+)
 
 // Register attaches all the endpoints this module handles on the passed huma api
 //
