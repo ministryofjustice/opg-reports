@@ -41,7 +41,7 @@ const RecordsToSeed int = 15000
 // Setup will ensure a database with records exists in the filepath requested.
 // If there is no database at that location a new sqlite database will
 // be created and populated with series of dummy data - helpful for local testing.
-func Setup(ctx context.Context, dbFilepath string) {
+func Setup(ctx context.Context, dbFilepath string, seed bool) {
 
 	var err error
 	var db *sqlx.DB
@@ -50,16 +50,14 @@ func Setup(ctx context.Context, dbFilepath string) {
 	// add custom fakers
 	exfaker.AddProviders()
 
-	db, isNew, err = datastore.NewDB(ctx, datastore.Sqlite, dbFilepath)
+	db, isNew, err = CreateNewDB(ctx, dbFilepath)
 	defer db.Close()
 
 	if err != nil {
 		panic(err)
 	}
-	creates := []datastore.CreateStatement{costsdb.CreateCostTable, costsdb.CreateCostTableIndex}
-	datastore.Create(ctx, db, creates)
 
-	if isNew {
+	if seed && isNew {
 		faked := exfaker.Many[Cost](n)
 		_, err = datastore.InsertMany(ctx, db, costsdb.InsertCosts, faked)
 	}
@@ -67,4 +65,17 @@ func Setup(ctx context.Context, dbFilepath string) {
 		panic(err)
 	}
 
+}
+
+// CreateNewDB will create a new DB file and then
+// try to run table and index creates
+func CreateNewDB(ctx context.Context, dbFilepath string) (db *sqlx.DB, isNew bool, err error) {
+
+	db, isNew, err = datastore.NewDB(ctx, datastore.Sqlite, dbFilepath)
+	if err == nil {
+		creates := []datastore.CreateStatement{costsdb.CreateCostTable, costsdb.CreateCostTableIndex}
+		datastore.Create(ctx, db, creates)
+	}
+
+	return
 }

@@ -32,7 +32,7 @@ func init() {
 
 	for name, segment := range segments {
 		slog.Info("[api.init]", slog.String("segment", name))
-		segment.SetupFunc(ctx, segment.DbFile)
+		segment.SetupFunc(ctx, segment.DbFile, true)
 	}
 }
 
@@ -50,7 +50,7 @@ func main() {
 
 type apiSegment struct {
 	DbFile       string
-	SetupFunc    func(ctx context.Context, dbFilepath string)
+	SetupFunc    func(ctx context.Context, dbFilepath string, seed bool)
 	RegisterFunc func(api huma.API)
 }
 

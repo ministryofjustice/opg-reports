@@ -40,7 +40,7 @@ func TestCostsSetup(t *testing.T) {
 	var dbFile = filepath.Join(dir, "test.db")
 	var ctx = context.Background()
 
-	costs.Setup(ctx, dbFile)
+	costs.Setup(ctx, dbFile, true)
 	if _, err := os.Stat(dbFile); os.IsNotExist(err) {
 		t.Errorf("database file was not created in expected locations")
 	}

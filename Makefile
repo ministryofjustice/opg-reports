@@ -63,25 +63,35 @@ api:
 	@cd ./servers/api && go run main.go
 .PHONY: api
 
-#========= GO BUILD STEPS =========
+#========= BUILD GO BINARIES =========
 # Build all binaries
-build: build/servers build/collectors
+build: buildinfo build/servers build/collectors build/importers
 .PHONY: build
 
 build/servers: build/servers/api
 .PHONY: build/servers
 ## Build the api into build directory
-build/servers/api: buildinfo
-	@echo -n "[building] servers/api .................. "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/servers/api ./servers/api/main.go && echo "${tick}"
+build/servers/api:
+	@echo -n "[building] servers/api ................... "
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/servers/sapi ./servers/api/main.go && echo "${tick}"
 .PHONY: build/servers/api
 
+## build all importers
+build/importers: build/importers/isqlite
+.PHONY: build/importers
+
+## build the sqlite importer tool
+build/importers/isqlite:
+	@echo -n "[building] importers/isqlite ............. "
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/importers/isqlite ./importers/isqlite/main.go && echo "${tick}"
+.PHONY: build/importers/sqlite
+
 ## build all collectors
-build/collectors: buildinfo build/collectors/awscosts
+build/collectors: build/collectors/cawscosts
 .PHONY: build/collectors
 
-build/collectors/awscosts:
-	@echo -n "[building] collectors/awscosts .......... "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/collectors/api ./collectors/awscosts/main.go && echo "${tick}"
-
+## build the aws costs collector
+build/collectors/cawscosts:
+	@echo -n "[building] collectors/cawscosts .......... "
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/collectors/cawscosts ./collectors/cawscosts/main.go && echo "${tick}"
 .PHONY: build/collectors/awscosts

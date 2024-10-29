@@ -1,3 +1,39 @@
+/*
+cawscosts fetches aws costs data for the month at a daily granularity.
+
+Usage:
+
+	cawscosts [flags]
+
+The flags are:
+
+	-month
+		The montth (formated as YYYY-MM-DD) to fetch data for.
+		If set to "-", uses the current month.
+		Defaults to the current month.
+	-id
+		The AWS account id as a string.
+	-name
+		The free entry string used for this account id.
+		Example: TeamA production
+	-label
+		A string to describe what this account is in more detail.
+		Example: TeamA production databases
+	-environment
+		One of the following: development, pre-production, production.
+		Default: production
+	-unit
+		Team name for who owns the account.
+	-organisation
+		Name of the organsiation that looks after the account
+	-output
+		Path (with magic values) to the output file
+		Default: `./data/{month}_{id}_aws_costs.json`
+
+The command presumes an active, autherised session that can connect
+to AWS cost explorer for the account specified. These are dynamically
+fetched from environment variables.
+*/
 package main
 
 import (
@@ -9,7 +45,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/costexplorer"
-	"github.com/ministryofjustice/opg-reports/collectors/awscosts/lib"
+	"github.com/ministryofjustice/opg-reports/collectors/cawscosts/lib"
 	"github.com/ministryofjustice/opg-reports/pkg/awscfg"
 	"github.com/ministryofjustice/opg-reports/pkg/awsclient"
 	"github.com/ministryofjustice/opg-reports/pkg/awssession"
