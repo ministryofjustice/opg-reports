@@ -1,6 +1,6 @@
 package navigation
 
-import "github.com/ministryofjustice/opg-reports/endpoints"
+import "github.com/ministryofjustice/opg-reports/pkg/endpoints"
 
 type NavigationParameterFunc func(uri string, args ...interface{}) string
 
