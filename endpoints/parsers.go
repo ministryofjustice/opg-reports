@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ministryofjustice/opg-reports/buildinfo"
 	"github.com/ministryofjustice/opg-reports/consts"
 	"github.com/ministryofjustice/opg-reports/convert"
+	"github.com/ministryofjustice/opg-reports/pkg/bi"
 )
 
 // dateArgs uses default values and the passed args slice to work out
@@ -83,7 +83,8 @@ func month(uri string, pg *parserGroup) (u string) {
 // Defaults to -1 day
 //
 //	{day:-2} => 2 days ago at 00:00:00
-//	{day:-1,2024-02-03} => 2024-02-02
+//	{day:1,2024-02-03} => 2024-02-04
+//	{day:0,2024-02-03} => 2024-02-03
 func day(uri string, pg *parserGroup) (u string) {
 	u = uri
 
@@ -127,6 +128,6 @@ func billingMonth(uri string, pg *parserGroup) (u string) {
 //	{version:-1} => v1
 func version(uri string, pg *parserGroup) (u string) {
 	u = uri
-	u = strings.ReplaceAll(u, pg.Original, buildinfo.ApiVersion)
+	u = strings.ReplaceAll(u, pg.Original, bi.ApiVersion)
 	return
 }

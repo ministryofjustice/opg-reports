@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ministryofjustice/opg-reports/buildinfo"
+	"github.com/ministryofjustice/opg-reports/pkg/bi"
 )
 
 // TestEndpointParserGroupsCountMatch checks that
@@ -58,7 +58,7 @@ func TestEndpointParsing(t *testing.T) {
 	var checks = map[string]string{
 		"/test/{month:0,2024-01-01}/end":                            "/test/2024-01-01/end",
 		"/test/{month:1,2024-01-20}/end":                            "/test/2024-02-01/end",
-		"/{version}/{month:-1,2024-03-15}/end":                      "/" + buildinfo.ApiVersion + "/2024-02-01/end",
+		"/{version}/{month:-1,2024-03-15}/end":                      "/" + bi.ApiVersion + "/2024-02-01/end",
 		"/test/{year:0,2024-11-09}/end":                             "/test/2024-01-01/end",
 		"/test/{day:-1,2024-03-01}/end":                             "/test/2024-02-29/end",
 		"/test/{day:1,2024-02-28}/end":                              "/test/2024-02-29/end",
