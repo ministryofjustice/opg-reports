@@ -1,6 +1,6 @@
 package costsapi
 
-import "github.com/ministryofjustice/opg-reports/costs"
+import "github.com/ministryofjustice/opg-reports/sources/costs"
 
 type StandardBody struct {
 	Type           string                   `json:"type" doc:"States what type of data this is for front end handling"`

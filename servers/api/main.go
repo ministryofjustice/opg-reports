@@ -10,9 +10,9 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
 	"github.com/danielgtaylor/huma/v2/humacli"
-	"github.com/ministryofjustice/opg-reports/costs"
-	"github.com/ministryofjustice/opg-reports/costs/costsapi"
 	"github.com/ministryofjustice/opg-reports/pkg/bi"
+	"github.com/ministryofjustice/opg-reports/sources/costs"
+	"github.com/ministryofjustice/opg-reports/sources/costs/costsapi"
 	"github.com/spf13/cobra"
 )
 

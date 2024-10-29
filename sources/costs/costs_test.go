@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ministryofjustice/opg-reports/costs"
-	"github.com/ministryofjustice/opg-reports/costs/costsdb"
 	"github.com/ministryofjustice/opg-reports/pkg/datastore"
+	"github.com/ministryofjustice/opg-reports/sources/costs"
+	"github.com/ministryofjustice/opg-reports/sources/costs/costsdb"
 )
 
 // TestCostsModelValue checks the .Value func

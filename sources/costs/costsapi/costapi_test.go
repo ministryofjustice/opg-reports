@@ -10,10 +10,10 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/humatest"
 	"github.com/jmoiron/sqlx"
-	"github.com/ministryofjustice/opg-reports/costs"
-	"github.com/ministryofjustice/opg-reports/costs/costsdb"
 	"github.com/ministryofjustice/opg-reports/pkg/datastore"
 	"github.com/ministryofjustice/opg-reports/pkg/exfaker"
+	"github.com/ministryofjustice/opg-reports/sources/costs"
+	"github.com/ministryofjustice/opg-reports/sources/costs/costsdb"
 )
 
 func testDB(ctx context.Context, file string) (db *sqlx.DB) {

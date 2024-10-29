@@ -7,9 +7,9 @@ import (
 	"strconv"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/ministryofjustice/opg-reports/costs/costsdb"
 	"github.com/ministryofjustice/opg-reports/pkg/datastore"
 	"github.com/ministryofjustice/opg-reports/pkg/exfaker"
+	"github.com/ministryofjustice/opg-reports/sources/costs/costsdb"
 )
 
 // Cost is both the database model and the result struct for the api
