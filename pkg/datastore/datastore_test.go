@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/ministryofjustice/opg-reports/datastore"
+	"github.com/ministryofjustice/opg-reports/pkg/datastore"
 )
 
 // TestDatastoreNewCreatesDbFile checks that datastore.New

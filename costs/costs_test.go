@@ -8,7 +8,7 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/costs"
 	"github.com/ministryofjustice/opg-reports/costs/costsdb"
-	"github.com/ministryofjustice/opg-reports/datastore"
+	"github.com/ministryofjustice/opg-reports/pkg/datastore"
 )
 
 // TestCostsModelValue checks the .Value func

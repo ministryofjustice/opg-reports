@@ -2,7 +2,7 @@ package costsapi
 
 import (
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/ministryofjustice/opg-reports/datastore"
+	"github.com/ministryofjustice/opg-reports/pkg/datastore"
 )
 
 // VersionInput is the version part of the uri path

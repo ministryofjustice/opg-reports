@@ -3,7 +3,7 @@
 package costsdb
 
 import (
-	"github.com/ministryofjustice/opg-reports/datastore"
+	"github.com/ministryofjustice/opg-reports/pkg/datastore"
 )
 
 // CreateCostTable is the create table statement for costs
