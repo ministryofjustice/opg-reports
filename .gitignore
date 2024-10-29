@@ -6,3 +6,5 @@
 code-coverage.out
 # Ignore openapi generated spec
 openapi.yaml
+# Ignore build folders
+builds/**
