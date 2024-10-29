@@ -1,5 +1,7 @@
 // Package costs provides the model and setup functions
 // for all cost related data
+//
+// Currently only capturing AWS cost data.
 package costs
 
 import (

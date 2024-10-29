@@ -56,6 +56,13 @@ buildinfo:
 	@echo "======================================"
 .PHONY: buildinfo
 
+## Removes an existing build artifacts
+clean:
+	@rm -Rf ./builds
+	@rm -Rf ./servers/sapi/databases
+	@rm -Rf ./databases
+	@rm -Rf ./collectors/cawscosts/data
+.PHONY: clean
 #========= RUN =========
 
 ## Run the api from dev source
@@ -65,15 +72,15 @@ api:
 
 #========= BUILD GO BINARIES =========
 # Build all binaries
-build: buildinfo build/servers build/collectors build/importers
+build: buildinfo build/collectors build/importers build/servers
 .PHONY: build
 
 build/servers: build/servers/api
 .PHONY: build/servers
 ## Build the api into build directory
 build/servers/api:
-	@echo -n "[building] servers/api ................... "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/servers/sapi ./servers/api/main.go && echo "${tick}"
+	@echo -n "[building] servers/sapi .................. "
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/servers/sapi ./servers/sapi/main.go && echo "${tick}"
 .PHONY: build/servers/api
 
 ## build all importers

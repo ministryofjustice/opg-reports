@@ -1,3 +1,31 @@
+/*
+sapi runs the api to surface data from the registered endpoints and way to output the spec.
+
+Usage:
+
+	sapi [flags]
+	spai openapi
+
+The flags are:
+
+	-port=<value>
+		The port the server will start running on.
+		Default: 8081
+	-host=<value>
+		The host the server is bound to.
+		Default: localhost
+	-debug
+		Enable more detailed logging.
+		CURRENTLY NOT FUNCTIONAL
+
+Calling `openapi` will output to stdout the yaml spec for the api.
+
+To expand this api with new content, please look at how `costsapi` is setup and when you
+have an equilivant append this to the `segments` map.
+
+Registered segments:
+  - costsapi
+*/
 package main
 
 import (

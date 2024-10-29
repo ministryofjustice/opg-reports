@@ -7,26 +7,26 @@ Usage:
 
 The flags are:
 
-	-month
-		The montth (formated as YYYY-MM-DD) to fetch data for.
+	-month=<yyyy-mm-dd>
+		The month (formated as YYYY-MM-DD) to fetch data for.
 		If set to "-", uses the current month.
 		Defaults to the current month.
-	-id
+	-id=<account-id>
 		The AWS account id as a string.
-	-name
+	-name=<name>
 		The free entry string used for this account id.
 		Example: TeamA production
-	-label
+	-label=<label>
 		A string to describe what this account is in more detail.
 		Example: TeamA production databases
-	-environment
+	-environment=<development|pre-production|production>
 		One of the following: development, pre-production, production.
 		Default: production
-	-unit
+	-unit=<unit>
 		Team name for who owns the account.
-	-organisation
+	-organisation=<organisation>
 		Name of the organsiation that looks after the account
-	-output
+	-output=<path-pattern>
 		Path (with magic values) to the output file
 		Default: `./data/{month}_{id}_aws_costs.json`
 
