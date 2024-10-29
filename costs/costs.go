@@ -9,7 +9,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/ministryofjustice/opg-reports/costs/costsdb"
 	"github.com/ministryofjustice/opg-reports/datastore"
-	"github.com/ministryofjustice/opg-reports/exfaker"
+	"github.com/ministryofjustice/opg-reports/pkg/exfaker"
 )
 
 // Cost is both the database model and the result struct for the api

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/go-faker/faker/v4"
-	"github.com/ministryofjustice/opg-reports/exfaker"
+	"github.com/ministryofjustice/opg-reports/pkg/exfaker"
 )
 
 type fTest struct {
