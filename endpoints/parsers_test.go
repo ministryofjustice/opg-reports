@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/ministryofjustice/opg-reports/consts"
-	"github.com/ministryofjustice/opg-reports/convert"
+	"github.com/ministryofjustice/opg-reports/pkg/convert"
 )
 
 func TestEndpointParserYear(t *testing.T) {

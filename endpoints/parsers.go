@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/ministryofjustice/opg-reports/consts"
-	"github.com/ministryofjustice/opg-reports/convert"
 	"github.com/ministryofjustice/opg-reports/pkg/bi"
+	"github.com/ministryofjustice/opg-reports/pkg/convert"
 )
 
 // dateArgs uses default values and the passed args slice to work out

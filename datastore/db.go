@@ -12,7 +12,7 @@ import (
 	"sync"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/ministryofjustice/opg-reports/convert"
+	"github.com/ministryofjustice/opg-reports/pkg/convert"
 	"github.com/ministryofjustice/opg-reports/timer"
 )
 
