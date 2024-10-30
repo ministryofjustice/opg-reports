@@ -9,6 +9,8 @@ import (
 	"github.com/ministryofjustice/opg-reports/pkg/convert"
 )
 
+// TestEndpointParserYear checks that the {year} keyword
+// is correctly replaced within an ApiEndpoint
 func TestEndpointParserYear(t *testing.T) {
 
 	var uri ApiEndpoint = "/test/{year}/date"
@@ -33,6 +35,9 @@ func TestEndpointParserYear(t *testing.T) {
 
 }
 
+// TestEndpointParserMonthCurrent checks that the {month}
+// keyword is replaced with the first of the current month
+// correctly
 func TestEndpointParserMonthCurrent(t *testing.T) {
 
 	var uri ApiEndpoint = "/test/{month:0,2024-01-01}/date"
@@ -55,6 +60,8 @@ func TestEndpointParserMonthCurrent(t *testing.T) {
 
 }
 
+// TestEndpointParserDay checks that the {day} keyword is
+// replaced with the start of yesterday in yyyy-mm-dd format
 func TestEndpointParserDay(t *testing.T) {
 
 	var uri ApiEndpoint = "/test/{day}/date"

@@ -26,10 +26,17 @@ var (
 	DateStringFormat string    = consts.DateFormatYearMonthDay               // Capture the YYYY-MM-DD format
 )
 
+// randInt generates a number between min & max
+func randInt(min int, max int) int {
+	return rand.IntN(max-min) + min
+}
+
 // float generates a float64 within the min & max
 func float() float64 {
-	var min float64 = FloatMin
-	var max float64 = FloatMax
+	var (
+		min float64 = FloatMin
+		max float64 = FloatMax
+	)
 	return min + rand.Float64()*(max-min)
 }
 
@@ -58,6 +65,23 @@ func dateString() string {
 	return randTime().Format(DateStringFormat)
 }
 
+// uri returns a relative url without hostname etc:
+//   - `/test/word/value`
+//
+// It will create between 1 and 5 path segments
+// by calling Word() and appending
+func uri() (u string) {
+	var n int = randInt(1, 5)
+	u = ""
+
+	for i := 0; i < n; i++ {
+		var w = faker.Word()
+		u += "/" + w
+	}
+
+	return
+}
+
 // AddProviders to faker for custom versions
 // Mostly to generate floats / dates but return them as strings
 // for the database models
@@ -68,19 +92,22 @@ func AddProviders() {
 		return
 	}
 
-	_ = faker.AddProvider("float", func(v reflect.Value) (interface{}, error) {
+	faker.AddProvider("float", func(v reflect.Value) (interface{}, error) {
 		return float(), nil
 	})
 
-	_ = faker.AddProvider("float_string", func(v reflect.Value) (interface{}, error) {
+	faker.AddProvider("float_string", func(v reflect.Value) (interface{}, error) {
 		return floatString(), nil
 	})
 
-	_ = faker.AddProvider("time_string", func(v reflect.Value) (interface{}, error) {
+	faker.AddProvider("time_string", func(v reflect.Value) (interface{}, error) {
 		return timeString(), nil
 	})
-	_ = faker.AddProvider("date_string", func(v reflect.Value) (interface{}, error) {
+	faker.AddProvider("date_string", func(v reflect.Value) (interface{}, error) {
 		return dateString(), nil
+	})
+	faker.AddProvider("uri", func(v reflect.Value) (interface{}, error) {
+		return uri(), nil
 	})
 
 	added = true

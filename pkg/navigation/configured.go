@@ -9,20 +9,22 @@ var (
 	taxOverview = &Navigation{
 		Name: "Tax Overview",
 		Uri:  "/costs/tax-overview",
-		Display: &NavigationDisplay{
-			IsHeader: false,
+		Display: &Display{
+			IsHeader:     false,
+			PageTemplate: "costs-tax",
 		},
-		Data: []*NavigationData{
+		Data: []*Data{
 			{Source: costsapi.UriMonthlyTax},
 		},
 	}
 	costsPerTeam = &Navigation{
 		Name: "Costs per team",
 		Uri:  "/costs/unit",
-		Display: &NavigationDisplay{
-			IsHeader: false,
+		Display: &Display{
+			IsHeader:     false,
+			PageTemplate: "costs-unit",
 		},
-		Data: []*NavigationData{
+		Data: []*Data{
 			{Source: costsapi.UriMonthlyUnit},
 			{Source: costsapi.UriMonthlyUnitEnvironment},
 		},
@@ -30,17 +32,21 @@ var (
 	detailedCosts = &Navigation{
 		Name: "Detailed costs",
 		Uri:  "/costs/detailed",
-		Display: &NavigationDisplay{
-			IsHeader: false,
+		Display: &Display{
+			IsHeader:     false,
+			PageTemplate: "costs-detailed",
 		},
-		Data: []*NavigationData{
+		Data: []*Data{
 			{Source: costsapi.UriMonthlyDetailed},
 		},
 	}
 	costs *Navigation = &Navigation{
-		Name:    "Costs",
-		Uri:     "/costs",
-		Display: &NavigationDisplay{IsHeader: true},
+		Name: "Costs",
+		Uri:  "/costs",
+		Display: &Display{
+			IsHeader:     true,
+			PageTemplate: "costs-overview",
+		},
 		Children: []*Navigation{
 			taxOverview,
 			costsPerTeam,

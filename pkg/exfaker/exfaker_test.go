@@ -1,6 +1,7 @@
 package exfaker_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/go-faker/faker/v4"
@@ -11,6 +12,7 @@ type fTest struct {
 	ID   int     `json:"id,omitempty" db:"id" faker:"unique, boundary_start=1, boundary_end=20"`
 	Ts   string  `json:"ts,omitempty" db:"ts"  faker:"time_string"`
 	Cost float64 `json:"cost,omitempty" db:"cost" faker:"float"`
+	Uri  string  `json:"uri" faker:"relativeUri"`
 }
 
 // TestExFakerExtended checks that ID is within bounds and
@@ -26,6 +28,16 @@ func TestExFakerExtended(t *testing.T) {
 	}
 	if f.Cost < exfaker.FloatMin || f.Cost > exfaker.FloatMax {
 		t.Errorf("cost generated out of bounds")
+	}
+
+	if strings.Contains(f.Uri, "http:") || strings.Contains(f.Uri, "https:") {
+		t.Errorf("uri generation failed, included a protocol")
+	}
+	if f.Uri == "/test" {
+		t.Errorf("uri generation failed and returned the default")
+	}
+	if strings.Count(f.Uri, "/") <= 0 {
+		t.Errorf("uri generated is not formed correctly")
 	}
 
 }

@@ -66,6 +66,8 @@ func (self ApiEndpoint) parserGroups() (found []*parserGroup) {
 	return
 }
 
+// Parse replaces all magic values - {NAME:x,y,z} - with their resolved values
+// and therefore creates the uri to call the api with
 func (self ApiEndpoint) Parse() (u string) {
 	u = string(self)
 
