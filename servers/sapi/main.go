@@ -74,11 +74,11 @@ func Run() {
 		ctx        context.Context = context.Background()
 		apiTitle   string          = lib.ApiTitle()
 		apiVersion string          = lib.ApiVersion()
-		port       string          = envar.Get("API_PORT", "8081")
+		addr       string          = envar.Get("API_ADDR", ":8081")
 	)
 	// create the server
 	server = http.Server{
-		Addr:    fmt.Sprintf("localhost:%s", port),
+		Addr:    fmt.Sprintf("localhost%s", addr),
 		Handler: mux,
 	}
 	// create the api

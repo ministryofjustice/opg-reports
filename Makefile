@@ -42,7 +42,7 @@ coverage:
 
 ## Output the open api spec
 openapi:
-	@env CGO_ENABLED=1 go run ./api/main.go openapi > openapi.yaml
+	@env CGO_ENABLED=1 go run ./servers/sapi/main.go openapi > openapi.yaml
 .PHONY: openapi
 
 ## Output build info
@@ -67,7 +67,7 @@ clean:
 
 ## Run the api from dev source
 api:
-	@cd ./servers/api && go run main.go
+	@cd ./servers/sapi && go run main.go
 .PHONY: api
 
 #========= BUILD GO BINARIES =========
