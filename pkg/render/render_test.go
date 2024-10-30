@@ -9,7 +9,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/pkg/render"
 )
 
-const tmpDir string = "../../servers/front/templates/partials"
+const tmpDir string = "../../servers/sfront/templates/partials"
 
 // TestRenderRender checks that the test partial
 // is rendered correctly as a string
