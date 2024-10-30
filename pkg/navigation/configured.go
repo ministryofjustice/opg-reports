@@ -4,53 +4,39 @@ import (
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsapi"
 )
 
-// org wide costs navigation items
-var (
-	taxOverview = &Navigation{
-		Name: "Tax Overview",
-		Uri:  "/costs/tax-overview",
-		Display: &Display{
-			IsHeader:     false,
-			PageTemplate: "costs-tax",
-		},
-		Data: []*Data{
-			{Source: costsapi.UriMonthlyTax},
-		},
-	}
-	costsPerTeam = &Navigation{
-		Name: "Costs per team",
-		Uri:  "/costs/unit",
-		Display: &Display{
-			IsHeader:     false,
-			PageTemplate: "costs-unit",
-		},
-		Data: []*Data{
-			{Source: costsapi.UriMonthlyUnit},
-			{Source: costsapi.UriMonthlyUnitEnvironment},
-		},
-	}
-	detailedCosts = &Navigation{
-		Name: "Detailed costs",
-		Uri:  "/costs/detailed",
-		Display: &Display{
-			IsHeader:     false,
-			PageTemplate: "costs-detailed",
-		},
-		Data: []*Data{
-			{Source: costsapi.UriMonthlyDetailed},
-		},
-	}
-	costs *Navigation = &Navigation{
-		Name: "Costs",
-		Uri:  "/costs",
-		Display: &Display{
-			IsHeader:     true,
-			PageTemplate: "costs-overview",
-		},
-		Children: []*Navigation{
-			taxOverview,
-			costsPerTeam,
-			detailedCosts,
-		},
-	}
+// -- Costs navigation items
+
+// costsTaxOverview config
+var costsTaxOverview = New(
+	"Tax overview",
+	"/costs/tax-overview",
+	&Display{PageTemplate: "costs-tax"},
+	&Data{Source: costsapi.UriMonthlyTax, Namespace: "CostsTax"},
+)
+
+// costsPerTeam config
+var costsPerTeam = New(
+	"Costs per team",
+	"/costs/unit",
+	&Display{PageTemplate: "costs-unit"},
+	&Data{Source: costsapi.UriMonthlyUnit, Namespace: "CostsPerUnit"},
+	&Data{Source: costsapi.UriMonthlyUnitEnvironment, Namespace: "CostsPerUnitEnv"},
+)
+
+// costsDetailed config
+var costsDetailed = New(
+	"Detailed costs",
+	"/costs/detailed",
+	&Display{PageTemplate: "costs-detailed"},
+	&Data{Source: costsapi.UriMonthlyDetailed, Namespace: "CostsDetailed"},
+)
+
+// costs is the overall cost navigation block
+var costs = New(
+	"Costs",
+	"/costs",
+	&Display{PageTemplate: "costs-overview", IsHeader: true},
+	costsTaxOverview,
+	costsPerTeam,
+	costsDetailed,
 )

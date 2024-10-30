@@ -12,7 +12,7 @@ type fTest struct {
 	ID   int     `json:"id,omitempty" db:"id" faker:"unique, boundary_start=1, boundary_end=20"`
 	Ts   string  `json:"ts,omitempty" db:"ts"  faker:"time_string"`
 	Cost float64 `json:"cost,omitempty" db:"cost" faker:"float"`
-	Uri  string  `json:"uri" faker:"relativeUri"`
+	Uri  string  `json:"uri" faker:"uri"`
 }
 
 // TestExFakerExtended checks that ID is within bounds and
