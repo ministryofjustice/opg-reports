@@ -5,6 +5,8 @@ package consts
 
 import "time"
 
+const ApiTimeout time.Duration = time.Second * 4
+
 const (
 	DateFormat             string = time.RFC3339
 	DateFormatYear         string = "2006"
