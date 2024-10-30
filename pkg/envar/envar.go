@@ -1,3 +1,4 @@
+// Package envar gets data from environment vars
 package envar
 
 import "os"

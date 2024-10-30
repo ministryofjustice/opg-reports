@@ -1,4 +1,25 @@
-// Package endpoiints is a list of all endpoints running on the api
+// Package endpoiints is a string with magic values - `{NAME}` - that
+// is converted into a uri
+//
+// This allows the string to contain place holders for things like
+// the current date or version change. It also allows for modifiers
+// on those values
+//
+// Example:
+//
+//	`/{version}/model/{month:-1}/{month:0}`
+//	`/{version}/model/{month:-2,2024-01-01}/{month:2}`
+//
+// Currently supports the following magic values:
+//
+//	`{year}`
+//	`{month}`
+//	`{day}`
+//	`{billing_date}`
+//	`{version}`
+//
+// See the variable `parsers` for the mapping between keyword
+// and function
 package endpoints
 
 import (

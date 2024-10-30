@@ -1,3 +1,9 @@
+// Package convert contains funcs to convert between types
+//
+// Typically things like a date entered / stored as a string
+// back into a time.Time.
+//
+// Also swapping from struct into bytes for http usage etc
 package convert
 
 import (
@@ -6,6 +12,7 @@ import (
 	"os"
 )
 
+// Map converts any T item (struct generally) into a map
 func Map[T any](item T) (m map[string]interface{}, err error) {
 	byt, err := json.Marshal(item)
 	if err == nil {

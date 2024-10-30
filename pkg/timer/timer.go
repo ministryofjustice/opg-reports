@@ -1,3 +1,6 @@
+// Package timer is a stopwatch style struct
+//
+// Timer used to track execution time of a request
 package timer
 
 import (

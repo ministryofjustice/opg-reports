@@ -1,3 +1,8 @@
+// Package navigation used for navigation config on the front end.
+//
+// Allows for mapping a front end url to a series of data sources
+// on the api and what template to render for each page on the
+// front end.
 package navigation
 
 import (

@@ -1,3 +1,5 @@
+// Package awsclient contains all of the helper methods to generate
+// the appropriate sdk client
 package awsclient
 
 import (

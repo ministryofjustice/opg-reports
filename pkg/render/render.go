@@ -1,3 +1,9 @@
+// Package render used to execute templates for our front end.
+//
+// Simple struct Render contains the methods used by the front
+// end server to take the data and then render the html output.
+//
+// This does not touch and http response etc
 package render
 
 import (

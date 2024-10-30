@@ -7,13 +7,17 @@ import (
 	"github.com/ministryofjustice/opg-reports/pkg/consts"
 )
 
+// DateAddYear adds `mod` number of years onto the time
 func DateAddYear(d time.Time, mod int) time.Time {
 	return d.AddDate(mod, 0, 0)
 }
 
+// DateAddMonth adds `mod` number of months onto the time
 func DateAddMonth(d time.Time, mod int) time.Time {
 	return d.AddDate(0, mod, 0)
 }
+
+// DateAddDay adds `mod` number of days onto the time
 func DateAddDay(d time.Time, mod int) time.Time {
 	return d.AddDate(0, 0, mod)
 }

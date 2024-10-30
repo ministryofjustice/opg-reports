@@ -1,3 +1,7 @@
+// Package awssession provides wrapper funcs to create sdk sessions
+//
+// The standard New func uses the awscfg.Config struct to get
+// all details for a standard session
 package awssession
 
 import (
@@ -9,6 +13,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/pkg/awscfg"
 )
 
+// New creates a typical aws session from the config struct
 func New(cfg *awscfg.Config) (sess *session.Session, err error) {
 	slog.Debug("[awssession.New]", slog.String("region", cfg.Region))
 

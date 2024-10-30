@@ -1,3 +1,6 @@
+// Package consts contains a series of const variables for use in the project.
+//
+// Capture things like DateTime formats and key values
 package consts
 
 import "time"

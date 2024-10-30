@@ -1,3 +1,14 @@
+// Package exfaker provides additional faker methods for go-faker
+//
+// New faker helpers are:
+//
+//	`float`
+//	`float_string`
+//	`time_string`
+//	`date_string`
+//	`uri`
+//
+// See the `AddProviders` func for details
 package exfaker
 
 import (
