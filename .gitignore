@@ -10,6 +10,8 @@ openapi.yaml
 builds/**
 # Ignore data files
 **/data/**
+# Ignore the downloaded govuk assets
+servers/sfront/assets
 # Ignore todo / temp files
 todo.txt
 scratch.txt

@@ -13,10 +13,11 @@ import (
 	"github.com/ministryofjustice/opg-reports/pkg/fileutils"
 )
 
-const (
-	frontEndLocation string = "https://github.com/alphagov/govuk-frontend/releases/download/v{version}/release-v{version}.zip"
-)
+// url (with version value to replace) for the release zip
+const frontEndLocation string = "https://github.com/alphagov/govuk-frontend/releases/download/v{version}/release-v{version}.zip"
 
+// FrontEndConfig contains setup for downloading and extracting
+// govuk frontend built assets to directory of choice
 type FrontEndConfig struct {
 	Version           string   // Version number to use
 	Source            string   // Source is the formatted string to fetch the release zip from
