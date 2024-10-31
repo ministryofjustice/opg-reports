@@ -37,6 +37,69 @@ func DateResetDay(d time.Time) time.Time {
 	return time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, time.UTC)
 }
 
+func DateRange(start time.Time, end time.Time, interval string) (s []string) {
+	var times = []time.Time{}
+	var layout = consts.DateFormatYearMonth
+
+	if interval == "year" {
+		times = DateRangeYears(start, end)
+		layout = consts.DateFormatYear
+	} else if interval == "month" {
+		times = DateRangeMonths(start, end)
+	} else if interval == "day" {
+		times = DateRangeDays(start, end)
+		layout = consts.DateFormatYearMonthDay
+
+	}
+	for _, ti := range times {
+		s = append(s, ti.Format(layout))
+	}
+
+	return
+}
+
+func DateRangeYears(start time.Time, end time.Time) []time.Time {
+	start = DateResetYear(start)
+	end = DateResetYear(end)
+	times := []time.Time{}
+	for d := start; d.After(end) == false; d = DateAddYear(d, 1) {
+		times = append(times, d)
+	}
+	if len(times) > 0 {
+		times = times[:len(times)-1]
+	}
+
+	return times
+}
+
+// DateRangeMonths
+func DateRangeMonths(start time.Time, end time.Time) []time.Time {
+	start = DateResetMonth(start)
+	end = DateResetMonth(end)
+	times := []time.Time{}
+	for d := start; d.After(end) == false; d = DateAddMonth(d, 1) {
+		times = append(times, d)
+	}
+	if len(times) > 0 {
+		times = times[:len(times)-1]
+	}
+
+	return times
+}
+
+func DateRangeDays(start time.Time, end time.Time) []time.Time {
+	start = DateResetDay(start)
+	end = DateResetDay(end)
+	times := []time.Time{}
+	for d := start; d.After(end) == false; d = DateAddDay(d, 1) {
+		times = append(times, d)
+	}
+	if len(times) > 0 {
+		times = times[:len(times)-1]
+	}
+	return times
+}
+
 // GetDateFormat will return the format to use for the date string passed, using
 // time.RFC3339 as base.
 //

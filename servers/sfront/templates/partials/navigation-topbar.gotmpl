@@ -7,7 +7,6 @@
             <button type="button" class="govuk-service-navigation__toggle govuk-js-service-navigation-toggle" aria-controls="navigation" hidden>Menu</button>
             <ul class="govuk-service-navigation__list" id="navigation">
               {{- range .NavigationTopbar -}}
-                <!-- active: {{ .Display.IsActive }} -->
                 {{- if .IsActive -}}
                 <li class="govuk-service-navigation__item govuk-service-navigation__item--active">
                   <a class="govuk-service-navigation__link" href="{{ .Uri }}" aria-current="true"><strong class="govuk-service-navigation__active-fallback">{{ .Name }}</strong></a>

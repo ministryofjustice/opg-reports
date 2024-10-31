@@ -15,6 +15,7 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/jmoiron/sqlx"
+	"github.com/ministryofjustice/opg-reports/pkg/convert"
 	"github.com/ministryofjustice/opg-reports/pkg/datastore"
 	"github.com/ministryofjustice/opg-reports/pkg/endpoints"
 	"github.com/ministryofjustice/opg-reports/sources/costs"
@@ -72,6 +73,7 @@ func apiTaxOverview(ctx context.Context, input *TaxOverviewInput) (response *Tax
 		OrderedColumns: []string{"service"},
 		Request:        input,
 		Type:           "tax-overview",
+		DateRange:      convert.DateRange(input.StartTime(), input.EndTime(), input.Interval),
 	}
 	response = &TaxOverviewResult{Body: bdy}
 
@@ -82,6 +84,7 @@ func apiTaxOverview(ctx context.Context, input *TaxOverviewInput) (response *Tax
 	}
 
 	if result, err = datastore.Select[[]*costs.Cost](ctx, db, costsdb.TaxOverview, input); err == nil {
+		response.Body.ColumnValues = datastore.ColumnValues(result, bdy.OrderedColumns)
 		response.Body.Result = result
 	}
 
@@ -114,6 +117,8 @@ func apiPerUnit(ctx context.Context, input *StandardInput) (response *StandardRe
 	bdy.OrderedColumns = []string{"unit"}
 	bdy.Request = input
 	bdy.Type = "unit"
+	bdy.DateRange = convert.DateRange(input.StartTime(), input.EndTime(), input.Interval)
+
 	response = &StandardResult{Body: bdy}
 
 	db, _, err = datastore.NewDB(ctx, datastore.Sqlite, dbFilepath)
@@ -161,6 +166,8 @@ func apiPerUnitEnv(ctx context.Context, input *StandardInput) (response *Standar
 	bdy.OrderedColumns = []string{"unit", "environment"}
 	bdy.Request = input
 	bdy.Type = "unit-environment"
+	bdy.DateRange = convert.DateRange(input.StartTime(), input.EndTime(), input.Interval)
+
 	response = &StandardResult{Body: bdy}
 
 	db, _, err = datastore.NewDB(ctx, datastore.Sqlite, dbFilepath)
@@ -208,6 +215,8 @@ func apiDetailed(ctx context.Context, input *StandardInput) (response *StandardR
 	bdy.OrderedColumns = []string{"account_id", "unit", "environment", "service", "label"}
 	bdy.Request = input
 	bdy.Type = "detail"
+	bdy.DateRange = convert.DateRange(input.StartTime(), input.EndTime(), input.Interval)
+
 	response = &StandardResult{Body: bdy}
 
 	db, _, err = datastore.NewDB(ctx, datastore.Sqlite, dbFilepath)

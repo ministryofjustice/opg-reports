@@ -159,6 +159,7 @@ func (self *Svr) Handler(writer http.ResponseWriter, request *http.Request) {
 		pageData   = map[string]interface{}{
 			// org is used in the header
 			"Organisation": self.Response.Organisation,
+			"Path":         request.URL.Path,
 			// used for path to the css etc
 			"GovUKVersion": self.Response.GovUKVersion,
 			// top nav bar

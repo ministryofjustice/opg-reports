@@ -1,7 +1,10 @@
 package costsapi
 
 import (
+	"time"
+
 	"github.com/danielgtaylor/huma/v2"
+	"github.com/ministryofjustice/opg-reports/pkg/convert"
 	"github.com/ministryofjustice/opg-reports/pkg/datastore"
 )
 
@@ -27,6 +30,19 @@ type GroupedDateRangeInput struct {
 	DateRangeInput
 	Interval   string `json:"interval" db:"-" path:"interval" default:"month" enum:"year,month,day" doc:"Group the data by this type of interval."`
 	DateFormat string `json:"date_format,omitempty" db:"date_format"`
+}
+
+func (self *GroupedDateRangeInput) StartTime() (t time.Time) {
+	if val, err := convert.ToTime(self.StartDate); err == nil {
+		t = val
+	}
+	return
+}
+func (self *GroupedDateRangeInput) EndTime() (t time.Time) {
+	if val, err := convert.ToTime(self.EndDate); err == nil {
+		t = val
+	}
+	return
 }
 
 // Resolve to convert the interval input param into a date format for the db call
