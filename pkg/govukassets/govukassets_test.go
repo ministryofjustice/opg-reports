@@ -11,6 +11,9 @@ import (
 	"github.com/ministryofjustice/opg-reports/pkg/govukassets"
 )
 
+// TestGovUKAssetsFrontEndFull checks each method on the
+// FrontEnder struct to make sure if downloads, extracts
+// and moves files correctly
 func TestGovUKAssetsFrontEndFull(t *testing.T) {
 	var err error
 	var tmpDir = t.TempDir() //"./tmp/"
@@ -101,7 +104,7 @@ func TestGovUKAssetsFrontEndDo(t *testing.T) {
 }
 
 // testDo is used to test the defer close setup
-func testDo(tmpDir string) (fe *govukassets.FrontEndConfig) {
+func testDo(tmpDir string) (fe *govukassets.FrontEndAssets) {
 	fe = govukassets.FrontEnd()
 	defer fe.Close()
 	fe.Do(tmpDir)

@@ -16,9 +16,9 @@ import (
 // url (with version value to replace) for the release zip
 const frontEndLocation string = "https://github.com/alphagov/govuk-frontend/releases/download/v{version}/release-v{version}.zip"
 
-// FrontEndConfig contains setup for downloading and extracting
+// FrontEndAssets contains setup for downloading and extracting
 // govuk frontend built assets to directory of choice
-type FrontEndConfig struct {
+type FrontEndAssets struct {
 	Version           string   // Version number to use
 	Source            string   // Source is the formatted string to fetch the release zip from
 	DownloadLocation  string   // DownloadLocation is where the zip was downloaded to
@@ -27,7 +27,7 @@ type FrontEndConfig struct {
 }
 
 // Url generates the url from the version and source strings
-func (self *FrontEndConfig) Url() (url string) {
+func (self *FrontEndAssets) Url() (url string) {
 	url = strings.ReplaceAll(self.Source, "{version}", self.Version)
 	return
 }
@@ -35,7 +35,7 @@ func (self *FrontEndConfig) Url() (url string) {
 // Download gets the zip file and downloads it into a temporary
 // directoy and returns the full path to the zip
 // This path can then be used with Extract
-func (self *FrontEndConfig) Download(timeout time.Duration) (path string, err error) {
+func (self *FrontEndAssets) Download(timeout time.Duration) (path string, err error) {
 	var (
 		url     string = self.Url()
 		zipName string = "assets.zip"
@@ -50,7 +50,7 @@ func (self *FrontEndConfig) Download(timeout time.Duration) (path string, err er
 
 // Extract with extract the zip file in the path into a new temp directory
 // so it can be moved around to
-func (self *FrontEndConfig) Extract(zipFilepath string) (extractedDir string, extracted []string, err error) {
+func (self *FrontEndAssets) Extract(zipFilepath string) (extractedDir string, extracted []string, err error) {
 	extractedDir, _ = os.MkdirTemp(os.TempDir(), "extract-*")
 
 	extracted, err = fileutils.ZipExtract(zipFilepath, extractedDir)
@@ -67,7 +67,7 @@ func (self *FrontEndConfig) Extract(zipFilepath string) (extractedDir string, ex
 // Note: the current govuk frontend has css & js at a top level so this function
 // also moves those to live under the /assets/ path so there is one single
 // path for all assets - `/assets/` - making includes / redirects easier
-func (self *FrontEndConfig) Move(originDir string, files []string, destinationDir string) (moved []string, err error) {
+func (self *FrontEndAssets) Move(originDir string, files []string, destinationDir string) (moved []string, err error) {
 	var v = consts.GovUKFrontendVersion
 	moved = []string{}
 
@@ -105,7 +105,7 @@ func (self *FrontEndConfig) Move(originDir string, files []string, destinationDi
 }
 
 // Do handles the full logic of fetching and extracting the resources
-func (self *FrontEndConfig) Do(destinationDir string) (resources []string, err error) {
+func (self *FrontEndAssets) Do(destinationDir string) (resources []string, err error) {
 	var (
 		releaseZip   string
 		extractedDir string
@@ -133,7 +133,7 @@ func (self *FrontEndConfig) Do(destinationDir string) (resources []string, err e
 }
 
 // Close removes tmp directories in use and generally cleans up after itself
-func (self *FrontEndConfig) Close() {
+func (self *FrontEndAssets) Close() {
 	if self.DownloadLocation != "" {
 		os.RemoveAll(self.DownloadLocation)
 	}
@@ -143,8 +143,8 @@ func (self *FrontEndConfig) Close() {
 	self.Extracted = []string{}
 }
 
-func FrontEnd() *FrontEndConfig {
-	return &FrontEndConfig{
+func FrontEnd() *FrontEndAssets {
+	return &FrontEndAssets{
 		Version: consts.GovUKFrontendVersion,
 		Source:  frontEndLocation,
 	}

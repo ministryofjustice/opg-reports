@@ -60,6 +60,7 @@ buildinfo:
 clean:
 	@rm -Rf ./builds
 	@rm -Rf ./servers/sapi/databases
+	@rm -Rf ./servers/sfront/assets
 	@rm -Rf ./databases
 	@rm -Rf ./collectors/cawscosts/data
 .PHONY: clean
