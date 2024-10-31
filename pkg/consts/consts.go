@@ -25,4 +25,4 @@ const (
 const CostsBillingDay int = 15
 
 // GovUKFrontendVersion is the current release being used for css etc
-const GovUKFrontendVersion string = "v5.4.1"
+const GovUKFrontendVersion string = "5.4.1"

@@ -44,6 +44,7 @@ func Copy(source io.Reader, destinationPath string) (destination *os.File, err e
 	if err = os.MkdirAll(directory, os.ModePerm); err != nil {
 		return
 	}
+
 	// try to create the destination file
 	if destination, err = os.Create(destinationPath); err != nil {
 		return
@@ -59,6 +60,12 @@ func Copy(source io.Reader, destinationPath string) (destination *os.File, err e
 // Tries to open the source and the passes along to Copy
 func CopyFromPath(source string, destination string) (err error) {
 	var sourceFile *os.File
+	// if its a directory, just create it
+	if IsDir(source) {
+		err = os.MkdirAll(destination, os.ModePerm)
+		return
+	}
+
 	sourceFile, err = os.Open(source)
 	if err != nil {
 		return
