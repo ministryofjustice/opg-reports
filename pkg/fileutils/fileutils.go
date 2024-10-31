@@ -152,8 +152,10 @@ func writeToZip(zipWriter *zip.Writer, file string, removePath string) (err erro
 // ZipExtract extracts all of the files & directories within the
 // zip (at zipFilepath) into the destinationDir
 // If the destination does not exist it will try to create it
-func ZipExtract(zipFilepath string, destinationDir string) (err error) {
+// Returns list of all files / directories that are extracted
+func ZipExtract(zipFilepath string, destinationDir string) (extracted []string, err error) {
 	var archive *zip.ReadCloser
+	extracted = []string{}
 	// open the zip
 	archive, err = zip.OpenReader(zipFilepath)
 	if err != nil {
@@ -169,6 +171,7 @@ func ZipExtract(zipFilepath string, destinationDir string) (err error) {
 		if err = extractFromZip(file, destinationDir); err != nil {
 			return
 		}
+		extracted = append(extracted, file.Name)
 	}
 	return
 }

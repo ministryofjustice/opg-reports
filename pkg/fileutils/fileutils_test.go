@@ -83,6 +83,7 @@ func TestFileUtilsZipCreateExtract(t *testing.T) {
 	var zip = filepath.Join(dir, "test.zip")
 	var zip2 = filepath.Join(dir2, "openme.zip")
 	var content = "foobar"
+	var extracted []string
 
 	var files = []string{
 		filepath.Join(dir, "tmp.txt"),
@@ -114,9 +115,13 @@ func TestFileUtilsZipCreateExtract(t *testing.T) {
 	// copy to a new directory
 	fileutils.CopyFromPath(zip, zip2)
 	// Now we extract the zip to compare the files
-	err = fileutils.ZipExtract(zip2, dir2+"/extracted/")
+	extracted, err = fileutils.ZipExtract(zip2, dir2+"/extracted/")
 	if err != nil {
 		t.Errorf("error extracting zip: [%s]", err.Error())
+	}
+
+	if len(extracted) != len(files) {
+		t.Errorf("extracted files mis match")
 	}
 
 	// now we check each file / directory exists with correct content in the destination
