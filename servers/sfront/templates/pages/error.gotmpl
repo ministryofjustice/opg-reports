@@ -1,0 +1,16 @@
+{{ define "error" }}
+    {{ template "head" . }}
+
+    <h1 class="govuk-heading-l">Error occurred</h1>
+
+    {{- if gt (len .Errors) 0 -}}
+    <p class="govuk-body">Errors found are listed below:</p>
+    <pre>
+        {{ range $err := .Errors }}
+        - {{ $err }}
+        {{ end }}
+    </pre>
+    {{- end -}}
+
+    {{ template "foot" . }}
+{{ end }}

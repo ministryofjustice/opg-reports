@@ -1,6 +1,8 @@
 package lib
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"html/template"
 	"log/slog"
@@ -34,6 +36,8 @@ func (self *Cfg) Server() *http.Server {
 	return self.server
 }
 
+var errorTemplate = "error"
+
 // Response contains info used for rendering the html
 // page and its response details
 type Response struct {
@@ -43,6 +47,8 @@ type Response struct {
 	Funcs        template.FuncMap
 	Errors       []error
 	renderer     *render.Render
+	headerSet    bool
+	errCode      int
 }
 
 // Renderer gets the child template render helper
@@ -59,18 +65,40 @@ func (self *Response) Renderer() *render.Render {
 // (using renderer) and output the result using the writer
 // This is the final step of processing the incoming request
 // Sets http status and content type as text/html
-func (self *Response) Write(templateName string, data any, writer http.ResponseWriter) {
+// If there is an error executing the template then this will attempt to render
+// the error template instead - adding a new error to the stack
+// Uses an internal bool to avoid writing header status code more than once
+func (self *Response) Write(templateName string, data map[string]any, writer http.ResponseWriter) {
 	var rnd = self.Renderer()
+	var buf = new(bytes.Buffer)
+	var wr = bufio.NewWriter(buf)
+	// inject errors to the page data
 	if len(self.Errors) > 0 {
-		writer.WriteHeader(http.StatusBadRequest)
-	} else {
+		data["Errors"] = self.ErrorList()
+	}
+
+	// use the renderer to execute the content and write the result to the http response
+	if err := rnd.Write(templateName, data, wr); err != nil {
+		slog.Error("[svr.Response] Write error", slog.String("err", err.Error()))
+		if templateName != errorTemplate {
+			slog.Error("[svr.Response] recovering from error, rendering error page")
+			self.AddError(err)
+			// recall self
+			self.Write(errorTemplate, data, writer)
+		}
+	}
+	// set the status code header
+	if len(self.Errors) > 0 && !self.headerSet {
+		writer.WriteHeader(self.errCode)
+	} else if !self.headerSet {
 		writer.WriteHeader(http.StatusOK)
 	}
+	// flush and write to real header
 	writer.Header().Set("Content-Type", "text/html")
-	// use the renderer to execute the content and write the result to the http response
-	if err := rnd.Write(templateName, data, writer); err != nil {
-		slog.Error("[svr.Response] Write error", slog.String("err", err.Error()))
-	}
+	wr.Flush()
+	writer.Write(buf.Bytes())
+
+	self.headerSet = true
 	return
 }
 
@@ -79,13 +107,8 @@ func (self *Response) Write(templateName string, data any, writer http.ResponseW
 // Will then render an error template to the page so the user sees something
 // Calls Write after setting template and content
 func (self *Response) WriteWithError(err error, writer http.ResponseWriter) {
+	var data = map[string]interface{}{}
 	self.AddError(err)
-
-	var errorTemplate = "error"
-	var data = map[string]interface{}{
-		"errors": self.ErrorList(),
-	}
-
 	self.Write(errorTemplate, data, writer)
 
 }
@@ -93,6 +116,11 @@ func (self *Response) WriteWithError(err error, writer http.ResponseWriter) {
 // AddError method to add errors to the stack
 func (self *Response) AddError(err error) {
 	self.Errors = append(self.Errors, err)
+}
+func (self *Response) Reset() {
+	self.Errors = []error{}
+	self.headerSet = false
+	self.errCode = http.StatusBadRequest
 }
 
 // ErrorList is helper to get string version of all errors
@@ -166,6 +194,7 @@ func (self *Svr) Handler(writer http.ResponseWriter, request *http.Request) {
 			"NavigationTopbar": self.Navigation.Tree,
 		}
 	)
+	self.Response.Reset()
 	// activate items in the stack
 	activePage = navigation.ActivateFlat(flat, request)
 	if activePage == nil {
