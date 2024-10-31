@@ -18,17 +18,19 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
 	"github.com/ministryofjustice/opg-reports/pkg/bi"
+	"github.com/ministryofjustice/opg-reports/pkg/consts"
 	"github.com/ministryofjustice/opg-reports/pkg/envar"
 	"github.com/ministryofjustice/opg-reports/servers/sapi/lib"
 	"github.com/ministryofjustice/opg-reports/sources/costs"
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsapi"
 )
+
+var mode = bi.Mode
 
 // we split the api handlers into simple & full groups
 // `simple` is used for the basic install
@@ -44,10 +46,10 @@ var (
 		},
 	}
 	segmentChoices map[string]map[string]*lib.ApiSegment = map[string]map[string]*lib.ApiSegment{
-		"simple": simpleSegments,
+		"simple": fullSegments, //simpleSegments,
 		"full":   fullSegments,
 	}
-	segments = segmentChoices[bi.Mode]
+	segments = segmentChoices[mode]
 )
 
 // init is used to fetch stored databases from s3
@@ -73,11 +75,11 @@ func Run() {
 		ctx        context.Context = context.Background()
 		apiTitle   string          = lib.ApiTitle()
 		apiVersion string          = lib.ApiVersion()
-		addr       string          = envar.Get("API_ADDR", ":8081")
+		addr       string          = envar.Get("API_ADDR", consts.ServerDefaultApiAddr)
 	)
 	// create the server
 	server = http.Server{
-		Addr:    fmt.Sprintf("localhost%s", addr),
+		Addr:    addr,
 		Handler: mux,
 	}
 	// create the api

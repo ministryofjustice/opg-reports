@@ -73,6 +73,11 @@ api:
 	@cd ./servers/sapi && go run main.go
 .PHONY: api
 
+## Run the front from dev source
+front:
+	@cd ./servers/sfront && go run main.go
+.PHONY: front
+
 #========= BUILD GO BINARIES =========
 # Build all binaries
 build: buildinfo build/collectors build/importers build/servers

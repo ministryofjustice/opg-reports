@@ -22,6 +22,7 @@ type Display struct {
 type Data struct {
 	Source    endpoints.ApiEndpoint `json:"source" faker:"uri" doc:"API data source location"`
 	Namespace string                `json:"namepsace" faker:"word" doc:"Namespace the Result should be copied over into for front end parsing"`
+	Body      interface{}
 }
 
 func NewData(source endpoints.ApiEndpoint, namespace string) *Data {

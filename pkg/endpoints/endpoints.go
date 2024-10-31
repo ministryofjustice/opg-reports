@@ -51,6 +51,10 @@ var parsers map[string]parserFunc = map[string]parserFunc{
 
 type ApiEndpoint string
 
+func (self ApiEndpoint) String() string {
+	return string(self)
+}
+
 // parserGroups processes the string version of self and
 // returns a list of elements within the string that need
 // to be replaced and details about them

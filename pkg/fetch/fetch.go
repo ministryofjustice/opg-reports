@@ -4,6 +4,7 @@ package fetch
 import (
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -42,7 +43,7 @@ func Response(url string, timeout time.Duration) (response *http.Response, err e
 		request *http.Request
 		client  http.Client
 	)
-
+	slog.Info("[fetch.Response] url", slog.String("url", url))
 	request, err = http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return

@@ -1,0 +1,30 @@
+{{ define "head" }}
+  <!DOCTYPE html>
+  <html lang="en" class="govuk-template app-html-class">
+    <head>
+      <meta charset="utf-8">
+      <title>{{ .Organisation }}</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+      <link rel="icon" sizes="48x48" href="/assets/images/favicon.ico">
+      <link rel="icon" sizes="any" href="/assets/images/favicon.svg" type="image/svg+xml">
+      <link rel="mask-icon" href="/assets/images/govuk-icon-mask.svg" color="#0b0c0c">
+      <link rel="apple-touch-icon" href="/assets/images/govuk-icon-180.png">
+      <link rel="manifest" href="/govuk/assets/manifest.json">
+
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <link href="/assets/govuk-frontend-{{ .GovUKVersion }}.min.css" rel="stylesheet" media="all">
+
+      <!--<link href="/static/local.css" rel="stylesheet" media="all"> -->
+
+      <!-- a merged version of highcharts and various modules
+      <script src="/static/highcharts.js"></script>
+
+      <script type="text/javascript" src="/static/local.js"></script>
+      -->
+
+    </head>
+
+    <body class="govuk-template__body org-reporting " >
+
+{{ end }}

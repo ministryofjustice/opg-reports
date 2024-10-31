@@ -28,7 +28,7 @@ func Flat(tree []*Navigation, flat map[string]*Navigation) {
 // are within the requested uri or are an exact match
 // Used so we can mark the navigation items that relate to the
 // active page stack
-func ActivateTree(tree []*Navigation, request *http.Request) {
+func ActivateTree(tree []*Navigation, request *http.Request) (active *Navigation) {
 	var url string = request.URL.Path
 	// remove leading and trailing url, re-add leading
 	url = strings.TrimSuffix(url, "/")
@@ -45,6 +45,7 @@ func ActivateTree(tree []*Navigation, request *http.Request) {
 			node.Display.InUri = true
 		}
 		if url == nodeUrl {
+			active = node
 			node.Display.IsActive = true
 		}
 		// recurse
@@ -52,5 +53,16 @@ func ActivateTree(tree []*Navigation, request *http.Request) {
 			ActivateTree(node.Children, request)
 		}
 	}
+	return
+}
+
+// ActivateFlat mirrors ActivateTree but for a flat structure.
+// Creates a single layer slice and then calls ActivateTree
+func ActivateFlat(flat map[string]*Navigation, request *http.Request) (active *Navigation) {
+	var list = []*Navigation{}
+	for _, item := range flat {
+		list = append(list, item)
+	}
+	active = ActivateTree(list, request)
 	return
 }

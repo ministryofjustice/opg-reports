@@ -35,6 +35,14 @@ func Unmarshal[T any](content []byte) (item T, err error) {
 	return
 }
 
+func UnmarshalInto[T any](content []byte, item T) (err error) {
+	err = json.Unmarshal(content, &item)
+	if err != nil {
+		slog.Error("[convert.UnmarshalInto] failed", slog.String("err", err.Error()))
+	}
+	return
+}
+
 // UnmarshalFile converts the content of the file into item T
 // - reads the content of then file and then uses Unmarshal
 func UnmarshalFile[T any](filepath string) (item T, err error) {

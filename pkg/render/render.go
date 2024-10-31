@@ -28,8 +28,8 @@ func (self *Render) Template(name string) (tmpl *template.Template, err error) {
 
 // Write generates the content of the partial and writes that into the writer passed
 // making use of the data to update ant content
-func (self *Render) Write(name string, data any, writer io.Writer) (err error) {
-	var nm = named(name)
+func (self *Render) Write(templateName string, data any, writer io.Writer) (err error) {
+	var nm = named(templateName)
 	var tmpl *template.Template
 
 	tmpl, err = self.Template(nm)
