@@ -5,7 +5,8 @@ package consts
 
 import "time"
 
-const ApiTimeout time.Duration = time.Second * 4
+// FetchTimeout is the duration used when calling the api endpoints
+const FetchTimeout time.Duration = time.Second * 4
 
 const (
 	DateFormat             string = time.RFC3339
@@ -22,3 +23,6 @@ const (
 //
 // Example - 10th April would be looking at Feb costs, 15th April can see March costs
 const CostsBillingDay int = 15
+
+// GovUKFrontendVersion is the current release being used for css etc
+const GovUKFrontendVersion string = "v5.4.1"

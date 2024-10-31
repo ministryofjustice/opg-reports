@@ -3,20 +3,8 @@ sapi runs the api to surface data from the registered endpoints and way to outpu
 
 Usage:
 
-	sapi [flags]
+	sapi
 	spai openapi
-
-The flags are:
-
-	-port=<value>
-		The port the server will start running on.
-		Default: 8081
-	-host=<value>
-		The host the server is bound to.
-		Default: localhost
-	-debug
-		Enable more detailed logging.
-		CURRENTLY NOT FUNCTIONAL
 
 Calling `openapi` will output to stdout the yaml spec for the api.
 
