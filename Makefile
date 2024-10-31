@@ -5,10 +5,11 @@ API_VERSION = v1
 COMMIT = $(shell git rev-parse HEAD)
 ORGANISATION = OPG
 SEMVER ?= v0.0.1
+MODE ?= simple
 TIMESTAMP = $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 #======================================
 pkg=github.com/ministryofjustice/opg-reports/pkg
-LDFLAGS:=" -X '${pkg}/bi.ApiVersion=${API_VERSION}' -X '${pkg}/bi.Commit=${COMMIT}' -X '${pkg}/bi.Organisation=${ORGANISATION}' -X '${pkg}/bi.Semver=${SEMVER}' -X '${pkg}/bi.Timestamp=${TIMESTAMP}'"
+LDFLAGS:=" -X '${pkg}/bi.ApiVersion=${API_VERSION}' -X '${pkg}/bi.Commit=${COMMIT}' -X '${pkg}/bi.Organisation=${ORGANISATION}' -X '${pkg}/bi.Semver=${SEMVER}' -X '${pkg}/bi.Timestamp=${TIMESTAMP}' -X '${pkg}/bi.Mode=${MODE}' "
 #======================================
 tick="✅"
 
@@ -50,6 +51,7 @@ buildinfo:
 	@echo "============ BUILD INFO =============="
 	@echo "API_VERSION:  ${API_VERSION}"
 	@echo "COMMIT:       ${COMMIT}"
+	@echo "MODE:         ${MODE}"
 	@echo "ORGANISATION: ${ORGANISATION}"
 	@echo "SEMVER:       ${SEMVER}"
 	@echo "TIMESTAMP:    ${TIMESTAMP}"
@@ -76,13 +78,21 @@ api:
 build: buildinfo build/collectors build/importers build/servers
 .PHONY: build
 
-build/servers: build/servers/api
+build/servers: build/servers/api build/servers/front
 .PHONY: build/servers
+
 ## Build the api into build directory
 build/servers/api:
 	@echo -n "[building] servers/sapi .................. "
 	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/sapi ./servers/sapi/main.go && echo "${tick}"
 .PHONY: build/servers/api
+
+## Build the api into build directory
+build/servers/front:
+	@echo -n "[building] servers/sfront ................ "
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/sfront ./servers/sfront/main.go && echo "${tick}"
+.PHONY: build/servers/front
+
 
 ## build all importers
 build/importers: build/importers/isqlite

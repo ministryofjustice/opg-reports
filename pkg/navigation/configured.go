@@ -40,3 +40,19 @@ var costs = New(
 	costsPerTeam,
 	costsDetailed,
 )
+
+// Dummy holder for now
+var simple = New(
+	"Home",
+	"/",
+	&Display{PageTemplate: "homepage"},
+)
+
+// Configured is the set of all navigation structures
+// to share
+// This is the then selected in the sfront by using
+// bi.Navigation as the key for this map
+// This allows the navigation to be changed at run time
+var Configured = map[string]*Navigation{
+	"simple": simple,
+}

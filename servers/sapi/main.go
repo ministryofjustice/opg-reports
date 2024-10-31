@@ -30,14 +30,25 @@ import (
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsapi"
 )
 
-var segments map[string]*lib.ApiSegment = map[string]*lib.ApiSegment{
-
-	costsapi.Segment: {
-		DbFile:       "./databases/costs.db",
-		SetupFunc:    costs.Setup,
-		RegisterFunc: costsapi.Register,
-	},
-}
+// we split the api handlers into simple & full groups
+// `simple` is used for the basic install
+// `full` covers all options
+// Set using the bi.Mode which is a ldflag
+var (
+	simpleSegments map[string]*lib.ApiSegment = map[string]*lib.ApiSegment{}
+	fullSegments   map[string]*lib.ApiSegment = map[string]*lib.ApiSegment{
+		costsapi.Segment: {
+			DbFile:       "./databases/costs.db",
+			SetupFunc:    costs.Setup,
+			RegisterFunc: costsapi.Register,
+		},
+	}
+	segmentChoices map[string]map[string]*lib.ApiSegment = map[string]map[string]*lib.ApiSegment{
+		"simple": simpleSegments,
+		"full":   fullSegments,
+	}
+	segments = segmentChoices[bi.Mode]
+)
 
 // init is used to fetch stored databases from s3
 // or create dummy versions of them
