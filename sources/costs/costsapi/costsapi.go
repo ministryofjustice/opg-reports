@@ -70,10 +70,10 @@ func apiTaxOverview(ctx context.Context, input *TaxOverviewInput) (response *Tax
 	var db *sqlx.DB
 	var result []*costs.Cost = []*costs.Cost{}
 	var bdy *TaxOverviewBody = &TaxOverviewBody{
-		OrderedColumns: []string{"service"},
-		Request:        input,
-		Type:           "tax-overview",
-		DateRange:      convert.DateRange(input.StartTime(), input.EndTime(), input.Interval),
+		ColumnOrder: []string{"service"},
+		Request:     input,
+		Type:        "tax-overview",
+		DateRange:   convert.DateRange(input.StartTime(), input.EndTime(), input.Interval),
 	}
 	response = &TaxOverviewResult{Body: bdy}
 
@@ -84,7 +84,7 @@ func apiTaxOverview(ctx context.Context, input *TaxOverviewInput) (response *Tax
 	}
 
 	if result, err = datastore.Select[[]*costs.Cost](ctx, db, costsdb.TaxOverview, input); err == nil {
-		response.Body.ColumnValues = datastore.ColumnValues(result, bdy.OrderedColumns)
+		response.Body.ColumnValues = datastore.ColumnValues(result, bdy.ColumnOrder)
 		response.Body.Result = result
 	}
 
@@ -114,7 +114,7 @@ func apiPerUnit(ctx context.Context, input *StandardInput) (response *StandardRe
 	var bdy *StandardBody = &StandardBody{}
 	var stmt = costsdb.PerUnit
 
-	bdy.OrderedColumns = []string{"unit"}
+	bdy.ColumnOrder = []string{"unit"}
 	bdy.Request = input
 	bdy.Type = "unit"
 	bdy.DateRange = convert.DateRange(input.StartTime(), input.EndTime(), input.Interval)
@@ -132,7 +132,7 @@ func apiPerUnit(ctx context.Context, input *StandardInput) (response *StandardRe
 	}
 
 	if result, err = datastore.Select[[]*costs.Cost](ctx, db, stmt, input); err == nil {
-		response.Body.ColumnValues = datastore.ColumnValues(result, bdy.OrderedColumns)
+		response.Body.ColumnValues = datastore.ColumnValues(result, bdy.ColumnOrder)
 		response.Body.Result = result
 	}
 
@@ -163,7 +163,7 @@ func apiPerUnitEnv(ctx context.Context, input *StandardInput) (response *Standar
 	var bdy *StandardBody = &StandardBody{}
 	var stmt = costsdb.PerUnitEnvironment
 
-	bdy.OrderedColumns = []string{"unit", "environment"}
+	bdy.ColumnOrder = []string{"unit", "environment"}
 	bdy.Request = input
 	bdy.Type = "unit-environment"
 	bdy.DateRange = convert.DateRange(input.StartTime(), input.EndTime(), input.Interval)
@@ -180,7 +180,7 @@ func apiPerUnitEnv(ctx context.Context, input *StandardInput) (response *Standar
 	}
 
 	if result, err = datastore.Select[[]*costs.Cost](ctx, db, stmt, input); err == nil {
-		response.Body.ColumnValues = datastore.ColumnValues(result, bdy.OrderedColumns)
+		response.Body.ColumnValues = datastore.ColumnValues(result, bdy.ColumnOrder)
 		response.Body.Result = result
 	}
 
@@ -212,7 +212,7 @@ func apiDetailed(ctx context.Context, input *StandardInput) (response *StandardR
 	var bdy *StandardBody = &StandardBody{}
 	var stmt = costsdb.Detailed
 
-	bdy.OrderedColumns = []string{"account_id", "unit", "environment", "service", "label"}
+	bdy.ColumnOrder = []string{"account_id", "unit", "environment", "service", "label"}
 	bdy.Request = input
 	bdy.Type = "detail"
 	bdy.DateRange = convert.DateRange(input.StartTime(), input.EndTime(), input.Interval)
@@ -229,7 +229,7 @@ func apiDetailed(ctx context.Context, input *StandardInput) (response *StandardR
 	}
 
 	if result, err = datastore.Select[[]*costs.Cost](ctx, db, stmt, input); err == nil {
-		response.Body.ColumnValues = datastore.ColumnValues(result, bdy.OrderedColumns)
+		response.Body.ColumnValues = datastore.ColumnValues(result, bdy.ColumnOrder)
 		response.Body.Result = result
 	}
 
