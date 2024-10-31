@@ -40,6 +40,16 @@ type Navigation struct {
 	Children []*Navigation `json:"children" doc:"Child navigation"`
 }
 
+func (self *Navigation) IsActive() bool {
+	return self.Display.IsActive
+}
+func (self *Navigation) IsUri() bool {
+	return self.Display.InUri
+}
+func (self *Navigation) IsHeader() bool {
+	return self.Display.IsHeader
+}
+
 // New will create a standard Navigation struct using the name and uri passed
 // It allows sthe more complex properties to be passed as variadic arguments
 // and maakes use of a switch on type to assign them correctly.

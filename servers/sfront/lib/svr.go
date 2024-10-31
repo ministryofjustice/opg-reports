@@ -156,15 +156,17 @@ func (self *Svr) Handler(writer http.ResponseWriter, request *http.Request) {
 	var (
 		activePage *navigation.Navigation
 		flat       = self.Navigation.Flat()
+		pageData   = map[string]interface{}{
+			// org is used in the header
+			"Organisation": self.Response.Organisation,
+			// used for path to the css etc
+			"GovUKVersion": self.Response.GovUKVersion,
+			// top nav bar
+			"NavigationTopbar": self.Navigation.Tree,
+		}
 	)
-	// var
-	var pageData = map[string]interface{}{
-		"Organisation": self.Response.Organisation,
-		"GovUKVersion": self.Response.GovUKVersion,
-	}
 	// activate items in the stack
 	activePage = navigation.ActivateFlat(flat, request)
-
 	if activePage == nil {
 		e := fmt.Errorf("requested url [%s] does not match any navigation item.", request.URL.String())
 		self.Response.WriteWithError(e, writer)
@@ -172,6 +174,9 @@ func (self *Svr) Handler(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	slog.Info("[svr.Handler] activePage: " + activePage.Name)
+
+	pageData["NavigationActive"] = activePage
+	pageData["NavigationSidebar"] = activePage.Children
 
 	// get the data for each endpoint - use go routines
 	if len(activePage.Data) > 0 {

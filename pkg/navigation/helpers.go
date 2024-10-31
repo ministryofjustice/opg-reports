@@ -40,6 +40,9 @@ func ActivateTree(tree []*Navigation, request *http.Request) (active *Navigation
 		var nodeUrl = node.Uri
 		nodeUrl = strings.TrimSuffix(nodeUrl, "/")
 		nodeUrl = "/" + strings.TrimPrefix(nodeUrl, "/")
+		// reset the active flags
+		node.Display.InUri = false
+		node.Display.IsActive = false
 
 		if strings.HasPrefix(url, nodeUrl) {
 			node.Display.InUri = true

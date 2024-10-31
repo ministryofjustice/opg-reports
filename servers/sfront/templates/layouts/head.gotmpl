@@ -15,7 +15,7 @@
       <meta http-equiv="X-UA-Compatible" content="IE=edge">
       <link href="/assets/govuk-frontend-{{ .GovUKVersion }}.min.css" rel="stylesheet" media="all">
 
-      <!--<link href="/static/local.css" rel="stylesheet" media="all"> -->
+      <link href="/overwrites/css/local.css" rel="stylesheet" media="all">
 
       <!-- a merged version of highcharts and various modules
       <script src="/static/highcharts.js"></script>
@@ -26,5 +26,13 @@
     </head>
 
     <body class="govuk-template__body org-reporting " >
+      {{ template "banner" . }}
+      {{ template "navigation-topbar" . }}
+
+      <div class="app-split-pane app-width-container">
+          {{ template "navigation-sidebar" . }}
+          <div class="app-split-pane__content">
+            <main id="main-content" class="app-content" role="main">
+
 
 {{ end }}

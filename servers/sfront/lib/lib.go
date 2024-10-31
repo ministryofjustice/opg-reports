@@ -43,7 +43,7 @@ func Statics(mux *http.ServeMux) {
 	slog.Info("registering statics ...")
 
 	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
-	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	mux.Handle("/overwrites/", http.StripPrefix("/overwrites/", http.FileServer(http.Dir("overwrites"))))
 	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 	})

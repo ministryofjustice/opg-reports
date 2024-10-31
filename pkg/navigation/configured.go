@@ -55,5 +55,5 @@ var simple = New(
 // This allows the navigation to be changed at run time
 var Configured = map[string][]*Navigation{
 	// "simple": {simple},
-	"simple": {costsPerTeam},
+	"simple": {costsPerTeam, costs},
 }

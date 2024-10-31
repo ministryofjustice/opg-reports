@@ -1,0 +1,32 @@
+{{ define "navigation-sidebar" }}
+{{ if not ( eq (len .NavigationSidebar) 0) }}
+<div class="app-split-pane__nav">
+    <nav class="app-subnav" aria-labelledby="app-subnav-heading">
+        <h2 class="govuk-visually-hidden" id="app-subnav-heading">Pages in this section</h2>
+        <ul class="app-subnav__section">
+            {{ range .NavigationSidebar }}
+
+                {{ if .IsHeader }}
+                    <li class="app-subnav__section-item">
+                        <h3 class="govuk-heading-s">{{ .Name }}</h3>
+                    </li>
+                    {{ range .Children }}
+                        <li class="app-subnav__section-item {{if .IsActive }} active {{end}}">
+                            <a class="app-subnav__link govuk-link govuk-link--no-visited-state govuk-link--no-underline" href="{{ .Uri }}">{{ .Name }}</a>
+                        </li>
+                    {{ end }}
+
+                {{ else }}
+                    <li class="app-subnav__section-item {{if .IsActive }} active {{end}}">
+                        <a class="app-subnav__link govuk-link govuk-link--no-visited-state govuk-link--no-underline" href="{{ .Uri }}">{{ .Name }}</a>
+                    </li>
+                {{ end }}
+
+
+            {{ end }}
+        </ul>
+    </nav>
+
+</div>
+{{ end }}
+{{ end }}
