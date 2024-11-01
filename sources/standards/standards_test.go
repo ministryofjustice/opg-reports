@@ -1,4 +1,4 @@
-package githubstandards_test
+package standards_test
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/pkg/datastore"
 	"github.com/ministryofjustice/opg-reports/sources/costs"
-	"github.com/ministryofjustice/opg-reports/sources/githubstandards"
-	"github.com/ministryofjustice/opg-reports/sources/githubstandards/githubstandardsdb"
+	"github.com/ministryofjustice/opg-reports/sources/standards"
+	"github.com/ministryofjustice/opg-reports/sources/standards/standardsdb"
 )
 
 // TempDir runs Setup and then checks the
@@ -20,7 +20,7 @@ func TestStandardsSetup(t *testing.T) {
 	var dbFile = filepath.Join(dir, "test.db")
 	var ctx = context.Background()
 
-	githubstandards.Setup(ctx, dbFile, true)
+	standards.Setup(ctx, dbFile, true)
 	if _, err := os.Stat(dbFile); os.IsNotExist(err) {
 		t.Errorf("database file was not created in expected locations")
 	}
@@ -29,11 +29,11 @@ func TestStandardsSetup(t *testing.T) {
 		t.Errorf("error connecting to db [%s]", err.Error())
 	}
 
-	count, err := datastore.Get[int](ctx, db, githubstandardsdb.RowCount)
+	count, err := datastore.Get[int](ctx, db, standardsdb.RowCount)
 	if err != nil {
 		t.Errorf("error counting db rows: [%s]", err.Error())
 	}
-	if count != githubstandards.RecordsToSeed {
+	if count != standards.RecordsToSeed {
 		t.Errorf("incorrect number of rows - expected [%d] actual [%v]", costs.RecordsToSeed, count)
 	}
 }

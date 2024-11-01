@@ -1,4 +1,4 @@
-package githubstandardsdb
+package standardsdb
 
 import "github.com/ministryofjustice/opg-reports/pkg/datastore"
 

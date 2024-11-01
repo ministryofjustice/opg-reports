@@ -1,4 +1,4 @@
-package githubstandards
+package standards
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/ministryofjustice/opg-reports/pkg/convert"
 	"github.com/ministryofjustice/opg-reports/pkg/datastore"
-	"github.com/ministryofjustice/opg-reports/sources/githubstandards/githubstandardsdb"
+	"github.com/ministryofjustice/opg-reports/sources/standards/standardsdb"
 )
 
 type Standard struct {
@@ -130,14 +130,14 @@ func (g *Standard) UpdateCompliance() (baseline uint8, extended uint8) {
 
 const RecordsToSeed int = 100
 
-var insert = githubstandardsdb.InsertStandard
+var insert = standardsdb.InsertStandard
 var creates = []datastore.CreateStatement{
-	githubstandardsdb.CreateStandardsTable,
-	githubstandardsdb.CreateStandardsIndexIsArchived,
-	githubstandardsdb.CreateStandardsIndexIsArchivedTeams,
-	githubstandardsdb.CreateStandardsIndexTeams,
-	githubstandardsdb.CreateStandardsIndexBaseline,
-	githubstandardsdb.CreateStandardsIndexExtended,
+	standardsdb.CreateStandardsTable,
+	standardsdb.CreateStandardsIndexIsArchived,
+	standardsdb.CreateStandardsIndexIsArchivedTeams,
+	standardsdb.CreateStandardsIndexTeams,
+	standardsdb.CreateStandardsIndexBaseline,
+	standardsdb.CreateStandardsIndexExtended,
 }
 
 // Setup will ensure a database with records exists in the filepath requested.
