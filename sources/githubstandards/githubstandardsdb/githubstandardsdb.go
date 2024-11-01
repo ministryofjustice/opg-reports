@@ -42,14 +42,14 @@ CREATE TABLE standards (
 ) STRICT
 ;`
 
-const CreateStandardsIndexIsArchived datastore.CreateStatement = `CREATE INDEX ghs_archived_idx ON standards(is_archived, name, created_at);`
-const CreateStandardsIndexIsArchivedTeams datastore.CreateStatement = `CREATE INDEX ghs_archived_teams_idx ON standards(is_archived, teams, name, created_at);`
-const CreateStandardsIndexTeams datastore.CreateStatement = `CREATE INDEX ghs_teams_idx ON standards(teams, name, created_at);`
-const CreateStandardsIndexBaseline datastore.CreateStatement = `CREATE INDEX ghs_baseline_idx ON standards(compliant_baseline)`
-const CreateStandardsIndexExtended datastore.CreateStatement = `CREATE INDEX ghs_baseline_idx ON standards(compliant_extended)`
+const CreateStandardsIndexIsArchived datastore.CreateStatement = `CREATE INDEX stnd_archived_idx ON standards(is_archived, name, created_at);`
+const CreateStandardsIndexIsArchivedTeams datastore.CreateStatement = `CREATE INDEX stnd_archived_teams_idx ON standards(is_archived, teams, name, created_at);`
+const CreateStandardsIndexTeams datastore.CreateStatement = `CREATE INDEX stnd_teams_idx ON standards(teams, name, created_at);`
+const CreateStandardsIndexBaseline datastore.CreateStatement = `CREATE INDEX stnd_baseline_idx ON standards(compliant_baseline)`
+const CreateStandardsIndexExtended datastore.CreateStatement = `CREATE INDEX stnd_extended_idx ON standards(compliant_extended)`
 
 const InsertStandard datastore.InsertStatement = `
-INSERT INTO github_standards(
+INSERT INTO standards(
     ts,
     default_branch,
     full_name,

@@ -52,6 +52,7 @@ func (self *Standard) UID() string {
 	return fmt.Sprintf("%s-%d", "standard", self.ID)
 }
 
+// Info returns the infomational standards
 func (g *Standard) Info() map[string]string {
 
 	return map[string]string{
@@ -131,6 +132,7 @@ const RecordsToSeed int = 100
 
 var insert = githubstandardsdb.InsertStandard
 var creates = []datastore.CreateStatement{
+	githubstandardsdb.CreateStandardsTable,
 	githubstandardsdb.CreateStandardsIndexIsArchived,
 	githubstandardsdb.CreateStandardsIndexIsArchivedTeams,
 	githubstandardsdb.CreateStandardsIndexTeams,

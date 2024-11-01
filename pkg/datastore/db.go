@@ -46,7 +46,7 @@ type NamedParameters interface{}
 // Create will uses MustExecContext to run the slice of createStatements passed.
 // Used to create table, add indexes and so on in sequence
 func Create(ctx context.Context, db *sqlx.DB, create []CreateStatement) {
-	slog.Debug("[datastore.Create]")
+	slog.Debug("[datastore.Create] ")
 	for _, stmt := range create {
 		db.MustExecContext(ctx, string(stmt))
 	}
