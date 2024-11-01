@@ -83,20 +83,20 @@ front:
 build: buildinfo build/collectors build/importers build/servers
 .PHONY: build
 
-build/servers: build/servers/api build/servers/front
+build/servers: build/servers/sapi build/servers/sfront
 .PHONY: build/servers
 
 ## Build the api into build directory
-build/servers/api:
+build/servers/sapi:
 	@echo -n "[building] servers/sapi .................. "
 	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/sapi ./servers/sapi/main.go && echo "${tick}"
-.PHONY: build/servers/api
+.PHONY: build/servers/sapi
 
 ## Build the api into build directory
-build/servers/front:
+build/servers/sfront:
 	@echo -n "[building] servers/sfront ................ "
 	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/sfront ./servers/sfront/main.go && echo "${tick}"
-.PHONY: build/servers/front
+.PHONY: build/servers/sfront
 
 
 ## build all importers
@@ -110,7 +110,7 @@ build/importers/isqlite:
 .PHONY: build/importers/sqlite
 
 ## build all collectors
-build/collectors: build/collectors/cawscosts
+build/collectors: build/collectors/cawscosts build/collectors/cgithubstandards
 .PHONY: build/collectors
 
 ## build the aws costs collector
@@ -118,3 +118,10 @@ build/collectors/cawscosts:
 	@echo -n "[building] collectors/cawscosts .......... "
 	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/cawscosts ./collectors/cawscosts/main.go && echo "${tick}"
 .PHONY: build/collectors/awscosts
+
+
+## build the github standards collector
+build/collectors/cgithubstandards:
+	@echo -n "[building] collectors cgithubstandards ... "
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/cgithubstandards ./collectors/cgithubstandards/main.go && echo "${tick}"
+.PHONY: build/collectors/cgithubstandards

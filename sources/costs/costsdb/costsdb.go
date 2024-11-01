@@ -2,9 +2,7 @@
 // working with costs table
 package costsdb
 
-import (
-	"github.com/ministryofjustice/opg-reports/pkg/datastore"
-)
+import "github.com/ministryofjustice/opg-reports/pkg/datastore"
 
 // CreateCostTable is the create table statement for costs
 const CreateCostTable datastore.CreateStatement = `

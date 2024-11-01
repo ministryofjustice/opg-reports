@@ -11,7 +11,6 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/ministryofjustice/opg-reports/pkg/datastore"
-	"github.com/ministryofjustice/opg-reports/pkg/exfaker"
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsdb"
 )
 
@@ -45,44 +44,21 @@ func (self *Cost) Value() (cost float64) {
 
 const RecordsToSeed int = 15000
 
+var insert = costsdb.InsertCosts
+var creates = []datastore.CreateStatement{
+	costsdb.CreateCostTable,
+	costsdb.CreateCostTableIndex,
+}
+
 // Setup will ensure a database with records exists in the filepath requested.
 // If there is no database at that location a new sqlite database will
 // be created and populated with series of dummy data - helpful for local testing.
 func Setup(ctx context.Context, dbFilepath string, seed bool) {
-
-	var err error
-	var db *sqlx.DB
-	var isNew bool = false
-	var n int = RecordsToSeed
-	// add custom fakers
-	exfaker.AddProviders()
-
-	db, isNew, err = CreateNewDB(ctx, dbFilepath)
-	defer db.Close()
-
-	if err != nil {
-		panic(err)
-	}
-
-	if seed && isNew {
-		faked := exfaker.Many[Cost](n)
-		_, err = datastore.InsertMany(ctx, db, costsdb.InsertCosts, faked)
-	}
-	if err != nil {
-		panic(err)
-	}
-
+	datastore.Setup[Cost](ctx, dbFilepath, insert, creates, seed, RecordsToSeed)
 }
 
 // CreateNewDB will create a new DB file and then
 // try to run table and index creates
 func CreateNewDB(ctx context.Context, dbFilepath string) (db *sqlx.DB, isNew bool, err error) {
-
-	db, isNew, err = datastore.NewDB(ctx, datastore.Sqlite, dbFilepath)
-	if err == nil {
-		creates := []datastore.CreateStatement{costsdb.CreateCostTable, costsdb.CreateCostTableIndex}
-		datastore.Create(ctx, db, creates)
-	}
-
-	return
+	return datastore.CreateNewDB(ctx, dbFilepath, creates)
 }
