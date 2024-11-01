@@ -23,12 +23,8 @@ func Map[T any](item T) (m map[string]interface{}, err error) {
 	return
 }
 
-// Marshal
-func Marshal[T any](item T) (bytes []byte, err error) {
-
-	return
-}
-
+// Cast takes a source item, uses json marshal and unmarshall to
+// assign the content into destination
 func Cast[T any, R any](source T, destination R) (err error) {
 	var bytes []byte
 	if bytes, err = json.Marshal(source); err == nil {

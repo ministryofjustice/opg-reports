@@ -1,4 +1,6 @@
-package costsapi
+// Package costsfront contains tools for the front end server to handle / transform
+// api results.
+package costsfront
 
 import (
 	"fmt"
@@ -9,6 +11,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/pkg/tmplfuncs"
 	"github.com/ministryofjustice/opg-reports/pkg/transformers"
 	"github.com/ministryofjustice/opg-reports/sources/costs"
+	"github.com/ministryofjustice/opg-reports/sources/costs/costsapi"
 )
 
 // costRecordToRow takes a costs.Cost struct and adds its data into an existing table row.
@@ -70,7 +73,7 @@ func costRecordToRow(cost *costs.Cost, columns []string, existingData map[string
 // # Example
 //
 //	Inputs:
-//		apiData []*costs.Cost {
+//		apiData []*costs.Cost{
 //			{Unit: "A", Environment: "development", Service: "ecs", Date: "2024-01", Cost: "-1.01"},
 //			{Unit: "A", Environment: "development", Service: "ecs", Date: "2024-02", Cost: "3.01"},
 //			{Unit: "A", Environment: "development", Service: "ec2", Date: "2024-01", Cost: "3.51"},
@@ -82,7 +85,7 @@ func costRecordToRow(cost *costs.Cost, columns []string, existingData map[string
 //			"environment": {"development", "pre-production", "production"},
 //			"service":     {"ecs", "ec2", "rds"},
 //		},
-//		dateRange []string{"2024-01", "2024-02", "2024-03"}
+//		dateRange []string{"2024-01", "2024-02", "2024-03"},
 //
 // Output:
 //
@@ -120,12 +123,15 @@ func costRecordToRow(cost *costs.Cost, columns []string, existingData map[string
 //			"2024-03":     "0.0000",
 //		},
 //	}
-func ResultsToRows(apiData []*costs.Cost, columnValues map[string][]string, dateRange []string) (dataAsMap map[string]map[string]interface{}, err error) {
+func ResultsToRows(apiData []*costs.Cost, columnValues map[string][]interface{}, dateRange []string) (dataAsMap map[string]map[string]interface{}, err error) {
+	// columns is sorted column names only - this is to ensure 'key' order is a match
+	var columns []string = transformers.SortedColumnNames(columnValues)
+	// found tracks which 'key' has real data and inserted in to the data map
+	// so anything that is not in this list can be removed - as it
+	// will not have and values
+	var found []string = []string{}
 
-	var (
-		columns  []string = transformers.SortedColumnNames(columnValues)
-		rowsDone []string = []string{}
-	)
+	// generate a skel of table data
 	dataAsMap = transformers.DateTableSkeleton(columnValues, dateRange)
 
 	for _, item := range apiData {
@@ -135,19 +141,53 @@ func ResultsToRows(apiData []*costs.Cost, columnValues map[string][]string, date
 			return
 		}
 		// insert to the list of done rows
-		if !slices.Contains(rowsDone, rowKey) {
-			rowsDone = append(rowsDone, rowKey)
+		if !slices.Contains(found, rowKey) {
+			found = append(found, rowKey)
 		}
 
 	}
 
 	// remove any row that has not been marked as 'done' - these are empty combinations
 	for key := range dataAsMap {
-		if !slices.Contains(rowsDone, key) {
+		if !slices.Contains(found, key) {
 			delete(dataAsMap, key)
 		}
 	}
 
 	return
 
+}
+
+// TransformResult takes the result from the api and converts
+// the data into table rows that can be used for the front
+// end.
+//
+// `body` is one of 3 possible types:
+//
+//	TotalBody
+//	TaxOverviewBody
+//	StandardBody
+//
+// Any others will be ignored
+func TransformResult(body interface{}) (result map[string]map[string]interface{}) {
+	var err error
+
+	switch body.(type) {
+	case *costsapi.TotalBody:
+	case *costsapi.TaxOverviewBody:
+	case *costsapi.StandardBody:
+		var standard *costsapi.StandardBody
+		var mapped map[string]map[string]interface{}
+		standard = body.(*costsapi.StandardBody)
+		mapped, err = ResultsToRows(standard.Result, standard.ColumnValues, standard.DateRange)
+		if err == nil {
+			result = mapped
+		}
+	}
+
+	if err != nil {
+		slog.Error("[costsapi.TransformResult] ", slog.String("err", err.Error()))
+	}
+
+	return
 }

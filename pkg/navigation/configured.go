@@ -2,6 +2,7 @@ package navigation
 
 import (
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsapi"
+	"github.com/ministryofjustice/opg-reports/sources/costs/costsfront"
 )
 
 // -- Costs navigation items
@@ -24,14 +25,16 @@ var costsPerTeam = New(
 	"/costs/unit",
 	&Display{PageTemplate: "costs-unit"},
 	&Data{
-		Source:    costsapi.UriMonthlyUnit,
-		Namespace: "CostsPerUnit",
-		Body:      &costsapi.StandardBody{},
+		Source:      costsapi.UriMonthlyUnit,
+		Namespace:   "CostsPerUnit",
+		Body:        &costsapi.StandardBody{},
+		Transformer: costsfront.TransformResult,
 	},
 	&Data{
-		Source:    costsapi.UriMonthlyUnitEnvironment,
-		Namespace: "CostsPerUnitEnv",
-		Body:      &costsapi.StandardBody{},
+		Source:      costsapi.UriMonthlyUnitEnvironment,
+		Namespace:   "CostsPerUnitEnv",
+		Body:        &costsapi.StandardBody{},
+		Transformer: costsfront.TransformResult,
 	},
 )
 

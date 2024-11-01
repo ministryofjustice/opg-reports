@@ -20,7 +20,7 @@ func TestTransformersKVPair(t *testing.T) {
 // works by checking typical alphanumeric and then throw in some
 // smily too
 func TestTransformersSortedColumnNames(t *testing.T) {
-	var colValues = map[string][]string{
+	var colValues = map[string][]interface{}{
 		"Z": {"A", "B"},
 		"A": {"one"},
 		"b": {"1"},
@@ -48,7 +48,7 @@ func TestTransformersSortedColumnNames(t *testing.T) {
 // TestTransformersColumnValuesList checks that the source map
 // is converted into a sorted and merged set of values correctly
 func TestTransformersColumnValuesList(t *testing.T) {
-	var colValues = map[string][]string{
+	var colValues = map[string][]interface{}{
 		"Z": {"A", "B"},
 		"A": {"one"},
 		"b": {"1"},

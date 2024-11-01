@@ -270,7 +270,12 @@ func FetchDataForPage(api *Api, activePage *navigation.Navigation, pageData map[
 			Fetcher(a, nd, nd.Body)
 			defer mutex.Unlock()
 			mutex.Lock()
-			if nd.Body != nil {
+			// deal with the data
+			// - if we have a transformer, set it
+			// - otherwise pass it raw
+			if nd.Body != nil && nd.Transformer != nil {
+				pageData[nd.Namespace] = nd.Transformer(nd.Body)
+			} else if nd.Body != nil {
 				pageData[nd.Namespace] = nd.Body
 			}
 			waitgroup.Done()

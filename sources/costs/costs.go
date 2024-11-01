@@ -6,6 +6,7 @@ package costs
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"github.com/jmoiron/sqlx"
@@ -28,6 +29,10 @@ type Cost struct {
 	Service      string `json:"service,omitempty" db:"service" faker:"oneof: Tax, ecs, ec2, s3, sqs, waf, ses, rds" doc:"Name of the service that generated this cost."` // The AWS service name
 	Date         string `json:"date,omitempty" db:"date" faker:"date_string" doc:"Date this cost was generated."`                                                        // The data the cost was incurred - provided from the cost explorer result
 	Cost         string `json:"cost,omitempty" db:"cost" faker:"float_string" doc:"Cost value."`                                                                         // The actual cost value as a string - without an currency, but is USD by default
+}
+
+func (self *Cost) UID() string {
+	return fmt.Sprintf("%s-%d", "costs", self.ID)
 }
 
 // Value handles converting the string value of Cost into a float64

@@ -11,7 +11,7 @@ import (
 // and date values for each row
 func TestTransformersDataTableSkeleton(t *testing.T) {
 	var dateRanges = []string{"2024-01", "2024-02", "2024-03"}
-	var colValues = map[string][]string{
+	var colValues = map[string][]interface{}{
 		"unit":        {"A", "B", "C"},
 		"environment": {"development", "pre-production", "production"},
 		"service":     {"ecs", "ec2", "rds"},

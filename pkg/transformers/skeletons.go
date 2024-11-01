@@ -47,7 +47,7 @@ package transformers
 //			"2024-02": 0.0,
 //		},
 //	}
-func DateTableSkeleton(columnValues map[string][]string, dateRange []string) (skel map[string]map[string]interface{}) {
+func DateTableSkeleton(columnValues map[string][]interface{}, dateRange []string) (skel map[string]map[string]interface{}) {
 	skel = map[string]map[string]interface{}{}
 
 	columnValuesAsList := ColumnValuesList(columnValues)

@@ -44,7 +44,7 @@ func RowKV(sortedColumns []string, values map[string]interface{}) (kv string) {
 // returns a list of the column names, sorted
 // Used to ensure generation of values using the column values have
 // a predictable & consistent order
-func SortedColumnNames(columnValues map[string][]string) (sorted []string) {
+func SortedColumnNames(columnValues map[string][]interface{}) (sorted []string) {
 	sorted = []string{}
 	for columnName := range columnValues {
 		sorted = append(sorted, columnName)
@@ -79,7 +79,7 @@ func SortedColumnNames(columnValues map[string][]string) (sorted []string) {
 //	}
 //
 // Normally the output is then passed to Permutations
-func ColumnValuesList(columnValues map[string][]string) (values [][]string) {
+func ColumnValuesList(columnValues map[string][]interface{}) (values [][]string) {
 	values = [][]string{}
 
 	for _, columnName := range SortedColumnNames(columnValues) {
