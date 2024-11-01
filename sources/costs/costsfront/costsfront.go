@@ -162,26 +162,29 @@ func ResultsToRows(apiData []*costs.Cost, columnValues map[string][]interface{},
 // the data into table rows that can be used for the front
 // end.
 //
-// `body` is one of 3 possible types:
+// `body` is one of 2 possible types:
 //
-//	TotalBody
 //	TaxOverviewBody
 //	StandardBody
 //
-// Any others will be ignored
-func TransformResult(body interface{}) (result map[string]map[string]interface{}) {
+// Any others will be ignored.
+func TransformResult(body interface{}) (result interface{}) {
 	var err error
+	var res map[string]map[string]interface{}
+	result = body
 
 	switch body.(type) {
-	case *costsapi.TotalBody:
 	case *costsapi.TaxOverviewBody:
+		var taxBody = body.(*costsapi.TaxOverviewBody)
+		if res, err = ResultsToRows(taxBody.Result, taxBody.ColumnValues, taxBody.DateRange); err == nil {
+			taxBody.TableRows = res
+			result = taxBody
+		}
 	case *costsapi.StandardBody:
-		var standard *costsapi.StandardBody
-		var mapped map[string]map[string]interface{}
-		standard = body.(*costsapi.StandardBody)
-		mapped, err = ResultsToRows(standard.Result, standard.ColumnValues, standard.DateRange)
-		if err == nil {
-			result = mapped
+		var standard = body.(*costsapi.StandardBody)
+		if res, err = ResultsToRows(standard.Result, standard.ColumnValues, standard.DateRange); err == nil {
+			standard.TableRows = res
+			result = standard
 		}
 	}
 

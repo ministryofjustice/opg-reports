@@ -11,6 +11,7 @@ import (
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 type nums interface {
@@ -85,6 +86,8 @@ func Add(a interface{}, args ...interface{}) (result interface{}) {
 	return
 }
 
+// Increment returns a value 1 higher than the value
+// passed
 func Increment(i interface{}) (result interface{}) {
 	result = i
 	switch i.(type) {
@@ -97,7 +100,9 @@ func Increment(i interface{}) (result interface{}) {
 	return
 }
 
+// Title generates a title case string
 func Title(s string) string {
+	s = strings.ReplaceAll(s, "/", " ")
 	s = strings.ReplaceAll(s, "_", " ")
 	s = strings.ReplaceAll(s, "-", " ")
 	c := cases.Title(language.English)
@@ -105,12 +110,38 @@ func Title(s string) string {
 	return s
 }
 
-// func Col(i string, mapped map[string]string) string {
-// 	return mapped[i]
-// }
+// ValueFromMap
+func ValueFromMap(name string, data map[string]interface{}) (value interface{}) {
+	value = ""
+	if v, ok := data[name]; ok {
+		value = v
+	}
+	return
+}
+
+func Currency(s interface{}, symbol string) string {
+	return symbol + FloatString(s, "%.2f")
+}
+
+func FloatString(s interface{}, layout string) string {
+	p := message.NewPrinter(language.English)
+	switch s.(type) {
+	case string:
+		f, _ := strconv.ParseFloat(s.(string), 10)
+		return p.Sprintf(layout, f)
+	case float64:
+		return p.Sprintf(layout, s.(float64))
+	}
+	return "0.00"
+}
 
 var All map[string]interface{} = map[string]interface{}{
+	// access
+	"valueFromMap": ValueFromMap,
+	// numeric
 	"add":       Add,
 	"increment": Increment,
-	"title":     Title,
+	// formatting
+	"title":    Title,
+	"currency": Currency,
 }

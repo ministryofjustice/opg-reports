@@ -1,6 +1,7 @@
-package navigation
+package lib
 
 import (
+	"github.com/ministryofjustice/opg-reports/pkg/navigation"
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsapi"
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsfront"
 )
@@ -8,29 +9,30 @@ import (
 // -- Costs navigation items
 
 // costsTaxOverview config
-var costsTaxOverview = New(
+var costsTaxOverview = navigation.New(
 	"Tax overview",
 	"/costs/tax-overview",
-	&Display{PageTemplate: "costs-tax"},
-	&Data{
-		Source:    costsapi.UriMonthlyTax,
-		Namespace: "CostsTax",
-		Body:      &costsapi.TaxOverviewBody{},
+	&navigation.Display{PageTemplate: "costs-tax"},
+	&navigation.Data{
+		Source:      costsapi.UriMonthlyTax,
+		Namespace:   "CostsTax",
+		Body:        &costsapi.TaxOverviewBody{},
+		Transformer: costsfront.TransformResult,
 	},
 )
 
 // costsPerTeam config
-var costsPerTeam = New(
+var costsPerTeam = navigation.New(
 	"Costs per team",
 	"/costs/unit",
-	&Display{PageTemplate: "costs-unit"},
-	&Data{
+	&navigation.Display{PageTemplate: "costs-unit"},
+	&navigation.Data{
 		Source:      costsapi.UriMonthlyUnit,
 		Namespace:   "CostsPerUnit",
 		Body:        &costsapi.StandardBody{},
 		Transformer: costsfront.TransformResult,
 	},
-	&Data{
+	&navigation.Data{
 		Source:      costsapi.UriMonthlyUnitEnvironment,
 		Namespace:   "CostsPerUnitEnv",
 		Body:        &costsapi.StandardBody{},
@@ -39,40 +41,41 @@ var costsPerTeam = New(
 )
 
 // costsDetailed config
-var costsDetailed = New(
+var costsDetailed = navigation.New(
 	"Detailed costs",
 	"/costs/detailed",
-	&Display{PageTemplate: "costs-detailed"},
-	&Data{
-		Source:    costsapi.UriMonthlyDetailed,
-		Namespace: "CostsDetailed",
-		Body:      &costsapi.StandardBody{},
+	&navigation.Display{PageTemplate: "costs-detailed"},
+	&navigation.Data{
+		Source:      costsapi.UriMonthlyDetailed,
+		Namespace:   "CostsDetailed",
+		Body:        &costsapi.StandardBody{},
+		Transformer: costsfront.TransformResult,
 	},
 )
 
 // costs is the overall cost navigation block
-var costs = New(
+var costs = navigation.New(
 	"Costs",
 	"/costs",
-	&Display{PageTemplate: "costs-overview", IsHeader: true},
+	&navigation.Display{PageTemplate: "costs-overview", IsHeader: true},
 	costsTaxOverview,
 	costsPerTeam,
 	costsDetailed,
 )
 
 // Dummy holder for now
-var simple = New(
+var simple = navigation.New(
 	"Home",
 	"/",
-	&Display{PageTemplate: "homepage"},
+	&navigation.Display{PageTemplate: "homepage"},
 )
 
-// Configured is the set of all navigation structures
+// NavigationChoices is the set of all navigation structures
 // to share
 // This is the then selected in the sfront by using
 // bi.Navigation as the key for this map
 // This allows the navigation to be changed at run time
-var Configured = map[string][]*Navigation{
+var NavigationChoices = map[string][]*navigation.Navigation{
 	// "simple": {simple},
-	"simple": {costsPerTeam, costs},
+	"simple": {costs, simple},
 }

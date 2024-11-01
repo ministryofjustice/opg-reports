@@ -69,3 +69,21 @@ func ActivateFlat(flat map[string]*Navigation, request *http.Request) (active *N
 	active = ActivateTree(list, request)
 	return
 }
+
+func Level(tree []*Navigation) (level []*Navigation) {
+	for _, node := range tree {
+		level = append(level, node)
+	}
+	return
+}
+
+func ActiveOrInUri(tree []*Navigation) (nv *Navigation) {
+
+	for _, node := range tree {
+		if node.IsActiveOrInUri() {
+			nv = node
+		}
+	}
+
+	return
+}

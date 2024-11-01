@@ -6,7 +6,6 @@ import (
 	"github.com/ministryofjustice/opg-reports/pkg/bi"
 	"github.com/ministryofjustice/opg-reports/pkg/consts"
 	"github.com/ministryofjustice/opg-reports/pkg/envar"
-	"github.com/ministryofjustice/opg-reports/pkg/navigation"
 	"github.com/ministryofjustice/opg-reports/pkg/tmplfuncs"
 	"github.com/ministryofjustice/opg-reports/servers/sfront/lib"
 )
@@ -39,7 +38,7 @@ func Run() {
 			Errors:       []error{},
 		},
 		&lib.Nav{
-			Tree: navigation.Configured[mode],
+			Tree: lib.NavigationChoices[mode],
 		},
 		&lib.Api{
 			Version: apiVersion,

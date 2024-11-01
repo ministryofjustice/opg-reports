@@ -1,0 +1,22 @@
+{{ define "costs-tax" }}
+    {{ template "head" . }}
+
+    {{ $tax := .CostsTax }}
+
+    <h1 class="govuk-heading-l">Tax overview</h1>
+    <p class="govuk-body">Our costs split by with & without tax values for comparison to finance data.</p>
+    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+    {{ if $tax }}
+        <section class='outer'>
+
+            <div class="dataset">
+                {{ template "currency-table" $tax }}
+            </div>
+        </section>
+    {{ end }}
+
+
+    {{ template "foot" . }}
+
+{{ end }}

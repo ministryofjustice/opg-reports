@@ -1,7 +1,7 @@
 {{ define "currency-table" }}
 
 {{ $dates := .DateRange }}
-{{ $result := .Result }}
+{{ $result := .TableRows }}
 {{ $columns := .ColumnOrder }}
 
 <a name="data-table"></a>
@@ -23,11 +23,33 @@
     <tbody class="govuk-table__body">
         {{- $rowCount := 0 -}}
         {{- range $i, $row := $result -}}
-            {{- $columnI := 0 -}}
+            {{- $columnCount := 0 -}}
+            {{- $rowTotal := "0.0" -}}
             <tr class="govuk-table__row" data-row="{{ $rowCount }}">
 
+                {{- range $x, $col := $columns -}}
+                    <th data-col="{{ $columnCount }}" class="govuk-table__header">
+                        {{- if eq $columnCount 0 -}}
+                            <span class="tick comparison-selector-holder">
+                                <input type="checkbox" name="comp" value="{{ $rowCount }}" class="comparison-selector">
+                            </span>
+                        {{- end -}}
 
+                        <span>{{- valueFromMap $col $row -}}</span>
+                    </th>
+                    {{- $columnCount = increment $columnCount -}}
+                {{- end -}}
 
+                {{- range $i, $date := $dates -}}
+                    {{- $val := valueFromMap $date $row -}}
+                    <td data-col="{{ $columnCount }}" class="govuk-table__cell data-cell">
+                        <span title="{{ $val }}" class="currency">{{ currency $val "$" }}</span>
+                    </td>
+                    {{- $rowTotal = add $rowTotal $val -}}
+                    {{- $columnCount = increment $columnCount -}}
+                {{- end -}}
+                <td class="govuk-table__cell data-cellish sparkline"><div class="loader"></div></td>
+                <td class="govuk-table__cell data-cellish"><span title="{{ $rowTotal }}">{{ currency $rowTotal "$" }}</span></td>
             </tr>
             {{- $rowCount = increment $rowCount -}}
 

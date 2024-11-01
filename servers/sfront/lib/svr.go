@@ -190,8 +190,6 @@ func (self *Svr) Handler(writer http.ResponseWriter, request *http.Request) {
 			"Path":         request.URL.Path,
 			// used for path to the css etc
 			"GovUKVersion": self.Response.GovUKVersion,
-			// top nav bar
-			"NavigationTopbar": self.Navigation.Tree,
 		}
 	)
 	self.Response.Reset()
@@ -204,9 +202,14 @@ func (self *Svr) Handler(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	slog.Info("[svr.Handler] activePage: " + activePage.Name)
-
 	pageData["NavigationActive"] = activePage
-	pageData["NavigationSidebar"] = activePage.Children
+	// top nav bar
+	top := navigation.Level(self.Navigation.Tree)
+	pageData["NavigationTopbar"] = top
+	// side bar nav
+	if nv := navigation.ActiveOrInUri(top); nv != nil && nv.Children != nil {
+		pageData["NavigationSidebar"] = nv.Children
+	}
 
 	// get the data for each endpoint - use go routines
 	if len(activePage.Data) > 0 {
@@ -255,6 +258,13 @@ func (self *Svr) Run() {
 // The result is then merged into the pageData map for processing in the
 // front end templates.
 //
+// If the navigation data source has a transform function (`.Transformer`)
+// that will be called to process the api result, otherwise the api
+// data is directly inserted to pageData. This allows complex end points
+// to have raw data converted before the front end - a semi middleware
+// approach. Generally used to convert raw data into tabular rows for
+// easier front end display.
+//
 // It uses go func call with a mutex and waitgroup to handle calling
 // the api multiple times concurrently - this will mean pages with
 // multiple blocks should perform better.
@@ -283,6 +293,7 @@ func FetchDataForPage(api *Api, activePage *navigation.Navigation, pageData map[
 	}
 	// wait for the
 	waitgroup.Wait()
+
 }
 
 // Fetcher uses the api & navigation data to go and fetch the data from the api

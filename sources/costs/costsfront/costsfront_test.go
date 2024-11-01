@@ -56,6 +56,9 @@ var expected = map[string]map[string]interface{}{
 	},
 }
 
+// TestCostApiTransformersDataRowsStandard checks that a preset
+// series of data that mimics api info for costs will come out
+// in the expected setup via ResultsToRows
 func TestCostApiTransformersDataRowsStandard(t *testing.T) {
 
 	actual, err := costsfront.ResultsToRows(standardSampleData, colValues, dateRanges)
@@ -79,6 +82,10 @@ func TestCostApiTransformersDataRowsStandard(t *testing.T) {
 
 }
 
+// TestCostApiTransformersResultStandard checks that a preset
+// series of data that mimics api info for costs will come out
+// in the expected way by calling the handler that is attached
+// to navigation data.
 func TestCostApiTransformersResultStandard(t *testing.T) {
 
 	bdy := &costsapi.StandardBody{
@@ -89,8 +96,8 @@ func TestCostApiTransformersResultStandard(t *testing.T) {
 		Result:       standardSampleData,
 	}
 
-	actual := costsfront.TransformResult(bdy)
-	for key, actualRow := range actual {
+	actual := costsfront.TransformResult(bdy).(*costsapi.StandardBody)
+	for key, actualRow := range actual.TableRows {
 		var expectedRow = expected[key]
 
 		for field, actualValue := range actualRow {

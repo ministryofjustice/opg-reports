@@ -19,7 +19,9 @@ type Display struct {
 	PageTemplate string `json:"page_template" doc:"String name of the template to use for this page."`
 }
 
-type transformFunc func(body interface{}) map[string]map[string]interface{}
+// transformFunc is used to handle processing and changing the
+// api data before display
+type transformFunc func(body interface{}) interface{}
 
 type Data struct {
 	Source      endpoints.ApiEndpoint `json:"source" faker:"uri" doc:"API data source location"`
@@ -43,14 +45,31 @@ type Navigation struct {
 	Children []*Navigation `json:"children" doc:"Child navigation"`
 }
 
+// IsActive returns the Display.IsActive value
+// - this makes it easier within templates to check
 func (self *Navigation) IsActive() bool {
 	return self.Display.IsActive
 }
-func (self *Navigation) IsUri() bool {
+
+// InUri returns the Display.InUri value
+// - this makes it easier within templates to check
+func (self *Navigation) InUri() bool {
 	return self.Display.InUri
 }
+
+// IsHeader returns the Display.IsHeader value
+// - this makes it easier within templates to check
 func (self *Navigation) IsHeader() bool {
 	return self.Display.IsHeader
+}
+
+// IsActiveOrInUri is used in the top bar nav
+// to check it the item should be marked as active
+func (self *Navigation) IsActiveOrInUri() bool {
+	if self.Uri == "/" {
+		return self.IsActive()
+	}
+	return self.IsActive() || self.InUri()
 }
 
 // New will create a standard Navigation struct using the name and uri passed
