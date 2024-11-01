@@ -309,25 +309,12 @@ func Fetcher[T any](api *Api, nav *navigation.Data, result T) {
 
 // NewSvr creates a svr setup that can then be executed
 // with `.Run()`
-func NewSvr(cfg *Cfg, args ...interface{}) (s *Svr) {
+func NewSvr(cfg *Cfg, resp *Response, nv *Nav, api *Api) (s *Svr) {
 	s = &Svr{
 		Cfg:        cfg,
-		Response:   &Response{Errors: []error{}},
-		Navigation: &Nav{},
-		Api:        &Api{},
-	}
-
-	for _, arg := range args {
-		switch arg.(type) {
-		case *Cfg:
-			s.Cfg = arg.(*Cfg)
-		case *Response:
-			s.Response = arg.(*Response)
-		case *Nav:
-			s.Navigation = arg.(*Nav)
-		case *Api:
-			s.Api = arg.(*Api)
-		}
+		Response:   resp,
+		Navigation: nv,
+		Api:        api,
 	}
 
 	return

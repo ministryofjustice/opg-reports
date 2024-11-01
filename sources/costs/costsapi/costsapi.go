@@ -240,8 +240,8 @@ func apiDetailed(ctx context.Context, input *StandardInput) (response *StandardR
 const (
 	UriTotal                  endpoints.ApiEndpoint = "/{version}/costs/aws/total/{billing_date:-11}/{billing_date:0}"
 	UriMonthlyTax             endpoints.ApiEndpoint = "/{version}/costs/aws/tax-overview/{billing_date:-11}/{billing_date:0}/month"
-	UriMonthlyUnit            endpoints.ApiEndpoint = "/{version}/costs/aws/unit/{billing_date:-11}/{billing_date:0}/month"
-	UriMonthlyUnitEnvironment endpoints.ApiEndpoint = "/{version}/costs/aws/unit-environment/{billing_date:-11}/{billing_date:0}/month"
+	UriMonthlyUnit            endpoints.ApiEndpoint = "/{version}/costs/aws/unit/{billing_date:-9}/{billing_date:0}/month"
+	UriMonthlyUnitEnvironment endpoints.ApiEndpoint = "/{version}/costs/aws/unit-environment/{billing_date:-9}/{billing_date:0}/month"
 	UriMonthlyDetailed        endpoints.ApiEndpoint = "/{version}/costs/aws/detailed/{billing_date:-11}/{billing_date:0}/month"
 	UriDailyTax               endpoints.ApiEndpoint = "/{version}/costs/aws/tax-overview/{billing_date:-11}/{billing_date:0}/day"
 	UriDailyUnit              endpoints.ApiEndpoint = "/{version}/costs/aws/unit/{billing_date:-11}/{billing_date:0}/day"

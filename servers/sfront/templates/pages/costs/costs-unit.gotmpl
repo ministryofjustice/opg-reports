@@ -1,4 +1,21 @@
 {{ define "costs-unit" }}
     {{ template "head" . }}
+
+    {{ $unit := .CostsPerUnit }}
+    {{ $unitEnv := .CostsPerUnitEnv }}
+
+    <h1 class="govuk-heading-l">Costs per unit</h1>
+    <p class="govuk-body">Cost data shown below are grouped by month for the last 9 months.</p>
+    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+    {{ if $unit }}
+        <div class="compare js-comparison-table-container">
+            {{ template "currency-table" $unit }}
+        </div>
+
+    {{ end }}
+
+
+
     {{ template "foot" . }}
 {{ end }}

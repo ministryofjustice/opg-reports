@@ -11,7 +11,11 @@ var costsTaxOverview = New(
 	"Tax overview",
 	"/costs/tax-overview",
 	&Display{PageTemplate: "costs-tax"},
-	&Data{Source: costsapi.UriMonthlyTax, Namespace: "CostsTax", Body: &costsapi.TaxOverviewBody{}},
+	&Data{
+		Source:    costsapi.UriMonthlyTax,
+		Namespace: "CostsTax",
+		Body:      &costsapi.TaxOverviewBody{},
+	},
 )
 
 // costsPerTeam config
@@ -19,8 +23,16 @@ var costsPerTeam = New(
 	"Costs per team",
 	"/costs/unit",
 	&Display{PageTemplate: "costs-unit"},
-	&Data{Source: costsapi.UriMonthlyUnit, Namespace: "CostsPerUnit", Body: &costsapi.StandardBody{}},
-	&Data{Source: costsapi.UriMonthlyUnitEnvironment, Namespace: "CostsPerUnitEnv", Body: &costsapi.StandardBody{}},
+	&Data{
+		Source:    costsapi.UriMonthlyUnit,
+		Namespace: "CostsPerUnit",
+		Body:      &costsapi.StandardBody{},
+	},
+	&Data{
+		Source:    costsapi.UriMonthlyUnitEnvironment,
+		Namespace: "CostsPerUnitEnv",
+		Body:      &costsapi.StandardBody{},
+	},
 )
 
 // costsDetailed config
@@ -28,7 +40,11 @@ var costsDetailed = New(
 	"Detailed costs",
 	"/costs/detailed",
 	&Display{PageTemplate: "costs-detailed"},
-	&Data{Source: costsapi.UriMonthlyDetailed, Namespace: "CostsDetailed", Body: &costsapi.StandardBody{}},
+	&Data{
+		Source:    costsapi.UriMonthlyDetailed,
+		Namespace: "CostsDetailed",
+		Body:      &costsapi.StandardBody{},
+	},
 )
 
 // costs is the overall cost navigation block

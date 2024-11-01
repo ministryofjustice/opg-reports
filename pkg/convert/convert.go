@@ -23,6 +23,20 @@ func Map[T any](item T) (m map[string]interface{}, err error) {
 	return
 }
 
+// Marshal
+func Marshal[T any](item T) (bytes []byte, err error) {
+
+	return
+}
+
+func Cast[T any, R any](source T, destination R) (err error) {
+	var bytes []byte
+	if bytes, err = json.Marshal(source); err == nil {
+		err = UnmarshalInto(bytes, destination)
+	}
+	return
+}
+
 // Unmarshal wraper json.Unmarshal and handles error messages etc
 func Unmarshal[T any](content []byte) (item T, err error) {
 	var i T

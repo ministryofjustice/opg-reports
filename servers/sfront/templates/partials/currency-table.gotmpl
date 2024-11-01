@@ -1,0 +1,43 @@
+{{ define "currency-table" }}
+
+{{ $dates := .DateRange }}
+{{ $result := .Result }}
+{{ $columns := .ColumnOrder }}
+
+<a name="data-table"></a>
+
+<table class="govuk-table currency-table">
+    <thead class="govuk-table__head">
+        <tr class="govuk-table__row">
+            {{- range $x, $col := $columns -}}
+                <th class="govuk-table__header data-header"><span>{{ title $col }}</span></th>
+            {{- end -}}
+            {{- range $i, $d := $dates -}}
+                <th class="govuk-table__header data-cell" data-col="{{$i}}"><span>{{ $d }}</span></th>
+            {{- end -}}
+            <th class="govuk-table__header data-cellish "><span>Trend</span></th>
+            <th class="govuk-table__header data-cellish "><span>Totals</span></th>
+        </tr>
+    </thead>
+
+    <tbody class="govuk-table__body">
+        {{- $rowCount := 0 -}}
+        {{- range $i, $row := $result -}}
+            {{- $columnI := 0 -}}
+            <tr class="govuk-table__row" data-row="{{ $rowCount }}">
+
+
+
+            </tr>
+            {{- $rowCount = increment $rowCount -}}
+
+
+
+        {{- end -}}
+
+    </tbody>
+
+</table>
+
+
+{{ end }}

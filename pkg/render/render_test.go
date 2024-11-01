@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/pkg/render"
+	"github.com/ministryofjustice/opg-reports/pkg/tmplfuncs"
 )
 
 const tmpDir string = "../../servers/sfront/templates/partials"
@@ -16,7 +17,7 @@ const tmpDir string = "../../servers/sfront/templates/partials"
 func TestRenderExecute(t *testing.T) {
 	pattern := filepath.Join(tmpDir, "*.gotmpl")
 	files, _ := filepath.Glob(pattern)
-	funcs := map[string]any{}
+	funcs := tmplfuncs.All
 	dummy := map[string]string{"Name": "TEST", "Class": "foobar"}
 	expected := `<h1 class='foobar'>TEST</h1>`
 
@@ -37,7 +38,7 @@ func TestRenderExecute(t *testing.T) {
 func TestRenderWrite(t *testing.T) {
 	pattern := filepath.Join(tmpDir, "*.gotmpl")
 	files, _ := filepath.Glob(pattern)
-	funcs := map[string]any{}
+	funcs := tmplfuncs.All
 	dummy := map[string]string{"Name": "TEST", "Class": "foobar"}
 	expected := `<h1 class='foobar'>TEST</h1>`
 	buf := new(bytes.Buffer)

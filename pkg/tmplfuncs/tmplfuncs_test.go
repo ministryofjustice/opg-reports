@@ -21,6 +21,9 @@ func TestTmplFuncsAdd(t *testing.T) {
 	if tmplfuncs.Add("A", "b", "z") != "Abz" {
 		t.Errorf("adding strings failed")
 	}
+	if v := tmplfuncs.Add("1", "2", "z"); v != "3.0000" {
+		t.Errorf("adding strings failed: [%v]", v)
+	}
 
 	// -- test mix
 	// the values not matching type of first
