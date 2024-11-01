@@ -52,44 +52,9 @@ func Run(args *lib.Arguments) (err error) {
 	}
 	fmt.Println(repositories)
 
-	// var (
-	// 	s         *session.Session
-	// 	client    *costexplorer.CostExplorer
-	// 	startDate time.Time
-	// 	endDate   time.Time
-	// 	raw       *costexplorer.GetCostAndUsageOutput
-	// 	data      []*costs.Cost
-	// 	content   []byte
-	// 	cfg       *awscfg.Config = awscfg.FromEnv()
-	// )
-
-	// if s, err = awssession.New(cfg); err != nil {
-	// 	slog.Error("[awscosts.main] aws session failed", slog.String("err", err.Error()))
-	// 	return
-	// }
-
-	// if client, err = awsclient.CostExplorer(s); err != nil {
-	// 	slog.Error("[awscosts.main] aws client failed", slog.String("err", err.Error()))
-	// 	return
-	// }
-
-	// if startDate, err = convert.ToTime(args.Month); err != nil {
-	// 	slog.Error("[awscosts.main] month conversion failed", slog.String("err", err.Error()))
-	// 	return
-	// }
-	// startDate = convert.DateResetMonth(startDate)
-	// // overwrite month with the parsed version
-	// args.Month = startDate.Format(consts.DateFormatYearMonth)
-	// endDate = startDate.AddDate(0, 1, 0)
-
-	// if raw, err = lib.CostData(client, startDate, endDate, costexplorer.GranularityDaily, consts.DateFormatYearMonthDay); err != nil {
-	// 	slog.Error("[awscosts.main] getting cost data failed", slog.String("err", err.Error()))
-	// 	return
-	// }
-	// if data, err = lib.Flat(raw, args); err != nil {
-	// 	slog.Error("[awscosts.main] flattening raw data to costs failed", slog.String("err", err.Error()))
-	// 	return
-	// }
+	// TODO:
+	// - test and include lib.RepoToStandard
+	// - write data to file
 
 	// content, err = json.MarshalIndent(data, "", "  ")
 	// if err != nil {

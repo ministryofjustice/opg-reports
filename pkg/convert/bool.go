@@ -4,7 +4,7 @@ import "strconv"
 
 // IntToBool helper used with sql conversion as sqlite has no
 // boolean type, they are stored as 1 (true) or 0
-func BoolToInt(b bool) int {
+func BoolToInt(b bool) uint8 {
 	if b {
 		return 1
 	}

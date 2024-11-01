@@ -15,10 +15,10 @@ type Standard struct {
 	Ts                             string `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."`                  // TS is timestamp when the record was created
 	CompliantBaseline              uint8  `json:"compliant_baseline" db:"compliant_baseline" faker:"oneof: 0, 1"`
 	CompliantExtended              uint8  `json:"compliant_extended" db:"compliant_extended" faker:"oneof: 0, 1"`
-	CountOfClones                  uint8  `json:"count_of_clones" db:"count_of_clones" faker:"oneof: 0, 1"`
-	CountOfForks                   uint8  `json:"count_of_forks" db:"count_of_forks" faker:"oneof: 0, 1"`
-	CountOfPullRequests            uint8  `json:"count_of_pull_requests" db:"count_of_pull_requests" faker:"oneof: 0, 1"`
-	CountOfWebHooks                uint8  `json:"count_of_web_hooks" db:"count_of_web_hooks" faker:"oneof: 0, 1"`
+	CountOfClones                  int    `json:"count_of_clones" db:"count_of_clones" faker:"oneof: 0, 1"`
+	CountOfForks                   int    `json:"count_of_forks" db:"count_of_forks" faker:"oneof: 0, 1"`
+	CountOfPullRequests            int    `json:"count_of_pull_requests" db:"count_of_pull_requests" faker:"oneof: 0, 1"`
+	CountOfWebHooks                int    `json:"count_of_web_hooks" db:"count_of_web_hooks" faker:"oneof: 0, 1"`
 	CreatedAt                      string `json:"created_at" db:"created_at" faker:"date_string"`
 	DefaultBranch                  string `json:"default_branch" db:"default_branch" faker:"oneof: main, master"`
 	FullName                       string `json:"full_name" db:"full_name"`

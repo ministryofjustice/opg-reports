@@ -197,8 +197,8 @@ func (self *Svr) Handler(writer http.ResponseWriter, request *http.Request) {
 	activePage = navigation.ActivateFlat(flat, request)
 	if activePage == nil {
 		e := fmt.Errorf("requested url [%s] does not match any navigation item.", request.URL.String())
+		// Return with error
 		self.Response.WriteWithError(e, writer)
-		// TODO: http error response
 		return
 	}
 	slog.Info("[svr.Handler] activePage: " + activePage.Name)
