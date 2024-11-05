@@ -195,6 +195,7 @@ func (self *Svr) Handler(writer http.ResponseWriter, request *http.Request) {
 			"GovUKVersion": self.Response.GovUKVersion,
 			// empty placeholders
 			"NavigationActive":  nil,
+			"NavigationRoot":    nil,
 			"NavigationSidebar": []*navigation.Navigation{},
 			"NavigationTopbar":  []*navigation.Navigation{},
 		}
@@ -217,6 +218,7 @@ func (self *Svr) Handler(writer http.ResponseWriter, request *http.Request) {
 	// get the navigation sidebar
 	root := navigation.Root(activePage)
 	if root != nil && len(root.Children()) > 0 {
+		pageData["NavigationRoot"] = root
 		pageData["NavigationSidebar"] = root.Children()
 	}
 

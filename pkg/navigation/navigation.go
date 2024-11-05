@@ -61,6 +61,13 @@ func (self *Navigation) InUri() bool {
 	return self.Display.InUri
 }
 
+func (self *Navigation) Matches(other *Navigation) bool {
+	if other == nil {
+		return false
+	}
+	return self.Uri == other.Uri
+}
+
 // IsHeader returns the Display.IsHeader value
 // - this makes it easier within templates to check
 func (self *Navigation) IsHeader() bool {

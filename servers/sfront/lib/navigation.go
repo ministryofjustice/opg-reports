@@ -30,8 +30,9 @@ const (
 
 // Uptime
 const (
-	UptimeOverallMonthlylUri endpoints.ApiEndpoint = "/{version}/uptime/aws/overall/{month:-9}/{month:0}/month"
-	UptimePerUnitMonthlylUri endpoints.ApiEndpoint = "/{version}/uptime/aws/unit/{month:-9}/{month:0}/month"
+	UptimeOverallMonthlyUri endpoints.ApiEndpoint = "/{version}/uptime/aws/overall/{month:-9}/{month:0}/month"
+	UptimePerUnitMonthlyUri endpoints.ApiEndpoint = "/{version}/uptime/aws/unit/{month:-9}/{month:0}/month"
+	UptimePerUnitBillingUri endpoints.ApiEndpoint = "/{version}/uptime/aws/unit/{billing_date:-6}/{billing_date:0}/month"
 
 	UptimeOverallDailylUri endpoints.ApiEndpoint = "/{version}/uptime/aws/overall/{day:-30}/{day:-1}/day"
 	UptimePerUnitDailylUri endpoints.ApiEndpoint = "/{version}/uptime/aws/unit/{day:-30}/{day:-1}/day"
@@ -122,13 +123,13 @@ var uptimeAws = navigation.New(
 	"/uptime/aws",
 	&navigation.Display{PageTemplate: "uptime-aws"},
 	&navigation.Data{
-		Source:      UptimeOverallMonthlylUri,
+		Source:      UptimeOverallMonthlyUri,
 		Namespace:   "UptimeOverall",
 		Body:        &uptimeio.UptimeBody{},
 		Transformer: uptimefront.TransformResult,
 	},
 	&navigation.Data{
-		Source:      UptimePerUnitMonthlylUri,
+		Source:      UptimePerUnitMonthlyUri,
 		Namespace:   "UptimeUnit",
 		Body:        &uptimeio.UptimeBody{},
 		Transformer: uptimefront.TransformResult,
@@ -156,6 +157,32 @@ var simple = navigation.New(
 	},
 )
 
+// -- team navigation - sirius
+var siriusHistorical = navigation.New(
+	"Historical Data",
+	"/sirius/month",
+	&navigation.Display{PageTemplate: "team-historical"},
+	&navigation.Data{
+		Source:      UptimePerUnitBillingUri + "?unit=unitA",
+		Namespace:   "TeamUptimeUnit",
+		Body:        &uptimeio.UptimeBody{},
+		Transformer: uptimefront.TransformResult,
+	},
+	&navigation.Data{
+		Source:      CostsUriMonthlyDetailed + "?unit=unitA",
+		Namespace:   "TeamCostsPerUnit",
+		Body:        &costsio.CostsStandardBody{},
+		Transformer: costsfront.TransformResult,
+	},
+)
+
+var sirius = navigation.New(
+	"Sirius",
+	"/sirius",
+	&navigation.Display{PageTemplate: "team-overview", IsHeader: true},
+	siriusHistorical,
+)
+
 // -- Full navigation structure
 var overview = navigation.New(
 	"Overview",
@@ -173,5 +200,5 @@ var overview = navigation.New(
 // This allows the navigation to be changed at run time
 var NavigationChoices = map[string][]*navigation.Navigation{
 	// "simple": {simple},
-	"simple": {overview},
+	"simple": {overview, sirius},
 }

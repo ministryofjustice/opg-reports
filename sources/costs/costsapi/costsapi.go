@@ -212,7 +212,7 @@ func apiDetailed(ctx context.Context, input *costsio.StandardInput) (response *c
 	var bdy *costsio.CostsStandardBody = &costsio.CostsStandardBody{}
 	var stmt = costsdb.Detailed
 
-	bdy.ColumnOrder = []string{"account_id", "unit", "environment", "service", "label"}
+	bdy.ColumnOrder = []string{"account_id", "unit", "environment", "service"}
 	bdy.Request = input
 	bdy.Type = "detail"
 	bdy.DateRange = convert.DateRange(input.StartTime(), input.EndTime(), input.Interval)

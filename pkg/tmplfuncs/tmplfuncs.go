@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ministryofjustice/opg-reports/pkg/navigation"
 	"github.com/ministryofjustice/opg-reports/pkg/nums"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -69,9 +70,18 @@ func Percentage(s interface{}) string {
 	return FloatString(s, "%.4f") + " %"
 }
 
+func Matches(a *navigation.Navigation, b *navigation.Navigation) (m bool) {
+	m = false
+	if b != nil {
+		m = a.Uri == b.Uri
+	}
+	return
+}
+
 var All map[string]interface{} = map[string]interface{}{
 	// access
 	"valueFromMap": ValueFromMap,
+	"matches":      Matches,
 	// numeric
 	"add":       nums.Add,
 	"increment": Increment,

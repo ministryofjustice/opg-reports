@@ -1,19 +1,21 @@
 {{ define "navigation-topbar" }}
   {{- if gt (len .NavigationTopbar) 1 -}}
+    {{ $root := .NavigationRoot }}
     <div class="govuk-service-navigation" data-module="govuk-service-navigation">
       <div class="govuk-width-container">
         <div class="govuk-service-navigation__container">
           <nav aria-label="Menu" class="govuk-service-navigation__wrapper">
             <button type="button" class="govuk-service-navigation__toggle govuk-js-service-navigation-toggle" aria-controls="navigation" hidden>Menu</button>
             <ul class="govuk-service-navigation__list" id="navigation">
-              {{- range .NavigationTopbar -}}
-                {{- if .IsActiveOrInUri -}}
+              {{- range $nv := .NavigationTopbar -}}
+                {{ $matched := matches $nv $root }}
+                {{- if $matched -}}
                 <li class="govuk-service-navigation__item govuk-service-navigation__item--active">
-                  <a class="govuk-service-navigation__link" href="{{ .Uri }}" aria-current="true"><strong class="govuk-service-navigation__active-fallback">{{ .Name }}</strong></a>
+                  <a class="govuk-service-navigation__link" href="{{ $nv.Uri }}" aria-current="true"><strong class="govuk-service-navigation__active-fallback">{{ $nv.Name }}</strong></a>
                 </li>
                 {{- else -}}
                 <li class="govuk-service-navigation__item">
-                  <a class="govuk-service-navigation__link" href="{{ .Uri }}">{{ .Name }}</a>
+                  <a class="govuk-service-navigation__link" href="{{ $nv.Uri }}">{{ $nv.Name }}</a>
                 </li>
                 {{- end -}}
 
