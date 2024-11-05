@@ -1,3 +1,6 @@
+// Package standards provides info about required standards
+//
+// Currently, this only github repository settings
 package standards
 
 import (
