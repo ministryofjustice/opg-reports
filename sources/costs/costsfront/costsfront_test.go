@@ -3,6 +3,7 @@ package costsfront_test
 import (
 	"testing"
 
+	"github.com/ministryofjustice/opg-reports/pkg/transformers"
 	"github.com/ministryofjustice/opg-reports/sources/costs"
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsfront"
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsio"
@@ -61,7 +62,7 @@ var expected = map[string]map[string]interface{}{
 // in the expected setup via ResultsToRows
 func TestCostApiTransformersDataRowsStandard(t *testing.T) {
 
-	actual, err := costsfront.ResultsToRows(standardSampleData, colValues, dateRanges)
+	actual, err := transformers.ResultsToRows(standardSampleData, colValues, dateRanges)
 	if err != nil {
 		t.Errorf("unexpected error: [%s]", err.Error())
 	}
@@ -87,7 +88,7 @@ func TestCostApiTransformersDataRowsStandard(t *testing.T) {
 // in the expected way by calling the handler that is attached
 // to navigation data.
 func TestCostApiTransformersResultStandard(t *testing.T) {
-	bdy := &costsio.StandardBody{
+	bdy := &costsio.CostsStandardBody{
 		Type:         "unit-environment",
 		ColumnOrder:  []string{"unit", "environment"},
 		DateRange:    dateRanges,
@@ -95,7 +96,7 @@ func TestCostApiTransformersResultStandard(t *testing.T) {
 		Result:       standardSampleData,
 	}
 
-	actual := costsfront.TransformResult(bdy).(*costsio.StandardBody)
+	actual := costsfront.TransformResult(bdy).(*costsio.CostsStandardBody)
 	for key, actualRow := range actual.TableRows {
 		var expectedRow = expected[key]
 

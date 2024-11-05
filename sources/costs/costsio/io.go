@@ -80,7 +80,9 @@ type TaxOverviewInput struct {
 	GroupedDateRangeInput
 }
 
-type StandardBody struct {
+// -- outputs
+
+type CostsStandardBody struct {
 	Type         string                            `json:"type" doc:"States what type of data this is for front end handling"`
 	Request      *StandardInput                    `json:"request" doc:"The public parameters originaly specified in the request to this API."`
 	Result       []*costs.Cost                     `json:"result" doc:"List of all costs found matching query."`
@@ -89,20 +91,21 @@ type StandardBody struct {
 	DateRange    []string                          `json:"date_range" doc:"list of string dates between the start and end date"`
 	TableRows    map[string]map[string]interface{} `json:"-"`
 }
-type StandardResult struct {
-	Body *StandardBody
+
+type CostsStandardResult struct {
+	Body *CostsStandardBody
 }
 
-type TotalBody struct {
+type CostsTotalBody struct {
 	Type    string      `json:"type" doc:"States what type of data this is for front end handling"`
 	Request *TotalInput `json:"request" doc:"The public parameters originaly specified in the request to this API."`
 	Result  float64     `json:"result" doc:"The total sum of all costs as a float without currency." example:"1357.7861"`
 }
-type TotalResult struct {
-	Body *TotalBody
+type CostsTotalResult struct {
+	Body *CostsTotalBody
 }
 
-type TaxOverviewBody struct {
+type CostsTaxOverviewBody struct {
 	Type         string                            `json:"type" doc:"States what type of data this is for front end handling"`
 	Request      *TaxOverviewInput                 `json:"request" doc:"The public parameters originaly specified in the request to this API."`
 	Result       []*costs.Cost                     `json:"result" doc:"List of call costs grouped by interval for with and without tax costs."`
@@ -111,6 +114,6 @@ type TaxOverviewBody struct {
 	DateRange    []string                          `json:"date_range" doc:"list of string dates between the start and end date"`
 	TableRows    map[string]map[string]interface{} `json:"-"`
 }
-type TaxOverviewResult struct {
-	Body *TaxOverviewBody
+type CostsTaxOverviewResult struct {
+	Body *CostsTaxOverviewBody
 }

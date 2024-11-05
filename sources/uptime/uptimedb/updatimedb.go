@@ -3,7 +3,7 @@ package uptimedb
 import "github.com/ministryofjustice/opg-reports/pkg/datastore"
 
 const CreateUptimeTable datastore.CreateStatement = `
-CREATE TABLE uptime (
+CREATE TABLE IF NOT EXISTS uptime (
     id INTEGER PRIMARY KEY,
     ts TEXT NOT NULL,
     unit TEXT NOT NULL,
@@ -12,8 +12,8 @@ CREATE TABLE uptime (
 ) STRICT
 ;`
 
-const CreateUptimeTableDateIndex datastore.CreateStatement = `CREATE INDEX uptime_date_idx ON uptime(date);`
-const CreateUptimeTableUnitDateIndex datastore.CreateStatement = `CREATE INDEX uptime_unit_date_idx ON uptime(unit,date);`
+const CreateUptimeTableDateIndex datastore.CreateStatement = `CREATE INDEX IF NOT EXISTS uptime_date_idx ON uptime(date);`
+const CreateUptimeTableUnitDateIndex datastore.CreateStatement = `CREATE INDEX IF NOT EXISTS uptime_unit_date_idx ON uptime(unit,date);`
 
 const InsertUptime datastore.InsertStatement = `
 INSERT INTO uptime(
@@ -39,9 +39,10 @@ LIMIT 1
 
 const UptimeByInterval datastore.NamedSelectStatement = `
 SELECT
+    'Percentage' as unit,
     (coalesce(SUM(average), 0) / count(*) ) as average,
     strftime(:date_format, date) as date
-FROM costs
+FROM uptime
 WHERE
     date >= :start_date
     AND date < :end_date
@@ -51,9 +52,10 @@ ORDER by strftime(:date_format, date) ASC
 
 const UptimeByIntervalUnitAll datastore.NamedSelectStatement = `
 SELECT
+    unit,
     (coalesce(SUM(average), 0) / count(*) ) as average,
     strftime(:date_format, date) as date
-FROM costs
+FROM uptime
 WHERE
     date >= :start_date
     AND date < :end_date
@@ -65,7 +67,7 @@ const UptimeByIntervalUnitFiltered datastore.NamedSelectStatement = `
 SELECT
     (coalesce(SUM(average), 0) / count(*) ) as average,
     strftime(:date_format, date) as date
-FROM costs
+FROM uptime
 WHERE
     date >= :start_date
     AND date < :end_date

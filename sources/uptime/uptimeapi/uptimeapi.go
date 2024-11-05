@@ -20,15 +20,15 @@ var overallDescription = `Returns lsit of uptime data grouped by interval for al
 
 // apiOverallHandler gets the overall uptime for all services within the start and end date
 // range
-func apiOverallHandler(ctx context.Context, input *uptimeio.Input) (response *uptimeio.Output, err error) {
+func apiOverallHandler(ctx context.Context, input *uptimeio.UptimeInput) (response *uptimeio.UptimeOutput, err error) {
 	var (
 		result         []*uptime.Uptime
 		db             *sqlx.DB
 		dbFilepath     string                         = ctx.Value(Segment).(string)
 		queryStatement datastore.NamedSelectStatement = uptimedb.UptimeByInterval
-		bdy            *uptimeio.Body                 = &uptimeio.Body{
+		bdy            *uptimeio.UptimeBody           = &uptimeio.UptimeBody{
 			Request:     input,
-			Type:        "unit",
+			Type:        "overall",
 			ColumnOrder: []string{"unit"},
 			DateRange:   convert.DateRange(input.StartTime(), input.EndTime(), input.Interval),
 		}
@@ -45,7 +45,7 @@ func apiOverallHandler(ctx context.Context, input *uptimeio.Input) (response *up
 		bdy.ColumnValues = datastore.ColumnValues(result, bdy.ColumnOrder)
 	}
 
-	response = &uptimeio.Output{
+	response = &uptimeio.UptimeOutput{
 		Body: bdy,
 	}
 
@@ -57,14 +57,14 @@ var unitDescription string = `Returns a list of all uptime data grouped by the i
 // apiUnitHandler gets uptime, groups that by the date interval and the unit name for all data between
 // the start & end dates.
 // Optional filter by unit name
-func apiUnitHandler(ctx context.Context, input *uptimeio.Input) (response *uptimeio.Output, err error) {
+func apiUnitHandler(ctx context.Context, input *uptimeio.UptimeInput) (response *uptimeio.UptimeOutput, err error) {
 
 	var (
 		result         []*uptime.Uptime
 		db             *sqlx.DB
 		dbFilepath     string                         = ctx.Value(Segment).(string)
 		queryStatement datastore.NamedSelectStatement = uptimedb.UptimeByIntervalUnitAll
-		bdy            *uptimeio.Body                 = &uptimeio.Body{
+		bdy            *uptimeio.UptimeBody           = &uptimeio.UptimeBody{
 			Request:     input,
 			Type:        "unit",
 			ColumnOrder: []string{"unit"},
@@ -88,7 +88,7 @@ func apiUnitHandler(ctx context.Context, input *uptimeio.Input) (response *uptim
 		bdy.ColumnValues = datastore.ColumnValues(result, bdy.ColumnOrder)
 	}
 
-	response = &uptimeio.Output{
+	response = &uptimeio.UptimeOutput{
 		Body: bdy,
 	}
 

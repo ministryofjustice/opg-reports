@@ -21,8 +21,22 @@ type Cost struct {
 	Cost         string `json:"cost,omitempty" db:"cost" faker:"float_string" doc:"Cost value."`                                                                         // The actual cost value as a string - without an currency, but is USD by default
 }
 
+// UID
+// Record interface
 func (self *Cost) UID() string {
 	return fmt.Sprintf("%s-%d", "costs", self.ID)
+}
+
+// TDate
+// Transformable interface
+func (self *Cost) TDate() string {
+	return self.Date
+}
+
+// TValue
+// Transformable interface
+func (self *Cost) TValue() string {
+	return self.Cost
 }
 
 // Value handles converting the string value of Cost into a float64

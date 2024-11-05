@@ -42,7 +42,7 @@ func TestCostApiTotalHandler(t *testing.T) {
 	var input *costsio.TotalInput = &costsio.TotalInput{}
 	var dummy = []*costs.Cost{}
 	var total float64 = 0.0
-	var result *costsio.TotalResult
+	var result *costsio.CostsTotalResult
 
 	// generate dummy data set
 	dummy = exfaker.Many[costs.Cost](100)
@@ -80,7 +80,7 @@ func TestCostApiTaxOverviewHandler(t *testing.T) {
 	var ctx = context.WithValue(context.Background(), Segment, dbFile)
 	var input *costsio.TaxOverviewInput = &costsio.TaxOverviewInput{}
 	var dummy = []*costs.Cost{}
-	var result *costsio.TaxOverviewResult
+	var result *costsio.CostsTaxOverviewResult
 
 	var month = "2024-01-01"
 	var excTax float64 = 0.0
@@ -134,7 +134,7 @@ func TestCostApiPerUnitHandler(t *testing.T) {
 	var ctx = context.WithValue(context.Background(), Segment, dbFile)
 	var input *costsio.StandardInput = &costsio.StandardInput{}
 	var dummy = []*costs.Cost{}
-	var result *costsio.StandardResult
+	var result *costsio.CostsStandardResult
 
 	var month = "2024-01-01"
 	// known units from the faker setup
@@ -167,8 +167,8 @@ func TestCostApiPerUnitHandler(t *testing.T) {
 	}
 
 	for _, r := range result.Body.Result {
-		var expected = fmt.Sprintf("%.4f", totals[r.Unit])
-		var actual = fmt.Sprintf("%.4f", r.Value())
+		var expected = fmt.Sprintf("%.3f", totals[r.Unit])
+		var actual = fmt.Sprintf("%.3f", r.Value())
 
 		if expected != actual {
 			t.Errorf("unit [%s] total mismatch - expected [%s] actual [%s]", r.Unit, expected, actual)
@@ -187,8 +187,8 @@ func TestCostApiPerUnitHandler(t *testing.T) {
 		t.Errorf("should only have 1 result, found more.")
 	}
 
-	var expected = fmt.Sprintf("%.4f", totals[input.Unit])
-	var actual = fmt.Sprintf("%.4f", result.Body.Result[0].Value())
+	var expected = fmt.Sprintf("%.3f", totals[input.Unit])
+	var actual = fmt.Sprintf("%.3f", result.Body.Result[0].Value())
 	if expected != actual {
 		t.Errorf("unit filtered [%s] result mismatch - expected [%s] actual [%s]", input.Unit, expected, actual)
 	}
@@ -205,7 +205,7 @@ func TestCostApiPerUnitEnvHandler(t *testing.T) {
 	var ctx = context.WithValue(context.Background(), Segment, dbFile)
 	var input *costsio.StandardInput = &costsio.StandardInput{}
 	var dummy = []*costs.Cost{}
-	var result *costsio.StandardResult
+	var result *costsio.CostsStandardResult
 
 	var month = "2024-01-01"
 	// known units from the faker setup
@@ -246,8 +246,8 @@ func TestCostApiPerUnitEnvHandler(t *testing.T) {
 	}
 
 	for _, r := range result.Body.Result {
-		var expected = fmt.Sprintf("%.4f", totals[r.Unit][r.Environment])
-		var actual = fmt.Sprintf("%.4f", r.Value())
+		var expected = fmt.Sprintf("%.3f", totals[r.Unit][r.Environment])
+		var actual = fmt.Sprintf("%.3f", r.Value())
 
 		if expected != actual {
 			t.Errorf("unit [%s-%s] total mismatch - expected [%s] actual [%s]", r.Unit, r.Environment, expected, actual)

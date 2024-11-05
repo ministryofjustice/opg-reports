@@ -30,13 +30,13 @@ const Tag string = "Cost Data"
 var totalDescription string = `Returns a single total for all the AWS costs between the start and end dates - excluding taxes.`
 
 // apiTotal fetches total sum of all costs within the database
-func apiTotal(ctx context.Context, input *costsio.TotalInput) (response *costsio.TotalResult, err error) {
+func apiTotal(ctx context.Context, input *costsio.TotalInput) (response *costsio.CostsTotalResult, err error) {
 	// grab the db from the context
 	var dbFilepath string = ctx.Value(Segment).(string)
 	var db *sqlx.DB
 	var result float64 = 0.0
-	var bdy *costsio.TotalBody = &costsio.TotalBody{Request: input, Type: "total"}
-	response = &costsio.TotalResult{Body: bdy}
+	var bdy *costsio.CostsTotalBody = &costsio.CostsTotalBody{Request: input, Type: "total"}
+	response = &costsio.CostsTotalResult{Body: bdy}
 
 	db, _, err = datastore.NewDB(ctx, datastore.Sqlite, dbFilepath)
 	defer db.Close()
@@ -64,18 +64,18 @@ Each result returned has the following fields:
 `
 
 // apiTotal fetches total sum of all costs within the database
-func apiTaxOverview(ctx context.Context, input *costsio.TaxOverviewInput) (response *costsio.TaxOverviewResult, err error) {
+func apiTaxOverview(ctx context.Context, input *costsio.TaxOverviewInput) (response *costsio.CostsTaxOverviewResult, err error) {
 	// grab the db from the context
 	var dbFilepath string = ctx.Value(Segment).(string)
 	var db *sqlx.DB
 	var result []*costs.Cost = []*costs.Cost{}
-	var bdy *costsio.TaxOverviewBody = &costsio.TaxOverviewBody{
+	var bdy *costsio.CostsTaxOverviewBody = &costsio.CostsTaxOverviewBody{
 		ColumnOrder: []string{"service"},
 		Request:     input,
 		Type:        "tax-overview",
 		DateRange:   convert.DateRange(input.StartTime(), input.EndTime(), input.Interval),
 	}
-	response = &costsio.TaxOverviewResult{Body: bdy}
+	response = &costsio.CostsTaxOverviewResult{Body: bdy}
 
 	db, _, err = datastore.NewDB(ctx, datastore.Sqlite, dbFilepath)
 	defer db.Close()
@@ -106,12 +106,12 @@ Each result returned has the following fields:
 `
 
 // apiPerUnit handles getting data grouped by unit
-func apiPerUnit(ctx context.Context, input *costsio.StandardInput) (response *costsio.StandardResult, err error) {
+func apiPerUnit(ctx context.Context, input *costsio.StandardInput) (response *costsio.CostsStandardResult, err error) {
 	// grab the db from the context
 	var dbFilepath string = ctx.Value(Segment).(string)
 	var db *sqlx.DB
 	var result []*costs.Cost = []*costs.Cost{}
-	var bdy *costsio.StandardBody = &costsio.StandardBody{}
+	var bdy *costsio.CostsStandardBody = &costsio.CostsStandardBody{}
 	var stmt = costsdb.PerUnit
 
 	bdy.ColumnOrder = []string{"unit"}
@@ -119,7 +119,7 @@ func apiPerUnit(ctx context.Context, input *costsio.StandardInput) (response *co
 	bdy.Type = "unit"
 	bdy.DateRange = convert.DateRange(input.StartTime(), input.EndTime(), input.Interval)
 
-	response = &costsio.StandardResult{Body: bdy}
+	response = &costsio.CostsStandardResult{Body: bdy}
 
 	db, _, err = datastore.NewDB(ctx, datastore.Sqlite, dbFilepath)
 	defer db.Close()
@@ -155,12 +155,12 @@ Each result returned has the following fields:
 `
 
 // apiPerUnit handles getting data grouped by unit
-func apiPerUnitEnv(ctx context.Context, input *costsio.StandardInput) (response *costsio.StandardResult, err error) {
+func apiPerUnitEnv(ctx context.Context, input *costsio.StandardInput) (response *costsio.CostsStandardResult, err error) {
 	// grab the db from the context
 	var dbFilepath string = ctx.Value(Segment).(string)
 	var db *sqlx.DB
 	var result []*costs.Cost = []*costs.Cost{}
-	var bdy *costsio.StandardBody = &costsio.StandardBody{}
+	var bdy *costsio.CostsStandardBody = &costsio.CostsStandardBody{}
 	var stmt = costsdb.PerUnitEnvironment
 
 	bdy.ColumnOrder = []string{"unit", "environment"}
@@ -168,7 +168,7 @@ func apiPerUnitEnv(ctx context.Context, input *costsio.StandardInput) (response 
 	bdy.Type = "unit-environment"
 	bdy.DateRange = convert.DateRange(input.StartTime(), input.EndTime(), input.Interval)
 
-	response = &costsio.StandardResult{Body: bdy}
+	response = &costsio.CostsStandardResult{Body: bdy}
 
 	db, _, err = datastore.NewDB(ctx, datastore.Sqlite, dbFilepath)
 	defer db.Close()
@@ -204,12 +204,12 @@ Each result returned has the following fields:
 `
 
 // apiDetailed
-func apiDetailed(ctx context.Context, input *costsio.StandardInput) (response *costsio.StandardResult, err error) {
+func apiDetailed(ctx context.Context, input *costsio.StandardInput) (response *costsio.CostsStandardResult, err error) {
 	// grab the db from the context
 	var dbFilepath string = ctx.Value(Segment).(string)
 	var db *sqlx.DB
 	var result []*costs.Cost = []*costs.Cost{}
-	var bdy *costsio.StandardBody = &costsio.StandardBody{}
+	var bdy *costsio.CostsStandardBody = &costsio.CostsStandardBody{}
 	var stmt = costsdb.Detailed
 
 	bdy.ColumnOrder = []string{"account_id", "unit", "environment", "service", "label"}
@@ -217,7 +217,7 @@ func apiDetailed(ctx context.Context, input *costsio.StandardInput) (response *c
 	bdy.Type = "detail"
 	bdy.DateRange = convert.DateRange(input.StartTime(), input.EndTime(), input.Interval)
 
-	response = &costsio.StandardResult{Body: bdy}
+	response = &costsio.CostsStandardResult{Body: bdy}
 
 	db, _, err = datastore.NewDB(ctx, datastore.Sqlite, dbFilepath)
 	defer db.Close()

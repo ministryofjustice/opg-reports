@@ -6,6 +6,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsfront"
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsio"
 	"github.com/ministryofjustice/opg-reports/sources/standards/standardsio"
+	"github.com/ministryofjustice/opg-reports/sources/uptime/uptimeio"
 )
 
 // Cost endpoints to call formatted with required placeholders
@@ -25,6 +26,12 @@ const (
 	StandardsUri endpoints.ApiEndpoint = "/{version}/standards/github/false"
 )
 
+// Uptime
+const (
+	UptimeOverallMonthlylUri endpoints.ApiEndpoint = "/{version}/uptime/aws/overall/{month:-6}/{month:0}/month"
+	UptimePerUnitMonthlylUri endpoints.ApiEndpoint = "/{version}/uptime/aws/unit/{month:-6}/{month:0}/month"
+)
+
 // -- Costs navigation items
 
 // costsTaxOverview config
@@ -35,7 +42,7 @@ var costsTaxOverview = navigation.New(
 	&navigation.Data{
 		Source:      CostsUriMonthlyTax,
 		Namespace:   "CostsTax",
-		Body:        &costsio.TaxOverviewBody{},
+		Body:        &costsio.CostsTaxOverviewBody{},
 		Transformer: costsfront.TransformResult,
 	})
 
@@ -47,13 +54,13 @@ var costsPerTeam = navigation.New(
 	&navigation.Data{
 		Source:      CostsUriMonthlyUnit,
 		Namespace:   "CostsPerUnit",
-		Body:        &costsio.StandardBody{},
+		Body:        &costsio.CostsStandardBody{},
 		Transformer: costsfront.TransformResult,
 	},
 	&navigation.Data{
 		Source:      CostsUriMonthlyUnitEnvironment,
 		Namespace:   "CostsPerUnitEnv",
-		Body:        &costsio.StandardBody{},
+		Body:        &costsio.CostsStandardBody{},
 		Transformer: costsfront.TransformResult,
 	},
 )
@@ -66,7 +73,7 @@ var costsDetailed = navigation.New(
 	&navigation.Data{
 		Source:      CostsUriMonthlyDetailed,
 		Namespace:   "CostsDetailed",
-		Body:        &costsio.StandardBody{},
+		Body:        &costsio.CostsStandardBody{},
 		Transformer: costsfront.TransformResult,
 	},
 )
@@ -101,6 +108,19 @@ var standard = navigation.New(
 	"/standards",
 	&navigation.Display{PageTemplate: "standards-overview", IsHeader: true},
 	ghStandards,
+)
+
+// -- Uptime
+
+var uptimeAws = navigation.New(
+	"Service uptime",
+	"/uptime/aws",
+	&navigation.Display{PageTemplate: "uptimes-aws"},
+	&navigation.Data{
+		Source:    UptimeOverallMonthlylUri,
+		Namespace: "UptimeOverall",
+		Body:      &uptimeio.UptimeBody{},
+	},
 )
 
 // -- simple navigation structure

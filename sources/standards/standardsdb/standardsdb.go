@@ -3,7 +3,7 @@ package standardsdb
 import "github.com/ministryofjustice/opg-reports/pkg/datastore"
 
 const CreateStandardsTable datastore.CreateStatement = `
-CREATE TABLE standards (
+CREATE TABLE IF NOT EXISTS standards (
     id INTEGER PRIMARY KEY,
     ts TEXT NOT NULL,
     compliant_baseline INTEGER NOT NULL DEFAULT 0,
@@ -42,11 +42,11 @@ CREATE TABLE standards (
 ) STRICT
 ;`
 
-const CreateStandardsIndexIsArchived datastore.CreateStatement = `CREATE INDEX stnd_archived_idx ON standards(is_archived, name, created_at);`
-const CreateStandardsIndexIsArchivedTeams datastore.CreateStatement = `CREATE INDEX stnd_archived_teams_idx ON standards(is_archived, teams, name, created_at);`
-const CreateStandardsIndexTeams datastore.CreateStatement = `CREATE INDEX stnd_teams_idx ON standards(teams, name, created_at);`
-const CreateStandardsIndexBaseline datastore.CreateStatement = `CREATE INDEX stnd_baseline_idx ON standards(compliant_baseline)`
-const CreateStandardsIndexExtended datastore.CreateStatement = `CREATE INDEX stnd_extended_idx ON standards(compliant_extended)`
+const CreateStandardsIndexIsArchived datastore.CreateStatement = `CREATE INDEX IF NOT EXISTS stnd_archived_idx ON standards(is_archived, name, created_at);`
+const CreateStandardsIndexIsArchivedTeams datastore.CreateStatement = `CREATE INDEX IF NOT EXISTS stnd_archived_teams_idx ON standards(is_archived, teams, name, created_at);`
+const CreateStandardsIndexTeams datastore.CreateStatement = `CREATE INDEX IF NOT EXISTS stnd_teams_idx ON standards(teams, name, created_at);`
+const CreateStandardsIndexBaseline datastore.CreateStatement = `CREATE INDEX IF NOT EXISTS stnd_baseline_idx ON standards(compliant_baseline)`
+const CreateStandardsIndexExtended datastore.CreateStatement = `CREATE INDEX IF NOT EXISTS stnd_extended_idx ON standards(compliant_extended)`
 
 const InsertStandard datastore.InsertStatement = `
 INSERT INTO standards(
