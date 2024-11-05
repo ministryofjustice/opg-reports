@@ -82,10 +82,10 @@ type TaxOverviewInput struct {
 
 type StandardBody struct {
 	Type         string                            `json:"type" doc:"States what type of data this is for front end handling"`
+	Request      *StandardInput                    `json:"request" doc:"The public parameters originaly specified in the request to this API."`
 	Result       []*costs.Cost                     `json:"result" doc:"List of all costs found matching query."`
 	ColumnOrder  []string                          `json:"column_order" doc:"List of columns set in the order they should be rendered for each row."`
 	ColumnValues map[string][]interface{}          `json:"column_values" doc:"Contains all of the ordered columns possible values, to help display rendering."`
-	Request      *StandardInput                    `json:"request" doc:"The public parameters originaly specified in the request to this API."`
 	DateRange    []string                          `json:"date_range" doc:"list of string dates between the start and end date"`
 	TableRows    map[string]map[string]interface{} `json:"-"`
 }

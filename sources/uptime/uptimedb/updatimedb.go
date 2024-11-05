@@ -37,7 +37,7 @@ FROM uptime
 LIMIT 1
 `
 
-const Uptime datastore.NamedSelectStatement = `
+const UptimeByInterval datastore.NamedSelectStatement = `
 SELECT
     (coalesce(SUM(average), 0) / count(*) ) as average,
     strftime(:date_format, date) as date
@@ -49,7 +49,19 @@ GROUP BY strftime(:date_format, date)
 ORDER by strftime(:date_format, date) ASC
 `
 
-const UptimePerUnit datastore.NamedSelectStatement = `
+const UptimeByIntervalUnitAll datastore.NamedSelectStatement = `
+SELECT
+    (coalesce(SUM(average), 0) / count(*) ) as average,
+    strftime(:date_format, date) as date
+FROM costs
+WHERE
+    date >= :start_date
+    AND date < :end_date
+GROUP BY strftime(:date_format, date), unit
+ORDER by strftime(:date_format, date), unit ASC
+`
+
+const UptimeByIntervalUnitFiltered datastore.NamedSelectStatement = `
 SELECT
     (coalesce(SUM(average), 0) / count(*) ) as average,
     strftime(:date_format, date) as date

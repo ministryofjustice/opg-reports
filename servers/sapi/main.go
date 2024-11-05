@@ -30,6 +30,8 @@ import (
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsapi"
 	"github.com/ministryofjustice/opg-reports/sources/standards"
 	"github.com/ministryofjustice/opg-reports/sources/standards/standardsapi"
+	"github.com/ministryofjustice/opg-reports/sources/uptime"
+	"github.com/ministryofjustice/opg-reports/sources/uptime/uptimeapi"
 )
 
 var mode = bi.Mode
@@ -39,8 +41,14 @@ var mode = bi.Mode
 // `full` covers all options
 // Set using the bi.Mode which is a ldflag
 var (
-	simpleSegments map[string]*lib.ApiSegment = map[string]*lib.ApiSegment{}
-	fullSegments   map[string]*lib.ApiSegment = map[string]*lib.ApiSegment{
+	simpleSegments map[string]*lib.ApiSegment = map[string]*lib.ApiSegment{
+		standardsapi.Segment: {
+			DbFile:       "./databases/standards.db",
+			SetupFunc:    standards.Setup,
+			RegisterFunc: standardsapi.Register,
+		},
+	}
+	fullSegments map[string]*lib.ApiSegment = map[string]*lib.ApiSegment{
 		costsapi.Segment: {
 			DbFile:       "./databases/costs.db",
 			SetupFunc:    costs.Setup,
@@ -50,6 +58,11 @@ var (
 			DbFile:       "./databases/standards.db",
 			SetupFunc:    standards.Setup,
 			RegisterFunc: standardsapi.Register,
+		},
+		uptimeapi.Segment: {
+			DbFile:       "./databases/uptime.db",
+			SetupFunc:    uptime.Setup,
+			RegisterFunc: uptimeapi.Register,
 		},
 	}
 	segmentChoices map[string]map[string]*lib.ApiSegment = map[string]map[string]*lib.ApiSegment{

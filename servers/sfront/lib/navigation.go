@@ -91,7 +91,7 @@ var ghStandards = navigation.New(
 	&navigation.Data{
 		Source:    StandardsUri,
 		Namespace: "RepositoryStandards",
-		Body:      &standardsio.Body{},
+		Body:      &standardsio.StandardsBody{},
 	},
 )
 
@@ -113,7 +113,7 @@ var simple = navigation.New(
 	&navigation.Data{
 		Source:    StandardsUri,
 		Namespace: "RepositoryStandards",
-		Body:      &standardsio.Body{},
+		Body:      &standardsio.StandardsBody{},
 	},
 )
 

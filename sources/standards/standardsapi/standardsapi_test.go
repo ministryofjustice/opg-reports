@@ -42,14 +42,14 @@ func testDBSeed(ctx context.Context, items []*standards.Standard, db *sqlx.DB) *
 // of archived results
 func TestStandardsApiHandlerArchive(t *testing.T) {
 	var err error
-	var out *standardsio.Output
+	var out *standardsio.StandardsOutput
 
 	var n = 100
 	var expectedArchivedCount = 0
 	var dir = t.TempDir()
 	var dbFile = filepath.Join(dir, "test.db")
 	var ctx = context.WithValue(context.Background(), Segment, dbFile)
-	var input = &standardsio.Input{Version: "v1", Archived: true}
+	var input = &standardsio.StandardsInput{Version: "v1", Archived: true}
 	var fakes = []*standards.Standard{}
 
 	fakes = exfaker.Many[standards.Standard](n)
@@ -80,7 +80,7 @@ func TestStandardsApiHandlerArchive(t *testing.T) {
 // of results for the team
 func TestStandardsApiHandlerTeamFilter(t *testing.T) {
 	var err error
-	var out *standardsio.Output
+	var out *standardsio.StandardsOutput
 
 	var n = 100
 	var team = "#unitA#" // one of the default teams used by faker
@@ -88,7 +88,7 @@ func TestStandardsApiHandlerTeamFilter(t *testing.T) {
 	var dir = t.TempDir()
 	var dbFile = filepath.Join(dir, "test.db")
 	var ctx = context.WithValue(context.Background(), Segment, dbFile)
-	var input = &standardsio.Input{Version: "v1", Archived: false, Unit: "unitA"}
+	var input = &standardsio.StandardsInput{Version: "v1", Archived: false, Unit: "unitA"}
 	var fakes = []*standards.Standard{}
 
 	fakes = exfaker.Many[standards.Standard](n)

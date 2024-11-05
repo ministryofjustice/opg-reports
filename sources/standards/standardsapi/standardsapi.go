@@ -18,7 +18,7 @@ const Tag string = "Standards"
 var description string = `Returns a list of repository informations relating to the standards eahc has met and their current status.`
 
 // apiHandler default handler for all github standards info
-func apiHandler(ctx context.Context, input *standardsio.Input) (response *standardsio.Output, err error) {
+func apiHandler(ctx context.Context, input *standardsio.StandardsInput) (response *standardsio.StandardsOutput, err error) {
 
 	var (
 		result         []*standards.Standard
@@ -26,7 +26,7 @@ func apiHandler(ctx context.Context, input *standardsio.Input) (response *standa
 		dbFilepath     string = ctx.Value(Segment).(string)
 		queryStatement        = standardsdb.FilterByIsArchived
 		counters              = &standardsio.Counters{BaselineCompliant: 0, ExtendedCompliant: 0}
-		bdy                   = &standardsio.Body{
+		bdy                   = &standardsio.StandardsBody{
 			Request: input,
 			Type:    "default",
 		}
@@ -80,7 +80,7 @@ func apiHandler(ctx context.Context, input *standardsio.Input) (response *standa
 	}
 
 	bdy.Counters = counters
-	response = &standardsio.Output{
+	response = &standardsio.StandardsOutput{
 		Body: bdy,
 	}
 	return

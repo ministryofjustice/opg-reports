@@ -239,11 +239,11 @@ func apiDetailed(ctx context.Context, input *costsio.StandardInput) (response *c
 // Register attaches all the endpoints this module handles on the passed huma api
 //
 // Currently supports the following endpoints:
-//   - /{version}/costs/aws/total
-//   - /{version}/costs/aws/tax-overview/{interval}
-//   - /{version}/costs/aws/unit/{interval}
-//   - /{version}/costs/aws/unit-environment/{internval}
-//   - /{version}/costs/aws/detailed/{interval}
+//   - /{version}/costs/aws/total/{start_date}/{end_date}
+//   - /{version}/costs/aws/tax-overview/{start_date}/{end_date}/{interval}/
+//   - /{version}/costs/aws/unit/{start_date}/{end_date}/{interval}
+//   - /{version}/costs/aws/unit-environment/{start_date}/{end_date}/{internval}
+//   - /{version}/costs/aws/detailed/{start_date}/{end_date}/{interval}
 func Register(api huma.API) {
 
 	huma.Register(api, huma.Operation{
