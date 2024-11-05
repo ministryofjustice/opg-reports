@@ -190,6 +190,10 @@ func (self *Svr) Handler(writer http.ResponseWriter, request *http.Request) {
 			"Path":         request.URL.Path,
 			// used for path to the css etc
 			"GovUKVersion": self.Response.GovUKVersion,
+			// empty placeholders
+			"NavigationActive":  nil,
+			"NavigationSidebar": []*navigation.Navigation{},
+			"NavigationTopbar":  []*navigation.Navigation{},
 		}
 	)
 	self.Response.Reset()
@@ -206,9 +210,11 @@ func (self *Svr) Handler(writer http.ResponseWriter, request *http.Request) {
 	// top nav bar
 	top := navigation.Level(self.Navigation.Tree)
 	pageData["NavigationTopbar"] = top
-	// side bar nav
-	if nv := navigation.ActiveOrInUri(top); nv != nil && nv.Children != nil {
-		pageData["NavigationSidebar"] = nv.Children
+
+	// get the navigation sidebar
+	root := navigation.Root(activePage)
+	if root != nil && len(root.Children()) > 0 {
+		pageData["NavigationSidebar"] = root.Children()
 	}
 
 	// get the data for each endpoint - use go routines

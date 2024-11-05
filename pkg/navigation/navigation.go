@@ -38,11 +38,13 @@ func NewData(source endpoints.ApiEndpoint, namespace string) *Data {
 // front end of website to show sections at a time
 // It also contains details on how to fetch data for each of the pages it represents
 type Navigation struct {
-	Name     string        `json:"name" doc:"Name is used when displaying this navigation link."`
-	Uri      string        `json:"uri" doc:"Uri is front end url this navigation item will render for."`
-	Display  *Display      `json:"display" doc:"rendering related details"`
-	Data     []*Data       `json:"data" doc:"list of api endpoints to get data from"`
-	Children []*Navigation `json:"children" doc:"Child navigation"`
+	Name    string   `json:"name" doc:"Name is used when displaying this navigation link."`
+	Uri     string   `json:"uri" doc:"Uri is front end url this navigation item will render for."`
+	Display *Display `json:"display" doc:"rendering related details"`
+	Data    []*Data  `json:"data" doc:"list of api endpoints to get data from"`
+
+	children []*Navigation
+	parent   *Navigation
 }
 
 // IsActive returns the Display.IsActive value
@@ -72,6 +74,40 @@ func (self *Navigation) IsActiveOrInUri() bool {
 	return self.IsActive() || self.InUri()
 }
 
+// Parent returns the .parent navigation item
+// for this - or nil
+func (self *Navigation) Parent() *Navigation {
+	return self.parent
+}
+
+// Children returns a slice of navigation items that
+// are the child of this
+func (self *Navigation) Children() []*Navigation {
+	return self.children
+}
+
+// AddChild add this kids passed as being the children
+// of this node - updates their internal .parent
+// as well
+func (self *Navigation) AddChild(kids ...*Navigation) {
+	for _, child := range kids {
+		child.parent = self
+		self.children = append(self.children, child)
+	}
+}
+
+// Root finds the top level node from the node passed,
+// recursing up the tree by using hte .parent
+func Root(node *Navigation) (p *Navigation) {
+	p = node
+	// more parents, so go up another level
+	if parent := node.Parent(); parent != nil {
+		p = Root(parent)
+	}
+	return
+
+}
+
 // New will create a standard Navigation struct using the name and uri passed
 // It allows sthe more complex properties to be passed as variadic arguments
 // and maakes use of a switch on type to assign them correctly.
@@ -84,7 +120,7 @@ func New(name string, uri string, others ...interface{}) (nav *Navigation) {
 		Uri:      uri,
 		Display:  &Display{},
 		Data:     []*Data{},
-		Children: []*Navigation{},
+		children: []*Navigation{},
 	}
 	// allow more complex parts of the nav item to be passed as variadic args
 	for _, arg := range others {
@@ -96,9 +132,10 @@ func New(name string, uri string, others ...interface{}) (nav *Navigation) {
 		case []*Data:
 			nav.Data = arg.([]*Data)
 		case *Navigation:
-			nav.Children = append(nav.Children, arg.(*Navigation))
+			nav.AddChild(arg.(*Navigation))
 		case []*Navigation:
-			nav.Children = arg.([]*Navigation)
+			kids := arg.([]*Navigation)
+			nav.AddChild(kids...)
 
 		}
 	}

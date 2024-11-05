@@ -17,6 +17,7 @@ const Tag string = "Standards"
 
 var description string = `Returns a list of repository informations relating to the standards eahc has met and their current status.`
 
+// apiHandler default handler for all github standards info
 func apiHandler(ctx context.Context, input *Input) (response *Output, err error) {
 	var (
 		result         []*standards.Standard

@@ -1,26 +1,24 @@
-package navigation_test
+package navigation
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"github.com/ministryofjustice/opg-reports/pkg/navigation"
 )
 
 func TestNavigationActivateTree(t *testing.T) {
 	var req = httptest.NewRequest(http.MethodGet, "/1/2/?test=true", nil)
 
-	var kid = navigation.New("1.2.1", "/1/2/1")
-	var shouldBeActive = navigation.New("1.2", "/1/2", kid)
-	var node1 = navigation.New("1", "/1", navigation.New("1.1", "/1/1"), shouldBeActive)
-	var node2 = navigation.New("2", "/2", navigation.New("2.1", "/2/1"))
-	var nav = []*navigation.Navigation{
+	var kid = New("1.2.1", "/1/2/1")
+	var shouldBeActive = New("1.2", "/1/2", kid)
+	var node1 = New("1", "/1", New("1.1", "/1/1"), shouldBeActive)
+	var node2 = New("2", "/2", New("2.1", "/2/1"))
+	var nav = []*Navigation{
 		node1,
 		node2,
 	}
 
-	navigation.ActivateTree(nav, req)
+	ActivateTree(nav, req)
 
 	// the active item should be active
 	if shouldBeActive.Display.IsActive != true {
@@ -54,12 +52,12 @@ func TestNavigationActivateTree(t *testing.T) {
 func TestNavigationFlatPreDetermined(t *testing.T) {
 
 	var expected = 8 // manually set so we dont have to recurse
-	var flat = map[string]*navigation.Navigation{}
-	var nav = []*navigation.Navigation{
+	var flat = map[string]*Navigation{}
+	var nav = []*Navigation{
 		{
 			Name: "root1",
 			Uri:  "/1",
-			Children: []*navigation.Navigation{
+			children: []*Navigation{
 				{
 					Name: "1.1",
 					Uri:  "/1/1",
@@ -67,7 +65,7 @@ func TestNavigationFlatPreDetermined(t *testing.T) {
 				{
 					Name: "1.2",
 					Uri:  "/1/2",
-					Children: []*navigation.Navigation{
+					children: []*Navigation{
 						{
 							Name: "1.2.1",
 							Uri:  "/1/2/1",
@@ -79,7 +77,7 @@ func TestNavigationFlatPreDetermined(t *testing.T) {
 		{
 			Name: "root2",
 			Uri:  "/2",
-			Children: []*navigation.Navigation{
+			children: []*Navigation{
 				{Name: "2.1", Uri: "/2/1"},
 				{Name: "2.2", Uri: "/2/2"},
 				{Name: "2.3", Uri: "/2/3"},
@@ -87,7 +85,7 @@ func TestNavigationFlatPreDetermined(t *testing.T) {
 		},
 	}
 
-	navigation.Flat(nav, flat)
+	Flat(nav, flat)
 
 	actual := len(flat)
 	if expected != actual {

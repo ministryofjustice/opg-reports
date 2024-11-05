@@ -63,11 +63,30 @@ var costs = navigation.New(
 	costsDetailed,
 )
 
-// Dummy holder for now
-var simple = navigation.New(
-	"Home",
+// -- Standards navigation items
+
+// Github repo standards
+var ghStandards = navigation.New(
+	"Repositories",
+	"/standards/repositories",
+	&navigation.Display{PageTemplate: "standards-github-repositories"},
+)
+
+// wrapping standards
+var standards = navigation.New(
+	"Standards",
+	"/standards",
+	&navigation.Display{PageTemplate: "standards-overview", IsHeader: true},
+	ghStandards,
+)
+
+// -- Full navigation structure
+var overview = navigation.New(
+	"Overview",
 	"/",
 	&navigation.Display{PageTemplate: "homepage"},
+	standards,
+	costs,
 )
 
 // NavigationChoices is the set of all navigation structures
@@ -76,6 +95,6 @@ var simple = navigation.New(
 // bi.Navigation as the key for this map
 // This allows the navigation to be changed at run time
 var NavigationChoices = map[string][]*navigation.Navigation{
-	// "simple": {simple},
-	"simple": {costs, simple},
+	// "simple": {ghStandards},
+	"simple": {overview},
 }

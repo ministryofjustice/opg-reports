@@ -28,6 +28,8 @@ import (
 	"github.com/ministryofjustice/opg-reports/servers/sapi/lib"
 	"github.com/ministryofjustice/opg-reports/sources/costs"
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsapi"
+	"github.com/ministryofjustice/opg-reports/sources/standards"
+	"github.com/ministryofjustice/opg-reports/sources/standards/standardsapi"
 )
 
 var mode = bi.Mode
@@ -43,6 +45,11 @@ var (
 			DbFile:       "./databases/costs.db",
 			SetupFunc:    costs.Setup,
 			RegisterFunc: costsapi.Register,
+		},
+		standardsapi.Segment: {
+			DbFile:       "./databases/standards.db",
+			SetupFunc:    standards.Setup,
+			RegisterFunc: standardsapi.Register,
 		},
 	}
 	segmentChoices map[string]map[string]*lib.ApiSegment = map[string]map[string]*lib.ApiSegment{

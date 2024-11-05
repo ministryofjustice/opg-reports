@@ -15,9 +15,10 @@ func Flat(tree []*Navigation, flat map[string]*Navigation) {
 			var key = node.Uri
 			flat[key] = node
 			// recurse if this node has children
-			if len(node.Children) > 0 {
+			kids := node.Children()
+			if len(kids) > 0 {
 				slog.Debug("[navigation.Flat] recurse")
-				Flat(node.Children, flat)
+				Flat(kids, flat)
 			}
 		}
 	}
@@ -52,8 +53,9 @@ func ActivateTree(tree []*Navigation, request *http.Request) (active *Navigation
 			node.Display.IsActive = true
 		}
 		// recurse
-		if len(node.Children) > 0 {
-			ActivateTree(node.Children, request)
+		kids := node.Children()
+		if len(kids) > 0 {
+			ActivateTree(kids, request)
 		}
 	}
 	return
