@@ -42,7 +42,7 @@ type Standard struct {
 	HasWiki                        uint8  `json:"has_wiki" db:"has_wiki" faker:"oneof: 0, 1"`
 	IsArchived                     uint8  `json:"is_archived" db:"is_archived" faker:"oneof: 0, 1"`
 	IsPrivate                      uint8  `json:"is_private" db:"is_private" faker:"oneof: 0, 1"`
-	License                        string `json:"license" db:"license"`
+	License                        string `json:"license" db:"license" faker:"oneof: MIT, GPL"`
 	LastCommitDate                 string `json:"last_commit_date" db:"last_commit_date" faker:"date_string"`
 	Name                           string `json:"name" db:"name"`
 	Owner                          string `json:"owner" db:"owner" faker:"oneof: ministryofjusice"`

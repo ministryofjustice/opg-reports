@@ -5,11 +5,17 @@ GOV UK STYLE OVERWRITES
 .govuk-service-navigation .govuk-width-container {
     margin-left:220px;
 }
-/*************************/
 
 /*************************
 CUSTOM STYLES
 *************************/
+/* body containers */
+.app-content{
+    padding: 15px;
+}
+#main-content {
+    padding: 30px 15px;
+}
 
 /* side bar navigation */
 .app-header{
@@ -65,16 +71,8 @@ CUSTOM STYLES
     font-size: 1.1rem;
 }
 
-/* body containers */
-.app-content{
-    padding: 15px;
-}
-#main-content {
-    padding: 30px 15px;
-}
-
-
-/* hide comparison checkboxes by default, ont show in comparison sections */
+/* COMPONENTS */
+/* currency table */
 .dataset .comparison-selector {
     display:none;
 }
@@ -82,4 +80,80 @@ CUSTOM STYLES
     display:inline;
 }
 
-/* page specific changes */
+/* standards table */
+.standards-table {
+    max-width: 900px;
+}
+.standard-head {
+    max-width:95px;
+    width: 95px;
+}
+.standards-table thead .govuk-table__header{
+    text-align: right;
+    padding: 10px 0;
+}
+.standards-table .pass-fail{
+    text-align: right;
+}
+.standards-table .pass-fail,
+.standards-table .expand {
+    padding: 10px 0 10px 0;
+    vertical-align: top;
+
+}
+.standards-table .expand {
+    width:32px;
+    max-width: 32px;
+    cursor:pointer;
+}
+.standards-table .pass-fail strong,
+.standards-table .expand strong{
+    max-width: 26px;
+    width:26px;
+    text-align: center;
+    padding: 0;
+    margin: 0;
+    font-weight: 700;
+}
+.standards-table .repo-name{
+    text-align: left;
+    padding: 8px 0;
+}
+
+.standards-table .kvfield{
+    text-transform: uppercase;
+    padding:0;
+    margin:0;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    background-color: transparent;
+}
+
+.standards-table .key{
+    width:57%;
+    max-width:57%;
+}
+.standards-table .val{
+    font-weight: 700;
+    width:42%;
+    max-width:42%;
+    text-align: right;
+}
+
+.standards-table .standards-tag{
+    font-weight: 700;
+    font-size:0.8rem;
+    max-width: fit-content;
+    margin-bottom: 5px;
+    margin-right: 5px;
+    text-transform: uppercase;
+}
+.standards-table .summary td,
+.standards-table .summary th{
+    border:0;
+    border-top: 1px solid rgb(177, 180, 182)
+}
+/* hide show */
+.standards-table .detail{
+    /* display:none; */
+}

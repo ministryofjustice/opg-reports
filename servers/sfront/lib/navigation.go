@@ -4,6 +4,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/pkg/navigation"
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsapi"
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsfront"
+	"github.com/ministryofjustice/opg-reports/sources/standards/standardsapi"
 )
 
 // -- Costs navigation items
@@ -70,10 +71,15 @@ var ghStandards = navigation.New(
 	"Repositories",
 	"/standards/repositories",
 	&navigation.Display{PageTemplate: "standards-github-repositories"},
+	&navigation.Data{
+		Source:    standardsapi.Uri,
+		Namespace: "RepositoryStandards",
+		Body:      &standardsapi.Body{},
+	},
 )
 
 // wrapping standards
-var standards = navigation.New(
+var standard = navigation.New(
 	"Standards",
 	"/standards",
 	&navigation.Display{PageTemplate: "standards-overview", IsHeader: true},
@@ -85,7 +91,7 @@ var overview = navigation.New(
 	"Overview",
 	"/",
 	&navigation.Display{PageTemplate: "homepage"},
-	standards,
+	standard,
 	costs,
 )
 

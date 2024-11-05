@@ -1,0 +1,23 @@
+{{ define "standards-table" }}
+
+<a name="data-table-standards-{{ .Type }}"></a>
+
+<table class="govuk-table standards-table">
+    <thead class="govuk-table__head">
+        <tr class="govuk-table__row">
+            <th colspan="2" class="govuk-table__header"></th>
+            <th scope="col" class="govuk-table__header standard-head">Baseline</th>
+            <th scope="col" class="govuk-table__header standard-head">Extended</th>
+        </tr>
+    </thead>
+
+    <tbody class="govuk-table__body">
+        {{ $items := .Result }}
+        {{ range $item := $items }}
+            {{ template "standards-table-row" $item }}
+        {{ end }}
+    </tbody>
+</table>
+
+
+{{ end }}
