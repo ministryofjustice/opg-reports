@@ -17,9 +17,10 @@ const (
 	CostsUriMonthlyUnit            endpoints.ApiEndpoint = "/{version}/costs/aws/unit/{billing_date:-9}/{billing_date:0}/month"
 	CostsUriMonthlyUnitEnvironment endpoints.ApiEndpoint = "/{version}/costs/aws/unit-environment/{billing_date:-9}/{billing_date:0}/month"
 	CostsUriMonthlyDetailed        endpoints.ApiEndpoint = "/{version}/costs/aws/detailed/{billing_date:-6}/{billing_date:0}/month"
-	CostsUriDailyUnit              endpoints.ApiEndpoint = "/{version}/costs/aws/unit/{billing_date:-1}/{billing_date:0}/day"
-	CostsUriDailyUnitEnvironment   endpoints.ApiEndpoint = "/{version}/costs/aws/unit-environment/{billing_date:-1}/{billing_date:0}/day"
-	CostsUriDailyDetailed          endpoints.ApiEndpoint = "/{version}/costs/aws/detailed/{billing_date:-1}/{billing_date:0}/day"
+
+	CostsUriDailyUnit            endpoints.ApiEndpoint = "/{version}/costs/aws/unit/{billing_date:-1}/{billing_date:0}/day"
+	CostsUriDailyUnitEnvironment endpoints.ApiEndpoint = "/{version}/costs/aws/unit-environment/{billing_date:-1}/{billing_date:0}/day"
+	CostsUriDailyDetailed        endpoints.ApiEndpoint = "/{version}/costs/aws/detailed/{billing_date:-1}/{billing_date:0}/day"
 )
 
 // Standards endpoints
@@ -31,6 +32,9 @@ const (
 const (
 	UptimeOverallMonthlylUri endpoints.ApiEndpoint = "/{version}/uptime/aws/overall/{month:-6}/{month:0}/month"
 	UptimePerUnitMonthlylUri endpoints.ApiEndpoint = "/{version}/uptime/aws/unit/{month:-6}/{month:0}/month"
+
+	UptimeOverallDailylUri endpoints.ApiEndpoint = "/{version}/uptime/aws/overall/{day:-30}/{day:-1}/day"
+	UptimePerUnitDailylUri endpoints.ApiEndpoint = "/{version}/uptime/aws/unit/{day:-30}/{day:-1}/day"
 )
 
 // -- Costs navigation items
@@ -123,6 +127,19 @@ var uptimeAws = navigation.New(
 		Body:        &uptimeio.UptimeBody{},
 		Transformer: uptimefront.TransformResult,
 	},
+	&navigation.Data{
+		Source:      UptimePerUnitMonthlylUri,
+		Namespace:   "UptimeUnit",
+		Body:        &uptimeio.UptimeBody{},
+		Transformer: uptimefront.TransformResult,
+	},
+)
+
+var up = navigation.New(
+	"Uptime",
+	"/uptime",
+	&navigation.Display{PageTemplate: "uptime-overview", IsHeader: true},
+	uptimeAws,
 )
 
 // -- simple navigation structure
@@ -145,6 +162,7 @@ var overview = navigation.New(
 	"/",
 	&navigation.Display{PageTemplate: "homepage"},
 	standard,
+	up,
 	costs,
 )
 

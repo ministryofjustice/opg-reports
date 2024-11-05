@@ -65,6 +65,7 @@ ORDER by strftime(:date_format, date), unit ASC
 
 const UptimeByIntervalUnitFiltered datastore.NamedSelectStatement = `
 SELECT
+    unit,
     (coalesce(SUM(average), 0) / count(*) ) as average,
     strftime(:date_format, date) as date
 FROM uptime

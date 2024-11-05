@@ -20,10 +20,10 @@ func TransformResult(body interface{}) (result interface{}) {
 
 	switch body.(type) {
 	case *uptimeio.UptimeBody:
-		var standard = body.(*uptimeio.UptimeBody)
-		if res, err = transformers.ResultsToRows(standard.Result, standard.ColumnValues, standard.DateRange); err == nil {
-			standard.TableRows = res
-			result = standard
+		var uptime = body.(*uptimeio.UptimeBody)
+		if res, err = transformers.ResultsToRows(uptime.Result, uptime.ColumnValues, uptime.DateRange); err == nil {
+			uptime.TableRows = res
+			result = uptime
 		}
 	}
 

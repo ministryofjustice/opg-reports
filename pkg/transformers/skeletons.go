@@ -48,10 +48,17 @@ package transformers
 //		},
 //	}
 func DateTableSkeleton(columnValues map[string][]interface{}, dateRange []string) (skel map[string]map[string]interface{}) {
+	var columnValuesAsList [][]string
+	var columnValuePermutations []string
 	skel = map[string]map[string]interface{}{}
 
-	columnValuesAsList := ColumnValuesList(columnValues)
-	columnValuePermutations := Permutations(columnValuesAsList...)
+	columnValuesAsList = ColumnValuesList(columnValues)
+
+	if len(columnValuesAsList) == 1 {
+		columnValuePermutations = columnValuesAsList[0]
+	} else if len(columnValuesAsList) > 1 {
+		columnValuePermutations = Permutations(columnValuesAsList...)
+	}
 
 	for _, permutation := range columnValuePermutations {
 		// insert the unique line into the skeleton

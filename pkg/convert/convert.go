@@ -8,6 +8,7 @@ package convert
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"os"
 )
@@ -65,4 +66,10 @@ func UnmarshalFile[T any](filepath string) (item T, err error) {
 
 	item, err = Unmarshal[T](content)
 	return
+}
+
+func PrettyPrint[T any](item T) {
+	var bytes []byte
+	bytes, _ = json.MarshalIndent(item, "", "  ")
+	fmt.Println(string(bytes))
 }

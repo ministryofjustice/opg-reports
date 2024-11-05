@@ -11,7 +11,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/sources/uptime/uptimedb"
 )
 
-const RecordsToSeed int = (1440 * 7) // a week
+const RecordsToSeed int = (1440 * 7) * 4 // a month
 
 var insert = uptimedb.InsertUptime
 var creates = []datastore.CreateStatement{
