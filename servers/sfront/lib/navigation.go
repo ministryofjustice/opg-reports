@@ -30,8 +30,8 @@ const (
 
 // Uptime
 const (
-	UptimeOverallMonthlylUri endpoints.ApiEndpoint = "/{version}/uptime/aws/overall/{month:-6}/{month:0}/month"
-	UptimePerUnitMonthlylUri endpoints.ApiEndpoint = "/{version}/uptime/aws/unit/{month:-6}/{month:0}/month"
+	UptimeOverallMonthlylUri endpoints.ApiEndpoint = "/{version}/uptime/aws/overall/{month:-9}/{month:0}/month"
+	UptimePerUnitMonthlylUri endpoints.ApiEndpoint = "/{version}/uptime/aws/unit/{month:-9}/{month:0}/month"
 
 	UptimeOverallDailylUri endpoints.ApiEndpoint = "/{version}/uptime/aws/overall/{day:-30}/{day:-1}/day"
 	UptimePerUnitDailylUri endpoints.ApiEndpoint = "/{version}/uptime/aws/unit/{day:-30}/{day:-1}/day"

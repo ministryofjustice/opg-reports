@@ -31,3 +31,7 @@ const (
 	ServerDefaultFrontAddr string = "localhost:8080"
 	ServerDefaultApiAddr   string = "localhost:8081"
 )
+
+const (
+	DefaultFloatString string = "0.0000"
+)

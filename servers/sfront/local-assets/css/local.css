@@ -16,6 +16,11 @@ CUSTOM STYLES
 #main-content {
     padding: 30px 15px;
 }
+/* monospace */
+.uptime,
+.currency{
+    font-family: monospace;
+}
 
 /* side bar navigation */
 .app-header{
@@ -72,7 +77,6 @@ CUSTOM STYLES
 }
 
 /* COMPONENTS */
-/* currency table */
 .dataset .comparison-selector {
     display:none;
 }
@@ -157,3 +161,5 @@ CUSTOM STYLES
 .standards-table .detail{
     /* display:none; */
 }
+
+

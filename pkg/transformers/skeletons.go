@@ -1,5 +1,7 @@
 package transformers
 
+import "github.com/ministryofjustice/opg-reports/pkg/consts"
+
 // DateTableSkeleton creates a series of skeleton rows from the known
 // column values and date range to form a map of table rows.
 //
@@ -72,7 +74,7 @@ func DateTableSkeleton(columnValues map[string][]interface{}, dateRange []string
 
 		// loop over the date and set an empty value for it
 		for _, date := range dateRange {
-			skel[permutation][date] = "0.0000"
+			skel[permutation][date] = consts.DefaultFloatString
 		}
 
 	}

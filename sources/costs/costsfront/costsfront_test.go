@@ -31,15 +31,15 @@ var expected = map[string]map[string]interface{}{
 		"environment": "development",
 		"unit":        "A",
 		"service":     "ecs",
-		"2024-01":     "-1.0100",
-		"2024-02":     "3.0100",
+		"2024-01":     "-1.01",
+		"2024-02":     "3.01",
 		"2024-03":     "0.0000",
 	},
 	"environment:development^service:ecs^unit:B^": {
 		"environment": "development",
 		"unit":        "B",
 		"service":     "ecs",
-		"2024-01":     "10.0000",
+		"2024-01":     "10.0",
 		"2024-02":     "0.0000",
 		"2024-03":     "0.0000",
 	},
@@ -47,7 +47,7 @@ var expected = map[string]map[string]interface{}{
 		"environment": "development",
 		"unit":        "A",
 		"service":     "ec2",
-		"2024-01":     "3.5100",
+		"2024-01":     "3.51",
 		"2024-02":     "0.0000",
 		"2024-03":     "0.0000",
 	},
@@ -55,7 +55,7 @@ var expected = map[string]map[string]interface{}{
 		"environment": "development",
 		"unit":        "B",
 		"service":     "ec2",
-		"2024-01":     "-4.7200",
+		"2024-01":     "-4.72",
 		"2024-02":     "0.0000",
 		"2024-03":     "0.0000",
 	},
@@ -78,7 +78,7 @@ func TestCostApiTransformersDataRowsStandard(t *testing.T) {
 			var expectedValue = expectedRow[field]
 
 			if expectedValue.(string) != actualValue.(string) {
-				t.Errorf("error with table data [%s] expected field [%s] does not match - [%v]==[%v]", key, field, expectedValue, actualValue)
+				t.Errorf("error with table data [%s] expected field [%s] does not match - expected [%v] != actual [%v]", key, field, expectedValue, actualValue)
 			}
 
 		}

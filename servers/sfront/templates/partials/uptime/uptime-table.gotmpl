@@ -1,4 +1,4 @@
-{{ define "currency-table" }}
+{{ define "uptime-table" }}
 
 {{ $dates := .DateRange }}
 {{ $result := .TableRows }}
@@ -6,9 +6,9 @@
 
 {{- if gt (len $result) 0 -}}
 
-<a name="data-table-currency-{{ .Type }}"></a>
+<a name="data-table-uptime-{{ .Type }}"></a>
 
-<table class="govuk-table currency-table">
+<table class="govuk-table uptime-table">
     <thead class="govuk-table__head">
         <tr class="govuk-table__row">
             {{- range $x, $col := $columns -}}
@@ -18,7 +18,7 @@
                 <th class="govuk-table__header data-cell" data-col="{{$i}}"><span>{{ $d }}</span></th>
             {{- end -}}
             <th class="govuk-table__header data-cellish "><span>Trend</span></th>
-            <th class="govuk-table__header data-cellish "><span>Totals</span></th>
+
         </tr>
     </thead>
 
@@ -26,7 +26,6 @@
         {{- $rowCount := 0 -}}
         {{- range $i, $row := $result -}}
             {{- $columnCount := 0 -}}
-            {{- $rowTotal := "0.0" -}}
             <tr class="govuk-table__row" data-row="{{ $rowCount }}">
 
                 {{- range $x, $col := $columns -}}
@@ -36,7 +35,6 @@
                                 <input type="checkbox" name="comp" value="{{ $rowCount }}" class="comparison-selector">
                             </span>
                         {{- end -}}
-
                         <span>{{- valueFromMap $col $row -}}</span>
                     </th>
                     {{- $columnCount = increment $columnCount -}}
@@ -45,13 +43,11 @@
                 {{- range $i, $date := $dates -}}
                     {{- $val := valueFromMap $date $row -}}
                     <td data-col="{{ $columnCount }}" class="govuk-table__cell data-cell">
-                        <span title="{{ $val }}" class="currency">{{ currency $val "$" }}</span>
+                        <span title="{{ $val }}" class="uptime">{{ percentage $val }}</span>
                     </td>
-                    {{- $rowTotal = add $rowTotal $val -}}
                     {{- $columnCount = increment $columnCount -}}
                 {{- end -}}
                 <td class="govuk-table__cell data-cellish sparkline"><div class="loader"></div></td>
-                <td class="govuk-table__cell data-cellish"><span title="{{ $rowTotal }}">{{ currency $rowTotal "$" }}</span></td>
             </tr>
             {{- $rowCount = increment $rowCount -}}
 
@@ -62,6 +58,6 @@
     </tbody>
 
 </table>
-
 {{- end -}}
+
 {{ end }}

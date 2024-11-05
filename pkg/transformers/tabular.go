@@ -5,8 +5,9 @@ import (
 	"log/slog"
 	"slices"
 
+	"github.com/ministryofjustice/opg-reports/pkg/consts"
 	"github.com/ministryofjustice/opg-reports/pkg/convert"
-	"github.com/ministryofjustice/opg-reports/pkg/tmplfuncs"
+	"github.com/ministryofjustice/opg-reports/pkg/nums"
 )
 
 type Transformable interface {
@@ -27,6 +28,7 @@ type Transformable interface {
 func recordToRow[T Transformable](item T, columns []string, existingData map[string]map[string]interface{}) (key string, err error) {
 	var (
 		ok          bool
+		v           interface{}
 		date        string                 = item.TDate()
 		value       string                 = item.TValue()
 		asMap       map[string]interface{} = map[string]interface{}{}
@@ -51,8 +53,10 @@ func recordToRow[T Transformable](item T, columns []string, existingData map[str
 		existingRow[field] = asMap[field]
 	}
 	// now we set the date cost value
-	if _, ok = existingRow[date]; ok {
-		existingRow[date] = tmplfuncs.Add(existingRow[date], value)
+	// if there is a value present, and it is not the default value
+	// then Add those together
+	if v, ok = existingRow[date]; ok && v.(string) != consts.DefaultFloatString {
+		existingRow[date] = nums.Add(existingRow[date], value)
 	} else {
 		existingRow[date] = value
 	}

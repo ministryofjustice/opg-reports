@@ -283,9 +283,10 @@ func FetchDataForPage(api *Api, activePage *navigation.Navigation, pageData map[
 		waitgroup.Add(1)
 		// use a go func to get the api data and process
 		go func(a *Api, nd *navigation.Data) {
-			Fetcher(a, nd, nd.Body)
-			defer mutex.Unlock()
 			mutex.Lock()
+			defer mutex.Unlock()
+			Fetcher(a, nd, nd.Body)
+			// convert.PrettyPrint(nd.Body)
 			// deal with the data
 			// - if we have a transformer, set it
 			// - otherwise pass it raw

@@ -39,7 +39,7 @@ LIMIT 1
 
 const UptimeByInterval datastore.NamedSelectStatement = `
 SELECT
-    'Percentage' as unit,
+    'Average' as unit,
     (coalesce(SUM(average), 0) / count(*) ) as average,
     strftime(:date_format, date) as date
 FROM uptime

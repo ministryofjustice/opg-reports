@@ -1,6 +1,8 @@
 package uptime
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Uptime struct {
 	ID      int     `json:"id,omitempty" db:"id" faker:"unique, boundary_start=1, boundary_end=2000000" doc:"Database primary key."`               // ID is a generated primary key
@@ -23,7 +25,9 @@ func (self *Uptime) TDate() string {
 }
 
 // TValue
+// use "%g" so returns full float without trialing 0
 // Transformable interface
-func (self *Uptime) TValue() string {
-	return fmt.Sprintf("%f", self.Average)
+func (self *Uptime) TValue() (s string) {
+	s = fmt.Sprintf("%g", self.Average)
+	return
 }
