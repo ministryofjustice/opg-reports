@@ -32,3 +32,9 @@ func FromEnv() *Config {
 		SessionToken:    envar.Get("AWS_SESSION_TOKEN", ""),
 	}
 }
+
+func FromEnvForcedRegion(region string) (c *Config) {
+	c = FromEnv()
+	c.Region = region
+	return
+}

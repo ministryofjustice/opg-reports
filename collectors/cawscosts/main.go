@@ -68,10 +68,9 @@ func Run(args *lib.Arguments) (err error) {
 		raw       *costexplorer.GetCostAndUsageOutput
 		data      []*costs.Cost
 		content   []byte
-		cfg       *awscfg.Config = awscfg.FromEnv()
 	)
 
-	if s, err = awssession.New(cfg); err != nil {
+	if s, err = awssession.New(awsCfg); err != nil {
 		slog.Error("[awscosts.main] aws session failed", slog.String("err", err.Error()))
 		return
 	}
