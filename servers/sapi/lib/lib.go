@@ -90,7 +90,7 @@ func ApiTitle() string {
 //
 //	`<semver> [<timestamp>] (<git-sha>)`
 func ApiVersion() string {
-	return fmt.Sprintf("%s [%s] (%s)", bi.Semver, bi.Timestamp, bi.Commit)
+	return bi.Signature()
 }
 
 // CLI returns the api wrapped as a cli command and appends not only the api routes

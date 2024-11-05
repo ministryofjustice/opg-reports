@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/ministryofjustice/opg-reports/pkg/bi"
 	"github.com/ministryofjustice/opg-reports/pkg/convert"
 	"github.com/ministryofjustice/opg-reports/pkg/fetch"
 	"github.com/ministryofjustice/opg-reports/pkg/navigation"
@@ -185,6 +186,8 @@ func (self *Svr) Handler(writer http.ResponseWriter, request *http.Request) {
 		activePage *navigation.Navigation
 		flat       = self.Navigation.Flat()
 		pageData   = map[string]interface{}{
+			//
+			"Signature": bi.Signature(),
 			// org is used in the header
 			"Organisation": self.Response.Organisation,
 			"Path":         request.URL.Path,

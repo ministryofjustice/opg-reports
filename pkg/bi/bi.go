@@ -3,6 +3,7 @@
 package bi
 
 import (
+	"fmt"
 	"log/slog"
 )
 
@@ -22,4 +23,12 @@ func Dump() {
 		slog.String("Semver", Semver),
 		slog.String("Timestamp", Timestamp),
 	)
+}
+
+// Signature generates the a string from build details.
+// Currently:
+//
+//	`<semver> [<timestamp>] (<git-sha>)`
+func Signature() string {
+	return fmt.Sprintf("%s [%s] (%s)", Semver, Timestamp, Commit)
 }

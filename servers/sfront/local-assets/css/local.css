@@ -6,6 +6,11 @@ GOV UK STYLE OVERWRITES
     margin-left:220px;
 }
 
+/* added the api version string to the footer */
+.api-signature{
+    margin-top:10px;
+    font-size: 0.8rem;
+}
 /*************************
 CUSTOM STYLES
 *************************/
@@ -18,7 +23,9 @@ CUSTOM STYLES
 }
 /* monospace */
 .uptime,
-.currency{
+.currency,
+.api-signature
+{
     font-family: monospace;
 }
 
