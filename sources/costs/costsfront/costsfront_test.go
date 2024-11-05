@@ -3,11 +3,15 @@ package costsfront_test
 import (
 	"testing"
 
+	"github.com/ministryofjustice/opg-reports/pkg/navigation"
 	"github.com/ministryofjustice/opg-reports/pkg/transformers"
 	"github.com/ministryofjustice/opg-reports/sources/costs"
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsfront"
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsio"
 )
+
+// check the function map
+var _ navigation.ResponseTransformer = costsfront.TransformResult
 
 var dateRanges = []string{"2024-01", "2024-02", "2024-03"}
 var colValues = map[string][]interface{}{

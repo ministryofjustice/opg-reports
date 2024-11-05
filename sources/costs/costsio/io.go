@@ -58,9 +58,6 @@ func (self *GroupedDateRangeInput) Resolve(ctx huma.Context) []error {
 	return nil
 }
 
-// just test as got a custom resolver
-var _ huma.Resolver = (*GroupedDateRangeInput)(nil)
-
 // FilterByUnitInput extends GroupedDateRangeInput adding the
 // ability to filter the dataset by unit
 type FilterByUnitInput struct {

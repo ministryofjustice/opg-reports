@@ -6,6 +6,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsfront"
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsio"
 	"github.com/ministryofjustice/opg-reports/sources/standards/standardsio"
+	"github.com/ministryofjustice/opg-reports/sources/uptime/uptimefront"
 	"github.com/ministryofjustice/opg-reports/sources/uptime/uptimeio"
 )
 
@@ -115,11 +116,12 @@ var standard = navigation.New(
 var uptimeAws = navigation.New(
 	"Service uptime",
 	"/uptime/aws",
-	&navigation.Display{PageTemplate: "uptimes-aws"},
+	&navigation.Display{PageTemplate: "uptime-aws"},
 	&navigation.Data{
-		Source:    UptimeOverallMonthlylUri,
-		Namespace: "UptimeOverall",
-		Body:      &uptimeio.UptimeBody{},
+		Source:      UptimeOverallMonthlylUri,
+		Namespace:   "UptimeOverall",
+		Body:        &uptimeio.UptimeBody{},
+		Transformer: uptimefront.TransformResult,
 	},
 )
 

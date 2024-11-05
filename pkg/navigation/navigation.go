@@ -19,15 +19,17 @@ type Display struct {
 	PageTemplate string `json:"page_template" doc:"String name of the template to use for this page."`
 }
 
-// transformFunc is used to handle processing and changing the
+// ResponseTransformer is used to handle processing and changing the
 // api data before display
-type transformFunc func(body interface{}) interface{}
+// The function should process the body and replace any values
+// and return the updated body as the result
+type ResponseTransformer func(body interface{}) interface{}
 
 type Data struct {
 	Source      endpoints.ApiEndpoint `json:"source" faker:"uri" doc:"API data source location"`
 	Namespace   string                `json:"namepsace" faker:"word" doc:"Namespace the Result should be copied over into for front end parsing"`
 	Body        interface{}           `json:"body" doc:"A pointer to the struct that this data would use as the body content."`
-	Transformer transformFunc         `json:"-" doc:"Function to transform the api data into front end structure"`
+	Transformer ResponseTransformer   `json:"-" doc:"Function to transform the api data into front end structure"`
 }
 
 func NewData(source endpoints.ApiEndpoint, namespace string) *Data {
