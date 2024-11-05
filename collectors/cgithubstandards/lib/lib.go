@@ -68,12 +68,10 @@ func ValidateArgs(args *Arguments) (err error) {
 // WriteToFile writes the content to the file
 func WriteToFile(content []byte, args *Arguments) {
 	var (
-		filename string
+		filename string = args.OutputFile
 		dir      string = filepath.Dir(args.OutputFile)
 	)
 	os.MkdirAll(dir, os.ModePerm)
-	filename = args.OutputFile
-
 	os.WriteFile(filename, content, os.ModePerm)
 
 }
@@ -81,11 +79,9 @@ func WriteToFile(content []byte, args *Arguments) {
 // AllRepos returns all accessible repos for the details passed
 func AllRepos(ctx context.Context, client *github.Client, args *Arguments) (all []*github.Repository, err error) {
 	var (
-		org             string               = args.Organisation
-		team            string               = args.Team
-		includeArchived bool                 = false
-		list            []*github.Repository = []*github.Repository{}
-		page            int                  = 1
+		org  string = args.Organisation
+		team string = args.Team
+		page int    = 1
 	)
 
 	all = []*github.Repository{}
@@ -97,18 +93,8 @@ func AllRepos(ctx context.Context, client *github.Client, args *Arguments) (all 
 			err = e
 			return
 		}
-		list = append(list, pg...)
+		all = append(all, pg...)
 		page = resp.NextPage
-	}
-
-	if !includeArchived {
-		for _, r := range list {
-			if !*r.Archived {
-				all = append(all, r)
-			}
-		}
-	} else {
-		all = list
 	}
 
 	return
@@ -205,7 +191,7 @@ func RepoToStandard(ctx context.Context, client *github.Client, repo *github.Rep
 	if teams, _, err := client.Repositories.ListTeams(ctx, g.Owner, g.Name,
 		&github.ListOptions{PerPage: 100}); err == nil {
 		for _, team := range teams {
-			g.Teams += *team.Name + "#"
+			g.Teams += "#" + *team.Name + "#"
 		}
 	}
 	// the GetDeleteBranchOnMerge seems to be empty and have to re-fetch the api to get result

@@ -48,7 +48,11 @@ type NamedParameters interface{}
 func Create(ctx context.Context, db *sqlx.DB, create []CreateStatement) {
 	slog.Debug("[datastore.Create] ")
 	for _, stmt := range create {
-		db.MustExecContext(ctx, string(stmt))
+		if _, err := db.ExecContext(ctx, string(stmt)); err != nil {
+			slog.Error("error in create", slog.String("err", err.Error()))
+			panic(err)
+		}
+
 	}
 }
 

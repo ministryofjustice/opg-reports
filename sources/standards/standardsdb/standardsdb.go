@@ -176,22 +176,13 @@ WHERE
 ORDER BY name, created_at ASC
 ;`
 
-const FilterByTeam datastore.NamedSelectStatement = `
-SELECT
-	*
-FROM standards
-WHERE
-	teams LIKE :team_string
-ORDER BY name, created_at ASC
-;`
-
 const FilterByIsArchivedAndTeam datastore.NamedSelectStatement = `
 SELECT
 	*
 FROM standards
 WHERE
 	is_archived = :archived
-	teams LIKE :team_string
+	AND INSTR(teams, :teams)
 ORDER BY name, created_at ASC
 ;`
 

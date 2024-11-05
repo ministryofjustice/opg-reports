@@ -61,10 +61,11 @@ buildinfo:
 ## Removes an existing build artifacts
 clean:
 	@rm -Rf ./builds
+	@rm -Rf ./databases
 	@rm -Rf ./servers/sapi/databases
 	@rm -Rf ./servers/sfront/assets
-	@rm -Rf ./databases
 	@rm -Rf ./collectors/cawscosts/data
+	@rm -Rf ./collectors/cgithubstandards/data
 .PHONY: clean
 #========= RUN =========
 
@@ -110,7 +111,7 @@ build/importers/isqlite:
 .PHONY: build/importers/sqlite
 
 ## build all collectors
-build/collectors: build/collectors/cawscosts build/collectors/cstandards
+build/collectors: build/collectors/cawscosts build/collectors/cgithubstandards
 .PHONY: build/collectors
 
 ## build the aws costs collector
@@ -121,7 +122,7 @@ build/collectors/cawscosts:
 
 
 ## build the github standards collector
-build/collectors/cstandards:
-	@echo -n "[building] collectors cstandards ... "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/cstandards ./collectors/cstandards/main.go && echo "${tick}"
-.PHONY: build/collectors/cstandards
+build/collectors/cgithubstandards:
+	@echo -n "[building] collectors cgithubstandards ... "
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/cgithubstandards ./collectors/cgithubstandards/main.go && echo "${tick}"
+.PHONY: build/collectors/cgithubstandards

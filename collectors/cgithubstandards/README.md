@@ -1,17 +1,13 @@
-# AWS Costs
+# Github Standards
 
-This command returns cost data for the month provided at a daily granularity.
+This command returns information about all repositories in github org and team.
 
 ### Generation
 
 ```bash
-aws-vault exec <aws-profile> -- go run main.go \
-    -id <account-id> \
-    -name "<name>" \
-    -environment "development" \
-    -unit "<unit>" \
-    -label "<label>" \
-    -month "-"
+env GITHUB_ACCESS_TOKEN=${GITHUB_TOKEN} go run main.go \
+    -organsiation="<github-org-slug>" \
+    -team="<github-team-slug>"
 ```
 
 ### Upload
@@ -20,7 +16,7 @@ Upload the generated file by running:
 
 ```bash
 aws-vault exec <aws-profile> -- aws s3 cp \
-	--recursive ./data s3://<bucket>/aws_costs \
+	--recursive ./data s3://<bucket>/github_standards \
 	--sse AES256
 ```
 
@@ -28,5 +24,5 @@ aws-vault exec <aws-profile> -- aws s3 cp \
 ### Download
 
 ```bash
-aws-vault exec <aws-profile> -- aws s3 sync s3://<bucket>/aws_costs ./bucket-data
+aws-vault exec <aws-profile> -- aws s3 sync s3://<bucket>/github_standards ./bucket-data
 ```

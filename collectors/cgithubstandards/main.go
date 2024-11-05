@@ -24,6 +24,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
@@ -32,6 +33,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/collectors/cgithubstandards/lib"
 	"github.com/ministryofjustice/opg-reports/pkg/githubcfg"
 	"github.com/ministryofjustice/opg-reports/pkg/githubclient"
+	"github.com/ministryofjustice/opg-reports/sources/standards"
 )
 
 var (
@@ -40,29 +42,33 @@ var (
 
 func Run(args *lib.Arguments) (err error) {
 	var (
-		cfg          *githubcfg.Config = githubcfg.FromEnv()
-		client       *github.Client    = githubclient.Client(cfg.Token)
-		ctx          context.Context   = context.Background()
+		content      []byte
+		cfg          *githubcfg.Config     = githubcfg.FromEnv()
+		client       *github.Client        = githubclient.Client(cfg.Token)
+		ctx          context.Context       = context.Background()
+		stndrds      []*standards.Standard = []*standards.Standard{}
 		repositories []*github.Repository
 	)
-
+	// get all repos for the team
 	repositories, err = lib.AllRepos(ctx, client, args)
 	if err != nil {
 		return
 	}
-	fmt.Println(repositories)
+	// convert each to a standards entry
+	total := len(repositories)
+	for i, repo := range repositories {
+		slog.Info(fmt.Sprintf("[%d/%d] %s", i+1, total, *repo.FullName))
 
-	// TODO:
-	// - test and include lib.RepoToStandard
-	// - write data to file
-
-	// content, err = json.MarshalIndent(data, "", "  ")
-	// if err != nil {
-	// 	slog.Error("error marshaling", slog.String("err", err.Error()))
-	// 	os.Exit(1)
-	// }
-	// //
-	// lib.WriteToFile(content, args)
+		var std = lib.RepoToStandard(ctx, client, repo)
+		stndrds = append(stndrds, std)
+	}
+	// write to file
+	content, err = json.MarshalIndent(stndrds, "", "  ")
+	if err != nil {
+		slog.Error("error marshaling", slog.String("err", err.Error()))
+		os.Exit(1)
+	}
+	lib.WriteToFile(content, args)
 
 	return
 }
