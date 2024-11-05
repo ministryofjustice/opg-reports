@@ -46,23 +46,35 @@ type Standard struct {
 	LastCommitDate                 string `json:"last_commit_date" db:"last_commit_date" faker:"date_string"`
 	Name                           string `json:"name" db:"name"`
 	Owner                          string `json:"owner" db:"owner" faker:"oneof: ministryofjusice"`
-	Teams                          string `json:"teams" db:"teams" faker:"oneof: #opg#, opg-webops#"`
+	Teams                          string `json:"teams" db:"teams" faker:"oneof: #unitA#, #unitB#, #unitC#"`
 }
 
+// UID returns a unique uid
 func (self *Standard) UID() string {
 	return fmt.Sprintf("%s-%d", "standard", self.ID)
 }
 
+// IsCompliantBaseline checks itself and returns
 func (self *Standard) IsCompliantBaseline() bool {
-	var truth uint8 = 1
-	return self.CompliantBaseline == truth
+	return convert.IntToBool(self.CompliantExtended)
 }
 
+// IsCompliantExtended checks itself and returns bool
 func (self *Standard) IsCompliantExtended() bool {
-	var truth uint8 = 1
-	return self.CompliantExtended == truth
+	return convert.IntToBool(self.CompliantExtended)
+
 }
 
+func (self *Standard) Archived() bool {
+	return convert.IntToBool(self.IsArchived)
+}
+
+func (self *Standard) Private() bool {
+	return convert.IntToBool(self.IsPrivate)
+}
+
+// TeamList retusn a slice of stirngs of the team names without the `#`
+// db seperators
 func (self *Standard) TeamList() (teams []string) {
 	teams = []string{}
 	for _, t := range strings.Split(self.Teams, "#") {

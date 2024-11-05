@@ -19,7 +19,7 @@ func (self *Input) Resolve(ctx huma.Context) []error {
 	self.IsArchived = convert.BoolToInt(self.Archived)
 
 	if self.Unit != "" {
-		self.Teams = `#` + self.Unit + `#`
+		self.Teams = `%#` + self.Unit + `#%`
 	}
 	return nil
 }

@@ -182,7 +182,7 @@ SELECT
 FROM standards
 WHERE
 	is_archived = :archived
-	AND INSTR(teams, :teams)
+	AND teams LIKE :teams
 ORDER BY name, created_at ASC
 ;`
 
