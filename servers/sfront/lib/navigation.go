@@ -1,10 +1,28 @@
 package lib
 
 import (
+	"github.com/ministryofjustice/opg-reports/pkg/endpoints"
 	"github.com/ministryofjustice/opg-reports/pkg/navigation"
-	"github.com/ministryofjustice/opg-reports/sources/costs/costsapi"
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsfront"
-	"github.com/ministryofjustice/opg-reports/sources/standards/standardsapi"
+	"github.com/ministryofjustice/opg-reports/sources/costs/costsio"
+	"github.com/ministryofjustice/opg-reports/sources/standards/standardsio"
+)
+
+// Cost endpoints to call formatted with required placeholders
+const (
+	CostsUriTotal                  endpoints.ApiEndpoint = "/{version}/costs/aws/total/{billing_date:-11}/{billing_date:0}"
+	CostsUriMonthlyTax             endpoints.ApiEndpoint = "/{version}/costs/aws/tax-overview/{billing_date:-11}/{billing_date:0}/month"
+	CostsUriMonthlyUnit            endpoints.ApiEndpoint = "/{version}/costs/aws/unit/{billing_date:-9}/{billing_date:0}/month"
+	CostsUriMonthlyUnitEnvironment endpoints.ApiEndpoint = "/{version}/costs/aws/unit-environment/{billing_date:-9}/{billing_date:0}/month"
+	CostsUriMonthlyDetailed        endpoints.ApiEndpoint = "/{version}/costs/aws/detailed/{billing_date:-6}/{billing_date:0}/month"
+	CostsUriDailyUnit              endpoints.ApiEndpoint = "/{version}/costs/aws/unit/{billing_date:-1}/{billing_date:0}/day"
+	CostsUriDailyUnitEnvironment   endpoints.ApiEndpoint = "/{version}/costs/aws/unit-environment/{billing_date:-1}/{billing_date:0}/day"
+	CostsUriDailyDetailed          endpoints.ApiEndpoint = "/{version}/costs/aws/detailed/{billing_date:-1}/{billing_date:0}/day"
+)
+
+// Standards endpoints
+const (
+	StandardsUri endpoints.ApiEndpoint = "/{version}/standards/github/false"
 )
 
 // -- Costs navigation items
@@ -15,12 +33,11 @@ var costsTaxOverview = navigation.New(
 	"/costs/tax-overview",
 	&navigation.Display{PageTemplate: "costs-tax"},
 	&navigation.Data{
-		Source:      costsapi.UriMonthlyTax,
+		Source:      CostsUriMonthlyTax,
 		Namespace:   "CostsTax",
-		Body:        &costsapi.TaxOverviewBody{},
+		Body:        &costsio.TaxOverviewBody{},
 		Transformer: costsfront.TransformResult,
-	},
-)
+	})
 
 // costsPerTeam config
 var costsPerTeam = navigation.New(
@@ -28,15 +45,15 @@ var costsPerTeam = navigation.New(
 	"/costs/unit",
 	&navigation.Display{PageTemplate: "costs-unit"},
 	&navigation.Data{
-		Source:      costsapi.UriMonthlyUnit,
+		Source:      CostsUriMonthlyUnit,
 		Namespace:   "CostsPerUnit",
-		Body:        &costsapi.StandardBody{},
+		Body:        &costsio.StandardBody{},
 		Transformer: costsfront.TransformResult,
 	},
 	&navigation.Data{
-		Source:      costsapi.UriMonthlyUnitEnvironment,
+		Source:      CostsUriMonthlyUnitEnvironment,
 		Namespace:   "CostsPerUnitEnv",
-		Body:        &costsapi.StandardBody{},
+		Body:        &costsio.StandardBody{},
 		Transformer: costsfront.TransformResult,
 	},
 )
@@ -47,9 +64,9 @@ var costsDetailed = navigation.New(
 	"/costs/detailed",
 	&navigation.Display{PageTemplate: "costs-detailed"},
 	&navigation.Data{
-		Source:      costsapi.UriMonthlyDetailed,
+		Source:      CostsUriMonthlyDetailed,
 		Namespace:   "CostsDetailed",
-		Body:        &costsapi.StandardBody{},
+		Body:        &costsio.StandardBody{},
 		Transformer: costsfront.TransformResult,
 	},
 )
@@ -72,9 +89,9 @@ var ghStandards = navigation.New(
 	"/standards/repositories",
 	&navigation.Display{PageTemplate: "standards-github-repositories"},
 	&navigation.Data{
-		Source:    standardsapi.Uri,
+		Source:    StandardsUri,
 		Namespace: "RepositoryStandards",
-		Body:      &standardsapi.Body{},
+		Body:      &standardsio.Body{},
 	},
 )
 
@@ -84,6 +101,20 @@ var standard = navigation.New(
 	"/standards",
 	&navigation.Display{PageTemplate: "standards-overview", IsHeader: true},
 	ghStandards,
+)
+
+// -- simple navigation structure
+// replica of ghStandards so it doesnt get parent structure attached
+// as that will then render the sidebar navigation
+var simple = navigation.New(
+	"Repositories",
+	"/standards/repositories",
+	&navigation.Display{PageTemplate: "standards-github-repositories"},
+	&navigation.Data{
+		Source:    StandardsUri,
+		Namespace: "RepositoryStandards",
+		Body:      &standardsio.Body{},
+	},
 )
 
 // -- Full navigation structure
@@ -101,6 +132,6 @@ var overview = navigation.New(
 // bi.Navigation as the key for this map
 // This allows the navigation to be changed at run time
 var NavigationChoices = map[string][]*navigation.Navigation{
-	// "simple": {ghStandards},
+	// "simple": {simple},
 	"simple": {overview},
 }

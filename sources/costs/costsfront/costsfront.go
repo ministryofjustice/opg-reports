@@ -11,7 +11,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/pkg/tmplfuncs"
 	"github.com/ministryofjustice/opg-reports/pkg/transformers"
 	"github.com/ministryofjustice/opg-reports/sources/costs"
-	"github.com/ministryofjustice/opg-reports/sources/costs/costsapi"
+	"github.com/ministryofjustice/opg-reports/sources/costs/costsio"
 )
 
 // costRecordToRow takes a costs.Cost struct and adds its data into an existing table row.
@@ -174,14 +174,14 @@ func TransformResult(body interface{}) (result interface{}) {
 	result = body
 
 	switch body.(type) {
-	case *costsapi.TaxOverviewBody:
-		var taxBody = body.(*costsapi.TaxOverviewBody)
+	case *costsio.TaxOverviewBody:
+		var taxBody = body.(*costsio.TaxOverviewBody)
 		if res, err = ResultsToRows(taxBody.Result, taxBody.ColumnValues, taxBody.DateRange); err == nil {
 			taxBody.TableRows = res
 			result = taxBody
 		}
-	case *costsapi.StandardBody:
-		var standard = body.(*costsapi.StandardBody)
+	case *costsio.StandardBody:
+		var standard = body.(*costsio.StandardBody)
 		if res, err = ResultsToRows(standard.Result, standard.ColumnValues, standard.DateRange); err == nil {
 			standard.TableRows = res
 			result = standard
@@ -189,7 +189,7 @@ func TransformResult(body interface{}) (result interface{}) {
 	}
 
 	if err != nil {
-		slog.Error("[costsapi.TransformResult] ", slog.String("err", err.Error()))
+		slog.Error("[costsfront.TransformResult] ", slog.String("err", err.Error()))
 	}
 
 	return

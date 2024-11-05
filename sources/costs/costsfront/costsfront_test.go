@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/sources/costs"
-	"github.com/ministryofjustice/opg-reports/sources/costs/costsapi"
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsfront"
+	"github.com/ministryofjustice/opg-reports/sources/costs/costsio"
 )
 
 var dateRanges = []string{"2024-01", "2024-02", "2024-03"}
@@ -87,8 +87,7 @@ func TestCostApiTransformersDataRowsStandard(t *testing.T) {
 // in the expected way by calling the handler that is attached
 // to navigation data.
 func TestCostApiTransformersResultStandard(t *testing.T) {
-
-	bdy := &costsapi.StandardBody{
+	bdy := &costsio.StandardBody{
 		Type:         "unit-environment",
 		ColumnOrder:  []string{"unit", "environment"},
 		DateRange:    dateRanges,
@@ -96,7 +95,7 @@ func TestCostApiTransformersResultStandard(t *testing.T) {
 		Result:       standardSampleData,
 	}
 
-	actual := costsfront.TransformResult(bdy).(*costsapi.StandardBody)
+	actual := costsfront.TransformResult(bdy).(*costsio.StandardBody)
 	for key, actualRow := range actual.TableRows {
 		var expectedRow = expected[key]
 

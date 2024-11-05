@@ -14,6 +14,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/pkg/exfaker"
 	"github.com/ministryofjustice/opg-reports/sources/costs"
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsdb"
+	"github.com/ministryofjustice/opg-reports/sources/costs/costsio"
 )
 
 func testDB(ctx context.Context, file string) (db *sqlx.DB) {
@@ -38,10 +39,10 @@ func TestCostApiTotalHandler(t *testing.T) {
 	var dir = t.TempDir()
 	var dbFile = filepath.Join(dir, "test.db")
 	var ctx = context.WithValue(context.Background(), Segment, dbFile)
-	var input *TotalInput = &TotalInput{}
+	var input *costsio.TotalInput = &costsio.TotalInput{}
 	var dummy = []*costs.Cost{}
 	var total float64 = 0.0
-	var result *TotalResult
+	var result *costsio.TotalResult
 
 	// generate dummy data set
 	dummy = exfaker.Many[costs.Cost](100)
@@ -77,9 +78,9 @@ func TestCostApiTaxOverviewHandler(t *testing.T) {
 	var dir = t.TempDir()
 	var dbFile = filepath.Join(dir, "test.db")
 	var ctx = context.WithValue(context.Background(), Segment, dbFile)
-	var input *TaxOverviewInput = &TaxOverviewInput{}
+	var input *costsio.TaxOverviewInput = &costsio.TaxOverviewInput{}
 	var dummy = []*costs.Cost{}
-	var result *TaxOverviewResult
+	var result *costsio.TaxOverviewResult
 
 	var month = "2024-01-01"
 	var excTax float64 = 0.0
@@ -131,9 +132,9 @@ func TestCostApiPerUnitHandler(t *testing.T) {
 	var dir = t.TempDir()
 	var dbFile = filepath.Join(dir, "test.db")
 	var ctx = context.WithValue(context.Background(), Segment, dbFile)
-	var input *StandardInput = &StandardInput{}
+	var input *costsio.StandardInput = &costsio.StandardInput{}
 	var dummy = []*costs.Cost{}
-	var result *StandardResult
+	var result *costsio.StandardResult
 
 	var month = "2024-01-01"
 	// known units from the faker setup
@@ -202,9 +203,9 @@ func TestCostApiPerUnitEnvHandler(t *testing.T) {
 	var dir = t.TempDir()
 	var dbFile = filepath.Join(dir, "test.db")
 	var ctx = context.WithValue(context.Background(), Segment, dbFile)
-	var input *StandardInput = &StandardInput{}
+	var input *costsio.StandardInput = &costsio.StandardInput{}
 	var dummy = []*costs.Cost{}
-	var result *StandardResult
+	var result *costsio.StandardResult
 
 	var month = "2024-01-01"
 	// known units from the faker setup

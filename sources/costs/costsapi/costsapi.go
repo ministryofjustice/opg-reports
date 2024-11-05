@@ -17,9 +17,9 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/ministryofjustice/opg-reports/pkg/convert"
 	"github.com/ministryofjustice/opg-reports/pkg/datastore"
-	"github.com/ministryofjustice/opg-reports/pkg/endpoints"
 	"github.com/ministryofjustice/opg-reports/sources/costs"
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsdb"
+	"github.com/ministryofjustice/opg-reports/sources/costs/costsio"
 )
 
 const Segment string = "costs"
@@ -30,13 +30,13 @@ const Tag string = "Cost Data"
 var totalDescription string = `Returns a single total for all the AWS costs between the start and end dates - excluding taxes.`
 
 // apiTotal fetches total sum of all costs within the database
-func apiTotal(ctx context.Context, input *TotalInput) (response *TotalResult, err error) {
+func apiTotal(ctx context.Context, input *costsio.TotalInput) (response *costsio.TotalResult, err error) {
 	// grab the db from the context
 	var dbFilepath string = ctx.Value(Segment).(string)
 	var db *sqlx.DB
 	var result float64 = 0.0
-	var bdy *TotalBody = &TotalBody{Request: input, Type: "total"}
-	response = &TotalResult{Body: bdy}
+	var bdy *costsio.TotalBody = &costsio.TotalBody{Request: input, Type: "total"}
+	response = &costsio.TotalResult{Body: bdy}
 
 	db, _, err = datastore.NewDB(ctx, datastore.Sqlite, dbFilepath)
 	defer db.Close()
@@ -64,18 +64,18 @@ Each result returned has the following fields:
 `
 
 // apiTotal fetches total sum of all costs within the database
-func apiTaxOverview(ctx context.Context, input *TaxOverviewInput) (response *TaxOverviewResult, err error) {
+func apiTaxOverview(ctx context.Context, input *costsio.TaxOverviewInput) (response *costsio.TaxOverviewResult, err error) {
 	// grab the db from the context
 	var dbFilepath string = ctx.Value(Segment).(string)
 	var db *sqlx.DB
 	var result []*costs.Cost = []*costs.Cost{}
-	var bdy *TaxOverviewBody = &TaxOverviewBody{
+	var bdy *costsio.TaxOverviewBody = &costsio.TaxOverviewBody{
 		ColumnOrder: []string{"service"},
 		Request:     input,
 		Type:        "tax-overview",
 		DateRange:   convert.DateRange(input.StartTime(), input.EndTime(), input.Interval),
 	}
-	response = &TaxOverviewResult{Body: bdy}
+	response = &costsio.TaxOverviewResult{Body: bdy}
 
 	db, _, err = datastore.NewDB(ctx, datastore.Sqlite, dbFilepath)
 	defer db.Close()
@@ -106,12 +106,12 @@ Each result returned has the following fields:
 `
 
 // apiPerUnit handles getting data grouped by unit
-func apiPerUnit(ctx context.Context, input *StandardInput) (response *StandardResult, err error) {
+func apiPerUnit(ctx context.Context, input *costsio.StandardInput) (response *costsio.StandardResult, err error) {
 	// grab the db from the context
 	var dbFilepath string = ctx.Value(Segment).(string)
 	var db *sqlx.DB
 	var result []*costs.Cost = []*costs.Cost{}
-	var bdy *StandardBody = &StandardBody{}
+	var bdy *costsio.StandardBody = &costsio.StandardBody{}
 	var stmt = costsdb.PerUnit
 
 	bdy.ColumnOrder = []string{"unit"}
@@ -119,7 +119,7 @@ func apiPerUnit(ctx context.Context, input *StandardInput) (response *StandardRe
 	bdy.Type = "unit"
 	bdy.DateRange = convert.DateRange(input.StartTime(), input.EndTime(), input.Interval)
 
-	response = &StandardResult{Body: bdy}
+	response = &costsio.StandardResult{Body: bdy}
 
 	db, _, err = datastore.NewDB(ctx, datastore.Sqlite, dbFilepath)
 	defer db.Close()
@@ -155,12 +155,12 @@ Each result returned has the following fields:
 `
 
 // apiPerUnit handles getting data grouped by unit
-func apiPerUnitEnv(ctx context.Context, input *StandardInput) (response *StandardResult, err error) {
+func apiPerUnitEnv(ctx context.Context, input *costsio.StandardInput) (response *costsio.StandardResult, err error) {
 	// grab the db from the context
 	var dbFilepath string = ctx.Value(Segment).(string)
 	var db *sqlx.DB
 	var result []*costs.Cost = []*costs.Cost{}
-	var bdy *StandardBody = &StandardBody{}
+	var bdy *costsio.StandardBody = &costsio.StandardBody{}
 	var stmt = costsdb.PerUnitEnvironment
 
 	bdy.ColumnOrder = []string{"unit", "environment"}
@@ -168,7 +168,7 @@ func apiPerUnitEnv(ctx context.Context, input *StandardInput) (response *Standar
 	bdy.Type = "unit-environment"
 	bdy.DateRange = convert.DateRange(input.StartTime(), input.EndTime(), input.Interval)
 
-	response = &StandardResult{Body: bdy}
+	response = &costsio.StandardResult{Body: bdy}
 
 	db, _, err = datastore.NewDB(ctx, datastore.Sqlite, dbFilepath)
 	defer db.Close()
@@ -204,12 +204,12 @@ Each result returned has the following fields:
 `
 
 // apiDetailed
-func apiDetailed(ctx context.Context, input *StandardInput) (response *StandardResult, err error) {
+func apiDetailed(ctx context.Context, input *costsio.StandardInput) (response *costsio.StandardResult, err error) {
 	// grab the db from the context
 	var dbFilepath string = ctx.Value(Segment).(string)
 	var db *sqlx.DB
 	var result []*costs.Cost = []*costs.Cost{}
-	var bdy *StandardBody = &StandardBody{}
+	var bdy *costsio.StandardBody = &costsio.StandardBody{}
 	var stmt = costsdb.Detailed
 
 	bdy.ColumnOrder = []string{"account_id", "unit", "environment", "service", "label"}
@@ -217,7 +217,7 @@ func apiDetailed(ctx context.Context, input *StandardInput) (response *StandardR
 	bdy.Type = "detail"
 	bdy.DateRange = convert.DateRange(input.StartTime(), input.EndTime(), input.Interval)
 
-	response = &StandardResult{Body: bdy}
+	response = &costsio.StandardResult{Body: bdy}
 
 	db, _, err = datastore.NewDB(ctx, datastore.Sqlite, dbFilepath)
 	defer db.Close()
@@ -235,19 +235,6 @@ func apiDetailed(ctx context.Context, input *StandardInput) (response *StandardR
 
 	return
 }
-
-// List endpoints the costapi will handle ready for use in the navigation structs
-const (
-	UriTotal      endpoints.ApiEndpoint = "/{version}/costs/aws/total/{billing_date:-11}/{billing_date:0}"
-	UriMonthlyTax endpoints.ApiEndpoint = "/{version}/costs/aws/tax-overview/{billing_date:-11}/{billing_date:0}/month"
-
-	UriMonthlyUnit            endpoints.ApiEndpoint = "/{version}/costs/aws/unit/{billing_date:-9}/{billing_date:0}/month"
-	UriMonthlyUnitEnvironment endpoints.ApiEndpoint = "/{version}/costs/aws/unit-environment/{billing_date:-9}/{billing_date:0}/month"
-	UriMonthlyDetailed        endpoints.ApiEndpoint = "/{version}/costs/aws/detailed/{billing_date:-6}/{billing_date:0}/month"
-	UriDailyUnit              endpoints.ApiEndpoint = "/{version}/costs/aws/unit/{billing_date:-1}/{billing_date:0}/day"
-	UriDailyUnitEnvironment   endpoints.ApiEndpoint = "/{version}/costs/aws/unit-environment/{billing_date:-1}/{billing_date:0}/day"
-	UriDailyDetailed          endpoints.ApiEndpoint = "/{version}/costs/aws/detailed/{billing_date:-1}/{billing_date:0}/day"
-)
 
 // Register attaches all the endpoints this module handles on the passed huma api
 //

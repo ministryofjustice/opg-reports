@@ -7,9 +7,9 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/jmoiron/sqlx"
 	"github.com/ministryofjustice/opg-reports/pkg/datastore"
-	"github.com/ministryofjustice/opg-reports/pkg/endpoints"
 	"github.com/ministryofjustice/opg-reports/sources/standards"
 	"github.com/ministryofjustice/opg-reports/sources/standards/standardsdb"
+	"github.com/ministryofjustice/opg-reports/sources/standards/standardsio"
 )
 
 const Segment string = "standards"
@@ -18,14 +18,15 @@ const Tag string = "Standards"
 var description string = `Returns a list of repository informations relating to the standards eahc has met and their current status.`
 
 // apiHandler default handler for all github standards info
-func apiHandler(ctx context.Context, input *Input) (response *Output, err error) {
+func apiHandler(ctx context.Context, input *standardsio.Input) (response *standardsio.Output, err error) {
+
 	var (
 		result         []*standards.Standard
 		db             *sqlx.DB
 		dbFilepath     string = ctx.Value(Segment).(string)
 		queryStatement        = standardsdb.FilterByIsArchived
-		counters              = &Counters{BaselineCompliant: 0, ExtendedCompliant: 0}
-		bdy                   = &Body{
+		counters              = &standardsio.Counters{BaselineCompliant: 0, ExtendedCompliant: 0}
+		bdy                   = &standardsio.Body{
 			Request: input,
 			Type:    "default",
 		}
@@ -79,15 +80,11 @@ func apiHandler(ctx context.Context, input *Input) (response *Output, err error)
 	}
 
 	bdy.Counters = counters
-	response = &Output{
+	response = &standardsio.Output{
 		Body: bdy,
 	}
 	return
 }
-
-const (
-	Uri endpoints.ApiEndpoint = "/{version}/standards/github/false"
-)
 
 // Register attaches all the endpoints this module handles on the passed huma api
 //

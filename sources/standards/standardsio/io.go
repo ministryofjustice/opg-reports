@@ -1,4 +1,4 @@
-package standardsapi
+package standardsio
 
 import (
 	"github.com/danielgtaylor/huma/v2"

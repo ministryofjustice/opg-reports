@@ -1,4 +1,5 @@
-package costsapi
+// Package costsio contains all of the structs used for both api input and output
+package costsio
 
 import (
 	"time"
