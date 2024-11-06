@@ -26,7 +26,7 @@ type dummy struct {
 	Label string `json:"label,omitempty" db:"label" faker:"word"`
 }
 
-func (self dummy) New() record.Record {
+func (self *dummy) New() record.Record {
 	return &dummy{}
 }
 
