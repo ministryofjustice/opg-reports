@@ -31,7 +31,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"os"
 	"path/filepath"
 	"sync"
 
@@ -52,6 +51,11 @@ func Run(args *lib.Arguments) (err error) {
 		ctx       context.Context = context.Background()
 		waitgroup sync.WaitGroup  = sync.WaitGroup{}
 	)
+	if err = lib.ValidateArgs(args); err != nil {
+		slog.Error("arg validation failed", slog.String("err", err.Error()))
+		return
+	}
+
 	// grab files for the directory
 	if files, err = filepath.Glob(filepath.Join(args.Directory, pattern)); err != nil {
 		slog.Error("[sqlite.main] file glob failed", slog.String("err", err.Error()))
@@ -59,14 +63,15 @@ func Run(args *lib.Arguments) (err error) {
 	}
 	// get the database
 	db, err = lib.GetDatabase(ctx, args)
-	defer db.Close()
 	if err != nil {
 		slog.Error("[sqlite.main] get database failed", slog.String("err", err.Error()))
 		return
 	}
+	defer db.Close()
 	// process each file in a go func and insert the content
 	for _, file := range files {
 		waitgroup.Add(1)
+		// i dont like single letter vars.. but for an inline func
 		go func(c context.Context, wg *sync.WaitGroup, d *sqlx.DB, a *lib.Arguments, f string) {
 			_, e := lib.ProcessDataFile(c, d, a, f)
 			if e != nil {
@@ -89,11 +94,9 @@ func main() {
 	slog.Info("[sqlite.main] init...")
 	slog.Info("[sqlite.main]", slog.String("args", fmt.Sprintf("%+v", args)))
 
-	if err = lib.ValidateArgs(args); err != nil {
-		slog.Error("arg validation failed", slog.String("err", err.Error()))
-		os.Exit(1)
+	err = Run(args)
+	if err != nil {
+		panic(err)
 	}
-
-	Run(args)
 	slog.Info("[sqlite.main] done.")
 }

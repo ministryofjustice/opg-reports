@@ -41,26 +41,36 @@ func TestImportsISqliteGetDatabase(t *testing.T) {
 	var dbFile = filepath.Join(dir, "test.db")
 	var args = &lib.Arguments{}
 	var ctx = context.Background()
+	var db *sqlx.DB
 
 	// working
 	args = &lib.Arguments{Type: "costs", Database: dbFile, Directory: "./source"}
-	_, err = lib.GetDatabase(ctx, args)
+	db, err = lib.GetDatabase(ctx, args)
 	if err != nil {
 		t.Errorf("error with GetDatabase: [%s]", err.Error())
+	}
+	if db != nil {
+		db.Close()
 	}
 
 	// no database path
 	args = &lib.Arguments{Type: "costs", Database: "", Directory: "./source"}
-	_, err = lib.GetDatabase(ctx, args)
+	db, err = lib.GetDatabase(ctx, args)
 	if err == nil {
 		t.Errorf("should have generated an error about database files")
+	}
+	if db != nil {
+		db.Close()
 	}
 
 	// no database path
 	args = &lib.Arguments{Type: "not-allowed", Database: dbFile, Directory: "./source"}
-	_, err = lib.GetDatabase(ctx, args)
+	db, err = lib.GetDatabase(ctx, args)
 	if err == nil {
 		t.Errorf("should have generated an error about incorrect type")
+	}
+	if db != nil {
+		db.Close()
 	}
 
 }
@@ -84,8 +94,12 @@ func TestImportsISqliteProcessDataFile(t *testing.T) {
 	content, _ := json.MarshalIndent(fakes, "", "  ")
 	os.WriteFile(testFile, content, os.ModePerm)
 	// setup the args
-	args = &lib.Arguments{Type: "costs", Database: dbFile, Directory: testFile}
-	db, _ = lib.GetDatabase(ctx, args)
+	args = &lib.Arguments{Type: "costs", Database: dbFile, Directory: dir}
+	db, err = lib.GetDatabase(ctx, args)
+	if err != nil {
+		t.Errorf("error getting database: [%s]", err.Error())
+	}
+	defer db.Close()
 
 	// make the call to process the file
 	count, err = lib.ProcessDataFile(ctx, db, args, testFile)

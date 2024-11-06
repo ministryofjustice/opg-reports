@@ -59,9 +59,16 @@ func floatString() string {
 }
 
 // randTime generates a time between min & max values
+// Bounds are:
+//
+//	min = TimeStringMin + 2 day
+//	max = TimeStringMin - 2 day
+//
+// This way the time will always be within the dates
+// regardless if `>` or `>=` being used
 func randTime() time.Time {
-	var max = TimeStringMax
-	var min = TimeStringMin
+	var max = TimeStringMax.AddDate(0, 0, -2)
+	var min = TimeStringMin.AddDate(0, 0, 2)
 	diff := max.Unix() - min.Unix()
 	sec := rand.Int64N(diff) + min.Unix()
 	return time.Unix(sec, 0)
