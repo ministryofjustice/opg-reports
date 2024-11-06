@@ -66,6 +66,7 @@ clean:
 	@rm -Rf ./servers/sfront/assets
 	@rm -Rf ./collectors/cawscosts/data
 	@rm -Rf ./collectors/cgithubstandards/data
+	@rm -Rf ./collectors/cgithubreleases/data
 	@rm -Rf ./collectors/cawsuptime/data
 .PHONY: clean
 #========= RUN =========
@@ -112,7 +113,7 @@ build/importers/isqlite:
 .PHONY: build/importers/sqlite
 
 ## build all collectors
-build/collectors: build/collectors/cawscosts build/collectors/cgithubstandards build/collectors/cawsuptime
+build/collectors: build/collectors/cawscosts build/collectors/cawsuptime build/collectors/cgithubstandards build/collectors/cgithubreleases
 .PHONY: build/collectors
 
 ## build the aws costs collector
@@ -121,6 +122,11 @@ build/collectors/cawscosts:
 	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/cawscosts ./collectors/cawscosts/main.go && echo "${tick}"
 .PHONY: build/collectors/awscosts
 
+## build the aws uptime collector
+build/collectors/cawsuptime:
+	@echo -n "[building] collectors cawsuptime ......... "
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/cawsuptime ./collectors/cawsuptime/main.go && echo "${tick}"
+.PHONY: build/collectors/cawsuptime
 
 ## build the github standards collector
 build/collectors/cgithubstandards:
@@ -128,9 +134,9 @@ build/collectors/cgithubstandards:
 	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/cgithubstandards ./collectors/cgithubstandards/main.go && echo "${tick}"
 .PHONY: build/collectors/cgithubstandards
 
+## build the github releases collector
+build/collectors/cgithubreleases:
+	@echo -n "[building] collectors cgithubreleases .... "
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/cgithubreleases ./collectors/cgithubreleases/main.go && echo "${tick}"
+.PHONY: build/collectors/cgithubreleases
 
-## build the aws uptime collector
-build/collectors/cawsuptime:
-	@echo -n "[building] collectors cawsuptime ......... "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/cawsuptime ./collectors/cawsuptime/main.go && echo "${tick}"
-.PHONY: build/collectors/cawsuptime

@@ -29,6 +29,10 @@ type Arguments struct {
 	OutputFile   string
 }
 
+const readmePath string = "./README.md"
+const codeOfConductPath string = "./CODE_OF_CONDUCT.md"
+const contributingGuidePath string = "./CONTRIBUTING.md"
+
 // SetupArgs maps flag values to properies on the arg passed and runs
 // flag.Parse to fetch values
 func SetupArgs(args *Arguments) {
@@ -99,10 +103,6 @@ func AllRepos(ctx context.Context, client *github.Client, args *Arguments) (all 
 
 	return
 }
-
-const readmePath string = "./README.md"
-const codeOfConductPath string = "./CODE_OF_CONDUCT.md"
-const contributingGuidePath string = "./CONTRIBUTING.md"
 
 // RepoToStandard generates a Standard item from api data
 // - its a chunky one
@@ -191,7 +191,7 @@ func RepoToStandard(ctx context.Context, client *github.Client, repo *github.Rep
 	if teams, _, err := client.Repositories.ListTeams(ctx, g.Owner, g.Name,
 		&github.ListOptions{PerPage: 100}); err == nil {
 		for _, team := range teams {
-			g.Teams += "#" + *team.Name + "#"
+			g.Teams += "#" + strings.ToLower(*team.Name) + "#"
 		}
 	}
 	// the GetDeleteBranchOnMerge seems to be empty and have to re-fetch the api to get result

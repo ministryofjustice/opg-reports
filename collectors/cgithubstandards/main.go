@@ -1,5 +1,5 @@
 /*
-cgithubstandards fetches aws costs data for the month at a daily granularity.
+cgithubstandards fetches repo standards data.
 
 Usage:
 
