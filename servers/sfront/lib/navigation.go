@@ -36,8 +36,8 @@ const (
 
 	UptimePerUnitBillingUri endpoints.ApiEndpoint = "/{version}/uptime/aws/unit/{billing_date:-6}/{billing_date:0}/month"
 
-	UptimeOverallDailylUri endpoints.ApiEndpoint = "/{version}/uptime/aws/overall/{day:-15}/{day:0}/day"
-	UptimePerUnitDailylUri endpoints.ApiEndpoint = "/{version}/uptime/aws/unit/{day:-15}/{day:0}/day"
+	UptimeOverallDailylUri endpoints.ApiEndpoint = "/{version}/uptime/aws/overall/{day:-14}/{day:0}/day"
+	UptimePerUnitDailylUri endpoints.ApiEndpoint = "/{version}/uptime/aws/unit/{day:-14}/{day:0}/day"
 )
 
 // -- Costs navigation items

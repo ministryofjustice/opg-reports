@@ -10,6 +10,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/humatest"
 	"github.com/jmoiron/sqlx"
+	"github.com/ministryofjustice/opg-reports/pkg/consts"
 	"github.com/ministryofjustice/opg-reports/pkg/datastore"
 	"github.com/ministryofjustice/opg-reports/pkg/exfaker"
 	"github.com/ministryofjustice/opg-reports/sources/costs"
@@ -82,7 +83,7 @@ func TestCostApiTaxOverviewHandler(t *testing.T) {
 	var dummy = []*costs.Cost{}
 	var result *costsio.CostsTaxOverviewResult
 
-	var month = "2024-01-01"
+	var month = exfaker.TimeStringMax.AddDate(0, -1, 0).Format(consts.DateFormatYearMonthDay)
 	var excTax float64 = 0.0
 	var incTax float64 = 0.0
 	// generate dummy data set - fixed to a single month
@@ -101,8 +102,8 @@ func TestCostApiTaxOverviewHandler(t *testing.T) {
 	input.Version = "v1"
 	input.Interval = "monthly"
 	input.DateFormat = datastore.Sqlite.YearMonthFormat
-	input.StartDate = exfaker.TimeStringMin.AddDate(0, 0, -1).Format(exfaker.DateStringFormat)
-	input.EndDate = exfaker.TimeStringMax.AddDate(0, 0, 2).Format(exfaker.DateStringFormat)
+	input.StartDate = exfaker.TimeStringMin.AddDate(0, 0, -1).Format(consts.DateFormatYearMonthDay)
+	input.EndDate = exfaker.TimeStringMax.AddDate(0, 0, 2).Format(consts.DateFormatYearMonthDay)
 
 	result, err = apiTaxOverview(ctx, input)
 	if err != nil {
@@ -136,7 +137,7 @@ func TestCostApiPerUnitHandler(t *testing.T) {
 	var dummy = []*costs.Cost{}
 	var result *costsio.CostsStandardResult
 
-	var month = "2024-01-01"
+	var month = exfaker.TimeStringMax.AddDate(0, -1, 0).Format(consts.DateFormatYearMonthDay)
 	// known units from the faker setup
 	var totals map[string]float64 = map[string]float64{
 		"unitA": 0.0, "unitB": 0.0, "unitC": 0.0,
@@ -207,7 +208,7 @@ func TestCostApiPerUnitEnvHandler(t *testing.T) {
 	var dummy = []*costs.Cost{}
 	var result *costsio.CostsStandardResult
 
-	var month = "2024-01-01"
+	var month = exfaker.TimeStringMax.AddDate(0, -1, 0).Format(consts.DateFormatYearMonthDay)
 	// known units from the faker setup
 	var totals map[string]map[string]float64 = map[string]map[string]float64{
 		"unitA": {
@@ -283,19 +284,21 @@ func TestCostApiRegister(t *testing.T) {
 	var dbFile = filepath.Join(dir, "test.db")
 	var ctx = context.WithValue(context.Background(), Segment, dbFile)
 	var dummy = exfaker.Many[costs.Cost](50)
+	var start = exfaker.TimeStringMin.Format(consts.DateFormatYearMonthDay)
+	var end = exfaker.TimeStringMax.Format(consts.DateFormatYearMonthDay)
 	var urls = []string{
-		"/v1/costs/aws/total/2024-01-01/2024-01-01",
-		"/v1/costs/aws/tax-overview/2024-01-01/2024-01-01/month",
-		"/v1/costs/aws/tax-overview/2024-01-01/2024-01-01/day",
-		"/v1/costs/aws/unit/2024-01-01/2024-01-01/month",
-		"/v1/costs/aws/unit/2024-01-01/2024-01-01/month?unit=unitA",
-		"/v1/costs/aws/unit/2024-01-01/2024-01-01/day",
-		"/v1/costs/aws/unit-environment/2024-01-01/2024-01-01/month",
-		"/v1/costs/aws/unit-environment/2024-01-01/2024-01-01/day",
-		"/v1/costs/aws/unit-environment/2024-01-01/2024-01-01/month?unit=A",
-		"/v1/costs/aws/detailed/2024-01-01/2024-01-01/month",
-		"/v1/costs/aws/detailed/2024-01-01/2024-01-01/day",
-		"/v1/costs/aws/detailed/2024-01-01/2024-01-01/month?unit=A",
+		"/v1/costs/aws/total/" + start + "/" + end,
+		"/v1/costs/aws/tax-overview/" + start + "/" + end + "/month",
+		"/v1/costs/aws/tax-overview/" + start + "/" + end + "/day",
+		"/v1/costs/aws/unit/" + start + "/" + end + "/month",
+		"/v1/costs/aws/unit/" + start + "/" + end + "/month?unit=unitA",
+		"/v1/costs/aws/unit/" + start + "/" + end + "/day",
+		"/v1/costs/aws/unit-environment/" + start + "/" + end + "/month",
+		"/v1/costs/aws/unit-environment/" + start + "/" + end + "/day",
+		"/v1/costs/aws/unit-environment/" + start + "/" + end + "/month?unit=A",
+		"/v1/costs/aws/detailed/" + start + "/" + end + "/month",
+		"/v1/costs/aws/detailed/" + start + "/" + end + "/day",
+		"/v1/costs/aws/detailed/" + start + "/" + end + "/month?unit=A",
 	}
 	var middleware = func(ctx huma.Context, next func(huma.Context)) {
 		ctx = huma.WithValue(ctx, Segment, dbFile)

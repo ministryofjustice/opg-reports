@@ -31,10 +31,11 @@ var (
 )
 
 var (
-	TimeStringFormat string    = consts.DateFormat                           // DateTime format used in date generation (time_string).
-	TimeStringMin    time.Time = time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC) // Min time used as lower bound in time_string generation.
-	TimeStringMax    time.Time = time.Date(2024, 4, 1, 0, 0, 0, 0, time.UTC) // Max time used as upper bound in time_string generation.
-	DateStringFormat string    = consts.DateFormatYearMonthDay               // Capture the YYYY-MM-DD format
+	now              time.Time = time.Now().UTC()
+	TimeStringMin    time.Time = now.AddDate(-2, 0, 0)         // Min time used as lower bound in time_string generation.
+	TimeStringMax    time.Time = now.AddDate(0, 0, -5)         // Max time used as upper bound in time_string generation.
+	TimeStringFormat string    = consts.DateFormat             // DateTime format used in date generation (time_string).
+	DateStringFormat string    = consts.DateFormatYearMonthDay // Capture the YYYY-MM-DD format
 )
 
 // randInt generates a number between min & max
