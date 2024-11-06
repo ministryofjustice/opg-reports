@@ -66,7 +66,7 @@ var (
 		},
 	}
 	segmentChoices map[string]map[string]*lib.ApiSegment = map[string]map[string]*lib.ApiSegment{
-		"simple": fullSegments, //simpleSegments,
+		"simple": simpleSegments,
 		"full":   fullSegments,
 	}
 	segments = segmentChoices[mode]

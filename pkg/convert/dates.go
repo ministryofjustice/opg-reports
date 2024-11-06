@@ -122,3 +122,12 @@ func ToTime(s string) (t time.Time, err error) {
 	t, err = time.Parse(layout, s)
 	return
 }
+
+// DateReformat takes an existing date string and covnerts this to a new date format,
+// allowing change from YYYY-MM-DD to YYYY-MM
+func DateReformat(s string, layout string) (date string) {
+	if t, err := time.Parse(GetDateFormat(s), s); err == nil {
+		date = t.Format(layout)
+	}
+	return
+}

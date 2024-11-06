@@ -216,6 +216,6 @@ var (
 // This allows the navigation to be changed at run time
 var NavigationChoices = map[string][]*navigation.Navigation{
 	// "simple": simple,
-	"simple": full,
+	"simple": simple,
 	"full":   full,
 }

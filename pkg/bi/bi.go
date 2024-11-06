@@ -12,7 +12,7 @@ var Commit string = "0"                            // Git commit hash used in th
 var Timestamp string = "2024-10-01T01:02:03Z00:00" // Time of the build
 var ApiVersion string = "v1"                       // The api prefix to use for outbound calls from sfront
 var Organisation string = "OPG"                    // The organisation name to use in the front end
-var Mode string = "simple"                         // The mode is used to select which api handlers and navigation is used
+var Mode string = "full"                           // The mode is used to select which api handlers and navigation is used
 
 func Dump() {
 	slog.Info("Build info",

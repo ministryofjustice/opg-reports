@@ -95,7 +95,7 @@ func apiTaxOverview(ctx context.Context, input *costsio.TaxOverviewInput) (respo
 
 var perUnitDescription string = `Returns a list of cost data grouped by the unit field as well as the date.
 
-Data is limited to the date range (>= start_date < ) and optional unit filter.
+Data is limited to the date range (>= start_date < end_date) and optional unit filter.
 
 Each result returned has the following fields:
 
@@ -143,7 +143,7 @@ func apiPerUnit(ctx context.Context, input *costsio.StandardInput) (response *co
 
 var perUnitEnvDescription string = `Returns a list of cost data grouped by the unit and environment fields as well as the date.
 
-Data is limited to the date range (>= start_date < ) and optional unit filter.
+Data is limited to the date range (>= start_date < end_date) and optional unit filter.
 
 Each result returned has the following fields:
 
@@ -189,7 +189,7 @@ func apiPerUnitEnv(ctx context.Context, input *costsio.StandardInput) (response 
 
 var detailDescription string = `Provides a list of the total costs grouped by a date interval, account_id, environment and service within start (>=) and end (<) dates passed.
 
-Data is limited to the date range (>= start_date < ) and optional unit filter.
+Data is limited to the date range (>= start_date < end_date) and optional unit filter.
 
 Each result returned has the following fields:
 

@@ -16,7 +16,10 @@ import (
 const Segment string = "uptime"
 const Tag string = "Uptime"
 
-var overallDescription = `Returns lsit of uptime data grouped by interval for all services.`
+var overallDescription = `Returns list of uptime data grouped by interval for all services.
+
+Data is limited to the date range (>= start_date < end_date).
+`
 
 // apiOverallHandler gets the overall uptime for all services within the start and end date
 // range
@@ -52,7 +55,9 @@ func apiOverallHandler(ctx context.Context, input *uptimeio.UptimeInput) (respon
 	return
 }
 
-var unitDescription string = `Returns a list of all uptime data grouped by the interval and unit - with option of filtering by a unit.`
+var unitDescription string = `Returns a list of all uptime data grouped by the interval and unit - with option of filtering by a unit.
+
+Data is limited to the date range (>= start_date < end_date) and by optional unit.`
 
 // apiUnitHandler gets uptime, groups that by the date interval and the unit name for all data between
 // the start & end dates.
