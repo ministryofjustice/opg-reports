@@ -72,11 +72,12 @@ func InsertOne[R record.Record](ctx context.Context, db *sqlx.DB, insert InsertS
 		stmt        string   = string(insert)
 		statement   *sqlx.NamedStmt
 	)
+	// create own txn if we havent got one
 	if tx == nil {
 		transaction = db.MustBeginTx(ctx, transactionOptions)
 	}
-	statement, err = transaction.PrepareNamedContext(ctx, stmt)
 
+	statement, err = transaction.PrepareNamedContext(ctx, stmt)
 	if err != nil {
 		slog.Error("[datastore.InsertOne] error preparing insert statement",
 			slog.String("err", err.Error()),
@@ -85,16 +86,21 @@ func InsertOne[R record.Record](ctx context.Context, db *sqlx.DB, insert InsertS
 	}
 	// slog.Info("[insert]", slog.String("record", fmt.Sprintf("%+v\n", record)))
 
+	// if the statement fails, trigger a rollback
 	if err = statement.GetContext(ctx, &insertedId, record); err != nil {
 		slog.Error("[datastore.InsertOne] error inserting",
 			slog.String("err", err.Error()),
 			slog.String("stmt", stmt))
+
 		tx.Rollback()
 		return
 	}
+	// if we used our own tx, then commit
 	if tx == nil {
 		err = transaction.Commit()
 	}
+	// set the id
+	record.SetID(insertedId)
 	return
 }
 
@@ -129,6 +135,7 @@ func InsertMany[R record.Record](ctx context.Context, db *sqlx.DB, insert Insert
 			if id, e = InsertOne(ctx, db, insert, item, transaction); err != nil {
 				err = errors.Join(err, e)
 			} else {
+				record.SetID(id)
 				insertedIds = append(insertedIds, id)
 			}
 			waitgroup.Done()
