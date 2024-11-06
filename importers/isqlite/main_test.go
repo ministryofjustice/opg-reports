@@ -20,7 +20,7 @@ func TestImportsISqliteRun(t *testing.T) {
 
 	// -- working
 	// write some dummy data to the file
-	fakes := exfaker.Many[costs.Cost](10)
+	fakes := exfaker.Many[*costs.Cost](10)
 	content, _ := json.MarshalIndent(fakes, "", "  ")
 	os.WriteFile(testFile, content, os.ModePerm)
 	// setup the args

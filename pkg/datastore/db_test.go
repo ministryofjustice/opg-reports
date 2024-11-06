@@ -11,6 +11,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/ministryofjustice/opg-reports/pkg/datastore"
 	"github.com/ministryofjustice/opg-reports/pkg/exfaker"
+	"github.com/ministryofjustice/opg-reports/pkg/record"
 )
 
 const (
@@ -23,6 +24,18 @@ const (
 type dummy struct {
 	ID    int    `json:"id,omitempty" db:"id"`
 	Label string `json:"label,omitempty" db:"label" faker:"word"`
+}
+
+func (self dummy) New() record.Record {
+	return &dummy{}
+}
+
+func (self *dummy) UID() string {
+	return fmt.Sprintf("%s-%d", "costs", self.ID)
+}
+
+func (self *dummy) SetID(id int) {
+	self.ID = id
 }
 
 type dummyE struct {
@@ -74,7 +87,7 @@ func TestDatastoreDB(t *testing.T) {
 	}
 
 	// -- insert many
-	records = exfaker.Many[dummy](n)
+	records = exfaker.Many[*dummy](n)
 	ids, err := datastore.InsertMany(ctx, db, dummyDbInsert, records)
 	if err != nil {
 		t.Errorf("error inserting many [%s]", err.Error())
@@ -93,7 +106,7 @@ func TestDatastoreDB(t *testing.T) {
 	}
 	// -- get many with named params
 	p := &dummyP{Min: 1}
-	found, err := datastore.Select[[]*dummy](ctx, db, dummyGet, p)
+	found, err := datastore.Select[*dummy](ctx, db, dummyGet, p)
 	if err != nil {
 		t.Errorf("error with select [%s]", err.Error())
 	}

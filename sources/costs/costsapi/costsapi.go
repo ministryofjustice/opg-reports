@@ -83,7 +83,7 @@ func apiTaxOverview(ctx context.Context, input *costsio.TaxOverviewInput) (respo
 		return
 	}
 
-	if result, err = datastore.Select[[]*costs.Cost](ctx, db, costsdb.TaxOverview, input); err == nil {
+	if result, err = datastore.Select[*costs.Cost](ctx, db, costsdb.TaxOverview, input); err == nil {
 		response.Body.ColumnValues = datastore.ColumnValues(result, bdy.ColumnOrder)
 		response.Body.Result = result
 	}
@@ -131,7 +131,7 @@ func apiPerUnit(ctx context.Context, input *costsio.StandardInput) (response *co
 		stmt = costsdb.PerUnitForUnit
 	}
 
-	if result, err = datastore.Select[[]*costs.Cost](ctx, db, stmt, input); err == nil {
+	if result, err = datastore.Select[*costs.Cost](ctx, db, stmt, input); err == nil {
 		response.Body.ColumnValues = datastore.ColumnValues(result, bdy.ColumnOrder)
 		response.Body.Result = result
 	}
@@ -179,7 +179,7 @@ func apiPerUnitEnv(ctx context.Context, input *costsio.StandardInput) (response 
 		stmt = costsdb.PerUnitEnvironmentForUnit
 	}
 
-	if result, err = datastore.Select[[]*costs.Cost](ctx, db, stmt, input); err == nil {
+	if result, err = datastore.Select[*costs.Cost](ctx, db, stmt, input); err == nil {
 		response.Body.ColumnValues = datastore.ColumnValues(result, bdy.ColumnOrder)
 		response.Body.Result = result
 	}
@@ -228,7 +228,7 @@ func apiDetailed(ctx context.Context, input *costsio.StandardInput) (response *c
 		stmt = costsdb.DetailedForUnit
 	}
 
-	if result, err = datastore.Select[[]*costs.Cost](ctx, db, stmt, input); err == nil {
+	if result, err = datastore.Select[*costs.Cost](ctx, db, stmt, input); err == nil {
 		response.Body.ColumnValues = datastore.ColumnValues(result, bdy.ColumnOrder)
 		response.Body.Result = result
 	}

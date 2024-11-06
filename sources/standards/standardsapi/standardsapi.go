@@ -64,7 +64,7 @@ func apiHandler(ctx context.Context, input *standardsio.StandardsInput) (respons
 		return
 	}
 	// now run the main query
-	if result, err = datastore.Select[[]*standards.Standard](ctx, db, queryStatement, input); err == nil {
+	if result, err = datastore.Select[*standards.Standard](ctx, db, queryStatement, input); err == nil {
 		bdy.Result = result
 		// Add the last counter details
 		counters.Count = len(result)

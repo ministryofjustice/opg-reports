@@ -1,11 +1,13 @@
 package exfaker_test
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/go-faker/faker/v4"
 	"github.com/ministryofjustice/opg-reports/pkg/exfaker"
+	"github.com/ministryofjustice/opg-reports/pkg/record"
 )
 
 type fTest struct {
@@ -13,6 +15,23 @@ type fTest struct {
 	Ts   string  `json:"ts,omitempty" db:"ts"  faker:"time_string"`
 	Cost float64 `json:"cost,omitempty" db:"cost" faker:"float"`
 	Uri  string  `json:"uri" faker:"uri"`
+}
+
+type tTest struct {
+	ID   int     `json:"id,omitempty" db:"id" faker:"unique, boundary_start=1, boundary_end=20"`
+	Ts   string  `json:"ts,omitempty" db:"ts"  faker:"time_string"`
+	Cost float64 `json:"cost,omitempty" db:"cost" faker:"float"`
+	Uri  string  `json:"uri" faker:"uri"`
+}
+
+func (self *tTest) UID() string {
+	return fmt.Sprintf("%d", self.ID)
+}
+func (self *tTest) SetID(id int) {
+	self.ID = id
+}
+func (self tTest) New() record.Record {
+	return &tTest{}
 }
 
 // TestExFakerExtended checks that ID is within bounds and
@@ -50,7 +69,7 @@ func TestExFakerMany(t *testing.T) {
 	exfaker.AddProviders()
 	var n = 15
 
-	many := exfaker.Many[fTest](n)
+	many := exfaker.Many[*tTest](n)
 
 	ids := map[int]int{}
 	for _, m := range many {

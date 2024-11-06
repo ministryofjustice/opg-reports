@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/ministryofjustice/opg-reports/pkg/convert"
+	"github.com/ministryofjustice/opg-reports/pkg/record"
 )
 
 type Standard struct {
@@ -45,9 +46,22 @@ type Standard struct {
 	Teams                          string `json:"teams" db:"teams" faker:"oneof: #unitA#, #unitB#, #unitC#"`
 }
 
-// UID returns a unique uid
+// New
+// Record interface
+func (self *Standard) New() record.Record {
+	return &Standard{}
+}
+
+// UID
+// Record interface
 func (self *Standard) UID() string {
 	return fmt.Sprintf("%s-%d", "standard", self.ID)
+}
+
+// SetID
+// Record interface
+func (self *Standard) SetID(id int) {
+	self.ID = id
 }
 
 // IsCompliantBaseline checks itself and returns

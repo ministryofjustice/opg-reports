@@ -3,6 +3,8 @@ package costs
 import (
 	"fmt"
 	"strconv"
+
+	"github.com/ministryofjustice/opg-reports/pkg/record"
 )
 
 // Cost is both the database model and the result struct for the api
@@ -21,10 +23,22 @@ type Cost struct {
 	Cost         string `json:"cost,omitempty" db:"cost" faker:"float_string" doc:"Cost value."`                                                                         // The actual cost value as a string - without an currency, but is USD by default
 }
 
+// New
+// Record interface
+func (self *Cost) New() record.Record {
+	return &Cost{}
+}
+
 // UID
 // Record interface
 func (self *Cost) UID() string {
 	return fmt.Sprintf("%s-%d", "costs", self.ID)
+}
+
+// SetID
+// Record interface
+func (self *Cost) SetID(id int) {
+	self.ID = id
 }
 
 // TDate

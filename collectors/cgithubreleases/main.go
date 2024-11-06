@@ -17,9 +17,9 @@ The flags are:
 		Day to fetch data for.
 	-output=<path-pattern>
 		Path (with magic values) to the output file
-		Default: `./data/{month}_{id}_aws_costs.json`
+		Default: `./data/{day}_github_releases.json`
 
-The command presumes an active, autherised session that can connect
+The command presumes an active, authorised session that can connect
 to GitHub.
 */
 package main
@@ -70,12 +70,11 @@ func Run(args *lib.Arguments) (err error) {
 	// - look for workflow runs on the day
 	// - if non are found, then look for merges to main on the day
 	for i, repo := range repositories {
-		// if *repo.Name == "opg-sirius" {
 		var (
-			rels       []*releases.Release   = []*releases.Release{}
-			runs       []*github.WorkflowRun = []*github.WorkflowRun{}
-			merged     []*github.PullRequest = []*github.PullRequest{}
-			teamStr, _                       = lib.TeamList(ctx, client, repo, args)
+			rels     []*releases.Release   = []*releases.Release{}
+			runs     []*github.WorkflowRun = []*github.WorkflowRun{}
+			merged   []*github.PullRequest = []*github.PullRequest{}
+			teams, _                       = lib.TeamList(ctx, client, repo, args)
 		)
 
 		slog.Info(fmt.Sprintf("[%d/%d] %s", i+1, total, *repo.FullName))
@@ -93,14 +92,13 @@ func Run(args *lib.Arguments) (err error) {
 		slog.Info("found for day.", slog.String("day", args.Day), slog.Int("pull_requests", len(merged)), slog.Int("workflow_runs", len(runs)))
 		// convert to releases
 		if len(runs) > 0 {
-			rels, err = lib.WorkflowRunsToReleases(repo, teamStr, runs)
+			rels, err = lib.WorkflowRunsToReleases(repo, teams, runs)
 		} else if len(merged) > 0 {
-			rels, err = lib.PullRequestsToReleases(repo, teamStr, merged)
+			rels, err = lib.PullRequestsToReleases(repo, teams, merged)
 		}
 
 		// attach the releases to the main set
 		allReleases = append(allReleases, rels...)
-		// }
 
 	}
 

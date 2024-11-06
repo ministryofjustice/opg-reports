@@ -43,7 +43,7 @@ func apiOverallHandler(ctx context.Context, input *uptimeio.UptimeInput) (respon
 		return
 	}
 
-	if result, err = datastore.Select[[]*uptime.Uptime](ctx, db, queryStatement, input); err == nil {
+	if result, err = datastore.Select[*uptime.Uptime](ctx, db, queryStatement, input); err == nil {
 		bdy.Result = result
 		bdy.ColumnValues = datastore.ColumnValues(result, bdy.ColumnOrder)
 	}
@@ -88,7 +88,7 @@ func apiUnitHandler(ctx context.Context, input *uptimeio.UptimeInput) (response 
 		queryStatement = uptimedb.UptimeByIntervalUnitFiltered
 	}
 
-	if result, err = datastore.Select[[]*uptime.Uptime](ctx, db, queryStatement, input); err == nil {
+	if result, err = datastore.Select[*uptime.Uptime](ctx, db, queryStatement, input); err == nil {
 		bdy.Result = result
 		bdy.ColumnValues = datastore.ColumnValues(result, bdy.ColumnOrder)
 	}

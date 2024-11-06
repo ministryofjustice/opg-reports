@@ -17,6 +17,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/sources/releases"
 )
 
+// defaults
 var (
 	defOrg  = "ministryofjustice"
 	defTeam = "opg"
@@ -66,7 +67,7 @@ func ValidateArgs(args *Arguments) (err error) {
 	if args.Team == "" {
 		args.Team = defTeam
 	}
-	if args.Day == "" {
+	if args.Day == "" || args.Day == "-" {
 		args.Day = defDay.Format(consts.DateFormatYearMonthDay)
 	}
 
@@ -85,20 +86,21 @@ func WriteToFile(content []byte, args *Arguments) {
 
 }
 
-func TeamList(ctx context.Context, client *github.Client, repo *github.Repository, args *Arguments) (teams string, err error) {
-	teams = ""
+// TeamList generates a list of all teams attached to this repo
+func TeamList(ctx context.Context, client *github.Client, repo *github.Repository, args *Arguments) (teams []*releases.Team, err error) {
+	teams = []*releases.Team{}
 	opts := &github.ListOptions{PerPage: 100}
 
 	if teamList, _, err := client.Repositories.ListTeams(ctx, args.Organisation, *repo.Name, opts); err == nil {
 		for _, team := range teamList {
-			teams += "#" + strings.ToLower(*team.Name) + "#"
+			teams = append(teams, &releases.Team{Name: strings.ToLower(*team.Name)})
 		}
 	}
 	return
 }
 
 // WorkflowRunsToReleases converts a slice of workflow runs into a slice of Release which can then be stored
-func WorkflowRunsToReleases(repo *github.Repository, teams string, runs []*github.WorkflowRun) (all []*releases.Release, err error) {
+func WorkflowRunsToReleases(repo *github.Repository, teams []*releases.Team, runs []*github.WorkflowRun) (all []*releases.Release, err error) {
 
 	all = []*releases.Release{}
 
@@ -107,7 +109,7 @@ func WorkflowRunsToReleases(repo *github.Repository, teams string, runs []*githu
 			Name:       *run.Name,
 			Source:     *run.HTMLURL,
 			Repository: *repo.FullName,
-			Teams:      teams,
+			TeamList:   teams,
 			Type:       "workflow_run",
 			Date:       run.CreatedAt.Format(consts.DateFormat),
 		}
@@ -118,7 +120,7 @@ func WorkflowRunsToReleases(repo *github.Repository, teams string, runs []*githu
 }
 
 // PullRequestsToReleases converts a set of pull requests into releases
-func PullRequestsToReleases(repo *github.Repository, teams string, prs []*github.PullRequest) (all []*releases.Release, err error) {
+func PullRequestsToReleases(repo *github.Repository, teams []*releases.Team, prs []*github.PullRequest) (all []*releases.Release, err error) {
 
 	all = []*releases.Release{}
 
@@ -127,7 +129,7 @@ func PullRequestsToReleases(repo *github.Repository, teams string, prs []*github
 			Name:       *pr.Title,
 			Source:     *pr.HTMLURL,
 			Repository: *repo.FullName,
-			Teams:      teams,
+			TeamList:   teams,
 			Type:       "pull_request",
 			Date:       pr.MergedAt.Format(consts.DateFormat),
 		}

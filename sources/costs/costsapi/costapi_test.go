@@ -46,7 +46,7 @@ func TestCostApiTotalHandler(t *testing.T) {
 	var result *costsio.CostsTotalResult
 
 	// generate dummy data set
-	dummy = exfaker.Many[costs.Cost](100)
+	dummy = exfaker.Many[*costs.Cost](100)
 	for _, row := range dummy {
 		if row.Service != "Tax" {
 			total += row.Value()
@@ -87,7 +87,7 @@ func TestCostApiTaxOverviewHandler(t *testing.T) {
 	var excTax float64 = 0.0
 	var incTax float64 = 0.0
 	// generate dummy data set - fixed to a single month
-	dummy = exfaker.Many[costs.Cost](30)
+	dummy = exfaker.Many[*costs.Cost](30)
 	for _, row := range dummy {
 		incTax += row.Value()
 		row.Date = month
@@ -144,7 +144,7 @@ func TestCostApiPerUnitHandler(t *testing.T) {
 	}
 
 	// generate dummy data set - fixed to a single month & ignore tax
-	dummy = exfaker.Many[costs.Cost](50)
+	dummy = exfaker.Many[*costs.Cost](50)
 	for _, row := range dummy {
 		row.Date = month
 		if row.Service == "Tax" {
@@ -223,7 +223,7 @@ func TestCostApiPerUnitEnvHandler(t *testing.T) {
 	}
 
 	// generate dummy data set - fixed to a single month & ignore tax
-	dummy = exfaker.Many[costs.Cost](50)
+	dummy = exfaker.Many[*costs.Cost](50)
 	for _, row := range dummy {
 		row.Date = month
 		if row.Service == "Tax" {
@@ -283,7 +283,7 @@ func TestCostApiRegister(t *testing.T) {
 	var dir = t.TempDir()
 	var dbFile = filepath.Join(dir, "test.db")
 	var ctx = context.WithValue(context.Background(), Segment, dbFile)
-	var dummy = exfaker.Many[costs.Cost](50)
+	var dummy = exfaker.Many[*costs.Cost](50)
 	var start = exfaker.TimeStringMin.Format(consts.DateFormatYearMonthDay)
 	var end = exfaker.TimeStringMax.Format(consts.DateFormatYearMonthDay)
 	var urls = []string{

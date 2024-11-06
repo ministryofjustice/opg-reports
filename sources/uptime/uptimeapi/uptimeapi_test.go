@@ -57,7 +57,7 @@ func TestUptimeApiHandlerOverall(t *testing.T) {
 	var input = &uptimeio.UptimeInput{Version: "v1", StartDate: start, EndDate: end, Interval: "month"}
 	var fakes = []*uptime.Uptime{}
 
-	fakes = exfaker.Many[uptime.Uptime](n)
+	fakes = exfaker.Many[*uptime.Uptime](n)
 	testDBSeed(ctx, fakes, testDB(ctx, dbFile))
 
 	for _, f := range fakes {
@@ -100,7 +100,7 @@ func TestUptimeApiHandlerUnit(t *testing.T) {
 	var input = &uptimeio.UptimeInput{Version: "v1", StartDate: start, EndDate: end, Interval: "month"}
 	var fakes = []*uptime.Uptime{}
 
-	fakes = exfaker.Many[uptime.Uptime](n)
+	fakes = exfaker.Many[*uptime.Uptime](n)
 	testDBSeed(ctx, fakes, testDB(ctx, dbFile))
 
 	for _, f := range fakes {
@@ -144,7 +144,7 @@ func TestUptimeApiHandlerUnitFilter(t *testing.T) {
 	var input = &uptimeio.UptimeInput{Version: "v1", StartDate: start, EndDate: end, Interval: "month", Unit: "unitA"}
 	var fakes = []*uptime.Uptime{}
 
-	fakes = exfaker.Many[uptime.Uptime](n)
+	fakes = exfaker.Many[*uptime.Uptime](n)
 	testDBSeed(ctx, fakes, testDB(ctx, dbFile))
 
 	for _, f := range fakes {
@@ -175,7 +175,7 @@ func TestUptimeApiRegister(t *testing.T) {
 	var dir = t.TempDir()
 	var dbFile = filepath.Join(dir, "test.db")
 	var ctx = context.WithValue(context.Background(), Segment, dbFile)
-	var dummy = exfaker.Many[uptime.Uptime](1440)
+	var dummy = exfaker.Many[*uptime.Uptime](1440)
 	var start = exfaker.TimeStringMin.Format(consts.DateFormatYearMonthDay)
 	var end = exfaker.TimeStringMax.Format(consts.DateFormatYearMonthDay)
 	var urls = []string{

@@ -24,7 +24,7 @@ var creates = []datastore.CreateStatement{
 // If there is no database at that location a new sqlite database will
 // be created and populated with series of dummy data - helpful for local testing.
 func Setup(ctx context.Context, dbFilepath string, seed bool) {
-	datastore.Setup[Uptime](ctx, dbFilepath, insert, creates, seed, RecordsToSeed)
+	datastore.Setup[*Uptime](ctx, dbFilepath, insert, creates, seed, RecordsToSeed)
 }
 
 // CreateNewDB will create a new DB file and then

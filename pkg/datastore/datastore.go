@@ -39,11 +39,6 @@ var Sqlite *Config = &Config{
 	YearMonthDayFormat: "%Y-%m-%d",
 }
 
-// Record interface
-type Record interface {
-	UID() string
-}
-
 // NewDB will return a sqlite db connection for the databaseFile passed along.
 // If the file does not exist then the an empty databasefile will be created at
 // that location

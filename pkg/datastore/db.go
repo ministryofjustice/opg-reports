@@ -14,6 +14,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/ministryofjustice/opg-reports/pkg/convert"
 	"github.com/ministryofjustice/opg-reports/pkg/exfaker"
+	"github.com/ministryofjustice/opg-reports/pkg/record"
 	"github.com/ministryofjustice/opg-reports/pkg/timer"
 )
 
@@ -64,7 +65,7 @@ var transactionOptions *sql.TxOptions = &sql.TxOptions{ReadOnly: false, Isolatio
 //   - will return an error if either the preparation fails or if the exec errors
 //   - if transaction passed is nil, a new one is created and commited
 //   - if a transaction is passed, Commit is NOT executed, presumes a wrapper above is doing this
-func InsertOne[R any](ctx context.Context, db *sqlx.DB, insert InsertStatement, record R, tx *sqlx.Tx) (insertedId int, err error) {
+func InsertOne[R record.Record](ctx context.Context, db *sqlx.DB, insert InsertStatement, record R, tx *sqlx.Tx) (insertedId int, err error) {
 	slog.Debug("[datastore.InsertOne]")
 	var (
 		transaction *sqlx.Tx = tx
@@ -103,7 +104,7 @@ func InsertOne[R any](ctx context.Context, db *sqlx.DB, insert InsertStatement, 
 // other inserts, but will be returned at the end.
 // If the commit triggers an error then a Rollback is automatically triggered
 // Designed for data import steps to allow large numbers (millions) to be inserted quickly
-func InsertMany[R any](ctx context.Context, db *sqlx.DB, insert InsertStatement, records []R) (insertedIds []int, err error) {
+func InsertMany[R record.Record](ctx context.Context, db *sqlx.DB, insert InsertStatement, records []R) (insertedIds []int, err error) {
 	slog.Debug("[datastore.InsertMany]", slog.Int("count to insert", len(records)))
 
 	var (
@@ -159,9 +160,31 @@ func Get[R any](ctx context.Context, db *sqlx.DB, query SelectStatement, args ..
 	return
 }
 
+// List returns muliple rows with a standard select - something like a select *
+func List[R any](ctx context.Context, db *sqlx.DB, query SelectStatement, r R, args ...interface{}) (result []R, err error) {
+	var rows *sqlx.Rows
+	result = []R{}
+	rows, err = db.QueryxContext(ctx, string(query), args...)
+	if err != nil {
+		slog.Error("[datastore.List] error calling queryx", slog.String("err", err.Error()))
+		return
+	}
+	for rows.Next() {
+		err = rows.StructScan(r)
+		if err != nil {
+			slog.Error("[datastore.List] error scanning row", slog.String("err", err.Error()))
+			return
+		}
+		result = append(result, r)
+	}
+
+	return
+}
+
 // Select runs the known statement against using the parameters as named values within them and returns the
 // result as a slice of []R
-func Select[R any](ctx context.Context, db *sqlx.DB, query NamedSelectStatement, params interface{}) (results R, err error) {
+// Expects multiple results - if you doing a single, use Get
+func Select[R record.Record](ctx context.Context, db *sqlx.DB, query NamedSelectStatement, params interface{}) (results []R, err error) {
 	var statement *sqlx.NamedStmt
 	// Check the parameters passed are valid for the query
 	if err = ValidateParameters(params, Needs(query)); err != nil {
@@ -254,7 +277,7 @@ func ColumnValues[T any](rows []T, columns []string) (values map[string][]interf
 // Setup will ensure a database with records exists in the filepath requested.
 // If there is no database at that location a new sqlite database will
 // be created and populated with series of dummy data - helpful for local testing.
-func Setup[T any](ctx context.Context, dbFilepath string, insertStmt InsertStatement, creates []CreateStatement, seed bool, n int) {
+func Setup[T record.Record](ctx context.Context, dbFilepath string, insertStmt InsertStatement, creates []CreateStatement, seed bool, n int) {
 
 	var err error
 	var db *sqlx.DB

@@ -52,7 +52,7 @@ func TestStandardsApiHandlerArchive(t *testing.T) {
 	var input = &standardsio.StandardsInput{Version: "v1", Archived: true}
 	var fakes = []*standards.Standard{}
 
-	fakes = exfaker.Many[standards.Standard](n)
+	fakes = exfaker.Many[*standards.Standard](n)
 	testDBSeed(ctx, fakes, testDB(ctx, dbFile))
 
 	for _, f := range fakes {
@@ -91,7 +91,7 @@ func TestStandardsApiHandlerTeamFilter(t *testing.T) {
 	var input = &standardsio.StandardsInput{Version: "v1", Archived: false, Unit: "unitA"}
 	var fakes = []*standards.Standard{}
 
-	fakes = exfaker.Many[standards.Standard](n)
+	fakes = exfaker.Many[*standards.Standard](n)
 	testDBSeed(ctx, fakes, testDB(ctx, dbFile))
 
 	for _, f := range fakes {
@@ -122,7 +122,7 @@ func TestStandardsApiRegister(t *testing.T) {
 	var dir = t.TempDir()
 	var dbFile = filepath.Join(dir, "test.db")
 	var ctx = context.WithValue(context.Background(), Segment, dbFile)
-	var dummy = exfaker.Many[standards.Standard](50)
+	var dummy = exfaker.Many[*standards.Standard](50)
 	var urls = []string{
 		"/v1/standards/github/false",
 		"/v1/standards/github/false",

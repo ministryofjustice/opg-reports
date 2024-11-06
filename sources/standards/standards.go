@@ -28,7 +28,7 @@ var creates = []datastore.CreateStatement{
 // be created and populated with series of dummy data - helpful for local testing.
 func Setup(ctx context.Context, dbFilepath string, seed bool) {
 
-	datastore.Setup[Standard](ctx, dbFilepath, insert, creates, seed, RecordsToSeed)
+	datastore.Setup[*Standard](ctx, dbFilepath, insert, creates, seed, RecordsToSeed)
 
 }
 

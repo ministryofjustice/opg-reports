@@ -21,6 +21,7 @@ import (
 	"github.com/go-faker/faker/v4"
 	"github.com/go-faker/faker/v4/pkg/options"
 	"github.com/ministryofjustice/opg-reports/pkg/consts"
+	"github.com/ministryofjustice/opg-reports/pkg/record"
 )
 
 var added bool = false
@@ -132,14 +133,31 @@ func AddProviders() {
 	added = true
 }
 
-// Many returns multiple faked versions of T
-func Many[T interface{}](n int, opts ...options.OptionFunc) (faked []*T) {
+// // Many returns multiple faked versions of T
+// func ManyP[T interface{}](n int, opts ...options.OptionFunc) (faked []*T) {
+// 	slog.Debug("[exfaker.Many] faking many", slog.Int("n", n))
+
+// 	faked = []*T{}
+// 	for i := 0; i < n; i++ {
+// 		var item T
+// 		var record = &item
+// 		if e := faker.FakeData(record, opts...); e == nil {
+// 			faked = append(faked, record)
+// 		} else {
+// 			slog.Error("[exfaker.Many]", slog.String("err", e.Error()))
+// 		}
+// 	}
+// 	faker.ResetUnique()
+// 	return
+// }
+
+func Many[T record.Record](n int, opts ...options.OptionFunc) (faked []T) {
 	slog.Debug("[exfaker.Many] faking many", slog.Int("n", n))
 
-	faked = []*T{}
+	faked = []T{}
 	for i := 0; i < n; i++ {
 		var item T
-		var record = &item
+		var record = item.New().(T)
 		if e := faker.FakeData(record, opts...); e == nil {
 			faked = append(faked, record)
 		} else {
@@ -148,6 +166,16 @@ func Many[T interface{}](n int, opts ...options.OptionFunc) (faked []*T) {
 	}
 	faker.ResetUnique()
 	return
+}
+
+type choice interface {
+	comparable
+}
+
+// Choice will pick a value at randomg from a list
+func Choice[T choice](choices []T) T {
+	i := randInt(0, len(choices))
+	return choices[i]
 }
 
 func init() {

@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/pkg/datastore"
-	"github.com/ministryofjustice/opg-reports/sources/costs"
 	"github.com/ministryofjustice/opg-reports/sources/standards"
 	"github.com/ministryofjustice/opg-reports/sources/standards/standardsdb"
 )
@@ -34,6 +33,6 @@ func TestStandardsSetup(t *testing.T) {
 		t.Errorf("error counting db rows: [%s]", err.Error())
 	}
 	if count != standards.RecordsToSeed {
-		t.Errorf("incorrect number of rows - expected [%d] actual [%v]", costs.RecordsToSeed, count)
+		t.Errorf("incorrect number of rows - expected [%d] actual [%v]", standards.RecordsToSeed, count)
 	}
 }

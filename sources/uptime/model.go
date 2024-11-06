@@ -2,6 +2,8 @@ package uptime
 
 import (
 	"fmt"
+
+	"github.com/ministryofjustice/opg-reports/pkg/record"
 )
 
 type Uptime struct {
@@ -12,10 +14,22 @@ type Uptime struct {
 	Average float64 `json:"average,omitempty" db:"average" doc:"Percentage uptime average for this record period."`
 }
 
-// UID returns a unique uid
+// New
+// Record interface
+func (self *Uptime) New() record.Record {
+	return &Uptime{}
+}
+
+// UID
 // Record interface
 func (self *Uptime) UID() string {
 	return fmt.Sprintf("%s-%d", "uptime", self.ID)
+}
+
+// SetID
+// Record interface
+func (self *Uptime) SetID(id int) {
+	self.ID = id
 }
 
 // TDate
