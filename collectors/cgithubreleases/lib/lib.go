@@ -108,7 +108,7 @@ func WorkflowRunsToReleases(repo *github.Repository, teams string, runs []*githu
 			Source:     *run.HTMLURL,
 			Repository: *repo.FullName,
 			Teams:      teams,
-			Type:       "workflow",
+			Type:       "workflow_run",
 			Date:       run.CreatedAt.Format(consts.DateFormat),
 		}
 		all = append(all, release)
@@ -128,7 +128,7 @@ func PullRequestsToReleases(repo *github.Repository, teams string, prs []*github
 			Source:     *pr.HTMLURL,
 			Repository: *repo.FullName,
 			Teams:      teams,
-			Type:       "merge",
+			Type:       "pull_request",
 			Date:       pr.MergedAt.Format(consts.DateFormat),
 		}
 		all = append(all, release)

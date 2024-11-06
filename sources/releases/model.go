@@ -9,7 +9,7 @@ type Release struct {
 	Name       string `json:"name,omitempty" db:"name"`
 	Source     string `json:"source,omitempty" db:"source" doc:"url of source event."`
 	Date       string `json:"date,omitempty" db:"date" faker:"date_string" doc:"Date this release happened."`
-	Type       string `json:"type,omitempty" db:"type" faker:"oneof: workflow, merge" enum:"workflow,merge" doc:"tracks if this was a workflow run or a merge"`
+	Type       string `json:"type,omitempty" db:"type" faker:"oneof: workflow_run, pull_request" enum:"workflow,merge" doc:"tracks if this was a workflow run or a merge"`
 	Teams      string `json:"teams" db:"teams" faker:"oneof: #unitA#, #unitB#, #unitC#"`
 }
 
