@@ -16,7 +16,8 @@ const (
 	CostsUriMonthlyTax             endpoints.ApiEndpoint = "/{version}/costs/aws/tax-overview/{billing_date:-11}/{billing_date:0}/month"
 	CostsUriMonthlyUnit            endpoints.ApiEndpoint = "/{version}/costs/aws/unit/{billing_date:-9}/{billing_date:0}/month"
 	CostsUriMonthlyUnitEnvironment endpoints.ApiEndpoint = "/{version}/costs/aws/unit-environment/{billing_date:-9}/{billing_date:0}/month"
-	CostsUriMonthlyDetailed        endpoints.ApiEndpoint = "/{version}/costs/aws/detailed/{billing_date:-6}/{billing_date:0}/month"
+
+	CostsUriMonthlyDetailed endpoints.ApiEndpoint = "/{version}/costs/aws/detailed/{billing_date:-6}/{billing_date:0}/month"
 
 	CostsUriDailyUnit            endpoints.ApiEndpoint = "/{version}/costs/aws/unit/{billing_date:-1}/{billing_date:0}/day"
 	CostsUriDailyUnitEnvironment endpoints.ApiEndpoint = "/{version}/costs/aws/unit-environment/{billing_date:-1}/{billing_date:0}/day"
@@ -28,14 +29,15 @@ const (
 	StandardsUri endpoints.ApiEndpoint = "/{version}/standards/github/false"
 )
 
-// Uptime
+// Uptime endpoints
 const (
 	UptimeOverallMonthlyUri endpoints.ApiEndpoint = "/{version}/uptime/aws/overall/{month:-9}/{month:0}/month"
 	UptimePerUnitMonthlyUri endpoints.ApiEndpoint = "/{version}/uptime/aws/unit/{month:-9}/{month:0}/month"
+
 	UptimePerUnitBillingUri endpoints.ApiEndpoint = "/{version}/uptime/aws/unit/{billing_date:-6}/{billing_date:0}/month"
 
-	UptimeOverallDailylUri endpoints.ApiEndpoint = "/{version}/uptime/aws/overall/{day:-30}/{day:-1}/day"
-	UptimePerUnitDailylUri endpoints.ApiEndpoint = "/{version}/uptime/aws/unit/{day:-30}/{day:-1}/day"
+	UptimeOverallDailylUri endpoints.ApiEndpoint = "/{version}/uptime/aws/overall/{day:-15}/{day:0}/day"
+	UptimePerUnitDailylUri endpoints.ApiEndpoint = "/{version}/uptime/aws/unit/{day:-15}/{day:0}/day"
 )
 
 // -- Costs navigation items
@@ -143,20 +145,7 @@ var up = navigation.New(
 	uptimeAws,
 )
 
-// -- simple navigation structure
-// replica of ghStandards so it doesnt get parent structure attached
-// as that will then render the sidebar navigation
-var simple = navigation.New(
-	"Repositories",
-	"/standards/repositories",
-	&navigation.Display{PageTemplate: "standards-github-repositories"},
-	&navigation.Data{
-		Source:    StandardsUri,
-		Namespace: "RepositoryStandards",
-		Body:      &standardsio.StandardsBody{},
-	},
-)
-
+// TODO: use a real team name for sirius
 // -- team navigation - sirius
 var siriusHistorical = navigation.New(
 	"Historical Data",
@@ -180,6 +169,12 @@ var sirius = navigation.New(
 	"Sirius",
 	"/sirius",
 	&navigation.Display{PageTemplate: "team-overview", IsHeader: true},
+	&navigation.Data{
+		Source:      UptimePerUnitDailylUri + "?unit=unitA",
+		Namespace:   "TeamUptimeUnit",
+		Body:        &uptimeio.UptimeBody{},
+		Transformer: uptimefront.TransformResult,
+	},
 	siriusHistorical,
 )
 
@@ -193,12 +188,34 @@ var overview = navigation.New(
 	costs,
 )
 
+// -- simple navigation structure
+
+// replica of ghStandards so it doesnt get parent structure attached
+// as that will then render the sidebar navigation
+var single = navigation.New(
+	"Repositories",
+	"/standards/repositories",
+	&navigation.Display{PageTemplate: "standards-github-repositories"},
+	&navigation.Data{
+		Source:    StandardsUri,
+		Namespace: "RepositoryStandards",
+		Body:      &standardsio.StandardsBody{},
+	},
+)
+
+// navigation setup - picked by bi.Mode
+var (
+	full   = []*navigation.Navigation{overview, sirius}
+	simple = []*navigation.Navigation{single}
+)
+
 // NavigationChoices is the set of all navigation structures
 // to share
 // This is the then selected in the sfront by using
 // bi.Navigation as the key for this map
 // This allows the navigation to be changed at run time
 var NavigationChoices = map[string][]*navigation.Navigation{
-	// "simple": {simple},
-	"simple": {overview, sirius},
+	// "simple": simple,
+	"simple": full,
+	"full":   full,
 }

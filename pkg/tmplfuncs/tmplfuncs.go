@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ministryofjustice/opg-reports/pkg/consts"
+	"github.com/ministryofjustice/opg-reports/pkg/convert"
 	"github.com/ministryofjustice/opg-reports/pkg/navigation"
 	"github.com/ministryofjustice/opg-reports/pkg/nums"
 	"golang.org/x/text/cases"
@@ -50,10 +52,15 @@ func ValueFromMap(name string, data map[string]interface{}) (value interface{}) 
 	return
 }
 
+// Currency displays s as a float with 2 decimals and appends the currency symbol to the start
+// Used to display financial values cleanly
 func Currency(s interface{}, symbol string) string {
 	return symbol + FloatString(s, "%.2f")
 }
 
+// FloatString treats s as a float (if its a string, it converts, other types are ignored) and
+// returns sprintf version using the layout passed
+// defaults to "0.00"
 func FloatString(s interface{}, layout string) string {
 	p := message.NewPrinter(language.English)
 	switch s.(type) {
@@ -66,10 +73,17 @@ func FloatString(s interface{}, layout string) string {
 	return "0.00"
 }
 
+// Percentage presumes the string is a float and
+// returns a string with 4 decimals and a trailing %
+// marker
 func Percentage(s interface{}) string {
 	return FloatString(s, "%.4f") + " %"
 }
 
+// Matches is used by top navigation to see if it is a match for the active root
+// section of the website - which when true should then highlight the
+// nav item
+// Compares the .Uri properties
 func Matches(a *navigation.Navigation, b *navigation.Navigation) (m bool) {
 	m = false
 	if b != nil {
@@ -77,6 +91,29 @@ func Matches(a *navigation.Navigation, b *navigation.Navigation) (m bool) {
 	}
 	return
 }
+
+// Day converts the string into a date and then back to a string
+// formatted as yyyy-mm-dd
+func Day(s string) (date string) {
+	date = s
+	if v, err := convert.ToTime(s); err == nil {
+		date = v.Format(consts.DateFormatYearMonthDay)
+	}
+	return
+}
+
+// DayBefore converts the string into a date, removes 1 day
+// and then converts back to a string formatted as yyyy-mm-dd
+func DayBefore(s string) (date string) {
+	date = s
+	if v, err := convert.ToTime(s); err == nil {
+		date = v.AddDate(0, 0, -1).Format(consts.DateFormatYearMonthDay)
+	}
+	return
+}
+
+// day           = func(t string) string { return dates.Time(t).Format(dates.FormatYMD) }                   // Format the string into a time in YYYY-MM-DD
+// 	dayBefore     = func(t string) string { return dates.Time(t).AddDate(0, 0, -1).Format(dates.FormatYMD) } // Format the string into a time in YYYY-MM-DD and go back one day
 
 var All map[string]interface{} = map[string]interface{}{
 	// access
@@ -89,4 +126,6 @@ var All map[string]interface{} = map[string]interface{}{
 	"title":      Title,
 	"currency":   Currency,
 	"percentage": Percentage,
+	"day":        Day,
+	"dayBefore":  DayBefore,
 }

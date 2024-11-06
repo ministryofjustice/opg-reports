@@ -1,6 +1,24 @@
 {{ define "team-overview" }}
     {{ template "head" . }}
 
-    <h1 class="govuk-heading-l">Team</h1>
+    {{ $uptime := .TeamUptimeUnit }}
+
+    <h1 class="govuk-heading-l">{{ title $uptime.Request.Unit }} latest</h1>
+    <p class="govuk-body">Our data grouped by day between <strong>[{{ day $uptime.Request.StartDate }}]</strong> and <strong>[{{ dayBefore $uptime.Request.EndDate }}]</strong>.</p>
+
+    {{ if $uptime }}
+
+        <section class='outer'>
+            <h2 class="govuk-heading-m">Uptime</h2>
+            <p class="govuk-body">Breakdown of costs for all units per month.</p>
+
+            <div class="compare dataset">
+                {{ template "uptime-table" $uptime }}
+            </div>
+        </section>
+    {{ end }}
+
+
+
     {{ template "foot" . }}
 {{ end }}
