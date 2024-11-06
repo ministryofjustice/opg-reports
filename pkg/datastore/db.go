@@ -43,8 +43,9 @@ type NamedSelectStatement SelectStatement
 // within statements
 type NamedParameters interface{}
 
-// Create will uses MustExecContext to run the slice of createStatements passed.
+// Create will uses ExecContext to run the slice of createStatements passed.
 // Used to create table, add indexes and so on in sequence
+// Any errors in this process will trigger a panic and exit
 func Create(ctx context.Context, db *sqlx.DB, create []CreateStatement) {
 	slog.Debug("[datastore.Create] ")
 	for _, stmt := range create {
@@ -279,7 +280,8 @@ func Setup[T any](ctx context.Context, dbFilepath string, insertStmt InsertState
 }
 
 // CreateNewDB will create a new DB file and then
-// try to run table and index creates
+// try to run table and index creates against it.
+// Returns the db, a bool to say if it was new and any errors
 func CreateNewDB(ctx context.Context, dbFilepath string, creates []CreateStatement) (db *sqlx.DB, isNew bool, err error) {
 
 	db, isNew, err = NewDB(ctx, Sqlite, dbFilepath)

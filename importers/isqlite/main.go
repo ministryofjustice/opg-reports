@@ -13,15 +13,14 @@ The flags are:
 		Each json file should be a list of objects.
 	-type
 		Flag to say what type of data is within these files from
-		one of the known values - [costs].
+		one of the known values - [costs|standards|uptime].
 		Defaults to costs
+	-database
+		The path to the datbase file. Uses {type} as placeholder.
+		Default: `./databases/{type}.db`
 
 It will iterate over all files within the named directory, importing
 each record into a database.
-
-The database is predetermined based on the type parameter:
-
-	`./databases/{type}.db`
 
 There are no duplication checks, it assumes this has been handled externally.
 */
@@ -29,6 +28,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -67,7 +67,13 @@ func Run(args *lib.Arguments) (err error) {
 	// process each file in a go func and insert the content
 	for _, file := range files {
 		waitgroup.Add(1)
-		go lib.ProcessDataFile(ctx, &waitgroup, db, args, file)
+		go func(c context.Context, wg *sync.WaitGroup, d *sqlx.DB, a *lib.Arguments, f string) {
+			_, e := lib.ProcessDataFile(c, d, a, f)
+			if e != nil {
+				err = errors.Join(err, e)
+			}
+			wg.Done()
+		}(ctx, &waitgroup, db, args, file)
 	}
 	// Wait till all have been done
 	waitgroup.Wait()
