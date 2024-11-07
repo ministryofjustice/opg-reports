@@ -22,7 +22,7 @@ const (
 const (
 	InsertTeam    datastore.InsertStatement = `INSERT INTO teams (team_name) VALUES (:team_name) RETURNING team_id;`
 	InsertJoin    datastore.InsertStatement = `INSERT INTO releases_teams (release_id, team_id) VALUES (:release_id, :team_id) RETURNING join_id;`
-	InsertRelease datastore.InsertStatement = `INSERT INTO releases (ts, repository, name, source, type, date,count) VALUES (:ts,:repository,:name,:source,:type,:date,:count) RETURNING id;`
+	InsertRelease datastore.InsertStatement = `INSERT INTO releases (ts, repository, name, source, type, date, count) VALUES (:ts,:repository,:name,:source,:type,:date,:count) RETURNING id;`
 )
 
 // Counters

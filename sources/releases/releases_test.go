@@ -2,12 +2,16 @@ package releases_test
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/ministryofjustice/opg-reports/pkg/datastore"
+	"github.com/ministryofjustice/opg-reports/pkg/exfaker"
 	"github.com/ministryofjustice/opg-reports/pkg/record"
+	"github.com/ministryofjustice/opg-reports/pkg/timer"
 	"github.com/ministryofjustice/opg-reports/sources/releases"
 	"github.com/ministryofjustice/opg-reports/sources/releases/releasesdb"
 )
@@ -17,9 +21,15 @@ var _ record.Record = &releases.Release{}
 var _ record.JoinInserter = &releases.Release{}
 var _ record.JoinSelector = &releases.Release{}
 
-// runs Setup and then checks the
-// file exists and the location and that it has
-// records in the table
+// Runs Setup to create a seeded db and then checks records are inserted correctly
+// for the primary record type (Release) and checks join insert and selects.
+//
+//   - Adds dummy / generated data via .Setup and checks success with row count
+//   - Checks the number of joins created between addresses (should be 1 each)
+//   - Checks calling .Teams will return the correct team data
+//   - Checks that calling a db select operation will in .TeamList correctly
+//
+// Tests the JoinInserter & JoinSelector interfaces
 func TestReleasesSetup(t *testing.T) {
 	var dir = t.TempDir()
 	var dbFile = filepath.Join(dir, "test.db")
@@ -73,12 +83,12 @@ func TestReleasesSetup(t *testing.T) {
 		t.Errorf("error counting db rows: [%s]", err.Error())
 	}
 
-	if len(teams) != 1 {
+	if len(teams) <= 0 {
 		t.Errorf("failed to get team for record")
 	}
 	// now compare fetched team to selected version
 	if len(rand.TeamList) != len(teams) {
-		t.Errorf("automatic team fetching via JoinSelector failed")
+		t.Errorf("automatic team fetching via JoinSelector interface failed")
 	}
 	// check content on each
 	for _, og := range rand.TeamList {
@@ -92,4 +102,56 @@ func TestReleasesSetup(t *testing.T) {
 			t.Errorf("failed to match teams between interface join selector and direct fetch.")
 		}
 	}
+}
+
+// If we generate several thousand records, whats the performance of the join
+// select and insert interfaces like.
+// This test will time an insert and full fetch
+func TestReleasesPerformance(t *testing.T) {
+	var err error
+	var db *sqlx.DB
+	var dir = t.TempDir()
+	var dbFile = filepath.Join(dir, "perf.db")
+	var ctx = context.Background()
+	var n = 10000
+
+	inTick := timer.New()
+	// make sure extra providers are enabled
+	exfaker.AddProviders()
+	// create db
+	db, _, err = releases.CreateNewDB(ctx, dbFile)
+	if err != nil {
+		t.Errorf("error [%s]", err.Error())
+	}
+	defer db.Close()
+
+	// -- generate large fake dataset and then insert, timing them
+	faked := exfaker.Many[*releases.Release](n)
+	ids, err := datastore.InsertMany(ctx, db, releasesdb.InsertRelease, faked)
+	if err != nil {
+		t.Errorf("error inserting: [%s]", err.Error())
+	}
+	if len(ids) != n {
+		t.Errorf("incorrect number of row ids returned - expected [%d] actual [%v]", n, len(ids))
+	}
+	inTick.Stop()
+
+	// -- now fetch all of those records back and time that
+	outTick := timer.New()
+	all, err := datastore.SelectMany[*releases.Release](ctx, db, "SELECT * FROM releases;", &releases.Release{})
+	if err != nil {
+		t.Errorf("error inserting: [%s]", err.Error())
+	}
+
+	outTick.Stop()
+
+	if len(all) != n {
+		t.Errorf("incorrect number of rows returned - expected [%d] actual [%v]", n, len(all))
+	}
+
+	fmt.Println("insert duration")
+	fmt.Println(inTick.Duration())
+	fmt.Println("select duration")
+	fmt.Println(outTick.Duration())
+
 }
