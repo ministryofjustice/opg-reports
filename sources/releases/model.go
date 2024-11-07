@@ -23,7 +23,7 @@ type Release struct {
 	Date       string  `json:"date,omitempty" db:"date" faker:"date_string" doc:"Date this release happened."`
 	Count      int     `json:"count,omitempty" db:"count" faker:"oneof: 1" enum:"1" doc:"Number of releases"`
 	TeamList   []*Team `json:"teams,omitempty" db:"teams" faker:"slice_len=2" doc:"pulled from a many to many join table"`
-	TeamName   string  `json:"team,omitempty" db:"team_name" faker:"-" doc:"Used to show team name on grouped queries"`
+	Unit       string  `json:"unit,omitempty" db:"unit" faker:"-" doc:"Used to show team name on grouped queries"`
 }
 
 // InsertJoins.

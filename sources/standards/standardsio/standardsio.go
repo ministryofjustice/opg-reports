@@ -24,8 +24,6 @@ func (self *StandardsInput) Resolve(ctx huma.Context) []error {
 	return nil
 }
 
-var _ huma.Resolver = (*StandardsInput)(nil)
-
 type Counters struct {
 	Total                  int `json:"total" doc:"Overall total number of records in the database."`
 	TotalBaselineCompliant int `json:"total_baseline_compliant" doc:"Overall number of records that are baseline compliant."`

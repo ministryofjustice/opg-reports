@@ -38,7 +38,7 @@ const (
 
 // Team selects
 const (
-	ListTeams     datastore.SelectStatement      = `SELECT * from teams ORDER BY name ASC`                 // List all teams
+	ListTeams     datastore.NamedSelectStatement = `SELECT * from teams ORDER BY name ASC`                 // List all teams
 	GetTeamByName datastore.NamedSelectStatement = `SELECT id, name FROM teams WHERE name = :name LIMIT 1` // Get team with this :name
 	GetTeamByID   datastore.NamedSelectStatement = `SELECT id, name FROM teams WHERE id = :id LIMIT 1`     // Get the team with this :id
 )
@@ -51,7 +51,7 @@ const (
 // Release selects
 const (
 	GetRandomRelease   datastore.SelectStatement      = `SELECT * FROM releases ORDER BY RANDOM() LIMIT 1`                                                                                                         // Pick a random release
-	ListReleases       datastore.SelectStatement      = `SELECT * FROM releases ORDER BY id ASC`                                                                                                                   // List all releasees in id order
+	ListReleases       datastore.NamedSelectStatement = `SELECT * FROM releases ORDER BY id ASC`                                                                                                                   // List all releasees in id order
 	GetTeamsForRelease datastore.NamedSelectStatement = `SELECT teams.id as id, teams.name as name FROM releases_teams LEFT JOIN teams ON releases_teams.team_id = teams.id WHERE releases_teams.release_id = :id` // Get all the teams for the release with matching id
 )
 
@@ -62,18 +62,55 @@ SELECT
 	strftime(:date_format, releases.date) as date,
 	COUNT(releases.id) as count
 FROM releases
+WHERE
+	date >= :start_date
+    AND date < :end_date
+GROUP BY strftime(:date_format, releases.date)
+ORDER BY strftime(:date_format, releases.date) ASC
+;`
+
+const ListReleasesGroupedByIntervalFilter datastore.NamedSelectStatement = `
+SELECT
+	strftime(:date_format, releases.date) as date,
+	COUNT(releases.id) as count
+FROM releases
+LEFT JOIN releases_teams on releases_teams.release_id = releases.id
+LEFT JOIN teams on teams.id = releases_teams.team_id
+WHERE
+	date >= :start_date
+    AND date < :end_date
+	AND teams.name = :unit
 GROUP BY strftime(:date_format, releases.date)
 ORDER BY strftime(:date_format, releases.date) ASC
 ;`
 
 const ListReleasesGroupedByIntervalAndTeam datastore.NamedSelectStatement = `
 SELECT
-	teams.name as team_name,
+	teams.name as unit,
 	strftime(:date_format, releases.date) as date,
 	COUNT(releases.id) as count
 FROM releases
 LEFT JOIN releases_teams on releases_teams.release_id = releases.id
 LEFT JOIN teams on teams.id = releases_teams.team_id
+WHERE
+	releases.date >= :start_date
+    AND releases.date < :end_date
+GROUP BY strftime(:date_format, releases.date), releases_teams.team_id
+ORDER BY strftime(:date_format, releases.date), teams.name ASC
+;`
+
+const ListReleasesGroupedByIntervalAndTeamFilter datastore.NamedSelectStatement = `
+SELECT
+	teams.name as unit,
+	strftime(:date_format, releases.date) as date,
+	COUNT(releases.id) as count
+FROM releases
+LEFT JOIN releases_teams on releases_teams.release_id = releases.id
+LEFT JOIN teams on teams.id = releases_teams.team_id
+WHERE
+	releases.date >= :start_date
+    AND releases.date < :end_date
+	AND teams.name = :unit
 GROUP BY strftime(:date_format, releases.date), releases_teams.team_id
 ORDER BY strftime(:date_format, releases.date), teams.name ASC
 ;`

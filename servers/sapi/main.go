@@ -28,6 +28,8 @@ import (
 	"github.com/ministryofjustice/opg-reports/servers/sapi/lib"
 	"github.com/ministryofjustice/opg-reports/sources/costs"
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsapi"
+	"github.com/ministryofjustice/opg-reports/sources/releases"
+	"github.com/ministryofjustice/opg-reports/sources/releases/releasesapi"
 	"github.com/ministryofjustice/opg-reports/sources/standards"
 	"github.com/ministryofjustice/opg-reports/sources/standards/standardsapi"
 	"github.com/ministryofjustice/opg-reports/sources/uptime"
@@ -63,6 +65,11 @@ var (
 			DbFile:       "./databases/uptime.db",
 			SetupFunc:    uptime.Setup,
 			RegisterFunc: uptimeapi.Register,
+		},
+		releasesapi.Segment: {
+			DbFile:       "./databases/releases.db",
+			SetupFunc:    releases.Setup,
+			RegisterFunc: releasesapi.Register,
 		},
 	}
 	segmentChoices map[string]map[string]*lib.ApiSegment = map[string]map[string]*lib.ApiSegment{
