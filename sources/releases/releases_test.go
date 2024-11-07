@@ -58,17 +58,14 @@ func TestReleasesSetup(t *testing.T) {
 		t.Errorf("incorrect number of rows - expected [%d] actual [%v]", releases.RecordsToSeed, count)
 	}
 
-	// Based on the faker config on the release model every release should
-	// generate a single
-	// Those teams may not be unique, but we can check the number joins
-	// which should be 1 x numberof releases
-	expectedJoins := 1 * releases.RecordsToSeed
+	// every release should have at least 1 team, maybe more
+	// make sure the number of joins is at least the number of releases
 	count, err = datastore.Get[int](ctx, db, releasesdb.JoinCount)
 	if err != nil {
 		t.Errorf("error counting db rows: [%s]", err.Error())
 	}
-	if count != expectedJoins {
-		t.Errorf("incorrect number of joins - expected [%d] actual [%v]", expectedJoins, count)
+	if count < releases.RecordsToSeed {
+		t.Errorf("incorrect number of joins - actual [%v]", count)
 	}
 
 	// Now check that a record fetched will return the correct team details

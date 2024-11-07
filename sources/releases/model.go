@@ -115,8 +115,8 @@ func (self *Release) TValue() string {
 
 // Team captures the github team from the repository
 type Team struct {
-	ID   int    `json:"team_id,omitempty" db:"team_id" faker:"unique, boundary_start=1, boundary_end=2000000" doc:"Database primary key."`
-	Name string `json:"team_name,omitempty" db:"team_name" faker:"oneof: A, B, C, D"`
+	ID   int    `json:"id,omitempty" db:"id" faker:"unique, boundary_start=1, boundary_end=2000000" doc:"Database primary key."`
+	Name string `json:"name,omitempty" db:"name" faker:"oneof: A, B, C, D"`
 }
 
 // UpdateSelf finds its record within the database (by checking name) and updates its ID to match
@@ -156,7 +156,7 @@ func (self *Team) SetID(id int) {
 
 // Join is many to many table between both team and releases
 type Join struct {
-	ID        int `json:"join_id,omitempty" db:"join_id" faker:"unique, boundary_start=1, boundary_end=2000000" doc:"Database primary key."`
+	ID        int `json:"id,omitempty" db:"id" faker:"unique, boundary_start=1, boundary_end=2000000" doc:"Database primary key."`
 	TeamID    int `json:"team_id,omitempty" db:"team_id"`
 	ReleaseID int `json:"release_id,omitempty" db:"release_id"`
 }
