@@ -14,8 +14,8 @@ import (
 
 // Release captures either the merged pull request
 type Release struct {
-	ID         int     `json:"id,omitempty" db:"id" faker:"unique, boundary_start=1, boundary_end=2000000" doc:"Database primary key."` // ID is a generated primary key
-	Ts         string  `json:"ts,omitempty" db:"ts" faker:"time_string" doc:"Time the record was created."`                             // TS is timestamp when the record was created
+	ID         int     `json:"id,omitempty" db:"id" faker:"-" doc:"Database primary key."`                  // ID is a generated primary key
+	Ts         string  `json:"ts,omitempty" db:"ts" faker:"time_string" doc:"Time the record was created."` // TS is timestamp when the record was created
 	Repository string  `json:"repository,omitempty" db:"repository" faker:"word"`
 	Name       string  `json:"name,omitempty" db:"name" faker:"word"`
 	Source     string  `json:"source,omitempty" db:"source" doc:"url of source event." faker:"uri"`
@@ -120,7 +120,7 @@ func (self *Release) TValue() string {
 
 // Team captures the github team from the repository
 type Team struct {
-	ID   int    `json:"id,omitempty" db:"id" faker:"unique, boundary_start=1, boundary_end=2000000" doc:"Database primary key."`
+	ID   int    `json:"id,omitempty" db:"id" faker:"-" doc:"Database primary key."`
 	Name string `json:"name,omitempty" db:"name" faker:"oneof: A, B, C, D"`
 }
 
@@ -161,7 +161,7 @@ func (self *Team) SetID(id int) {
 
 // Join is many to many table between both team and releases
 type Join struct {
-	ID        int `json:"id,omitempty" db:"id" faker:"unique, boundary_start=1, boundary_end=2000000" doc:"Database primary key."`
+	ID        int `json:"id,omitempty" db:"id" faker:"-" doc:"Database primary key."`
 	TeamID    int `json:"team_id,omitempty" db:"team_id"`
 	ReleaseID int `json:"release_id,omitempty" db:"release_id"`
 }

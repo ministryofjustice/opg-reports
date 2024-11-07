@@ -40,7 +40,7 @@ var (
 )
 
 type address struct {
-	ID     int    `json:"id,omitempty" db:"id" faker:"unique, boundary_start=1, boundary_end=2000000" doc:"Database primary key."` // ID is a generated primary key
+	ID     int    `json:"id,omitempty" db:"id" faker:"-" doc:"Database primary key."` // ID is a generated primary key
 	Street string `json:"street,omitempty" db:"street" faker:"word"`
 }
 
@@ -55,7 +55,7 @@ func (self *address) SetID(id int) {
 }
 
 type address_person struct {
-	ID        int `json:"id,omitempty" db:"id" faker:"unique, boundary_start=1, boundary_end=2000000" doc:"Database primary key."`
+	ID        int `json:"id,omitempty" db:"id" faker:"-" doc:"Database primary key."`
 	PersonID  int `json:"person_id,omitempty" db:"person_id"`
 	AddressID int `json:"address_id,omitempty" db:"address_id"`
 }
@@ -71,7 +71,7 @@ func (self *address_person) SetID(id int) {
 }
 
 type person struct {
-	ID        int        `json:"id,omitempty" db:"id" faker:"unique, boundary_start=1, boundary_end=2000000" doc:"Database primary key."` // ID is a generated primary key
+	ID        int        `json:"id,omitempty" db:"id" faker:"-" doc:"Database primary key."` // ID is a generated primary key
 	Name      string     `json:"name,omitempty" db:"name" faker:"first_name"`
 	Addresses []*address `json:"addresses,omitempty" db:"-" faker:"slice_len=1" doc:"pulled from a many to many join table"`
 }

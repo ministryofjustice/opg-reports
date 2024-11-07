@@ -8,7 +8,7 @@ import (
 )
 
 type tabTest struct {
-	ID          int    `json:"id,omitempty" db:"id" faker:"unique, boundary_start=1, boundary_end=2000000" doc:"Database primary key."`                                 // ID is a generated primary key
+	ID          int    `json:"id,omitempty" db:"id" faker:"-" doc:"Database primary key."`                                                                              // ID is a generated primary key
 	Ts          string `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."`                                                            // TS is timestamp when the record was created
 	Unit        string `json:"unit,omitempty" db:"unit" faker:"oneof: A, B, C" doc:"The name of the unit / team that owns this account."`                               // Unit is the team that owns this account, passed directly
 	Environment string `json:"environment,omitempty" db:"environment" faker:"oneof: production, pre-production, development" doc:"Environment type."`                   // Environment is passed along to show if this is production, development etc account

@@ -10,7 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/ministryofjustice/opg-reports/importers/isqlite/lib"
 	"github.com/ministryofjustice/opg-reports/pkg/exfaker"
-	"github.com/ministryofjustice/opg-reports/sources/costs"
+	"github.com/ministryofjustice/opg-reports/sources/releases"
 )
 
 // TestImportsISqliteValidateArgs checks that the args struct is validating as expected
@@ -82,19 +82,20 @@ func TestImportsISqliteProcessDataFile(t *testing.T) {
 	var err error
 	var db *sqlx.DB
 	var count int
-	var dir = t.TempDir()
+	var dir = "./" //t.TempDir()
 	var dbFile = filepath.Join(dir, "test.db")
 	var testFile = filepath.Join(dir, "test.json")
 	var args = &lib.Arguments{}
 	var ctx = context.Background()
+	var n = 1000
 
 	// -- working
 	// write some dummy data to the file
-	fakes := exfaker.Many[*costs.Cost](10)
+	fakes := exfaker.Many[*releases.Release](n)
 	content, _ := json.MarshalIndent(fakes, "", "  ")
 	os.WriteFile(testFile, content, os.ModePerm)
 	// setup the args
-	args = &lib.Arguments{Type: "costs", Database: dbFile, Directory: dir}
+	args = &lib.Arguments{Type: "releases", Database: dbFile, Directory: dir}
 	db, err = lib.GetDatabase(ctx, args)
 	if err != nil {
 		t.Errorf("error getting database: [%s]", err.Error())

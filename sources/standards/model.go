@@ -9,8 +9,8 @@ import (
 )
 
 type Standard struct {
-	ID                             int    `json:"id,omitempty" db:"id" faker:"unique, boundary_start=1, boundary_end=2000000" doc:"Database primary key."` // ID is a generated primary key
-	Ts                             string `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."`                            // TS is timestamp when the record was created
+	ID                             int    `json:"id,omitempty" db:"id" faker:"-" doc:"Database primary key."`                   // ID is a generated primary key
+	Ts                             string `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."` // TS is timestamp when the record was created
 	CompliantBaseline              uint8  `json:"compliant_baseline,omitempty" db:"compliant_baseline" faker:"oneof: 0, 1"`
 	CompliantExtended              uint8  `json:"compliant_extended,omitempty" db:"compliant_extended" faker:"oneof: 0, 1"`
 	CountOfClones                  int    `json:"count_of_clones,omitempty" db:"count_of_clones" faker:"oneof: 0, 1"`

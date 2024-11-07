@@ -9,7 +9,7 @@ import (
 
 // Cost is both the database model and the result struct for the api
 type Cost struct {
-	ID           int    `json:"id,omitempty" db:"id" faker:"unique, boundary_start=1, boundary_end=2000000" doc:"Database primary key."`                                 // ID is a generated primary key
+	ID           int    `json:"id,omitempty" db:"id" faker:"-" doc:"Database primary key."`                                                                              // ID is a generated primary key
 	Ts           string `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."`                                                            // TS is timestamp when the record was created
 	Organisation string `json:"organisation,omitempty" db:"organisation" faker:"oneof: foo, bar, foobar" doc:"Name of the organisation."`                                // Organisation is part of the account details and string name
 	AccountID    string `json:"account_id,omitempty" db:"account_id" faker:"oneof: 101, 102, 201, 202, 301, 302" doc:"Account ID this cost comes from."`                 // AccountID is the aws account id this row is for
