@@ -14,14 +14,14 @@ type Record interface {
 	UID() string
 }
 
-// RecordInsertJoiner
+// JoinInserter
 // Used for more advanced records that have database joins
-type RecordInsertJoiner interface {
+type JoinInserter interface {
 	InsertJoins(ctx context.Context, db *sqlx.DB) error
 }
 
-// RecordSelectJoiner
+// JoinSelector
 // Used for more advanced to fetch their join information
-type RecordSelectJoiner interface {
+type JoinSelector interface {
 	SelectJoins(ctx context.Context, db *sqlx.DB) error
 }

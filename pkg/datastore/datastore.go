@@ -26,7 +26,7 @@
 // enforces a few functions to ensure the datastore methods will work correctly.
 //
 // If your database objects are more complex and contain joins between tables, there is a mechanism to deal with
-// those joins. By implementing the `record.RecordInsertJoiner` interface calling either InsertOne or InsertMany
+// those joins. By implementing the `record.JoinInserter` interface calling either InsertOne or InsertMany
 // will also trigger the InsertJoins function - allowing you to handle those relationships directly.
 //
 // Uses sqlx

@@ -64,7 +64,7 @@ func InsertOne[R record.Record](ctx context.Context, db *sqlx.DB, insert InsertS
 // Errors and insert id's are tracked and returned. An error on a particular insert does not stop the
 // other inserts, but will be returned at the end.
 //
-// Calls JoinInsertMany to deal with any joins on the record (by checking its record.RecordInsertJoiner) and
+// Calls JoinInsertMany to deal with any joins on the record (by checking its record.JoinInserter) and
 // deals with each of those within its on transaction and loop
 //
 // If the commit triggers an error then a Rollback is automatically triggered

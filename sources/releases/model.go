@@ -32,7 +32,7 @@ type Release struct {
 //   - find each team with matching name (or insert a new one)
 //   - find each (or create) the join between the team and this release
 //
-// RecordInsertJoiner interface
+// JoinInserter interface
 func (self *Release) InsertJoins(ctx context.Context, db *sqlx.DB) (err error) {
 	var tx *sqlx.Tx = db.MustBeginTx(ctx, datastore.TxOptions)
 	var teams []*Team = []*Team{}

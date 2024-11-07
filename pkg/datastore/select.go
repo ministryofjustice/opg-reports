@@ -22,16 +22,25 @@ func Get[R any](ctx context.Context, db *sqlx.DB, query SelectStatement, args ..
 }
 
 // GetRecord fetches a single db result (of R record.Record) as a struct using a SelectStatement
+//
+// Will call JoinSelectOne to make sure the joins fields are updated
 func GetRecord[R record.Record](ctx context.Context, db *sqlx.DB, query SelectStatement, result R, args ...interface{}) (err error) {
 	var row *sqlx.Row
 	row = db.QueryRowxContext(ctx, string(query), args...)
 	err = row.StructScan(result)
+	// update join
+	if err == nil {
+		JoinSelectOne(ctx, db, result)
+	}
+
 	return
 }
 
 // SelectMany runs the known statement against using the parameters as named values within them and returns the
 // result as a slice of []R
 // Expects multiple results - if you doing a single, use SelectOne (or Get)
+//
+// Will call JoinSelectMany to make sure the joins fields are updated
 func SelectMany[R record.Record](ctx context.Context, db *sqlx.DB, query NamedSelectStatement, params interface{}) (results []R, err error) {
 	var statement *sqlx.NamedStmt
 	// Check the parameters passed are valid for the query
@@ -48,13 +57,20 @@ func SelectMany[R record.Record](ctx context.Context, db *sqlx.DB, query NamedSe
 	if err != nil && err != sql.ErrNoRows {
 		slog.Error("[datastore.SelectMany] error at exit", slog.String("err", err.Error()), slog.String("R", fmt.Sprintf("%T", results)))
 	}
+	// update join fields
+	if err == nil {
+		JoinSelectMany(ctx, db, results)
+	}
 	return
 }
 
 // SelectMany runs the known statement against using the parameters as named values within them and returns the
 // result as single version of R
-// Should be used for single row results with NamedSelectStatement
-// For multiple rows, used SelectMany
+//
+// Should be used for single row results with NamedSelectStatement - for multiple rows, use
+// SelectMany
+//
+// Will call JoinSelectOne to make sure the joins fields are updated
 func SelectOne[R record.Record](ctx context.Context, db *sqlx.DB, query NamedSelectStatement, params interface{}) (result R, err error) {
 	var statement *sqlx.NamedStmt
 	var res []R = []R{}
@@ -73,8 +89,10 @@ func SelectOne[R record.Record](ctx context.Context, db *sqlx.DB, query NamedSel
 		slog.Error("[datastore.SelectOne] error at exit", slog.String("err", err.Error()), slog.String("R", fmt.Sprintf("%T", result)))
 	}
 	// return the first
+	// update joins
 	if len(res) > 0 {
 		result = res[0]
+		JoinSelectOne(ctx, db, result)
 	}
 	return
 }
