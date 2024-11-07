@@ -26,7 +26,7 @@ func InsertOne[R record.Record](ctx context.Context, db *sqlx.DB, insert InsertS
 	)
 	// create own txn if we havent got one
 	if tx == nil {
-		transaction = db.MustBeginTx(ctx, transactionOptions)
+		transaction = db.MustBeginTx(ctx, TxOptions)
 	}
 
 	statement, err = transaction.PrepareNamedContext(ctx, stmt)
@@ -79,7 +79,7 @@ func InsertMany[R record.Record](ctx context.Context, db *sqlx.DB, insert Insert
 		mainTimer   *timer.Timer = timer.New()
 	)
 
-	transaction = db.MustBeginTx(ctx, transactionOptions)
+	transaction = db.MustBeginTx(ctx, TxOptions)
 
 	for _, record := range records {
 		waitgroup.Add(1)
@@ -94,6 +94,7 @@ func InsertMany[R record.Record](ctx context.Context, db *sqlx.DB, insert Insert
 			if id, e = InsertOne(ctx, db, insert, item, transaction); err != nil {
 				err = errors.Join(err, e)
 			} else {
+				item.SetID(id)
 				insertedIds = append(insertedIds, id)
 			}
 			waitgroup.Done()

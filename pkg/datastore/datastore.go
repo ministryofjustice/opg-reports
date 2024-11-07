@@ -4,6 +4,31 @@
 // The datastore package also provides common configurations for databases being used
 // in this project
 //
+// # Datastore database abilitys
+//
+// The datastore package provides a set of statements and functions for handling
+// database access, with those statments used for different funcs:
+//
+//   - CreateStatement: used for table and index creation; no arguments or named elements.
+//   - InsertStatement: used to insert records into a table; uses named parameters (:timestamp etc)
+//   - SelectStatement: used for simple select calls then return single values like a total or a count; allows ? bind vars
+//   - NamedSelectStatement: used to more advanced selects that pull values from a struct; uses named params (:id etc).
+//
+// The built functions of datastore will required different types of statements to be passed along. This
+// improves clarity on what the functions do and their use cases.
+//
+// Generally, setting up a databse, table and series of indexes use static sql, so make use of CreateStatement.
+// Most of code that accesses the database to get information will be using NamedSelectStatements to provide
+// values for WHERE, ORDER BY etc segments of the sql. These will generally come from a struct that is your
+// primary database record.
+//
+// To use your struct with the datastore models it will need to implement the `record.Record` interface. This
+// enforces a few functions to ensure the datastore methods will work correctly.
+//
+// If your database objects are more complex and contain joins between tables, there is a mechanism to deal with
+// those joins. By implementing the `record.JoinedRecord` interface calling either InsertOne or InsertMany
+// will also trigger the ProcessJoins function - allowing you to handle those relationships directly.
+//
 // Uses sqlx
 package datastore
 
@@ -36,7 +61,7 @@ var Sqlite *Config = &Config{
 	YearMonthDayFormat: "%Y-%m-%d",
 }
 
-var transactionOptions *sql.TxOptions = &sql.TxOptions{ReadOnly: false, Isolation: sql.LevelDefault}
+var TxOptions *sql.TxOptions = &sql.TxOptions{ReadOnly: false, Isolation: sql.LevelDefault}
 
 // NewDB will return a sqlite db connection for the databaseFile passed along.
 // If the file does not exist then the an empty databasefile will be created at

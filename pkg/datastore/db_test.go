@@ -106,7 +106,7 @@ func TestDatastoreDB(t *testing.T) {
 	}
 	// -- get many with named params
 	p := &dummyP{Min: 1}
-	found, err := datastore.Select[*dummy](ctx, db, dummyGet, p)
+	found, err := datastore.SelectMany[*dummy](ctx, db, dummyGet, p)
 	if err != nil {
 		t.Errorf("error with select [%s]", err.Error())
 	}

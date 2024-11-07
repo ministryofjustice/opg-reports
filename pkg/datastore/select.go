@@ -2,6 +2,8 @@ package datastore
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 	"log/slog"
 	"slices"
 
@@ -40,23 +42,52 @@ func List[R any](ctx context.Context, db *sqlx.DB, query SelectStatement, r R, a
 	return
 }
 
-// Select runs the known statement against using the parameters as named values within them and returns the
+// SelectMany runs the known statement against using the parameters as named values within them and returns the
 // result as a slice of []R
-// Expects multiple results - if you doing a single, use Get
-func Select[R record.Record](ctx context.Context, db *sqlx.DB, query NamedSelectStatement, params interface{}) (results []R, err error) {
+// Expects multiple results - if you doing a single, use SelectOne (or Get)
+func SelectMany[R record.Record](ctx context.Context, db *sqlx.DB, query NamedSelectStatement, params interface{}) (results []R, err error) {
 	var statement *sqlx.NamedStmt
 	// Check the parameters passed are valid for the query
 	if err = ValidateParameters(params, Needs(query)); err != nil {
-		slog.Error("[datastore.Select] error validating parameters", slog.String("err", err.Error()))
+		slog.Error("[datastore.SelectMany] error validating parameters", slog.String("err", err.Error()), slog.String("R", fmt.Sprintf("%T", results)))
 		return
 	}
 	if statement, err = db.PrepareNamedContext(ctx, string(query)); err == nil {
 		err = statement.SelectContext(ctx, &results, params)
 	} else {
-		slog.Error("[datastore.Select] error preparing named context", slog.String("err", err.Error()))
+		slog.Error("[datastore.SelectMany] error preparing named context", slog.String("err", err.Error()), slog.String("R", fmt.Sprintf("%T", results)))
 	}
-	if err != nil {
-		slog.Error("[datastore.Select] error at exit", slog.String("err", err.Error()))
+
+	if err != nil && err != sql.ErrNoRows {
+		slog.Error("[datastore.SelectMany] error at exit", slog.String("err", err.Error()), slog.String("R", fmt.Sprintf("%T", results)))
+	}
+	return
+}
+
+// SelectMany runs the known statement against using the parameters as named values within them and returns the
+// result as single version of R
+// Should be used for single row results
+// For multiple rows, used SelectMany
+func SelectOne[R record.Record](ctx context.Context, db *sqlx.DB, query NamedSelectStatement, params interface{}) (result R, err error) {
+	var statement *sqlx.NamedStmt
+	var res []R = []R{}
+	// Check the parameters passed are valid for the query
+	if err = ValidateParameters(params, Needs(query)); err != nil {
+		slog.Error("[datastore.SelectOne] error validating parameters", slog.String("err", err.Error()), slog.String("R", fmt.Sprintf("%T", result)))
+		return
+	}
+	if statement, err = db.PrepareNamedContext(ctx, string(query)); err == nil {
+		err = statement.SelectContext(ctx, &res, params)
+	} else {
+		slog.Error("[datastore.SelectOne] error preparing named context", slog.String("err", err.Error()), slog.String("R", fmt.Sprintf("%T", result)))
+	}
+
+	if err != nil && err != sql.ErrNoRows {
+		slog.Error("[datastore.SelectOne] error at exit", slog.String("err", err.Error()), slog.String("R", fmt.Sprintf("%T", result)))
+	}
+	// return the first
+	if len(res) > 0 {
+		result = res[0]
 	}
 	return
 }

@@ -1,10 +1,15 @@
 package releases
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 
+	"github.com/jmoiron/sqlx"
+	"github.com/ministryofjustice/opg-reports/pkg/convert"
+	"github.com/ministryofjustice/opg-reports/pkg/datastore"
 	"github.com/ministryofjustice/opg-reports/pkg/record"
+	"github.com/ministryofjustice/opg-reports/sources/releases/releasesdb"
 )
 
 type Release struct {
@@ -17,6 +22,50 @@ type Release struct {
 	Date       string  `json:"date,omitempty" db:"date" faker:"date_string" doc:"Date this release happened."`
 	Count      int     `json:"count,omitempty" db:"count" faker:"oneof: 1" enum:"1" doc:"Number of releases"`
 	TeamList   []*Team `json:"team_list,omitempty" db:"-" faker:"slice_len=2" doc:"pulled from a many to many join table"`
+}
+
+// ProcessJoins
+// On insert of a Release row we then want to check and convert any associated values
+// within TeamList field (imported from json normally) into database joins
+// To do that we:
+//   - find each team with matching name (or insert a new one)
+//   - find each (or create) the join between the team and this release
+//
+// JoinedRecord interface
+func (self *Release) ProcessJoins(ctx context.Context, db *sqlx.DB, tx *sqlx.Tx) (err error) {
+	var transaction *sqlx.Tx = tx
+	var teams []*Team = []*Team{}
+
+	if tx == nil {
+		transaction = db.MustBeginTx(ctx, datastore.TxOptions)
+	}
+	fmt.Println("--->before")
+	convert.PrettyPrint(self)
+	// Loop over each team and sort out the joins
+	for _, team := range self.TeamList {
+		var join *Join
+		// Find / create team DB entry
+		err = team.UpdateSelf(ctx, db, tx)
+		if err != nil {
+			return
+		}
+		// Find / create the join between both
+		join = &Join{ReleaseID: self.ID, TeamID: team.ID}
+		err = join.UpdateSelf(ctx, db, tx)
+		if err != nil {
+			return
+		}
+		teams = append(teams, team)
+	}
+	self.TeamList = teams
+	// if we used our own tx, then commit
+	if tx == nil {
+		err = transaction.Commit()
+	}
+	fmt.Println("--->after")
+	convert.PrettyPrint(self)
+
+	return
 }
 
 // New
@@ -55,6 +104,23 @@ type Team struct {
 	Name string `json:"name,omitempty" db:"name" faker:"oneof: A, B, C, D"`
 }
 
+// UpdateSelf finds its record within the database (by checking name) and updates its ID to match
+// the result.
+// If a record is not found, it creates a new entry and then updates its own ID with the
+// results from InsertOne
+func (self *Team) UpdateSelf(ctx context.Context, db *sqlx.DB, tx *sqlx.Tx) (err error) {
+	var t *Team = &Team{}
+	t, err = datastore.SelectOne[*Team](ctx, db, releasesdb.GetTeamByName, self)
+
+	if t != nil {
+		self.ID = t.ID
+	} else {
+		self.ID, err = datastore.InsertOne(ctx, db, releasesdb.InsertTeam, self, tx)
+	}
+
+	return
+}
+
 // New
 // Record interface
 func (self *Team) New() record.Record {
@@ -78,6 +144,23 @@ type Join struct {
 	ID        int `json:"id,omitempty" db:"id" faker:"unique, boundary_start=1, boundary_end=2000000" doc:"Database primary key."`
 	TeamID    int `json:"team_id,omitempty" db:"team_id"`
 	ReleaseID int `json:"release_id,omitempty" db:"release_id"`
+}
+
+// UpdateSelf finds its record within the database (by checking ids) and updates its ID to match
+// the result.
+// If a record is not found, it creates a new entry and then updates its own ID with the
+// results from InsertOne
+func (self *Join) UpdateSelf(ctx context.Context, db *sqlx.DB, tx *sqlx.Tx) (err error) {
+	var j *Join = &Join{}
+	j, err = datastore.SelectOne[*Join](ctx, db, releasesdb.GetJoin, self)
+
+	if j != nil {
+		self.ID = j.ID
+	} else {
+		self.ID, err = datastore.InsertOne(ctx, db, releasesdb.InsertJoin, self, tx)
+	}
+
+	return
 }
 
 // New

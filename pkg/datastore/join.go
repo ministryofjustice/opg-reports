@@ -37,7 +37,6 @@ func JoinMany[R record.Record](ctx context.Context, db *sqlx.DB, records []R) (e
 	var (
 		mutex     *sync.Mutex    = &sync.Mutex{}
 		waitgroup sync.WaitGroup = sync.WaitGroup{}
-		tx        *sqlx.Tx       = db.MustBeginTx(ctx, transactionOptions)
 		mainTimer *timer.Timer   = timer.New()
 	)
 
@@ -46,7 +45,7 @@ func JoinMany[R record.Record](ctx context.Context, db *sqlx.DB, records []R) (e
 		go func(item R) {
 			mutex.Lock()
 			defer mutex.Unlock()
-			e := JoinOne(ctx, db, item, tx)
+			e := JoinOne(ctx, db, item, nil)
 			if e != nil {
 				err = errors.Join(err, e)
 			}
@@ -59,13 +58,8 @@ func JoinMany[R record.Record](ctx context.Context, db *sqlx.DB, records []R) (e
 		slog.Error("[datastore.JoinMany] error: [%s]", slog.String("err", err.Error()))
 		return
 	}
-	err = tx.Commit()
-	mainTimer.Stop()
 
-	if err != nil {
-		tx.Rollback()
-		slog.Error("[datastore.JoinMany] error commiting joins: [%s]", slog.String("err", err.Error()))
-	}
+	mainTimer.Stop()
 
 	return
 }

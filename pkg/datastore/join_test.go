@@ -14,7 +14,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/pkg/record"
 )
 
-var transactionOptions *sql.TxOptions = &sql.TxOptions{ReadOnly: false, Isolation: sql.LevelDefault}
+var transactionOptions *sql.TxOptions = datastore.TxOptions
 
 type address struct {
 	ID     int    `json:"id,omitempty" db:"id" faker:"unique, boundary_start=1, boundary_end=2000000" doc:"Database primary key."` // ID is a generated primary key
@@ -75,7 +75,7 @@ WHERE
 	addresses_people.person_id = :id
 `
 
-	addrs, err = datastore.Select[*address](ctx, db, stmt, self)
+	addrs, err = datastore.SelectMany[*address](ctx, db, stmt, self)
 
 	return
 }

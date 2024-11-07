@@ -30,14 +30,16 @@ const (
 	ReleaseCount datastore.SelectStatement = `SELECT count(*) as row_count FROM releases LIMIT 1;`
 )
 
-const GetTeamID datastore.SelectStatement = `
-SELECT
-	id
-FROM teams
-WHERE
-	name = ?
-LIMIT 1
-`
+// Team selects
+const (
+	GetTeamByName datastore.NamedSelectStatement = `SELECT id, name FROM teams WHERE name = :name LIMIT 1`
+	GetTeamByID   datastore.NamedSelectStatement = `SELECT id, name FROM teams WHERE id = :id LIMIT 1`
+)
+
+// Join Selects
+const (
+	GetJoin datastore.NamedSelectStatement = `SELECT id FROM releases_teams WHERE release_id = :release_id AND team_id = :team_id LIMIT 1`
+)
 
 const AllReleases datastore.SelectStatement = `
 SELECT
