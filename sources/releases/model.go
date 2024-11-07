@@ -66,6 +66,16 @@ func (self *Release) InsertJoins(ctx context.Context, db *sqlx.DB) (err error) {
 	return
 }
 
+// SelectJoins is used on call to select datastore methods to update a model
+// struct with content from joined table dynamically.
+// In this case, it will populate .TeamList attribute by calling .Teams func
+//
+// JoinSelector interface
+func (self *Release) SelectJoins(ctx context.Context, db *sqlx.DB) (err error) {
+	self.TeamList, err = self.Teams(ctx, db)
+	return
+}
+
 // Teams fetches the teams from the database
 func (self *Release) Teams(ctx context.Context, db *sqlx.DB) (teams []*Team, err error) {
 	teams, err = datastore.SelectMany[*Team](ctx, db, releasesdb.GetTeamsForRelease, self)

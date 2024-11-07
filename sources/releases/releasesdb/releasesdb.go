@@ -6,14 +6,16 @@ import "github.com/ministryofjustice/opg-reports/pkg/datastore"
 // Create tables
 const (
 	CreateTeamTable            datastore.CreateStatement = `CREATE TABLE IF NOT EXISTS teams (team_id INTEGER PRIMARY KEY, team_name TEXT NOT NULL) STRICT;`
-	CreateTeamReleaseJoinTable datastore.CreateStatement = `CREATE TABLE IF NOT EXISTS releases_teams (join_id INTEGER PRIMARY KEY,release_id INTEGER NOT NULL,team_id INTEGER NOT NULL) STRICT`
-	CreateReleaseTable         datastore.CreateStatement = `CREATE TABLE IF NOT EXISTS releases (id INTEGER PRIMARY KEY,ts TEXT NOT NULL,repository TEXT NOT NULL,name TEXT NOT NULL,source TEXT NOT NULL,type TEXT NOT NULL,date TEXT NOT NULL,count INTEGER) STRICT;`
+	CreateTeamReleaseJoinTable datastore.CreateStatement = `CREATE TABLE IF NOT EXISTS releases_teams (join_id INTEGER PRIMARY KEY, release_id INTEGER NOT NULL,team_id INTEGER NOT NULL) STRICT`
+	CreateReleaseTable         datastore.CreateStatement = `CREATE TABLE IF NOT EXISTS releases (id INTEGER PRIMARY KEY, ts TEXT NOT NULL,repository TEXT NOT NULL,name TEXT NOT NULL,source TEXT NOT NULL,type TEXT NOT NULL,date TEXT NOT NULL,count INTEGER) STRICT;`
 )
 
-// Create Indexes
+// Create Indexes for common queries
 const (
 	CreateReleaseDateIndex datastore.CreateStatement = `CREATE INDEX IF NOT EXISTS release_date_idx ON releases(date);`
 	CreateTeamNameIndex    datastore.CreateStatement = `CREATE INDEX IF NOT EXISTS team_name_idx ON teams(team_name);`
+	CreateJoinTeamIndex    datastore.CreateStatement = `CREATE INDEX IF NOT EXISTS join_team_idx ON releases_teams(team_id);`
+	CreateJoinReleaseIndex datastore.CreateStatement = `CREATE INDEX IF NOT EXISTS join_release_idx ON releases_teams(release_id);`
 )
 
 // Inserts for tables

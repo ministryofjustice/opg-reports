@@ -7,9 +7,15 @@ import (
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/pkg/datastore"
+	"github.com/ministryofjustice/opg-reports/pkg/record"
 	"github.com/ministryofjustice/opg-reports/sources/releases"
 	"github.com/ministryofjustice/opg-reports/sources/releases/releasesdb"
 )
+
+// check interfaces
+var _ record.Record = &releases.Release{}
+var _ record.JoinInserter = &releases.Release{}
+var _ record.JoinSelector = &releases.Release{}
 
 // runs Setup and then checks the
 // file exists and the location and that it has
@@ -69,5 +75,21 @@ func TestReleasesSetup(t *testing.T) {
 
 	if len(teams) != 1 {
 		t.Errorf("failed to get team for record")
+	}
+	// now compare fetched team to selected version
+	if len(rand.TeamList) != len(teams) {
+		t.Errorf("automatic team fetching via JoinSelector failed")
+	}
+	// check content on each
+	for _, og := range rand.TeamList {
+		found := false
+		for _, pulled := range teams {
+			if pulled.Name == og.Name {
+				found = true
+			}
+		}
+		if !found {
+			t.Errorf("failed to match teams between interface join selector and direct fetch.")
+		}
 	}
 }
