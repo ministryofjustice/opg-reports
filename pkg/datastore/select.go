@@ -21,7 +21,7 @@ func Get[R any](ctx context.Context, db *sqlx.DB, query SelectStatement, args ..
 	return
 }
 
-// GetRecord fetches a single db result as a record using a SelectStatement
+// GetRecord fetches a single db result (of R record.Record) as a struct using a SelectStatement
 func GetRecord[R record.Record](ctx context.Context, db *sqlx.DB, query SelectStatement, result R, args ...interface{}) (err error) {
 	var row *sqlx.Row
 	row = db.QueryRowxContext(ctx, string(query), args...)

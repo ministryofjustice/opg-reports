@@ -12,6 +12,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/sources/releases/releasesdb"
 )
 
+// Release captures either the merged pull request
 type Release struct {
 	ID         int     `json:"id,omitempty" db:"id" faker:"unique, boundary_start=1, boundary_end=2000000" doc:"Database primary key."` // ID is a generated primary key
 	Ts         string  `json:"ts,omitempty" db:"ts" faker:"time_string" doc:"Time the record was created."`                             // TS is timestamp when the record was created
@@ -21,18 +22,18 @@ type Release struct {
 	Type       string  `json:"type,omitempty" db:"type" faker:"oneof: workflow_run, pull_request" enum:"workflow,merge" doc:"tracks if this was a workflow run or a merge"`
 	Date       string  `json:"date,omitempty" db:"date" faker:"date_string" doc:"Date this release happened."`
 	Count      int     `json:"count,omitempty" db:"count" faker:"oneof: 1" enum:"1" doc:"Number of releases"`
-	TeamList   []*Team `json:"team_list,omitempty" db:"-" faker:"slice_len=1" doc:"pulled from a many to many join table"`
+	TeamList   []*Team `json:"teams,omitempty" db:"teams" faker:"slice_len=1" doc:"pulled from a many to many join table"`
 }
 
-// ProcessJoins.
+// InsertJoins.
 // On insert of a Release row we then want to check and convert any associated values
 // within TeamList field (imported from json normally) into database joins
 // To do that we:
 //   - find each team with matching name (or insert a new one)
 //   - find each (or create) the join between the team and this release
 //
-// JoinedRecord interface
-func (self *Release) ProcessJoins(ctx context.Context, db *sqlx.DB) (err error) {
+// RecordInsertJoiner interface
+func (self *Release) InsertJoins(ctx context.Context, db *sqlx.DB) (err error) {
 	var tx *sqlx.Tx = db.MustBeginTx(ctx, datastore.TxOptions)
 	var teams []*Team = []*Team{}
 
@@ -59,7 +60,7 @@ func (self *Release) ProcessJoins(ctx context.Context, db *sqlx.DB) (err error) 
 	// roll back and warn of error
 	if err != nil {
 		err = tx.Rollback()
-		slog.Error("[releases.ProcessJoins]", slog.String("err", err.Error()))
+		slog.Error("[releases.InsertJoins]", slog.String("err", err.Error()))
 	}
 
 	return
@@ -67,7 +68,6 @@ func (self *Release) ProcessJoins(ctx context.Context, db *sqlx.DB) (err error) 
 
 // Teams fetches the teams from the database
 func (self *Release) Teams(ctx context.Context, db *sqlx.DB) (teams []*Team, err error) {
-	teams = []*Team{}
 	teams, err = datastore.SelectMany[*Team](ctx, db, releasesdb.GetTeamsForRelease, self)
 	return
 }
@@ -103,9 +103,10 @@ func (self *Release) TValue() string {
 	return strconv.Itoa(self.Count)
 }
 
+// Team captures the github team from the repository
 type Team struct {
-	ID   int    `json:"id,omitempty" db:"id" faker:"unique, boundary_start=1, boundary_end=2000000" doc:"Database primary key."`
-	Name string `json:"name,omitempty" db:"name" faker:"oneof: A, B, C, D"`
+	ID   int    `json:"team_id,omitempty" db:"team_id" faker:"unique, boundary_start=1, boundary_end=2000000" doc:"Database primary key."`
+	Name string `json:"team_name,omitempty" db:"team_name" faker:"oneof: A, B, C, D"`
 }
 
 // UpdateSelf finds its record within the database (by checking name) and updates its ID to match
@@ -145,7 +146,7 @@ func (self *Team) SetID(id int) {
 
 // Join is many to many table between both team and releases
 type Join struct {
-	ID        int `json:"id,omitempty" db:"id" faker:"unique, boundary_start=1, boundary_end=2000000" doc:"Database primary key."`
+	ID        int `json:"join_id,omitempty" db:"join_id" faker:"unique, boundary_start=1, boundary_end=2000000" doc:"Database primary key."`
 	TeamID    int `json:"team_id,omitempty" db:"team_id"`
 	ReleaseID int `json:"release_id,omitempty" db:"release_id"`
 }

@@ -61,7 +61,7 @@ func TestReleasesSetup(t *testing.T) {
 	if err != nil {
 		t.Errorf("error counting db rows: [%s]", err.Error())
 	}
-
+	// check that we get a single a team from the seeding!
 	teams, err := rand.Teams(ctx, db)
 	if err != nil {
 		t.Errorf("error counting db rows: [%s]", err.Error())

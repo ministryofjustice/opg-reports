@@ -16,7 +16,7 @@ import (
 //   - will return an error if either the preparation fails or if the exec errors
 //   - if transaction passed is nil, a new one is created and commited
 //   - if a transaction is passed, Commit is NOT executed, presumes a wrapper above is doing this
-//   - if using a fresh transation, then call JoinOne to deal with joins
+//   - if using a fresh transation, then call JoinInsertOne to deal with joins
 func InsertOne[R record.Record](ctx context.Context, db *sqlx.DB, insert InsertStatement, record R, tx *sqlx.Tx) (insertedId int, err error) {
 	slog.Debug("[datastore.InsertOne]")
 	var (
@@ -53,7 +53,7 @@ func InsertOne[R record.Record](ctx context.Context, db *sqlx.DB, insert InsertS
 	// set the ID & run joins if there is no error and we're inserting just one
 	if err == nil && tx == nil {
 		record.SetID(insertedId)
-		JoinOne(ctx, db, record)
+		JoinInsertOne(ctx, db, record)
 	}
 
 	return
@@ -64,7 +64,7 @@ func InsertOne[R record.Record](ctx context.Context, db *sqlx.DB, insert InsertS
 // Errors and insert id's are tracked and returned. An error on a particular insert does not stop the
 // other inserts, but will be returned at the end.
 //
-// Calls JoinMany to deal with any joins on the record (by checking its record.JoinedRecord) and
+// Calls JoinInsertMany to deal with any joins on the record (by checking its record.RecordInsertJoiner) and
 // deals with each of those within its on transaction and loop
 //
 // If the commit triggers an error then a Rollback is automatically triggered
@@ -117,7 +117,7 @@ func InsertMany[R record.Record](ctx context.Context, db *sqlx.DB, insert Insert
 
 	// if there are no errors, deal with any joins
 	if err == nil {
-		err = JoinMany(ctx, db, records)
+		err = JoinInsertMany(ctx, db, records)
 	}
 
 	slog.Debug("[datastore.InsertMany] calling join handler for records")

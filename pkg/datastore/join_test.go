@@ -80,7 +80,7 @@ WHERE
 	return
 }
 
-func (self *person) ProcessJoins(ctx context.Context, db *sqlx.DB) (err error) {
+func (self *person) InsertJoins(ctx context.Context, db *sqlx.DB) (err error) {
 	var transaction *sqlx.Tx = db.MustBeginTx(ctx, transactionOptions)
 
 	// for each address attached, deal with finding, inserting and
@@ -146,7 +146,7 @@ var (
 )
 
 // make sure that person meets both needs
-var _ record.JoinedRecord = &person{}
+var _ record.RecordInsertJoiner = &person{}
 var _ record.Record = &person{}
 
 func TestDatastoreJoins(t *testing.T) {
@@ -166,7 +166,7 @@ func TestDatastoreJoins(t *testing.T) {
 	datastore.Create(ctx, db, stmtCreateDBs)
 
 	// -- insert generated people
-	// insert many should trigger the JoinMany as well
+	// insert many should trigger the JoinInsertMany as well
 	ids, err := datastore.InsertMany(ctx, db, stmtInsertPerson, people)
 	if err != nil {
 		t.Errorf("error [%s]", err.Error())
