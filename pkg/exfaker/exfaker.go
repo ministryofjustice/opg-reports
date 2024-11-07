@@ -133,24 +133,7 @@ func AddProviders() {
 	added = true
 }
 
-// // Many returns multiple faked versions of T
-// func ManyP[T interface{}](n int, opts ...options.OptionFunc) (faked []*T) {
-// 	slog.Debug("[exfaker.Many] faking many", slog.Int("n", n))
-
-// 	faked = []*T{}
-// 	for i := 0; i < n; i++ {
-// 		var item T
-// 		var record = &item
-// 		if e := faker.FakeData(record, opts...); e == nil {
-// 			faked = append(faked, record)
-// 		} else {
-// 			slog.Error("[exfaker.Many]", slog.String("err", e.Error()))
-// 		}
-// 	}
-// 	faker.ResetUnique()
-// 	return
-// }
-
+// Many returns multiple faked versions of T
 func Many[T record.Record](n int, opts ...options.OptionFunc) (faked []T) {
 	slog.Debug("[exfaker.Many] faking many", slog.Int("n", n))
 
@@ -172,7 +155,7 @@ type choice interface {
 	comparable
 }
 
-// Choice will pick a value at randomg from a list
+// Choice will pick a value at random from a list
 func Choice[T choice](choices []T) T {
 	i := randInt(0, len(choices))
 	return choices[i]

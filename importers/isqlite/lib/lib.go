@@ -15,6 +15,8 @@ import (
 	"github.com/ministryofjustice/opg-reports/pkg/record"
 	"github.com/ministryofjustice/opg-reports/sources/costs"
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsdb"
+	"github.com/ministryofjustice/opg-reports/sources/releases"
+	"github.com/ministryofjustice/opg-reports/sources/releases/releasesdb"
 	"github.com/ministryofjustice/opg-reports/sources/standards"
 	"github.com/ministryofjustice/opg-reports/sources/standards/standardsdb"
 	"github.com/ministryofjustice/opg-reports/sources/uptime"
@@ -30,16 +32,13 @@ type Arguments struct {
 // creatorF is a contstraint of the functions to call to create new DBs
 type creatorF func(ctx context.Context, dbFilepath string) (db *sqlx.DB, isNew bool, err error)
 
-type postInsert func(ctx context.Context, db *sqlx.DB, ids []int, records interface{}) (err error)
-
 // processorF is a type constraint for functions that can process a datafile into a set of db records
-type processorF func(ctx context.Context, db *sqlx.DB, stmt datastore.InsertStatement, datafilepath string, post postInsert) (count int, err error)
+type processorF func(ctx context.Context, db *sqlx.DB, stmt datastore.InsertStatement, datafilepath string) (count int, err error)
 
 // known is a struct to capture what we know for the type and how to use it
 type known struct {
 	CreateDB   creatorF
 	InsertStmt datastore.InsertStatement
-	PostInsert postInsert
 	Processor  processorF
 }
 
@@ -58,6 +57,11 @@ var Known = map[string]known{
 		CreateDB:   uptime.CreateNewDB,
 		InsertStmt: uptimedb.InsertUptime,
 		Processor:  processor[*uptime.Uptime],
+	},
+	"releases": {
+		CreateDB:   releases.CreateNewDB,
+		InsertStmt: releasesdb.InsertRelease,
+		Processor:  processor[*releases.Release],
 	},
 }
 
@@ -111,7 +115,7 @@ func GetDatabase(ctx context.Context, args *Arguments) (db *sqlx.DB, err error) 
 }
 
 // processor allows generic handling for each known type
-func processor[T record.Record](ctx context.Context, db *sqlx.DB, stmt datastore.InsertStatement, datafilepath string, post postInsert) (count int, err error) {
+func processor[T record.Record](ctx context.Context, db *sqlx.DB, stmt datastore.InsertStatement, datafilepath string) (count int, err error) {
 	var records []T
 	var ids []int
 	var base string = filepath.Base(datafilepath)
@@ -130,10 +134,6 @@ func processor[T record.Record](ctx context.Context, db *sqlx.DB, stmt datastore
 	}
 
 	count = len(ids)
-
-	// if post != nil {
-	// 	post(ctx, db, records)
-	// }
 
 	// if the number of original records does not match the count of
 	// inserted records, add a custom error to flag that
@@ -175,7 +175,7 @@ func ProcessDataFile(ctx context.Context, db *sqlx.DB, args *Arguments, datafile
 		return
 	}
 
-	count, err = found.Processor(ctx, db, found.InsertStmt, datafilepath, found.PostInsert)
+	count, err = found.Processor(ctx, db, found.InsertStmt, datafilepath)
 
 	slog.Info("[lib.ProcessDataFile] done.", slog.String("file", base), slog.Int("count", count))
 	return

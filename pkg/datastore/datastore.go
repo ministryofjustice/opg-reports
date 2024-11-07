@@ -9,6 +9,7 @@ package datastore
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"log/slog"
 	"os"
@@ -17,10 +18,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 )
-
-// type Entity interface {
-// 	*awscosts.Cost
-// }
 
 // Config provides details for the databae being used that vary by driver
 type Config struct {
@@ -38,6 +35,8 @@ var Sqlite *Config = &Config{
 	YearMonthFormat:    "%Y-%m",
 	YearMonthDayFormat: "%Y-%m-%d",
 }
+
+var transactionOptions *sql.TxOptions = &sql.TxOptions{ReadOnly: false, Isolation: sql.LevelDefault}
 
 // NewDB will return a sqlite db connection for the databaseFile passed along.
 // If the file does not exist then the an empty databasefile will be created at

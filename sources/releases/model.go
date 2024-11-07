@@ -16,7 +16,7 @@ type Release struct {
 	Type       string  `json:"type,omitempty" db:"type" faker:"oneof: workflow_run, pull_request" enum:"workflow,merge" doc:"tracks if this was a workflow run or a merge"`
 	Date       string  `json:"date,omitempty" db:"date" faker:"date_string" doc:"Date this release happened."`
 	Count      int     `json:"count,omitempty" db:"count" faker:"oneof: 1" enum:"1" doc:"Number of releases"`
-	TeamList   []*Team `json:"team_list,omitempty" db:":teams" doc:"pulled from a many to many join table"`
+	TeamList   []*Team `json:"team_list,omitempty" db:"-" faker:"slice_len=2" doc:"pulled from a many to many join table"`
 }
 
 // New
