@@ -50,7 +50,7 @@ func TestReleasesSetup(t *testing.T) {
 	defer db.Close()
 
 	// check the number of releases created is the same as the seed count
-	count, err := datastore.Get[int](ctx, db, releasesdb.ReleaseCount)
+	count, err := datastore.Get[int](ctx, db, releasesdb.CountReleases)
 	if err != nil {
 		t.Errorf("error counting db rows: [%s]", err.Error())
 	}
@@ -60,7 +60,7 @@ func TestReleasesSetup(t *testing.T) {
 
 	// every release should have at least 1 team, maybe more
 	// make sure the number of joins is at least the number of releases
-	count, err = datastore.Get[int](ctx, db, releasesdb.JoinCount)
+	count, err = datastore.Get[int](ctx, db, releasesdb.CountJoins)
 	if err != nil {
 		t.Errorf("error counting db rows: [%s]", err.Error())
 	}

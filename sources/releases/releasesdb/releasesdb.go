@@ -1,4 +1,8 @@
 // Package releasesdb contains all statments for releases api etc
+//   - Create* is a creation
+//   - Insert* is an insert
+//   - Get* is a select returning a single item
+//   - List* is a select returning many
 package releasesdb
 
 import "github.com/ministryofjustice/opg-reports/pkg/datastore"
@@ -27,9 +31,9 @@ const (
 
 // Counters
 const (
-	TeamsCount   datastore.SelectStatement = `SELECT count(*) as row_count FROM teams LIMIT 1;`
-	JoinCount    datastore.SelectStatement = `SELECT count(*) as row_count FROM releases_teams LIMIT 1;`
-	ReleaseCount datastore.SelectStatement = `SELECT count(*) as row_count FROM releases LIMIT 1;`
+	CountTeams    datastore.SelectStatement = `SELECT count(*) as row_count FROM teams LIMIT 1;`
+	CountJoins    datastore.SelectStatement = `SELECT count(*) as row_count FROM releases_teams LIMIT 1;`
+	CountReleases datastore.SelectStatement = `SELECT count(*) as row_count FROM releases LIMIT 1;`
 )
 
 // Team selects
@@ -50,26 +54,23 @@ const (
 	GetTeamsForRelease datastore.NamedSelectStatement = `SELECT teams.id as id, teams.name as name FROM releases_teams LEFT JOIN teams ON releases_teams.team_id = teams.id WHERE releases_teams.release_id = :id`
 )
 
-// const PerInterval datastore.NamedSelectStatement = `
-// SELECT
-//     coalesce(SUM(count), 0) as count,
-//     strftime(:date_format, date) as date
-// FROM costs
-// WHERE
-//     date >= :start_date
-//     AND date < :end_date
-// GROUP BY strftime(:date_format, date)
-// ORDER by strftime(:date_format, date) ASC
-// `
+const ListReleasesGroupedByInterval datastore.NamedSelectStatement = `
+SELECT
+	strftime(:date_format, releases.date) as date,
+	COUNT(releases.id) as count
+FROM releases
+GROUP BY strftime(:date_format, releases.date)
+ORDER BY strftime(:date_format, releases.date) ASC
+;`
 
-const ListReleasesGroupedByTeam datastore.NamedSelectStatement = `
+const ListReleasesGroupedByIntervalAndTeam datastore.NamedSelectStatement = `
 SELECT
 	teams.name as team_name,
-	strftime('%Y-%m', releases.date) as date,
+	strftime(:date_format, releases.date) as date,
 	COUNT(releases.id) as count
 FROM releases
 LEFT JOIN releases_teams on releases_teams.release_id = releases.id
 LEFT JOIN teams on teams.id = releases_teams.team_id
-GROUP BY strftime('%Y-%m', releases.date), releases_teams.team_id
-;
-`
+GROUP BY strftime(:date_format, releases.date), releases_teams.team_id
+ORDER BY strftime(:date_format, releases.date), teams.name ASC
+;`
