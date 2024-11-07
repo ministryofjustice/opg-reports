@@ -38,8 +38,9 @@ const (
 
 // Team selects
 const (
-	GetTeamByName datastore.NamedSelectStatement = `SELECT id, name FROM teams WHERE name = :name LIMIT 1`
-	GetTeamByID   datastore.NamedSelectStatement = `SELECT id, name FROM teams WHERE id = :id LIMIT 1`
+	ListTeams     datastore.SelectStatement      = `SELECT * from teams ORDER BY name ASC`                 // List all teams
+	GetTeamByName datastore.NamedSelectStatement = `SELECT id, name FROM teams WHERE name = :name LIMIT 1` // Get team with this :name
+	GetTeamByID   datastore.NamedSelectStatement = `SELECT id, name FROM teams WHERE id = :id LIMIT 1`     // Get the team with this :id
 )
 
 // Join Selects
@@ -49,10 +50,12 @@ const (
 
 // Release selects
 const (
-	GetRandomRelease   datastore.SelectStatement      = `SELECT * FROM releases ORDER BY RANDOM() LIMIT 1`
-	ListReleases       datastore.SelectStatement      = `SELECT * FROM releases ORDER BY id ASC`
-	GetTeamsForRelease datastore.NamedSelectStatement = `SELECT teams.id as id, teams.name as name FROM releases_teams LEFT JOIN teams ON releases_teams.team_id = teams.id WHERE releases_teams.release_id = :id`
+	GetRandomRelease   datastore.SelectStatement      = `SELECT * FROM releases ORDER BY RANDOM() LIMIT 1`                                                                                                         // Pick a random release
+	ListReleases       datastore.SelectStatement      = `SELECT * FROM releases ORDER BY id ASC`                                                                                                                   // List all releasees in id order
+	GetTeamsForRelease datastore.NamedSelectStatement = `SELECT teams.id as id, teams.name as name FROM releases_teams LEFT JOIN teams ON releases_teams.team_id = teams.id WHERE releases_teams.release_id = :id` // Get all the teams for the release with matching id
 )
+
+// --- API selects
 
 const ListReleasesGroupedByInterval datastore.NamedSelectStatement = `
 SELECT
