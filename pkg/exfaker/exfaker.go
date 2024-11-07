@@ -26,17 +26,17 @@ import (
 
 var added bool = false
 
-var (
-	FloatMin float64 = -1.5 // Min float value used by float & float_string for random generation.
-	FloatMax float64 = 12.5 // Max float value used by float & float_string for random generation.
+const (
+	FloatMin         float64 = -1.5                          // Min float value used by float & float_string for random generation.
+	FloatMax         float64 = 12.5                          // Max float value used by float & float_string for random generation.
+	TimeStringFormat string  = consts.DateFormat             // DateTime format used in date generation (time_string).
+	DateStringFormat string  = consts.DateFormatYearMonthDay // Capture the YYYY-MM-DD format
 )
 
 var (
-	now              time.Time = time.Now().UTC()
-	TimeStringMin    time.Time = now.AddDate(-2, 0, 0)         // Min time used as lower bound in time_string generation.
-	TimeStringMax    time.Time = now.AddDate(0, 0, -5)         // Max time used as upper bound in time_string generation.
-	TimeStringFormat string    = consts.DateFormat             // DateTime format used in date generation (time_string).
-	DateStringFormat string    = consts.DateFormatYearMonthDay // Capture the YYYY-MM-DD format
+	now           time.Time = time.Now().UTC()
+	TimeStringMin time.Time = now.AddDate(-2, 0, 0) // Min time used as lower bound in time_string generation.
+	TimeStringMax time.Time = now.AddDate(0, 0, -5) // Max time used as upper bound in time_string generation.
 )
 
 // randInt generates a number between min & max
@@ -107,6 +107,7 @@ func uri() (u string) {
 // for the database models
 func AddProviders() {
 	slog.Debug("[exfaker.AddProviders] adding")
+
 	if added {
 		slog.Debug("[exfaker.AddProviders] already added")
 		return

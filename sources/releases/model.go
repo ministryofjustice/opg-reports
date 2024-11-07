@@ -23,6 +23,7 @@ type Release struct {
 	Date       string  `json:"date,omitempty" db:"date" faker:"date_string" doc:"Date this release happened."`
 	Count      int     `json:"count,omitempty" db:"count" faker:"oneof: 1" enum:"1" doc:"Number of releases"`
 	TeamList   []*Team `json:"teams,omitempty" db:"teams" faker:"slice_len=2" doc:"pulled from a many to many join table"`
+	TeamName   string  `json:"team,omitempty" db:"team_name" faker:"-" doc:"Used to show team name on grouped queries"`
 }
 
 // InsertJoins.
@@ -70,9 +71,13 @@ func (self *Release) InsertJoins(ctx context.Context, db *sqlx.DB) (err error) {
 // struct with content from joined table dynamically.
 // In this case, it will populate .TeamList attribute by calling .Teams func
 //
+// Mostly used for 'all' style calls on the api rather than joined versions
 // JoinSelector interface
 func (self *Release) SelectJoins(ctx context.Context, db *sqlx.DB) (err error) {
-	self.TeamList, err = self.Teams(ctx, db)
+	// only run this if you have an actual release ID
+	if self.ID > 0 {
+		self.TeamList, err = self.Teams(ctx, db)
+	}
 	return
 }
 
