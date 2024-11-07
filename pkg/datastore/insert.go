@@ -53,7 +53,7 @@ func InsertOne[R record.Record](ctx context.Context, db *sqlx.DB, insert InsertS
 	// set the ID & run joins if there is no error and we're inserting just one
 	if err == nil && tx == nil {
 		record.SetID(insertedId)
-		JoinOne(ctx, db, record, nil)
+		JoinOne(ctx, db, record)
 	}
 
 	return

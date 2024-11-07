@@ -3,10 +3,10 @@ package releases
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strconv"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/ministryofjustice/opg-reports/pkg/convert"
 	"github.com/ministryofjustice/opg-reports/pkg/datastore"
 	"github.com/ministryofjustice/opg-reports/pkg/record"
 	"github.com/ministryofjustice/opg-reports/sources/releases/releasesdb"
@@ -21,10 +21,10 @@ type Release struct {
 	Type       string  `json:"type,omitempty" db:"type" faker:"oneof: workflow_run, pull_request" enum:"workflow,merge" doc:"tracks if this was a workflow run or a merge"`
 	Date       string  `json:"date,omitempty" db:"date" faker:"date_string" doc:"Date this release happened."`
 	Count      int     `json:"count,omitempty" db:"count" faker:"oneof: 1" enum:"1" doc:"Number of releases"`
-	TeamList   []*Team `json:"team_list,omitempty" db:"-" faker:"slice_len=2" doc:"pulled from a many to many join table"`
+	TeamList   []*Team `json:"team_list,omitempty" db:"-" faker:"slice_len=1" doc:"pulled from a many to many join table"`
 }
 
-// ProcessJoins
+// ProcessJoins.
 // On insert of a Release row we then want to check and convert any associated values
 // within TeamList field (imported from json normally) into database joins
 // To do that we:
@@ -32,18 +32,14 @@ type Release struct {
 //   - find each (or create) the join between the team and this release
 //
 // JoinedRecord interface
-func (self *Release) ProcessJoins(ctx context.Context, db *sqlx.DB, tx *sqlx.Tx) (err error) {
-	var transaction *sqlx.Tx = tx
+func (self *Release) ProcessJoins(ctx context.Context, db *sqlx.DB) (err error) {
+	var tx *sqlx.Tx = db.MustBeginTx(ctx, datastore.TxOptions)
 	var teams []*Team = []*Team{}
 
-	if tx == nil {
-		transaction = db.MustBeginTx(ctx, datastore.TxOptions)
-	}
-	fmt.Println("--->before")
-	convert.PrettyPrint(self)
 	// Loop over each team and sort out the joins
 	for _, team := range self.TeamList {
 		var join *Join
+		team.ID = 0
 		// Find / create team DB entry
 		err = team.UpdateSelf(ctx, db, tx)
 		if err != nil {
@@ -58,13 +54,21 @@ func (self *Release) ProcessJoins(ctx context.Context, db *sqlx.DB, tx *sqlx.Tx)
 		teams = append(teams, team)
 	}
 	self.TeamList = teams
-	// if we used our own tx, then commit
-	if tx == nil {
-		err = transaction.Commit()
+	// commit
+	err = tx.Commit()
+	// roll back and warn of error
+	if err != nil {
+		err = tx.Rollback()
+		slog.Error("[releases.ProcessJoins]", slog.String("err", err.Error()))
 	}
-	fmt.Println("--->after")
-	convert.PrettyPrint(self)
 
+	return
+}
+
+// Teams fetches the teams from the database
+func (self *Release) Teams(ctx context.Context, db *sqlx.DB) (teams []*Team, err error) {
+	teams = []*Team{}
+	teams, err = datastore.SelectMany[*Team](ctx, db, releasesdb.GetTeamsForRelease, self)
 	return
 }
 

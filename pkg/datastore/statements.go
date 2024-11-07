@@ -54,10 +54,6 @@ func ValidateParameters[P NamedParameters](params P, needs []string) (err error)
 	if err != nil {
 		return
 	}
-	if len(mapped) == 0 {
-		err = fmt.Errorf("parameters passed must contain at least one field")
-		return
-	}
 
 	missing := []string{}
 	// check each need if that exists as a key in the map

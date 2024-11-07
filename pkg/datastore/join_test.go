@@ -80,12 +80,9 @@ WHERE
 	return
 }
 
-func (self *person) ProcessJoins(ctx context.Context, db *sqlx.DB, tx *sqlx.Tx) (err error) {
-	var transaction *sqlx.Tx = tx
-	// create own txn if we havent got one
-	if tx == nil {
-		transaction = db.MustBeginTx(ctx, transactionOptions)
-	}
+func (self *person) ProcessJoins(ctx context.Context, db *sqlx.DB) (err error) {
+	var transaction *sqlx.Tx = db.MustBeginTx(ctx, transactionOptions)
+
 	// for each address attached, deal with finding, inserting and
 	// joining rows between the tables
 	for _, addr := range self.Addresses {
@@ -121,10 +118,8 @@ func (self *person) ProcessJoins(ctx context.Context, db *sqlx.DB, tx *sqlx.Tx) 
 		}
 
 	}
-	// if we used our own tx, then commit
-	if tx == nil {
-		err = transaction.Commit()
-	}
+	// commit
+	err = transaction.Commit()
 
 	return
 }

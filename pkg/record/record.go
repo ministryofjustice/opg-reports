@@ -17,5 +17,5 @@ type Record interface {
 // JoinedRecord
 // Used for more advanced records that have database joins
 type JoinedRecord interface {
-	ProcessJoins(ctx context.Context, db *sqlx.DB, tx *sqlx.Tx) error
+	ProcessJoins(ctx context.Context, db *sqlx.DB) error
 }

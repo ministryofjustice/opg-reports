@@ -20,7 +20,7 @@ const (
 const (
 	InsertTeam    datastore.InsertStatement = `INSERT INTO teams (name) VALUES (:name) RETURNING id;`
 	InsertJoin    datastore.InsertStatement = `INSERT INTO releases_teams (release_id, team_id) VALUES (:release_id, :team_id) RETURNING id;`
-	InsertRelease datastore.InsertStatement = `INSERT INTO releases (ts,repository,name,source,type,date,count) VALUES (:ts,:repository,:name,:source,:type,:date,:count) RETURNING id;`
+	InsertRelease datastore.InsertStatement = `INSERT INTO releases (ts, repository, name, source, type, date,count) VALUES (:ts,:repository,:name,:source,:type,:date,:count) RETURNING id;`
 )
 
 // Counters
@@ -41,12 +41,12 @@ const (
 	GetJoin datastore.NamedSelectStatement = `SELECT id FROM releases_teams WHERE release_id = :release_id AND team_id = :team_id LIMIT 1`
 )
 
-const AllReleases datastore.SelectStatement = `
-SELECT
-	*
-FROM releases
-ORDER BY id ASC
-`
+// Release selects
+const (
+	GetRandomRelease   datastore.SelectStatement      = `SELECT * FROM releases ORDER BY RANDOM() LIMIT 1`
+	ListReleases       datastore.SelectStatement      = `SELECT * FROM releases ORDER BY id ASC`
+	GetTeamsForRelease datastore.NamedSelectStatement = `SELECT teams.id as id, teams.name as name FROM releases_teams LEFT JOIN teams ON releases_teams.team_id = teams.id WHERE releases_teams.release_id = :id`
+)
 
 const PerInterval datastore.NamedSelectStatement = `
 SELECT

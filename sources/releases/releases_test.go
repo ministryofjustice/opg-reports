@@ -19,16 +19,21 @@ func TestReleasesSetup(t *testing.T) {
 	var dbFile = filepath.Join(dir, "test.db")
 	var ctx = context.Background()
 
+	// run the main setup, we want to make sure
+	// database is setup and seeded correctly with random data
 	releases.Setup(ctx, dbFile, true)
 	if _, err := os.Stat(dbFile); os.IsNotExist(err) {
 		t.Errorf("database file was not created in expected locations")
 	}
+
+	// grab db connection
 	db, _, err := datastore.NewDB(ctx, datastore.Sqlite, dbFile)
 	if err != nil {
 		t.Errorf("error connecting to db [%s]", err.Error())
 	}
 	defer db.Close()
 
+	// check the number of releases created is the same as the seed count
 	count, err := datastore.Get[int](ctx, db, releasesdb.ReleaseCount)
 	if err != nil {
 		t.Errorf("error counting db rows: [%s]", err.Error())
@@ -37,23 +42,32 @@ func TestReleasesSetup(t *testing.T) {
 		t.Errorf("incorrect number of rows - expected [%d] actual [%v]", releases.RecordsToSeed, count)
 	}
 
-	// // check it made 4 teams
-	// count, err = datastore.Get[int](ctx, db, releasesdb.TeamsCount)
-	// if err != nil {
-	// 	t.Errorf("error counting db rows: [%s]", err.Error())
-	// }
-	// if count != releases.TeamRecordsToSeed {
-	// 	t.Errorf("incorrect number of rows - expected [%d] actual [%v]", releases.TeamRecordsToSeed, count)
-	// }
+	// Based on the faker config on the release model every release should
+	// generate a single
+	// Those teams may not be unique, but we can check the number joins
+	// which should be 1 x numberof releases
+	expectedJoins := 1 * releases.RecordsToSeed
+	count, err = datastore.Get[int](ctx, db, releasesdb.JoinCount)
+	if err != nil {
+		t.Errorf("error counting db rows: [%s]", err.Error())
+	}
+	if count != expectedJoins {
+		t.Errorf("incorrect number of joins - expected [%d] actual [%v]", expectedJoins, count)
+	}
 
-	// // check it made correct number of joins
-	// // - for the purpose of seeding, it only links a release to a single team
-	// count, err = datastore.Get[int](ctx, db, releasesdb.JoinCount)
-	// if err != nil {
-	// 	t.Errorf("error counting db rows: [%s]", err.Error())
-	// }
-	// if count != releases.RecordsToSeed {
-	// 	t.Errorf("incorrect number of rows - expected [%d] actual [%v]", releases.TeamRecordsToSeed, count)
-	// }
+	// Now check that a record fetched will return the correct team details
+	rand := &releases.Release{}
+	err = datastore.GetRecord(ctx, db, releasesdb.GetRandomRelease, rand)
+	if err != nil {
+		t.Errorf("error counting db rows: [%s]", err.Error())
+	}
 
+	teams, err := rand.Teams(ctx, db)
+	if err != nil {
+		t.Errorf("error counting db rows: [%s]", err.Error())
+	}
+
+	if len(teams) != 1 {
+		t.Errorf("failed to get team for record")
+	}
 }

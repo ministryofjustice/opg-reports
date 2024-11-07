@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"log/slog"
-	"sync"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/ministryofjustice/opg-reports/pkg/record"
@@ -14,7 +13,7 @@ import (
 // JoinOne checks that the item passed is a joinable record (record.JoinedRecord) and then calls
 // that items ProcessJoins function to handle joins
 // - passes along the database and transactions
-func JoinOne(ctx context.Context, db *sqlx.DB, item interface{}, tx *sqlx.Tx) (err error) {
+func JoinOne(ctx context.Context, db *sqlx.DB, item interface{}) (err error) {
 	var ok bool
 	var joinable record.JoinedRecord
 
@@ -23,7 +22,7 @@ func JoinOne(ctx context.Context, db *sqlx.DB, item interface{}, tx *sqlx.Tx) (e
 		return
 	}
 
-	err = joinable.ProcessJoins(ctx, db, tx)
+	err = joinable.ProcessJoins(ctx, db)
 
 	return
 }
@@ -32,28 +31,16 @@ func JoinOne(ctx context.Context, db *sqlx.DB, item interface{}, tx *sqlx.Tx) (e
 // Called from within InsertMany after that transations has completed to deal with any joins
 // on a model to links up data correctly from the main struct, creating records elsewhere in the
 // database
-// Calls JoinOne for each record within go func for concurrency
+// Calls JoinOne for each record
+// no concurrency atm
 func JoinMany[R record.Record](ctx context.Context, db *sqlx.DB, records []R) (err error) {
-	var (
-		mutex     *sync.Mutex    = &sync.Mutex{}
-		waitgroup sync.WaitGroup = sync.WaitGroup{}
-		mainTimer *timer.Timer   = timer.New()
-	)
+	var mainTimer *timer.Timer = timer.New()
 
 	for _, record := range records {
-		waitgroup.Add(1)
-		go func(item R) {
-			mutex.Lock()
-			defer mutex.Unlock()
-			e := JoinOne(ctx, db, item, nil)
-			if e != nil {
-				err = errors.Join(err, e)
-			}
-			waitgroup.Done()
-		}(record)
-
+		if e := JoinOne(ctx, db, record); e != nil {
+			err = errors.Join(err, e)
+		}
 	}
-	waitgroup.Wait()
 	if err != nil {
 		slog.Error("[datastore.JoinMany] error: [%s]", slog.String("err", err.Error()))
 		return

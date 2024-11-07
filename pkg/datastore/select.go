@@ -21,24 +21,11 @@ func Get[R any](ctx context.Context, db *sqlx.DB, query SelectStatement, args ..
 	return
 }
 
-// List returns muliple rows with a standard select - something like a select *
-func List[R any](ctx context.Context, db *sqlx.DB, query SelectStatement, r R, args ...interface{}) (result []R, err error) {
-	var rows *sqlx.Rows
-	result = []R{}
-	rows, err = db.QueryxContext(ctx, string(query), args...)
-	if err != nil {
-		slog.Error("[datastore.List] error calling queryx", slog.String("err", err.Error()))
-		return
-	}
-	for rows.Next() {
-		err = rows.StructScan(r)
-		if err != nil {
-			slog.Error("[datastore.List] error scanning row", slog.String("err", err.Error()))
-			return
-		}
-		result = append(result, r)
-	}
-
+// GetRecord fetches a single db result as a record using a SelectStatement
+func GetRecord[R record.Record](ctx context.Context, db *sqlx.DB, query SelectStatement, result R, args ...interface{}) (err error) {
+	var row *sqlx.Row
+	row = db.QueryRowxContext(ctx, string(query), args...)
+	err = row.StructScan(result)
 	return
 }
 
@@ -66,7 +53,7 @@ func SelectMany[R record.Record](ctx context.Context, db *sqlx.DB, query NamedSe
 
 // SelectMany runs the known statement against using the parameters as named values within them and returns the
 // result as single version of R
-// Should be used for single row results
+// Should be used for single row results with NamedSelectStatement
 // For multiple rows, used SelectMany
 func SelectOne[R record.Record](ctx context.Context, db *sqlx.DB, query NamedSelectStatement, params interface{}) (result R, err error) {
 	var statement *sqlx.NamedStmt
