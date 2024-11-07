@@ -82,7 +82,7 @@ func TestImportsISqliteProcessDataFile(t *testing.T) {
 	var err error
 	var db *sqlx.DB
 	var count int
-	var dir = "./" //t.TempDir()
+	var dir = t.TempDir()
 	var dbFile = filepath.Join(dir, "test.db")
 	var testFile = filepath.Join(dir, "test.json")
 	var args = &lib.Arguments{}
