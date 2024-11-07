@@ -61,3 +61,15 @@ const (
 // GROUP BY strftime(:date_format, date)
 // ORDER by strftime(:date_format, date) ASC
 // `
+
+const ListReleasesGroupedByTeam datastore.NamedSelectStatement = `
+SELECT
+	teams.name as team_name,
+	strftime('%Y-%m', releases.date) as date,
+	COUNT(releases.id) as count
+FROM releases
+LEFT JOIN releases_teams on releases_teams.release_id = releases.id
+LEFT JOIN teams on teams.id = releases_teams.team_id
+GROUP BY strftime('%Y-%m', releases.date), releases_teams.team_id
+;
+`
