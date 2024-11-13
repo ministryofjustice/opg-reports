@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ministryofjustice/opg-reports/pkg/fileutils"
+	"github.com/ministryofjustice/opg-reports/internal/fileutils"
 )
 
 // TestFileUtilsCopy checks the copy function does make an exact match of

@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ministryofjustice/opg-reports/internal/fileutils"
 	"github.com/ministryofjustice/opg-reports/pkg/consts"
-	"github.com/ministryofjustice/opg-reports/pkg/fileutils"
 	"github.com/ministryofjustice/opg-reports/pkg/govukassets"
 )
 

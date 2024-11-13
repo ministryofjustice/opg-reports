@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ministryofjustice/opg-reports/internal/fileutils"
 	"github.com/ministryofjustice/opg-reports/pkg/consts"
-	"github.com/ministryofjustice/opg-reports/pkg/fileutils"
 )
 
 // url (with version value to replace) for the release zip
