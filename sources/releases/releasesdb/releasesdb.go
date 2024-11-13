@@ -51,17 +51,45 @@ const (
 // Release selects
 const (
 	GetRandomRelease   datastore.SelectStatement      = `SELECT * FROM releases ORDER BY RANDOM() LIMIT 1`                                                                                                         // Pick a random release
-	ListReleases       datastore.NamedSelectStatement = `SELECT * FROM releases ORDER BY id ASC`                                                                                                                   // List all releasees in id order
 	GetTeamsForRelease datastore.NamedSelectStatement = `SELECT teams.id as id, teams.name as name FROM releases_teams LEFT JOIN teams ON releases_teams.team_id = teams.id WHERE releases_teams.release_id = :id` // Get all the teams for the release with matching id
 )
 
 // --- API selects
 
+// List all releasees in id order
+const ListReleases datastore.NamedSelectStatement = `
+SELECT
+	*,
+	'Count' as unit,
+FROM releases
+WHERE
+	date >= :start_date
+    AND date < :end_date
+ORDER BY date ASC
+;`
+
+const ListReleasesFilter datastore.NamedSelectStatement = `
+SELECT
+	releases.*,
+	teams.name as unit
+FROM releases
+LEFT JOIN releases_teams on releases_teams.release_id = releases.id
+LEFT JOIN teams on teams.id = releases_teams.team_id
+WHERE
+	date >= :start_date
+    AND date < :end_date
+	AND teams.name = :unit
+ORDER BY date ASC
+;`
+
 const ListReleasesGroupedByInterval datastore.NamedSelectStatement = `
 SELECT
 	strftime(:date_format, releases.date) as date,
-	COUNT(releases.id) as count
+	COUNT(releases.id) as count,
+	'Count' as unit
 FROM releases
+LEFT JOIN releases_teams on releases_teams.release_id = releases.id
+LEFT JOIN teams on teams.id = releases_teams.team_id
 WHERE
 	date >= :start_date
     AND date < :end_date
@@ -72,7 +100,8 @@ ORDER BY strftime(:date_format, releases.date) ASC
 const ListReleasesGroupedByIntervalFilter datastore.NamedSelectStatement = `
 SELECT
 	strftime(:date_format, releases.date) as date,
-	COUNT(releases.id) as count
+	COUNT(releases.id) as count,
+	'Count' as unit
 FROM releases
 LEFT JOIN releases_teams on releases_teams.release_id = releases.id
 LEFT JOIN teams on teams.id = releases_teams.team_id

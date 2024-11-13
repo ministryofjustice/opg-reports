@@ -21,7 +21,12 @@ CUSTOM STYLES
 #main-content {
     padding: 30px 15px;
 }
+/* table cell with data like counters  */
+.data-cell {
+    text-align: right;
+}
 /* monospace */
+.releasecount,
 .uptime,
 .currency,
 .api-signature

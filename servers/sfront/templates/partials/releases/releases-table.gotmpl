@@ -1,0 +1,61 @@
+{{ define "releases-table" }}
+
+{{ $dates := .DateRange }}
+{{ $result := .TableRows }}
+{{ $columns := .ColumnOrder }}
+
+{{- if gt (len $result) 0 -}}
+
+<a name="data-table-uptime-{{ .Type }}"></a>
+
+<table class="govuk-table uptime-table">
+    <thead class="govuk-table__head">
+        <tr class="govuk-table__row">
+            {{- range $x, $col := $columns -}}
+                <th class="govuk-table__header data-header"><span>{{ title $col }}</span></th>
+            {{- end -}}
+            {{- range $i, $d := $dates -}}
+                <th class="govuk-table__header data-cell" data-col="{{$i}}"><span>{{ $d }}</span></th>
+            {{- end -}}
+            <th class="govuk-table__header data-cellish "><span>Trend</span></th>
+
+        </tr>
+    </thead>
+
+    <tbody class="govuk-table__body">
+        {{- $rowCount := 0 -}}
+        {{- range $i, $row := $result -}}
+            {{- $columnCount := 0 -}}
+            <tr class="govuk-table__row" data-row="{{ $rowCount }}">
+
+                {{- range $x, $col := $columns -}}
+                    <th data-col="{{ $columnCount }}" class="govuk-table__header">
+                        {{- if eq $columnCount 0 -}}
+                            <span class="tick comparison-selector-holder">
+                                <input type="checkbox" name="comp{{ $rowCount }}" value="{{ $rowCount }}" class="comparison-selector">
+                            </span>
+                        {{- end -}}
+                        <span>{{- valueFromMap $col $row -}}</span>
+                    </th>
+                    {{- $columnCount = increment $columnCount -}}
+                {{- end -}}
+
+                {{- range $i, $date := $dates -}}
+                    {{- $val := valueFromMap $date $row -}}
+                    <td data-col="{{ $columnCount }}" class="govuk-table__cell data-cell">
+                        <span title="{{ $val }}" class="releasecount">{{ $val }}</span>
+                    </td>
+                    {{- $columnCount = increment $columnCount -}}
+                {{- end -}}
+                <td class="govuk-table__cell data-cellish sparkline"><div class="loader"></div></td>
+            </tr>
+            {{- $rowCount = increment $rowCount -}}
+
+        {{- end -}}
+
+    </tbody>
+
+</table>
+{{- end -}}
+
+{{ end }}

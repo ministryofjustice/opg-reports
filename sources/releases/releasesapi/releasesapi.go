@@ -52,36 +52,42 @@ func apiTeamsListingHandler(ctx context.Context, input *releasesio.ReleasesTeams
 	return
 }
 
-// // apiReleasesListingHandler lists all releases without any grouping all filters
-// func apiReleasesListingHandler(ctx context.Context, input *releasesio.ReleasesListAllInput) (response *releasesio.ReleaseListAllOutput, err error) {
-// 	var (
-// 		result     []*releases.Release
-// 		db         *sqlx.DB
-// 		dbFilepath string                          = ctx.Value(Segment).(string)
-// 		stmt       datastore.NamedSelectStatement  = releasesdb.ListReleases
-// 		bdy        *releasesio.ReleasesListAllBody = &releasesio.ReleasesListAllBody{
-// 			Request: input,
-// 			Type:    "releases-list",
-// 		}
-// 	)
-// 	// grab db connection
-// 	db, _, err = datastore.NewDB(ctx, datastore.Sqlite, dbFilepath)
-// 	if err != nil {
-// 		return
-// 	}
-// 	defer db.Close()
+var releasesListAll = `Returns all releases data between the start and end date with option filtering by unit.`
 
-// 	// select them all
-// 	if result, err = datastore.SelectMany[*releases.Release](ctx, db, stmt, input); err == nil {
-// 		bdy.Result = result
-// 	}
+// apiReleasesListingHandler lists all releases without any grouping all filters
+func apiReleasesListingHandler(ctx context.Context, input *releasesio.ReleasesListAllInput) (response *releasesio.ReleaseListAllOutput, err error) {
+	var (
+		result     []*releases.Release
+		db         *sqlx.DB
+		dbFilepath string                          = ctx.Value(Segment).(string)
+		stmt       datastore.NamedSelectStatement  = releasesdb.ListReleases
+		bdy        *releasesio.ReleasesListAllBody = &releasesio.ReleasesListAllBody{
+			Request: input,
+			Type:    "release-list",
+		}
+	)
+	// grab db connection
+	db, _, err = datastore.NewDB(ctx, datastore.Sqlite, dbFilepath)
+	if err != nil {
+		return
+	}
+	defer db.Close()
 
-// 	response = &releasesio.ReleaseListAllOutput{
-// 		Body: bdy,
-// 	}
+	if input.Unit != "" {
+		stmt = releasesdb.ListReleasesFilter
+	}
 
-// 	return
-// }
+	// select them all
+	if result, err = datastore.SelectMany[*releases.Release](ctx, db, stmt, input); err == nil {
+		bdy.Result = result
+	}
+
+	response = &releasesio.ReleaseListAllOutput{
+		Body: bdy,
+	}
+
+	return
+}
 
 var releasesIntervalDescription = `Returns count of releases per interval between the start and end date passed.`
 
@@ -93,9 +99,10 @@ func apiReleasesIntervalHandler(ctx context.Context, input *releasesio.ReleasesI
 		dbFilepath string                         = ctx.Value(Segment).(string)
 		stmt       datastore.NamedSelectStatement = releasesdb.ListReleasesGroupedByInterval
 		bdy        *releasesio.ReleasesBody       = &releasesio.ReleasesBody{
-			Request:   input,
-			Type:      "releases",
-			DateRange: convert.DateRange(input.StartTime(), input.EndTime(), input.Interval),
+			Request:     input,
+			Type:        "release-counts",
+			ColumnOrder: []string{"unit"},
+			DateRange:   convert.DateRange(input.StartTime(), input.EndTime(), input.Interval),
 		}
 	)
 	// grab db connection
@@ -112,6 +119,7 @@ func apiReleasesIntervalHandler(ctx context.Context, input *releasesio.ReleasesI
 	// select them all
 	if result, err = datastore.SelectMany[*releases.Release](ctx, db, stmt, input); err == nil {
 		bdy.Result = result
+		bdy.ColumnValues = datastore.ColumnValues(result, bdy.ColumnOrder)
 	}
 
 	response = &releasesio.ReleaseOutput{
@@ -135,7 +143,7 @@ func apiReleasesIntervalTeamHandler(ctx context.Context, input *releasesio.Relea
 		stmt       datastore.NamedSelectStatement = releasesdb.ListReleasesGroupedByIntervalAndTeam
 		bdy        *releasesio.ReleasesBody       = &releasesio.ReleasesBody{
 			Request:     input,
-			Type:        "releases-unit",
+			Type:        "release-counts-unit",
 			ColumnOrder: []string{"unit"},
 			DateRange:   convert.DateRange(input.StartTime(), input.EndTime(), input.Interval),
 		}
@@ -170,7 +178,7 @@ func Register(api huma.API) {
 	uri = "/{version}/releases/github/teams"
 	slog.Info("[releasseapi.Register] ", slog.String("uri", uri))
 	huma.Register(api, huma.Operation{
-		OperationID:   "get-releases-teams-list",
+		OperationID:   "get-teams-list",
 		Method:        http.MethodGet,
 		Path:          uri,
 		Summary:       "List all teams",
@@ -179,37 +187,37 @@ func Register(api huma.API) {
 		Tags:          []string{Tag},
 	}, apiTeamsListingHandler)
 
-	// uri = "/{version}/releases/github/all"
-	// slog.Info("[releasseapi.Register] ", slog.String("uri", uri))
-	// huma.Register(api, huma.Operation{
-	// 	OperationID:   "get-releases-list",
-	// 	Method:        http.MethodGet,
-	// 	Path:          uri,
-	// 	Summary:       "List all releases",
-	// 	Description:   teamsListingDescription,
-	// 	DefaultStatus: http.StatusOK,
-	// 	Tags:          []string{Tag},
-	// }, apiReleasesListingHandler)
-
-	uri = "/{version}/releases/github/{start_date}/{end_date}/{interval}"
+	uri = "/{version}/releases/github/all/{start_date}/{end_date}"
 	slog.Info("[releasseapi.Register] ", slog.String("uri", uri))
 	huma.Register(api, huma.Operation{
-		OperationID:   "get-releases",
+		OperationID:   "get-releases-list",
 		Method:        http.MethodGet,
 		Path:          uri,
-		Summary:       "Releases",
+		Summary:       "List all releases",
+		Description:   teamsListingDescription,
+		DefaultStatus: http.StatusOK,
+		Tags:          []string{Tag},
+	}, apiReleasesListingHandler)
+
+	uri = "/{version}/releases/github/counts/all/{start_date}/{end_date}/{interval}"
+	slog.Info("[releasseapi.Register] ", slog.String("uri", uri))
+	huma.Register(api, huma.Operation{
+		OperationID:   "get-releases-counters",
+		Method:        http.MethodGet,
+		Path:          uri,
+		Summary:       "Count of releases",
 		Description:   releasesIntervalDescription,
 		DefaultStatus: http.StatusOK,
 		Tags:          []string{Tag},
 	}, apiReleasesIntervalHandler)
 
-	uri = "/{version}/releases/github/unit/{start_date}/{end_date}/{interval}"
+	uri = "/{version}/releases/github/counts/unit/{start_date}/{end_date}/{interval}"
 	slog.Info("[releasseapi.Register] ", slog.String("uri", uri))
 	huma.Register(api, huma.Operation{
 		OperationID:   "get-releases-unit",
 		Method:        http.MethodGet,
 		Path:          uri,
-		Summary:       "Releases per unit",
+		Summary:       "Count of releases per unit",
 		Description:   releasesIntervalTeamDescription,
 		DefaultStatus: http.StatusOK,
 		Tags:          []string{Tag},

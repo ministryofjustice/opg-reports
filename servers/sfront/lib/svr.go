@@ -291,13 +291,14 @@ func FetchDataForPage(api *Api, activePage *navigation.Navigation, pageData map[
 			mutex.Lock()
 			defer mutex.Unlock()
 			Fetcher(a, nd, nd.Body)
-			// convert.PrettyPrint(nd.Body)
 			// deal with the data
 			// - if we have a transformer, set it
 			// - otherwise pass it raw
 			if nd.Body != nil && nd.Transformer != nil {
+				slog.Info("Setting result to namespace via transformer", slog.String("namespace", nd.Namespace))
 				pageData[nd.Namespace] = nd.Transformer(nd.Body)
 			} else if nd.Body != nil {
+				slog.Info("Setting result to namespace.", slog.String("namespace", nd.Namespace))
 				pageData[nd.Namespace] = nd.Body
 			}
 			waitgroup.Done()

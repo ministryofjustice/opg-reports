@@ -1,35 +1,35 @@
-{{ define "uptime-aws" }}
+{{ define "releases-github" }}
     {{ template "head" . }}
 
-    {{ $overall := .UptimeOverall }}
-    {{ $unit := .UptimeUnit }}
+    {{ $overall := .ReleasesOverallMonthly }}
+    {{ $unit := .ReleasesUnitMonthly }}
 
-    <h1 class="govuk-heading-l">Service uptime</h1>
+    <h1 class="govuk-heading-l">Releases</h1>
 
     {{ if $overall }}
 
         <section class='outer'>
             <h2 class="govuk-heading-m">By month</h2>
-            <p class="govuk-body">Breakdown of uptime for all units per month.</p>
+            <p class="govuk-body">Breakdown of releases per month.</p>
 
             <div class="compare dataset">
-                {{ template "uptime-table" $overall }}
+                {{ template "releases-table" $overall }}
             </div>
         </section>
     {{ end }}
+
 
     {{ if $unit }}
 
         <section class='outer'>
             <h2 class="govuk-heading-m">By month and team</h2>
-            <p class="govuk-body">Breakdown of uptime for per month showing the values for each team.</p>
+            <p class="govuk-body">Breakdown of releases for all units per month.</p>
 
             <div class="compare dataset">
-                {{ template "uptime-table" $unit }}
+                {{ template "releases-table" $unit }}
             </div>
         </section>
     {{ end }}
-
 
     {{ template "foot" . }}
 {{ end }}
