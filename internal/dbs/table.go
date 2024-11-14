@@ -1,5 +1,7 @@
 package dbs
 
+import "database/sql"
+
 // CreateableTable is interface for tables that can be created in the database
 type CreateableTable interface {
 	Table
@@ -24,3 +26,12 @@ type Createable interface {
 	// being a list of the fields to to use.
 	Indexes() map[string][]string
 }
+
+type Joiner interface {
+	sql.Scanner
+	JoinOneToMany | JoinManyToMany
+}
+
+type JoinOneToMany interface{}
+
+type JoinManyToMany interface{}

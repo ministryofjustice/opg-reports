@@ -8,14 +8,14 @@ import (
 )
 
 func TestStatementNames(t *testing.T) {
-	var checks = map[statements.Stmt][]string{
+	var checks = map[string][]string{
 		"SELECT * FROM test":                                  {},
 		"SELECT * FROM test WHERE id = :id":                   {"id"},
 		"SELECT * FROM test WHERE id = :id_withWeird-Naming1": {"id_withWeird-Naming1"},
 	}
 
 	for check, expected := range checks {
-		var actual = check.Names()
+		var actual = statements.Names(check)
 		// check the length
 		if len(expected) != len(actual) {
 			t.Errorf("names result length mismatch - expected [%d] actual [%v]", len(expected), len(actual))
@@ -37,7 +37,7 @@ func TestStatementNames(t *testing.T) {
 }
 
 type testStmtValidateFixture struct {
-	stmt  statements.Stmt
+	stmt  string
 	named statements.Named
 	err   error
 }

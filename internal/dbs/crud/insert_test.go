@@ -56,6 +56,7 @@ func (self *testInsert) New() dbs.Cloneable {
 
 var _ dbs.InsertableRow = &testInsert{}
 var _ dbs.Cloneable = &testInsert{}
+var _ dbs.CreateableTable = &testInsert{}
 
 // TestCrudInsertMany checks testing 500,000 records being created
 // to check performance record errors / timeouts
