@@ -34,3 +34,8 @@ type Insertable interface {
 	// and the store wrapper will work out the values
 	InsertColumns() []string
 }
+
+type TableOfRecord interface {
+	CreateableTable
+	Record
+}

@@ -29,8 +29,8 @@ var (
 	TimeStringMax time.Time = now.AddDate(0, 0, -5) // Max time used as upper bound in time_string generation.
 )
 
-// randInt generates a number between min & max
-func randInt(min int, max int) int {
+// RandomInt generates a number between min & max
+func RandomInt(min int, max int) int {
 	return rand.IntN(max-min) + min
 }
 
@@ -81,7 +81,7 @@ func dateString() string {
 // It will create between 1 and 5 path segments
 // by calling Word() and appending
 func uri() (u string) {
-	var n int = randInt(1, 5)
+	var n int = RandomInt(1, 5)
 	u = ""
 
 	for i := 0; i < n; i++ {
@@ -130,8 +130,21 @@ type choice interface {
 
 // Choice will pick a value at random from a list
 func Choice[T choice](choices []T) T {
-	i := randInt(0, len(choices))
+	i := RandomInt(0, len(choices))
 	return choices[i]
+}
+
+func Choices[T choice](choices []T, min int) (selected []T) {
+	var use = RandomInt(min, len(choices))
+	selected = []T{}
+
+	for i := 0; i < use; i++ {
+		var x = RandomInt(0, len(choices))
+		selected = append(selected, choices[x])
+		choices = append(choices[:x], choices[x+1:]...)
+	}
+
+	return
 }
 
 func init() {
