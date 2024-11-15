@@ -135,13 +135,12 @@ func Choice[T choice](choices []T) T {
 }
 
 func Choices[T choice](choices []T, min int) (selected []T) {
-	var use = RandomInt(min, len(choices))
-	selected = []T{}
+	var randomised = rand.Perm(len(choices))
+	var count = RandomInt(min, len(choices))
 
-	for i := 0; i < use; i++ {
-		var x = RandomInt(0, len(choices))
-		selected = append(selected, choices[x])
-		choices = append(choices[:x], choices[x+1:]...)
+	selected = []T{}
+	for _, i := range randomised[:count] {
+		selected = append(selected, choices[i])
 	}
 
 	return

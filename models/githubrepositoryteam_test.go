@@ -18,50 +18,39 @@ import (
 
 // Interface checks
 var (
-	_ dbs.Table           = &models.GitHubTeamUnit{}
-	_ dbs.CreateableTable = &models.GitHubTeamUnit{}
-	_ dbs.Insertable      = &models.GitHubTeamUnit{}
-	_ dbs.Row             = &models.GitHubTeamUnit{}
-	_ dbs.InsertableRow   = &models.GitHubTeamUnit{}
-	_ dbs.Record          = &models.GitHubTeamUnit{}
+	_ dbs.Table           = &models.GitHubRepositoryGitHubTeam{}
+	_ dbs.CreateableTable = &models.GitHubRepositoryGitHubTeam{}
+	_ dbs.Insertable      = &models.GitHubRepositoryGitHubTeam{}
+	_ dbs.Row             = &models.GitHubRepositoryGitHubTeam{}
+	_ dbs.InsertableRow   = &models.GitHubRepositoryGitHubTeam{}
+	_ dbs.Record          = &models.GitHubRepositoryGitHubTeam{}
 )
 
-var selectUnits string = `
+var selectRepos string = `
 SELECT
-	units.*,
+	github_repositories.*,
 	json_group_array(json_object('id', github_teams.id,'name', github_teams.name)) as github_teams
-FROM units
-LEFT JOIN github_teams_units on github_teams_units.unit_id = units.id
-LEFT JOIN github_teams on github_teams.id = github_teams_units.github_team_id
-GROUP BY units.id
-ORDER BY units.name ASC;
-`
-
-var selectTeams string = `
-SELECT
-	github_teams.*,
-	json_group_array(json_object('id', units.id,'name', units.name)) as units
-FROM github_teams
-LEFT JOIN github_teams_units on github_teams_units.github_team_id = github_teams.id
-LEFT JOIN units on units.id = github_teams_units.unit_id
-GROUP BY github_teams.id
-ORDER BY github_teams.name ASC;
+FROM github_repositories
+LEFT JOIN github_repositories_github_teams on github_repositories_github_teams.github_repository_id = github_repositories.id
+LEFT JOIN github_teams on github_teams.id = github_repositories_github_teams.github_team_id
+GROUP BY github_repositories.id
+ORDER BY github_repositories.full_name ASC;
 `
 
 // TestModelsGithubTeamUnitJoin checks the join logic from
-// unit->githubteams is working
-func TestModelsGithubTeamUnitJoin(t *testing.T) {
+// repo->teams is working
+func TestModelsGithubRepoTeamJoin(t *testing.T) {
 	fakerextras.AddProviders()
 	var (
-		err         error
-		adaptor     *adaptors.Sqlite
-		ctx         context.Context = context.Background()
-		dir         string          = t.TempDir()
-		path        string          = filepath.Join(dir, "test.db")
-		units       []*models.Unit
-		resultUnits []*models.Unit
-		teams       []*models.GitHubTeam
-		joins       []*models.GitHubTeamUnit
+		err     error
+		adaptor *adaptors.Sqlite
+		ctx     context.Context = context.Background()
+		dir     string          = t.TempDir()
+		path    string          = filepath.Join(dir, "test.db")
+		repos   []*models.GitHubRepository
+		results []*models.GitHubRepository
+		teams   []*models.GitHubTeam
+		joins   []*models.GitHubRepositoryGitHubTeam
 	)
 	adaptor, err = adaptors.NewSqlite(path, false)
 	if err != nil {
@@ -69,17 +58,17 @@ func TestModelsGithubTeamUnitJoin(t *testing.T) {
 	}
 	defer adaptor.DB().Close()
 
-	units, err = testDBbuilder(ctx, adaptor, &models.Unit{}, fakermany.Fake[*models.Unit](4))
+	repos, err = testDBbuilder(ctx, adaptor, &models.GitHubRepository{}, fakermany.Fake[*models.GitHubRepository](10))
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	teams, err = testDBbuilder(ctx, adaptor, &models.GitHubTeam{}, fakermany.Fake[*models.GitHubTeam](6))
+	teams, err = testDBbuilder(ctx, adaptor, &models.GitHubTeam{}, fakermany.Fake[*models.GitHubTeam](4))
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
 
 	// now we create the joins and insert them
-	for _, unit := range units {
+	for _, repo := range repos {
 		var list = []*models.GitHubTeam{}
 		var picked = fakerextras.Choices(teams, 2)
 		// dont add duplicates
@@ -89,32 +78,33 @@ func TestModelsGithubTeamUnitJoin(t *testing.T) {
 			}
 		}
 		// set the team on the unit
-		unit.GitHubTeams = list
+		repo.GitHubTeams = list
 		for _, gt := range list {
-			joins = append(joins, &models.GitHubTeamUnit{UnitID: unit.ID, GitHubTeamID: gt.ID})
+			joins = append(joins, &models.GitHubRepositoryGitHubTeam{GitHubRepositoryID: repo.ID, GitHubTeamID: gt.ID})
 		}
 	}
 	// insert the joins and create the table etc
-	_, err = testDBbuilder(ctx, adaptor, &models.GitHubTeamUnit{}, joins)
+	_, err = testDBbuilder(ctx, adaptor, &models.GitHubRepositoryGitHubTeam{}, joins)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
 
 	// now select the units to and see if the teams are included!
-	resultUnits, err = crud.Select[*models.Unit](ctx, adaptor, selectUnits, nil)
+	results, err = crud.Select[*models.GitHubRepository](ctx, adaptor, selectRepos, nil)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
 
+	pretty.Print(results)
 	// now check the results contain the correct join data
-	for _, result := range resultUnits {
+	for _, result := range results {
 		// grab actually returned teams
 		var actualTeams = result.GitHubTeams
 		// get the teams that were generated for this unit
 		var expectedTeams = []*models.GitHubTeam{}
-		for _, unit := range units {
-			if unit.ID == result.ID {
-				expectedTeams = unit.GitHubTeams
+		for _, repo := range repos {
+			if repo.ID == result.ID {
+				expectedTeams = repo.GitHubTeams
 			}
 		}
 		// if the counts dont match, throw an error
@@ -138,12 +128,6 @@ func TestModelsGithubTeamUnitJoin(t *testing.T) {
 			}
 		}
 
-	}
-
-	// now select the teams and check no error
-	_, err = crud.Select[*models.GitHubTeam](ctx, adaptor, selectTeams, nil)
-	if err != nil {
-		t.Fatalf(err.Error())
 	}
 
 }

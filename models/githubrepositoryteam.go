@@ -7,8 +7,8 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/structs"
 )
 
-// GitHubTeamUnit represents the join between a unit and ad github team
-// providing structs for both sides of the many to many join
+// GitHubRepositoryGitHubTeam represents the join between a github repo and
+// a git hub team providing structs for both sides of the many to many join
 //
 // Interfaces:
 //   - dbs.Table
@@ -18,20 +18,20 @@ import (
 //   - dbs.Insertable
 //   - dbs.InsertableRow
 //   - dbs.Record
-type GitHubTeamUnit struct {
-	ID           int `json:"id,omitempty" db:"id" faker:"-"`
-	GitHubTeamID int `json:"github_team_id,omitempty" db:"github_team_id" faker:"-"`
-	UnitID       int `json:"unit_id,omitempty" db:"unit_id" faker:"-"`
+type GitHubRepositoryGitHubTeam struct {
+	ID                 int `json:"id,omitempty" db:"id" faker:"-"`
+	GitHubRepositoryID int `json:"github_repository_id,omitempty" db:"github_repository_id" faker:"-"`
+	GitHubTeamID       int `json:"github_team_id,omitempty" db:"github_team_id" faker:"-"`
 }
 
-// TableName returns named table for GitHubTeamUnit - GitHubTeamUnits
+// TableName returns named table for GitHubRepositoryGitHubTeam - GitHubRepositoryGitHubTeams
 //
 // Interfaces:
 //   - dbs.Table
 //   - dbs.CreateableTable
 //   - dbs.Insertable
-func (self *GitHubTeamUnit) TableName() string {
-	return "github_teams_units"
+func (self *GitHubRepositoryGitHubTeam) TableName() string {
+	return "github_repositories_github_teams"
 }
 
 // Columns returns a map of all of the columns on the table - used for creation
@@ -39,11 +39,11 @@ func (self *GitHubTeamUnit) TableName() string {
 // Interfaces:
 //   - dbs.Createable
 //   - dbs.CreateableTable
-func (self *GitHubTeamUnit) Columns() map[string]string {
+func (self *GitHubRepositoryGitHubTeam) Columns() map[string]string {
 	return map[string]string{
-		"id":             "INTEGER PRIMARY KEY",
-		"github_team_id": "INTEGER NOT NULL",
-		"unit_id":        "INTEGER NOT NULL",
+		"id":                   "INTEGER PRIMARY KEY",
+		"github_repository_id": "INTEGER NOT NULL",
+		"github_team_id":       "INTEGER NOT NULL",
 	}
 }
 
@@ -54,10 +54,10 @@ func (self *GitHubTeamUnit) Columns() map[string]string {
 // Interfaces:
 //   - dbs.Createable
 //   - dbs.CreateableTable
-func (self *GitHubTeamUnit) Indexes() map[string][]string {
+func (self *GitHubRepositoryGitHubTeam) Indexes() map[string][]string {
 	return map[string][]string{
-		"ghu_gh_idx": {"github_team_id"},
-		"ghu_u_idx":  {"unit_id"},
+		"ghgt_t_idx": {"github_team_id"},
+		"ghgt_r_idx": {"github_repository_id"},
 	}
 }
 
@@ -67,8 +67,8 @@ func (self *GitHubTeamUnit) Indexes() map[string][]string {
 //   - dbs.Insertable
 //   - dbs.InsertableRow
 //   - dbs.Record
-func (self *GitHubTeamUnit) InsertColumns() []string {
-	return []string{"github_team_id", "unit_id"}
+func (self *GitHubRepositoryGitHubTeam) InsertColumns() []string {
+	return []string{"github_repository_id", "github_team_id"}
 }
 
 // GetID simply returns the current ID value for this row
@@ -78,7 +78,7 @@ func (self *GitHubTeamUnit) InsertColumns() []string {
 //   - dbs.Insertable
 //   - dbs.InsertableRow
 //   - dbs.Record
-func (self *GitHubTeamUnit) GetID() int {
+func (self *GitHubRepositoryGitHubTeam) GetID() int {
 	return self.ID
 }
 
@@ -90,7 +90,7 @@ func (self *GitHubTeamUnit) GetID() int {
 //   - dbs.Insertable
 //   - dbs.InsertableRow
 //   - dbs.Record
-func (self *GitHubTeamUnit) SetID(id int) {
+func (self *GitHubRepositoryGitHubTeam) SetID(id int) {
 	self.ID = id
 }
 
@@ -99,8 +99,8 @@ func (self *GitHubTeamUnit) SetID(id int) {
 //
 // Interfaces:
 //   - dbs.Cloneable
-func (self *GitHubTeamUnit) New() dbs.Cloneable {
-	return &GitHubTeamUnit{}
+func (self *GitHubRepositoryGitHubTeam) New() dbs.Cloneable {
+	return &GitHubRepositoryGitHubTeam{}
 }
 
 // GitHubTeams is to be used on the struct that needs to pull in
@@ -109,7 +109,7 @@ func (self *GitHubTeamUnit) New() dbs.Cloneable {
 //
 // Interfaces:
 //   - sql.Scanner
-type GitHubTeams []*GitHubTeam
+type GitHubRepositories []*GitHubRepository
 
 // Scan converts the json aggregate result from a select statement into
 // a series of GitHubTeams attached to the main struct and will be called
@@ -117,33 +117,7 @@ type GitHubTeams []*GitHubTeam
 //
 // Interfaces:
 //   - sql.Scanner
-func (self *GitHubTeams) Scan(src interface{}) (err error) {
-	switch src.(type) {
-	case []byte:
-		err = structs.Unmarshal(src.([]byte), self)
-	case string:
-		err = structs.Unmarshal([]byte(src.(string)), self)
-	default:
-		err = fmt.Errorf("unsupported scan src type")
-	}
-	return
-}
-
-// Units is to be used on the struct that needs to pull in
-// the units via a many to many join select statement and provides
-// the Scan method so sqlx will handle the result correctly
-//
-// Interfaces:
-//   - sql.Scanner
-type Units []*Unit
-
-// Scan converts the json aggregate result from a select statement into
-// a series of Units attached to the main struct and will be called
-// directly by sqlx
-//
-// Interfaces:
-//   - sql.Scanner
-func (self *Units) Scan(src interface{}) (err error) {
+func (self *GitHubRepositories) Scan(src interface{}) (err error) {
 	switch src.(type) {
 	case []byte:
 		err = structs.Unmarshal(src.([]byte), self)

@@ -15,9 +15,11 @@ import "github.com/ministryofjustice/opg-reports/internal/dbs"
 //   - dbs.Record
 //   - dbs.Cloneable
 type GitHubTeam struct {
-	ID    int    `json:"id,omitempty" db:"id" faker:"-"`
-	Name  string `json:"name,omitempty" db:"name" faker:"unique, oneof:opg,opg-webops,opg-sirius,opg-use,opg-make,foo,bar"`
-	Units Units  `json:"units,omitempty" db:"units" faker:"-"`
+	ID                 int                `json:"id,omitempty" db:"id" faker:"-"`
+	Ts                 string             `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."` // TS is timestamp when the record was created
+	Name               string             `json:"name,omitempty" db:"name" faker:"unique, oneof:opg,opg-webops,opg-sirius,opg-use,opg-make,foo,bar"`
+	Units              Units              `json:"units,omitempty" db:"units" faker:"-"`
+	GitHubRepositories GitHubRepositories `json:"github_repositories,omitempty" db:"github_repositories" faker:"-"`
 }
 
 // TableName returns named table for GitHubTeam - GitHubTeams
@@ -36,7 +38,11 @@ func (self *GitHubTeam) TableName() string {
 //   - dbs.Createable
 //   - dbs.CreateableTable
 func (self *GitHubTeam) Columns() map[string]string {
-	return map[string]string{"id": "INTEGER PRIMARY KEY", "name": "TEXT NOT NULL UNIQUE"}
+	return map[string]string{
+		"id":   "INTEGER PRIMARY KEY",
+		"ts":   "TEXT NOT NULL",
+		"name": "TEXT NOT NULL UNIQUE",
+	}
 }
 
 // Indexes returns a map contains the indexes to create on the this. This map should
@@ -59,7 +65,7 @@ func (self *GitHubTeam) Indexes() map[string][]string {
 //   - dbs.InsertableRow
 //   - dbs.Record
 func (self *GitHubTeam) InsertColumns() []string {
-	return []string{"name"}
+	return []string{"ts", "name"}
 }
 
 // GetID simply returns the current ID value for this row
