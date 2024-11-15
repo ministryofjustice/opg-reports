@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"slices"
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
@@ -25,6 +26,7 @@ var (
 	_ dbs.Record          = &models.GitHubTeamUnit{}
 )
 
+// testDBbuilder spins up a table and inserts records and indexes into it
 func testDBbuilder[T dbs.TableOfRecord](ctx context.Context, adaptor *adaptors.Sqlite, itemType T, insert []T) (results []T, err error) {
 
 	_, err = crud.CreateTable(ctx, adaptor, itemType)
@@ -59,6 +61,17 @@ GROUP BY units.id
 ORDER BY units.name ASC;
 `
 
+var selectTeams string = `
+SELECT
+	github_teams.*,
+	json_group_array(json_object('id', units.id,'name', units.name)) as units
+FROM github_teams
+LEFT JOIN github_teams_units on github_teams_units.github_team_id = github_teams.id
+LEFT JOIN units on units.id = github_teams_units.unit_id
+GROUP BY github_teams.id
+ORDER BY github_teams.name ASC;
+`
+
 // TestModelsGithubTeamUnitJoin checks the join logic from
 // unit->githubteams is working
 func TestModelsGithubTeamUnitJoin(t *testing.T) {
@@ -91,7 +104,14 @@ func TestModelsGithubTeamUnitJoin(t *testing.T) {
 
 	// now we create the joins and insert them
 	for _, unit := range units {
-		var list = fakerextras.Choices(teams, 1)
+		var list = []*models.GitHubTeam{}
+		var picked = fakerextras.Choices(teams, 2)
+		// dont add duplicates
+		for _, i := range picked {
+			if !slices.Contains(list, i) {
+				list = append(list, i)
+			}
+		}
 		// set the team on the unit
 		unit.GitHubTeams = list
 		for _, gt := range list {
@@ -142,6 +162,12 @@ func TestModelsGithubTeamUnitJoin(t *testing.T) {
 			}
 		}
 
+	}
+
+	// now select the teams and check no error
+	_, err = crud.Select[*models.GitHubTeam](ctx, adaptor, selectTeams, nil)
+	if err != nil {
+		t.Fatalf(err.Error())
 	}
 
 }

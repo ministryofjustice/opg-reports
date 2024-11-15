@@ -58,6 +58,6 @@ func Select[R any, A dbs.Adaptor](ctx context.Context, adaptor A, stmt string, n
 		return
 	}
 	//
-	err = tx.Commit()
+	err = transactions.Commit(false)
 	return
 }

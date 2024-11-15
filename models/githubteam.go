@@ -15,8 +15,9 @@ import "github.com/ministryofjustice/opg-reports/internal/dbs"
 //   - dbs.Record
 //   - dbs.Cloneable
 type GitHubTeam struct {
-	ID   int    `json:"id,omitempty" db:"id" faker:"-"`
-	Name string `json:"name,omitempty" db:"name" faker:"unique, oneof:opg,opg-webops,opg-sirius,opg-use,opg-make,foo,bar"`
+	ID    int    `json:"id,omitempty" db:"id" faker:"-"`
+	Name  string `json:"name,omitempty" db:"name" faker:"unique, oneof:opg,opg-webops,opg-sirius,opg-use,opg-make,foo,bar"`
+	Units Units  `json:"units,omitempty" db:"units" faker:"-"`
 }
 
 // TableName returns named table for GitHubTeam - GitHubTeams

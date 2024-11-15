@@ -40,7 +40,11 @@ func (self *GitHubTeamUnit) TableName() string {
 //   - dbs.Createable
 //   - dbs.CreateableTable
 func (self *GitHubTeamUnit) Columns() map[string]string {
-	return map[string]string{"id": "INTEGER PRIMARY KEY", "github_team_id": "INTEGER NOT NULL", "unit_id": "INTEGER NOT NULL"}
+	return map[string]string{
+		"id":             "INTEGER PRIMARY KEY",
+		"github_team_id": "INTEGER NOT NULL",
+		"unit_id":        "INTEGER NOT NULL",
+	}
 }
 
 // Indexes returns a map contains the indexes to create on the this. This map should
@@ -114,6 +118,32 @@ type GitHubTeams []*GitHubTeam
 // Interfaces:
 //   - sql.Scanner
 func (self *GitHubTeams) Scan(src interface{}) (err error) {
+	switch src.(type) {
+	case []byte:
+		err = structs.Unmarshal(src.([]byte), self)
+	case string:
+		err = structs.Unmarshal([]byte(src.(string)), self)
+	default:
+		err = fmt.Errorf("unsupported scan src type")
+	}
+	return
+}
+
+// Units is to be used on the struct that needs to pull in
+// the units via a many to many join select statement and provides
+// the Scan method so sqlx will handle the result correctly
+//
+// Interfaces:
+//   - sql.Scanner
+type Units []*Unit
+
+// Scan converts the json aggregate result from a select statement into
+// a series of Units attached to the main struct and will be called
+// directly by sqlx
+//
+// Interfaces:
+//   - sql.Scanner
+func (self *Units) Scan(src interface{}) (err error) {
 	switch src.(type) {
 	case []byte:
 		err = structs.Unmarshal(src.([]byte), self)
