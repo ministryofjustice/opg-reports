@@ -1,6 +1,11 @@
 package models
 
-import "github.com/ministryofjustice/opg-reports/internal/dbs"
+import (
+	"fmt"
+
+	"github.com/ministryofjustice/opg-reports/internal/dbs"
+	"github.com/ministryofjustice/opg-reports/internal/structs"
+)
 
 // Unit represents are organisational structure and can point to
 // multiple git hub teams, services and accounts.
@@ -14,10 +19,11 @@ import "github.com/ministryofjustice/opg-reports/internal/dbs"
 //   - dbs.Record
 //   - dbs.Cloneable
 type Unit struct {
-	ID          int         `json:"id,omitempty" db:"id" faker:"-"`
-	Ts          string      `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."` // TS is timestamp when the record was created
-	Name        string      `json:"name,omitempty" db:"name" faker:"unique, oneof: sirius,use,make,digideps,serve,refunds"`
-	GitHubTeams GitHubTeams `json:"github_teams,omitempty" db:"github_teams" faker:"-"`
+	ID             int         `json:"id,omitempty" db:"id" faker:"-"`
+	Ts             string      `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."` // TS is timestamp when the record was created
+	Name           string      `json:"name,omitempty" db:"name" faker:"unique, oneof: sirius,use,make,digideps,serve,refunds"`
+	OrganisationID int         `json:"organisation_id,omitempty" db:"organisation_id" faker:"-"`
+	GitHubTeams    GitHubTeams `json:"github_teams,omitempty" db:"github_teams" faker:"-"`
 }
 
 // TableName returns named table for Unit - units
@@ -37,9 +43,10 @@ func (self *Unit) TableName() string {
 //   - dbs.CreateableTable
 func (self *Unit) Columns() map[string]string {
 	return map[string]string{
-		"id":   "INTEGER PRIMARY KEY",
-		"ts":   "TEXT NOT NULL",
-		"name": "TEXT NOT NULL UNIQUE",
+		"id":              "INTEGER PRIMARY KEY",
+		"ts":              "TEXT NOT NULL",
+		"name":            "TEXT NOT NULL UNIQUE",
+		"organisation_id": "INTEGER NOT NULL",
 	}
 }
 
@@ -53,6 +60,7 @@ func (self *Unit) Columns() map[string]string {
 func (self *Unit) Indexes() map[string][]string {
 	return map[string][]string{
 		"unit_name_idx": {"name"},
+		"unit_org_idx":  {"organisation_id"},
 	}
 }
 
@@ -63,7 +71,7 @@ func (self *Unit) Indexes() map[string][]string {
 //   - dbs.InsertableRow
 //   - dbs.Record
 func (self *Unit) InsertColumns() []string {
-	return []string{"ts", "name"}
+	return []string{"ts", "name", "organisation_id"}
 }
 
 // GetID simply returns the current ID value for this row
@@ -96,4 +104,30 @@ func (self *Unit) SetID(id int) {
 //   - dbs.Cloneable
 func (self *Unit) New() dbs.Cloneable {
 	return &Unit{}
+}
+
+// Units is to be used on the struct that needs to pull in
+// the units via a many to many join select statement and provides
+// the Scan method so sqlx will handle the result correctly
+//
+// Interfaces:
+//   - sql.Scanner
+type Units []*Unit
+
+// Scan converts the json aggregate result from a select statement into
+// a series of Units attached to the main struct and will be called
+// directly by sqlx
+//
+// Interfaces:
+//   - sql.Scanner
+func (self *Units) Scan(src interface{}) (err error) {
+	switch src.(type) {
+	case []byte:
+		err = structs.Unmarshal(src.([]byte), self)
+	case string:
+		err = structs.Unmarshal([]byte(src.(string)), self)
+	default:
+		err = fmt.Errorf("unsupported scan src type")
+	}
+	return
 }

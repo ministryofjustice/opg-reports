@@ -1,10 +1,7 @@
 package models
 
 import (
-	"fmt"
-
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
-	"github.com/ministryofjustice/opg-reports/internal/structs"
 )
 
 // GitHubTeamUnit represents the join between a unit and ad github team
@@ -101,56 +98,4 @@ func (self *GitHubTeamUnit) SetID(id int) {
 //   - dbs.Cloneable
 func (self *GitHubTeamUnit) New() dbs.Cloneable {
 	return &GitHubTeamUnit{}
-}
-
-// GitHubTeams is to be used on the struct that needs to pull in
-// the github teams via a many to many join select statement and provides
-// the Scan method so sqlx will handle the result correctly
-//
-// Interfaces:
-//   - sql.Scanner
-type GitHubTeams []*GitHubTeam
-
-// Scan converts the json aggregate result from a select statement into
-// a series of GitHubTeams attached to the main struct and will be called
-// directly by sqlx
-//
-// Interfaces:
-//   - sql.Scanner
-func (self *GitHubTeams) Scan(src interface{}) (err error) {
-	switch src.(type) {
-	case []byte:
-		err = structs.Unmarshal(src.([]byte), self)
-	case string:
-		err = structs.Unmarshal([]byte(src.(string)), self)
-	default:
-		err = fmt.Errorf("unsupported scan src type")
-	}
-	return
-}
-
-// Units is to be used on the struct that needs to pull in
-// the units via a many to many join select statement and provides
-// the Scan method so sqlx will handle the result correctly
-//
-// Interfaces:
-//   - sql.Scanner
-type Units []*Unit
-
-// Scan converts the json aggregate result from a select statement into
-// a series of Units attached to the main struct and will be called
-// directly by sqlx
-//
-// Interfaces:
-//   - sql.Scanner
-func (self *Units) Scan(src interface{}) (err error) {
-	switch src.(type) {
-	case []byte:
-		err = structs.Unmarshal(src.([]byte), self)
-	case string:
-		err = structs.Unmarshal([]byte(src.(string)), self)
-	default:
-		err = fmt.Errorf("unsupported scan src type")
-	}
-	return
 }

@@ -4,31 +4,32 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
 )
 
-// GitHubRepositoryGitHubTeam represents the join between a github repo and
-// a git hub team providing structs for both sides of the many to many join
+// Organisation represents are organisational structure and can point to
+// multiple git hub teams, services and accounts.
 //
 // Interfaces:
 //   - dbs.Table
 //   - dbs.CreateableTable
 //   - dbs.Insertable
 //   - dbs.Row
-//   - dbs.Insertable
 //   - dbs.InsertableRow
 //   - dbs.Record
-type GitHubRepositoryGitHubTeam struct {
-	ID                 int `json:"id,omitempty" db:"id" faker:"-"`
-	GitHubRepositoryID int `json:"github_repository_id,omitempty" db:"github_repository_id" faker:"-"`
-	GitHubTeamID       int `json:"github_team_id,omitempty" db:"github_team_id" faker:"-"`
+//   - dbs.Cloneable
+type Organisation struct {
+	ID    int    `json:"id,omitempty" db:"id" faker:"-"`
+	Ts    string `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."` // TS is timestamp when the record was created
+	Name  string `json:"name,omitempty" db:"name" faker:"unique, oneof: opg,laa,moj,cica"`
+	Units Units  `json:"units,omitempty" db:"units" faker:"-"`
 }
 
-// TableName returns named table for GitHubRepositoryGitHubTeam - GitHubRepositoryGitHubTeams
+// TableName returns named table for Organisation - units
 //
 // Interfaces:
 //   - dbs.Table
 //   - dbs.CreateableTable
 //   - dbs.Insertable
-func (self *GitHubRepositoryGitHubTeam) TableName() string {
-	return "github_repositories_github_teams"
+func (self *Organisation) TableName() string {
+	return "organisations"
 }
 
 // Columns returns a map of all of the columns on the table - used for creation
@@ -36,11 +37,11 @@ func (self *GitHubRepositoryGitHubTeam) TableName() string {
 // Interfaces:
 //   - dbs.Createable
 //   - dbs.CreateableTable
-func (self *GitHubRepositoryGitHubTeam) Columns() map[string]string {
+func (self *Organisation) Columns() map[string]string {
 	return map[string]string{
-		"id":                   "INTEGER PRIMARY KEY",
-		"github_repository_id": "INTEGER NOT NULL",
-		"github_team_id":       "INTEGER NOT NULL",
+		"id":   "INTEGER PRIMARY KEY",
+		"ts":   "TEXT NOT NULL",
+		"name": "TEXT NOT NULL UNIQUE",
 	}
 }
 
@@ -51,10 +52,9 @@ func (self *GitHubRepositoryGitHubTeam) Columns() map[string]string {
 // Interfaces:
 //   - dbs.Createable
 //   - dbs.CreateableTable
-func (self *GitHubRepositoryGitHubTeam) Indexes() map[string][]string {
+func (self *Organisation) Indexes() map[string][]string {
 	return map[string][]string{
-		"ghgt_t_idx": {"github_team_id"},
-		"ghgt_r_idx": {"github_repository_id"},
+		"org_name_idx": {"name"},
 	}
 }
 
@@ -64,8 +64,8 @@ func (self *GitHubRepositoryGitHubTeam) Indexes() map[string][]string {
 //   - dbs.Insertable
 //   - dbs.InsertableRow
 //   - dbs.Record
-func (self *GitHubRepositoryGitHubTeam) InsertColumns() []string {
-	return []string{"github_repository_id", "github_team_id"}
+func (self *Organisation) InsertColumns() []string {
+	return []string{"ts", "name"}
 }
 
 // GetID simply returns the current ID value for this row
@@ -75,7 +75,7 @@ func (self *GitHubRepositoryGitHubTeam) InsertColumns() []string {
 //   - dbs.Insertable
 //   - dbs.InsertableRow
 //   - dbs.Record
-func (self *GitHubRepositoryGitHubTeam) GetID() int {
+func (self *Organisation) GetID() int {
 	return self.ID
 }
 
@@ -87,7 +87,7 @@ func (self *GitHubRepositoryGitHubTeam) GetID() int {
 //   - dbs.Insertable
 //   - dbs.InsertableRow
 //   - dbs.Record
-func (self *GitHubRepositoryGitHubTeam) SetID(id int) {
+func (self *Organisation) SetID(id int) {
 	self.ID = id
 }
 
@@ -96,6 +96,6 @@ func (self *GitHubRepositoryGitHubTeam) SetID(id int) {
 //
 // Interfaces:
 //   - dbs.Cloneable
-func (self *GitHubRepositoryGitHubTeam) New() dbs.Cloneable {
-	return &GitHubRepositoryGitHubTeam{}
+func (self *Organisation) New() dbs.Cloneable {
+	return &Organisation{}
 }

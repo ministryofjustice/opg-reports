@@ -1,6 +1,11 @@
 package models
 
-import "github.com/ministryofjustice/opg-reports/internal/dbs"
+import (
+	"fmt"
+
+	"github.com/ministryofjustice/opg-reports/internal/dbs"
+	"github.com/ministryofjustice/opg-reports/internal/structs"
+)
 
 // GitHubRepository stores all the infor we want locally about our
 // current github repos
@@ -194,4 +199,30 @@ func (self *GitHubRepository) SetID(id int) {
 //   - dbs.Cloneable
 func (self *GitHubRepository) New() dbs.Cloneable {
 	return &GitHubRepository{}
+}
+
+// GitHubRepositories is to be used on the struct that needs to pull in
+// the repos via a join select statement and provides
+// the Scan method so sqlx will handle the result correctly
+//
+// Interfaces:
+//   - sql.Scanner
+type GitHubRepositories []*GitHubRepository
+
+// Scan converts the json aggregate result from a select statement into
+// a series of GitHubTeams attached to the main struct and will be called
+// directly by sqlx
+//
+// Interfaces:
+//   - sql.Scanner
+func (self *GitHubRepositories) Scan(src interface{}) (err error) {
+	switch src.(type) {
+	case []byte:
+		err = structs.Unmarshal(src.([]byte), self)
+	case string:
+		err = structs.Unmarshal([]byte(src.(string)), self)
+	default:
+		err = fmt.Errorf("unsupported scan src type")
+	}
+	return
 }

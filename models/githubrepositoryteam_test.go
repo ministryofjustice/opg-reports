@@ -95,7 +95,6 @@ func TestModelsGithubRepoTeamJoin(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	pretty.Print(results)
 	// now check the results contain the correct join data
 	for _, result := range results {
 		// grab actually returned teams
