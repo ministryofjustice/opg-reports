@@ -51,21 +51,34 @@ type Sqlite struct {
 	format    dbs.Formatter
 }
 
+// Connector returns the connection details used for the db
 func (self *Sqlite) Connector() dbs.Connector {
 	return self.connector
 }
+
+// Mode returns if this is in read / write setup for any transactions
 func (self *Sqlite) Mode() dbs.Moder {
 	return self.mode
 }
+
+// Seeder returns info on if the table can be seeded
 func (self *Sqlite) Seed() dbs.Seeder {
 	return self.seeder
 }
+
+// DB returns struct containing methods for using the database directly
 func (self *Sqlite) DB() dbs.DBer {
 	return self.db
 }
+
+// TX returns the transactions struct which should be used for all
+// queries
 func (self *Sqlite) TX() dbs.Transactioner {
 	return self.tx
 }
+
+// Formatter returns details on how to format dates for this type of
+// adaptor
 func (self *Sqlite) Format() dbs.Formatter {
 	return self.format
 }
@@ -75,13 +88,13 @@ func (self *Sqlite) Format() dbs.Formatter {
 // It will also create a directory path as well.
 func createDB(path string) (err error) {
 
-	slog.Debug("[lite] creating a new database at path.", slog.String("path", path))
+	slog.Debug("[sqllite] creating a new database at path.", slog.String("path", path))
 
 	directory := filepath.Dir(path)
 	os.MkdirAll(directory, os.ModePerm)
 
 	if err = os.WriteFile(path, []byte(""), os.ModePerm); err != nil {
-		slog.Error("[lite] writing empty data to db file failed", slog.String("err", err.Error()))
+		slog.Error("[sqlilite] writing empty data to db file failed", slog.String("err", err.Error()))
 	}
 	return
 }

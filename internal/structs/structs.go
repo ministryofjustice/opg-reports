@@ -17,3 +17,8 @@ func ToMap[T any](item T) (m map[string]interface{}, err error) {
 	}
 	return
 }
+
+func Unmarshal[T any](content []byte, destination T) (err error) {
+	err = json.Unmarshal(content, destination)
+	return
+}
