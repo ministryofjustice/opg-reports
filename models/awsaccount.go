@@ -24,8 +24,8 @@ type AwsAccount struct {
 	Name        string          `json:"name,omitempty" db:"name" faker:"unique, oneof: sirius prod, use prod, make prod, digideps prod, serve prod, refunds dev, sirius dev"`
 	Label       string          `json:"label,omitempty" db:"label" faker:"word" doc:"A supplimental lavel to provide extra detail on the account type."`       // Label is passed string that sets a more exact name - so DB account production
 	Environment string          `json:"environment,omitempty" db:"environment" faker:"oneof: production, pre-production, development" doc:"Environment type."` // Environment is passed along to show if this is production, development etc account
-	UnitID      int             `json:"unit_id" db:"unit_id" faker:"-"`
-	Unit        *UnitForeignKey `json:"unit" db:"unit" faker:"-"`
+	UnitID      int             `json:"unit_id,omitempty" db:"unit_id" faker:"-"`
+	Unit        *UnitForeignKey `json:"unit,omitempty" db:"unit" faker:"-"`
 }
 
 // TableName returns named table for AwsAccount - units

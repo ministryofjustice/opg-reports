@@ -19,11 +19,10 @@ import (
 //   - dbs.Record
 //   - dbs.Cloneable
 type Unit struct {
-	ID             int         `json:"id,omitempty" db:"id" faker:"-"`
-	Ts             string      `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."` // TS is timestamp when the record was created
-	Name           string      `json:"name,omitempty" db:"name" faker:"unique, oneof: sirius,use,make,digideps,serve,refunds"`
-	OrganisationID int         `json:"organisation_id,omitempty" db:"organisation_id" faker:"-"`
-	GitHubTeams    GitHubTeams `json:"github_teams,omitempty" db:"github_teams" faker:"-"`
+	ID          int         `json:"id,omitempty" db:"id" faker:"-"`
+	Ts          string      `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."` // TS is timestamp when the record was created
+	Name        string      `json:"name,omitempty" db:"name" faker:"unique, oneof: sirius,use,make,digideps,serve,refunds"`
+	GitHubTeams GitHubTeams `json:"github_teams,omitempty" db:"github_teams" faker:"-"`
 }
 
 // TableName returns named table for Unit - units
@@ -43,10 +42,9 @@ func (self *Unit) TableName() string {
 //   - dbs.CreateableTable
 func (self *Unit) Columns() map[string]string {
 	return map[string]string{
-		"id":              "INTEGER PRIMARY KEY",
-		"ts":              "TEXT NOT NULL",
-		"name":            "TEXT NOT NULL UNIQUE",
-		"organisation_id": "INTEGER NOT NULL",
+		"id":   "INTEGER PRIMARY KEY",
+		"ts":   "TEXT NOT NULL",
+		"name": "TEXT NOT NULL UNIQUE",
 	}
 }
 
@@ -60,7 +58,6 @@ func (self *Unit) Columns() map[string]string {
 func (self *Unit) Indexes() map[string][]string {
 	return map[string][]string{
 		"unit_name_idx": {"name"},
-		"unit_org_idx":  {"organisation_id"},
 	}
 }
 
@@ -71,7 +68,10 @@ func (self *Unit) Indexes() map[string][]string {
 //   - dbs.InsertableRow
 //   - dbs.Record
 func (self *Unit) InsertColumns() []string {
-	return []string{"ts", "name", "organisation_id"}
+	return []string{
+		"ts",
+		"name",
+	}
 }
 
 // GetID simply returns the current ID value for this row

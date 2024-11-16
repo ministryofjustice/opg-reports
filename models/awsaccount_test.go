@@ -10,7 +10,6 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/dbs/crud"
 	"github.com/ministryofjustice/opg-reports/internal/fakerextensions/fakerextras"
 	"github.com/ministryofjustice/opg-reports/internal/fakerextensions/fakermany"
-	"github.com/ministryofjustice/opg-reports/internal/pretty"
 	"github.com/ministryofjustice/opg-reports/models"
 )
 
@@ -123,7 +122,7 @@ func TestModelsAwsAccountUnitJoin(t *testing.T) {
 	if len(accounts) != len(results) {
 		t.Errorf("length mismatch - expected [%d] actual [%v]", len(accounts), len(results))
 	}
-	pretty.Print(results)
+
 	// now check the selected results match the generated version
 	for _, res := range results {
 		var release *models.AwsAccount
