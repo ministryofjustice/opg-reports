@@ -229,6 +229,9 @@ func TestCostApiPerUnitEnvHandler(t *testing.T) {
 		if row.Service == "Tax" {
 			row.Service = "ecs"
 		}
+		if _, ok := totals[row.Unit]; !ok {
+			totals[row.Unit] = map[string]float64{}
+		}
 		totals[row.Unit][row.Environment] += row.Value()
 	}
 

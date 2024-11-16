@@ -21,6 +21,7 @@ import (
 type GitHubRepository struct {
 	ID                             int         `json:"id,omitempty" db:"id" faker:"-"`
 	Ts                             string      `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."` // TS is timestamp when the record was created
+	FullName                       string      `json:"full_name,omitempty" db:"full_name" faker:"unique"`
 	CompliantBaseline              uint8       `json:"compliant_baseline,omitempty" db:"compliant_baseline" faker:"oneof: 0, 1"`
 	CompliantExtended              uint8       `json:"compliant_extended,omitempty" db:"compliant_extended" faker:"oneof: 0, 1"`
 	CountOfClones                  int         `json:"count_of_clones,omitempty" db:"count_of_clones" faker:"oneof: 0, 1"`
@@ -29,7 +30,6 @@ type GitHubRepository struct {
 	CountOfWebHooks                int         `json:"count_of_web_hooks,omitempty" db:"count_of_web_hooks" faker:"oneof: 0, 1"`
 	CreatedAt                      string      `json:"created_at,omitempty" db:"created_at" faker:"date_string"`
 	DefaultBranch                  string      `json:"default_branch,omitempty" db:"default_branch" faker:"oneof: main, master"`
-	FullName                       string      `json:"full_name,omitempty" db:"full_name"`
 	HasCodeOfConduct               uint8       `json:"has_code_of_conduct,omitempty" db:"has_code_of_conduct" faker:"oneof: 0, 1"`
 	HasCodeownerApprovalRequired   uint8       `json:"has_codeowner_approval_required,omitempty" db:"has_codeowner_approval_required" faker:"oneof: 0, 1"`
 	HasContributingGuide           uint8       `json:"has_contributing_guide,omitempty" db:"has_contributing_guide" faker:"oneof: 0, 1"`
@@ -51,8 +51,8 @@ type GitHubRepository struct {
 	IsPrivate                      uint8       `json:"is_private,omitempty" db:"is_private" faker:"oneof: 0, 1"`
 	License                        string      `json:"license,omitempty" db:"license" faker:"oneof: MIT, GPL"`
 	LastCommitDate                 string      `json:"last_commit_date,omitempty" db:"last_commit_date" faker:"date_string"`
-	Name                           string      `json:"name" db:"name"`
-	Owner                          string      `json:"owner" db:"owner" faker:"oneof: ministryofjusice"`
+	Name                           string      `json:"name,omitempty" db:"name" faker:"word"`
+	Owner                          string      `json:"owner,omitempty" db:"owner" faker:"oneof: ministryofjusice"`
 	GitHubTeams                    GitHubTeams `json:"github_teams,omitempty" db:"github_teams" faker:"-"`
 }
 
@@ -214,8 +214,37 @@ type GitHubRepositories []*GitHubRepository
 // directly by sqlx
 //
 // Interfaces:
-//   - sql.Scanner
+//   - sql.Scanner1
 func (self *GitHubRepositories) Scan(src interface{}) (err error) {
+	switch src.(type) {
+	case []byte:
+		err = structs.Unmarshal(src.([]byte), self)
+	case string:
+		err = structs.Unmarshal([]byte(src.(string)), self)
+	default:
+		err = fmt.Errorf("unsupported scan src type")
+	}
+	return
+}
+
+// GitHubRepositoryForeignKey is to be used on the struct that needs to pull in
+// the repo via one to many join (being used on the `one` side).
+//
+// To swap a GitHubRepository to a GitHubRepositoryID:
+//
+//	var join = models.GitHubRepositoryForeignKey(&GitHubRepository{})
+//
+// Interfaces:
+//   - sql.Scanner
+type GitHubRepositoryForeignKey GitHubRepository
+
+// Scan converts the json aggregate result from a select statement into
+// a series of GitHubTeams attached to the main struct and will be called
+// directly by sqlx
+//
+// Interfaces:
+//   - sql.Scanner
+func (self *GitHubRepositoryForeignKey) Scan(src interface{}) (err error) {
 	switch src.(type) {
 	case []byte:
 		err = structs.Unmarshal(src.([]byte), self)
