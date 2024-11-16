@@ -23,6 +23,7 @@ type Unit struct {
 	Ts          string      `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."` // TS is timestamp when the record was created
 	Name        string      `json:"name,omitempty" db:"name" faker:"unique, oneof: sirius,use,make,digideps,serve,refunds"`
 	GitHubTeams GitHubTeams `json:"github_teams,omitempty" db:"github_teams" faker:"-"`
+	AwsAccounts AwsAccounts `json:"aws_accounts,omitempty" db:"aws_accounts" faker:"-"` // Unit has many accounts, account has one unit
 }
 
 // TableName returns named table for Unit - units

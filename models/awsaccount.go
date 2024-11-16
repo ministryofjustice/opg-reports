@@ -117,6 +117,32 @@ func (self *AwsAccount) New() dbs.Cloneable {
 	return &AwsAccount{}
 }
 
+// AwsAccounts is to be used on the struct that needs to pull in
+// the accounts via a many to many join select statement and provides
+// the Scan method so sqlx will handle the result correctly
+//
+// Interfaces:
+//   - sql.Scanner
+type AwsAccounts []*AwsAccount
+
+// Scan converts the json aggregate result from a select statement into
+// a series of GitHubTeams attached to the main struct and will be called
+// directly by sqlx
+//
+// Interfaces:
+//   - sql.Scanner
+func (self *AwsAccounts) Scan(src interface{}) (err error) {
+	switch src.(type) {
+	case []byte:
+		err = structs.Unmarshal(src.([]byte), self)
+	case string:
+		err = structs.Unmarshal([]byte(src.(string)), self)
+	default:
+		err = fmt.Errorf("unsupported scan src type")
+	}
+	return
+}
+
 // AwsAccountForeignKey is to be used on the struct that needs to pull in
 // the repo via one to many join (being used on the `one` side).
 //

@@ -29,7 +29,12 @@ var (
 var selectRepos string = `
 SELECT
 	github_repositories.*,
-	json_group_array(json_object('id', github_teams.id,'name', github_teams.name)) as github_teams
+	json_group_array(
+		json_object(
+			'id', github_teams.id,
+			'name', github_teams.name
+		)
+	) as github_teams
 FROM github_repositories
 LEFT JOIN github_repositories_github_teams on github_repositories_github_teams.github_repository_id = github_repositories.id
 LEFT JOIN github_teams on github_teams.id = github_repositories_github_teams.github_team_id
