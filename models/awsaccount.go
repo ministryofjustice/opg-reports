@@ -157,6 +157,7 @@ type AwsAccountForeignKey AwsAccount
 func (self *AwsAccountForeignKey) Scan(src interface{}) (err error) {
 	switch src.(type) {
 	case []byte:
+
 		err = structs.Unmarshal(src.([]byte), self)
 	case string:
 		err = structs.Unmarshal([]byte(src.(string)), self)
