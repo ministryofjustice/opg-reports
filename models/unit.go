@@ -131,3 +131,26 @@ func (self *Units) Scan(src interface{}) (err error) {
 	}
 	return
 }
+
+// UnitForeignKey is to be used on the struct that needs to pull in
+// the repo via one to many join (being used on the `one` side).
+//
+// To swap a Unit to a UnitForeignKey:
+//
+//	var join = models.UnitForeignKey(&Unit{})
+//
+// Interfaces:
+//   - sql.Scanner
+type UnitForeignKey Unit
+
+func (self *UnitForeignKey) Scan(src interface{}) (err error) {
+	switch src.(type) {
+	case []byte:
+		err = structs.Unmarshal(src.([]byte), self)
+	case string:
+		err = structs.Unmarshal([]byte(src.(string)), self)
+	default:
+		err = fmt.Errorf("unsupported scan src type")
+	}
+	return
+}
