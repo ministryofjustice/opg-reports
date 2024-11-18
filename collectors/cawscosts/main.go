@@ -46,12 +46,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/costexplorer"
 	"github.com/ministryofjustice/opg-reports/collectors/cawscosts/lib"
+	"github.com/ministryofjustice/opg-reports/models"
 	"github.com/ministryofjustice/opg-reports/pkg/awscfg"
 	"github.com/ministryofjustice/opg-reports/pkg/awsclient"
 	"github.com/ministryofjustice/opg-reports/pkg/awssession"
 	"github.com/ministryofjustice/opg-reports/pkg/consts"
 	"github.com/ministryofjustice/opg-reports/pkg/convert"
-	"github.com/ministryofjustice/opg-reports/sources/costs"
 )
 
 var (
@@ -66,8 +66,9 @@ func Run(args *lib.Arguments) (err error) {
 		startDate time.Time
 		endDate   time.Time
 		raw       *costexplorer.GetCostAndUsageOutput
-		data      []*costs.Cost
-		content   []byte
+		data      []*models.AwsCost
+		// data      []*costs.Cost
+		content []byte
 	)
 
 	if s, err = awssession.New(awsCfg); err != nil {

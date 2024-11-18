@@ -13,13 +13,13 @@ var (
 	errModelIsNotCorrectInterface error = fmt.Errorf("model does not implement dbs.CreateableTable")
 )
 
-// Bootstrap iterates over each setupItem (of type dbs.TableOfRecord) and
+// Bootstrap iterates over each setupItem (of type dbs.CreateableTable) and
 // runs crud.CreateTable and crud.CreateIndexes.
 //
 // Returns an error when:
 //   - the adaptor is not in readwrite mode
 //   - there are no setupItems are passed
-//   - a setupItem does not implement dbs.CreateTable
+//   - a setupItem does not implement dbs.CreateableTable
 //   - CreateTable or CreateIndexes returns and error
 func Bootstrap[A dbs.Adaptor](ctx context.Context, adaptor A, setupItems ...interface{}) (err error) {
 

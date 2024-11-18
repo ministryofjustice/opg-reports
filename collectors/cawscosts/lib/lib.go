@@ -12,14 +12,12 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/costexplorer"
-	"github.com/ministryofjustice/opg-reports/pkg/bi"
+	"github.com/ministryofjustice/opg-reports/models"
 	"github.com/ministryofjustice/opg-reports/pkg/consts"
 	"github.com/ministryofjustice/opg-reports/pkg/convert"
-	"github.com/ministryofjustice/opg-reports/sources/costs"
 )
 
 var (
-	defOrg   = bi.Organisation
 	defEnv   = "production"
 	defMonth = convert.DateResetMonth(time.Now().UTC()).AddDate(0, -1, 0)
 )
@@ -32,7 +30,6 @@ type Arguments struct {
 	Label      string
 	Env        string
 	Unit       string
-	Org        string
 	OutputFile string
 }
 
@@ -47,7 +44,6 @@ func SetupArgs(args *Arguments) {
 	flag.StringVar(&args.Env, "environment", defEnv, "Account environment type.")
 
 	flag.StringVar(&args.Unit, "unit", "", "Unit / team name.")
-	flag.StringVar(&args.Org, "organisation", defOrg, "Organisation name.")
 	flag.StringVar(&args.OutputFile, "output", "./data/{month}_{id}_aws_costs.json", "Filepath for the output")
 
 	flag.Parse()
@@ -77,9 +73,6 @@ func ValidateArgs(args *Arguments) (err error) {
 		args.Month = defMonth.Format(consts.DateFormat)
 	}
 
-	if args.Org == "" {
-		args.Org = defOrg
-	}
 	if args.Env == "" || args.Env == "-" {
 		args.Env = defEnv
 	}
@@ -148,11 +141,22 @@ func CostData(client *costexplorer.CostExplorer, startDate time.Time, endDate ti
 }
 
 // Flat converts the multi dimensional raw data into a flat slice of costs.Cost entryies
-func Flat(raw *costexplorer.GetCostAndUsageOutput, args *Arguments) (flat []*costs.Cost, err error) {
+func Flat(raw *costexplorer.GetCostAndUsageOutput, args *Arguments) (flat []*models.AwsCost, err error) {
 	slog.Debug("Flattening cost data")
 	now := time.Now().UTC().Format(consts.DateFormat)
 
-	flat = []*costs.Cost{}
+	flat = []*models.AwsCost{}
+	unit := &models.Unit{
+		Ts:   now,
+		Name: args.Unit,
+	}
+	account := &models.AwsAccount{
+		Ts:          now,
+		Number:      args.ID,
+		Name:        args.Name,
+		Label:       args.Label,
+		Environment: args.Env,
+	}
 
 	for _, resultByTime := range raw.ResultsByTime {
 		day := *resultByTime.TimePeriod.Start
@@ -164,19 +168,16 @@ func Flat(raw *costexplorer.GetCostAndUsageOutput, args *Arguments) (flat []*cos
 			for _, costMetric := range costGroup.Metrics {
 				amount := *costMetric.Amount
 
-				c := &costs.Cost{
-					Service:      service,
-					Region:       region,
-					Date:         day,
-					Cost:         amount,
-					AccountID:    args.ID,
-					Organisation: args.Org,
-					Unit:         args.Unit,
-					AccountName:  args.Name,
-					Label:        args.Label,
-					Environment:  args.Env,
-					Ts:           now,
+				c := &models.AwsCost{
+					Ts:         now,
+					Region:     region,
+					Service:    service,
+					Date:       day,
+					Cost:       amount,
+					Unit:       (*models.UnitForeignKey)(unit),
+					AwsAccount: (*models.AwsAccountForeignKey)(account),
 				}
+
 				flat = append(flat, c)
 			}
 		}

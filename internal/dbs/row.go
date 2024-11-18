@@ -35,6 +35,8 @@ type Insertable interface {
 	InsertColumns() []string
 }
 
+// TableOfRecord is interface capturing both table and row
+// setup needs
 type TableOfRecord interface {
 	CreateableTable
 	Record
