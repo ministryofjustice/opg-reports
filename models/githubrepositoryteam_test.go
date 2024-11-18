@@ -32,7 +32,7 @@ SELECT
 	json_group_array(
 		json_object(
 			'id', github_teams.id,
-			'name', github_teams.name
+			'slug', github_teams.slug
 		)
 	) as github_teams
 FROM github_repositories
@@ -123,7 +123,7 @@ func TestModelsGithubRepoTeamJoin(t *testing.T) {
 		for _, exp := range expectedTeams {
 			var found = false
 			for _, act := range actualTeams {
-				if act.Name == exp.Name {
+				if act.Slug == exp.Slug {
 					found = true
 				}
 			}

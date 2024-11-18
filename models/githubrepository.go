@@ -1,8 +1,14 @@
 package models
 
 import (
+	"context"
 	"fmt"
+	"strings"
+	"time"
 
+	"github.com/google/go-github/v62/github"
+	"github.com/ministryofjustice/opg-reports/internal/bools"
+	"github.com/ministryofjustice/opg-reports/internal/dateformats"
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
 	"github.com/ministryofjustice/opg-reports/internal/structs"
 )
@@ -19,41 +25,18 @@ import (
 //   - dbs.Record
 //   - dbs.Cloneable
 type GitHubRepository struct {
-	ID                             int         `json:"id,omitempty" db:"id" faker:"-"`
-	Ts                             string      `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."` // TS is timestamp when the record was created
-	FullName                       string      `json:"full_name,omitempty" db:"full_name" faker:"unique"`
-	CompliantBaseline              uint8       `json:"compliant_baseline,omitempty" db:"compliant_baseline" faker:"oneof: 0, 1"`
-	CompliantExtended              uint8       `json:"compliant_extended,omitempty" db:"compliant_extended" faker:"oneof: 0, 1"`
-	CountOfClones                  int         `json:"count_of_clones,omitempty" db:"count_of_clones" faker:"oneof: 0, 1"`
-	CountOfForks                   int         `json:"count_of_forks,omitempty" db:"count_of_forks" faker:"oneof: 0, 1"`
-	CountOfPullRequests            int         `json:"count_of_pull_requests,omitempty" db:"count_of_pull_requests" faker:"oneof: 0, 1"`
-	CountOfWebHooks                int         `json:"count_of_web_hooks,omitempty" db:"count_of_web_hooks" faker:"oneof: 0, 1"`
-	CreatedAt                      string      `json:"created_at,omitempty" db:"created_at" faker:"date_string"`
-	DefaultBranch                  string      `json:"default_branch,omitempty" db:"default_branch" faker:"oneof: main, master"`
-	HasCodeOfConduct               uint8       `json:"has_code_of_conduct,omitempty" db:"has_code_of_conduct" faker:"oneof: 0, 1"`
-	HasCodeownerApprovalRequired   uint8       `json:"has_codeowner_approval_required,omitempty" db:"has_codeowner_approval_required" faker:"oneof: 0, 1"`
-	HasContributingGuide           uint8       `json:"has_contributing_guide,omitempty" db:"has_contributing_guide" faker:"oneof: 0, 1"`
-	HasDefaultBranchOfMain         uint8       `json:"has_default_branch_of_main,omitempty" db:"has_default_branch_of_main" faker:"oneof: 0, 1"`
-	HasDefaultBranchProtection     uint8       `json:"has_default_branch_protection,omitempty" db:"has_default_branch_protection" faker:"oneof: 0, 1"`
-	HasDeleteBranchOnMerge         uint8       `json:"has_delete_branch_on_merge,omitempty" db:"has_delete_branch_on_merge" faker:"oneof: 0, 1"`
-	HasDescription                 uint8       `json:"has_description,omitempty" db:"has_description" faker:"oneof: 0, 1"`
-	HasDiscussions                 uint8       `json:"has_discussions,omitempty" db:"has_discussions" faker:"oneof: 0, 1"`
-	HasDownloads                   uint8       `json:"has_downloads,omitempty" db:"has_downloads" faker:"oneof: 0, 1"`
-	HasIssues                      uint8       `json:"has_issues,omitempty" db:"has_issues" faker:"oneof: 0, 1"`
-	HasLicense                     uint8       `json:"has_license,omitempty" db:"has_license" faker:"oneof: 0, 1"`
-	HasPages                       uint8       `json:"has_pages,omitempty" db:"has_pages" faker:"oneof: 0, 1"`
-	HasPullRequestApprovalRequired uint8       `json:"has_pull_request_approval_required,omitempty" db:"has_pull_request_approval_required" faker:"oneof: 0, 1"`
-	HasReadme                      uint8       `json:"has_readme,omitempty" db:"has_readme" faker:"oneof: 0, 1"`
-	HasRulesEnforcedForAdmins      uint8       `json:"has_rules_enforced_for_admins,omitempty" db:"has_rules_enforced_for_admins" faker:"oneof: 0, 1"`
-	HasVulnerabilityAlerts         uint8       `json:"has_vulnerability_alerts,omitempty" db:"has_vulnerability_alerts" faker:"oneof: 0, 1"`
-	HasWiki                        uint8       `json:"has_wiki,omitempty" db:"has_wiki" faker:"oneof: 0, 1"`
-	IsArchived                     uint8       `json:"is_archived,omitempty" db:"is_archived" faker:"oneof: 0, 1"`
-	IsPrivate                      uint8       `json:"is_private,omitempty" db:"is_private" faker:"oneof: 0, 1"`
-	License                        string      `json:"license,omitempty" db:"license" faker:"oneof: MIT, GPL"`
-	LastCommitDate                 string      `json:"last_commit_date,omitempty" db:"last_commit_date" faker:"date_string"`
-	Name                           string      `json:"name,omitempty" db:"name" faker:"word"`
-	Owner                          string      `json:"owner,omitempty" db:"owner" faker:"oneof: ministryofjusice"`
-	GitHubTeams                    GitHubTeams `json:"github_teams,omitempty" db:"github_teams" faker:"-"`
+	ID             int         `json:"id,omitempty" db:"id" faker:"-"`
+	Ts             string      `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."` // TS is timestamp when the record was created
+	Owner          string      `json:"owner,omitempty" db:"owner" faker:"oneof: ministryofjusice"`
+	Name           string      `json:"name,omitempty" db:"name" faker:"word"`
+	FullName       string      `json:"full_name,omitempty" db:"full_name" faker:"unique"`
+	CreatedAt      string      `json:"created_at,omitempty" db:"created_at" faker:"date_string"`
+	DefaultBranch  string      `json:"default_branch,omitempty" db:"default_branch" faker:"oneof: main, master"`
+	Archived       uint8       `json:"archived,omitempty" db:"archived" faker:"oneof: 0, 1"`
+	Private        uint8       `json:"private,omitempty" db:"private" faker:"oneof: 0, 1"`
+	License        string      `json:"license,omitempty" db:"license" faker:"oneof: MIT, GPL"`
+	LastCommitDate string      `json:"last_commit_date,omitempty" db:"last_commit_date" faker:"date_string"`
+	GitHubTeams    GitHubTeams `json:"github_teams,omitempty" db:"github_teams" faker:"-"`
 }
 
 // TableName returns named table for GitHubRepository - units
@@ -73,40 +56,17 @@ func (self *GitHubRepository) TableName() string {
 //   - dbs.CreateableTable
 func (self *GitHubRepository) Columns() map[string]string {
 	return map[string]string{
-		"id":                                 "INTEGER PRIMARY KEY",
-		"ts":                                 "TEXT NOT NULL",
-		"full_name":                          "TEXT NOT NULL UNIQUE",
-		"compliant_baseline":                 "INTEGER NOT NULL DEFAULT 0",
-		"compliant_extended":                 "INTEGER NOT NULL DEFAULT 0",
-		"count_of_clones":                    "INTEGER NOT NULL DEFAULT 0",
-		"count_of_forks":                     "INTEGER NOT NULL DEFAULT 0",
-		"count_of_pull_requests":             "INTEGER NOT NULL DEFAULT 0",
-		"count_of_web_hooks":                 "INTEGER NOT NULL DEFAULT 0",
-		"created_at":                         "TEXT NOT NULL",
-		"default_branch":                     "TEXT NOT NULL",
-		"has_code_of_conduct":                "INTEGER NOT NULL DEFAULT 0",
-		"has_codeowner_approval_required":    "INTEGER NOT NULL DEFAULT 0",
-		"has_contributing_guide":             "INTEGER NOT NULL DEFAULT 0",
-		"has_default_branch_of_main":         "INTEGER NOT NULL DEFAULT 0",
-		"has_default_branch_protection":      "INTEGER NOT NULL DEFAULT 0",
-		"has_delete_branch_on_merge":         "INTEGER NOT NULL DEFAULT 0",
-		"has_description":                    "INTEGER NOT NULL DEFAULT 0",
-		"has_discussions":                    "INTEGER NOT NULL DEFAULT 0",
-		"has_downloads":                      "INTEGER NOT NULL DEFAULT 0",
-		"has_issues":                         "INTEGER NOT NULL DEFAULT 0",
-		"has_license":                        "INTEGER NOT NULL DEFAULT 0",
-		"has_pages":                          "INTEGER NOT NULL DEFAULT 0",
-		"has_pull_request_approval_required": "INTEGER NOT NULL DEFAULT 0",
-		"has_readme":                         "INTEGER NOT NULL DEFAULT 0",
-		"has_rules_enforced_for_admins":      "INTEGER NOT NULL DEFAULT 0",
-		"has_vulnerability_alerts":           "INTEGER NOT NULL DEFAULT 0",
-		"has_wiki":                           "INTEGER NOT NULL DEFAULT 0",
-		"is_archived":                        "INTEGER NOT NULL DEFAULT 0",
-		"is_private":                         "INTEGER NOT NULL DEFAULT 0",
-		"license":                            "TEXT NOT NULL DEFAULT ''",
-		"last_commit_date":                   "TEXT NOT NULL",
-		"name":                               "TEXT NOT NULL",
-		"owner":                              "TEXT NOT NULL",
+		"id":               "INTEGER PRIMARY KEY",
+		"ts":               "TEXT NOT NULL",
+		"owner":            "TEXT NOT NULL",
+		"name":             "TEXT NOT NULL",
+		"full_name":        "TEXT NOT NULL UNIQUE",
+		"created_at":       "TEXT NOT NULL",
+		"default_branch":   "TEXT NOT NULL",
+		"archived":         "INTEGER NOT NULL DEFAULT 0",
+		"private":          "INTEGER NOT NULL DEFAULT 0",
+		"license":          "TEXT NOT NULL DEFAULT ''",
+		"last_commit_date": "TEXT NOT NULL",
 	}
 }
 
@@ -119,9 +79,8 @@ func (self *GitHubRepository) Columns() map[string]string {
 //   - dbs.CreateableTable
 func (self *GitHubRepository) Indexes() map[string][]string {
 	return map[string][]string{
-		"repo_name_idx":     {"full_name"},
-		"repo_baseline_idx": {"compliant_baseline"},
-		"repo_extended_idx": {"compliant_extended"},
+		"repo_name_idx":    {"full_name"},
+		"repo_archive_idx": {"archived"},
 	}
 }
 
@@ -134,38 +93,15 @@ func (self *GitHubRepository) Indexes() map[string][]string {
 func (self *GitHubRepository) InsertColumns() []string {
 	return []string{
 		"ts",
-		"compliant_baseline",
-		"compliant_extended",
-		"count_of_clones",
-		"count_of_forks",
-		"count_of_pull_requests",
-		"count_of_web_hooks",
+		"owner",
+		"name",
+		"full_name",
 		"created_at",
 		"default_branch",
-		"full_name",
-		"has_code_of_conduct",
-		"has_codeowner_approval_required",
-		"has_contributing_guide",
-		"has_default_branch_of_main",
-		"has_default_branch_protection",
-		"has_delete_branch_on_merge",
-		"has_description",
-		"has_discussions",
-		"has_downloads",
-		"has_issues",
-		"has_license",
-		"has_pages",
-		"has_pull_request_approval_required",
-		"has_readme",
-		"has_rules_enforced_for_admins",
-		"has_vulnerability_alerts",
-		"has_wiki",
-		"is_archived",
-		"is_private",
+		"archived",
+		"private",
 		"license",
 		"last_commit_date",
-		"name",
-		"owner",
 	}
 }
 
@@ -253,5 +189,49 @@ func (self *GitHubRepositoryForeignKey) Scan(src interface{}) (err error) {
 	default:
 		err = fmt.Errorf("unsupported scan src type")
 	}
+	return
+}
+
+func RepositoryTeamList(ctx context.Context, client *github.Client, repo *github.Repository, organisation string) (teams GitHubTeams, err error) {
+	teams = GitHubTeams{}
+	opts := &github.ListOptions{PerPage: 100}
+
+	if teamList, _, err := client.Repositories.ListTeams(ctx, organisation, *repo.Name, opts); err == nil {
+		for _, team := range teamList {
+			var ts = time.Now().UTC().Format(dateformats.Full)
+
+			teams = append(teams, &GitHubTeam{
+				Ts:   ts,
+				Slug: strings.ToLower(*team.Slug),
+			})
+		}
+	}
+	return
+}
+
+// NewRepositoryFromRemote converts a github.Repository over to local version
+func NewRepositoryFromRemote(ctx context.Context, client *github.Client, r *github.Repository) (repo *GitHubRepository) {
+	var ts = time.Now().UTC().Format(dateformats.Full)
+	repo = &GitHubRepository{
+		Ts:            ts,
+		Owner:         r.GetOwner().GetLogin(),
+		Name:          r.GetName(),
+		FullName:      r.GetFullName(),
+		CreatedAt:     r.GetCreatedAt().Format(dateformats.Full),
+		DefaultBranch: r.GetDefaultBranch(),
+		Archived:      bools.Int(r.GetArchived()),
+		Private:       bools.Int(r.GetPrivate()),
+	}
+	// get the license and attach the name
+	if l := r.GetLicense(); l != nil {
+		repo.License = l.GetName()
+	}
+	// get the default branch and grab the dates
+	if branch, _, err := client.Repositories.GetBranch(ctx, repo.Owner, repo.Name, repo.DefaultBranch, 1); err == nil {
+		repo.LastCommitDate = branch.Commit.Commit.Author.Date.Time.String()
+	}
+
+	repo.GitHubTeams, _ = RepositoryTeamList(ctx, client, r, repo.Owner)
+
 	return
 }

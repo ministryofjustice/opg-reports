@@ -31,9 +31,9 @@ import (
 
 	"github.com/google/go-github/v62/github"
 	"github.com/ministryofjustice/opg-reports/collectors/cgithubstandards/lib"
+	"github.com/ministryofjustice/opg-reports/models"
 	"github.com/ministryofjustice/opg-reports/pkg/githubcfg"
 	"github.com/ministryofjustice/opg-reports/pkg/githubclient"
-	"github.com/ministryofjustice/opg-reports/sources/standards"
 )
 
 var (
@@ -43,10 +43,10 @@ var (
 func Run(args *lib.Arguments) (err error) {
 	var (
 		content      []byte
-		cfg          *githubcfg.Config     = githubcfg.FromEnv()
-		client       *github.Client        = githubclient.Client(cfg.Token)
-		ctx          context.Context       = context.Background()
-		stndrds      []*standards.Standard = []*standards.Standard{}
+		cfg          *githubcfg.Config                  = githubcfg.FromEnv()
+		client       *github.Client                     = githubclient.Client(cfg.Token)
+		ctx          context.Context                    = context.Background()
+		stndrds      []*models.GitHubRepositoryStandard = []*models.GitHubRepositoryStandard{}
 		repositories []*github.Repository
 	)
 	// get all repos for the team

@@ -89,19 +89,7 @@ func WriteToFile(content []byte, args *Arguments) {
 
 // TeamList generates a list of all teams attached to this repo
 func TeamList(ctx context.Context, client *github.Client, repo *github.Repository, args *Arguments) (teams models.GitHubTeams, err error) {
-	teams = models.GitHubTeams{}
-	opts := &github.ListOptions{PerPage: 100}
-
-	if teamList, _, err := client.Repositories.ListTeams(ctx, args.Organisation, *repo.Name, opts); err == nil {
-		for _, team := range teamList {
-			var ts = time.Now().UTC().Format(dateformats.Full)
-
-			teams = append(teams, &models.GitHubTeam{
-				Ts:   ts,
-				Name: strings.ToLower(*team.Name),
-			})
-		}
-	}
+	teams, err = models.RepositoryTeamList(ctx, client, repo, args.Organisation)
 	return
 }
 
@@ -193,10 +181,8 @@ func AllRepos(ctx context.Context, client *github.Client, args *Arguments) (all 
 
 func cleanWorkflowRunName(name string) (clean string) {
 	clean = strings.ToLower(name)
-	// remove [Workflow] or [Job] prefix
 	clean = strings.TrimPrefix(clean, "[workflow]")
 	clean = strings.TrimPrefix(clean, "[job]")
-	// remove any leading or trailing whitespace
 	clean = strings.TrimSpace(clean)
 	return
 }

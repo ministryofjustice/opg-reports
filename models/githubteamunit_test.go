@@ -29,7 +29,11 @@ var (
 var selectUnits string = `
 SELECT
 	units.*,
-	json_group_array(json_object('id', github_teams.id,'name', github_teams.name)) as github_teams
+	json_group_array(
+		json_object(
+		'id', github_teams.id,
+		'slug', github_teams.slug)
+	) as github_teams
 FROM units
 LEFT JOIN github_teams_units on github_teams_units.unit_id = units.id
 LEFT JOIN github_teams on github_teams.id = github_teams_units.github_team_id
@@ -40,12 +44,17 @@ ORDER BY units.name ASC;
 var selectTeams string = `
 SELECT
 	github_teams.*,
-	json_group_array(json_object('id', units.id,'name', units.name)) as units
+	json_group_array(
+		json_object(
+			'id', units.id,
+			'name', units.name
+		)
+	) as units
 FROM github_teams
 LEFT JOIN github_teams_units on github_teams_units.github_team_id = github_teams.id
 LEFT JOIN units on units.id = github_teams_units.unit_id
 GROUP BY github_teams.id
-ORDER BY github_teams.name ASC;
+ORDER BY github_teams.slug ASC;
 `
 
 // TestModelsGithubTeamUnitJoin checks the join logic from
@@ -129,7 +138,7 @@ func TestModelsGithubTeamUnitJoin(t *testing.T) {
 		for _, exp := range expectedTeams {
 			var found = false
 			for _, act := range actualTeams {
-				if act.Name == exp.Name {
+				if act.Slug == exp.Slug {
 					found = true
 				}
 			}

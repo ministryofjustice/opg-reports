@@ -22,7 +22,7 @@ import (
 type GitHubTeam struct {
 	ID                 int                `json:"id,omitempty" db:"id" faker:"-"`
 	Ts                 string             `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."` // TS is timestamp when the record was created
-	Name               string             `json:"name,omitempty" db:"name" faker:"unique, oneof:opg,opg-webops,opg-sirius,opg-use,opg-make,foo,bar"`
+	Slug               string             `json:"slug,omitempty" db:"slug" faker:"unique, oneof:opg,opg-webops,opg-sirius,opg-use,opg-make,foo,bar"`
 	Units              Units              `json:"units,omitempty" db:"units" faker:"-"`
 	GitHubRepositories GitHubRepositories `json:"github_repositories,omitempty" db:"github_repositories" faker:"-"`
 }
@@ -46,7 +46,7 @@ func (self *GitHubTeam) Columns() map[string]string {
 	return map[string]string{
 		"id":   "INTEGER PRIMARY KEY",
 		"ts":   "TEXT NOT NULL",
-		"name": "TEXT NOT NULL UNIQUE",
+		"slug": "TEXT NOT NULL UNIQUE",
 	}
 }
 
@@ -59,7 +59,7 @@ func (self *GitHubTeam) Columns() map[string]string {
 //   - dbs.CreateableTable
 func (self *GitHubTeam) Indexes() map[string][]string {
 	return map[string][]string{
-		"gh_team_idx": {"name"},
+		"gh_team_idx": {"slug"},
 	}
 }
 
@@ -70,7 +70,10 @@ func (self *GitHubTeam) Indexes() map[string][]string {
 //   - dbs.InsertableRow
 //   - dbs.Record
 func (self *GitHubTeam) InsertColumns() []string {
-	return []string{"ts", "name"}
+	return []string{
+		"ts",
+		"slug",
+	}
 }
 
 // GetID simply returns the current ID value for this row
