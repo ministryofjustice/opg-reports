@@ -12,9 +12,10 @@ import (
 	"time"
 
 	"github.com/google/go-github/v62/github"
+	"github.com/ministryofjustice/opg-reports/internal/dateformats"
+	"github.com/ministryofjustice/opg-reports/models"
 	"github.com/ministryofjustice/opg-reports/pkg/consts"
 	"github.com/ministryofjustice/opg-reports/pkg/convert"
-	"github.com/ministryofjustice/opg-reports/sources/releases"
 )
 
 // defaults
@@ -87,32 +88,48 @@ func WriteToFile(content []byte, args *Arguments) {
 }
 
 // TeamList generates a list of all teams attached to this repo
-func TeamList(ctx context.Context, client *github.Client, repo *github.Repository, args *Arguments) (teams []*releases.Team, err error) {
-	teams = []*releases.Team{}
+func TeamList(ctx context.Context, client *github.Client, repo *github.Repository, args *Arguments) (teams models.GitHubTeams, err error) {
+	teams = models.GitHubTeams{}
 	opts := &github.ListOptions{PerPage: 100}
 
 	if teamList, _, err := client.Repositories.ListTeams(ctx, args.Organisation, *repo.Name, opts); err == nil {
 		for _, team := range teamList {
-			teams = append(teams, &releases.Team{Name: strings.ToLower(*team.Name)})
+			var ts = time.Now().UTC().Format(dateformats.Full)
+
+			teams = append(teams, &models.GitHubTeam{
+				Ts:   ts,
+				Name: strings.ToLower(*team.Name),
+			})
 		}
 	}
 	return
 }
 
 // WorkflowRunsToReleases converts a slice of workflow runs into a slice of Release which can then be stored
-func WorkflowRunsToReleases(repo *github.Repository, teams []*releases.Team, runs []*github.WorkflowRun) (all []*releases.Release, err error) {
+func WorkflowRunsToReleases(repo *github.Repository, teams models.GitHubTeams, runs []*github.WorkflowRun) (all []*models.GitHubRelease, err error) {
+	var now = time.Now().UTC().Format(dateformats.Full)
+	var ghRepo *models.GitHubRepository
 
-	all = []*releases.Release{}
+	all = []*models.GitHubRelease{}
+	ghRepo = &models.GitHubRepository{
+		Ts:       now,
+		FullName: *repo.FullName,
+		Name:     *repo.Name,
+	}
 
 	for _, run := range runs {
-		var release = &releases.Release{
-			Name:       *run.Name,
-			Source:     *run.HTMLURL,
-			Repository: *repo.FullName,
-			TeamList:   teams,
-			Type:       "workflow_run",
-			Date:       run.CreatedAt.Format(consts.DateFormat),
+		var ts = time.Now().UTC().Format(dateformats.Full)
+		var release = &models.GitHubRelease{
+			Ts:               ts,
+			Name:             *run.Name,
+			Date:             run.CreatedAt.Format(dateformats.Full),
+			SourceURL:        *run.HTMLURL,
+			RelaseType:       models.GitHubWorkflowRelease,
+			GitHubRepository: (*models.GitHubRepositoryForeignKey)(ghRepo),
+			GitHubTeams:      teams,
+			Count:            1,
 		}
+
 		all = append(all, release)
 	}
 
@@ -120,18 +137,28 @@ func WorkflowRunsToReleases(repo *github.Repository, teams []*releases.Team, run
 }
 
 // PullRequestsToReleases converts a set of pull requests into releases
-func PullRequestsToReleases(repo *github.Repository, teams []*releases.Team, prs []*github.PullRequest) (all []*releases.Release, err error) {
+func PullRequestsToReleases(repo *github.Repository, teams models.GitHubTeams, prs []*github.PullRequest) (all []*models.GitHubRelease, err error) {
+	var now = time.Now().UTC().Format(dateformats.Full)
+	var ghRepo *models.GitHubRepository
 
-	all = []*releases.Release{}
+	all = []*models.GitHubRelease{}
+	ghRepo = &models.GitHubRepository{
+		Ts:       now,
+		FullName: *repo.FullName,
+		Name:     *repo.Name,
+	}
 
 	for _, pr := range prs {
-		var release = &releases.Release{
-			Name:       *pr.Title,
-			Source:     *pr.HTMLURL,
-			Repository: *repo.FullName,
-			TeamList:   teams,
-			Type:       "pull_request",
-			Date:       pr.MergedAt.Format(consts.DateFormat),
+		var ts = time.Now().UTC().Format(dateformats.Full)
+		var release = &models.GitHubRelease{
+			Ts:               ts,
+			Name:             *pr.Title,
+			Date:             pr.MergedAt.Format(dateformats.Full),
+			SourceURL:        *pr.HTMLURL,
+			RelaseType:       models.GitHubWorkflowRelease,
+			GitHubRepository: (*models.GitHubRepositoryForeignKey)(ghRepo),
+			GitHubTeams:      teams,
+			Count:            1,
 		}
 		all = append(all, release)
 	}
@@ -271,9 +298,12 @@ func MergedPullRequests(ctx context.Context, client *github.Client, args *Argume
 				mergedAt time.Time
 				when     time.Time = pr.UpdatedAt.Time
 				old      bool      = when.Before(dt)
-				merged   bool      = len(*pr.MergeCommitSHA) > 0
+				merged   bool      = false
 				onDay    bool
 			)
+			if pr.MergeCommitSHA != nil {
+				merged = len(*pr.MergeCommitSHA) > 0
+			}
 			// if its older than we want we can skip all the rest of the records
 			// as results are in date descending
 			if old {

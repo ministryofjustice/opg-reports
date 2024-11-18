@@ -33,11 +33,11 @@ import (
 
 	"github.com/google/go-github/v62/github"
 	"github.com/ministryofjustice/opg-reports/collectors/cgithubreleases/lib"
+	"github.com/ministryofjustice/opg-reports/models"
 	"github.com/ministryofjustice/opg-reports/pkg/consts"
 	"github.com/ministryofjustice/opg-reports/pkg/convert"
 	"github.com/ministryofjustice/opg-reports/pkg/githubcfg"
 	"github.com/ministryofjustice/opg-reports/pkg/githubclient"
-	"github.com/ministryofjustice/opg-reports/sources/releases"
 )
 
 var (
@@ -52,7 +52,7 @@ func Run(args *lib.Arguments) (err error) {
 		cfg          *githubcfg.Config = githubcfg.FromEnv()
 		client       *github.Client    = githubclient.Client(cfg.Token)
 		ctx          context.Context   = context.Background()
-		allReleases  []*releases.Release
+		allReleases  []*models.GitHubRelease
 	)
 	if err = lib.ValidateArgs(args); err != nil {
 		slog.Error("arg validation failed", slog.String("err", err.Error()))
@@ -71,10 +71,10 @@ func Run(args *lib.Arguments) (err error) {
 	// - if non are found, then look for merges to main on the day
 	for i, repo := range repositories {
 		var (
-			rels     []*releases.Release   = []*releases.Release{}
-			runs     []*github.WorkflowRun = []*github.WorkflowRun{}
-			merged   []*github.PullRequest = []*github.PullRequest{}
-			teams, _                       = lib.TeamList(ctx, client, repo, args)
+			rels     []*models.GitHubRelease = []*models.GitHubRelease{}
+			runs     []*github.WorkflowRun   = []*github.WorkflowRun{}
+			merged   []*github.PullRequest   = []*github.PullRequest{}
+			teams, _                         = lib.TeamList(ctx, client, repo, args)
 		)
 
 		slog.Info(fmt.Sprintf("[%d/%d] %s", i+1, total, *repo.FullName))
