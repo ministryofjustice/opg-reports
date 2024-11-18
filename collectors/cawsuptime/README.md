@@ -7,6 +7,7 @@ This command returns uptime data.
 ```bash
 aws-vault exec <aws-profile> -- go run main.go \
     -unit "<unit>" \
+    -id "<aws-account-id>" \
     -day "-"
 ```
 

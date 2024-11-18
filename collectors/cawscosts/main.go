@@ -67,8 +67,7 @@ func Run(args *lib.Arguments) (err error) {
 		endDate   time.Time
 		raw       *costexplorer.GetCostAndUsageOutput
 		data      []*models.AwsCost
-		// data      []*costs.Cost
-		content []byte
+		content   []byte
 	)
 
 	if s, err = awssession.New(awsCfg); err != nil {

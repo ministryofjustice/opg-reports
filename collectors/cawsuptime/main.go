@@ -33,12 +33,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/ministryofjustice/opg-reports/collectors/cawsuptime/lib"
+	"github.com/ministryofjustice/opg-reports/internal/dateformats"
+	"github.com/ministryofjustice/opg-reports/models"
 	"github.com/ministryofjustice/opg-reports/pkg/awscfg"
 	"github.com/ministryofjustice/opg-reports/pkg/awsclient"
 	"github.com/ministryofjustice/opg-reports/pkg/awssession"
 	"github.com/ministryofjustice/opg-reports/pkg/consts"
 	"github.com/ministryofjustice/opg-reports/pkg/convert"
-	"github.com/ministryofjustice/opg-reports/sources/uptime"
 )
 
 var (
@@ -56,7 +57,7 @@ func Run(args *lib.Arguments) (err error) {
 		content    []byte
 		metrics    []*cloudwatch.Metric
 		datapoints []*cloudwatch.Datapoint
-		uptimeData []*uptime.Uptime = []*uptime.Uptime{}
+		uptimeData []*models.AwsUptime
 	)
 
 	if s, err = awssession.New(awsCfg); err != nil {
@@ -80,6 +81,7 @@ func Run(args *lib.Arguments) (err error) {
 	args.Day = startDate.Format(consts.DateFormatYearMonthDay)
 	endDate = startDate.AddDate(0, 0, 1)
 
+	now := time.Now().UTC().Format(consts.DateFormat)
 	// get all of the named metrics for this setup
 	if metrics = lib.GetListOfMetrics(client); len(metrics) > 0 {
 		datapoints, err = lib.GetMetricsStats(client, metrics, startDate, endDate)
@@ -88,13 +90,25 @@ func Run(args *lib.Arguments) (err error) {
 			return
 		}
 
+		unit := &models.Unit{
+			Name: args.Unit,
+		}
+		account := &models.AwsAccount{
+			Number: args.AccountID,
+			Ts:     now,
+		}
+
 		for _, dp := range datapoints {
-			up := &uptime.Uptime{
-				Ts:      time.Now().UTC().Format(consts.DateFormat),
-				Unit:    args.Unit,
-				Average: *dp.Average,
-				Date:    dp.Timestamp.Format(consts.DateFormat),
+			ts := time.Now().UTC().Format(consts.DateFormat)
+
+			up := &models.AwsUptime{
+				Ts:         ts,
+				Date:       dp.Timestamp.Format(dateformats.Full),
+				Average:    *dp.Average,
+				Unit:       (*models.UnitForeignKey)(unit),
+				AwsAccount: (*models.AwsAccountForeignKey)(account),
 			}
+
 			uptimeData = append(uptimeData, up)
 		}
 	}

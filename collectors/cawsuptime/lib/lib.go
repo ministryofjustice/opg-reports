@@ -32,6 +32,7 @@ var (
 type Arguments struct {
 	Day        string
 	Unit       string
+	AccountID  string
 	OutputFile string
 }
 
@@ -41,6 +42,7 @@ func SetupArgs(args *Arguments) {
 
 	flag.StringVar(&args.Day, "day", defDay.Format(consts.DateFormatYearMonthDay), "day to fetch data for.")
 	flag.StringVar(&args.Unit, "unit", "", "Unit / team name.")
+	flag.StringVar(&args.AccountID, "id", "", "AWS account id")
 	flag.StringVar(&args.OutputFile, "output", "./data/{day}_{unit}_aws_uptime.json", "Filepath for the output")
 
 	flag.Parse()
@@ -51,6 +53,7 @@ func SetupArgs(args *Arguments) {
 func ValidateArgs(args *Arguments) (err error) {
 	failOnEmpty := map[string]string{
 		"unit":   args.Unit,
+		"id":     args.AccountID,
 		"output": args.OutputFile,
 	}
 	for k, v := range failOnEmpty {
