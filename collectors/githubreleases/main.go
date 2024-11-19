@@ -1,9 +1,9 @@
 /*
-cgithubreleases fetches release data (using mix of workflow runs and merges to main as a proxy).
+githubreleases fetches release data (using mix of workflow runs and merges to main as a proxy).
 
 Usage:
 
-	cgithubreleases [flags]
+	githubreleases [flags]
 
 The flags are:
 
@@ -32,7 +32,7 @@ import (
 	"os"
 
 	"github.com/google/go-github/v62/github"
-	"github.com/ministryofjustice/opg-reports/collectors/cgithubreleases/lib"
+	"github.com/ministryofjustice/opg-reports/collectors/githubreleases/lib"
 	"github.com/ministryofjustice/opg-reports/models"
 	"github.com/ministryofjustice/opg-reports/pkg/consts"
 	"github.com/ministryofjustice/opg-reports/pkg/convert"
@@ -117,14 +117,14 @@ func main() {
 	var err error
 	lib.SetupArgs(args)
 
-	slog.Info("[cgithubreleases.main] init...")
-	slog.Debug("[cgithubreleases.main]", slog.String("args", fmt.Sprintf("%+v", args)))
+	slog.Info("[githubreleases.main] init...")
+	slog.Debug("[githubreleases.main]", slog.String("args", fmt.Sprintf("%+v", args)))
 
 	err = Run(args)
 	if err != nil {
 		panic(err)
 	}
 
-	slog.Info("[cgithubreleases.main] done.")
+	slog.Info("[githubreleases.main] done.")
 
 }

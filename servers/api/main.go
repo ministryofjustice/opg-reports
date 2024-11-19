@@ -25,7 +25,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/pkg/bi"
 	"github.com/ministryofjustice/opg-reports/pkg/consts"
 	"github.com/ministryofjustice/opg-reports/pkg/envar"
-	"github.com/ministryofjustice/opg-reports/servers/sapi/lib"
+	"github.com/ministryofjustice/opg-reports/servers/api/lib"
 	"github.com/ministryofjustice/opg-reports/sources/costs"
 	"github.com/ministryofjustice/opg-reports/sources/costs/costsapi"
 	"github.com/ministryofjustice/opg-reports/sources/releases"

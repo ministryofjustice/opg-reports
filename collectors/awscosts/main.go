@@ -1,9 +1,9 @@
 /*
-cawscosts fetches aws costs data for the month at a daily granularity.
+awscosts fetches aws costs data for the month at a daily granularity.
 
 Usage:
 
-	cawscosts [flags]
+	awscosts [flags]
 
 The flags are:
 
@@ -45,7 +45,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/costexplorer"
-	"github.com/ministryofjustice/opg-reports/collectors/cawscosts/lib"
+	"github.com/ministryofjustice/opg-reports/collectors/awscosts/lib"
 	"github.com/ministryofjustice/opg-reports/models"
 	"github.com/ministryofjustice/opg-reports/pkg/awscfg"
 	"github.com/ministryofjustice/opg-reports/pkg/awsclient"

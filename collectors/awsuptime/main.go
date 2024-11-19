@@ -1,9 +1,9 @@
 /*
-cawsuptime fetches aws uptime data for the day.
+awsuptime fetches aws uptime data for the day.
 
 Usage:
 
-	cawsuptime [flags]
+	awsuptime [flags]
 
 The flags are:
 
@@ -32,7 +32,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
-	"github.com/ministryofjustice/opg-reports/collectors/cawsuptime/lib"
+	"github.com/ministryofjustice/opg-reports/collectors/awsuptime/lib"
 	"github.com/ministryofjustice/opg-reports/internal/dateformats"
 	"github.com/ministryofjustice/opg-reports/models"
 	"github.com/ministryofjustice/opg-reports/pkg/awscfg"

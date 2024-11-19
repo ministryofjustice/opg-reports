@@ -11,7 +11,7 @@ builds/**
 # Ignore data files
 **/data/**
 # Ignore the downloaded govuk assets
-servers/sfront/assets
+servers/front/assets
 # Ignore todo / temp files
 todo.txt
 scratch.txt

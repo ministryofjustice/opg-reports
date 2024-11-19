@@ -10,7 +10,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/pkg/tmplfuncs"
 )
 
-const tmpDir string = "../../servers/sfront/templates/partials"
+const tmpDir string = "../../servers/front/templates/partials"
 
 // TestRenderRender checks that the test partial
 // is rendered correctly as a string

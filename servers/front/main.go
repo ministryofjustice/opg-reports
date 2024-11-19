@@ -7,7 +7,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/pkg/consts"
 	"github.com/ministryofjustice/opg-reports/pkg/envar"
 	"github.com/ministryofjustice/opg-reports/pkg/tmplfuncs"
-	"github.com/ministryofjustice/opg-reports/servers/sfront/lib"
+	"github.com/ministryofjustice/opg-reports/servers/front/lib"
 )
 
 const assetsDirectory string = "./"

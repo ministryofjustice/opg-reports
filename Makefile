@@ -43,7 +43,7 @@ coverage:
 
 ## Output the open api spec
 openapi:
-	@env CGO_ENABLED=1 go run ./servers/sapi/main.go openapi > openapi.yaml
+	@env CGO_ENABLED=1 go run ./servers/api/main.go openapi > openapi.yaml
 .PHONY: openapi
 
 ## Output build info
@@ -60,25 +60,27 @@ buildinfo:
 
 ## Removes an existing build artifacts
 clean:
+	@rm -f ./code-coverage.out
+	@rm -f ./openapi.yaml
 	@rm -Rf ./builds
 	@rm -Rf ./databases
-	@rm -Rf ./servers/sapi/databases
-	@rm -Rf ./servers/sfront/assets
-	@rm -Rf ./collectors/cawscosts/data
-	@rm -Rf ./collectors/cgithubstandards/data
-	@rm -Rf ./collectors/cgithubreleases/data
-	@rm -Rf ./collectors/cawsuptime/data
+	@rm -Rf ./servers/api/databases
+	@rm -Rf ./servers/front/assets
+	@rm -Rf ./collectors/awscosts/data
+	@rm -Rf ./collectors/githubstandards/data
+	@rm -Rf ./collectors/githubreleases/data
+	@rm -Rf ./collectors/awsuptime/data
 .PHONY: clean
 #========= RUN =========
 
 ## Run the api from dev source
 api:
-	@cd ./servers/sapi && go run main.go
+	@cd ./servers/api && go run main.go
 .PHONY: api
 
 ## Run the front from dev source
 front:
-	@cd ./servers/sfront && go run main.go
+	@cd ./servers/front && go run main.go
 .PHONY: front
 
 #========= BUILD GO BINARIES =========
@@ -86,57 +88,57 @@ front:
 build: buildinfo build/collectors build/importers build/servers
 .PHONY: build
 
-build/servers: build/servers/sapi build/servers/sfront
+build/servers: build/servers/api build/servers/front
 .PHONY: build/servers
 
 ## Build the api into build directory
-build/servers/sapi:
-	@echo -n "[building] servers/sapi .................. "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/sapi ./servers/sapi/main.go && echo "${tick}"
-.PHONY: build/servers/sapi
+build/servers/api:
+	@echo -n "[building] servers/api .................. "
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/api ./servers/api/main.go && echo "${tick}"
+.PHONY: build/servers/api
 
 ## Build the api into build directory
-build/servers/sfront:
-	@echo -n "[building] servers/sfront ................ "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/sfront ./servers/sfront/main.go && echo "${tick}"
-.PHONY: build/servers/sfront
+build/servers/front:
+	@echo -n "[building] servers/front ................ "
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/front ./servers/front/main.go && echo "${tick}"
+.PHONY: build/servers/front
 
 
 ## build all importers
-build/importers: build/importers/isqlite
+build/importers: build/importers/sqlite
 .PHONY: build/importers
 
 ## build the sqlite importer tool
-build/importers/isqlite:
-	@echo -n "[building] importers/isqlite ............. "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/isqlite ./importers/isqlite/main.go && echo "${tick}"
+build/importers/sqlite:
+	@echo -n "[building] importers/sqlite ............. "
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/sqlite ./importers/sqlite/main.go && echo "${tick}"
 .PHONY: build/importers/sqlite
 
 ## build all collectors
-build/collectors: build/collectors/cawscosts build/collectors/cawsuptime build/collectors/cgithubstandards build/collectors/cgithubreleases
+build/collectors: build/collectors/awscosts build/collectors/awsuptime build/collectors/githubstandards build/collectors/githubreleases
 .PHONY: build/collectors
 
 ## build the aws costs collector
-build/collectors/cawscosts:
-	@echo -n "[building] collectors/cawscosts .......... "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/cawscosts ./collectors/cawscosts/main.go && echo "${tick}"
+build/collectors/awscosts:
+	@echo -n "[building] collectors/awscosts .......... "
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/awscosts ./collectors/awscosts/main.go && echo "${tick}"
 .PHONY: build/collectors/awscosts
 
 ## build the aws uptime collector
-build/collectors/cawsuptime:
-	@echo -n "[building] collectors cawsuptime ......... "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/cawsuptime ./collectors/cawsuptime/main.go && echo "${tick}"
-.PHONY: build/collectors/cawsuptime
+build/collectors/awsuptime:
+	@echo -n "[building] collectors/awsuptime ......... "
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/awsuptime ./collectors/awsuptime/main.go && echo "${tick}"
+.PHONY: build/collectors/awsuptime
 
 ## build the github standards collector
-build/collectors/cgithubstandards:
-	@echo -n "[building] collectors cgithubstandards ... "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/cgithubstandards ./collectors/cgithubstandards/main.go && echo "${tick}"
-.PHONY: build/collectors/cgithubstandards
+build/collectors/githubstandards:
+	@echo -n "[building] collectors/githubstandards ... "
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/githubstandards ./collectors/githubstandards/main.go && echo "${tick}"
+.PHONY: build/collectors/githubstandards
 
 ## build the github releases collector
-build/collectors/cgithubreleases:
-	@echo -n "[building] collectors cgithubreleases .... "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/cgithubreleases ./collectors/cgithubreleases/main.go && echo "${tick}"
-.PHONY: build/collectors/cgithubreleases
+build/collectors/githubreleases:
+	@echo -n "[building] collectors/githubreleases .... "
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/githubreleases ./collectors/githubreleases/main.go && echo "${tick}"
+.PHONY: build/collectors/githubreleases
 

@@ -1,9 +1,9 @@
 /*
-cgithubstandards fetches repo standards data.
+githubstandards fetches repo standards data.
 
 Usage:
 
-	cgithubstandards [flags]
+	githubstandards [flags]
 
 The flags are:
 
@@ -30,7 +30,7 @@ import (
 	"os"
 
 	"github.com/google/go-github/v62/github"
-	"github.com/ministryofjustice/opg-reports/collectors/cgithubstandards/lib"
+	"github.com/ministryofjustice/opg-reports/collectors/githubstandards/lib"
 	"github.com/ministryofjustice/opg-reports/models"
 	"github.com/ministryofjustice/opg-reports/pkg/githubcfg"
 	"github.com/ministryofjustice/opg-reports/pkg/githubclient"
@@ -77,8 +77,8 @@ func main() {
 	var err error
 	lib.SetupArgs(args)
 
-	slog.Info("[cgithubstandards.main] init...")
-	slog.Debug("[cgithubstandards.main]", slog.String("args", fmt.Sprintf("%+v", args)))
+	slog.Info("[githubstandards.main] init...")
+	slog.Debug("[githubstandards.main]", slog.String("args", fmt.Sprintf("%+v", args)))
 
 	if err = lib.ValidateArgs(args); err != nil {
 		slog.Error("arg validation failed", slog.String("err", err.Error()))
@@ -90,6 +90,6 @@ func main() {
 		panic(err)
 	}
 
-	slog.Info("[cgithubstandards.main] done.")
+	slog.Info("[githubstandards.main] done.")
 
 }

@@ -35,7 +35,7 @@ import (
 	"sync"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/ministryofjustice/opg-reports/importers/isqlite/lib"
+	"github.com/ministryofjustice/opg-reports/importers/sqlite/lib"
 )
 
 var (

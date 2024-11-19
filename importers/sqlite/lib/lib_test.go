@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/ministryofjustice/opg-reports/importers/isqlite/lib"
+	"github.com/ministryofjustice/opg-reports/importers/sqlite/lib"
 	"github.com/ministryofjustice/opg-reports/pkg/exfaker"
 	"github.com/ministryofjustice/opg-reports/sources/releases"
 )
