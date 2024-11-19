@@ -35,7 +35,7 @@ type GitHubRepository struct {
 	Private        uint8       `json:"private,omitempty" db:"private" faker:"oneof: 0, 1"`
 	License        string      `json:"license,omitempty" db:"license" faker:"oneof: MIT, GPL"`
 	LastCommitDate string      `json:"last_commit_date,omitempty" db:"last_commit_date" faker:"date_string"`
-	GitHubTeams    GitHubTeams `json:"github_teams,omitempty" db:"github_teams" faker:"-"`
+	GitHubTeams    GitHubTeams `json:"github_teams,omitempty" db:"github_teams" faker:"-"` // One to many
 }
 
 // TableName returns named table for GitHubRepository - units

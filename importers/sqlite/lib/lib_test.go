@@ -20,13 +20,13 @@ func TestImportsISqliteValidateArgs(t *testing.T) {
 	var args = &lib.Arguments{}
 
 	// valid
-	args = &lib.Arguments{Type: "costs", Database: "./database/{type}.db", Directory: "./source"}
+	args = &lib.Arguments{Type: "aws-costs", File: "./source"}
 	err = lib.ValidateArgs(args)
 	if err != nil {
 		t.Errorf("validate returned unexpected error: [%s]", err.Error())
 	}
 
-	args = &lib.Arguments{Type: "no-allowed", Database: "./database/{type}.db", Directory: "./source"}
+	args = &lib.Arguments{Type: "no-allowed", Database: "./database/test.db", File: "./source.json"}
 	err = lib.ValidateArgs(args)
 	if err == nil {
 		t.Errorf("should have returned an error, but did not")
@@ -44,7 +44,7 @@ func TestImportsISqliteGetDatabase(t *testing.T) {
 	var db *sqlx.DB
 
 	// working
-	args = &lib.Arguments{Type: "costs", Database: dbFile, Directory: "./source"}
+	args = &lib.Arguments{Type: "aws-costs", Database: dbFile, File: "./source.json"}
 	db, err = lib.GetDatabase(ctx, args)
 	if err != nil {
 		t.Errorf("error with GetDatabase: [%s]", err.Error())
@@ -54,7 +54,7 @@ func TestImportsISqliteGetDatabase(t *testing.T) {
 	}
 
 	// no database path
-	args = &lib.Arguments{Type: "costs", Database: "", Directory: "./source"}
+	args = &lib.Arguments{Type: "aws-costs", Database: "", File: "./source.json"}
 	db, err = lib.GetDatabase(ctx, args)
 	if err == nil {
 		t.Errorf("should have generated an error about database files")
@@ -64,7 +64,7 @@ func TestImportsISqliteGetDatabase(t *testing.T) {
 	}
 
 	// no database path
-	args = &lib.Arguments{Type: "not-allowed", Database: dbFile, Directory: "./source"}
+	args = &lib.Arguments{Type: "not-allowed", Database: dbFile, File: "./source.json"}
 	db, err = lib.GetDatabase(ctx, args)
 	if err == nil {
 		t.Errorf("should have generated an error about incorrect type")
@@ -95,7 +95,7 @@ func TestImportsISqliteProcessDataFile(t *testing.T) {
 	content, _ := json.MarshalIndent(fakes, "", "  ")
 	os.WriteFile(testFile, content, os.ModePerm)
 	// setup the args
-	args = &lib.Arguments{Type: "releases", Database: dbFile, Directory: dir}
+	args = &lib.Arguments{Type: "github-releases", Database: dbFile, File: testFile}
 	db, err = lib.GetDatabase(ctx, args)
 	if err != nil {
 		t.Errorf("error getting database: [%s]", err.Error())

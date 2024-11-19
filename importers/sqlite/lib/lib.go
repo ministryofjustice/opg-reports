@@ -24,9 +24,9 @@ import (
 )
 
 type Arguments struct {
-	Directory string
-	Database  string
-	Type      string
+	File     string
+	Database string
+	Type     string
 }
 
 // creatorF is a contstraint of the functions to call to create new DBs
@@ -43,42 +43,44 @@ type known struct {
 }
 
 var Known = map[string]known{
-	"costs": {
+	"aws-costs": {
 		CreateDB:   costs.CreateNewDB,
 		InsertStmt: costsdb.InsertCosts,
 		Processor:  processor[*costs.Cost],
 	},
-	"standards": {
-		CreateDB:   standards.CreateNewDB,
-		InsertStmt: standardsdb.InsertStandard,
-		Processor:  processor[*standards.Standard],
-	},
-	"uptime": {
+	"aws-uptime": {
 		CreateDB:   uptime.CreateNewDB,
 		InsertStmt: uptimedb.InsertUptime,
 		Processor:  processor[*uptime.Uptime],
 	},
-	"releases": {
+	"github-standards": {
+		CreateDB:   standards.CreateNewDB,
+		InsertStmt: standardsdb.InsertStandard,
+		Processor:  processor[*standards.Standard],
+	},
+
+	"github-releases": {
 		CreateDB:   releases.CreateNewDB,
 		InsertStmt: releasesdb.InsertRelease,
 		Processor:  processor[*releases.Release],
 	},
 }
 
+var defaultDB string = "./databases/api.db"
+
 // SetupArgs setup flag args
 func SetupArgs(args *Arguments) {
-	flag.StringVar(&args.Directory, "directory", "", "Directory to fetch data files from.")
-	flag.StringVar(&args.Type, "type", "costs", "Type of import to do.")
-	flag.StringVar(&args.Database, "database", "./databases/{type}.db", "Path to the database")
+	flag.StringVar(&args.File, "file", "", "Path to single file with new data to add into the existing database.")
+	flag.StringVar(&args.Type, "type", "", "Type of data to import. allowed: [aws-costs|aws-uptime|github-standards|github-releases]")
+	flag.StringVar(&args.Database, "database", defaultDB, "Path to the database")
 	flag.Parse()
 }
 
 // ValidateArgs make sure args are set as planned
 func ValidateArgs(args *Arguments) (err error) {
 	failOnEmpty := map[string]string{
-		"directory": args.Directory,
-		"type":      args.Type,
-		"database":  args.Database,
+		"file": args.File,
+		"type": args.Type,
 	}
 	for k, v := range failOnEmpty {
 		if v == "" {
@@ -87,6 +89,10 @@ func ValidateArgs(args *Arguments) (err error) {
 	}
 	if err != nil {
 		err = fmt.Errorf("missing arguments: [%s]", strings.ReplaceAll(err.Error(), "\n", ", "))
+	}
+
+	if args.Database == "" {
+		args.Database = defaultDB
 	}
 
 	if _, ok := Known[args.Type]; !ok {
@@ -100,7 +106,7 @@ func ValidateArgs(args *Arguments) (err error) {
 func GetDatabase(ctx context.Context, args *Arguments) (db *sqlx.DB, err error) {
 	var ok bool
 	var found known
-	var path = strings.ReplaceAll(args.Database, "{type}", args.Type)
+	var path = args.Database
 	if path == "" {
 		err = fmt.Errorf("no database setup available for [%s]", args.Type)
 		return

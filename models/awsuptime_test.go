@@ -77,8 +77,8 @@ SELECT
 		'environment', aws_accounts.environment
 	) as aws_account
 FROM aws_uptime
-LEFT JOIN units on units.id = aws_uptime.unit_id
 LEFT JOIN aws_accounts on aws_accounts.id = aws_uptime.aws_account_id
+LEFT JOIN units on units.id = aws_accounts.unit_id
 GROUP BY aws_uptime.id
 ORDER BY aws_uptime.date ASC;
 `
@@ -126,12 +126,9 @@ func TestModelsAwsUptimeUnitJoin(t *testing.T) {
 	for _, up := range uptime {
 		var acc = fakerextras.Choice(accounts)
 		var accjoin = models.AwsAccountForeignKey(*acc)
-		var unit = acc.Unit
-
 		up.AwsAccountID = acc.ID
 		up.AwsAccount = &accjoin
-		up.UnitID = unit.ID
-		up.Unit = unit
+
 	}
 	// insert those
 	_, err = testDBbuilder(ctx, adaptor, &models.AwsUptime{}, uptime)

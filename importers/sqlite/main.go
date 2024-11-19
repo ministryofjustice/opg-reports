@@ -7,17 +7,16 @@ Usage:
 
 The flags are:
 
-	-directory
-		The source directory containing *.json files that will be
-		imported.
-		Each json file should be a list of objects.
+	-file
+		The source json file with new data to add into the
+		database.
 	-type
 		Flag to say what type of data is within these files from
-		one of the known values - [costs|standards|uptime].
+		one of the known values - [costs|standards|uptime|releases].
 		Defaults to costs
 	-database
 		The path to the datbase file. Uses {type} as placeholder.
-		Default: `./databases/{type}.db`
+		Default: `./databases/api.db`
 
 It will iterate over all files within the named directory, importing
 each record into a database.
@@ -31,11 +30,11 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"path/filepath"
 	"sync"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/ministryofjustice/opg-reports/importers/sqlite/lib"
+	"github.com/ministryofjustice/opg-reports/internal/fileutils"
 )
 
 var (
@@ -46,8 +45,8 @@ var (
 // Run processes all the data files in the directory and converts to a database
 func Run(args *lib.Arguments) (err error) {
 	var (
-		files     []string
 		db        *sqlx.DB
+		file      string          = args.File
 		ctx       context.Context = context.Background()
 		waitgroup sync.WaitGroup  = sync.WaitGroup{}
 	)
@@ -56,11 +55,12 @@ func Run(args *lib.Arguments) (err error) {
 		return
 	}
 
-	// grab files for the directory
-	if files, err = filepath.Glob(filepath.Join(args.Directory, pattern)); err != nil {
-		slog.Error("[sqlite.main] file glob failed", slog.String("err", err.Error()))
+	if !fileutils.Exists(file) {
+		err = fmt.Errorf("file not found: [%s]", file)
+		slog.Error("[sqlite.main] file not found", slog.String("err", err.Error()))
 		return
 	}
+
 	// get the database
 	db, err = lib.GetDatabase(ctx, args)
 	if err != nil {
@@ -69,17 +69,16 @@ func Run(args *lib.Arguments) (err error) {
 	}
 	defer db.Close()
 	// process each file in a go func and insert the content
-	for _, file := range files {
-		waitgroup.Add(1)
-		// i dont like single letter vars.. but for an inline func
-		go func(c context.Context, wg *sync.WaitGroup, d *sqlx.DB, a *lib.Arguments, f string) {
-			_, e := lib.ProcessDataFile(c, d, a, f)
-			if e != nil {
-				err = errors.Join(err, e)
-			}
-			wg.Done()
-		}(ctx, &waitgroup, db, args, file)
-	}
+	waitgroup.Add(1)
+	// i dont like single letter vars.. but for an inline func
+	go func(c context.Context, wg *sync.WaitGroup, d *sqlx.DB, a *lib.Arguments, f string) {
+		_, e := lib.ProcessDataFile(c, d, a, f)
+		if e != nil {
+			err = errors.Join(err, e)
+		}
+		wg.Done()
+	}(ctx, &waitgroup, db, args, file)
+
 	// Wait till all have been done
 	waitgroup.Wait()
 

@@ -15,14 +15,16 @@ import (
 //   - dbs.Record
 //   - dbs.Cloneable
 type AwsUptime struct {
-	ID           int                   `json:"id,omitempty" db:"id" faker:"-"`
-	Ts           string                `json:"ts,omitempty" db:"ts" faker:"time_string" doc:"Time the record was created."`
-	Date         string                `json:"date,omitempty" db:"date" faker:"date_string" doc:"Date this cost was generated."` // The interval date for when this uptime was logged
-	Average      float64               `json:"average,omitempty" db:"average" doc:"Percentage uptime average for this record period."`
-	UnitID       int                   `json:"unit_id" db:"unit_id" faker:"-"`
+	ID      int     `json:"id,omitempty" db:"id" faker:"-"`
+	Ts      string  `json:"ts,omitempty" db:"ts" faker:"time_string" doc:"Time the record was created."`
+	Date    string  `json:"date,omitempty" db:"date" faker:"date_string" doc:"Date this cost was generated."` // The interval date for when this uptime was logged
+	Average float64 `json:"average,omitempty" db:"average" doc:"Percentage uptime average for this record period."`
+
+	// Join to the aws account - uptime has one account, account has many uptimes
 	AwsAccountID int                   `json:"aws_account_id" db:"aws_account_id" faker:"-"`
-	Unit         *UnitForeignKey       `json:"unit" db:"unit" faker:"-"`
 	AwsAccount   *AwsAccountForeignKey `json:"aws_account" db:"aws_account" faker:"-"`
+	// Unit is indirectly fetched via the aws_account -> unit join, this is used to capture that
+	Unit *UnitForeignKey `json:"unit" db:"unit" faker:"-"`
 }
 
 // TableName returns named table for AwsUptime - units
@@ -46,7 +48,6 @@ func (self *AwsUptime) Columns() map[string]string {
 		"ts":             "TEXT NOT NULL",
 		"date":           "TEXT NOT NULL",
 		"average":        "REAL NOT NULL",
-		"unit_id":        "INTEGER",
 		"aws_account_id": "INTEGER",
 	}
 }
@@ -60,8 +61,7 @@ func (self *AwsUptime) Columns() map[string]string {
 //   - dbs.CreateableTable
 func (self *AwsUptime) Indexes() map[string][]string {
 	return map[string][]string{
-		"awsup_unit_idx": {"unit_id"},
-		"awsup_acc_idx":  {"aws_account_id"},
+		"awsup_acc_idx": {"aws_account_id"},
 	}
 }
 
@@ -76,7 +76,6 @@ func (self *AwsUptime) InsertColumns() []string {
 		"ts",
 		"date",
 		"average",
-		"unit_id",
 		"aws_account_id",
 	}
 }

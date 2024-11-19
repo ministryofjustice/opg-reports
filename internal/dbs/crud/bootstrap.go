@@ -7,6 +7,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
 )
 
+// errors
 var (
 	errAdaptorNotWritable         error = fmt.Errorf("adaptor is not configured for writing.")
 	errNoSetupItems               error = fmt.Errorf("no setupItems passed.")

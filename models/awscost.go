@@ -14,15 +14,18 @@ import (
 //   - dbs.Record
 //   - dbs.Cloneable
 type AwsCost struct {
-	ID           int                   `json:"id,omitempty" db:"id" faker:"-"`
-	Ts           string                `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."`                                                            // TS is timestamp when the record was created
-	Region       string                `json:"region,omitempty" db:"region" faker:"oneof: NoRegion, eu-west-1, eu-west-2, us-east-2" doc:"Region this cost was generated within."`      // From the cost data, this is the region the service cost aws generated in
-	Service      string                `json:"service,omitempty" db:"service" faker:"oneof: Tax, ecs, ec2, s3, sqs, waf, ses, rds" doc:"Name of the service that generated this cost."` // The AWS service name
-	Date         string                `json:"date,omitempty" db:"date" faker:"date_string" doc:"Date this cost was generated."`                                                        // The data the cost was incurred - provided from the cost explorer result
-	Cost         string                `json:"cost,omitempty" db:"cost" faker:"float_string" doc:"Cost value."`                                                                         // The actual cost value as a string - without an currency, but is USD by default
-	AwsAccountID int                   `json:"aws_account_id,omitempty" db:"aws_account_id" faker:"-"`                                                                                  // AwsCost has many accounts, account has one unit
-	AwsAccount   *AwsAccountForeignKey `json:"aws_account,omitempty" db:"aws_account" faker:"-"`                                                                                        // AwsCost has many accounts, account has one unit
-	Unit         *UnitForeignKey       `json:"unit" db:"unit" faker:"-"`                                                                                                                // fetched from join on account
+	ID      int    `json:"id,omitempty" db:"id" faker:"-"`
+	Ts      string `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."`                                                            // TS is timestamp when the record was created
+	Region  string `json:"region,omitempty" db:"region" faker:"oneof: NoRegion, eu-west-1, eu-west-2, us-east-2" doc:"Region this cost was generated within."`      // From the cost data, this is the region the service cost aws generated in
+	Service string `json:"service,omitempty" db:"service" faker:"oneof: Tax, ecs, ec2, s3, sqs, waf, ses, rds" doc:"Name of the service that generated this cost."` // The AWS service name
+	Date    string `json:"date,omitempty" db:"date" faker:"date_string" doc:"Date this cost was generated."`                                                        // The data the cost was incurred - provided from the cost explorer result
+	Cost    string `json:"cost,omitempty" db:"cost" faker:"float_string" doc:"Cost value."`                                                                         // The actual cost value as a string - without an currency, but is USD by default
+
+	// Join to AwsAccount - Cost has one account, account has many costs
+	AwsAccountID int                   `json:"aws_account_id,omitempty" db:"aws_account_id" faker:"-"`
+	AwsAccount   *AwsAccountForeignKey `json:"aws_account,omitempty" db:"aws_account" faker:"-"`
+	// Join to Unit - only used in selection to fetch the unit from the aws account
+	Unit *UnitForeignKey `json:"unit" db:"unit" faker:"-"`
 }
 
 // TableName returns named table for AwsCost - units

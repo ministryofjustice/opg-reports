@@ -105,12 +105,16 @@ func createDB(path string) (err error) {
 func NewSqlite(path string, readOnly bool) (ds *Sqlite, err error) {
 	var (
 		exists    bool              = fileutils.Exists(path)
-		seed      *Seed             = &Seed{seedable: !exists}
 		mode      dbs.Moder         = &ReadWrite{}
-		connect   *Connection       = &Connection{Path: path, Driver: sqliteDriver, Parameters: sqliteParams}
 		dber      *SqlxDB           = &SqlxDB{}
 		txer      *SqlxTransaction  = &SqlxTransaction{}
 		formatter *SqliteFormatting = &SqliteFormatting{}
+		seed      *Seed             = &Seed{seedable: !exists}
+		connect   *Connection       = &Connection{
+			Path:       path,
+			Driver:     sqliteDriver,
+			Parameters: sqliteParams,
+		}
 	)
 	if readOnly {
 		mode = &ReadOnly{}

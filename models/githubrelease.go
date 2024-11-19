@@ -23,16 +23,20 @@ const (
 //   - dbs.Record
 //   - dbs.Cloneable
 type GitHubRelease struct {
-	ID                 int                         `json:"id,omitempty" db:"id" faker:"-"`
-	Ts                 string                      `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."` // TS is timestamp when the record was created
-	Name               string                      `json:"name,omitempty" db:"name" faker:"word"`
-	Count              int                         `json:"count,omitempty" db:"count" faker:"oneof: 1"`
-	RelaseType         GitHubReleaseType           `json:"release_type,omitempty" db:"release_type" faker:"oneof:workflow_run, pull_request" enum:"oneof:workflow_run, pull_request"`
-	SourceURL          string                      `json:"source_url" db:"source_url" faker:"uri"`
-	Date               string                      `json:"date,omitempty" db:"date" faker:"date_string"`
+	ID         int               `json:"id,omitempty" db:"id" faker:"-"`
+	Ts         string            `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."` // TS is timestamp when the record was created
+	Name       string            `json:"name,omitempty" db:"name" faker:"word"`
+	Count      int               `json:"count,omitempty" db:"count" faker:"oneof: 1"`
+	RelaseType GitHubReleaseType `json:"release_type,omitempty" db:"release_type" faker:"oneof:workflow_run, pull_request" enum:"oneof:workflow_run, pull_request"`
+	SourceURL  string            `json:"source_url" db:"source_url" faker:"uri"`
+	Date       string            `json:"date,omitempty" db:"date" faker:"date_string"`
+
+	// Join the release to the repository - release has one repo, repo has many releases
 	GitHubRepositoryID int                         `json:"github_repository_id,omitempty" db:"github_repository_id" faker:"-"`
 	GitHubRepository   *GitHubRepositoryForeignKey `json:"github_repository,omitempty" db:"github_repository" faker:"-"`
-	GitHubTeams        GitHubTeams                 `json:"github_teams,omitempty" db:"github_teams" faker:"-"`
+
+	// Teams are pulled indirectly in sql from the repository join
+	GitHubTeams GitHubTeams `json:"github_teams,omitempty" db:"github_teams" faker:"-"`
 }
 
 // TableName returns named table for GitHubRelease - units
