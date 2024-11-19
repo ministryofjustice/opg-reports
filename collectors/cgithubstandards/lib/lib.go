@@ -100,6 +100,6 @@ func AllRepos(ctx context.Context, client *github.Client, args *Arguments) (all 
 // RepoToStandard generates a Standard item from api data
 // - its a chunky one
 func RepoToStandard(ctx context.Context, client *github.Client, r *github.Repository) (g *models.GitHubRepositoryStandard) {
-	g = models.NewRepositoryStandardFromRemote(ctx, client, r)
+	g = models.NewRepositoryStandard(ctx, client, r)
 	return
 }

@@ -88,8 +88,8 @@ func WriteToFile(content []byte, args *Arguments) {
 }
 
 // TeamList generates a list of all teams attached to this repo
-func TeamList(ctx context.Context, client *github.Client, repo *github.Repository, args *Arguments) (teams models.GitHubTeams, err error) {
-	teams, err = models.RepositoryTeamList(ctx, client, repo, args.Organisation)
+func TeamList(ctx context.Context, client *github.Client, organisation string, repoName string) (teams models.GitHubTeams, err error) {
+	teams, err = models.NewGitHubTeams(ctx, client, organisation, repoName)
 	return
 }
 

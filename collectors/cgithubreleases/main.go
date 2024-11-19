@@ -74,7 +74,7 @@ func Run(args *lib.Arguments) (err error) {
 			rels     []*models.GitHubRelease = []*models.GitHubRelease{}
 			runs     []*github.WorkflowRun   = []*github.WorkflowRun{}
 			merged   []*github.PullRequest   = []*github.PullRequest{}
-			teams, _                         = lib.TeamList(ctx, client, repo, args)
+			teams, _                         = lib.TeamList(ctx, client, args.Organisation, *repo.Name)
 		)
 
 		slog.Info(fmt.Sprintf("[%d/%d] %s", i+1, total, *repo.FullName))

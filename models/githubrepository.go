@@ -3,7 +3,6 @@ package models
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/google/go-github/v62/github"
@@ -192,25 +191,9 @@ func (self *GitHubRepositoryForeignKey) Scan(src interface{}) (err error) {
 	return
 }
 
-func RepositoryTeamList(ctx context.Context, client *github.Client, repo *github.Repository, organisation string) (teams GitHubTeams, err error) {
-	teams = GitHubTeams{}
-	opts := &github.ListOptions{PerPage: 100}
-
-	if teamList, _, err := client.Repositories.ListTeams(ctx, organisation, *repo.Name, opts); err == nil {
-		for _, team := range teamList {
-			var ts = time.Now().UTC().Format(dateformats.Full)
-
-			teams = append(teams, &GitHubTeam{
-				Ts:   ts,
-				Slug: strings.ToLower(*team.Slug),
-			})
-		}
-	}
-	return
-}
-
-// NewRepositoryFromRemote converts a github.Repository over to local version
-func NewRepositoryFromRemote(ctx context.Context, client *github.Client, r *github.Repository) (repo *GitHubRepository) {
+// NewRepositoryFromRemote converts a github.Repository over to local version and fetches some additional
+// innformation like license name and list of teams
+func NewRepository(ctx context.Context, client *github.Client, r *github.Repository) (repo *GitHubRepository) {
 	var ts = time.Now().UTC().Format(dateformats.Full)
 	repo = &GitHubRepository{
 		Ts:            ts,
@@ -231,7 +214,7 @@ func NewRepositoryFromRemote(ctx context.Context, client *github.Client, r *gith
 		repo.LastCommitDate = branch.Commit.Commit.Author.Date.Time.String()
 	}
 
-	repo.GitHubTeams, _ = RepositoryTeamList(ctx, client, r, repo.Owner)
+	repo.GitHubTeams, _ = NewGitHubTeams(ctx, client, repo.Owner, repo.Name)
 
 	return
 }

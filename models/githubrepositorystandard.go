@@ -264,13 +264,16 @@ func (self *GitHubRepositoryStandard) UpdateCompliance() (baseline uint8, extend
 	return
 }
 
-func NewRepositoryStandardFromRemote(ctx context.Context, client *github.Client, r *github.Repository) (g *GitHubRepositoryStandard) {
+// NewRepositoryStandard uses the repository details passed to create a new Local GitHubRepositoryStandard with
+// an attached GitHubRepository (which in turn will have GitHubTeams) and populates all the compliance related
+// fields
+func NewRepositoryStandard(ctx context.Context, client *github.Client, r *github.Repository) (g *GitHubRepositoryStandard) {
 	const (
 		readmePath            string = "./README.md"
 		codeOfConductPath     string = "./CODE_OF_CONDUCT.md"
 		contributingGuidePath string = "./CONTRIBUTING.md"
 	)
-	var repo = NewRepositoryFromRemote(ctx, client, r)
+	var repo = NewRepository(ctx, client, r)
 
 	g = &GitHubRepositoryStandard{
 		Ts:                       time.Now().UTC().Format(dateformats.Full),
