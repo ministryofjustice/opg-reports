@@ -20,10 +20,11 @@ import (
 //   - dbs.Record
 //   - dbs.Cloneable
 type GitHubTeam struct {
-	ID                 int                `json:"id,omitempty" db:"id" faker:"-"`
-	Ts                 string             `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."` // TS is timestamp when the record was created
-	Slug               string             `json:"slug,omitempty" db:"slug" faker:"unique, oneof:opg,opg-webops,opg-sirius,opg-use,opg-make,foo,bar"`
-	Units              Units              `json:"units,omitempty" db:"units" faker:"-"`
+	ID    int    `json:"id,omitempty" db:"id" faker:"-"`
+	Ts    string `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."` // TS is timestamp when the record was created
+	Slug  string `json:"slug,omitempty" db:"slug" faker:"unique, oneof:opg,opg-webops,opg-sirius,opg-use,opg-make,foo,bar"`
+	Units Units  `json:"units,omitempty" db:"units" faker:"-"`
+	// Many to many join with the repositories
 	GitHubRepositories GitHubRepositories `json:"github_repositories,omitempty" db:"github_repositories" faker:"-"`
 }
 
@@ -123,6 +124,38 @@ type GitHubTeams []*GitHubTeam
 // Interfaces:
 //   - sql.Scanner
 func (self *GitHubTeams) Scan(src interface{}) (err error) {
+	switch src.(type) {
+	case []byte:
+		err = structs.Unmarshal(src.([]byte), self)
+	case string:
+		err = structs.Unmarshal([]byte(src.(string)), self)
+	default:
+		err = fmt.Errorf("unsupported scan src type")
+	}
+	return
+}
+
+// GitHubTeamForeignKey is to be used on the struct that needs to pull in
+// the team via one to many join (being used on the `one` side).
+//
+// To swap a GitHubTeam to a GitHubTeamForeignKey:
+//
+//	var join = GitHubRepositoryForeignKey(&GitHubTeam{})
+//
+// or
+//
+//	var join = (*GitHubRepositoryForeignKey)(&GitHubTeam)
+//
+// Interfaces:
+//   - sql.Scanner
+type GitHubTeamForeignKey GitHubTeam
+
+// Scan converts the json aggregate result from a select statement into
+// attached to the main struct and will be called directly by sqlx
+//
+// Interfaces:
+//   - sql.Scanner
+func (self *GitHubTeamForeignKey) Scan(src interface{}) (err error) {
 	switch src.(type) {
 	case []byte:
 		err = structs.Unmarshal(src.([]byte), self)

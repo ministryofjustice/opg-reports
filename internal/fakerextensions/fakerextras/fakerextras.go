@@ -134,6 +134,8 @@ func Choice[T choice](choices []T) T {
 	return choices[i]
 }
 
+// Choices will pick at least `min` number of items from
+// the choices slice passed on
 func Choices[T choice](choices []T, min int) (selected []T) {
 	var randomised = rand.Perm(len(choices))
 	var count = RandomInt(min, len(choices))
@@ -143,6 +145,17 @@ func Choices[T choice](choices []T, min int) (selected []T) {
 		selected = append(selected, choices[i])
 	}
 
+	return
+}
+
+// Choose will pick exactly `count` number of items from the choices
+func Choose[T choice](choices []T, count int) (selected []T) {
+	var randomised = rand.Perm(len(choices))
+
+	selected = []T{}
+	for _, i := range randomised[:count] {
+		selected = append(selected, choices[i])
+	}
 	return
 }
 

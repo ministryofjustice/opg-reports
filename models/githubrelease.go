@@ -34,9 +34,6 @@ type GitHubRelease struct {
 	// Join the release to the repository - release has one repo, repo has many releases
 	GitHubRepositoryID int                         `json:"github_repository_id,omitempty" db:"github_repository_id" faker:"-"`
 	GitHubRepository   *GitHubRepositoryForeignKey `json:"github_repository,omitempty" db:"github_repository" faker:"-"`
-
-	// Teams are pulled indirectly in sql from the repository join
-	GitHubTeams GitHubTeams `json:"github_teams,omitempty" db:"github_teams" faker:"-"`
 }
 
 // TableName returns named table for GitHubRelease - units

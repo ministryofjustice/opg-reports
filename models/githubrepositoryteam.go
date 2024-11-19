@@ -22,9 +22,13 @@ import (
 //   - dbs.InsertableRow
 //   - dbs.Record
 type GitHubRepositoryGitHubTeam struct {
-	ID                 int `json:"id,omitempty" db:"id" faker:"-"`
-	GitHubRepositoryID int `json:"github_repository_id,omitempty" db:"github_repository_id" faker:"-"`
-	GitHubTeamID       int `json:"github_team_id,omitempty" db:"github_team_id" faker:"-"`
+	ID int `json:"id,omitempty" db:"id" faker:"-"`
+	// Join to the repo
+	GitHubRepositoryID int                         `json:"github_repository_id,omitempty" db:"github_repository_id" faker:"-"`
+	GitHubRepository   *GitHubRepositoryForeignKey `json:"github_repository,omitempty" db:"github_repository" faker:"-"`
+	// Join to the team
+	GitHubTeamID int                   `json:"github_team_id,omitempty" db:"github_team_id" faker:"-"`
+	GitHubTeam   *GitHubTeamForeignKey `json:"github_team,omitempty" db:"github_team" faker:"-"`
 }
 
 // TableName returns named table for GitHubRepositoryGitHubTeam - GitHubRepositoryGitHubTeams

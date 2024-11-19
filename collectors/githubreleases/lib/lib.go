@@ -100,9 +100,10 @@ func WorkflowRunsToReleases(repo *github.Repository, teams models.GitHubTeams, r
 
 	all = []*models.GitHubRelease{}
 	ghRepo = &models.GitHubRepository{
-		Ts:       now,
-		FullName: *repo.FullName,
-		Name:     *repo.Name,
+		Ts:          now,
+		FullName:    *repo.FullName,
+		Name:        *repo.Name,
+		GitHubTeams: teams,
 	}
 
 	for _, run := range runs {
@@ -114,7 +115,6 @@ func WorkflowRunsToReleases(repo *github.Repository, teams models.GitHubTeams, r
 			SourceURL:        *run.HTMLURL,
 			RelaseType:       models.GitHubWorkflowRelease,
 			GitHubRepository: (*models.GitHubRepositoryForeignKey)(ghRepo),
-			GitHubTeams:      teams,
 			Count:            1,
 		}
 
@@ -131,9 +131,10 @@ func PullRequestsToReleases(repo *github.Repository, teams models.GitHubTeams, p
 
 	all = []*models.GitHubRelease{}
 	ghRepo = &models.GitHubRepository{
-		Ts:       now,
-		FullName: *repo.FullName,
-		Name:     *repo.Name,
+		Ts:          now,
+		FullName:    *repo.FullName,
+		Name:        *repo.Name,
+		GitHubTeams: teams,
 	}
 
 	for _, pr := range prs {
@@ -145,7 +146,6 @@ func PullRequestsToReleases(repo *github.Repository, teams models.GitHubTeams, p
 			SourceURL:        *pr.HTMLURL,
 			RelaseType:       models.GitHubWorkflowRelease,
 			GitHubRepository: (*models.GitHubRepositoryForeignKey)(ghRepo),
-			GitHubTeams:      teams,
 			Count:            1,
 		}
 		all = append(all, release)
