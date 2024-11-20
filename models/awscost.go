@@ -25,7 +25,7 @@ type AwsCost struct {
 	AwsAccountID int                   `json:"aws_account_id,omitempty" db:"aws_account_id" faker:"-"`
 	AwsAccount   *AwsAccountForeignKey `json:"aws_account,omitempty" db:"aws_account" faker:"-"`
 	// Join to Unit - only used in selection to fetch the unit from the aws account
-	Unit *UnitForeignKey `json:"unit" db:"unit" faker:"-"`
+	Unit *UnitForeignKey `json:"unit,omitempty" db:"unit" faker:"-"`
 }
 
 // TableName returns named table for AwsCost - units

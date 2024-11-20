@@ -21,10 +21,10 @@ type AwsUptime struct {
 	Average float64 `json:"average,omitempty" db:"average" doc:"Percentage uptime average for this record period."`
 
 	// Join to the aws account - uptime has one account, account has many uptimes
-	AwsAccountID int                   `json:"aws_account_id" db:"aws_account_id" faker:"-"`
-	AwsAccount   *AwsAccountForeignKey `json:"aws_account" db:"aws_account" faker:"-"`
+	AwsAccountID int                   `json:"aws_account_id,omitempty" db:"aws_account_id" faker:"-"`
+	AwsAccount   *AwsAccountForeignKey `json:"aws_account,omitempty" db:"aws_account" faker:"-"`
 	// Unit is indirectly fetched via the aws_account -> unit join, this is used to capture that
-	Unit *UnitForeignKey `json:"unit" db:"unit" faker:"-"`
+	Unit *UnitForeignKey `json:"unit,omitempty" db:"unit" faker:"-"`
 }
 
 // TableName returns named table for AwsUptime - units

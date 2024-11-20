@@ -100,7 +100,7 @@ func Run(args *lib.Arguments) (err error) {
 
 	content, err = json.MarshalIndent(data, "", "  ")
 	if err != nil {
-		slog.Error("error marshaling", slog.String("err", err.Error()))
+		slog.Error("[awscosts] error marshaling", slog.String("err", err.Error()))
 		os.Exit(1)
 	}
 	//

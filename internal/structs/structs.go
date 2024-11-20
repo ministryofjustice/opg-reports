@@ -4,7 +4,26 @@ import (
 	"encoding/json"
 	"log/slog"
 	"os"
+	"path/filepath"
 )
+
+// ToFile converts the item passed into json byte array and writes that to
+// the file path passed along
+func ToFile[T any](item T, filename string) (err error) {
+	var (
+		bytes     []byte
+		parentDir string = filepath.Dir(filename)
+	)
+	os.MkdirAll(parentDir, os.ModePerm)
+
+	bytes, err = json.MarshalIndent(item, "", "  ")
+	if err != nil {
+		return
+	}
+	err = os.WriteFile(filename, bytes, os.ModePerm)
+
+	return
+}
 
 // ToMap takes a struct, marshals that to json and then unmarshals
 // that into a map[string]interface.
@@ -15,6 +34,16 @@ func ToMap[T any](item T) (m map[string]interface{}, err error) {
 		err = json.Unmarshal(byt, &m)
 	} else {
 		slog.Error("[structs] failed to covnert to a map", slog.String("err", err.Error()))
+	}
+	return
+}
+
+// Convert takes original struct of T and by marshaling and then unmarshaling applied its
+// content to destination R
+func Convert[T any, R any](source T, destination R) (err error) {
+	var bytes []byte
+	if bytes, err = json.Marshal(source); err == nil {
+		err = Unmarshal(bytes, destination)
 	}
 	return
 }

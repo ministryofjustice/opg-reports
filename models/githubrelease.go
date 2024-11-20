@@ -28,7 +28,7 @@ type GitHubRelease struct {
 	Name       string            `json:"name,omitempty" db:"name" faker:"word"`
 	Count      int               `json:"count,omitempty" db:"count" faker:"oneof: 1"`
 	RelaseType GitHubReleaseType `json:"release_type,omitempty" db:"release_type" faker:"oneof:workflow_run, pull_request" enum:"oneof:workflow_run, pull_request"`
-	SourceURL  string            `json:"source_url" db:"source_url" faker:"uri"`
+	SourceURL  string            `json:"source_url,omitempty" db:"source_url" faker:"uri"`
 	Date       string            `json:"date,omitempty" db:"date" faker:"date_string"`
 
 	// Join the release to the repository - release has one repo, repo has many releases

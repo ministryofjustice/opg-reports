@@ -148,7 +148,7 @@ func Flat(raw *costexplorer.GetCostAndUsageOutput, args *Arguments) (flat []*mod
 	flat = []*models.AwsCost{}
 	unit := &models.Unit{
 		Ts:   now,
-		Name: args.Unit,
+		Name: strings.ToLower(args.Unit),
 	}
 	account := &models.AwsAccount{
 		Ts:          now,

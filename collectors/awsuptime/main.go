@@ -94,8 +94,8 @@ func Run(args *lib.Arguments) (err error) {
 			Name: args.Unit,
 		}
 		account := &models.AwsAccount{
-			Number: args.AccountID,
 			Ts:     now,
+			Number: args.AccountID,
 		}
 
 		for _, dp := range datapoints {
