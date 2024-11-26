@@ -62,7 +62,7 @@ func main() {
 	var err error
 	lib.SetupArgs(args)
 
-	slog.Info("[importer] init...")
+	slog.Info("[importer] starting ...", slog.String("type", args.Type))
 	slog.Debug("[importer]", slog.String("args", fmt.Sprintf("%+v", args)))
 
 	if err = lib.ValidateArgs(args); err != nil {

@@ -71,17 +71,17 @@ func Run(args *lib.Arguments) (err error) {
 	)
 
 	if s, err = awssession.New(awsCfg); err != nil {
-		slog.Error("[awscosts.main] aws session failed", slog.String("err", err.Error()))
+		slog.Error("[awscosts] aws session failed", slog.String("err", err.Error()))
 		return
 	}
 
 	if client, err = awsclient.CostExplorer(s); err != nil {
-		slog.Error("[awscosts.main] aws client failed", slog.String("err", err.Error()))
+		slog.Error("[awscosts] aws client failed", slog.String("err", err.Error()))
 		return
 	}
 
 	if startDate, err = convert.ToTime(args.Month); err != nil {
-		slog.Error("[awscosts.main] month conversion failed", slog.String("err", err.Error()))
+		slog.Error("[awscosts] month conversion failed", slog.String("err", err.Error()))
 		return
 	}
 	startDate = convert.DateResetMonth(startDate)
@@ -90,11 +90,11 @@ func Run(args *lib.Arguments) (err error) {
 	endDate = startDate.AddDate(0, 1, 0)
 
 	if raw, err = lib.CostData(client, startDate, endDate, costexplorer.GranularityDaily, consts.DateFormatYearMonthDay); err != nil {
-		slog.Error("[awscosts.main] getting cost data failed", slog.String("err", err.Error()))
+		slog.Error("[awscosts] getting cost data failed", slog.String("err", err.Error()))
 		return
 	}
 	if data, err = lib.Flat(raw, args); err != nil {
-		slog.Error("[awscosts.main] flattening raw data to costs failed", slog.String("err", err.Error()))
+		slog.Error("[awscosts] flattening raw data to costs failed", slog.String("err", err.Error()))
 		return
 	}
 
@@ -113,9 +113,9 @@ func main() {
 	var err error
 	lib.SetupArgs(args)
 
-	slog.Info("[awscosts.main] init...")
-	slog.Debug("[awscosts.main]", slog.String("args", fmt.Sprintf("%+v", args)))
-	slog.Debug("[awscosts.main]", slog.String("region", awsCfg.Region))
+	slog.Info("[awscosts] starting...")
+	slog.Debug("[awscosts]", slog.String("args", fmt.Sprintf("%+v", args)))
+	slog.Debug("[awscosts]", slog.String("region", awsCfg.Region))
 
 	if err = lib.ValidateArgs(args); err != nil {
 		slog.Error("arg validation failed", slog.String("err", err.Error()))
@@ -123,6 +123,6 @@ func main() {
 	}
 
 	Run(args)
-	slog.Info("[awscosts.main] done.")
+	slog.Info("[awscosts] done.")
 
 }

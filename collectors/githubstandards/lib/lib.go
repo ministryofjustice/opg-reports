@@ -84,7 +84,7 @@ func AllRepos(ctx context.Context, client *github.Client, args *Arguments) (all 
 	all = []*github.Repository{}
 
 	for page > 0 {
-		slog.Info("getting repostiories", slog.Int("page", page))
+		slog.Info("[githubstandards] getting repostiories", slog.Int("page", page))
 		pg, resp, e := client.Teams.ListTeamReposBySlug(ctx, org, team, &github.ListOptions{PerPage: 100, Page: page})
 		if e != nil {
 			err = e

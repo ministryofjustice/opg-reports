@@ -166,7 +166,7 @@ func AllRepos(ctx context.Context, client *github.Client, args *Arguments) (all 
 	all = []*github.Repository{}
 
 	for page > 0 {
-		slog.Info("getting repostiories", slog.Int("page", page))
+		slog.Info("[githubreleases] getting repostiories", slog.Int("page", page))
 		pg, resp, e := client.Teams.ListTeamReposBySlug(ctx, org, team, &github.ListOptions{PerPage: 100, Page: page})
 		if e != nil {
 			err = e
@@ -215,7 +215,7 @@ func WorkflowRuns(ctx context.Context, client *github.Client, args *Arguments, r
 		opts.Page = page
 
 		workflow, resp, err = actionsService.ListRepositoryWorkflowRuns(ctx, args.Organisation, *repo.Name, opts)
-		slog.Debug("getting workflow runs",
+		slog.Debug("[githubreleases] getting workflow runs",
 			slog.String("day", opts.Created),
 			slog.Int("page", opts.Page),
 			slog.Int("total", *workflow.TotalCount),
@@ -269,7 +269,7 @@ func MergedPullRequests(ctx context.Context, client *github.Client, args *Argume
 		opts.Page = page
 
 		prs, resp, err = prService.List(ctx, args.Organisation, *repo.Name, opts)
-		slog.Info("getting pull requests",
+		slog.Info("[githubreleases] getting pull requests",
 			slog.String("state", opts.State),
 			slog.Int("page", opts.Page),
 			slog.Int("count", len(prs)),
@@ -300,7 +300,7 @@ func MergedPullRequests(ctx context.Context, client *github.Client, args *Argume
 				mergedAt = pr.MergedAt.Time
 				onDay = mergedAt.Format(consts.DateFormatYearMonthDay) == dt.Format(consts.DateFormatYearMonthDay)
 
-				slog.Debug("pull request",
+				slog.Debug("[githubreleases] pull request",
 					slog.String("repo", *repo.Name),
 					slog.Bool("correct_day", onDay),
 					slog.String("name", *pr.Title),

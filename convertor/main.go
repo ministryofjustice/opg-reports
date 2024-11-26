@@ -4,6 +4,7 @@ convertor takes an older formatted data file and converts over to new data file
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log/slog"
 	"os"
@@ -27,12 +28,16 @@ const (
 
 var (
 	awsCfg       = awscfg.FromEnv()
-	dataDir      = "./data"
-	convertedDir = "./converted"
+	dataDir      = "./bucket-data"
+	convertedDir = "./converted-data"
 )
 
 // Download grabs all the files from the s3 bucket and clones them locally
 func Download(sess *session.Session, svc *s3.S3) {
+	// remove the directories
+	os.RemoveAll(dataDir)
+	os.MkdirAll(dataDir, os.ModePerm)
+
 	fmt.Printf("Downloading from s3 bucket [%s]\n", bucketName)
 	waitgroup := sync.WaitGroup{}
 	downloader := s3manager.NewDownloader(sess)
@@ -95,21 +100,22 @@ func Download(sess *session.Session, svc *s3.S3) {
 // ConvertV1s takes the known sub dirs in the bucket thats been cloned locally
 // and converts the older structs to new ones
 func ConvertV1s() {
-	fmt.Println("Converting v1s ...")
+	slog.Info("[convertor] Converting v1s ...")
 	var (
 		costs     = []*models.AwsCost{}
 		uptimes   = []*models.AwsUptime{}
 		standards = []*models.GitHubRepositoryStandard{}
 	)
-
+	os.RemoveAll(convertedDir)
+	os.MkdirAll(convertedDir, os.ModePerm)
 	// import costs and export to single file for all of them
+	slog.Info("[convertor] Converting v1 aws_costs ...")
 	path := filepath.Join(dataDir, "aws_costs")
 	pattern := path + "/*.json"
 	files, _ := filepath.Glob(pattern)
 
 	for _, file := range files {
 		old := []*v1.AwsCost{}
-		fmt.Println(file)
 		structs.UnmarshalFile(file, &old)
 
 		for _, prior := range old {
@@ -119,15 +125,15 @@ func ConvertV1s() {
 	}
 	destination := filepath.Join(convertedDir, "aws_costs.json")
 	structs.ToFile(costs, destination)
-
+	os.Exit(1)
 	// Import uptime
+	slog.Info("[convertor] Converting v1 aws_uptime ...")
 	path = filepath.Join(dataDir, "aws_uptime")
 	pattern = path + "/*.json"
 	files, _ = filepath.Glob(pattern)
 
 	for _, file := range files {
 		old := []*v1.AwsUptime{}
-		fmt.Println(file)
 		structs.UnmarshalFile(file, &old)
 
 		for _, prior := range old {
@@ -139,13 +145,13 @@ func ConvertV1s() {
 	structs.ToFile(uptimes, destination)
 
 	// Import standards
+	slog.Info("[convertor] Converting v1 github_standards ...")
 	path = filepath.Join(dataDir, "github_standards")
 	pattern = path + "/*.json"
 	files, _ = filepath.Glob(pattern)
 
 	for _, file := range files {
 		old := []*v1.GithubStandard{}
-		fmt.Println(file)
 		structs.UnmarshalFile(file, &old)
 
 		for _, prior := range old {
@@ -158,18 +164,20 @@ func ConvertV1s() {
 
 }
 
-func Run() (err error) {
+func Run(download bool) (err error) {
 	var (
 		sess *session.Session
 		svc  *s3.S3
 	)
 
-	if sess, err = awssession.New(awsCfg); err != nil {
-		slog.Error("[convertor] aws session failed", slog.String("err", err.Error()))
-		return
+	if download {
+		if sess, err = awssession.New(awsCfg); err != nil {
+			slog.Error("[convertor] aws session failed", slog.String("err", err.Error()))
+			return
+		}
+		svc = s3.New(sess)
+		Download(sess, svc)
 	}
-	svc = s3.New(sess)
-	Download(sess, svc)
 	ConvertV1s()
 
 	return
@@ -177,5 +185,10 @@ func Run() (err error) {
 }
 
 func main() {
-	Run()
+	var download = flag.Bool("download", true, "flag to decide download from s3 or not")
+	flag.Parse()
+
+	slog.Info("[convertor] starting", slog.Bool("download", *download))
+	Run(*download)
+	slog.Info("[convertor] done.")
 }

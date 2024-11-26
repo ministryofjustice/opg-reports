@@ -89,7 +89,7 @@ func Run(args *lib.Arguments) (err error) {
 			merged, err = lib.MergedPullRequests(ctx, client, args, repo)
 		}
 
-		slog.Info("found for day.", slog.String("day", args.Day), slog.Int("pull_requests", len(merged)), slog.Int("workflow_runs", len(runs)))
+		slog.Info("[githubreleases] found for day.", slog.String("day", args.Day), slog.Int("pull_requests", len(merged)), slog.Int("workflow_runs", len(runs)))
 		// convert to releases
 		if len(runs) > 0 {
 			rels, err = lib.WorkflowRunsToReleases(repo, teams, runs)
@@ -105,7 +105,7 @@ func Run(args *lib.Arguments) (err error) {
 	// write to file
 	content, err = json.MarshalIndent(allReleases, "", "  ")
 	if err != nil {
-		slog.Error("error marshaling", slog.String("err", err.Error()))
+		slog.Error("[githubreleases] error marshaling", slog.String("err", err.Error()))
 		os.Exit(1)
 	}
 	lib.WriteToFile(content, args)
@@ -117,14 +117,14 @@ func main() {
 	var err error
 	lib.SetupArgs(args)
 
-	slog.Info("[githubreleases.main] init...")
-	slog.Debug("[githubreleases.main]", slog.String("args", fmt.Sprintf("%+v", args)))
+	slog.Info("[githubreleases] starting ...")
+	slog.Debug("[githubreleases]", slog.String("args", fmt.Sprintf("%+v", args)))
 
 	err = Run(args)
 	if err != nil {
 		panic(err)
 	}
 
-	slog.Info("[githubreleases.main] done.")
+	slog.Info("[githubreleases] done.")
 
 }

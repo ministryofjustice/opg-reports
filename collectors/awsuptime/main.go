@@ -61,17 +61,17 @@ func Run(args *lib.Arguments) (err error) {
 	)
 
 	if s, err = awssession.New(awsCfg); err != nil {
-		slog.Error("[awsuptime.main] aws session failed", slog.String("err", err.Error()))
+		slog.Error("[awsuptime] aws session failed", slog.String("err", err.Error()))
 		return
 	}
 
 	if client, err = awsclient.CloudWatch(s); err != nil {
-		slog.Error("[awsuptime.main] aws client failed", slog.String("err", err.Error()))
+		slog.Error("[awsuptime] aws client failed", slog.String("err", err.Error()))
 		return
 	}
 
 	if startDate, err = convert.ToTime(args.Day); err != nil {
-		slog.Error("[awsuptime.main] date conversion failed", slog.String("err", err.Error()))
+		slog.Error("[awsuptime] date conversion failed", slog.String("err", err.Error()))
 		return
 	}
 
@@ -86,7 +86,7 @@ func Run(args *lib.Arguments) (err error) {
 	if metrics = lib.GetListOfMetrics(client); len(metrics) > 0 {
 		datapoints, err = lib.GetMetricsStats(client, metrics, startDate, endDate)
 		if err != nil {
-			slog.Error("[awsuptime.main] getting stats failed", slog.String("err", err.Error()))
+			slog.Error("[awsuptime] getting stats failed", slog.String("err", err.Error()))
 			return
 		}
 
@@ -115,7 +115,7 @@ func Run(args *lib.Arguments) (err error) {
 
 	content, err = json.MarshalIndent(uptimeData, "", "  ")
 	if err != nil {
-		slog.Error("error marshaling", slog.String("err", err.Error()))
+		slog.Error("[awsuptime] error marshaling", slog.String("err", err.Error()))
 		os.Exit(1)
 	}
 	//
@@ -128,9 +128,9 @@ func main() {
 	var err error
 	lib.SetupArgs(args)
 
-	slog.Info("[awsuptime.main] init...")
-	slog.Debug("[awsuptime.main]", slog.String("args", fmt.Sprintf("%+v", args)))
-	slog.Debug("[awsuptime.main]", slog.String("region", awsCfg.Region))
+	slog.Info("[awsuptime] starting...")
+	slog.Debug("[awsuptime]", slog.String("args", fmt.Sprintf("%+v", args)))
+	slog.Debug("[awsuptime]", slog.String("region", awsCfg.Region))
 
 	if err = lib.ValidateArgs(args); err != nil {
 		slog.Error("arg validation failed", slog.String("err", err.Error()))
@@ -138,6 +138,6 @@ func main() {
 	}
 
 	Run(args)
-	slog.Info("[awsuptime.main] done.")
+	slog.Info("[awsuptime] done.")
 
 }

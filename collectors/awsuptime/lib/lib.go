@@ -91,7 +91,7 @@ func WriteToFile(content []byte, args *Arguments) {
 // GetListOfMetrics returns all metrics that are tracking uptime percentages within this account
 // which can then be used to get the statistics to show uptime amount
 func GetListOfMetrics(cw *cloudwatch.CloudWatch) (metrics []*cloudwatch.Metric) {
-	slog.Info("getting uptime metrics list")
+	slog.Info("[awsuptime] getting uptime metrics list")
 	metrics = []*cloudwatch.Metric{}
 
 	in := &cloudwatch.ListMetricsInput{
@@ -103,7 +103,7 @@ func GetListOfMetrics(cw *cloudwatch.CloudWatch) (metrics []*cloudwatch.Metric) 
 		page += 1
 		metrics = append(metrics, result.Metrics...)
 
-		slog.Info("got list of metrics",
+		slog.Info("[awsuptime] got list of metrics",
 			slog.Int("count", len(result.Metrics)),
 			slog.Int("page", page),
 			slog.Bool("more pages?", (result.NextToken != nil)))
@@ -111,7 +111,7 @@ func GetListOfMetrics(cw *cloudwatch.CloudWatch) (metrics []*cloudwatch.Metric) 
 		// stops looping when we nolonger have next page tokens
 		return (result.NextToken != nil)
 	})
-	slog.Info("got uptime metrics list", slog.Int("count", len(metrics)))
+	slog.Info("[awsuptime] got uptime metrics list", slog.Int("count", len(metrics)))
 	return
 }
 
@@ -129,7 +129,7 @@ func GetMetricsStats(cw *cloudwatch.CloudWatch, metrics []*cloudwatch.Metric, st
 	)
 	var results *cloudwatch.GetMetricStatisticsOutput
 
-	slog.Info("getting metric stats",
+	slog.Info("[awsuptime] getting metric stats",
 		slog.String("namespace", uptimeNamespace),
 		slog.String("metric", uptimeMetric))
 
@@ -153,7 +153,7 @@ func GetMetricsStats(cw *cloudwatch.CloudWatch, metrics []*cloudwatch.Metric, st
 	results, err = cw.GetMetricStatistics(in)
 	datapoints = results.Datapoints
 
-	slog.Info("metric found count", slog.Int("count", len(datapoints)))
+	slog.Info("[awsuptime] metric found count", slog.Int("count", len(datapoints)))
 
 	return
 

@@ -77,8 +77,8 @@ func main() {
 	var err error
 	lib.SetupArgs(args)
 
-	slog.Info("[githubstandards.main] init...")
-	slog.Debug("[githubstandards.main]", slog.String("args", fmt.Sprintf("%+v", args)))
+	slog.Info("[githubstandards] starting ...")
+	slog.Debug("[githubstandards]", slog.String("args", fmt.Sprintf("%+v", args)))
 
 	if err = lib.ValidateArgs(args); err != nil {
 		slog.Error("arg validation failed", slog.String("err", err.Error()))
@@ -90,6 +90,6 @@ func main() {
 		panic(err)
 	}
 
-	slog.Info("[githubstandards.main] done.")
+	slog.Info("[githubstandards] done.")
 
 }

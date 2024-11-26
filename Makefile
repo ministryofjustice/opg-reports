@@ -1,4 +1,6 @@
 SHELL = bash
+#============ PARAMS ==============
+BUCKET_PROFILE ?= shared-development-operator
 #============ BUILD INFO ==============
 BUILD_DIR = ./builds/
 API_VERSION = v1
@@ -17,7 +19,7 @@ tick="✅"
 tests:
 	@go clean -testcache
 	@clear
-	@echo "============== tests =============="
+	@echo "=== tests"
 	@env env CGO_ENABLED=1 LOG_LEVEL="warn" LOG_TO="stdout" go test -count=1 -cover -covermode=atomic ./... && echo "" && echo "passed ${tick}"
 .PHONY: tests
 
@@ -27,7 +29,7 @@ tests:
 test:
 	@go clean -testcache
 	@clear
-	@echo "============== test: [$(name)] =============="
+	@echo "=== test: [$(name)]"
 	@env CGO_ENABLED=1 GITHUB_ACCESS_TOKEN="${GITHUB_TOKEN}" LOG_LEVEL="info" LOG_TO="stdout" go test -count=1 -v ./... -run="$(name)" && echo "" && echo "passed ${tick}"
 .PHONY: test
 
@@ -36,7 +38,7 @@ test:
 coverage:
 	@rm -Rf ./code-coverage.out
 	@clear
-	@echo "============== coverage =============="
+	@echo "=== coverage"
 	@env CGO_ENABLED=1 LOG_LEVEL="warn" LOG_TO="stdout" go test -count=1 -covermode=count -coverprofile=code-coverage.out -cover ./...
 	@go tool cover -html=code-coverage.out
 .PHONY: coverage
@@ -48,14 +50,16 @@ openapi:
 
 ## Output build info
 buildinfo:
-	@echo "============ BUILD INFO =============="
-	@echo "API_VERSION:  ${API_VERSION}"
-	@echo "COMMIT:       ${COMMIT}"
-	@echo "MODE:         ${MODE}"
-	@echo "ORGANISATION: ${ORGANISATION}"
-	@echo "SEMVER:       ${SEMVER}"
-	@echo "TIMESTAMP:    ${TIMESTAMP}"
-	@echo "======================================"
+	@echo "=== PARAMS"
+	@echo "BUCKET_PROFILE: ${BUCKET_PROFILE}"
+	@echo "=== BUILD INFO"
+	@echo "API_VERSION:    ${API_VERSION}"
+	@echo "COMMIT:         ${COMMIT}"
+	@echo "MODE:           ${MODE}"
+	@echo "ORGANISATION:   ${ORGANISATION}"
+	@echo "SEMVER:         ${SEMVER}"
+	@echo "TIMESTAMP:      ${TIMESTAMP}"
+	@echo "==="
 .PHONY: buildinfo
 
 ## Removes an existing build artifacts
@@ -83,9 +87,16 @@ front:
 	@cd ./servers/front && go run main.go
 .PHONY: front
 
+#========= IMPORT DATA =========
+import: build
+	@cd ./builds/ && aws-vault exec ${BUCKET_PROFILE} -- ./bin/convertor --download=false
+	@cd ./builds && ./bin/importer -type=github-standards -file=./converted-data/github_standards.json
+	@cd ./builds && ./bin/importer -type=aws-uptime -file=./converted-data/aws_uptime.json
+	@cd ./builds && ./bin/importer -type=aws-costs -file=./converted-data/aws_costs.json
+.PHONY: import
 #========= BUILD GO BINARIES =========
 # Build all binaries
-build: buildinfo build/collectors build/importers build/servers
+build: buildinfo build/collectors build/convertor build/importer build/servers
 .PHONY: build
 
 build/servers: build/servers/api build/servers/front
@@ -103,16 +114,18 @@ build/servers/front:
 	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/front ./servers/front/main.go && echo "${tick}"
 .PHONY: build/servers/front
 
+## build the convertor tool
+build/convertor:
+	@echo -n "[building] convertor .................... "
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/convertor ./convertor/main.go && echo "${tick}"
+.PHONY: build/convertor
 
-## build all importers
-build/importers: build/importers/sqlite
-.PHONY: build/importers
 
-## build the sqlite importer tool
-build/importers/sqlite:
-	@echo -n "[building] importers/sqlite ............. "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/sqlite ./importers/sqlite/main.go && echo "${tick}"
-.PHONY: build/importers/sqlite
+## build the importer tool
+build/importer:
+	@echo -n "[building] importer ..................... "
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/importer ./importer/main.go && echo "${tick}"
+.PHONY: build/importer
 
 ## build all collectors
 build/collectors: build/collectors/awscosts build/collectors/awsuptime build/collectors/githubstandards build/collectors/githubreleases

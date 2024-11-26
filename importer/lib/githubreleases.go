@@ -11,7 +11,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/models"
 )
 
-// processGithubReleases handles importing github standards file with the structure of:
+// processGithubReleases handles importing github standards file with the data structure of:
 //   - GitHubRelease
 //     -- GitHubRepository
 //     ---- GitHubTeam

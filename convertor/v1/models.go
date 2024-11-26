@@ -2,7 +2,10 @@ package v1
 
 import (
 	"strings"
+	"time"
 
+	"github.com/ministryofjustice/opg-reports/internal/dateformats"
+	"github.com/ministryofjustice/opg-reports/internal/dateutils"
 	"github.com/ministryofjustice/opg-reports/internal/structs"
 	"github.com/ministryofjustice/opg-reports/models"
 )
@@ -28,13 +31,20 @@ func (self *AwsCost) V2() *models.AwsCost {
 		unit    *models.Unit
 		account *models.AwsAccount
 		cost    *models.AwsCost
+		ts      string
+		now     string = time.Now().UTC().Format(dateformats.Full)
 	)
+	if self.Ts == "" {
+		self.Ts = now
+	}
+	ts = dateutils.Reformat(self.Ts, dateformats.Full)
+
 	unit = &models.Unit{
-		Ts:   self.Ts,
+		Ts:   ts,
 		Name: strings.ToLower(self.Unit),
 	}
 	account = &models.AwsAccount{
-		Ts:          self.Ts,
+		Ts:          ts,
 		Number:      self.AccountID,
 		Name:        self.AccountName,
 		Label:       self.Label,
@@ -42,7 +52,7 @@ func (self *AwsCost) V2() *models.AwsCost {
 		Unit:        (*models.UnitForeignKey)(unit),
 	}
 	cost = &models.AwsCost{
-		Ts:         self.Ts,
+		Ts:         ts,
 		Region:     self.Region,
 		Service:    self.Service,
 		Date:       self.Date,
@@ -68,14 +78,21 @@ func (self *AwsUptime) V2() *models.AwsUptime {
 		account *models.AwsAccount
 		uptime  *models.AwsUptime
 		unit    *models.Unit
+		ts      string
+		now     string = time.Now().UTC().Format(dateformats.Full)
 	)
+	if self.Ts == "" {
+		self.Ts = now
+	}
+	ts = dateutils.Reformat(self.Ts, dateformats.Full)
+
 	unit = &models.Unit{
-		Ts:   self.Ts,
+		Ts:   ts,
 		Name: strings.ToLower(self.Unit),
 	}
 	account = self.Account(unit)
 	uptime = &models.AwsUptime{
-		Ts:         self.Ts,
+		Ts:         ts,
 		Date:       self.Date,
 		Average:    self.Average,
 		Unit:       (*models.UnitForeignKey)(unit),
@@ -148,14 +165,21 @@ func (self *GithubStandard) V2() *models.GitHubRepositoryStandard {
 		teams    []*models.GitHubTeam
 		repo     *models.GitHubRepository
 		standard = &models.GitHubRepositoryStandard{}
+		ts       string
+		now      string = time.Now().UTC().Format(dateformats.Full)
 	)
+	if self.Ts == "" {
+		self.Ts = now
+	}
+	ts = dateutils.Reformat(self.Ts, dateformats.Full)
+
 	// swap over
 	structs.Convert(self, standard)
 	// create the team list
 	for _, name := range strings.Split(self.Teams, "#") {
 		if len(name) > 0 {
 			team := &models.GitHubTeam{
-				Ts:   self.Ts,
+				Ts:   ts,
 				Slug: strings.ReplaceAll(strings.ToLower(name), " ", "-"),
 			}
 			team.Units = self.TeamUnits(team)
@@ -164,7 +188,7 @@ func (self *GithubStandard) V2() *models.GitHubRepositoryStandard {
 	}
 
 	repo = &models.GitHubRepository{
-		Ts:             self.Ts,
+		Ts:             ts,
 		Owner:          self.Owner,
 		Name:           self.Name,
 		FullName:       self.FullName,

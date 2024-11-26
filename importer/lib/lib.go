@@ -22,6 +22,7 @@ type importerFunc func(ctx context.Context, adaptor dbs.Adaptor, path string) (a
 
 var TypeProcessors = map[string]importerFunc{
 	"github-standards": processGithubStandards,
+	"github-releases":  processGithubReleases,
 	"aws-costs":        processAwsCosts,
 	"aws-uptime":       processAwsUptime,
 }
