@@ -88,6 +88,7 @@ front:
 .PHONY: front
 
 #========= IMPORT DATA =========
+# Import all old data - order is important due to data gaps
 import: build
 	@cd ./builds/ && aws-vault exec ${BUCKET_PROFILE} -- ./bin/convertor --download=false
 	@cd ./builds && ./bin/importer -type=github-standards -file=./converted-data/github_standards.json

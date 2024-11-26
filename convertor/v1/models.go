@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -34,11 +35,13 @@ func (self *AwsCost) V2() *models.AwsCost {
 		ts      string
 		now     string = time.Now().UTC().Format(dateformats.Full)
 	)
+	// costs have a different time format, so convert between
 	if self.Ts == "" {
 		self.Ts = now
+	} else {
+		self.Ts = dateutils.Convert(self.Ts, dateformats.Old, dateformats.Full)
 	}
-	ts = dateutils.Reformat(self.Ts, dateformats.Full)
-
+	ts = self.Ts
 	unit = &models.Unit{
 		Ts:   ts,
 		Name: strings.ToLower(self.Unit),
@@ -46,9 +49,9 @@ func (self *AwsCost) V2() *models.AwsCost {
 	account = &models.AwsAccount{
 		Ts:          ts,
 		Number:      self.AccountID,
-		Name:        self.AccountName,
-		Label:       self.Label,
-		Environment: self.Environment,
+		Name:        strings.ToLower(self.AccountName),
+		Label:       strings.ToLower(self.Label),
+		Environment: strings.ToLower(self.Environment),
 		Unit:        (*models.UnitForeignKey)(unit),
 	}
 	cost = &models.AwsCost{
@@ -102,7 +105,12 @@ func (self *AwsUptime) V2() *models.AwsUptime {
 }
 
 func (self *AwsUptime) Account(unit *models.Unit) (account *models.AwsAccount) {
-	account = &models.AwsAccount{Environment: "production"}
+	account = &models.AwsAccount{
+		Environment: "production",
+		Ts:          self.Ts,
+		Name:        strings.ToLower(fmt.Sprintf("%s production", unit.Name)),
+		Label:       strings.ToLower(unit.Name),
+	}
 
 	switch unit.Name {
 	case "digideps":

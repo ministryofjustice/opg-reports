@@ -30,3 +30,10 @@ func Reformat(s string, layout string) (date string) {
 	}
 	return
 }
+
+func Convert(s string, oldlayout string, newlayout string) (date string) {
+	if t, err := time.Parse(oldlayout, s); err == nil {
+		date = t.Format(newlayout)
+	}
+	return
+}

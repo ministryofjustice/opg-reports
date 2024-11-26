@@ -11,6 +11,7 @@ const (
 	Year         string = "2006"
 	YearMonth    string = "2006-01"
 	YearMonthDay string = "2006-01-02"
+	Old          string = "2006-01-02 15:04:05.999999 +0000 UTC"
 )
 
 const (

@@ -125,7 +125,6 @@ func ConvertV1s() {
 	}
 	destination := filepath.Join(convertedDir, "aws_costs.json")
 	structs.ToFile(costs, destination)
-	os.Exit(1)
 	// Import uptime
 	slog.Info("[convertor] Converting v1 aws_uptime ...")
 	path = filepath.Join(dataDir, "aws_uptime")
