@@ -1,6 +1,8 @@
 package models
 
 import (
+	"fmt"
+
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
 )
 
@@ -33,7 +35,7 @@ type AwsUptime struct {
 // Interfaces:
 //   - dbs.Row
 func (self *AwsUptime) UniqueValue() string {
-	return ""
+	return fmt.Sprintf("%s,%d", self.Date, self.AwsAccountID)
 }
 
 // UniqueField for this model returns empty as there is only the
@@ -42,11 +44,11 @@ func (self *AwsUptime) UniqueValue() string {
 // Interfaces:
 //   - dbs.Insertable
 func (self *AwsUptime) UniqueField() string {
-	return ""
+	return "date,aws_account_id"
 }
 
 func (self *AwsUptime) UpsertUpdate() string {
-	return ""
+	return "date=excluded.date, aws_account_id=excluded.aws_account_id, average=excluded.average"
 }
 
 // TableName returns named table for AwsUptime - units
@@ -71,6 +73,7 @@ func (self *AwsUptime) Columns() map[string]string {
 		"date":           "TEXT NOT NULL",
 		"average":        "REAL NOT NULL",
 		"aws_account_id": "INTEGER",
+		"UNIQUE":         "(date,aws_account_id)",
 	}
 }
 

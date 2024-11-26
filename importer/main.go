@@ -52,7 +52,7 @@ func Run(args *lib.Arguments) (err error) {
 	}
 	adaptor, err = adaptors.NewSqlite(args.DatabasePath, false)
 
-	err = f(ctx, adaptor, args.SourceFile)
+	_, err = f(ctx, adaptor, args.SourceFile)
 
 	return
 

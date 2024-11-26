@@ -15,7 +15,7 @@ import (
 //     -- GitHubRepository
 //     --- GitHubTeams
 //     ---- Units
-func processGithubStandards(ctx context.Context, adaptor dbs.Adaptor, path string) (err error) {
+func processGithubStandards(ctx context.Context, adaptor dbs.Adaptor, path string) (res any, err error) {
 	var (
 		standards    []*models.GitHubRepositoryStandard
 		repositories []*models.GitHubRepository
@@ -145,6 +145,7 @@ func processGithubStandards(ctx context.Context, adaptor dbs.Adaptor, path strin
 		return
 	}
 
+	res = standards
 	return
 
 }

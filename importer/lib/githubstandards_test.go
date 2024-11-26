@@ -51,7 +51,7 @@ func Test_processStandards(t *testing.T) {
 	}
 	defer adaptor.DB().Close()
 
-	err = processGithubStandards(ctx, adaptor, sourceFile)
+	_, err = processGithubStandards(ctx, adaptor, sourceFile)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}

@@ -18,7 +18,7 @@ type Arguments struct {
 	Type         string
 }
 
-type importerFunc func(ctx context.Context, adaptor dbs.Adaptor, path string) error
+type importerFunc func(ctx context.Context, adaptor dbs.Adaptor, path string) (any, error)
 
 var TypeProcessors = map[string]importerFunc{
 	"github-standards": processGithubStandards,

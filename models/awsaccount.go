@@ -71,7 +71,7 @@ func (self *AwsAccount) Columns() map[string]string {
 		"id":          "INTEGER PRIMARY KEY",
 		"ts":          "TEXT NOT NULL",
 		"number":      "TEXT NOT NULL UNIQUE",
-		"name":        "TEXT NOT NULL UNIQUE",
+		"name":        "TEXT NOT NULL",
 		"label":       "TEXT NOT NULL",
 		"environment": "TEXT NOT NULL",
 		"unit_id":     "INTEGER",
@@ -176,6 +176,15 @@ func (self *AwsAccounts) Scan(src interface{}) (err error) {
 // Interfaces:
 //   - sql.Scanner
 type AwsAccountForeignKey AwsAccount
+
+// UniqueValue returns the value representing the value of
+// UniqueField
+//
+// Interfaces:
+//   - dbs.Row
+func (self *AwsAccountForeignKey) UniqueValue() string {
+	return self.Number
+}
 
 func (self *AwsAccountForeignKey) Scan(src interface{}) (err error) {
 	switch src.(type) {
