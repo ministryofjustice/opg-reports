@@ -56,7 +56,7 @@ func (self *GitHubRepository) UniqueField() string {
 }
 
 func (self *GitHubRepository) UpsertUpdate() string {
-	return "full_name=excluded.full_name"
+	return "owner=excluded.owner, name=excluded.name, created_at=excluded.created_at, default_branch=excluded.default_branch, archived=excluded.archived, private=excluded.private, license=excluded.license, last_commit_date=excluded.last_commit_date"
 }
 
 // TableName returns named table for GitHubRepository - units

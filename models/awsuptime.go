@@ -48,7 +48,7 @@ func (self *AwsUptime) UniqueField() string {
 }
 
 func (self *AwsUptime) UpsertUpdate() string {
-	return "date=excluded.date, aws_account_id=excluded.aws_account_id, average=excluded.average"
+	return "average=excluded.average"
 }
 
 // TableName returns named table for AwsUptime - units

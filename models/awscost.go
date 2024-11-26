@@ -45,7 +45,7 @@ func (self *AwsCost) UniqueField() string {
 }
 
 func (self *AwsCost) UpsertUpdate() string {
-	return "aws_account_id=excluded.aws_account_id, date=excluded.date, region=excluded.region, service=excluded.service, cost=excluded.cost"
+	return "cost=excluded.cost"
 }
 
 // TableName returns named table for AwsCost - units

@@ -1,6 +1,8 @@
 package models
 
 import (
+	"fmt"
+
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
 )
 
@@ -42,7 +44,7 @@ type GitHubRelease struct {
 // Interfaces:
 //   - dbs.Row
 func (self *GitHubRelease) UniqueValue() string {
-	return ""
+	return fmt.Sprintf("%s,%s,%s,%d", self.Name, self.Date, self.RelaseType, self.GitHubRepositoryID)
 }
 
 // UniqueField for this model returns empty as there is only the
@@ -51,11 +53,11 @@ func (self *GitHubRelease) UniqueValue() string {
 // Interfaces:
 //   - dbs.Insertable
 func (self *GitHubRelease) UniqueField() string {
-	return ""
+	return "name,date,release_type,github_repository_id"
 }
 
 func (self *GitHubRelease) UpsertUpdate() string {
-	return ""
+	return "release_type=excluded.release_type, source_url=excluded.source_url"
 }
 
 // TableName returns named table for GitHubRelease - units
@@ -83,6 +85,7 @@ func (self *GitHubRelease) Columns() map[string]string {
 		"source_url":           "TEXT NOT NULL",
 		"date":                 "TEXT NOT NULL",
 		"github_repository_id": "INTEGER NOT NULL",
+		"UNIQUE":               "(name,date,release_type,github_repository_id)",
 	}
 }
 

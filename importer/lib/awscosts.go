@@ -13,8 +13,8 @@ import (
 
 var defaultEnvironment string = "production"
 
-// processAwsUptime handles importing github standards file with the structure of:
-//   - AwsUptime
+// processAwsCosts handles importing github standards file with the structure of:
+//   - AwsCost
 //     -- AwsAccount
 //     -- Unit
 func processAwsCosts(ctx context.Context, adaptor dbs.Adaptor, path string) (res any, err error) {
@@ -26,7 +26,7 @@ func processAwsCosts(ctx context.Context, adaptor dbs.Adaptor, path string) (res
 		unitsFound    []string
 	)
 	if adaptor == nil {
-		err = fmt.Errorf("adpator is nil")
+		err = fmt.Errorf("adaptor is nil")
 		return
 	}
 

@@ -2,7 +2,9 @@ package models
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/ministryofjustice/opg-reports/internal/dateformats"
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
 	"github.com/ministryofjustice/opg-reports/internal/structs"
 )
@@ -126,6 +128,54 @@ func (self *GitHubTeam) SetID(id int) {
 //   - dbs.Cloneable
 func (self *GitHubTeam) New() dbs.Cloneable {
 	return &GitHubTeam{}
+}
+
+func (self *GitHubTeam) StandardUnits() (units []*Unit) {
+	now := time.Now().UTC().Format(dateformats.Full)
+	units = []*Unit{}
+	switch self.Slug {
+	case "digideps":
+		units = append(units, &Unit{
+			Ts:   now,
+			Name: "digideps",
+		})
+	case "opg-lpa-team":
+		units = append(units, &Unit{
+			Ts:   now,
+			Name: "make",
+		})
+	case "opg-modernising-lpa-team":
+		units = append(units, &Unit{
+			Ts:   now,
+			Name: "modernise",
+		})
+	case "opg-use-a-lpa-team":
+		units = append(units, &Unit{
+			Ts:   now,
+			Name: "use",
+		})
+	case "opg-refund":
+		units = append(units, &Unit{
+			Ts:   now,
+			Name: "refunds",
+		})
+	case "serve-opg":
+		units = append(units, &Unit{
+			Ts:   now,
+			Name: "serve",
+		})
+	case "sirius":
+		units = append(units, &Unit{
+			Ts:   now,
+			Name: "sirius",
+		})
+	default:
+		units = append(units, &Unit{
+			Ts:   now,
+			Name: "org",
+		})
+	}
+	return
 }
 
 // GitHubTeams is to be used on the struct that needs to pull in

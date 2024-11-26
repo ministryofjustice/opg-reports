@@ -48,7 +48,7 @@ func (self *AwsAccount) UniqueField() string {
 }
 
 func (self *AwsAccount) UpsertUpdate() string {
-	return "number=excluded.number, unit_id=excluded.unit_id, environment=excluded.environment, name=excluded.name, label=excluded.label"
+	return "unit_id=excluded.unit_id, environment=excluded.environment, name=excluded.name, label=excluded.label"
 }
 
 // TableName returns named table for AwsAccount - units

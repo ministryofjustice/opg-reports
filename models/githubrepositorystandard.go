@@ -75,7 +75,7 @@ func (self *GitHubRepositoryStandard) UniqueField() string {
 }
 
 func (self *GitHubRepositoryStandard) UpsertUpdate() string {
-	return "github_repository_full_name=excluded.github_repository_full_name"
+	return `compliant_baseline=excluded.compliant_baseline, compliant_extended=excluded.compliant_extended, count_of_clones=excluded.count_of_clones, count_of_forks=excluded.count_of_forks, count_of_pull_requests=excluded.count_of_pull_requests, count_of_web_hooks=excluded.count_of_web_hooks, default_branch=excluded.default_branch, has_code_of_conduct=excluded.has_code_of_conduct, has_codeowner_approval_required=excluded.has_codeowner_approval_required, has_contributing_guide=excluded.has_contributing_guide, has_default_branch_of_main=excluded.has_default_branch_of_main, has_default_branch_protection=excluded.has_default_branch_protection, has_delete_branch_on_merge=excluded.has_delete_branch_on_merge, has_description=excluded.has_description, has_discussions=excluded.has_discussions, has_downloads=excluded.has_downloads, has_issues=excluded.has_issues, has_license=excluded.has_license, has_pages=excluded.has_pages, has_pull_request_approval_required=excluded.has_pull_request_approval_required, has_readme=excluded.has_readme, has_rules_enforced_for_admins=excluded.has_rules_enforced_for_admins, has_vulnerability_alerts=excluded.has_vulnerability_alerts, has_wiki=excluded.has_wiki, is_archived=excluded.is_archived, is_private=excluded.is_private, license=excluded.license, last_commit_date=excluded.last_commit_date, github_repository_id=excluded.github_repository_id`
 }
 
 // TableName returns named table for GitHubRepositoryStandard - units

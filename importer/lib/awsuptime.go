@@ -24,7 +24,7 @@ func processAwsUptime(ctx context.Context, adaptor dbs.Adaptor, path string) (re
 		unitsFound    []string
 	)
 	if adaptor == nil {
-		err = fmt.Errorf("adpator is nil")
+		err = fmt.Errorf("adaptor is nil")
 		return
 	}
 	// read the file and convert into standards list

@@ -2,9 +2,7 @@ package v1
 
 import (
 	"strings"
-	"time"
 
-	"github.com/ministryofjustice/opg-reports/internal/dateformats"
 	"github.com/ministryofjustice/opg-reports/internal/structs"
 	"github.com/ministryofjustice/opg-reports/models"
 )
@@ -186,50 +184,6 @@ func (self *GithubStandard) V2() *models.GitHubRepositoryStandard {
 }
 
 func (self *GithubStandard) TeamUnits(team *models.GitHubTeam) (units models.Units) {
-	now := time.Now().UTC().Format(dateformats.Full)
-	units = []*models.Unit{}
-	switch team.Slug {
-	case "digideps":
-		units = append(units, &models.Unit{
-			Ts:   now,
-			Name: "digideps",
-		})
-	case "opg-lpa-team":
-		units = append(units, &models.Unit{
-			Ts:   now,
-			Name: "make",
-		})
-	case "opg-modernising-lpa-team":
-		units = append(units, &models.Unit{
-			Ts:   now,
-			Name: "modernise",
-		})
-	case "opg-use-a-lpa-team":
-		units = append(units, &models.Unit{
-			Ts:   now,
-			Name: "use",
-		})
-	case "opg-refund":
-		units = append(units, &models.Unit{
-			Ts:   now,
-			Name: "refunds",
-		})
-	case "serve-opg":
-		units = append(units, &models.Unit{
-			Ts:   now,
-			Name: "serve",
-		})
-	case "sirius":
-		units = append(units, &models.Unit{
-			Ts:   now,
-			Name: "sirius",
-		})
-	default:
-		units = append(units, &models.Unit{
-			Ts:   now,
-			Name: "org",
-		})
-	}
-
+	units = team.StandardUnits()
 	return
 }
