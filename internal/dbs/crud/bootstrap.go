@@ -9,9 +9,9 @@ import (
 
 // errors
 var (
-	errAdaptorNotWritable         error = fmt.Errorf("adaptor is not configured for writing.")
-	errNoSetupItems               error = fmt.Errorf("no setupItems passed.")
-	errModelIsNotCorrectInterface error = fmt.Errorf("model does not implement dbs.CreateableTable")
+	ErrAdaptorNotWritable         error = fmt.Errorf("adaptor is not configured for writing.")
+	ErrNoSetupItems               error = fmt.Errorf("no setupItems passed.")
+	ErrModelIsNotCorrectInterface error = fmt.Errorf("model does not implement dbs.CreateableTable")
 )
 
 // Bootstrap iterates over each setupItem (of type dbs.CreateableTable) and
@@ -25,12 +25,12 @@ var (
 func Bootstrap[A dbs.Adaptor](ctx context.Context, adaptor A, setupItems ...interface{}) (err error) {
 
 	if !adaptor.Mode().Write() {
-		err = errAdaptorNotWritable
+		err = ErrAdaptorNotWritable
 		return
 	}
 
 	if len(setupItems) <= 0 {
-		err = errNoSetupItems
+		err = ErrNoSetupItems
 		return
 	}
 	// loop over each and create table and index
@@ -38,7 +38,7 @@ func Bootstrap[A dbs.Adaptor](ctx context.Context, adaptor A, setupItems ...inte
 	for _, setup := range setupItems {
 		ct, ok := setup.(dbs.CreateableTable)
 		if !ok {
-			err = errModelIsNotCorrectInterface
+			err = ErrModelIsNotCorrectInterface
 			return
 		}
 		// create table

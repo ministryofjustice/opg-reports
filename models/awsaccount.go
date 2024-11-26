@@ -30,6 +30,27 @@ type AwsAccount struct {
 	Unit   *UnitForeignKey `json:"unit,omitempty" db:"unit" faker:"-"`
 }
 
+// UniqueValue returns the value representing the value of
+// UniqueField
+//
+// Interfaces:
+//   - dbs.Row
+func (self *AwsAccount) UniqueValue() string {
+	return self.Number
+}
+
+// UniqueField for this model returns the name of the number field
+//
+// Interfaces:
+//   - dbs.Insertable
+func (self *AwsAccount) UniqueField() string {
+	return "number"
+}
+
+func (self *AwsAccount) UpsertUpdate() string {
+	return "number=excluded.number"
+}
+
 // TableName returns named table for AwsAccount - units
 //
 // Interfaces:

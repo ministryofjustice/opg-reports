@@ -28,6 +28,24 @@ type AwsCost struct {
 	Unit *UnitForeignKey `json:"unit,omitempty" db:"unit" faker:"-"`
 }
 
+// Interfaces:
+//   - dbs.Row
+func (self *AwsCost) UniqueValue() string {
+	return ""
+}
+
+// UniqueField for this model returns empty, as there is only the primary key
+//
+// Interfaces:
+//   - dbs.Insertable
+func (self *AwsCost) UniqueField() string {
+	return ""
+}
+
+func (self *AwsCost) UpsertUpdate() string {
+	return ""
+}
+
 // TableName returns named table for AwsCost - units
 //
 // Interfaces:

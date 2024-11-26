@@ -29,6 +29,24 @@ type GitHubTeam struct {
 	GitHubRepositories GitHubRepositories `json:"github_repositories,omitempty" db:"github_repositories" faker:"-"`
 }
 
+// UniqueValue returns the value representing the value of
+// UniqueField
+//
+// Interfaces:
+//   - dbs.Row
+func (self *GitHubTeam) UniqueValue() string {
+	return self.Slug
+}
+
+// Interfaces:
+//   - dbs.Insertable
+func (self *GitHubTeam) UniqueField() string {
+	return "slug"
+}
+func (self *GitHubTeam) UpsertUpdate() string {
+	return "slug=excluded.slug"
+}
+
 // TableName returns named table for GitHubTeam - GitHubTeams
 //
 // Interfaces:

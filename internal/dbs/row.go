@@ -7,6 +7,7 @@ type Record interface {
 	Insertable
 }
 
+// InsertableRow
 type InsertableRow interface {
 	Row
 	Insertable
@@ -17,6 +18,8 @@ type InsertableRow interface {
 type Row interface {
 	GetID() int
 	SetID(id int)
+	//
+	UniqueValue() string
 }
 
 // Cloneable is a special interface that exposes
@@ -24,15 +27,6 @@ type Row interface {
 // of itself
 type Cloneable interface {
 	New() Cloneable
-}
-
-// Insertable interface provides methods used to insert value into this
-// table from a struct of it - provides the insert query details
-type Insertable interface {
-	Table
-	// InsertColumns returns list of fields that should be inserted
-	// and the store wrapper will work out the values
-	InsertColumns() []string
 }
 
 // TableOfRecord is interface capturing both table and row

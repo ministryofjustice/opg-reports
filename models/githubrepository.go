@@ -39,6 +39,26 @@ type GitHubRepository struct {
 	GitHubTeams GitHubTeams `json:"github_teams,omitempty" db:"github_teams" faker:"-"`
 }
 
+// UniqueValue returns the value representing the value of
+// UniqueField
+//
+// Interfaces:
+//   - dbs.Row
+func (self *GitHubRepository) UniqueValue() string {
+	return self.FullName
+}
+
+// UniqueField for this model returns the full name
+// Interfaces:
+//   - dbs.Insertable
+func (self *GitHubRepository) UniqueField() string {
+	return "full_name"
+}
+
+func (self *GitHubRepository) UpsertUpdate() string {
+	return "full_name=excluded.full_name"
+}
+
 // TableName returns named table for GitHubRepository - units
 //
 // Interfaces:
@@ -173,6 +193,14 @@ func (self *GitHubRepositories) Scan(src interface{}) (err error) {
 // Interfaces:
 //   - sql.Scanner
 type GitHubRepositoryForeignKey GitHubRepository
+
+// Unique returns the value representing the unique (non-id) field of this model
+//
+// Interfaces:
+//   - dbs.UniqueInsertableRow
+func (self *GitHubRepositoryForeignKey) Unique() string {
+	return self.FullName
+}
 
 // Scan converts the json aggregate result from a select statement into
 // a series of GitHubTeams attached to the main struct and will be called

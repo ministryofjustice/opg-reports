@@ -40,10 +40,21 @@ func CreateTable[A dbs.Adaptor, T dbs.CreateableTable](ctx context.Context, adap
 	}
 
 	// Create the table create sql statement
+	// - skipping unique hre, as that has to go last in the table create statement
+	// 	and go maps are randomly ordered
 	sqlStmt = fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (`, tableName)
 	for field, definition := range columns {
-		var column string = fmt.Sprintf("%s %s,", field, definition)
-		sqlStmt += column
+		if field != "UNIQUE" {
+			var column string = fmt.Sprintf("%s %s,", field, definition)
+			sqlStmt += column
+		}
+	}
+	// only now append unique fields to the list
+	for field, definition := range columns {
+		if field == "UNIQUE" {
+			var column string = fmt.Sprintf("%s %s,", field, definition)
+			sqlStmt += column
+		}
 	}
 	sqlStmt = strings.TrimSuffix(sqlStmt, ",")
 	sqlStmt += `) STRICT;`

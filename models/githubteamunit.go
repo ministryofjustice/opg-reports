@@ -1,6 +1,8 @@
 package models
 
 import (
+	"fmt"
+
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
 )
 
@@ -19,6 +21,25 @@ type GitHubTeamUnit struct {
 	ID           int `json:"id,omitempty" db:"id" faker:"-"`
 	GitHubTeamID int `json:"github_team_id,omitempty" db:"github_team_id" faker:"-"`
 	UnitID       int `json:"unit_id,omitempty" db:"unit_id" faker:"-"`
+}
+
+// UniqueValue returns the value representing the value of
+// UniqueField
+//
+// Interfaces:
+//   - dbs.Row
+func (self *GitHubTeamUnit) UniqueValue() string {
+	return fmt.Sprintf("%d,%d", self.GitHubTeamID, self.UnitID)
+}
+
+// Interfaces:
+//   - dbs.Insertable
+func (self *GitHubTeamUnit) UniqueField() string {
+	return "github_team_id, unit_id"
+}
+
+func (self *GitHubTeamUnit) UpsertUpdate() string {
+	return "github_team_id=excluded.github_team_id, unit_id=excluded.unit_id"
 }
 
 // TableName returns named table for GitHubTeamUnit - GitHubTeamUnits
@@ -41,6 +62,7 @@ func (self *GitHubTeamUnit) Columns() map[string]string {
 		"id":             "INTEGER PRIMARY KEY",
 		"github_team_id": "INTEGER NOT NULL",
 		"unit_id":        "INTEGER NOT NULL",
+		"UNIQUE":         "(github_team_id, unit_id)",
 	}
 }
 

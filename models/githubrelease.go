@@ -36,6 +36,28 @@ type GitHubRelease struct {
 	GitHubRepository   *GitHubRepositoryForeignKey `json:"github_repository,omitempty" db:"github_repository" faker:"-"`
 }
 
+// UniqueValue returns the value representing the value of
+// UniqueField
+//
+// Interfaces:
+//   - dbs.Row
+func (self *GitHubRelease) UniqueValue() string {
+	return ""
+}
+
+// UniqueField for this model returns empty as there is only the
+// primary key
+//
+// Interfaces:
+//   - dbs.Insertable
+func (self *GitHubRelease) UniqueField() string {
+	return ""
+}
+
+func (self *GitHubRelease) UpsertUpdate() string {
+	return ""
+}
+
 // TableName returns named table for GitHubRelease - units
 //
 // Interfaces:

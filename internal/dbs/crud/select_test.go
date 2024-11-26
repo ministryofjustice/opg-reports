@@ -18,6 +18,17 @@ type testSelect struct {
 	Name string `json:"name,omitempty" db:"name" faker:"word"`
 }
 
+func (self *testSelect) UniqueValue() string {
+	return ""
+}
+func (self *testSelect) UniqueField() string {
+	return ""
+}
+
+func (self *testSelect) UpsertUpdate() string {
+	return ""
+}
+
 func (self *testSelect) TableName() string {
 	return "test_selects"
 }

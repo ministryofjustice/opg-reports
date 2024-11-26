@@ -1,7 +1,5 @@
 package dbs
 
-import "database/sql"
-
 // CreateableTable is interface for tables that can be created in the database
 type CreateableTable interface {
 	Table
@@ -27,11 +25,26 @@ type Createable interface {
 	Indexes() map[string][]string
 }
 
-type Joiner interface {
-	sql.Scanner
-	JoinOneToMany | JoinManyToMany
+// Insertable interface provides methods used to insert value into this
+// table from a struct of it - provides the insert query details
+type Insertable interface {
+	Table
+	// InsertColumns returns list of fields that should be inserted
+	// and the store wrapper will work out the values
+	InsertColumns() []string
+	// UniqueField returns a secondary unique field name on the db (like a slug)
+	// or empty if the table only has primary key
+	// Used for determining UPSERT / INSERT
+	UniqueField() string
+	// UpsertUpdate provides string for the `UPDATE SET ...` part of the upsert
+	UpsertUpdate() string
 }
 
-type JoinOneToMany interface{}
+// type Joiner interface {
+// 	sql.Scanner
+// 	JoinOneToMany | JoinManyToMany
+// }
 
-type JoinManyToMany interface{}
+// type JoinOneToMany interface{}
+
+// type JoinManyToMany interface{}

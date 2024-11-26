@@ -29,6 +29,24 @@ type Unit struct {
 	AwsAccounts AwsAccounts `json:"aws_accounts,omitempty" db:"aws_accounts" faker:"-"`
 }
 
+// UniqueValue returns the value representing the value of
+// UniqueField
+//
+// Interfaces:
+//   - dbs.Row
+func (self *Unit) UniqueValue() string {
+	return self.Name
+}
+
+// Interfaces:
+//   - dbs.Insertable
+func (self *Unit) UniqueField() string {
+	return "name"
+}
+func (self *Unit) UpsertUpdate() string {
+	return "name=excluded.name"
+}
+
 // TableName returns named table for Unit - units
 //
 // Interfaces:

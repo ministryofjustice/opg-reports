@@ -30,6 +30,17 @@ type tOrder struct {
 	Items *tItems `json:"items,omitempty" db:"items"`
 }
 
+func (self *tOrder) UniqueValue() string {
+	return ""
+}
+func (self *tOrder) UniqueField() string {
+	return ""
+}
+
+func (self *tOrder) UpsertUpdate() string {
+	return ""
+}
+
 func (self *tOrder) TableName() string {
 	return "orders"
 }
@@ -64,11 +75,22 @@ type tItem struct {
 	Name string `json:"name,omitempty" db:"name" faker:"word"`
 }
 
+func (self *tItem) UniqueValue() string {
+	return self.Name
+}
+func (self *tItem) UniqueField() string {
+	return "name"
+}
+
+func (self *tItem) UpsertUpdate() string {
+	return "name=excluded.name"
+}
+
 func (self *tItem) TableName() string {
 	return "items"
 }
 func (self *tItem) Columns() map[string]string {
-	return map[string]string{"id": "INTEGER PRIMARY KEY", "name": "TEXT NOT NULL"}
+	return map[string]string{"id": "INTEGER PRIMARY KEY", "name": "TEXT NOT NULL UNIQUE"}
 }
 func (self *tItem) Indexes() map[string][]string {
 	return map[string][]string{}
@@ -82,6 +104,17 @@ type tOrderItem struct {
 	ID      int `json:"id,omitempty" db:"id" faker:"-"`
 	OrderID int `json:"order_id,omitempty" db:"order_id" faker:"-"`
 	ItemID  int `json:"item_id,omitempty" db:"item_id" faker:"-"`
+}
+
+func (self *tOrderItem) UniqueValue() string {
+	return ""
+}
+func (self *tOrderItem) UniqueField() string {
+	return ""
+}
+
+func (self *tOrderItem) UpsertUpdate() string {
+	return ""
 }
 
 func (self *tOrderItem) TableName() string {

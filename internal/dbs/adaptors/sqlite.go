@@ -102,6 +102,8 @@ func createDB(path string) (err error) {
 // NewSqlite will provide a fresh Sqlite struct that can then be used
 // for sqlx queries elsewhere.
 // Will create a new database file at path if it does not exist.
+//
+// Implements dbs.Adaptor
 func NewSqlite(path string, readOnly bool) (ds *Sqlite, err error) {
 	var (
 		exists    bool              = fileutils.Exists(path)

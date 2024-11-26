@@ -27,6 +27,17 @@ type testInsert struct {
 	List []*testJ `json:"list,omitempty" db:"-" faker:"slice_len=1"`
 }
 
+func (self *testInsert) UniqueValue() string {
+	return self.Name
+}
+func (self *testInsert) UniqueField() string {
+	return "name"
+}
+
+func (self *testInsert) UpsertUpdate() string {
+	return "name=excluded.name"
+}
+
 func (self *testInsert) TableName() string {
 	return "test_model"
 }
@@ -38,7 +49,7 @@ func (self *testInsert) SetID(id int) {
 	self.ID = id
 }
 func (self *testInsert) Columns() map[string]string {
-	return map[string]string{"id": "INTEGER PRIMARY KEY", "ts": "TEXT NOT NULL", "name": "TEXT NOT NULL"}
+	return map[string]string{"id": "INTEGER PRIMARY KEY", "ts": "TEXT NOT NULL", "name": "TEXT NOT NULL UNIQUE"}
 }
 func (self *testInsert) Indexes() map[string][]string {
 	return map[string][]string{

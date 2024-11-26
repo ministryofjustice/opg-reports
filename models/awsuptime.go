@@ -27,6 +27,28 @@ type AwsUptime struct {
 	Unit *UnitForeignKey `json:"unit,omitempty" db:"unit" faker:"-"`
 }
 
+// UniqueValue returns the value representing the value of
+// UniqueField
+//
+// Interfaces:
+//   - dbs.Row
+func (self *AwsUptime) UniqueValue() string {
+	return ""
+}
+
+// UniqueField for this model returns empty as there is only the
+// primary key
+//
+// Interfaces:
+//   - dbs.Insertable
+func (self *AwsUptime) UniqueField() string {
+	return ""
+}
+
+func (self *AwsUptime) UpsertUpdate() string {
+	return ""
+}
+
 // TableName returns named table for AwsUptime - units
 //
 // Interfaces:

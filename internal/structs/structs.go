@@ -67,3 +67,9 @@ func UnmarshalFile[T any](filepath string, destination T) (err error) {
 	err = Unmarshal[T](content, destination)
 	return
 }
+
+func Jsonify[T any](item T) (str string) {
+	bytes, _ := json.MarshalIndent(item, "", "  ")
+	str = string(bytes)
+	return
+}

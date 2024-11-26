@@ -59,6 +59,25 @@ type GitHubRepositoryStandard struct {
 	GitHubRepository               *GitHubRepositoryForeignKey `json:"github_repository,omitempty" db:"github_repository" faker:"-"`
 }
 
+// UniqueValue returns the value representing the value of
+// UniqueField
+//
+// Interfaces:
+//   - dbs.Row
+func (self *GitHubRepositoryStandard) UniqueValue() string {
+	return self.GitHubRepositoryFullName
+}
+
+// Interfaces:
+//   - dbs.Insertable
+func (self *GitHubRepositoryStandard) UniqueField() string {
+	return "github_repository_full_name"
+}
+
+func (self *GitHubRepositoryStandard) UpsertUpdate() string {
+	return "github_repository_full_name=excluded.github_repository_full_name"
+}
+
 // TableName returns named table for GitHubRepositoryStandard - units
 //
 // Interfaces:
@@ -107,7 +126,7 @@ func (self *GitHubRepositoryStandard) Columns() map[string]string {
 		"license":                            "TEXT NOT NULL DEFAULT ''",
 		"last_commit_date":                   "TEXT NOT NULL",
 		"github_repository_full_name":        "TEXT NOT NULL UNIQUE",
-		"github_repository_id":               "INTEGER NOT NULL UNIQUE",
+		"github_repository_id":               "INTEGER NOT NULL",
 	}
 }
 

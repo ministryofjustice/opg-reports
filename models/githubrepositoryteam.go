@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -31,6 +32,25 @@ type GitHubRepositoryGitHubTeam struct {
 	GitHubTeam   *GitHubTeamForeignKey `json:"github_team,omitempty" db:"github_team" faker:"-"`
 }
 
+// UniqueValue returns the value representing the value of
+// UniqueField
+//
+// Interfaces:
+//   - dbs.Row
+func (self *GitHubRepositoryGitHubTeam) UniqueValue() string {
+	return fmt.Sprintf("%d,%d", self.GitHubRepositoryID, self.GitHubTeamID)
+}
+
+// Interfaces:
+//   - dbs.Insertable
+func (self *GitHubRepositoryGitHubTeam) UniqueField() string {
+	return "github_team_id, github_repository_id"
+}
+
+func (self *GitHubRepositoryGitHubTeam) UpsertUpdate() string {
+	return "github_team_id=excluded.github_team_id, github_repository_id=excluded.github_repository_id"
+}
+
 // TableName returns named table for GitHubRepositoryGitHubTeam - GitHubRepositoryGitHubTeams
 //
 // Interfaces:
@@ -51,6 +71,7 @@ func (self *GitHubRepositoryGitHubTeam) Columns() map[string]string {
 		"id":                   "INTEGER PRIMARY KEY",
 		"github_repository_id": "INTEGER NOT NULL",
 		"github_team_id":       "INTEGER NOT NULL",
+		"UNIQUE":               "(github_team_id, github_repository_id)",
 	}
 }
 
