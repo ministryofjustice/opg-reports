@@ -44,7 +44,7 @@ func (self *AwsUptime) UniqueValue() string {
 // Interfaces:
 //   - dbs.Insertable
 func (self *AwsUptime) UniqueField() string {
-	return "date,aws_account_id"
+	return "date, aws_account_id"
 }
 
 func (self *AwsUptime) UpsertUpdate() string {

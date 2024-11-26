@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
 	"github.com/ministryofjustice/opg-reports/internal/structs"
@@ -35,7 +36,7 @@ type Unit struct {
 // Interfaces:
 //   - dbs.Row
 func (self *Unit) UniqueValue() string {
-	return self.Name
+	return strings.ToLower(self.Name)
 }
 
 // Interfaces:
@@ -164,6 +165,10 @@ func (self *Units) Scan(src interface{}) (err error) {
 // Interfaces:
 //   - sql.Scanner
 type UnitForeignKey Unit
+
+func (self *UnitForeignKey) UniqueValue() string {
+	return strings.ToLower(self.Name)
+}
 
 func (self *UnitForeignKey) Scan(src interface{}) (err error) {
 	switch src.(type) {

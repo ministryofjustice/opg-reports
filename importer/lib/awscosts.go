@@ -11,13 +11,15 @@ import (
 	"github.com/ministryofjustice/opg-reports/models"
 )
 
+var defaultEnvironment string = "production"
+
 // processAwsUptime handles importing github standards file with the structure of:
 //   - AwsUptime
 //     -- AwsAccount
 //     -- Unit
-func processAwsUptime(ctx context.Context, adaptor dbs.Adaptor, path string) (res any, err error) {
+func processAwsCosts(ctx context.Context, adaptor dbs.Adaptor, path string) (res any, err error) {
 	var (
-		uptime        []*models.AwsUptime
+		costs         []*models.AwsCost
 		accounts      []*models.AwsAccount
 		units         []*models.Unit
 		accountsFound []string
@@ -27,8 +29,9 @@ func processAwsUptime(ctx context.Context, adaptor dbs.Adaptor, path string) (re
 		err = fmt.Errorf("adpator is nil")
 		return
 	}
+
 	// read the file and convert into standards list
-	if err = structs.UnmarshalFile(path, &uptime); err != nil {
+	if err = structs.UnmarshalFile(path, &costs); err != nil {
 		return
 	}
 
@@ -39,24 +42,15 @@ func processAwsUptime(ctx context.Context, adaptor dbs.Adaptor, path string) (re
 	}
 
 	// now get the unique repositories
-	for _, up := range uptime {
-		var (
-			account *models.AwsAccount = (*models.AwsAccount)(up.AwsAccount)
-			unit    *models.Unit       = (*models.Unit)(up.Unit)
-		)
-		if !slices.Contains(accountsFound, account.UniqueValue()) {
-			accountsFound = append(accountsFound, account.UniqueValue())
-			accounts = append(accounts, account)
+	for _, cost := range costs {
+
+		if !slices.Contains(accountsFound, cost.AwsAccount.UniqueValue()) {
+			accountsFound = append(accountsFound, cost.AwsAccount.UniqueValue())
+			accounts = append(accounts, (*models.AwsAccount)(cost.AwsAccount))
 		}
-		if !slices.Contains(unitsFound, unit.UniqueValue()) {
-			unitsFound = append(unitsFound, unit.UniqueValue())
-			units = append(units, unit)
-		}
-		// now add the unit to the account
-		account.Unit = (*models.UnitForeignKey)(unit)
-		// fix the environment value
-		if account.Environment == "" || account.Environment == "null" {
-			account.Environment = defaultEnvironment
+		if !slices.Contains(unitsFound, cost.Unit.UniqueValue()) {
+			unitsFound = append(accountsFound, cost.Unit.UniqueValue())
+			units = append(units, (*models.Unit)(cost.Unit))
 		}
 	}
 
@@ -64,27 +58,43 @@ func processAwsUptime(ctx context.Context, adaptor dbs.Adaptor, path string) (re
 	if _, err = crud.Insert(ctx, adaptor, &models.Unit{}, units...); err != nil {
 		return
 	}
-	// update the id on the account model with the unit id
+	// update the unit id on the account
 	for _, acc := range accounts {
-		acc.UnitID = acc.Unit.ID
+		var found *models.Unit
+		for _, u := range units {
+			if acc.Unit.UniqueValue() == u.UniqueValue() {
+				found = u
+			}
+		}
+		if found != nil {
+			acc.UnitID = found.ID
+			acc.Unit = (*models.UnitForeignKey)(found)
+		}
+		// fix the environment value
+		if acc.Environment == "" || acc.Environment == "null" {
+			acc.Environment = defaultEnvironment
+		}
 	}
 	// insert accounts
 	if _, err = crud.Insert(ctx, adaptor, &models.AwsAccount{}, accounts...); err != nil {
 		return
 	}
+
+	// pretty.Print(accounts)
+
 	// now update the account id join field on the uptime record
-	for _, up := range uptime {
+	for _, cost := range costs {
 		for _, acc := range accounts {
-			if up.AwsAccount.UniqueValue() == acc.UniqueValue() {
-				up.AwsAccountID = acc.ID
+			if cost.AwsAccount.UniqueValue() == acc.UniqueValue() {
+				cost.AwsAccountID = acc.ID
 			}
 		}
 	}
 	// insert uptime
-	if _, err = crud.Insert(ctx, adaptor, &models.AwsUptime{}, uptime...); err != nil {
+	if _, err = crud.Insert(ctx, adaptor, &models.AwsCost{}, costs...); err != nil {
 		return
 	}
-	res = uptime
+	res = costs
 	return
 
 }

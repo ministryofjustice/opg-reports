@@ -2,6 +2,7 @@ package lib
 
 import (
 	"context"
+	"fmt"
 	"slices"
 
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
@@ -25,6 +26,10 @@ func processGithubStandards(ctx context.Context, adaptor dbs.Adaptor, path strin
 		teamsFound   []string
 		unitsFound   []string
 	)
+	if adaptor == nil {
+		err = fmt.Errorf("adpator is nil")
+		return
+	}
 	// read the file and convert into standards list
 	if err = structs.UnmarshalFile(path, &standards); err != nil {
 		return

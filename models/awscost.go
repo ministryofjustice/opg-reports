@@ -1,6 +1,8 @@
 package models
 
 import (
+	"fmt"
+
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
 )
 
@@ -31,7 +33,7 @@ type AwsCost struct {
 // Interfaces:
 //   - dbs.Row
 func (self *AwsCost) UniqueValue() string {
-	return ""
+	return fmt.Sprintf("%d,%s,%s,%s", self.AwsAccountID, self.Date, self.Region, self.Service)
 }
 
 // UniqueField for this model returns empty, as there is only the primary key
@@ -39,11 +41,11 @@ func (self *AwsCost) UniqueValue() string {
 // Interfaces:
 //   - dbs.Insertable
 func (self *AwsCost) UniqueField() string {
-	return ""
+	return "aws_account_id,date,region,service"
 }
 
 func (self *AwsCost) UpsertUpdate() string {
-	return ""
+	return "aws_account_id=excluded.aws_account_id, date=excluded.date, region=excluded.region, service=excluded.service, cost=excluded.cost"
 }
 
 // TableName returns named table for AwsCost - units
@@ -70,6 +72,7 @@ func (self *AwsCost) Columns() map[string]string {
 		"date":           "TEXT NOT NULL",
 		"cost":           "TEXT NOT NULL",
 		"aws_account_id": "INTEGER NOT NULL",
+		"UNIQUE":         "(aws_account_id,date,region,service)",
 	}
 }
 
