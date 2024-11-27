@@ -12,13 +12,11 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/dbs/crud"
 	"github.com/ministryofjustice/opg-reports/models"
 	"github.com/ministryofjustice/opg-reports/servers/api/inputs"
-	"github.com/ministryofjustice/opg-reports/servers/api/lib"
 )
 
 var (
-	Segment   string   = "units"
-	Tags      []string = []string{"units"}
-	dbPathKey string   = lib.CTX_DB_KEY
+	UnitsSegment string   = "units"
+	UnitTags     []string = []string{"units"}
 )
 
 // --- units list
@@ -89,7 +87,7 @@ func ApiUnitsListHandler(ctx context.Context, input *inputs.VersionInput) (respo
 	results, err = crud.Select[*models.Unit](ctx, adaptor, unitListSQL, nil)
 	if err != nil {
 		slog.Error("[api] units list select error", slog.String("err", err.Error()))
-		body.Errors = append(body.Errors, fmt.Errorf("[api] units list selection failed."))
+		body.Errors = append(body.Errors, fmt.Errorf("units list selection failed."))
 	} else {
 		body.Result = results
 	}
@@ -98,8 +96,8 @@ func ApiUnitsListHandler(ctx context.Context, input *inputs.VersionInput) (respo
 }
 
 // Register attaches the handler to the main api
-func Register(api huma.API) {
-	var uri string = "/{version}/" + Segment + "/list"
+func RegisterUnits(api huma.API) {
+	var uri string = "/{version}/" + UnitsSegment + "/list"
 
 	slog.Info("[api] handler register ", slog.String("uri", uri))
 	huma.Register(api, huma.Operation{
@@ -109,7 +107,7 @@ func Register(api huma.API) {
 		Summary:       "List all units",
 		Description:   UnitsListDescription,
 		DefaultStatus: http.StatusOK,
-		Tags:          Tags,
+		Tags:          UnitTags,
 	}, ApiUnitsListHandler)
 
 }
