@@ -1,0 +1,46 @@
+name: "[Workflow] Run Repo Report"
+
+#on:
+#  schedule:
+#    # 7am every day
+#    - cron: "0 7 * * *"
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  actions: read
+  pull-requests: read
+  contents: none
+  id-token: none
+  security-events: none
+  checks: none
+  deployments: none
+  issues: none
+  packages: none
+  repository-projects: none
+  statuses: none
+
+jobs:
+  identify_repos:
+    name: "Identify Repositories Requiring Attention"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout"
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: "Install Python"
+        uses: actions/setup-python@55aad42e4674b58b2b2fb7d8e7552402d922b4e7
+        with:
+          python-version: "3.12"
+
+      - name: "Run Script"
+        id: run_script
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pip install requests
+          python check_active_repos.py
+        working_directory: scripts
