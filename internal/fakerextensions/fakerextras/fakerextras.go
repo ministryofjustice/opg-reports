@@ -17,10 +17,10 @@ import (
 var added bool = false
 
 const (
-	FloatMin         float64 = -1.5                     // Min float value used by float & float_string for random generation.
-	FloatMax         float64 = 12.5                     // Max float value used by float & float_string for random generation.
-	TimeStringFormat string  = dateformats.Full         // DateTime format used in date generation (time_string).
-	DateStringFormat string  = dateformats.YearMonthDay // Capture the YYYY-MM-DD format
+	FloatMin         float64 = -1.5             // Min float value used by float & float_string for random generation.
+	FloatMax         float64 = 12.5             // Max float value used by float & float_string for random generation.
+	TimeStringFormat string  = dateformats.Full // DateTime format used in date generation (time_string).
+	DateStringFormat string  = dateformats.YMD  // Capture the YYYY-MM-DD format
 )
 
 var (

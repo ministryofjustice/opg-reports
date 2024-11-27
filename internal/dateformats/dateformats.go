@@ -7,13 +7,18 @@ import "time"
 type Format string
 
 const (
-	Full         string = time.RFC3339
-	Year         string = "2006"
-	YearMonth    string = "2006-01"
-	YearMonthDay string = "2006-01-02"
-	Old          string = "2006-01-02 15:04:05.999999 +0000 UTC"
+	Full string = time.RFC3339
+	Y    string = "2006"
+	YM   string = "2006-01"
+	YMD  string = "2006-01-02"
 )
 
+// old formats used in earlier versions of data
+const (
+	Old string = "2006-01-02 15:04:05.999999 +0000 UTC"
+)
+
+// sqlite date formats
 const (
 	SqliteY   Format = "%Y"
 	SqliteYM  Format = "%Y-%m"

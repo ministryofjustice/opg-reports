@@ -13,6 +13,14 @@ import (
 	"github.com/ministryofjustice/opg-reports/seed"
 )
 
+// SeedDB is called when there is currently no database at `dbPath` with
+// the intention to create a new version, but with dummy data.
+//
+// Creates a series of related models and then calls methods in `seed`
+// to generate the database and create joins etc correctly.
+//
+// If there is an error in this function a panic is called as a lack of
+// database means the api cannot function.
 func SeedDB(ctx context.Context, dbPath string) {
 	var (
 		err     error

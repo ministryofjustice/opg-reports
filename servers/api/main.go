@@ -40,8 +40,10 @@ import (
 var (
 	mode        string = info.Fixtures
 	localDBPath string = "./databases/api.db"
-	bucketName  string = info.BucketName
-	bucketDB    string = "./databases/api.db"
+)
+var (
+	bucketName string = info.BucketName
+	bucketDB   string = "./databases/api.db"
 )
 
 // we split the api handlers into simple & full groups
@@ -117,14 +119,16 @@ func main() {
 // It gets the cli from inside lib
 func Run() {
 	var (
-		api        huma.API
-		server     http.Server
-		mux        *http.ServeMux  = http.NewServeMux()
-		ctx        context.Context = context.Background()
-		apiTitle   string          = lib.ApiTitle()
-		apiVersion string          = lib.ApiVersion()
-		addr       string          = envar.Get("API_ADDR", consts.ServerDefaultApiAddr)
+		api          huma.API
+		server       http.Server
+		mux          *http.ServeMux  = http.NewServeMux()
+		ctx          context.Context = context.Background()
+		apiTitle     string          = lib.ApiTitle()
+		apiVersion   string          = lib.ApiVersion()
+		addr         string          = envar.Get("API_ADDR", consts.ServerDefaultApiAddr)
+		databasePath string          = envar.Get("DB_PATH", localDBPath)
 	)
+
 	// create the server
 	server = http.Server{
 		Addr:    addr,
@@ -133,7 +137,7 @@ func Run() {
 	// create the api
 	api = humago.New(mux, huma.DefaultConfig(apiTitle, apiVersion))
 	// get the cli and run it
-	cmd := lib.CLI(ctx, api, &server, segments)
+	cmd := lib.CLI(ctx, api, &server, segments, databasePath)
 	cmd.Run()
 
 }

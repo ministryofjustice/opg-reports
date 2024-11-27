@@ -11,7 +11,7 @@ SEMVER ?= v0.0.1
 
 ORGANISATION = OPG
 DATASET ?= real
-FIXTURES ?= simple
+FIXTURES ?= full
 BUCKET_NAME ?= report-data-development
 #======================================
 pkg=github.com/ministryofjustice/opg-reports/info

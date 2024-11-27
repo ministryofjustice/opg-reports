@@ -44,13 +44,13 @@ func ApiVersion() string {
 
 // CLI returns the api wrapped as a cli command and appends not only the api routes
 // but also a command to output the api spec (`openapi`)
-func CLI(ctx context.Context, api huma.API, server *http.Server, segments map[string]*ApiSegment) (cli humacli.CLI) {
+func CLI(ctx context.Context, api huma.API, server *http.Server, segments map[string]*ApiSegment, dbPath string) (cli humacli.CLI) {
 	var shutdownDelay time.Duration = 5 * time.Second
 
 	cli = humacli.New(func(hooks humacli.Hooks, opts *CliOptions) {
 		var addr = server.Addr
 
-		AddMiddleware(api, segments)
+		AddMiddleware(api, segments, dbPath)
 		AddHomepage(api, segments)
 		RegisterSegments(api, segments)
 

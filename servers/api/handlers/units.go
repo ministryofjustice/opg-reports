@@ -1,0 +1,115 @@
+package handlers
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+	"net/http"
+
+	"github.com/danielgtaylor/huma/v2"
+	"github.com/ministryofjustice/opg-reports/internal/dbs"
+	"github.com/ministryofjustice/opg-reports/internal/dbs/adaptors"
+	"github.com/ministryofjustice/opg-reports/internal/dbs/crud"
+	"github.com/ministryofjustice/opg-reports/models"
+	"github.com/ministryofjustice/opg-reports/servers/api/inputs"
+	"github.com/ministryofjustice/opg-reports/servers/api/lib"
+)
+
+var (
+	Segment   string   = "units"
+	Tags      []string = []string{"units"}
+	dbPathKey string   = lib.CTX_DB_KEY
+)
+
+// --- units list
+
+type UnitsListBody struct {
+	Operation string               `json:"operation,omitempty" doc:"contains the operation id"`
+	Request   *inputs.VersionInput `json:"request,omitempty" doc:"the original request"`
+	Result    []*models.Unit       `json:"result,omitempty" doc:"list of all units returned by the api."`
+	Errors    []error              `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
+}
+type UnitsListResponse struct {
+	Body *UnitsListBody
+}
+
+const UnitsListDescription string = `Returns all units within the database.`
+const UnitListOperationID string = "get-units-list"
+const unitListSQL string = `
+SELECT
+	units.*,
+	json_group_array(
+		json_object(
+			'id', aws_accounts.id,
+			'number', aws_accounts.number,
+			'name', aws_accounts.name,
+			'label', aws_accounts.label,
+			'environment', aws_accounts.environment
+		)
+	) as aws_accounts,
+	json_group_array(
+		json_object(
+			'id', github_teams.id,
+			'slug', github_teams.slug
+		)
+	) as github_teams
+FROM units
+LEFT JOIN aws_accounts ON aws_accounts.unit_id = units.id
+LEFT JOIN github_teams_units on github_teams_units.unit_id = units.id
+LEFT JOIN github_teams on github_teams.id = github_teams_units.github_team_id
+GROUP BY units.id
+ORDER BY units.name ASC;
+`
+
+// ApiUnitsListHandler queries the database for all units and returns them as a list including
+// joins with github teams and aws accounts. There is no option to filter of limit the results.
+//
+// Endpoints:
+//
+//	/version/units/list
+func ApiUnitsListHandler(ctx context.Context, input *inputs.VersionInput) (response *UnitsListResponse, err error) {
+	var (
+		adaptor dbs.Adaptor
+		results []*models.Unit = []*models.Unit{}
+		dbPath  string         = ctx.Value(dbPathKey).(string)
+		body    *UnitsListBody = &UnitsListBody{
+			Request:   input,
+			Operation: UnitListOperationID,
+		}
+	)
+	// setup response
+	response = &UnitsListResponse{}
+	// hook up adaptor
+	adaptor, err = adaptors.NewSqlite(dbPath, false)
+	if err != nil {
+		slog.Error("[api] units list adaptor error", slog.String("err", err.Error()))
+	}
+	defer adaptor.DB().Close()
+	// get the data and attach results / errors to the response
+	results, err = crud.Select[*models.Unit](ctx, adaptor, unitListSQL, nil)
+	if err != nil {
+		slog.Error("[api] units list select error", slog.String("err", err.Error()))
+		body.Errors = append(body.Errors, fmt.Errorf("[api] units list selection failed."))
+	} else {
+		body.Result = results
+	}
+	response.Body = body
+	return
+}
+
+// Register attaches the handler to the main api
+func Register(api huma.API) {
+	var uri string = "/{version}/" + Segment + "/list"
+
+	slog.Info("[api] handler register ", slog.String("uri", uri))
+	huma.Register(api, huma.Operation{
+		OperationID:   UnitListOperationID,
+		Method:        http.MethodGet,
+		Path:          uri,
+		Summary:       "List all units",
+		Description:   UnitsListDescription,
+		DefaultStatus: http.StatusOK,
+		Tags:          Tags,
+	}, ApiUnitsListHandler)
+
+}
