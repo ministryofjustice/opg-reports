@@ -3,8 +3,8 @@ sapi runs the api to surface data from the registered endpoints and way to outpu
 
 Usage:
 
-	sapi
-	spai openapi
+	api
+	pai openapi
 
 Calling `openapi` will output to stdout the yaml spec for the api.
 
@@ -22,6 +22,7 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
+	"github.com/ministryofjustice/opg-reports/info"
 	"github.com/ministryofjustice/opg-reports/pkg/bi"
 	"github.com/ministryofjustice/opg-reports/pkg/consts"
 	"github.com/ministryofjustice/opg-reports/pkg/envar"
@@ -36,7 +37,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/sources/uptime/uptimeapi"
 )
 
-var mode = bi.Mode
+var mode = info.Fixtures
 
 // we split the api handlers into simple & full groups
 // `simple` is used for the basic install

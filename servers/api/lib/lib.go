@@ -9,7 +9,7 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/humacli"
-	"github.com/ministryofjustice/opg-reports/pkg/bi"
+	"github.com/ministryofjustice/opg-reports/info"
 	"github.com/spf13/cobra"
 )
 
@@ -82,7 +82,7 @@ func RegisterSegments(api huma.API, segments map[string]*ApiSegment) {
 
 // ApiTitle generates the title for the api using build details
 func ApiTitle() string {
-	return fmt.Sprintf("%s Reports API", bi.Organisation)
+	return fmt.Sprintf("%s Reports API", info.Organisation)
 }
 
 // ApiVersion generates the version string for the api from build details.
@@ -90,7 +90,7 @@ func ApiTitle() string {
 //
 //	`<semver> [<timestamp>] (<git-sha>)`
 func ApiVersion() string {
-	return bi.Signature()
+	return info.BuildInfo()
 }
 
 // CLI returns the api wrapped as a cli command and appends not only the api routes
