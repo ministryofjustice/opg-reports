@@ -23,14 +23,11 @@ import (
 	"github.com/ministryofjustice/opg-reports/pkg/awssession"
 )
 
-const (
-	bucketName string = info.BucketName
-)
-
 var (
-	awsCfg       = awscfg.FromEnv()
-	dataDir      = "./bucket-data"
-	convertedDir = "./converted-data"
+	bucketName   string         = info.BucketName
+	awsCfg       *awscfg.Config = awscfg.FromEnv()
+	dataDir      string         = "./bucket-data"
+	convertedDir string         = "./converted-data"
 )
 
 // Download grabs all the files from the s3 bucket and clones them locally

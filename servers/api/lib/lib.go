@@ -29,57 +29,6 @@ type HomepageResponse struct {
 	}
 }
 
-// SetupSegments runs the setup functions for all the segments
-func SetupSegments(ctx context.Context, segments map[string]*ApiSegment) {
-	for name, segment := range segments {
-		slog.Info("[api.init]", slog.String("segment", name))
-		segment.SetupFunc(ctx, segment.DbFile, true)
-	}
-}
-
-// AddMiddleware adds the standard middleware information and process
-// for each api segment
-// Currently - adds database path as a value to the context
-func AddMiddleware(api huma.API, segments map[string]*ApiSegment) {
-	//
-	api.UseMiddleware(func(ctx huma.Context, next func(huma.Context)) {
-		for segment, cfg := range segments {
-			ctx = huma.WithValue(ctx, segment, cfg.DbFile)
-		}
-		next(ctx)
-	})
-
-}
-
-// AddHomepage registers a simple home page as the default
-// root of the api
-func AddHomepage(api huma.API, segments map[string]*ApiSegment) {
-	//
-	huma.Register(api, huma.Operation{
-		OperationID:   "get-homepage",
-		Method:        http.MethodGet,
-		Path:          "/",
-		Summary:       "Home",
-		Description:   "Operates as the root of the API and a simple endpoint to test connectivity with, but returns no reporting data.",
-		DefaultStatus: http.StatusOK,
-	}, func(ctx context.Context, input *struct{}) (homepage *HomepageResponse, err error) {
-		homepage = &HomepageResponse{}
-		homepage.Body.Message = "Successful connection"
-		return
-	})
-}
-
-// RegisterSegments calls the registration function for each of the api segments
-// allowing them to attach their own routes to the api
-func RegisterSegments(api huma.API, segments map[string]*ApiSegment) {
-	slog.Info("[api.RegisterSegments] registering ...")
-	for name, segment := range segments {
-		slog.Info("[api.RegisterSegments] register segment", slog.String("segment", name))
-		segment.RegisterFunc(api)
-	}
-	slog.Info("[api.RegisterSegments] registered.")
-}
-
 // ApiTitle generates the title for the api using build details
 func ApiTitle() string {
 	return fmt.Sprintf("%s Reports API", info.Organisation)
