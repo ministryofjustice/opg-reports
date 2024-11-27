@@ -8,8 +8,11 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
 	"github.com/ministryofjustice/opg-reports/internal/dbs/adaptors"
 	"github.com/ministryofjustice/opg-reports/internal/dbs/crud"
+	"github.com/ministryofjustice/opg-reports/internal/fakerextensions/fakerextras"
 	"github.com/ministryofjustice/opg-reports/internal/fakerextensions/fakermany"
+	"github.com/ministryofjustice/opg-reports/internal/pretty"
 	"github.com/ministryofjustice/opg-reports/models"
+	"github.com/ministryofjustice/opg-reports/seed"
 	"github.com/ministryofjustice/opg-reports/servers/api/handlers"
 	"github.com/ministryofjustice/opg-reports/servers/api/inputs"
 	"github.com/ministryofjustice/opg-reports/servers/api/lib"
@@ -20,14 +23,25 @@ func TestApiHandlersGitHubTeamsHandler(t *testing.T) {
 		err      error
 		adaptor  dbs.Adaptor
 		response *handlers.GitHubTeamsResponse
-		dir      string               = t.TempDir()
-		dbFile   string               = filepath.Join(dir, "test.db")
-		ctxKey   string               = lib.CTX_DB_KEY
-		ctx      context.Context      = context.WithValue(context.Background(), ctxKey, dbFile)
-		teams    []*models.GitHubTeam = []*models.GitHubTeam{}
-		inserted []*models.GitHubTeam = []*models.GitHubTeam{}
+		dir      string = t.TempDir()
+		// dir      string                     = "./"
+		dbFile   string                     = filepath.Join(dir, "test.db")
+		ctxKey   string                     = lib.CTX_DB_KEY
+		ctx      context.Context            = context.WithValue(context.Background(), ctxKey, dbFile)
+		units    []*models.Unit             = []*models.Unit{}
+		repos    []*models.GitHubRepository = []*models.GitHubRepository{}
+		teams    []*models.GitHubTeam       = []*models.GitHubTeam{}
+		inserted []*models.GitHubTeam       = []*models.GitHubTeam{}
 	)
-	teams = fakermany.Fake[*models.GitHubTeam](5)
+
+	units = fakermany.Fake[*models.Unit](5)
+	repos = fakermany.Fake[*models.GitHubRepository](10)
+	teams = fakermany.Fake[*models.GitHubTeam](6)
+
+	for _, team := range teams {
+		team.Units = fakerextras.Choose(units, 2)
+		team.GitHubRepositories = fakerextras.Choose(repos, 2)
+	}
 	// generate adaptor
 	adaptor, err = adaptors.NewSqlite(dbFile, false)
 	if err != nil {
@@ -39,8 +53,7 @@ func TestApiHandlersGitHubTeamsHandler(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	// insert the dummy units
-	inserted, err = crud.Insert(ctx, adaptor, &models.GitHubTeam{}, teams...)
+	inserted, err = seed.GitHubTeams(ctx, adaptor, teams)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -49,9 +62,10 @@ func TestApiHandlersGitHubTeamsHandler(t *testing.T) {
 		t.Errorf("error inserting - expected [%d] actual [%v]", len(teams), len(inserted))
 	}
 
-	response, err = handlers.ApiGitHubTeamsListHandler(ctx, &inputs.VersionInput{
+	response, err = handlers.ApiGitHubTeamsListHandler(ctx, &inputs.VersionUnitInput{
 		Version: "v1",
 	})
+	pretty.Print(response)
 	if err != nil {
 		t.Errorf("unexpected error: [%s]", err.Error())
 	}

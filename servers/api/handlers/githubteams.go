@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
 	"github.com/ministryofjustice/opg-reports/internal/dbs/adaptors"
 	"github.com/ministryofjustice/opg-reports/internal/dbs/crud"
+	"github.com/ministryofjustice/opg-reports/internal/dbs/statements"
 	"github.com/ministryofjustice/opg-reports/models"
 	"github.com/ministryofjustice/opg-reports/servers/api/inputs"
 )
@@ -22,10 +24,10 @@ var (
 // --- github teams list
 
 type GitHubTeamsListBody struct {
-	Operation string               `json:"operation,omitempty" doc:"contains the operation id"`
-	Request   *inputs.VersionInput `json:"request,omitempty" doc:"the original request"`
-	Result    []*models.GitHubTeam `json:"result,omitempty" doc:"list of all units returned by the api."`
-	Errors    []error              `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
+	Operation string                   `json:"operation,omitempty" doc:"contains the operation id"`
+	Request   *inputs.VersionUnitInput `json:"request,omitempty" doc:"the original request"`
+	Result    []*models.GitHubTeam     `json:"result,omitempty" doc:"list of all units returned by the api."`
+	Errors    []error                  `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
 }
 type GitHubTeamsResponse struct {
 	Body *GitHubTeamsListBody
@@ -37,13 +39,13 @@ const gitHubTeamsSQL string = `
 SELECT
 	github_teams.*,
 	json_group_array(
-		json_object(
+		DISTINCT json_object(
 			'id', units.id,
 			'name', units.name
 		)
 	) filter ( where units.id is not null) as units,
-	 json_group_array(
-		json_object(
+	json_group_array(
+		DISTINCT json_object(
 			'id', github_repositories.id,
 			'ts', github_repositories.ts,
 			'owner', github_repositories.owner,
@@ -58,25 +60,33 @@ SELECT
 		)
 	) filter ( where github_repositories.id is not null) as github_repositories
 FROM github_teams
-LEFT JOIN github_teams_units ON github_teams_units.github_team_id = github_teams.id
+{WHERE}
+INNER JOIN github_teams_units ON github_teams_units.github_team_id = github_teams.id
 LEFT JOIN units ON units.id = github_teams_units.unit_id
-LEFT JOIN github_repositories_github_teams ON github_repositories_github_teams.github_team_id = github_teams.id
+INNER JOIN github_repositories_github_teams ON github_repositories_github_teams.github_team_id = github_teams.id
 LEFT JOIN github_repositories ON github_repositories.id = github_repositories_github_teams.github_repository_id
 GROUP BY github_teams.id
 ORDER BY github_teams.slug ASC;
 `
+
+type githubTeamUnitFilter struct {
+	Unit string `json:"unit" db:"unit"`
+}
 
 // ApiGitHubTeamsListHandler queries the database for all github teams and returns a list including
 // joins with github teams and aws accounts. There is no option to filter of limit the results.
 //
 // Endpoints:
 //
-//	/version/github/teams/list
-func ApiGitHubTeamsListHandler(ctx context.Context, input *inputs.VersionInput) (response *GitHubTeamsResponse, err error) {
+//	/version/github/teams/list?unit=<unit>
+func ApiGitHubTeamsListHandler(ctx context.Context, input *inputs.VersionUnitInput) (response *GitHubTeamsResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
 		results []*models.GitHubTeam = []*models.GitHubTeam{}
 		dbPath  string               = ctx.Value(dbPathKey).(string)
+		replace string               = "{WHERE}"
+		sqlStmt string               = gitHubTeamsSQL
+		param   statements.Named     = nil
 		body    *GitHubTeamsListBody = &GitHubTeamsListBody{
 			Request:   input,
 			Operation: GitHubTeamsOperationID,
@@ -84,6 +94,15 @@ func ApiGitHubTeamsListHandler(ctx context.Context, input *inputs.VersionInput) 
 	)
 	// setup response
 	response = &GitHubTeamsResponse{}
+	// if there is a unit, setup the where clause
+	// otherwise remove it
+	if input.Unit != "" {
+		param = &githubTeamUnitFilter{Unit: input.Unit}
+		sqlStmt = strings.ReplaceAll(sqlStmt, replace, "WHERE units.name = :unit")
+	} else {
+		sqlStmt = strings.ReplaceAll(sqlStmt, replace, "")
+
+	}
 	// hook up adaptor
 	adaptor, err = adaptors.NewSqlite(dbPath, false)
 	if err != nil {
@@ -91,7 +110,7 @@ func ApiGitHubTeamsListHandler(ctx context.Context, input *inputs.VersionInput) 
 	}
 	defer adaptor.DB().Close()
 	// get the data and attach results / errors to the response
-	results, err = crud.Select[*models.GitHubTeam](ctx, adaptor, gitHubTeamsSQL, nil)
+	results, err = crud.Select[*models.GitHubTeam](ctx, adaptor, sqlStmt, param)
 	if err != nil {
 		slog.Error("[api] github teams list select error", slog.String("err", err.Error()))
 		body.Errors = append(body.Errors, fmt.Errorf("github teams list selection failed."))

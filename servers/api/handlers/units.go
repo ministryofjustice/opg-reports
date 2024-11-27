@@ -37,7 +37,7 @@ const unitListSQL string = `
 SELECT
 	units.*,
 	json_group_array(
-		json_object(
+		DISTINCT json_object(
 			'id', aws_accounts.id,
 			'number', aws_accounts.number,
 			'name', aws_accounts.name,
@@ -46,7 +46,7 @@ SELECT
 		)
 	) filter ( where aws_accounts.id is not null) as aws_accounts,
 	json_group_array(
-		json_object(
+		DISTINCT json_object(
 			'id', github_teams.id,
 			'slug', github_teams.slug
 		)
