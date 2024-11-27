@@ -14,6 +14,10 @@ import (
 	"github.com/ministryofjustice/opg-reports/pkg/awssession"
 )
 
+// DownloadS3DB tries to download the bucketDB from the bucketName and write the content
+// to localPath.
+// It will write the content to a temp file in the same directory first, and then rename
+// the file on success
 func DownloadS3DB(bucketName string, bucketDB string, localPath string) (ok bool, err error) {
 	var (
 		sess         *session.Session
@@ -22,11 +26,9 @@ func DownloadS3DB(bucketName string, bucketDB string, localPath string) (ok bool
 		tempFile     *os.File
 		body         []byte
 		tempFilename string
-		// bucketName string         = info.BucketName
-		// bucketDB   string         = "dbs/api.db"
-		awsCfg   *awscfg.Config = awscfg.FromEnv()
-		localDir string         = filepath.Dir(localPath)
-		ext      string         = filepath.Ext(localPath)
+		awsCfg       *awscfg.Config = awscfg.FromEnv()
+		localDir     string         = filepath.Dir(localPath)
+		ext          string         = filepath.Ext(localPath)
 	)
 	ok = true
 
@@ -36,18 +38,19 @@ func DownloadS3DB(bucketName string, bucketDB string, localPath string) (ok bool
 		return
 	}
 	svc = s3.New(sess)
-	// use a head object call to see if file exists
-	_, err = svc.HeadObject(&s3.HeadObjectInput{
-		Bucket: aws.String(bucketName),
-		Key:    aws.String(bucketDB),
-	})
-	// if the head call failed, return error
-	if err != nil {
-		ok = false
-		slog.Error("[api] s3 head call failed, object doesnt exist", slog.String("err", err.Error()))
-		return
-	}
-	// get the object directly
+	// // use a head object call to see if file exists
+	// _, err = svc.HeadObject(&s3.HeadObjectInput{
+	// 	Bucket: aws.String(bucketName),
+	// 	Key:    aws.String(bucketDB),
+	// })
+	// // if the head call failed, return error
+	// if err != nil {
+	// 	ok = false
+	// 	slog.Error("[api] s3 head call failed, object doesnt exist", slog.String("err", err.Error()))
+	// 	return
+	// }
+
+	// get the object from the bucket
 	result, err = svc.GetObject(&s3.GetObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(bucketDB),

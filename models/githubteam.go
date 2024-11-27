@@ -24,7 +24,7 @@ import (
 type GitHubTeam struct {
 	ID   int    `json:"id,omitempty" db:"id" faker:"-"`
 	Ts   string `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."` // TS is timestamp when the record was created
-	Slug string `json:"slug,omitempty" db:"slug" faker:"unique, oneof:opg,opg-webops,opg-sirius,opg-use,opg-make,foo,bar"`
+	Slug string `json:"slug,omitempty" db:"slug" faker:"unique, oneof:digideps,opg-lpa-team,opg-modernising-lpa-team,opg-use-a-lpa-team,opg-refund,serve-opg,sirius,opg-webops,opg-admin,opg_intergrations,opg-metrics-team"`
 	// Join to units - team has many units, unit has many teams
 	Units Units `json:"units,omitempty" db:"units" faker:"-"`
 	// Many to many join with the repositories

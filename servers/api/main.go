@@ -23,6 +23,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
 	"github.com/ministryofjustice/opg-reports/info"
+	"github.com/ministryofjustice/opg-reports/internal/fileutils"
 	"github.com/ministryofjustice/opg-reports/pkg/consts"
 	"github.com/ministryofjustice/opg-reports/pkg/envar"
 	"github.com/ministryofjustice/opg-reports/servers/api/lib"
@@ -36,7 +37,12 @@ import (
 	"github.com/ministryofjustice/opg-reports/sources/uptime/uptimeapi"
 )
 
-var mode = info.Fixtures
+var (
+	mode        string = info.Fixtures
+	localDBPath string = "./databases/api.db"
+	bucketName  string = info.BucketName
+	bucketDB    string = "./databases/api.db"
+)
 
 // we split the api handlers into simple & full groups
 // `simple` is used for the basic install
@@ -82,8 +88,23 @@ var (
 // init is used to fetch stored databases from s3
 // or create dummy versions of them
 func init() {
-	var ctx context.Context = context.Background()
+	var (
+		ctx context.Context = context.Background()
+	)
+	// this is the old seeding
+	// TODO: remove when everything is using single db
 	lib.SetupSegments(ctx, segments)
+
+	// new way of seeding
+	// - if we are using the real data set, go fetch it
+	if info.Dataset == "real" {
+		lib.DownloadS3DB(bucketName, bucketDB, localDBPath)
+	}
+	// if the local db does not exist, then create a seeded version
+	if !fileutils.Exists(localDBPath) {
+		lib.SeedDB(ctx, localDBPath)
+	}
+
 }
 
 // main executes the clis wrapped huma api

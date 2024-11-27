@@ -22,7 +22,7 @@ import (
 type Unit struct {
 	ID   int    `json:"id,omitempty" db:"id" faker:"-"`
 	Ts   string `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."` // TS is timestamp when the record was created
-	Name string `json:"name,omitempty" db:"name" faker:"unique, oneof: sirius,use,make,digideps,serve,refunds"`
+	Name string `json:"name,omitempty" db:"name" faker:"unique, oneof: sirius,use,make,digideps,serve,refunds,legacy"`
 	// Indirect (otherside of the many->many) join pulled only in the select to fetch teams (one unit has many teams, a team has many units)
 	// See GitHubTeamUnit
 	GitHubTeams GitHubTeams `json:"github_teams,omitempty" db:"github_teams" faker:"-"`
