@@ -44,13 +44,13 @@ SELECT
 			'label', aws_accounts.label,
 			'environment', aws_accounts.environment
 		)
-	) as aws_accounts,
+	) filter ( where aws_accounts.id is not null) as aws_accounts,
 	json_group_array(
 		json_object(
 			'id', github_teams.id,
 			'slug', github_teams.slug
 		)
-	) as github_teams
+	) filter ( where github_teams.id is not null) as github_teams
 FROM units
 LEFT JOIN aws_accounts ON aws_accounts.unit_id = units.id
 LEFT JOIN github_teams_units on github_teams_units.unit_id = units.id

@@ -9,7 +9,6 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/dbs/adaptors"
 	"github.com/ministryofjustice/opg-reports/internal/dbs/crud"
 	"github.com/ministryofjustice/opg-reports/internal/fakerextensions/fakermany"
-	"github.com/ministryofjustice/opg-reports/internal/pretty"
 	"github.com/ministryofjustice/opg-reports/models"
 	"github.com/ministryofjustice/opg-reports/servers/api/handlers"
 	"github.com/ministryofjustice/opg-reports/servers/api/inputs"
@@ -56,8 +55,6 @@ func TestApiHandlersGitHubTeamsHandler(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error: [%s]", err.Error())
 	}
-	pretty.Print(teams)
-	pretty.Print(response)
 	// check the response info
 	if handlers.GitHubTeamsOperationID != response.Body.Operation {
 		t.Errorf("operation did not match - expected [%s] actual [%v]", handlers.GitHubTeamsOperationID, response.Body.Operation)

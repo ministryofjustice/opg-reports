@@ -41,7 +41,7 @@ SELECT
 			'id', units.id,
 			'name', units.name
 		)
-	) as units,
+	) filter ( where units.id is not null) as units,
 	 json_group_array(
 		json_object(
 			'id', github_repositories.id,
@@ -56,7 +56,7 @@ SELECT
 			'license', github_repositories.license,
 			'last_commit_date', github_repositories.last_commit_date
 		)
-	) as github_repositories
+	) filter ( where github_repositories.id is not null) as github_repositories
 FROM github_teams
 LEFT JOIN github_teams_units ON github_teams_units.github_team_id = github_teams.id
 LEFT JOIN units ON units.id = github_teams_units.unit_id
