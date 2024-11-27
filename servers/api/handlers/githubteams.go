@@ -69,10 +69,6 @@ GROUP BY github_teams.id
 ORDER BY github_teams.slug ASC;
 `
 
-type githubTeamUnitFilter struct {
-	Unit string `json:"unit" db:"unit"`
-}
-
 // ApiGitHubTeamsListHandler queries the database for all github teams and returns a list including
 // joins with github teams and aws accounts. There is no option to filter of limit the results.
 //
@@ -86,7 +82,7 @@ func ApiGitHubTeamsListHandler(ctx context.Context, input *inputs.VersionUnitInp
 		dbPath  string               = ctx.Value(dbPathKey).(string)
 		replace string               = "{WHERE}"
 		sqlStmt string               = gitHubTeamsSQL
-		param   statements.Named     = nil
+		param   statements.Named     = input
 		body    *GitHubTeamsListBody = &GitHubTeamsListBody{
 			Request:   input,
 			Operation: GitHubTeamsOperationID,
@@ -97,7 +93,6 @@ func ApiGitHubTeamsListHandler(ctx context.Context, input *inputs.VersionUnitInp
 	// if there is a unit, setup the where clause
 	// otherwise remove it
 	if input.Unit != "" {
-		param = &githubTeamUnitFilter{Unit: input.Unit}
 		sqlStmt = strings.ReplaceAll(sqlStmt, replace, "WHERE units.name = :unit ")
 	} else {
 		sqlStmt = strings.ReplaceAll(sqlStmt, replace, "")
@@ -130,7 +125,7 @@ func RegisterGitHubTeams(api huma.API) {
 		OperationID:   GitHubTeamsOperationID,
 		Method:        http.MethodGet,
 		Path:          uri,
-		Summary:       "List all units",
+		Summary:       "List GitHub teams",
 		Description:   GitHubTeamsDescription,
 		DefaultStatus: http.StatusOK,
 		Tags:          GitHubTeamsTags,

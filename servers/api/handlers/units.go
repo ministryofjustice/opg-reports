@@ -104,7 +104,7 @@ func RegisterUnits(api huma.API) {
 		OperationID:   UnitListOperationID,
 		Method:        http.MethodGet,
 		Path:          uri,
-		Summary:       "List all units",
+		Summary:       "List units",
 		Description:   UnitsListDescription,
 		DefaultStatus: http.StatusOK,
 		Tags:          UnitTags,

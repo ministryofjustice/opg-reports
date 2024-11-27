@@ -36,6 +36,8 @@ type GitHubRelease struct {
 	// Join the release to the repository - release has one repo, repo has many releases
 	GitHubRepositoryID int                         `json:"github_repository_id,omitempty" db:"github_repository_id" faker:"-"`
 	GitHubRepository   *GitHubRepositoryForeignKey `json:"github_repository,omitempty" db:"github_repository" faker:"-"`
+	// join to units - takes many left joins to get this
+	Units Units `json:"units,omitempty" db:"units" faker:"-"`
 }
 
 // UniqueValue returns the value representing the value of
