@@ -60,11 +60,11 @@ SELECT
 		)
 	) filter ( where github_repositories.id is not null) as github_repositories
 FROM github_teams
-{WHERE}
-INNER JOIN github_teams_units ON github_teams_units.github_team_id = github_teams.id
+LEFT JOIN github_teams_units ON github_teams_units.github_team_id = github_teams.id
 LEFT JOIN units ON units.id = github_teams_units.unit_id
-INNER JOIN github_repositories_github_teams ON github_repositories_github_teams.github_team_id = github_teams.id
+LEFT JOIN github_repositories_github_teams ON github_repositories_github_teams.github_team_id = github_teams.id
 LEFT JOIN github_repositories ON github_repositories.id = github_repositories_github_teams.github_repository_id
+{WHERE}
 GROUP BY github_teams.id
 ORDER BY github_teams.slug ASC;
 `
@@ -98,11 +98,11 @@ func ApiGitHubTeamsListHandler(ctx context.Context, input *inputs.VersionUnitInp
 	// otherwise remove it
 	if input.Unit != "" {
 		param = &githubTeamUnitFilter{Unit: input.Unit}
-		sqlStmt = strings.ReplaceAll(sqlStmt, replace, "WHERE units.name = :unit")
+		sqlStmt = strings.ReplaceAll(sqlStmt, replace, "WHERE units.name = :unit ")
 	} else {
 		sqlStmt = strings.ReplaceAll(sqlStmt, replace, "")
-
 	}
+
 	// hook up adaptor
 	adaptor, err = adaptors.NewSqlite(dbPath, false)
 	if err != nil {

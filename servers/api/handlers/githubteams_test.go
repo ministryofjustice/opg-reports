@@ -10,7 +10,6 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/dbs/crud"
 	"github.com/ministryofjustice/opg-reports/internal/fakerextensions/fakerextras"
 	"github.com/ministryofjustice/opg-reports/internal/fakerextensions/fakermany"
-	"github.com/ministryofjustice/opg-reports/internal/pretty"
 	"github.com/ministryofjustice/opg-reports/models"
 	"github.com/ministryofjustice/opg-reports/seed"
 	"github.com/ministryofjustice/opg-reports/servers/api/handlers"
@@ -61,11 +60,12 @@ func TestApiHandlersGitHubTeamsHandler(t *testing.T) {
 	if len(teams) != len(inserted) {
 		t.Errorf("error inserting - expected [%d] actual [%v]", len(teams), len(inserted))
 	}
-
+	// should return everything
 	response, err = handlers.ApiGitHubTeamsListHandler(ctx, &inputs.VersionUnitInput{
 		Version: "v1",
+		// Unit:    teams[0].Units[0].Name,
 	})
-	pretty.Print(response)
+
 	if err != nil {
 		t.Errorf("unexpected error: [%s]", err.Error())
 	}
@@ -76,6 +76,28 @@ func TestApiHandlersGitHubTeamsHandler(t *testing.T) {
 	// check the number of results
 	if len(teams) != len(response.Body.Result) {
 		t.Errorf("error with number of results - expected [%d] actual [%v]", len(teams), len(response.Body.Result))
+	}
+
+	// check for a particular unit - grab the first one in the results
+	unit := response.Body.Result[0].Units[0].Name
+	expected := 0
+	for _, r := range response.Body.Result {
+		for _, u := range r.Units {
+			if u.Name == unit {
+				expected += 1
+			}
+		}
+	}
+	response, err = handlers.ApiGitHubTeamsListHandler(ctx, &inputs.VersionUnitInput{
+		Version: "v1",
+		Unit:    unit,
+	})
+	if err != nil {
+		t.Errorf("unexpected error: [%s]", err.Error())
+	}
+	// check the number of results
+	if expected != len(response.Body.Result) {
+		t.Errorf("error with number of results for unit filter - expected [%d] actual [%v]", expected, len(response.Body.Result))
 	}
 
 }

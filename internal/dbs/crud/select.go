@@ -2,6 +2,7 @@ package crud
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
@@ -28,12 +29,14 @@ func Select[R any, A dbs.Adaptor](ctx context.Context, adaptor A, stmt string, n
 	// validate the select statement passed
 	err = statements.Validate(stmt, named)
 	if err != nil {
+		slog.Debug("[crud] select validation failed")
 		return
 	}
 
 	// connect to the database
 	_, err = dber.Get(ctx, connector)
 	if err != nil {
+		slog.Debug("[crud] select db get failed")
 		return
 	}
 	defer dber.Close()
@@ -41,11 +44,13 @@ func Select[R any, A dbs.Adaptor](ctx context.Context, adaptor A, stmt string, n
 	// get a transaction
 	tx, err = transactions.Get(ctx, dber, connector, mode)
 	if err != nil {
+		slog.Debug("[crud] select tx get failed")
 		return
 	}
 	// prepare statement
 	statement, err = tx.PrepareNamedContext(ctx, stmt)
 	if err != nil {
+		slog.Debug("[crud] select prepare named context failed")
 		return
 	}
 	// if no arguments are passed use any empty struct
@@ -55,6 +60,7 @@ func Select[R any, A dbs.Adaptor](ctx context.Context, adaptor A, stmt string, n
 	// get the data
 	err = statement.SelectContext(ctx, &results, named)
 	if err != nil {
+		slog.Debug("[crud] select context failed")
 		return
 	}
 	//
