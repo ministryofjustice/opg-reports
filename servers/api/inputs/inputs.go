@@ -53,7 +53,6 @@ func (self *OptionalDateRangeInput) End() (t time.Time) {
 // RequiredGroupedDateRangeInput must have start and end dates as well as interval details
 type RequiredGroupedDateRangeInput struct {
 	Version    string `json:"version,omitempty" db:"-" path:"version" required:"true" doc:"Version prefix for the api" default:"v1" enum:"v1"`
-	Unit       string `json:"unit,omitempty" query:"unit" db:"unit" doc:"Unit name to filter data by"`
 	StartDate  string `json:"start_date,omitempty" db:"start_date" path:"start_date" required:"true" doc:"Earliest date to start the data (uses >=). YYYY-MM-DD." example:"2022-01-01" pattern:"([0-9]{4}-[0-9]{2}-[0-9]{2})"`
 	EndDate    string `json:"end_date,omitempty" db:"end_date" path:"end_date" required:"true" doc:"Latest date to capture the data for (uses <). YYYY-MM-DD."  example:"2024-04-01" pattern:"([0-9]{4}-[0-9]{2}-[0-9]{2})"`
 	Interval   string `json:"interval,omitempty" db:"-" path:"interval" default:"month" enum:"year,month,day" doc:"Group the data by this type of interval."`
@@ -75,6 +74,41 @@ func (self *RequiredGroupedDateRangeInput) End() (t time.Time) {
 
 // Resolve to convert the interval input param into a date format for the db call
 func (self *RequiredGroupedDateRangeInput) Resolve(ctx huma.Context) []error {
+	self.DateFormat = string(dateformats.SqliteYM)
+
+	if self.Interval == "year" {
+		self.DateFormat = string(dateformats.SqliteY)
+	} else if self.Interval == "day" {
+		self.DateFormat = string(dateformats.SqliteYMD)
+	}
+	return nil
+}
+
+// RequiredGroupedDateRangeUnitInput must have start and end dates as well as interval details and has optional
+type RequiredGroupedDateRangeUnitInput struct {
+	Version    string `json:"version,omitempty" db:"-" path:"version" required:"true" doc:"Version prefix for the api" default:"v1" enum:"v1"`
+	Unit       string `json:"unit,omitempty" query:"unit" db:"unit" doc:"Unit name to filter data by"`
+	StartDate  string `json:"start_date,omitempty" db:"start_date" path:"start_date" required:"true" doc:"Earliest date to start the data (uses >=). YYYY-MM-DD." example:"2022-01-01" pattern:"([0-9]{4}-[0-9]{2}-[0-9]{2})"`
+	EndDate    string `json:"end_date,omitempty" db:"end_date" path:"end_date" required:"true" doc:"Latest date to capture the data for (uses <). YYYY-MM-DD."  example:"2024-04-01" pattern:"([0-9]{4}-[0-9]{2}-[0-9]{2})"`
+	Interval   string `json:"interval,omitempty" db:"-" path:"interval" default:"month" enum:"year,month,day" doc:"Group the data by this type of interval."`
+	DateFormat string `json:"date_format,omitempty" db:"date_format"`
+}
+
+func (self *RequiredGroupedDateRangeUnitInput) Start() (t time.Time) {
+	if val, err := convert.ToTime(self.StartDate); err == nil {
+		t = val
+	}
+	return
+}
+func (self *RequiredGroupedDateRangeUnitInput) End() (t time.Time) {
+	if val, err := convert.ToTime(self.EndDate); err == nil {
+		t = val
+	}
+	return
+}
+
+// Resolve to convert the interval input param into a date format for the db call
+func (self *RequiredGroupedDateRangeUnitInput) Resolve(ctx huma.Context) []error {
 	self.DateFormat = string(dateformats.SqliteYM)
 
 	if self.Interval == "year" {

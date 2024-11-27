@@ -38,6 +38,8 @@ type GitHubRelease struct {
 	GitHubRepository   *GitHubRepositoryForeignKey `json:"github_repository,omitempty" db:"github_repository" faker:"-"`
 	// join to units - takes many left joins to get this
 	Units Units `json:"units,omitempty" db:"units" faker:"-"`
+	// Only used on sql command that fetches releases per unit to flattern the struct
+	Unit string `json:"unit,omitempty" db:"unit" faker:"-"`
 }
 
 // UniqueValue returns the value representing the value of

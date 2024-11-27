@@ -11,6 +11,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/dbs/crud"
 	"github.com/ministryofjustice/opg-reports/internal/fakerextensions/fakerextras"
 	"github.com/ministryofjustice/opg-reports/internal/fakerextensions/fakermany"
+	"github.com/ministryofjustice/opg-reports/internal/pretty"
 	"github.com/ministryofjustice/opg-reports/models"
 	"github.com/ministryofjustice/opg-reports/seed"
 	"github.com/ministryofjustice/opg-reports/servers/api/handlers"
@@ -170,7 +171,7 @@ func TestApiHandlersGitHubReleasesCountHandler(t *testing.T) {
 	}
 
 	// should return everything
-	in := &inputs.RequiredGroupedDateRangeInput{
+	in := &inputs.RequiredGroupedDateRangeUnitInput{
 		Version:   "v1",
 		StartDate: fakerextras.TimeStringMin.AddDate(0, 0, -1).Format(dateformats.YMD),
 		EndDate:   fakerextras.TimeStringMax.AddDate(0, 0, 1).Format(dateformats.YMD),
@@ -193,6 +194,97 @@ func TestApiHandlersGitHubReleasesCountHandler(t *testing.T) {
 		total += row.Count
 	}
 	if len(releases) != total {
+		t.Errorf("error with number of results - expected at least [%d] actual [%v]", len(releases), total)
+	}
+
+}
+
+func TestApiHandlersGitHubReleasesCountPerUnitHandler(t *testing.T) {
+	var (
+		err      error
+		adaptor  dbs.Adaptor
+		response *handlers.GitHubReleasesCountPerUnitResponse
+		dir      string = t.TempDir()
+		// dir      string          = "./"
+		dbFile   string          = filepath.Join(dir, "test.db")
+		ctxKey   string          = lib.CTX_DB_KEY
+		ctx      context.Context = context.WithValue(context.Background(), ctxKey, dbFile)
+		repos    []*models.GitHubRepository
+		units    []*models.Unit
+		teams    []*models.GitHubTeam
+		releases []*models.GitHubRelease
+	)
+	fakerextras.AddProviders()
+
+	units = fakermany.Fake[*models.Unit](5)
+	teams = fakermany.Fake[*models.GitHubTeam](5)
+	repos = fakermany.Fake[*models.GitHubRepository](5)
+	releases = fakermany.Fake[*models.GitHubRelease](5)
+
+	for i, team := range teams {
+		var r = repos[i]
+		var set = []*models.GitHubRepository{r}
+		var us = []*models.Unit{units[i]}
+		team.Units = us
+		team.GitHubRepositories = set
+		r.GitHubTeams = []*models.GitHubTeam{team}
+	}
+	// generate adaptor
+	adaptor, err = adaptors.NewSqlite(dbFile, false)
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	defer adaptor.DB().Close()
+
+	// bootstrap the database - this will now recreate the standards table
+	err = crud.Bootstrap(ctx, adaptor, models.All()...)
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	// seed the teams and units
+	_, err = seed.GitHubTeams(ctx, adaptor, teams)
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	for i, release := range releases {
+		release.GitHubRepository = (*models.GitHubRepositoryForeignKey)(repos[i])
+	}
+	// seed releases
+	_, err = seed.GitHubReleases(ctx, adaptor, releases)
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	// -- run test
+
+	// should return everything
+	in := &inputs.RequiredGroupedDateRangeInput{
+		Version:   "v1",
+		StartDate: fakerextras.TimeStringMin.AddDate(0, 0, -1).Format(dateformats.YMD),
+		EndDate:   fakerextras.TimeStringMax.AddDate(0, 0, 1).Format(dateformats.YMD),
+		Interval:  "month",
+	}
+	in.Resolve(nil)
+	response, err = handlers.ApiGitHubReleasesCountPerUnitHandler(ctx, in)
+
+	if err != nil {
+		t.Errorf("unexpected error: [%s]", err.Error())
+	}
+
+	pretty.Print(response)
+
+	// check the response info
+	if handlers.GitHubReleasesCountPerUnitOperationID != response.Body.Operation {
+		t.Errorf("operation did not match - expected [%s] actual [%v]", handlers.GitHubReleasesCountPerUnitOperationID, response.Body.Operation)
+	}
+	// as releases are tied to repos and repos have multiple teams and units, the number of releases
+	// per team wont directly equal the number inserted, but should be at least the same
+	total := 0
+	for _, row := range response.Body.Result {
+		total += row.Count
+	}
+	if len(releases) >= total {
 		t.Errorf("error with number of results - expected [%d] actual [%v]", len(releases), total)
 	}
 
