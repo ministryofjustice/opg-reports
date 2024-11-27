@@ -23,7 +23,6 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
 	"github.com/ministryofjustice/opg-reports/info"
-	"github.com/ministryofjustice/opg-reports/pkg/bi"
 	"github.com/ministryofjustice/opg-reports/pkg/consts"
 	"github.com/ministryofjustice/opg-reports/pkg/envar"
 	"github.com/ministryofjustice/opg-reports/servers/api/lib"
@@ -89,7 +88,7 @@ func init() {
 
 // main executes the clis wrapped huma api
 func main() {
-	bi.Dump()
+	info.Log()
 	Run()
 }
 

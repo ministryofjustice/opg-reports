@@ -16,6 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	v1 "github.com/ministryofjustice/opg-reports/convertor/v1"
+	"github.com/ministryofjustice/opg-reports/info"
 	"github.com/ministryofjustice/opg-reports/internal/structs"
 	"github.com/ministryofjustice/opg-reports/models"
 	"github.com/ministryofjustice/opg-reports/pkg/awscfg"
@@ -23,7 +24,7 @@ import (
 )
 
 const (
-	bucketName string = "report-data-development"
+	bucketName string = info.BucketName
 )
 
 var (

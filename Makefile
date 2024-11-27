@@ -4,14 +4,18 @@ BUCKET_PROFILE ?= shared-development-operator
 #============ BUILD INFO ==============
 BUILD_DIR = ./builds/
 API_VERSION = v1
+
 COMMIT = $(shell git rev-parse HEAD)
-ORGANISATION = OPG
-SEMVER ?= v0.0.1
-MODE ?= simple
 TIMESTAMP = $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
+SEMVER ?= v0.0.1
+
+ORGANISATION = OPG
+DATASET ?= real
+FIXTURES ?= simple
+BUCKET_NAME ?= report-data-development
 #======================================
-pkg=github.com/ministryofjustice/opg-reports/pkg
-LDFLAGS:=" -X '${pkg}/bi.ApiVersion=${API_VERSION}' -X '${pkg}/bi.Commit=${COMMIT}' -X '${pkg}/bi.Organisation=${ORGANISATION}' -X '${pkg}/bi.Semver=${SEMVER}' -X '${pkg}/bi.Timestamp=${TIMESTAMP}' -X '${pkg}/bi.Mode=${MODE}' "
+pkg=github.com/ministryofjustice/opg-reports/info
+LDFLAGS:="-X '${pkg}.Commit=${COMMIT}' -X '${pkg}.Timestamp=${TIMESTAMP}' -X '${pkg}.Semver=${SEMVER}' -X '${pkg}.Organisation=${ORGANISATION}' -X '${pkg}.Dataset=${DATASET}' -X '${pkg}.Fixtures=${FIXTURES}' -X '${pkg}.BucketName=${BUCKET_NAME}'"
 #======================================
 tick="✅"
 
@@ -50,15 +54,17 @@ openapi:
 
 ## Output build info
 buildinfo:
+	@echo "=== BUILD INFO"
+	@echo "COMMIT:         ${COMMIT}"
+	@echo "TIMESTAMP:      ${TIMESTAMP}"
+	@echo "SEMVER:         ${SEMVER}"
+	@echo "=== CONFIG INFO"
+	@echo "ORGANISATION:   ${ORGANISATION}"
+	@echo "DATASET:        ${DATASET}"
+	@echo "FIXTURES:       ${FIXTURES}"
+	@echo "BUCKET_NAME:    ${BUCKET_NAME}"
 	@echo "=== PARAMS"
 	@echo "BUCKET_PROFILE: ${BUCKET_PROFILE}"
-	@echo "=== BUILD INFO"
-	@echo "API_VERSION:    ${API_VERSION}"
-	@echo "COMMIT:         ${COMMIT}"
-	@echo "MODE:           ${MODE}"
-	@echo "ORGANISATION:   ${ORGANISATION}"
-	@echo "SEMVER:         ${SEMVER}"
-	@echo "TIMESTAMP:      ${TIMESTAMP}"
 	@echo "==="
 .PHONY: buildinfo
 
