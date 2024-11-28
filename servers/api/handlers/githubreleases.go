@@ -68,11 +68,11 @@ SELECT
 		)
 	) filter ( where units.id is not null) as units
 FROM github_releases
-{WHERE}
 LEFT JOIN github_repositories ON github_repositories.id = github_releases.github_repository_id
 LEFT JOIN github_repositories_github_teams ON github_repositories_github_teams.github_repository_id = github_releases.github_repository_id
 LEFT JOIN github_teams_units ON github_teams_units.github_team_id = github_repositories_github_teams.github_team_id
 LEFT JOIN units ON units.id = github_teams_units.unit_id
+{WHERE}
 GROUP BY github_releases.id
 ORDER BY github_releases.date ASC;
 `

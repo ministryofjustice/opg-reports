@@ -23,18 +23,28 @@ func TestApiHandlersGitHubRepositoryStandardsListHandler(t *testing.T) {
 		adaptor  dbs.Adaptor
 		response *handlers.GitHubRepositoryStandardsListResponse
 		dir      string = t.TempDir()
-		// dir      string                     = "./"
+		// dir       string          = "./"
 		dbFile    string          = filepath.Join(dir, "test.db")
 		ctxKey    string          = lib.CTX_DB_KEY
 		ctx       context.Context = context.WithValue(context.Background(), ctxKey, dbFile)
+		units     []*models.Unit
+		teams     []*models.GitHubTeam
 		repos     []*models.GitHubRepository
 		standards []*models.GitHubRepositoryStandard
 	)
 	fakerextras.AddProviders()
 
+	units = fakermany.Fake[*models.Unit](1)
+	teams = fakermany.Fake[*models.GitHubTeam](1)
 	repos = fakermany.Fake[*models.GitHubRepository](5)
 	standards = fakermany.Fake[*models.GitHubRepositoryStandard](5)
 
+	for _, team := range teams {
+		team.Units = units
+	}
+	for _, repo := range repos {
+		repo.GitHubTeams = teams
+	}
 	for i, st := range standards {
 		st.GitHubRepository = (*models.GitHubRepositoryForeignKey)(repos[i])
 		st.GitHubRepositoryFullName = st.GitHubRepository.FullName
@@ -59,13 +69,15 @@ func TestApiHandlersGitHubRepositoryStandardsListHandler(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	// should return everything
+	// should return everything as we are only using 1 unit
 	response, err = handlers.ApiGitHubRepositoryStandardsListHandler(ctx, &inputs.VersionUnitInput{
 		Version: "v1",
+		Unit:    units[0].Name,
 	})
 	if err != nil {
 		t.Errorf("unexpected error: [%s]", err.Error())
 	}
+	// pretty.Print(response)
 
 	// check the response info
 	if handlers.GitHubRepositoryStandardsListOperationID != response.Body.Operation {

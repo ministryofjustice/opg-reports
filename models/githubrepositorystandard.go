@@ -24,39 +24,42 @@ import (
 //   - dbs.Record
 //   - dbs.Cloneable
 type GitHubRepositoryStandard struct {
-	ID                             int                         `json:"id,omitempty" db:"id" faker:"-"`
-	Ts                             string                      `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."` // TS is timestamp when the record was created
-	CompliantBaseline              uint8                       `json:"compliant_baseline,omitempty" db:"compliant_baseline" faker:"oneof: 0, 1"`
-	CompliantExtended              uint8                       `json:"compliant_extended,omitempty" db:"compliant_extended" faker:"oneof: 0, 1"`
-	CountOfClones                  int                         `json:"count_of_clones,omitempty" db:"count_of_clones" faker:"oneof: 0, 1"`
-	CountOfForks                   int                         `json:"count_of_forks,omitempty" db:"count_of_forks" faker:"oneof: 0, 1"`
-	CountOfPullRequests            int                         `json:"count_of_pull_requests,omitempty" db:"count_of_pull_requests" faker:"oneof: 0, 1"`
-	CountOfWebHooks                int                         `json:"count_of_web_hooks,omitempty" db:"count_of_web_hooks" faker:"oneof: 0, 1"`
-	DefaultBranch                  string                      `json:"default_branch,omitempty" db:"default_branch" faker:"oneof: main, master"`
-	HasCodeOfConduct               uint8                       `json:"has_code_of_conduct,omitempty" db:"has_code_of_conduct" faker:"oneof: 0, 1"`
-	HasCodeownerApprovalRequired   uint8                       `json:"has_codeowner_approval_required,omitempty" db:"has_codeowner_approval_required" faker:"oneof: 0, 1"`
-	HasContributingGuide           uint8                       `json:"has_contributing_guide,omitempty" db:"has_contributing_guide" faker:"oneof: 0, 1"`
-	HasDefaultBranchOfMain         uint8                       `json:"has_default_branch_of_main,omitempty" db:"has_default_branch_of_main" faker:"oneof: 0, 1"`
-	HasDefaultBranchProtection     uint8                       `json:"has_default_branch_protection,omitempty" db:"has_default_branch_protection" faker:"oneof: 0, 1"`
-	HasDeleteBranchOnMerge         uint8                       `json:"has_delete_branch_on_merge,omitempty" db:"has_delete_branch_on_merge" faker:"oneof: 0, 1"`
-	HasDescription                 uint8                       `json:"has_description,omitempty" db:"has_description" faker:"oneof: 0, 1"`
-	HasDiscussions                 uint8                       `json:"has_discussions,omitempty" db:"has_discussions" faker:"oneof: 0, 1"`
-	HasDownloads                   uint8                       `json:"has_downloads,omitempty" db:"has_downloads" faker:"oneof: 0, 1"`
-	HasIssues                      uint8                       `json:"has_issues,omitempty" db:"has_issues" faker:"oneof: 0, 1"`
-	HasLicense                     uint8                       `json:"has_license,omitempty" db:"has_license" faker:"oneof: 0, 1"`
-	HasPages                       uint8                       `json:"has_pages,omitempty" db:"has_pages" faker:"oneof: 0, 1"`
-	HasPullRequestApprovalRequired uint8                       `json:"has_pull_request_approval_required,omitempty" db:"has_pull_request_approval_required" faker:"oneof: 0, 1"`
-	HasReadme                      uint8                       `json:"has_readme,omitempty" db:"has_readme" faker:"oneof: 0, 1"`
-	HasRulesEnforcedForAdmins      uint8                       `json:"has_rules_enforced_for_admins,omitempty" db:"has_rules_enforced_for_admins" faker:"oneof: 0, 1"`
-	HasVulnerabilityAlerts         uint8                       `json:"has_vulnerability_alerts,omitempty" db:"has_vulnerability_alerts" faker:"oneof: 0, 1"`
-	HasWiki                        uint8                       `json:"has_wiki,omitempty" db:"has_wiki" faker:"oneof: 0, 1"`
-	IsArchived                     uint8                       `json:"is_archived,omitempty" db:"is_archived" faker:"oneof: 0, 1"`
-	IsPrivate                      uint8                       `json:"is_private,omitempty" db:"is_private" faker:"oneof: 0, 1"`
-	License                        string                      `json:"license,omitempty" db:"license" faker:"oneof: MIT, GPL"`
-	LastCommitDate                 string                      `json:"last_commit_date,omitempty" db:"last_commit_date" faker:"date_string"`
-	GitHubRepositoryFullName       string                      `json:"github_repository_full_name,omitempty" db:"github_repository_full_name" faker:"-"`
-	GitHubRepositoryID             int                         `json:"github_repository_id,omitempty" db:"github_repository_id" faker:"-"`
-	GitHubRepository               *GitHubRepositoryForeignKey `json:"github_repository,omitempty" db:"github_repository" faker:"-"`
+	ID                             int    `json:"id,omitempty" db:"id" faker:"-"`
+	Ts                             string `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."` // TS is timestamp when the record was created
+	CompliantBaseline              uint8  `json:"compliant_baseline,omitempty" db:"compliant_baseline" faker:"oneof: 0, 1"`
+	CompliantExtended              uint8  `json:"compliant_extended,omitempty" db:"compliant_extended" faker:"oneof: 0, 1"`
+	CountOfClones                  int    `json:"count_of_clones,omitempty" db:"count_of_clones" faker:"oneof: 0, 1"`
+	CountOfForks                   int    `json:"count_of_forks,omitempty" db:"count_of_forks" faker:"oneof: 0, 1"`
+	CountOfPullRequests            int    `json:"count_of_pull_requests,omitempty" db:"count_of_pull_requests" faker:"oneof: 0, 1"`
+	CountOfWebHooks                int    `json:"count_of_web_hooks,omitempty" db:"count_of_web_hooks" faker:"oneof: 0, 1"`
+	DefaultBranch                  string `json:"default_branch,omitempty" db:"default_branch" faker:"oneof: main, master"`
+	HasCodeOfConduct               uint8  `json:"has_code_of_conduct,omitempty" db:"has_code_of_conduct" faker:"oneof: 0, 1"`
+	HasCodeownerApprovalRequired   uint8  `json:"has_codeowner_approval_required,omitempty" db:"has_codeowner_approval_required" faker:"oneof: 0, 1"`
+	HasContributingGuide           uint8  `json:"has_contributing_guide,omitempty" db:"has_contributing_guide" faker:"oneof: 0, 1"`
+	HasDefaultBranchOfMain         uint8  `json:"has_default_branch_of_main,omitempty" db:"has_default_branch_of_main" faker:"oneof: 0, 1"`
+	HasDefaultBranchProtection     uint8  `json:"has_default_branch_protection,omitempty" db:"has_default_branch_protection" faker:"oneof: 0, 1"`
+	HasDeleteBranchOnMerge         uint8  `json:"has_delete_branch_on_merge,omitempty" db:"has_delete_branch_on_merge" faker:"oneof: 0, 1"`
+	HasDescription                 uint8  `json:"has_description,omitempty" db:"has_description" faker:"oneof: 0, 1"`
+	HasDiscussions                 uint8  `json:"has_discussions,omitempty" db:"has_discussions" faker:"oneof: 0, 1"`
+	HasDownloads                   uint8  `json:"has_downloads,omitempty" db:"has_downloads" faker:"oneof: 0, 1"`
+	HasIssues                      uint8  `json:"has_issues,omitempty" db:"has_issues" faker:"oneof: 0, 1"`
+	HasLicense                     uint8  `json:"has_license,omitempty" db:"has_license" faker:"oneof: 0, 1"`
+	HasPages                       uint8  `json:"has_pages,omitempty" db:"has_pages" faker:"oneof: 0, 1"`
+	HasPullRequestApprovalRequired uint8  `json:"has_pull_request_approval_required,omitempty" db:"has_pull_request_approval_required" faker:"oneof: 0, 1"`
+	HasReadme                      uint8  `json:"has_readme,omitempty" db:"has_readme" faker:"oneof: 0, 1"`
+	HasRulesEnforcedForAdmins      uint8  `json:"has_rules_enforced_for_admins,omitempty" db:"has_rules_enforced_for_admins" faker:"oneof: 0, 1"`
+	HasVulnerabilityAlerts         uint8  `json:"has_vulnerability_alerts,omitempty" db:"has_vulnerability_alerts" faker:"oneof: 0, 1"`
+	HasWiki                        uint8  `json:"has_wiki,omitempty" db:"has_wiki" faker:"oneof: 0, 1"`
+	IsArchived                     uint8  `json:"is_archived,omitempty" db:"is_archived" faker:"oneof: 0, 1"`
+	IsPrivate                      uint8  `json:"is_private,omitempty" db:"is_private" faker:"oneof: 0, 1"`
+	License                        string `json:"license,omitempty" db:"license" faker:"oneof: MIT, GPL"`
+	LastCommitDate                 string `json:"last_commit_date,omitempty" db:"last_commit_date" faker:"date_string"`
+	// Joins to the repository
+	GitHubRepositoryFullName string                      `json:"github_repository_full_name,omitempty" db:"github_repository_full_name" faker:"-"`
+	GitHubRepositoryID       int                         `json:"github_repository_id,omitempty" db:"github_repository_id" faker:"-"`
+	GitHubRepository         *GitHubRepositoryForeignKey `json:"github_repository,omitempty" db:"github_repository" faker:"-"`
+	// Indirect info thats returned in some api endpoints to allow filtering by the unit
+	Units Units `json:"units,omitempty" db:"units" faker:"-"`
 }
 
 // UniqueValue returns the value representing the value of

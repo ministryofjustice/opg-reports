@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
@@ -54,10 +55,22 @@ SELECT
 		'private', github_repositories.private,
 		'license', github_repositories.license,
 		'last_commit_date', github_repositories.last_commit_date
-	) as github_repository
+	) as github_repository,
+	json_group_array(
+		DISTINCT json_object(
+			'id', units.id,
+			'name', units.name
+		)
+	) as units
 FROM github_repository_standards
 LEFT JOIN github_repositories on github_repositories.id = github_repository_standards.github_repository_id
-ORDER BY github_repository_standards.github_repository_full_name ASC;
+LEFT JOIN github_repositories_github_teams ON github_repositories_github_teams.github_repository_id = github_repository_standards.github_repository_id
+LEFT JOIN github_teams_units ON github_teams_units.github_team_id = github_repositories_github_teams.github_team_id
+LEFT JOIN units on units.id = github_teams_units.unit_id
+{WHERE}
+GROUP BY github_repository_standards.id
+ORDER BY github_repository_standards.github_repository_full_name ASC
+;
 `
 
 // ApiGitHubRepositoryStandardsListHandler accepts and processes requests to the below endpoints.
@@ -73,6 +86,8 @@ func ApiGitHubRepositoryStandardsListHandler(ctx context.Context, input *inputs.
 		results []*models.GitHubRepositoryStandard = []*models.GitHubRepositoryStandard{}
 		dbPath  string                             = ctx.Value(dbPathKey).(string)
 		sqlStmt string                             = gitHubRepositoryStandardsListSQL
+		where   string                             = ""
+		replace string                             = "{WHERE}"
 		param   statements.Named                   = input
 		body    *GitHubRepositoryStandardsListBody = &GitHubRepositoryStandardsListBody{
 			Request:   input,
@@ -81,7 +96,13 @@ func ApiGitHubRepositoryStandardsListHandler(ctx context.Context, input *inputs.
 	)
 	// setup response
 	response = &GitHubRepositoryStandardsListResponse{}
-
+	// check for unit
+	if input.Unit != "" {
+		where = "AND units.Name = :unit "
+		sqlStmt = strings.ReplaceAll(sqlStmt, replace, where)
+	} else {
+		sqlStmt = strings.ReplaceAll(sqlStmt, replace, where)
+	}
 	// hook up adaptor
 	adaptor, err = adaptors.NewSqlite(dbPath, false)
 	if err != nil {
