@@ -5,6 +5,7 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/ministryofjustice/opg-reports/internal/dateformats"
+	"github.com/ministryofjustice/opg-reports/internal/dateintervals"
 	"github.com/ministryofjustice/opg-reports/pkg/convert"
 )
 
@@ -65,11 +66,16 @@ func (self *RequiredGroupedDateRangeInput) Start() (t time.Time) {
 	}
 	return
 }
+
 func (self *RequiredGroupedDateRangeInput) End() (t time.Time) {
 	if val, err := convert.ToTime(self.EndDate); err == nil {
 		t = val
 	}
 	return
+}
+
+func (self *RequiredGroupedDateRangeInput) GetInterval() dateintervals.Interval {
+	return dateintervals.Interval(self.Interval)
 }
 
 // Resolve to convert the interval input param into a date format for the db call
@@ -100,11 +106,16 @@ func (self *RequiredGroupedDateRangeUnitInput) Start() (t time.Time) {
 	}
 	return
 }
+
 func (self *RequiredGroupedDateRangeUnitInput) End() (t time.Time) {
 	if val, err := convert.ToTime(self.EndDate); err == nil {
 		t = val
 	}
 	return
+}
+
+func (self *RequiredGroupedDateRangeUnitInput) GetInterval() dateintervals.Interval {
+	return dateintervals.Interval(self.Interval)
 }
 
 // Resolve to convert the interval input param into a date format for the db call

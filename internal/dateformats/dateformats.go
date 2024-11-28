@@ -4,8 +4,6 @@ package dateformats
 
 import "time"
 
-type Format string
-
 const (
 	Full string = time.RFC3339
 	Y    string = "2006"
@@ -20,7 +18,7 @@ const (
 
 // sqlite date formats
 const (
-	SqliteY   Format = "%Y"
-	SqliteYM  Format = "%Y-%m"
-	SqliteYMD Format = "%Y-%m-%d"
+	SqliteY   string = "%Y"
+	SqliteYM  string = "%Y-%m"
+	SqliteYMD string = "%Y-%m-%d"
 )

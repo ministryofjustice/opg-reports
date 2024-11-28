@@ -13,7 +13,7 @@ import (
 )
 
 // formats are a series of date formats used by sqlite to handle the various intervals
-var sqliteFormats = map[dateintervals.Interval]dateformats.Format{
+var sqliteFormats = map[dateintervals.Interval]string{
 	dateintervals.Year:  dateformats.SqliteY,
 	dateintervals.Month: dateformats.SqliteYM,
 	dateintervals.Day:   dateformats.SqliteYMD,
@@ -33,7 +33,7 @@ type SqliteFormatting struct{}
 
 // Date returns a sqlite date format that used to group / filter by time period requested.
 // So 'Year' => '%Y', 'Month' => '%Y-%m'
-func (self *SqliteFormatting) Date(interval dateintervals.Interval) (layout dateformats.Format) {
+func (self *SqliteFormatting) Date(interval dateintervals.Interval) (layout string) {
 	var ok bool
 	if layout, ok = sqliteFormats[interval]; !ok {
 		layout = dateformats.SqliteYM

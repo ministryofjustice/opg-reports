@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/danielgtaylor/huma/v2"
+	"github.com/ministryofjustice/opg-reports/internal/cols"
+	"github.com/ministryofjustice/opg-reports/internal/dateutils"
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
 	"github.com/ministryofjustice/opg-reports/internal/dbs/adaptors"
 	"github.com/ministryofjustice/opg-reports/internal/dbs/crud"
@@ -132,11 +134,15 @@ func ApiGitHubReleasesListHandler(ctx context.Context, input *inputs.OptionalDat
 
 // GitHubReleasesCountBody contains the resposne details for a request to the /count
 // endpoint
+// Tabular
 type GitHubReleasesCountBody struct {
-	Operation string                                    `json:"operation,omitempty" doc:"contains the operation id"`
-	Request   *inputs.RequiredGroupedDateRangeUnitInput `json:"request,omitempty" doc:"the original request"`
-	Result    []*models.GitHubRelease                   `json:"result,omitempty" doc:"list of all units returned by the api."`
-	Errors    []error                                   `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
+	Operation    string                                    `json:"operation,omitempty" doc:"contains the operation id"`
+	Request      *inputs.RequiredGroupedDateRangeUnitInput `json:"request,omitempty" doc:"the original request"`
+	Result       []*models.GitHubRelease                   `json:"result,omitempty" doc:"list of all units returned by the api."`
+	DateRange    []string                                  `json:"date_range,omitempty" db:"-" doc:"all dates within the range requested"`
+	ColumnOrder  []string                                  `json:"column_order" db:"-" doc:"List of columns set in the order they should be rendered for each row."`
+	ColumnValues map[string][]interface{}                  `json:"column_values" db:"-" doc:"Contains all of the ordered columns possible values, to help display rendering."`
+	Errors       []error                                   `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
 }
 
 // GitHubReleasesCountResponse is used by the /count endpoint
@@ -182,8 +188,14 @@ func ApiGitHubReleasesCountHandler(ctx context.Context, input *inputs.RequiredGr
 		sqlStmt string                   = gitHubReleasesCountSQL
 		param   statements.Named         = input
 		body    *GitHubReleasesCountBody = &GitHubReleasesCountBody{
-			Request:   input,
-			Operation: GitHubReleasesCountOperationID,
+			Request:     input,
+			Operation:   GitHubReleasesCountOperationID,
+			DateRange:   dateutils.Dates(input.Start(), input.End(), input.GetInterval()),
+			ColumnOrder: []string{"unit"},
+			// hard code the unit column to only have the word count
+			ColumnValues: map[string][]interface{}{
+				"unit": {"count"},
+			},
 		}
 	)
 	// setup response
@@ -222,10 +234,13 @@ func ApiGitHubReleasesCountHandler(ctx context.Context, input *inputs.RequiredGr
 // GitHubReleasesCountPerUnitBody contains the resposne details for a request to the /count-per-unit
 // endpoint
 type GitHubReleasesCountPerUnitBody struct {
-	Operation string                                `json:"operation,omitempty" doc:"contains the operation id"`
-	Request   *inputs.RequiredGroupedDateRangeInput `json:"request,omitempty" doc:"the original request"`
-	Result    []*models.GitHubRelease               `json:"result,omitempty" doc:"list of all units returned by the api."`
-	Errors    []error                               `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
+	Operation    string                                `json:"operation,omitempty" doc:"contains the operation id"`
+	Request      *inputs.RequiredGroupedDateRangeInput `json:"request,omitempty" doc:"the original request"`
+	Result       []*models.GitHubRelease               `json:"result,omitempty" doc:"list of all units returned by the api."`
+	DateRange    []string                              `json:"date_range,omitempty" db:"-" doc:"all dates within the range requested"`
+	ColumnOrder  []string                              `json:"column_order" db:"-" doc:"List of columns set in the order they should be rendered for each row."`
+	ColumnValues map[string][]interface{}              `json:"column_values" db:"-" doc:"Contains all of the ordered columns possible values, to help display rendering."`
+	Errors       []error                               `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
 }
 
 // GitHubReleasesCountResponse is used by the /count endpoint
@@ -273,8 +288,10 @@ func ApiGitHubReleasesCountPerUnitHandler(ctx context.Context, input *inputs.Req
 		sqlStmt string                          = gitHubReleasesCountPerUnitSQL
 		param   statements.Named                = input
 		body    *GitHubReleasesCountPerUnitBody = &GitHubReleasesCountPerUnitBody{
-			Request:   input,
-			Operation: GitHubReleasesCountPerUnitOperationID,
+			Request:     input,
+			Operation:   GitHubReleasesCountPerUnitOperationID,
+			DateRange:   dateutils.Dates(input.Start(), input.End(), input.GetInterval()),
+			ColumnOrder: []string{"unit"},
 		}
 	)
 	// setup response
@@ -296,6 +313,7 @@ func ApiGitHubReleasesCountPerUnitHandler(ctx context.Context, input *inputs.Req
 	}
 	// blank the date format
 	body.Request.DateFormat = ""
+	body.ColumnValues = cols.Values(body.Result, body.ColumnOrder)
 	response.Body = body
 	return
 }

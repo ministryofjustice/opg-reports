@@ -5,7 +5,6 @@ import (
 	"context"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/ministryofjustice/opg-reports/internal/dateformats"
 	"github.com/ministryofjustice/opg-reports/internal/dateintervals"
 )
 
@@ -65,5 +64,5 @@ type Transactioner interface {
 // Formatter interface provides methods for db specific formatting within sql statements
 // to handle how varying db's use differing date formats etc
 type Formatter interface {
-	Date(interval dateintervals.Interval) (layout dateformats.Format)
+	Date(interval dateintervals.Interval) (layout string)
 }
