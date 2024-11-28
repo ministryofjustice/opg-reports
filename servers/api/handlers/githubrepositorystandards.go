@@ -79,7 +79,7 @@ ORDER BY github_repository_standards.github_repository_full_name ASC
 //
 // Endpoints:
 //
-//	/version/github/standards/list
+//	/version/github/standards/list?unit=<unit>
 func ApiGitHubRepositoryStandardsListHandler(ctx context.Context, input *inputs.VersionUnitInput) (response *GitHubRepositoryStandardsListResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
