@@ -21,7 +21,7 @@ var (
 	AwsAccountsTags    []string = []string{"aws", "accounts"}
 )
 
-// -- Release listing
+// -- Account listing
 
 // AwsAccountsListBody contains the resposne body to send back
 // for a request to the /list endpoint

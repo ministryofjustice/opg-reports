@@ -20,15 +20,26 @@ type VersionUnitInput struct {
 	Unit    string `json:"unit,omitempty" query:"unit" db:"unit" doc:"Unit name to filter data by"`
 }
 
-// // DateRangeInput describes input parameters to capture the start and end of a date range
-// // The date range is >= start_date < end_date so in the case covering all of Jan 2024
-// // you would want 2024-01-01 & 2024-02-01
-// // This makes find last days easier for users
-// type DateRangeInput struct {
-// 	Version   string `json:"version" db:"-" path:"version" required:"true" doc:"Version prefix for the api" default:"v1" enum:"v1"`
-// 	StartDate string `json:"start_date" db:"start_date" path:"start_date" required:"true" doc:"Earliest date to start the data (uses >=). YYYY-MM-DD." example:"2022-01-01" pattern:"([0-9]{4}-[0-9]{2}-[0-9]{2})"`
-// 	EndDate   string `json:"end_date" db:"end_date" path:"end_date" required:"true" doc:"Latest date to capture the data for (uses <). YYYY-MM-DD."  example:"2024-04-01" pattern:"([0-9]{4}-[0-9]{2}-[0-9]{2})"`
-// }
+// DateRangeInput
+type DateRangeUnitInput struct {
+	Version   string `json:"version,omitempty" db:"-" path:"version" required:"true" doc:"Version prefix for the api" default:"v1" enum:"v1"`
+	Unit      string `json:"unit,omitempty" query:"unit" db:"unit" doc:"Unit name to filter data by"`
+	StartDate string `json:"start_date,omitempty" db:"start_date" path:"start_date" doc:"Earliest date to start the data (uses >=). YYYY-MM-DD." example:"2022-01-01" pattern:"([0-9]{4}-[0-9]{2}-[0-9]{2})"`
+	EndDate   string `json:"end_date,omitempty" db:"end_date" path:"end_date" doc:"Latest date to capture the data for (uses <). YYYY-MM-DD."  example:"2024-04-01" pattern:"([0-9]{4}-[0-9]{2}-[0-9]{2})"`
+}
+
+func (self *DateRangeUnitInput) Start() (t time.Time) {
+	if val, err := convert.ToTime(self.StartDate); err == nil {
+		t = val
+	}
+	return
+}
+func (self *DateRangeUnitInput) End() (t time.Time) {
+	if val, err := convert.ToTime(self.EndDate); err == nil {
+		t = val
+	}
+	return
+}
 
 // OptionalDateRangeInput
 type OptionalDateRangeInput struct {
