@@ -11,7 +11,6 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/dbs/crud"
 	"github.com/ministryofjustice/opg-reports/internal/fakerextensions/fakerextras"
 	"github.com/ministryofjustice/opg-reports/internal/fakerextensions/fakermany"
-	"github.com/ministryofjustice/opg-reports/internal/pretty"
 	"github.com/ministryofjustice/opg-reports/models"
 	"github.com/ministryofjustice/opg-reports/seed"
 	"github.com/ministryofjustice/opg-reports/servers/api/handlers"
@@ -199,6 +198,10 @@ func TestApiHandlersGitHubReleasesCountHandler(t *testing.T) {
 
 }
 
+// TestApiHandlersGitHubReleasesCountPerUnitHandler creates and seed a database
+// containing 100 releases, all contected to the same repository and single team.
+// This allows check the grouping and count per time period is working correctly
+// as the sum of all counts == number of inserted releases.
 func TestApiHandlersGitHubReleasesCountPerUnitHandler(t *testing.T) {
 	var (
 		err      error
@@ -210,25 +213,23 @@ func TestApiHandlersGitHubReleasesCountPerUnitHandler(t *testing.T) {
 		ctxKey   string          = lib.CTX_DB_KEY
 		ctx      context.Context = context.WithValue(context.Background(), ctxKey, dbFile)
 		repos    []*models.GitHubRepository
-		units    []*models.Unit
 		teams    []*models.GitHubTeam
 		releases []*models.GitHubRelease
 	)
 	fakerextras.AddProviders()
 
-	units = fakermany.Fake[*models.Unit](5)
-	teams = fakermany.Fake[*models.GitHubTeam](5)
-	repos = fakermany.Fake[*models.GitHubRepository](5)
-	releases = fakermany.Fake[*models.GitHubRelease](5)
+	repos = fakermany.Fake[*models.GitHubRepository](1)
+	teams = fakermany.Fake[*models.GitHubTeam](1)
+	releases = fakermany.Fake[*models.GitHubRelease](100)
 
-	for i, team := range teams {
-		var r = repos[i]
-		var set = []*models.GitHubRepository{r}
-		var us = []*models.Unit{units[i]}
-		team.Units = us
-		team.GitHubRepositories = set
-		r.GitHubTeams = []*models.GitHubTeam{team}
+	for _, repo := range repos {
+		repo.GitHubTeams = teams
 	}
+
+	for _, release := range releases {
+		release.GitHubRepository = (*models.GitHubRepositoryForeignKey)(repos[0])
+	}
+
 	// generate adaptor
 	adaptor, err = adaptors.NewSqlite(dbFile, false)
 	if err != nil {
@@ -241,15 +242,7 @@ func TestApiHandlersGitHubReleasesCountPerUnitHandler(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	// seed the teams and units
-	_, err = seed.GitHubTeams(ctx, adaptor, teams)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
 
-	for i, release := range releases {
-		release.GitHubRepository = (*models.GitHubRepositoryForeignKey)(repos[i])
-	}
 	// seed releases
 	_, err = seed.GitHubReleases(ctx, adaptor, releases)
 	if err != nil {
@@ -272,19 +265,16 @@ func TestApiHandlersGitHubReleasesCountPerUnitHandler(t *testing.T) {
 		t.Errorf("unexpected error: [%s]", err.Error())
 	}
 
-	pretty.Print(response)
-
 	// check the response info
 	if handlers.GitHubReleasesCountPerUnitOperationID != response.Body.Operation {
 		t.Errorf("operation did not match - expected [%s] actual [%v]", handlers.GitHubReleasesCountPerUnitOperationID, response.Body.Operation)
 	}
-	// as releases are tied to repos and repos have multiple teams and units, the number of releases
-	// per team wont directly equal the number inserted, but should be at least the same
+	// as we've inserted only one unit & one repo then the releases should tally exactly
 	total := 0
 	for _, row := range response.Body.Result {
 		total += row.Count
 	}
-	if len(releases) >= total {
+	if len(releases) != total {
 		t.Errorf("error with number of results - expected [%d] actual [%v]", len(releases), total)
 	}
 
