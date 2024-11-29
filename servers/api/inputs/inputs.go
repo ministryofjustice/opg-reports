@@ -91,12 +91,12 @@ func (self *RequiredGroupedDateRangeInput) GetInterval() dateintervals.Interval 
 
 // Resolve to convert the interval input param into a date format for the db call
 func (self *RequiredGroupedDateRangeInput) Resolve(ctx huma.Context) []error {
-	self.DateFormat = string(dateformats.SqliteYM)
+	self.DateFormat = dateformats.SqliteYM
 
 	if self.Interval == "year" {
-		self.DateFormat = string(dateformats.SqliteY)
+		self.DateFormat = dateformats.SqliteY
 	} else if self.Interval == "day" {
-		self.DateFormat = string(dateformats.SqliteYMD)
+		self.DateFormat = dateformats.SqliteYMD
 	}
 	return nil
 }
@@ -131,12 +131,12 @@ func (self *RequiredGroupedDateRangeUnitInput) GetInterval() dateintervals.Inter
 
 // Resolve to convert the interval input param into a date format for the db call
 func (self *RequiredGroupedDateRangeUnitInput) Resolve(ctx huma.Context) []error {
-	self.DateFormat = string(dateformats.SqliteYM)
+	self.DateFormat = dateformats.SqliteYM
 
 	if self.Interval == "year" {
-		self.DateFormat = string(dateformats.SqliteY)
+		self.DateFormat = dateformats.SqliteY
 	} else if self.Interval == "day" {
-		self.DateFormat = string(dateformats.SqliteYMD)
+		self.DateFormat = dateformats.SqliteYMD
 	}
 	return nil
 }

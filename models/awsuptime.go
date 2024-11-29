@@ -27,6 +27,9 @@ type AwsUptime struct {
 	AwsAccount   *AwsAccountForeignKey `json:"aws_account,omitempty" db:"aws_account" faker:"-"`
 	// Unit is indirectly fetched via the aws_account -> unit join, this is used to capture that
 	Unit *UnitForeignKey `json:"unit,omitempty" db:"unit" faker:"-"`
+	// Used for query results
+	UnitName string `json:"unit_name,omitempty" db:"unit_name" faker:"-"`
+	Count    int    `json:"count" db:"count" faker:"-"`
 }
 
 // UniqueValue returns the value representing the value of
