@@ -19,7 +19,7 @@ import (
 type AwsUptime struct {
 	ID      int     `json:"id,omitempty" db:"id" faker:"-"`
 	Ts      string  `json:"ts,omitempty" db:"ts" faker:"time_string" doc:"Time the record was created."`
-	Date    string  `json:"date,omitempty" db:"date" faker:"date_string" doc:"Date this cost was generated."` // The interval date for when this uptime was logged
+	Date    string  `json:"date,omitempty" db:"date" faker:"time_string" doc:"Date this cost was generated."` // The interval date for when this uptime was logged
 	Average float64 `json:"average,omitempty" db:"average" doc:"Percentage uptime average for this record period."`
 
 	// Join to the aws account - uptime has one account, account has many uptimes

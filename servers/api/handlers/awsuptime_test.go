@@ -11,7 +11,6 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/dbs/crud"
 	"github.com/ministryofjustice/opg-reports/internal/fakerextensions/fakerextras"
 	"github.com/ministryofjustice/opg-reports/internal/fakerextensions/fakermany"
-	"github.com/ministryofjustice/opg-reports/internal/pretty"
 	"github.com/ministryofjustice/opg-reports/models"
 	"github.com/ministryofjustice/opg-reports/seed"
 	"github.com/ministryofjustice/opg-reports/servers/api/handlers"
@@ -207,9 +206,18 @@ func TestApiHandlersAwsUptimeAveragesPerUnit(t *testing.T) {
 		t.Errorf("unexpected error: [%s]", err.Error())
 	}
 
+	total := 0
+	for _, r := range response.Body.Result {
+		total += r.Count
+	}
+
 	// check the response info
 	if handlers.AwsUptimeAveragesPerUnitOperationID != response.Body.Operation {
 		t.Errorf("operation did not match - expected [%s] actual [%v]", handlers.AwsUptimeAveragesPerUnitOperationID, response.Body.Operation)
 	}
-	pretty.Print(response)
+
+	// the total sum of the counts should match the number creates
+	if len(uptime) != total {
+		t.Errorf("error with number of results - expected at least [%d] actual [%v]", len(uptime), total)
+	}
 }
