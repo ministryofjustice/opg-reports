@@ -14,14 +14,14 @@ import (
 	"github.com/ministryofjustice/opg-reports/seed"
 	"github.com/ministryofjustice/opg-reports/servers/api/handlers"
 	"github.com/ministryofjustice/opg-reports/servers/api/lib"
-	"github.com/ministryofjustice/opg-reports/servers/inputs"
+	"github.com/ministryofjustice/opg-reports/servers/inout"
 )
 
 func TestApiHandlersGitHubTeamsHandler(t *testing.T) {
 	var (
 		err      error
 		adaptor  dbs.Adaptor
-		response *handlers.GitHubTeamsResponse
+		response *inout.GitHubTeamsResponse
 		dir      string = t.TempDir()
 		// dir      string                     = "./"
 		dbFile   string                     = filepath.Join(dir, "test.db")
@@ -61,7 +61,7 @@ func TestApiHandlersGitHubTeamsHandler(t *testing.T) {
 		t.Errorf("error inserting - expected [%d] actual [%v]", len(teams), len(inserted))
 	}
 	// should return everything
-	response, err = handlers.ApiGitHubTeamsListHandler(ctx, &inputs.VersionUnitInput{
+	response, err = handlers.ApiGitHubTeamsListHandler(ctx, &inout.VersionUnitInput{
 		Version: "v1",
 		// Unit:    teams[0].Units[0].Name,
 	})
@@ -88,7 +88,7 @@ func TestApiHandlersGitHubTeamsHandler(t *testing.T) {
 			}
 		}
 	}
-	response, err = handlers.ApiGitHubTeamsListHandler(ctx, &inputs.VersionUnitInput{
+	response, err = handlers.ApiGitHubTeamsListHandler(ctx, &inout.VersionUnitInput{
 		Version: "v1",
 		Unit:    unit,
 	})

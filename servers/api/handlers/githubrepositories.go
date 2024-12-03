@@ -13,26 +13,13 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/dbs/crud"
 	"github.com/ministryofjustice/opg-reports/internal/dbs/statements"
 	"github.com/ministryofjustice/opg-reports/models"
-	"github.com/ministryofjustice/opg-reports/servers/inputs"
+	"github.com/ministryofjustice/opg-reports/servers/inout"
 )
 
 var (
 	GitHubRepositoriesSegment string   = "github/repositories"
 	GitHubRepositoriesTags    []string = []string{"GitHub repositories"}
 )
-
-// -- Release listing
-
-type GitHubRepositoriesListBody struct {
-	Operation string                     `json:"operation,omitempty" doc:"contains the operation id"`
-	Request   *inputs.VersionUnitInput   `json:"request,omitempty" doc:"the original request"`
-	Result    []*models.GitHubRepository `json:"result,omitempty" doc:"list of all units returned by the api."`
-	Errors    []error                    `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
-}
-
-type GitHubRepositoriesListResponse struct {
-	Body *GitHubRepositoriesListBody
-}
 
 const GitHubRepositoriesListOperationID string = "get-github-repositories-list"
 const GitHubRepositoriesListDescription string = `Returns all github repositories`
@@ -70,22 +57,22 @@ ORDER BY github_repositories.full_name ASC
 // Endpoints:
 //
 //	/version/github/repositories/list?unit=<unit>
-func ApiGitHubRepositoriesListHandler(ctx context.Context, input *inputs.VersionUnitInput) (response *GitHubRepositoriesListResponse, err error) {
+func ApiGitHubRepositoriesListHandler(ctx context.Context, input *inout.VersionUnitInput) (response *inout.GitHubRepositoriesListResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
-		results []*models.GitHubRepository  = []*models.GitHubRepository{}
-		dbPath  string                      = ctx.Value(dbPathKey).(string)
-		sqlStmt string                      = GitHubRepositoriesListSQL
-		where   string                      = ""
-		replace string                      = "{WHERE}"
-		param   statements.Named            = input
-		body    *GitHubRepositoriesListBody = &GitHubRepositoriesListBody{
+		results []*models.GitHubRepository        = []*models.GitHubRepository{}
+		dbPath  string                            = ctx.Value(dbPathKey).(string)
+		sqlStmt string                            = GitHubRepositoriesListSQL
+		where   string                            = ""
+		replace string                            = "{WHERE}"
+		param   statements.Named                  = input
+		body    *inout.GitHubRepositoriesListBody = &inout.GitHubRepositoriesListBody{
 			Request:   input,
 			Operation: GitHubRepositoriesListOperationID,
 		}
 	)
 	// setup response
-	response = &GitHubRepositoriesListResponse{}
+	response = &inout.GitHubRepositoriesListResponse{}
 	// check for unit
 	if input.Unit != "" {
 		where = "AND units.Name = :unit "

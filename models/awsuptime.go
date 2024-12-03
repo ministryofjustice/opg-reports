@@ -32,6 +32,20 @@ type AwsUptime struct {
 	Count    int    `json:"count" db:"count" faker:"-"`
 }
 
+// TDate
+// interfaces:
+//   - transformers.Transformable
+func (self *AwsUptime) TDate() string {
+	return self.Date
+}
+
+// TValue
+// interfaces:
+//   - transformers.Transformable
+func (self *AwsUptime) TValue() string {
+	return fmt.Sprintf("%g", self.Average)
+}
+
 // UniqueValue returns the value representing the value of
 // UniqueField
 //

@@ -1,4 +1,4 @@
-package inputs
+package inout
 
 import (
 	"time"

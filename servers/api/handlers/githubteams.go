@@ -13,25 +13,13 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/dbs/crud"
 	"github.com/ministryofjustice/opg-reports/internal/dbs/statements"
 	"github.com/ministryofjustice/opg-reports/models"
-	"github.com/ministryofjustice/opg-reports/servers/inputs"
+	"github.com/ministryofjustice/opg-reports/servers/inout"
 )
 
 var (
 	GitHubTeamsSegment string   = "github/teams"
 	GitHubTeamsTags    []string = []string{"GitHub teams"}
 )
-
-// --- github teams list
-
-type GitHubTeamsListBody struct {
-	Operation string                   `json:"operation,omitempty" doc:"contains the operation id"`
-	Request   *inputs.VersionUnitInput `json:"request,omitempty" doc:"the original request"`
-	Result    []*models.GitHubTeam     `json:"result,omitempty" doc:"list of all units returned by the api."`
-	Errors    []error                  `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
-}
-type GitHubTeamsResponse struct {
-	Body *GitHubTeamsListBody
-}
 
 const GitHubTeamsDescription string = `Returns all github teams within the database.`
 const GitHubTeamsOperationID string = "get-github-teams-list"
@@ -75,21 +63,21 @@ ORDER BY github_teams.slug ASC;
 // Endpoints:
 //
 //	/version/github/teams/list?unit=<unit>
-func ApiGitHubTeamsListHandler(ctx context.Context, input *inputs.VersionUnitInput) (response *GitHubTeamsResponse, err error) {
+func ApiGitHubTeamsListHandler(ctx context.Context, input *inout.VersionUnitInput) (response *inout.GitHubTeamsResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
-		results []*models.GitHubTeam = []*models.GitHubTeam{}
-		dbPath  string               = ctx.Value(dbPathKey).(string)
-		replace string               = "{WHERE}"
-		sqlStmt string               = gitHubTeamsSQL
-		param   statements.Named     = input
-		body    *GitHubTeamsListBody = &GitHubTeamsListBody{
+		results []*models.GitHubTeam       = []*models.GitHubTeam{}
+		dbPath  string                     = ctx.Value(dbPathKey).(string)
+		replace string                     = "{WHERE}"
+		sqlStmt string                     = gitHubTeamsSQL
+		param   statements.Named           = input
+		body    *inout.GitHubTeamsListBody = &inout.GitHubTeamsListBody{
 			Request:   input,
 			Operation: GitHubTeamsOperationID,
 		}
 	)
 	// setup response
-	response = &GitHubTeamsResponse{}
+	response = &inout.GitHubTeamsResponse{}
 	// if there is a unit, setup the where clause
 	// otherwise remove it
 	if input.Unit != "" {

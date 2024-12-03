@@ -13,29 +13,13 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/dbs/crud"
 	"github.com/ministryofjustice/opg-reports/internal/dbs/statements"
 	"github.com/ministryofjustice/opg-reports/models"
-	"github.com/ministryofjustice/opg-reports/servers/inputs"
+	"github.com/ministryofjustice/opg-reports/servers/inout"
 )
 
 var (
 	AwsAccountsSegment string   = "aws/accounts"
 	AwsAccountsTags    []string = []string{"AWS accounts"}
 )
-
-// -- Account listing
-
-// AwsAccountsListBody contains the resposne body to send back
-// for a request to the /list endpoint
-type AwsAccountsListBody struct {
-	Operation string                   `json:"operation,omitempty" doc:"contains the operation id"`
-	Request   *inputs.VersionUnitInput `json:"request,omitempty" doc:"the original request"`
-	Result    []*models.AwsAccount     `json:"result,omitempty" doc:"list of all units returned by the api."`
-	Errors    []error                  `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
-}
-
-// the main response struct
-type AwsAccountsListResponse struct {
-	Body *AwsAccountsListBody
-}
 
 const AwsAccountsListOperationID string = "get-aws-accounts-list"
 const AwsAccountsListDescription string = `Returns all aws accounts`
@@ -60,22 +44,22 @@ ORDER BY aws_accounts.name ASC;
 // Endpoints:
 //
 //	/version/aws/accounts/list
-func ApiAwsAccountsListHandler(ctx context.Context, input *inputs.VersionUnitInput) (response *AwsAccountsListResponse, err error) {
+func ApiAwsAccountsListHandler(ctx context.Context, input *inout.VersionUnitInput) (response *inout.AwsAccountsListResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
-		results []*models.AwsAccount = []*models.AwsAccount{}
-		dbPath  string               = ctx.Value(dbPathKey).(string)
-		sqlStmt string               = awsAccountsListSQL
-		where   string               = ""
-		replace string               = "{WHERE}"
-		param   statements.Named     = input
-		body    *AwsAccountsListBody = &AwsAccountsListBody{
+		results []*models.AwsAccount       = []*models.AwsAccount{}
+		dbPath  string                     = ctx.Value(dbPathKey).(string)
+		sqlStmt string                     = awsAccountsListSQL
+		where   string                     = ""
+		replace string                     = "{WHERE}"
+		param   statements.Named           = input
+		body    *inout.AwsAccountsListBody = &inout.AwsAccountsListBody{
 			Request:   input,
 			Operation: AwsAccountsListOperationID,
 		}
 	)
 	// setup response
-	response = &AwsAccountsListResponse{}
+	response = &inout.AwsAccountsListResponse{}
 	// check for unit
 	if input.Unit != "" {
 		where = "WHERE units.Name = :unit "

@@ -15,27 +15,13 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/dbs/crud"
 	"github.com/ministryofjustice/opg-reports/internal/dbs/statements"
 	"github.com/ministryofjustice/opg-reports/models"
-	"github.com/ministryofjustice/opg-reports/servers/inputs"
+	"github.com/ministryofjustice/opg-reports/servers/inout"
 )
 
 var (
 	AwsUptimeSegment string   = "aws/uptime"
 	AwsUptimeTags    []string = []string{"AWS uptime"}
 )
-
-// AwsUptimeListBody contains the resposne body to send back
-// for a request to the /list endpoint
-type AwsUptimeListBody struct {
-	Operation string                     `json:"operation,omitempty" doc:"contains the operation id"`
-	Request   *inputs.DateRangeUnitInput `json:"request,omitempty" doc:"the original request"`
-	Result    []*models.AwsUptime        `json:"result,omitempty" doc:"list of all units returned by the api."`
-	Errors    []error                    `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
-}
-
-// the main response struct
-type AwsUptimeListResponse struct {
-	Body *AwsUptimeListBody
-}
 
 const AwsUptimeListOperationID string = "get-aws-uptime-list"
 const AwsUptimeListDescription string = `Returns all uptime data between start and end dates.`
@@ -71,22 +57,22 @@ ORDER BY aws_uptime.date ASC;
 // Endpoints:
 //
 //	/version/aws/uptime/list?unit=<unit>
-func ApiAwsUptimeListHandler(ctx context.Context, input *inputs.DateRangeUnitInput) (response *AwsUptimeListResponse, err error) {
+func ApiAwsUptimeListHandler(ctx context.Context, input *inout.DateRangeUnitInput) (response *inout.AwsUptimeListResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
-		results []*models.AwsUptime = []*models.AwsUptime{}
-		dbPath  string              = ctx.Value(dbPathKey).(string)
-		sqlStmt string              = awsUptimeListSQL
-		where   string              = ""
-		replace string              = "{WHERE}"
-		param   statements.Named    = input
-		body    *AwsUptimeListBody  = &AwsUptimeListBody{
+		results []*models.AwsUptime      = []*models.AwsUptime{}
+		dbPath  string                   = ctx.Value(dbPathKey).(string)
+		sqlStmt string                   = awsUptimeListSQL
+		where   string                   = ""
+		replace string                   = "{WHERE}"
+		param   statements.Named         = input
+		body    *inout.AwsUptimeListBody = &inout.AwsUptimeListBody{
 			Request:   input,
 			Operation: AwsUptimeListOperationID,
 		}
 	)
 	// setup response
-	response = &AwsUptimeListResponse{}
+	response = &inout.AwsUptimeListResponse{}
 	// check for unit
 	if input.Unit != "" {
 		where = "WHERE units.Name = :unit "
@@ -112,23 +98,6 @@ func ApiAwsUptimeListHandler(ctx context.Context, input *inputs.DateRangeUnitInp
 	return
 }
 
-// AwsUptimeAveragesBody contains the resposne body to send back
-// for a request to the /list endpoint
-type AwsUptimeAveragesBody struct {
-	Operation    string                                    `json:"operation,omitempty" doc:"contains the operation id"`
-	Request      *inputs.RequiredGroupedDateRangeUnitInput `json:"request,omitempty" doc:"the original request"`
-	Result       []*models.AwsUptime                       `json:"result,omitempty" doc:"list of all units returned by the api."`
-	DateRange    []string                                  `json:"date_range,omitempty" db:"-" doc:"all dates within the range requested"`
-	ColumnOrder  []string                                  `json:"column_order" db:"-" doc:"List of columns set in the order they should be rendered for each row."`
-	ColumnValues map[string][]interface{}                  `json:"column_values" db:"-" doc:"Contains all of the ordered columns possible values, to help display rendering."`
-	Errors       []error                                   `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
-}
-
-// the main response struct
-type AwsUptimeAveragesResponse struct {
-	Body *AwsUptimeAveragesBody
-}
-
 const AwsUptimeAveragesOperationID string = "get-aws-uptime-averages"
 const AwsUptimeAveragesDescription string = `Returns average uptime data group by time period.`
 const awsUptimeAveragesSQL string = `
@@ -152,16 +121,16 @@ ORDER BY aws_uptime.date ASC;
 // Endpoints:
 //
 //	/version/aws/uptime/averages/{interval}/{start_date}/{end_date}?unit=<unit>
-func ApiAwsUptimeAveragesHandler(ctx context.Context, input *inputs.RequiredGroupedDateRangeUnitInput) (response *AwsUptimeAveragesResponse, err error) {
+func ApiAwsUptimeAveragesHandler(ctx context.Context, input *inout.RequiredGroupedDateRangeUnitInput) (response *inout.AwsUptimeAveragesResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
-		results []*models.AwsUptime    = []*models.AwsUptime{}
-		dbPath  string                 = ctx.Value(dbPathKey).(string)
-		sqlStmt string                 = awsUptimeAveragesSQL
-		where   string                 = ""
-		replace string                 = "{WHERE}"
-		param   statements.Named       = input
-		body    *AwsUptimeAveragesBody = &AwsUptimeAveragesBody{
+		results []*models.AwsUptime          = []*models.AwsUptime{}
+		dbPath  string                       = ctx.Value(dbPathKey).(string)
+		sqlStmt string                       = awsUptimeAveragesSQL
+		where   string                       = ""
+		replace string                       = "{WHERE}"
+		param   statements.Named             = input
+		body    *inout.AwsUptimeAveragesBody = &inout.AwsUptimeAveragesBody{
 			Request:     input,
 			Operation:   AwsUptimeAveragesOperationID,
 			DateRange:   dateutils.Dates(input.Start(), input.End(), input.GetInterval()),
@@ -169,7 +138,7 @@ func ApiAwsUptimeAveragesHandler(ctx context.Context, input *inputs.RequiredGrou
 		}
 	)
 	// setup response
-	response = &AwsUptimeAveragesResponse{}
+	response = &inout.AwsUptimeAveragesResponse{}
 	// check for unit
 	if input.Unit != "" {
 		where = "AND units.Name = :unit "
@@ -197,23 +166,6 @@ func ApiAwsUptimeAveragesHandler(ctx context.Context, input *inputs.RequiredGrou
 	return
 }
 
-// AwsUptimeAveragesPerUnitBody contains the resposne body to send back
-// for a request to the /list endpoint
-type AwsUptimeAveragesPerUnitBody struct {
-	Operation    string                                `json:"operation,omitempty" doc:"contains the operation id"`
-	Request      *inputs.RequiredGroupedDateRangeInput `json:"request,omitempty" doc:"the original request"`
-	Result       []*models.AwsUptime                   `json:"result,omitempty" doc:"list of all units returned by the api."`
-	DateRange    []string                              `json:"date_range,omitempty" db:"-" doc:"all dates within the range requested"`
-	ColumnOrder  []string                              `json:"column_order" db:"-" doc:"List of columns set in the order they should be rendered for each row."`
-	ColumnValues map[string][]interface{}              `json:"column_values" db:"-" doc:"Contains all of the ordered columns possible values, to help display rendering."`
-	Errors       []error                               `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
-}
-
-// the main response struct
-type AwsUptimeAveragesPerUnitResponse struct {
-	Body *AwsUptimeAveragesPerUnitBody
-}
-
 const AwsUptimeAveragesPerUnitOperationID string = "get-aws-uptime-averages-per-unit"
 const AwsUptimeAveragesPerUnitDescription string = `Returns average uptime data grouped by time period and unit.`
 const AwsUptimeAveragesPerUnitSQL string = `
@@ -236,14 +188,14 @@ ORDER BY aws_uptime.date ASC;
 // Endpoints:
 //
 //	/version/aws/uptime/averages-per-unit/{interval}/{start_date}/{end_date}
-func ApiAwsUptimeAveragesPerUnitHandler(ctx context.Context, input *inputs.RequiredGroupedDateRangeInput) (response *AwsUptimeAveragesPerUnitResponse, err error) {
+func ApiAwsUptimeAveragesPerUnitHandler(ctx context.Context, input *inout.RequiredGroupedDateRangeInput) (response *inout.AwsUptimeAveragesPerUnitResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
-		results []*models.AwsUptime           = []*models.AwsUptime{}
-		dbPath  string                        = ctx.Value(dbPathKey).(string)
-		sqlStmt string                        = AwsUptimeAveragesPerUnitSQL
-		param   statements.Named              = input
-		body    *AwsUptimeAveragesPerUnitBody = &AwsUptimeAveragesPerUnitBody{
+		results []*models.AwsUptime                 = []*models.AwsUptime{}
+		dbPath  string                              = ctx.Value(dbPathKey).(string)
+		sqlStmt string                              = AwsUptimeAveragesPerUnitSQL
+		param   statements.Named                    = input
+		body    *inout.AwsUptimeAveragesPerUnitBody = &inout.AwsUptimeAveragesPerUnitBody{
 			Request:     input,
 			Operation:   AwsUptimeAveragesPerUnitOperationID,
 			DateRange:   dateutils.Dates(input.Start(), input.End(), input.GetInterval()),
@@ -251,7 +203,7 @@ func ApiAwsUptimeAveragesPerUnitHandler(ctx context.Context, input *inputs.Requi
 		}
 	)
 	// setup response
-	response = &AwsUptimeAveragesPerUnitResponse{}
+	response = &inout.AwsUptimeAveragesPerUnitResponse{}
 
 	// hook up adaptor
 	adaptor, err = adaptors.NewSqlite(dbPath, false)

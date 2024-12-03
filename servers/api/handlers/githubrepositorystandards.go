@@ -13,29 +13,13 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/dbs/crud"
 	"github.com/ministryofjustice/opg-reports/internal/dbs/statements"
 	"github.com/ministryofjustice/opg-reports/models"
-	"github.com/ministryofjustice/opg-reports/servers/inputs"
+	"github.com/ministryofjustice/opg-reports/servers/inout"
 )
 
 var (
 	GitHubRepositoryStandardsSegment string   = "github/standards"
 	GitHubRepositoryStandardsTags    []string = []string{"GitHub repository standards"}
 )
-
-// -- Release listing
-
-// GitHubRepositoryStandardsListBody contains the resposne body to send back
-// for a request to the /list endpoint
-type GitHubRepositoryStandardsListBody struct {
-	Operation string                             `json:"operation,omitempty" doc:"contains the operation id"`
-	Request   *inputs.VersionUnitInput           `json:"request,omitempty" doc:"the original request"`
-	Result    []*models.GitHubRepositoryStandard `json:"result,omitempty" doc:"list of all units returned by the api."`
-	Errors    []error                            `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
-}
-
-// GitHubRepositoryStandardsListResponse is the main response struct
-type GitHubRepositoryStandardsListResponse struct {
-	Body *GitHubRepositoryStandardsListBody
-}
 
 const GitHubRepositoryStandardsListOperationID string = "get-github-standards-list"
 const GitHubRepositoryStandardsListDescription string = `Returns all github standards data`
@@ -80,22 +64,22 @@ ORDER BY github_repository_standards.github_repository_full_name ASC
 // Endpoints:
 //
 //	/version/github/standards/list?unit=<unit>
-func ApiGitHubRepositoryStandardsListHandler(ctx context.Context, input *inputs.VersionUnitInput) (response *GitHubRepositoryStandardsListResponse, err error) {
+func ApiGitHubRepositoryStandardsListHandler(ctx context.Context, input *inout.VersionUnitInput) (response *inout.GitHubRepositoryStandardsListResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
-		results []*models.GitHubRepositoryStandard = []*models.GitHubRepositoryStandard{}
-		dbPath  string                             = ctx.Value(dbPathKey).(string)
-		sqlStmt string                             = gitHubRepositoryStandardsListSQL
-		where   string                             = ""
-		replace string                             = "{WHERE}"
-		param   statements.Named                   = input
-		body    *GitHubRepositoryStandardsListBody = &GitHubRepositoryStandardsListBody{
+		results []*models.GitHubRepositoryStandard       = []*models.GitHubRepositoryStandard{}
+		dbPath  string                                   = ctx.Value(dbPathKey).(string)
+		sqlStmt string                                   = gitHubRepositoryStandardsListSQL
+		where   string                                   = ""
+		replace string                                   = "{WHERE}"
+		param   statements.Named                         = input
+		body    *inout.GitHubRepositoryStandardsListBody = &inout.GitHubRepositoryStandardsListBody{
 			Request:   input,
 			Operation: GitHubRepositoryStandardsListOperationID,
 		}
 	)
 	// setup response
-	response = &GitHubRepositoryStandardsListResponse{}
+	response = &inout.GitHubRepositoryStandardsListResponse{}
 	// check for unit
 	if input.Unit != "" {
 		where = "AND units.Name = :unit "

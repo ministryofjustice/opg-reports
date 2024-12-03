@@ -11,25 +11,13 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/dbs/adaptors"
 	"github.com/ministryofjustice/opg-reports/internal/dbs/crud"
 	"github.com/ministryofjustice/opg-reports/models"
-	"github.com/ministryofjustice/opg-reports/servers/inputs"
+	"github.com/ministryofjustice/opg-reports/servers/inout"
 )
 
 var (
 	UnitsSegment string   = "units"
 	UnitTags     []string = []string{"Units"}
 )
-
-// --- units list
-
-type UnitsListBody struct {
-	Operation string               `json:"operation,omitempty" doc:"contains the operation id"`
-	Request   *inputs.VersionInput `json:"request,omitempty" doc:"the original request"`
-	Result    []*models.Unit       `json:"result,omitempty" doc:"list of all units returned by the api."`
-	Errors    []error              `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
-}
-type UnitsListResponse struct {
-	Body *UnitsListBody
-}
 
 const UnitsListDescription string = `Returns all units within the database.`
 const UnitListOperationID string = "get-units-list"
@@ -65,18 +53,18 @@ ORDER BY units.name ASC;
 // Endpoints:
 //
 //	/version/units/list
-func ApiUnitsListHandler(ctx context.Context, input *inputs.VersionInput) (response *UnitsListResponse, err error) {
+func ApiUnitsListHandler(ctx context.Context, input *inout.VersionInput) (response *inout.UnitsListResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
-		results []*models.Unit = []*models.Unit{}
-		dbPath  string         = ctx.Value(dbPathKey).(string)
-		body    *UnitsListBody = &UnitsListBody{
+		results []*models.Unit       = []*models.Unit{}
+		dbPath  string               = ctx.Value(dbPathKey).(string)
+		body    *inout.UnitsListBody = &inout.UnitsListBody{
 			Request:   input,
 			Operation: UnitListOperationID,
 		}
 	)
 	// setup response
-	response = &UnitsListResponse{}
+	response = &inout.UnitsListResponse{}
 	// hook up adaptor
 	adaptor, err = adaptors.NewSqlite(dbPath, false)
 	if err != nil {

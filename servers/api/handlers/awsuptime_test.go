@@ -15,14 +15,14 @@ import (
 	"github.com/ministryofjustice/opg-reports/seed"
 	"github.com/ministryofjustice/opg-reports/servers/api/handlers"
 	"github.com/ministryofjustice/opg-reports/servers/api/lib"
-	"github.com/ministryofjustice/opg-reports/servers/inputs"
+	"github.com/ministryofjustice/opg-reports/servers/inout"
 )
 
 func TestApiHandlersAwsUptimeList(t *testing.T) {
 	var (
 		err      error
 		adaptor  dbs.Adaptor
-		response *handlers.AwsUptimeListResponse
+		response *inout.AwsUptimeListResponse
 		dir      string = t.TempDir()
 		// dir       string          = "./"
 		dbFile   string          = filepath.Join(dir, "test.db")
@@ -63,7 +63,7 @@ func TestApiHandlersAwsUptimeList(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	in := &inputs.DateRangeUnitInput{
+	in := &inout.DateRangeUnitInput{
 		Version:   "v1",
 		StartDate: fakerextras.TimeStringMin.AddDate(0, 0, -1).Format(dateformats.YMD),
 		EndDate:   fakerextras.TimeStringMax.AddDate(0, 0, 1).Format(dateformats.YMD),
@@ -88,7 +88,7 @@ func TestApiHandlersAwsUptimeAverages(t *testing.T) {
 	var (
 		err      error
 		adaptor  dbs.Adaptor
-		response *handlers.AwsUptimeAveragesResponse
+		response *inout.AwsUptimeAveragesResponse
 		dir      string = t.TempDir()
 		// dir      string          = "./"
 		dbFile   string          = filepath.Join(dir, "test.db")
@@ -129,7 +129,7 @@ func TestApiHandlersAwsUptimeAverages(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	in := &inputs.RequiredGroupedDateRangeUnitInput{
+	in := &inout.RequiredGroupedDateRangeUnitInput{
 		Version:   "v1",
 		Interval:  "month",
 		StartDate: fakerextras.TimeStringMin.AddDate(0, 0, -1).Format(dateformats.YMD),
@@ -153,7 +153,7 @@ func TestApiHandlersAwsUptimeAveragesPerUnit(t *testing.T) {
 	var (
 		err      error
 		adaptor  dbs.Adaptor
-		response *handlers.AwsUptimeAveragesPerUnitResponse
+		response *inout.AwsUptimeAveragesPerUnitResponse
 		dir      string = t.TempDir()
 		// dir      string          = "./"
 		dbFile   string          = filepath.Join(dir, "test.db")
@@ -194,7 +194,7 @@ func TestApiHandlersAwsUptimeAveragesPerUnit(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	in := &inputs.RequiredGroupedDateRangeInput{
+	in := &inout.RequiredGroupedDateRangeInput{
 		Version:   "v1",
 		Interval:  "month",
 		StartDate: fakerextras.TimeStringMin.AddDate(0, 0, -1).Format(dateformats.YMD),

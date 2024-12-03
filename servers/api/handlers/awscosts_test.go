@@ -18,7 +18,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/seed"
 	"github.com/ministryofjustice/opg-reports/servers/api/handlers"
 	"github.com/ministryofjustice/opg-reports/servers/api/lib"
-	"github.com/ministryofjustice/opg-reports/servers/inputs"
+	"github.com/ministryofjustice/opg-reports/servers/inout"
 )
 
 // TestApiHandlersAwsCostsDetailedHandler
@@ -26,7 +26,7 @@ func TestApiHandlersAwsCostsDetailedHandler(t *testing.T) {
 	var (
 		err      error
 		adaptor  dbs.Adaptor
-		response *handlers.AwsCostsSumFullDetailsResponse
+		response *inout.AwsCostsSumFullDetailsResponse
 		dir      string = t.TempDir()
 		// dir      string                     = "./"
 		dbFile   string          = filepath.Join(dir, "test.db")
@@ -73,7 +73,7 @@ func TestApiHandlersAwsCostsDetailedHandler(t *testing.T) {
 	}
 
 	// query the api handler
-	in := &inputs.RequiredGroupedDateRangeUnitInput{
+	in := &inout.RequiredGroupedDateRangeUnitInput{
 		Version:   "v1",
 		Interval:  "month",
 		StartDate: fakerextras.TimeStringMin.AddDate(0, 0, -1).Format(dateformats.YMD),
@@ -120,7 +120,7 @@ func TestApiHandlersAwsCostsSumPerUnitEnvHandler(t *testing.T) {
 	var (
 		err      error
 		adaptor  dbs.Adaptor
-		response *handlers.AwsCostsSumPerUnitEnvResponse
+		response *inout.AwsCostsSumPerUnitEnvResponse
 		dir      string = t.TempDir()
 		// dir      string                     = "./"
 		dbFile   string          = filepath.Join(dir, "test.db")
@@ -167,7 +167,7 @@ func TestApiHandlersAwsCostsSumPerUnitEnvHandler(t *testing.T) {
 	}
 
 	// query the api handler
-	in := &inputs.RequiredGroupedDateRangeInput{
+	in := &inout.RequiredGroupedDateRangeInput{
 		Version:   "v1",
 		Interval:  "month",
 		StartDate: fakerextras.TimeStringMin.AddDate(0, 0, -1).Format(dateformats.YMD),
@@ -214,7 +214,7 @@ func TestApiHandlersAwsCostsSumPerUnitHandler(t *testing.T) {
 	var (
 		err      error
 		adaptor  dbs.Adaptor
-		response *handlers.AwsCostsSumPerUnitResponse
+		response *inout.AwsCostsSumPerUnitResponse
 		dir      string = t.TempDir()
 		// dir      string                     = "./"
 		dbFile   string          = filepath.Join(dir, "test.db")
@@ -261,7 +261,7 @@ func TestApiHandlersAwsCostsSumPerUnitHandler(t *testing.T) {
 	}
 
 	// query the api handler
-	in := &inputs.RequiredGroupedDateRangeInput{
+	in := &inout.RequiredGroupedDateRangeInput{
 		Version:   "v1",
 		Interval:  "month",
 		StartDate: fakerextras.TimeStringMin.AddDate(0, 0, -1).Format(dateformats.YMD),
@@ -308,7 +308,7 @@ func TestApiHandlersAwsCostsSumHandler(t *testing.T) {
 	var (
 		err      error
 		adaptor  dbs.Adaptor
-		response *handlers.AwsCostsSumResponse
+		response *inout.AwsCostsSumResponse
 		dir      string = t.TempDir()
 		// dir      string                     = "./"
 		dbFile   string          = filepath.Join(dir, "test.db")
@@ -355,7 +355,7 @@ func TestApiHandlersAwsCostsSumHandler(t *testing.T) {
 	}
 
 	// query the api handler
-	in := &inputs.RequiredGroupedDateRangeUnitInput{
+	in := &inout.RequiredGroupedDateRangeUnitInput{
 		Version:   "v1",
 		Interval:  "month",
 		StartDate: fakerextras.TimeStringMin.AddDate(0, 0, -1).Format(dateformats.YMD),
@@ -400,7 +400,7 @@ func TestApiHandlersAwsCostsListHandler(t *testing.T) {
 	var (
 		err      error
 		adaptor  dbs.Adaptor
-		response *handlers.AwsCostsListResponse
+		response *inout.AwsCostsListResponse
 		dir      string = t.TempDir()
 		// dir      string                     = "./"
 		dbFile   string          = filepath.Join(dir, "test.db")
@@ -447,7 +447,7 @@ func TestApiHandlersAwsCostsListHandler(t *testing.T) {
 	}
 
 	// query the api handler
-	in := &inputs.DateRangeUnitInput{
+	in := &inout.DateRangeUnitInput{
 		Version:   "v1",
 		StartDate: fakerextras.TimeStringMin.AddDate(0, 0, -1).Format(dateformats.YMD),
 		EndDate:   fakerextras.TimeStringMax.AddDate(0, 0, 1).Format(dateformats.YMD),
@@ -519,7 +519,7 @@ func TestApiHandlersAwsCostsTaxesHandler(t *testing.T) {
 	}
 
 	// query the api handler
-	in := &inputs.RequiredGroupedDateRangeUnitInput{
+	in := &inout.RequiredGroupedDateRangeUnitInput{
 		Version:   "v1",
 		StartDate: fakerextras.TimeStringMin.AddDate(0, 0, -1).Format(dateformats.YMD),
 		EndDate:   fakerextras.TimeStringMax.AddDate(0, 0, 1).Format(dateformats.YMD),
@@ -539,7 +539,7 @@ func TestApiHandlersAwsCostsTotalHandler(t *testing.T) {
 	var (
 		err      error
 		adaptor  dbs.Adaptor
-		response *handlers.AwsCostsTotalResponse
+		response *inout.AwsCostsTotalResponse
 		dir      string = t.TempDir()
 		// dir      string                     = "./"
 		dbFile   string          = filepath.Join(dir, "test.db")
@@ -586,7 +586,7 @@ func TestApiHandlersAwsCostsTotalHandler(t *testing.T) {
 	}
 
 	// query the api handler
-	in := &inputs.DateRangeUnitInput{
+	in := &inout.DateRangeUnitInput{
 		Version:   "v1",
 		StartDate: fakerextras.TimeStringMin.AddDate(0, 0, -1).Format(dateformats.YMD),
 		EndDate:   fakerextras.TimeStringMax.AddDate(0, 0, 1).Format(dateformats.YMD),

@@ -34,6 +34,20 @@ type AwsCost struct {
 	Count                 int                   `json:"count,omitempty" db:"count" faker:"-"`                                     // Count returned from grouped db calls
 }
 
+// TDate
+// Interfaces:
+//   - transformers.Transformable
+func (self *AwsCost) TDate() string {
+	return self.Date
+}
+
+// TValue
+// Interfaces:
+//   - transformers.Transformable
+func (self *AwsCost) TValue() string {
+	return self.Cost
+}
+
 // Interfaces:
 //   - dbs.Row
 func (self *AwsCost) UniqueValue() string {

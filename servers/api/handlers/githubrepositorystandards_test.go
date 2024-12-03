@@ -14,14 +14,14 @@ import (
 	"github.com/ministryofjustice/opg-reports/seed"
 	"github.com/ministryofjustice/opg-reports/servers/api/handlers"
 	"github.com/ministryofjustice/opg-reports/servers/api/lib"
-	"github.com/ministryofjustice/opg-reports/servers/inputs"
+	"github.com/ministryofjustice/opg-reports/servers/inout"
 )
 
 func TestApiHandlersGitHubRepositoryStandardsListHandler(t *testing.T) {
 	var (
 		err      error
 		adaptor  dbs.Adaptor
-		response *handlers.GitHubRepositoryStandardsListResponse
+		response *inout.GitHubRepositoryStandardsListResponse
 		dir      string = t.TempDir()
 		// dir       string          = "./"
 		dbFile    string          = filepath.Join(dir, "test.db")
@@ -70,7 +70,7 @@ func TestApiHandlersGitHubRepositoryStandardsListHandler(t *testing.T) {
 	}
 
 	// should return everything as we are only using 1 unit
-	response, err = handlers.ApiGitHubRepositoryStandardsListHandler(ctx, &inputs.VersionUnitInput{
+	response, err = handlers.ApiGitHubRepositoryStandardsListHandler(ctx, &inout.VersionUnitInput{
 		Version: "v1",
 		Unit:    units[0].Name,
 	})

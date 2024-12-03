@@ -15,30 +15,13 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/dbs/crud"
 	"github.com/ministryofjustice/opg-reports/internal/dbs/statements"
 	"github.com/ministryofjustice/opg-reports/models"
-	"github.com/ministryofjustice/opg-reports/servers/inputs"
+	"github.com/ministryofjustice/opg-reports/servers/inout"
 )
 
 var (
 	GitHubReleasesSegment string   = "github/releases"
 	GitHubReleasesTags    []string = []string{"GitHub releases"}
 )
-
-// -- Release listing
-
-// GitHubReleasesListBody contains the resposne body to send back
-// for a request to the /list endpoint
-type GitHubReleasesListBody struct {
-	Operation string                         `json:"operation,omitempty" doc:"contains the operation id"`
-	Request   *inputs.OptionalDateRangeInput `json:"request,omitempty" doc:"the original request"`
-	Result    []*models.GitHubRelease        `json:"result,omitempty" doc:"list of all units returned by the api."`
-	Errors    []error                        `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
-}
-
-// GitHubReleasesListResponse is the main response struct for the
-// /list endpoint
-type GitHubReleasesListResponse struct {
-	Body *GitHubReleasesListBody
-}
 
 const GitHubReleasesListOperationID string = "get-github-releases-list"
 const GitHubReleasesListDescription string = `Returns all github releases within the database.
@@ -84,22 +67,22 @@ ORDER BY github_releases.date ASC;
 // Endpoints:
 //
 //	/version/github/releases/list?unit=<unit>&start_date=<date>&end_date=<date>
-func ApiGitHubReleasesListHandler(ctx context.Context, input *inputs.OptionalDateRangeInput) (response *GitHubReleasesListResponse, err error) {
+func ApiGitHubReleasesListHandler(ctx context.Context, input *inout.OptionalDateRangeInput) (response *inout.GitHubReleasesListResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
-		results []*models.GitHubRelease = []*models.GitHubRelease{}
-		dbPath  string                  = ctx.Value(dbPathKey).(string)
-		where   string                  = ""
-		replace string                  = "{WHERE}"
-		sqlStmt string                  = gitHubReleasesListSQL
-		param   statements.Named        = input
-		body    *GitHubReleasesListBody = &GitHubReleasesListBody{
+		results []*models.GitHubRelease       = []*models.GitHubRelease{}
+		dbPath  string                        = ctx.Value(dbPathKey).(string)
+		where   string                        = ""
+		replace string                        = "{WHERE}"
+		sqlStmt string                        = gitHubReleasesListSQL
+		param   statements.Named              = input
+		body    *inout.GitHubReleasesListBody = &inout.GitHubReleasesListBody{
 			Request:   input,
 			Operation: GitHubReleasesListOperationID,
 		}
 	)
 	// setup response
-	response = &GitHubReleasesListResponse{}
+	response = &inout.GitHubReleasesListResponse{}
 
 	// check for start, end and unit being passed
 	if input.StartDate != "" && input.EndDate != "" && input.Unit != "" {
@@ -130,26 +113,6 @@ func ApiGitHubReleasesListHandler(ctx context.Context, input *inputs.OptionalDat
 	return
 }
 
-// -- Release count
-
-// GitHubReleasesCountBody contains the resposne details for a request to the /count
-// endpoint
-// Tabular
-type GitHubReleasesCountBody struct {
-	Operation    string                                    `json:"operation,omitempty" doc:"contains the operation id"`
-	Request      *inputs.RequiredGroupedDateRangeUnitInput `json:"request,omitempty" doc:"the original request"`
-	Result       []*models.GitHubRelease                   `json:"result,omitempty" doc:"list of all units returned by the api."`
-	DateRange    []string                                  `json:"date_range,omitempty" db:"-" doc:"all dates within the range requested"`
-	ColumnOrder  []string                                  `json:"column_order" db:"-" doc:"List of columns set in the order they should be rendered for each row."`
-	ColumnValues map[string][]interface{}                  `json:"column_values" db:"-" doc:"Contains all of the ordered columns possible values, to help display rendering."`
-	Errors       []error                                   `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
-}
-
-// GitHubReleasesCountResponse is used by the /count endpoint
-type GitHubReleasesCountResponse struct {
-	Body *GitHubReleasesCountBody
-}
-
 const GitHubReleasesCountOperationID string = "get-github-releases-count"
 const GitHubReleasesCountDescription string = `Returns count of github releases within the database between start_date and end_date.
 
@@ -178,16 +141,16 @@ ORDER BY strftime(:date_format, github_releases.date) ASC;
 // Endpoints:
 //
 //	/version/github/releases/count/{interval}/{start_date}/{end_date}?unit=<unit>
-func ApiGitHubReleasesCountHandler(ctx context.Context, input *inputs.RequiredGroupedDateRangeUnitInput) (response *GitHubReleasesCountResponse, err error) {
+func ApiGitHubReleasesCountHandler(ctx context.Context, input *inout.RequiredGroupedDateRangeUnitInput) (response *inout.GitHubReleasesCountResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
-		results []*models.GitHubRelease  = []*models.GitHubRelease{}
-		dbPath  string                   = ctx.Value(dbPathKey).(string)
-		where   string                   = ""
-		replace string                   = "{WHERE}"
-		sqlStmt string                   = gitHubReleasesCountSQL
-		param   statements.Named         = input
-		body    *GitHubReleasesCountBody = &GitHubReleasesCountBody{
+		results []*models.GitHubRelease        = []*models.GitHubRelease{}
+		dbPath  string                         = ctx.Value(dbPathKey).(string)
+		where   string                         = ""
+		replace string                         = "{WHERE}"
+		sqlStmt string                         = gitHubReleasesCountSQL
+		param   statements.Named               = input
+		body    *inout.GitHubReleasesCountBody = &inout.GitHubReleasesCountBody{
 			Request:     input,
 			Operation:   GitHubReleasesCountOperationID,
 			DateRange:   dateutils.Dates(input.Start(), input.End(), input.GetInterval()),
@@ -199,7 +162,7 @@ func ApiGitHubReleasesCountHandler(ctx context.Context, input *inputs.RequiredGr
 		}
 	)
 	// setup response
-	response = &GitHubReleasesCountResponse{}
+	response = &inout.GitHubReleasesCountResponse{}
 
 	// check for unit
 	if input.Unit != "" {
@@ -227,25 +190,6 @@ func ApiGitHubReleasesCountHandler(ctx context.Context, input *inputs.RequiredGr
 	body.Request.DateFormat = ""
 	response.Body = body
 	return
-}
-
-// -- Release count per Unit
-
-// GitHubReleasesCountPerUnitBody contains the resposne details for a request to the /count-per-unit
-// endpoint
-type GitHubReleasesCountPerUnitBody struct {
-	Operation    string                                `json:"operation,omitempty" doc:"contains the operation id"`
-	Request      *inputs.RequiredGroupedDateRangeInput `json:"request,omitempty" doc:"the original request"`
-	Result       []*models.GitHubRelease               `json:"result,omitempty" doc:"list of all units returned by the api."`
-	DateRange    []string                              `json:"date_range,omitempty" db:"-" doc:"all dates within the range requested"`
-	ColumnOrder  []string                              `json:"column_order" db:"-" doc:"List of columns set in the order they should be rendered for each row."`
-	ColumnValues map[string][]interface{}              `json:"column_values" db:"-" doc:"Contains all of the ordered columns possible values, to help display rendering."`
-	Errors       []error                               `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
-}
-
-// GitHubReleasesCountResponse is used by the /count endpoint
-type GitHubReleasesCountPerUnitResponse struct {
-	Body *GitHubReleasesCountPerUnitBody
 }
 
 const GitHubReleasesCountPerUnitOperationID string = "get-github-releases-count-per-unit"
@@ -280,14 +224,14 @@ ORDER BY strftime(:date_format, github_releases.date), units.name ASC;
 // Endpoints:
 //
 //	/version/github/releases/count-per-unit/{interval}/{start_date}/{end_date}
-func ApiGitHubReleasesCountPerUnitHandler(ctx context.Context, input *inputs.RequiredGroupedDateRangeInput) (response *GitHubReleasesCountPerUnitResponse, err error) {
+func ApiGitHubReleasesCountPerUnitHandler(ctx context.Context, input *inout.RequiredGroupedDateRangeInput) (response *inout.GitHubReleasesCountPerUnitResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
-		results []*models.GitHubRelease         = []*models.GitHubRelease{}
-		dbPath  string                          = ctx.Value(dbPathKey).(string)
-		sqlStmt string                          = gitHubReleasesCountPerUnitSQL
-		param   statements.Named                = input
-		body    *GitHubReleasesCountPerUnitBody = &GitHubReleasesCountPerUnitBody{
+		results []*models.GitHubRelease               = []*models.GitHubRelease{}
+		dbPath  string                                = ctx.Value(dbPathKey).(string)
+		sqlStmt string                                = gitHubReleasesCountPerUnitSQL
+		param   statements.Named                      = input
+		body    *inout.GitHubReleasesCountPerUnitBody = &inout.GitHubReleasesCountPerUnitBody{
 			Request:     input,
 			Operation:   GitHubReleasesCountPerUnitOperationID,
 			DateRange:   dateutils.Dates(input.Start(), input.End(), input.GetInterval()),
@@ -295,7 +239,7 @@ func ApiGitHubReleasesCountPerUnitHandler(ctx context.Context, input *inputs.Req
 		}
 	)
 	// setup response
-	response = &GitHubReleasesCountPerUnitResponse{}
+	response = &inout.GitHubReleasesCountPerUnitResponse{}
 
 	// hook up adaptor
 	adaptor, err = adaptors.NewSqlite(dbPath, false)

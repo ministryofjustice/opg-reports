@@ -15,25 +15,13 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/dbs/crud"
 	"github.com/ministryofjustice/opg-reports/internal/dbs/statements"
 	"github.com/ministryofjustice/opg-reports/models"
-	"github.com/ministryofjustice/opg-reports/servers/inputs"
+	"github.com/ministryofjustice/opg-reports/servers/inout"
 )
 
 var (
 	AwsCostsSegment string   = "aws/costs"
 	AwsCostsTags    []string = []string{"AWS costs"}
 )
-
-type AwsCostsTotalBody struct {
-	Operation string                     `json:"operation,omitempty" doc:"contains the operation id"`
-	Request   *inputs.DateRangeUnitInput `json:"request,omitempty" doc:"the original request"`
-	Result    []*models.AwsCost          `json:"result,omitempty" doc:"list of all units returned by the api."`
-	Errors    []error                    `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
-}
-
-// the main response struct
-type AwsCostsTotalResponse struct {
-	Body *AwsCostsTotalBody
-}
 
 const AwsCostsTotalOperationID string = "get-aws-costs-ytd"
 const AwsCostsTotalDescription string = `Returns total sum of all aws costs.`
@@ -55,22 +43,22 @@ ORDER BY aws_costs.date ASC;
 // Endpoints:
 //
 //	/version/aws/costs/total/{start_date}/{end_date}?unit=<unit>
-func ApiAwsCostsTotalHandler(ctx context.Context, input *inputs.DateRangeUnitInput) (response *AwsCostsTotalResponse, err error) {
+func ApiAwsCostsTotalHandler(ctx context.Context, input *inout.DateRangeUnitInput) (response *inout.AwsCostsTotalResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
-		results []*models.AwsCost  = []*models.AwsCost{}
-		dbPath  string             = ctx.Value(dbPathKey).(string)
-		where   string             = ""
-		replace string             = "{WHERE}"
-		sqlStmt string             = AwsCostsTotalSQL
-		param   statements.Named   = input
-		body    *AwsCostsTotalBody = &AwsCostsTotalBody{
+		results []*models.AwsCost        = []*models.AwsCost{}
+		dbPath  string                   = ctx.Value(dbPathKey).(string)
+		where   string                   = ""
+		replace string                   = "{WHERE}"
+		sqlStmt string                   = AwsCostsTotalSQL
+		param   statements.Named         = input
+		body    *inout.AwsCostsTotalBody = &inout.AwsCostsTotalBody{
 			Request:   input,
 			Operation: AwsCostsTotalOperationID,
 		}
 	)
 	// setup response
-	response = &AwsCostsTotalResponse{}
+	response = &inout.AwsCostsTotalResponse{}
 
 	if input.Unit != "" {
 		where = "AND units.Name = :unit "
@@ -95,18 +83,6 @@ func ApiAwsCostsTotalHandler(ctx context.Context, input *inputs.DateRangeUnitInp
 	}
 	response.Body = body
 	return
-}
-
-type AwsCostsListBody struct {
-	Operation string                     `json:"operation,omitempty" doc:"contains the operation id"`
-	Request   *inputs.DateRangeUnitInput `json:"request,omitempty" doc:"the original request"`
-	Result    []*models.AwsCost          `json:"result,omitempty" doc:"list of all units returned by the api."`
-	Errors    []error                    `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
-}
-
-// the main response struct
-type AwsCostsListResponse struct {
-	Body *AwsCostsListBody
 }
 
 const AwsCostsListOperationID string = "get-aws-costs-list"
@@ -144,22 +120,22 @@ ORDER BY aws_costs.date ASC;
 // Endpoints:
 //
 //	/version/aws/costs/list/{start_date}/{end_date}?unit=<unit>
-func ApiAwsCostsListHandler(ctx context.Context, input *inputs.DateRangeUnitInput) (response *AwsCostsListResponse, err error) {
+func ApiAwsCostsListHandler(ctx context.Context, input *inout.DateRangeUnitInput) (response *inout.AwsCostsListResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
-		results []*models.AwsCost = []*models.AwsCost{}
-		dbPath  string            = ctx.Value(dbPathKey).(string)
-		where   string            = ""
-		replace string            = "{WHERE}"
-		sqlStmt string            = awsCostsListSQL
-		param   statements.Named  = input
-		body    *AwsCostsListBody = &AwsCostsListBody{
+		results []*models.AwsCost       = []*models.AwsCost{}
+		dbPath  string                  = ctx.Value(dbPathKey).(string)
+		where   string                  = ""
+		replace string                  = "{WHERE}"
+		sqlStmt string                  = awsCostsListSQL
+		param   statements.Named        = input
+		body    *inout.AwsCostsListBody = &inout.AwsCostsListBody{
 			Request:   input,
 			Operation: AwsCostsListOperationID,
 		}
 	)
 	// setup response
-	response = &AwsCostsListResponse{}
+	response = &inout.AwsCostsListResponse{}
 
 	if input.Unit != "" {
 		where = "AND units.Name = :unit "
@@ -184,21 +160,6 @@ func ApiAwsCostsListHandler(ctx context.Context, input *inputs.DateRangeUnitInpu
 	}
 	response.Body = body
 	return
-}
-
-type AwsCostsTaxesBody struct {
-	Operation    string                                    `json:"operation,omitempty" doc:"contains the operation id"`
-	Request      *inputs.RequiredGroupedDateRangeUnitInput `json:"request,omitempty" doc:"the original request"`
-	Result       []*models.AwsCost                         `json:"result,omitempty" doc:"list of all units returned by the api."`
-	DateRange    []string                                  `json:"date_range,omitempty" db:"-" doc:"all dates within the range requested"`
-	ColumnOrder  []string                                  `json:"column_order" db:"-" doc:"List of columns set in the order they should be rendered for each row."`
-	ColumnValues map[string][]interface{}                  `json:"column_values" db:"-" doc:"Contains all of the ordered columns possible values, to help display rendering."`
-	Errors       []error                                   `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
-}
-
-// the main response struct
-type AwsCostsTaxesResponse struct {
-	Body *AwsCostsTaxesBody
 }
 
 const AwsCostsTaxesOperationID string = "get-aws-costs-tax"
@@ -235,16 +196,16 @@ ORDER by date ASC
 // Endpoints:
 //
 //	/version/aws/costs/tax/{interval}/{start_date}/{end_date}?unit=<unit>
-func ApiAwsCostsTaxesHandler(ctx context.Context, input *inputs.RequiredGroupedDateRangeUnitInput) (response *AwsCostsTaxesResponse, err error) {
+func ApiAwsCostsTaxesHandler(ctx context.Context, input *inout.RequiredGroupedDateRangeUnitInput) (response *inout.AwsCostsTaxesResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
-		results []*models.AwsCost  = []*models.AwsCost{}
-		dbPath  string             = ctx.Value(dbPathKey).(string)
-		where   string             = ""
-		replace string             = "{WHERE}"
-		sqlStmt string             = AwsCostsTaxesSQL
-		param   statements.Named   = input
-		body    *AwsCostsTaxesBody = &AwsCostsTaxesBody{
+		results []*models.AwsCost        = []*models.AwsCost{}
+		dbPath  string                   = ctx.Value(dbPathKey).(string)
+		where   string                   = ""
+		replace string                   = "{WHERE}"
+		sqlStmt string                   = AwsCostsTaxesSQL
+		param   statements.Named         = input
+		body    *inout.AwsCostsTaxesBody = &inout.AwsCostsTaxesBody{
 			Request:     input,
 			Operation:   AwsCostsTaxesOperationID,
 			DateRange:   dateutils.Dates(input.Start(), input.End(), input.GetInterval()),
@@ -252,7 +213,7 @@ func ApiAwsCostsTaxesHandler(ctx context.Context, input *inputs.RequiredGroupedD
 		}
 	)
 	// setup response
-	response = &AwsCostsTaxesResponse{}
+	response = &inout.AwsCostsTaxesResponse{}
 
 	if input.Unit != "" {
 		where = "AND units.Name = :unit "
@@ -281,21 +242,6 @@ func ApiAwsCostsTaxesHandler(ctx context.Context, input *inputs.RequiredGroupedD
 	return
 }
 
-type AwsCostsSumBody struct {
-	Operation    string                                    `json:"operation,omitempty" doc:"contains the operation id"`
-	Request      *inputs.RequiredGroupedDateRangeUnitInput `json:"request,omitempty" doc:"the original request"`
-	Result       []*models.AwsCost                         `json:"result,omitempty" doc:"list of all units returned by the api."`
-	DateRange    []string                                  `json:"date_range,omitempty" db:"-" doc:"all dates within the range requested"`
-	ColumnOrder  []string                                  `json:"column_order" db:"-" doc:"List of columns set in the order they should be rendered for each row."`
-	ColumnValues map[string][]interface{}                  `json:"column_values" db:"-" doc:"Contains all of the ordered columns possible values, to help display rendering."`
-	Errors       []error                                   `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
-}
-
-// the main response struct
-type AwsCostsSumResponse struct {
-	Body *AwsCostsSumBody
-}
-
 const AwsCostsSumOperationID string = "get-aws-costs-sum"
 const AwsCostsSumDescription string = `Returns sum of aws costs between start and end dates`
 const awsCostsSumSQL string = `
@@ -321,16 +267,16 @@ ORDER BY aws_costs.date ASC;
 // Endpoints:
 //
 //	/version/aws/costs/sum/{interval}/{start_date}/{end_date}?unit=<unit>
-func ApiAwsCostsSumHandler(ctx context.Context, input *inputs.RequiredGroupedDateRangeUnitInput) (response *AwsCostsSumResponse, err error) {
+func ApiAwsCostsSumHandler(ctx context.Context, input *inout.RequiredGroupedDateRangeUnitInput) (response *inout.AwsCostsSumResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
-		results []*models.AwsCost = []*models.AwsCost{}
-		dbPath  string            = ctx.Value(dbPathKey).(string)
-		where   string            = ""
-		replace string            = "{WHERE}"
-		sqlStmt string            = awsCostsSumSQL
-		param   statements.Named  = input
-		body    *AwsCostsSumBody  = &AwsCostsSumBody{
+		results []*models.AwsCost      = []*models.AwsCost{}
+		dbPath  string                 = ctx.Value(dbPathKey).(string)
+		where   string                 = ""
+		replace string                 = "{WHERE}"
+		sqlStmt string                 = awsCostsSumSQL
+		param   statements.Named       = input
+		body    *inout.AwsCostsSumBody = &inout.AwsCostsSumBody{
 			Request:     input,
 			Operation:   AwsCostsSumOperationID,
 			DateRange:   dateutils.Dates(input.Start(), input.End(), input.GetInterval()),
@@ -338,7 +284,7 @@ func ApiAwsCostsSumHandler(ctx context.Context, input *inputs.RequiredGroupedDat
 		}
 	)
 	// setup response
-	response = &AwsCostsSumResponse{}
+	response = &inout.AwsCostsSumResponse{}
 	// setup the sql - if unit is set in the input, add where for it
 	// otherwise remove it
 	if input.Unit != "" {
@@ -368,21 +314,6 @@ func ApiAwsCostsSumHandler(ctx context.Context, input *inputs.RequiredGroupedDat
 	return
 }
 
-type AwsCostsSumPerUnitBody struct {
-	Operation    string                                `json:"operation,omitempty" doc:"contains the operation id"`
-	Request      *inputs.RequiredGroupedDateRangeInput `json:"request,omitempty" doc:"the original request"`
-	Result       []*models.AwsCost                     `json:"result,omitempty" doc:"list of all units returned by the api."`
-	DateRange    []string                              `json:"date_range,omitempty" db:"-" doc:"all dates within the range requested"`
-	ColumnOrder  []string                              `json:"column_order" db:"-" doc:"List of columns set in the order they should be rendered for each row."`
-	ColumnValues map[string][]interface{}              `json:"column_values" db:"-" doc:"Contains all of the ordered columns possible values, to help display rendering."`
-	Errors       []error                               `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
-}
-
-// the main response struct
-type AwsCostsSumPerUnitResponse struct {
-	Body *AwsCostsSumPerUnitBody
-}
-
 const AwsCostsSumPerUnitOperationID string = "get-aws-costs-sum-per-unit"
 const AwsCostsSumPerUnitDescription string = `Returns sum of aws costs between start and end dates grouped by unit.`
 const awsCostsSumPerUnitSQL string = `
@@ -407,14 +338,14 @@ ORDER BY aws_costs.date ASC;
 // Endpoints:
 //
 //	/version/aws/costs/sum-per-unit/{interval}/{start_date}/{end_date}
-func ApiAwsCostsSumPerUnitHandler(ctx context.Context, input *inputs.RequiredGroupedDateRangeInput) (response *AwsCostsSumPerUnitResponse, err error) {
+func ApiAwsCostsSumPerUnitHandler(ctx context.Context, input *inout.RequiredGroupedDateRangeInput) (response *inout.AwsCostsSumPerUnitResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
-		results []*models.AwsCost       = []*models.AwsCost{}
-		dbPath  string                  = ctx.Value(dbPathKey).(string)
-		sqlStmt string                  = awsCostsSumPerUnitSQL
-		param   statements.Named        = input
-		body    *AwsCostsSumPerUnitBody = &AwsCostsSumPerUnitBody{
+		results []*models.AwsCost             = []*models.AwsCost{}
+		dbPath  string                        = ctx.Value(dbPathKey).(string)
+		sqlStmt string                        = awsCostsSumPerUnitSQL
+		param   statements.Named              = input
+		body    *inout.AwsCostsSumPerUnitBody = &inout.AwsCostsSumPerUnitBody{
 			Request:     input,
 			Operation:   AwsCostsSumPerUnitOperationID,
 			DateRange:   dateutils.Dates(input.Start(), input.End(), input.GetInterval()),
@@ -422,7 +353,7 @@ func ApiAwsCostsSumPerUnitHandler(ctx context.Context, input *inputs.RequiredGro
 		}
 	)
 	// setup response
-	response = &AwsCostsSumPerUnitResponse{}
+	response = &inout.AwsCostsSumPerUnitResponse{}
 	// hook up adaptor
 	adaptor, err = adaptors.NewSqlite(dbPath, false)
 	if err != nil {
@@ -441,21 +372,6 @@ func ApiAwsCostsSumPerUnitHandler(ctx context.Context, input *inputs.RequiredGro
 	body.ColumnValues = cols.Values(body.Result, body.ColumnOrder)
 	response.Body = body
 	return
-}
-
-type AwsCostsSumPerUnitEnvBody struct {
-	Operation    string                                `json:"operation,omitempty" doc:"contains the operation id"`
-	Request      *inputs.RequiredGroupedDateRangeInput `json:"request,omitempty" doc:"the original request"`
-	Result       []*models.AwsCost                     `json:"result,omitempty" doc:"list of all units returned by the api."`
-	DateRange    []string                              `json:"date_range,omitempty" db:"-" doc:"all dates within the range requested"`
-	ColumnOrder  []string                              `json:"column_order" db:"-" doc:"List of columns set in the order they should be rendered for each row."`
-	ColumnValues map[string][]interface{}              `json:"column_values" db:"-" doc:"Contains all of the ordered columns possible values, to help display rendering."`
-	Errors       []error                               `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
-}
-
-// the main response struct
-type AwsCostsSumPerUnitEnvResponse struct {
-	Body *AwsCostsSumPerUnitEnvBody
 }
 
 const AwsCostsSumPerUnitEnvOperationID string = "get-aws-costs-sum-per-unit-env"
@@ -483,14 +399,14 @@ ORDER BY aws_costs.date ASC;
 // Endpoints:
 //
 //	/version/aws/costs/sum-per-unit-env/{interval}/{start_date}/{end_date}
-func ApiAwsCostsSumPerUnitEnvHandler(ctx context.Context, input *inputs.RequiredGroupedDateRangeInput) (response *AwsCostsSumPerUnitEnvResponse, err error) {
+func ApiAwsCostsSumPerUnitEnvHandler(ctx context.Context, input *inout.RequiredGroupedDateRangeInput) (response *inout.AwsCostsSumPerUnitEnvResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
-		results []*models.AwsCost          = []*models.AwsCost{}
-		dbPath  string                     = ctx.Value(dbPathKey).(string)
-		sqlStmt string                     = awsCostsSumPerUnitEnvSQL
-		param   statements.Named           = input
-		body    *AwsCostsSumPerUnitEnvBody = &AwsCostsSumPerUnitEnvBody{
+		results []*models.AwsCost                = []*models.AwsCost{}
+		dbPath  string                           = ctx.Value(dbPathKey).(string)
+		sqlStmt string                           = awsCostsSumPerUnitEnvSQL
+		param   statements.Named                 = input
+		body    *inout.AwsCostsSumPerUnitEnvBody = &inout.AwsCostsSumPerUnitEnvBody{
 			Request:     input,
 			Operation:   AwsCostsSumPerUnitEnvOperationID,
 			DateRange:   dateutils.Dates(input.Start(), input.End(), input.GetInterval()),
@@ -498,7 +414,7 @@ func ApiAwsCostsSumPerUnitEnvHandler(ctx context.Context, input *inputs.Required
 		}
 	)
 	// setup response
-	response = &AwsCostsSumPerUnitEnvResponse{}
+	response = &inout.AwsCostsSumPerUnitEnvResponse{}
 	// hook up adaptor
 	adaptor, err = adaptors.NewSqlite(dbPath, false)
 	if err != nil {
@@ -517,21 +433,6 @@ func ApiAwsCostsSumPerUnitEnvHandler(ctx context.Context, input *inputs.Required
 	body.ColumnValues = cols.Values(body.Result, body.ColumnOrder)
 	response.Body = body
 	return
-}
-
-type AwsCostsSumFullDetailsBody struct {
-	Operation    string                                    `json:"operation,omitempty" doc:"contains the operation id"`
-	Request      *inputs.RequiredGroupedDateRangeUnitInput `json:"request,omitempty" doc:"the original request"`
-	Result       []*models.AwsCost                         `json:"result,omitempty" doc:"list of all units returned by the api."`
-	DateRange    []string                                  `json:"date_range,omitempty" db:"-" doc:"all dates within the range requested"`
-	ColumnOrder  []string                                  `json:"column_order" db:"-" doc:"List of columns set in the order they should be rendered for each row."`
-	ColumnValues map[string][]interface{}                  `json:"column_values" db:"-" doc:"Contains all of the ordered columns possible values, to help display rendering."`
-	Errors       []error                                   `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
-}
-
-// the main response struct
-type AwsCostsSumFullDetailsResponse struct {
-	Body *AwsCostsSumFullDetailsBody
 }
 
 const AwsCostsSumFullDetailsOperationID string = "get-aws-costs-sum-full-details"
@@ -569,16 +470,16 @@ ORDER BY aws_costs.date ASC;
 // Endpoints:
 //
 //	/version/aws/costs/sum-detailed/{interval}/{start_date}/{end_date}
-func ApiAwsCostsSumFullDetailsHandler(ctx context.Context, input *inputs.RequiredGroupedDateRangeUnitInput) (response *AwsCostsSumFullDetailsResponse, err error) {
+func ApiAwsCostsSumFullDetailsHandler(ctx context.Context, input *inout.RequiredGroupedDateRangeUnitInput) (response *inout.AwsCostsSumFullDetailsResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
-		results []*models.AwsCost           = []*models.AwsCost{}
-		dbPath  string                      = ctx.Value(dbPathKey).(string)
-		sqlStmt string                      = awsCostsSumFullDetailsSQL
-		param   statements.Named            = input
-		where   string                      = ""
-		replace string                      = "{WHERE}"
-		body    *AwsCostsSumFullDetailsBody = &AwsCostsSumFullDetailsBody{
+		results []*models.AwsCost                 = []*models.AwsCost{}
+		dbPath  string                            = ctx.Value(dbPathKey).(string)
+		sqlStmt string                            = awsCostsSumFullDetailsSQL
+		param   statements.Named                  = input
+		where   string                            = ""
+		replace string                            = "{WHERE}"
+		body    *inout.AwsCostsSumFullDetailsBody = &inout.AwsCostsSumFullDetailsBody{
 			Request:     input,
 			Operation:   AwsCostsSumFullDetailsOperationID,
 			DateRange:   dateutils.Dates(input.Start(), input.End(), input.GetInterval()),
@@ -586,7 +487,7 @@ func ApiAwsCostsSumFullDetailsHandler(ctx context.Context, input *inputs.Require
 		}
 	)
 	// setup response
-	response = &AwsCostsSumFullDetailsResponse{}
+	response = &inout.AwsCostsSumFullDetailsResponse{}
 	// hook up adaptor
 	adaptor, err = adaptors.NewSqlite(dbPath, false)
 	if err != nil {

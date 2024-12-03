@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
 )
@@ -40,6 +41,21 @@ type GitHubRelease struct {
 	Units Units `json:"units,omitempty" db:"units" faker:"-"`
 	// Only used on sql command that fetches releases per unit to flattern the struct
 	Unit string `json:"unit,omitempty" db:"unit" faker:"-"`
+}
+
+// TDate
+// Interfaces:
+//   - transformers.Transformable
+func (self *GitHubRelease) TDate() string {
+	return self.Date
+}
+
+// TValue
+// Always 1 so it increments per period
+// Interfaces:
+//   - transformers.Transformable
+func (self *GitHubRelease) TValue() string {
+	return strconv.Itoa(self.Count)
 }
 
 // UniqueValue returns the value representing the value of

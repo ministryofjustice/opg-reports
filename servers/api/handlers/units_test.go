@@ -12,14 +12,14 @@ import (
 	"github.com/ministryofjustice/opg-reports/models"
 	"github.com/ministryofjustice/opg-reports/servers/api/handlers"
 	"github.com/ministryofjustice/opg-reports/servers/api/lib"
-	"github.com/ministryofjustice/opg-reports/servers/inputs"
+	"github.com/ministryofjustice/opg-reports/servers/inout"
 )
 
 func TestApiHandlersUnitsListHandler(t *testing.T) {
 	var (
 		err      error
 		adaptor  dbs.Adaptor
-		response *handlers.UnitsListResponse
+		response *inout.UnitsListResponse
 		dir      string          = t.TempDir()
 		dbFile   string          = filepath.Join(dir, "test.db")
 		ctxKey   string          = lib.CTX_DB_KEY
@@ -49,7 +49,7 @@ func TestApiHandlersUnitsListHandler(t *testing.T) {
 		t.Errorf("error inserting - expected [%d] actual [%v]", len(units), len(inserted))
 	}
 
-	response, err = handlers.ApiUnitsListHandler(ctx, &inputs.VersionInput{
+	response, err = handlers.ApiUnitsListHandler(ctx, &inout.VersionInput{
 		Version: "v1",
 	})
 	if err != nil {
