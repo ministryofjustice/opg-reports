@@ -1,9 +1,6 @@
 package nums
 
-import (
-	"fmt"
-	"strconv"
-)
+import "github.com/ministryofjustice/opg-reports/internal/strutils"
 
 type nums interface {
 	float32 | float64 | int
@@ -20,30 +17,6 @@ func add[T adders](a T, args ...any) (result T) {
 			result += val
 		}
 	}
-	return
-}
-
-// addString converts the strings into floats and adds
-// those together as numbers before returning a string
-// version
-// If there is an error converting from a string to
-// a float it will return an error
-// Uses `%g` for format to return float without trailing 0s
-func addString(a string, args ...any) (result string, err error) {
-
-	result = a
-	floated, err := strconv.ParseFloat(a, 10)
-	if err != nil {
-		return
-	}
-	for _, arg := range args {
-		if val, err := strconv.ParseFloat(arg.(string), 10); err == nil {
-			floated += val
-		}
-	}
-
-	result = fmt.Sprintf("%g", floated)
-
 	return
 }
 
@@ -66,7 +39,7 @@ func Add(a interface{}, args ...interface{}) (result interface{}) {
 	case int:
 		result = add(a.(int), args...)
 	case string:
-		v, err := addString(a.(string), args...)
+		v, err := strutils.Add(a.(string), args...)
 		if err != nil {
 			result = add(a.(string), args...)
 		} else {

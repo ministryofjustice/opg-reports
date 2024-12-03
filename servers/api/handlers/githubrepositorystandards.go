@@ -73,7 +73,7 @@ ORDER BY github_repository_standards.github_repository_full_name ASC
 ;
 `
 
-// ApiGitHubRepositoryStandardsListHandler accepts and processes requests to the below endpoints.
+// ApiGitHubRepositoryStandardsListHandler accepts and processes requests to the below endpointutils.
 // It will create a new adpator using context details and run sql query using
 // crud.Select with the input params being used as named parameters on the query
 //

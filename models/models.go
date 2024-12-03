@@ -1,7 +1,7 @@
 package models
 
-// All returns the known models that require a database table to be created
-func All() []interface{} {
+// Full returns the known models that require a database table to be created
+func Full() []interface{} {
 
 	return []interface{}{
 		&Unit{},                       // Unit is the base grouping model

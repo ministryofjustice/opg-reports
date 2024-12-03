@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ministryofjustice/opg-reports/internal/ints"
+	"github.com/ministryofjustice/opg-reports/internal/intutils"
 	"github.com/ministryofjustice/opg-reports/pkg/record"
 )
 
@@ -66,21 +66,21 @@ func (self *Standard) SetID(id int) {
 
 // IsCompliantBaseline checks itself and returns
 func (self *Standard) IsCompliantBaseline() bool {
-	return ints.Bool(self.CompliantExtended)
+	return intutils.Bool(self.CompliantExtended)
 }
 
 // IsCompliantExtended checks itself and returns bool
 func (self *Standard) IsCompliantExtended() bool {
-	return ints.Bool(self.CompliantExtended)
+	return intutils.Bool(self.CompliantExtended)
 
 }
 
 func (self *Standard) Archived() bool {
-	return ints.Bool(self.IsArchived)
+	return intutils.Bool(self.IsArchived)
 }
 
 func (self *Standard) Private() bool {
-	return ints.Bool(self.IsPrivate)
+	return intutils.Bool(self.IsPrivate)
 }
 
 // TeamList retusn a slice of stirngs of the team names without the `#`
@@ -100,40 +100,40 @@ func (self *Standard) TeamList() (teams []string) {
 func (g *Standard) Info() map[string]string {
 
 	return map[string]string{
-		"archived":                   fmt.Sprintf("%t", ints.Bool(g.IsArchived)),
+		"archived":                   fmt.Sprintf("%t", intutils.Bool(g.IsArchived)),
 		"created_at":                 fmt.Sprintf("%s", g.CreatedAt),
 		"branch_name":                g.DefaultBranch,
-		"has_delete_branch_on_merge": fmt.Sprintf("%t", ints.Bool(g.HasDeleteBranchOnMerge)),
-		"has_pages":                  fmt.Sprintf("%t", ints.Bool(g.HasPages)),
-		"has_downloads":              fmt.Sprintf("%t", ints.Bool(g.HasDownloads)),
-		"has_discussions":            fmt.Sprintf("%t", ints.Bool(g.HasDiscussions)),
-		"has_wiki":                   fmt.Sprintf("%t", ints.Bool(g.HasWiki)),
+		"has_delete_branch_on_merge": fmt.Sprintf("%t", intutils.Bool(g.HasDeleteBranchOnMerge)),
+		"has_pages":                  fmt.Sprintf("%t", intutils.Bool(g.HasPages)),
+		"has_downloads":              fmt.Sprintf("%t", intutils.Bool(g.HasDownloads)),
+		"has_discussions":            fmt.Sprintf("%t", intutils.Bool(g.HasDiscussions)),
+		"has_wiki":                   fmt.Sprintf("%t", intutils.Bool(g.HasWiki)),
 		"forks":                      fmt.Sprintf("%d", g.CountOfForks),
 		"webhooks":                   fmt.Sprintf("%d", g.CountOfWebHooks),
 		"open_pull_requests":         fmt.Sprintf("%d", g.CountOfPullRequests),
 		"clone_traffic":              fmt.Sprintf("%d", g.CountOfClones),
-		"is_private":                 fmt.Sprintf("%t", ints.Bool(g.IsPrivate)),
+		"is_private":                 fmt.Sprintf("%t", intutils.Bool(g.IsPrivate)),
 		"last_commit_date":           fmt.Sprintf("%s", g.LastCommitDate),
 	}
 }
 
 func (g *Standard) Baseline() map[string]bool {
 	return map[string]bool{
-		"has_default_branch_of_main":         ints.Bool(g.HasDefaultBranchOfMain),
-		"has_license":                        ints.Bool(g.HasLicense),
-		"has_issues":                         ints.Bool(g.HasIssues),
-		"has_description":                    ints.Bool(g.HasDescription),
-		"has_rules_enforced_for_admins":      ints.Bool(g.HasRulesEnforcedForAdmins),
-		"has_pull_request_approval_required": ints.Bool(g.HasPullRequestApprovalRequired),
+		"has_default_branch_of_main":         intutils.Bool(g.HasDefaultBranchOfMain),
+		"has_license":                        intutils.Bool(g.HasLicense),
+		"has_issues":                         intutils.Bool(g.HasIssues),
+		"has_description":                    intutils.Bool(g.HasDescription),
+		"has_rules_enforced_for_admins":      intutils.Bool(g.HasRulesEnforcedForAdmins),
+		"has_pull_request_approval_required": intutils.Bool(g.HasPullRequestApprovalRequired),
 	}
 }
 
 func (g *Standard) Extended() map[string]bool {
 	return map[string]bool{
-		"has_code_owner_approval_required": ints.Bool(g.HasCodeownerApprovalRequired),
-		"has_readme":                       ints.Bool(g.HasReadme),
-		"has_code_of_conduct":              ints.Bool(g.HasCodeOfConduct),
-		"has_contributing_guide":           ints.Bool(g.HasContributingGuide),
+		"has_code_owner_approval_required": intutils.Bool(g.HasCodeownerApprovalRequired),
+		"has_readme":                       intutils.Bool(g.HasReadme),
+		"has_code_of_conduct":              intutils.Bool(g.HasCodeOfConduct),
+		"has_contributing_guide":           intutils.Bool(g.HasContributingGuide),
 	}
 }
 

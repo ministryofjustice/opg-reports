@@ -53,7 +53,7 @@ GROUP BY aws_accounts.id
 ORDER BY aws_accounts.name ASC;
 ;`
 
-// ApiAwsAccountsListHandler accepts and processes requests to the below endpoints.
+// ApiAwsAccountsListHandler accepts and processes requests to the below endpointutils.
 // It will create a new adpator using context details and run sql query using
 // crud.Select with the input params being used as named parameters on the query
 //

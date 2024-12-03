@@ -9,23 +9,33 @@ import (
 	"github.com/ministryofjustice/opg-reports/pkg/convert"
 )
 
-// VersionInput is the version part of the uri path
+// VersionInput is the version part of the uri path and has the following fields for the uri:
+//
+//   - version (path, required)
 type VersionInput struct {
 	Version string `json:"version,omitempty" path:"version" required:"true" doc:"Version prefix for the api" default:"v1" enum:"v1"`
 }
 
-// VersionUnitInput is the version part of the uri path and option to filter bu unit
+// VersionUnitInput is the version part of the uri path and option to filter bu unit and has the following field setup:
+//
+//   - version (path, required)
+//   - unit (query, optional)
 type VersionUnitInput struct {
 	Version string `json:"version,omitempty" path:"version" db:"-" required:"true" doc:"Version prefix for the api" default:"v1" enum:"v1"`
 	Unit    string `json:"unit,omitempty" query:"unit" db:"unit" doc:"Unit name to filter data by"`
 }
 
-// DateRangeInput
+// DateRangeUnitInput allows for following fields:
+//
+//   - version (path, required)
+//   - unit (query, optional)
+//   - start_date (path, required)
+//   - end_date (path, required)
 type DateRangeUnitInput struct {
 	Version   string `json:"version,omitempty" db:"-" path:"version" required:"true" doc:"Version prefix for the api" default:"v1" enum:"v1"`
 	Unit      string `json:"unit,omitempty" query:"unit" db:"unit" doc:"Unit name to filter data by"`
-	StartDate string `json:"start_date,omitempty" db:"start_date" path:"start_date" doc:"Earliest date to start the data (uses >=). YYYY-MM-DD." example:"2022-01-01" pattern:"([0-9]{4}-[0-9]{2}-[0-9]{2})"`
-	EndDate   string `json:"end_date,omitempty" db:"end_date" path:"end_date" doc:"Latest date to capture the data for (uses <). YYYY-MM-DD."  example:"2024-04-01" pattern:"([0-9]{4}-[0-9]{2}-[0-9]{2})"`
+	StartDate string `json:"start_date,omitempty" db:"start_date" required:"true" path:"start_date" doc:"Earliest date to start the data (uses >=). YYYY-MM-DD." example:"2022-01-01" pattern:"([0-9]{4}-[0-9]{2}-[0-9]{2})"`
+	EndDate   string `json:"end_date,omitempty" db:"end_date" required:"true" path:"end_date" doc:"Latest date to capture the data for (uses <). YYYY-MM-DD."  example:"2024-04-01" pattern:"([0-9]{4}-[0-9]{2}-[0-9]{2})"`
 }
 
 func (self *DateRangeUnitInput) Start() (t time.Time) {
@@ -41,7 +51,12 @@ func (self *DateRangeUnitInput) End() (t time.Time) {
 	return
 }
 
-// OptionalDateRangeInput
+// OptionalDateRangeInput has the following fields for input and their setup:
+//
+//   - version (path, required)
+//   - unit (query, optional)
+//   - start_date (query, optional)
+//   - end_date (query, optional)
 type OptionalDateRangeInput struct {
 	Version   string `json:"version,omitempty" db:"-" path:"version" required:"true" doc:"Version prefix for the api" default:"v1" enum:"v1"`
 	Unit      string `json:"unit,omitempty" query:"unit" db:"unit" doc:"Unit name to filter data by"`
@@ -62,12 +77,19 @@ func (self *OptionalDateRangeInput) End() (t time.Time) {
 	return
 }
 
-// RequiredGroupedDateRangeInput must have start and end dates as well as interval details
+// RequiredGroupedDateRangeInput must have start and end dates as well as interval details:
+//
+//   - version (path, required)
+//   - start_date (path, required)
+//   - end_date (path, required)
+//   - interval (path, required)
+//
+// Note: no unit filtering for this.
 type RequiredGroupedDateRangeInput struct {
 	Version    string `json:"version,omitempty" db:"-" path:"version" required:"true" doc:"Version prefix for the api" default:"v1" enum:"v1"`
 	StartDate  string `json:"start_date,omitempty" db:"start_date" path:"start_date" required:"true" doc:"Earliest date to start the data (uses >=). YYYY-MM-DD." example:"2022-01-01" pattern:"([0-9]{4}-[0-9]{2}-[0-9]{2})"`
 	EndDate    string `json:"end_date,omitempty" db:"end_date" path:"end_date" required:"true" doc:"Latest date to capture the data for (uses <). YYYY-MM-DD."  example:"2024-04-01" pattern:"([0-9]{4}-[0-9]{2}-[0-9]{2})"`
-	Interval   string `json:"interval,omitempty" db:"-" path:"interval" default:"month" enum:"year,month,day" doc:"Group the data by this type of interval."`
+	Interval   string `json:"interval,omitempty" db:"-" path:"interval" required:"true" default:"month" enum:"year,month,day" doc:"Group the data by this type of interval."`
 	DateFormat string `json:"date_format,omitempty" db:"date_format"`
 }
 
@@ -101,7 +123,14 @@ func (self *RequiredGroupedDateRangeInput) Resolve(ctx huma.Context) []error {
 	return nil
 }
 
-// RequiredGroupedDateRangeUnitInput must have start and end dates as well as interval details and has optional
+// RequiredGroupedDateRangeUnitInput must have start and end dates as well as interval details and has optional unit
+// filtering. Setup:
+//
+//   - version (path, required)
+//   - unit (query, optional)
+//   - start_date (path, required)
+//   - end_date (path, required)
+//   - interval (path, required)
 type RequiredGroupedDateRangeUnitInput struct {
 	Version    string `json:"version,omitempty" db:"-" path:"version" required:"true" doc:"Version prefix for the api" default:"v1" enum:"v1"`
 	Unit       string `json:"unit,omitempty" query:"unit" db:"unit" doc:"Unit name to filter data by"`

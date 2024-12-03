@@ -58,7 +58,7 @@ func TestApiHandlersGitHubRepositoryStandardsListHandler(t *testing.T) {
 	defer adaptor.DB().Close()
 
 	// bootstrap the database - this will now recreate the standards table
-	err = crud.Bootstrap(ctx, adaptor, models.All()...)
+	err = crud.Bootstrap(ctx, adaptor, models.Full()...)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}

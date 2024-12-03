@@ -64,7 +64,7 @@ GROUP BY aws_uptime.id
 ORDER BY aws_uptime.date ASC;
 ;`
 
-// ApiAwsUptimeListHandler accepts and processes requests to the below endpoints.
+// ApiAwsUptimeListHandler accepts and processes requests to the below endpointutils.
 // It will create a new adpator using context details and run sql query using
 // crud.Select with the input params being used as named parameters on the query
 //

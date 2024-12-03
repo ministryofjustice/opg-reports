@@ -26,7 +26,7 @@ type Unit struct {
 	// Indirect (otherside of the many->many) join pulled only in the select to fetch teams (one unit has many teams, a team has many units)
 	// See GitHubTeamUnit
 	GitHubTeams GitHubTeams `json:"github_teams,omitempty" db:"github_teams" faker:"-"`
-	// Indirect (one->many) join puleld from selects - account has only one unit, unit has many accounts
+	// Indirect (one->many) join from selects - account has only one unit, unit has many accounts
 	AwsAccounts AwsAccounts `json:"aws_accounts,omitempty" db:"aws_accounts" faker:"-"`
 }
 

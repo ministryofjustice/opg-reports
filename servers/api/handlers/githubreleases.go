@@ -77,7 +77,7 @@ GROUP BY github_releases.id
 ORDER BY github_releases.date ASC;
 `
 
-// ApiGitHubReleasesListHandler accepts and processes requests to the below endpoints.
+// ApiGitHubReleasesListHandler accepts and processes requests to the below endpointutils.
 // It will create a new adpator using context details and run sql query using
 // crud.Select with the input params being used as named parameters on the query
 //
@@ -171,7 +171,7 @@ GROUP BY strftime(:date_format, github_releases.date)
 ORDER BY strftime(:date_format, github_releases.date) ASC;
 `
 
-// ApiGitHubReleasesCountHandler accepts and processes requests to the below endpoints.
+// ApiGitHubReleasesCountHandler accepts and processes requests to the below endpointutils.
 // It will create a new adpator using context details and run sql query using
 // crud.Select with the input params being used as named parameters on the query.
 //
@@ -273,7 +273,7 @@ GROUP BY units.id, strftime(:date_format, github_releases.date)
 ORDER BY strftime(:date_format, github_releases.date), units.name ASC;
 `
 
-// ApiGitHubReleasesCountPerUnitHandler accepts and processes requests to the below endpoints.
+// ApiGitHubReleasesCountPerUnitHandler accepts and processes requests to the below endpointutils.
 // It will create a new adpator using context details and run sql query using
 // crud.Select with the input params being used as named parameters on the query.
 //

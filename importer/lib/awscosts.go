@@ -29,7 +29,7 @@ func processAwsCosts(ctx context.Context, adaptor dbs.Adaptor, path string) (res
 	}
 
 	// bootstrap the database - this will now recreate the standards table
-	err = crud.Bootstrap(ctx, adaptor, models.All()...)
+	err = crud.Bootstrap(ctx, adaptor, models.Full()...)
 	if err != nil {
 		return
 	}

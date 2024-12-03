@@ -33,7 +33,7 @@ func SeedDB(ctx context.Context, dbPath string) {
 		panic(err)
 	}
 	// bootstrap will generate db tables and indexes from the models
-	err = crud.Bootstrap(ctx, adaptor, models.All()...)
+	err = crud.Bootstrap(ctx, adaptor, models.Full()...)
 	if err != nil {
 		slog.Error("[seed] error with bootstrap", slog.String("err", err.Error()))
 		panic(err)

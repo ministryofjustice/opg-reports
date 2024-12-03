@@ -42,7 +42,7 @@ func TestApiHandlersAwsUptimeList(t *testing.T) {
 	defer adaptor.DB().Close()
 
 	// bootstrap the database - this will now recreate the standards table
-	err = crud.Bootstrap(ctx, adaptor, models.All()...)
+	err = crud.Bootstrap(ctx, adaptor, models.Full()...)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -68,6 +68,7 @@ func TestApiHandlersAwsUptimeList(t *testing.T) {
 		StartDate: fakerextras.TimeStringMin.AddDate(0, 0, -1).Format(dateformats.YMD),
 		EndDate:   fakerextras.TimeStringMax.AddDate(0, 0, 1).Format(dateformats.YMD),
 	}
+
 	// should return everything as we are only using 1 unit
 	response, err = handlers.ApiAwsUptimeListHandler(ctx, in)
 	if err != nil {
@@ -107,7 +108,7 @@ func TestApiHandlersAwsUptimeAverages(t *testing.T) {
 	defer adaptor.DB().Close()
 
 	// bootstrap the database - this will now recreate the standards table
-	err = crud.Bootstrap(ctx, adaptor, models.All()...)
+	err = crud.Bootstrap(ctx, adaptor, models.Full()...)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -172,7 +173,7 @@ func TestApiHandlersAwsUptimeAveragesPerUnit(t *testing.T) {
 	defer adaptor.DB().Close()
 
 	// bootstrap the database - this will now recreate the standards table
-	err = crud.Bootstrap(ctx, adaptor, models.All()...)
+	err = crud.Bootstrap(ctx, adaptor, models.Full()...)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}

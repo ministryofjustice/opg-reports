@@ -1,4 +1,4 @@
-package ints
+package intutils
 
 func Bool(i uint8) bool {
 	if i == 1 {

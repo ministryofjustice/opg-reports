@@ -27,7 +27,7 @@ func TestCRUDBootstrap(t *testing.T) {
 }
 
 func TestCRUDBootstrapAll(t *testing.T) {
-	all := models.All()
+	all := models.Full()
 	path := filepath.Join(t.TempDir(), "test.db")
 	ctx := context.Background()
 	ad, _ := adaptors.NewSqlite(path, false)

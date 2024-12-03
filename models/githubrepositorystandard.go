@@ -9,7 +9,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/bools"
 	"github.com/ministryofjustice/opg-reports/internal/dateformats"
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
-	"github.com/ministryofjustice/opg-reports/internal/ints"
+	"github.com/ministryofjustice/opg-reports/internal/intutils"
 )
 
 // GitHubRepositoryStandard stores all the infor we want locally about our
@@ -226,40 +226,40 @@ func (self *GitHubRepositoryStandard) New() dbs.Cloneable {
 func (self *GitHubRepositoryStandard) Info() map[string]string {
 
 	return map[string]string{
-		"archived":                   fmt.Sprintf("%t", ints.Bool(self.IsArchived)),
+		"archived":                   fmt.Sprintf("%t", intutils.Bool(self.IsArchived)),
 		"created_at":                 fmt.Sprintf("%s", self.GitHubRepository.CreatedAt),
 		"branch_name":                self.DefaultBranch,
-		"has_delete_branch_on_merge": fmt.Sprintf("%t", ints.Bool(self.HasDeleteBranchOnMerge)),
-		"has_pages":                  fmt.Sprintf("%t", ints.Bool(self.HasPages)),
-		"has_downloads":              fmt.Sprintf("%t", ints.Bool(self.HasDownloads)),
-		"has_discussions":            fmt.Sprintf("%t", ints.Bool(self.HasDiscussions)),
-		"has_wiki":                   fmt.Sprintf("%t", ints.Bool(self.HasWiki)),
+		"has_delete_branch_on_merge": fmt.Sprintf("%t", intutils.Bool(self.HasDeleteBranchOnMerge)),
+		"has_pages":                  fmt.Sprintf("%t", intutils.Bool(self.HasPages)),
+		"has_downloads":              fmt.Sprintf("%t", intutils.Bool(self.HasDownloads)),
+		"has_discussions":            fmt.Sprintf("%t", intutils.Bool(self.HasDiscussions)),
+		"has_wiki":                   fmt.Sprintf("%t", intutils.Bool(self.HasWiki)),
 		"forks":                      fmt.Sprintf("%d", self.CountOfForks),
 		"webhooks":                   fmt.Sprintf("%d", self.CountOfWebHooks),
 		"open_pull_requests":         fmt.Sprintf("%d", self.CountOfPullRequests),
 		"clone_traffic":              fmt.Sprintf("%d", self.CountOfClones),
-		"is_private":                 fmt.Sprintf("%t", ints.Bool(self.IsPrivate)),
+		"is_private":                 fmt.Sprintf("%t", intutils.Bool(self.IsPrivate)),
 		"last_commit_date":           fmt.Sprintf("%s", self.LastCommitDate),
 	}
 }
 
 func (self *GitHubRepositoryStandard) Baseline() map[string]bool {
 	return map[string]bool{
-		"has_default_branch_of_main":         ints.Bool(self.HasDefaultBranchOfMain),
-		"has_license":                        ints.Bool(self.HasLicense),
-		"has_issues":                         ints.Bool(self.HasIssues),
-		"has_description":                    ints.Bool(self.HasDescription),
-		"has_rules_enforced_for_admins":      ints.Bool(self.HasRulesEnforcedForAdmins),
-		"has_pull_request_approval_required": ints.Bool(self.HasPullRequestApprovalRequired),
+		"has_default_branch_of_main":         intutils.Bool(self.HasDefaultBranchOfMain),
+		"has_license":                        intutils.Bool(self.HasLicense),
+		"has_issues":                         intutils.Bool(self.HasIssues),
+		"has_description":                    intutils.Bool(self.HasDescription),
+		"has_rules_enforced_for_admins":      intutils.Bool(self.HasRulesEnforcedForAdmins),
+		"has_pull_request_approval_required": intutils.Bool(self.HasPullRequestApprovalRequired),
 	}
 }
 
 func (self *GitHubRepositoryStandard) Extended() map[string]bool {
 	return map[string]bool{
-		"has_code_owner_approval_required": ints.Bool(self.HasCodeownerApprovalRequired),
-		"has_readme":                       ints.Bool(self.HasReadme),
-		"has_code_of_conduct":              ints.Bool(self.HasCodeOfConduct),
-		"has_contributing_guide":           ints.Bool(self.HasContributingGuide),
+		"has_code_owner_approval_required": intutils.Bool(self.HasCodeownerApprovalRequired),
+		"has_readme":                       intutils.Bool(self.HasReadme),
+		"has_code_of_conduct":              intutils.Bool(self.HasCodeOfConduct),
+		"has_contributing_guide":           intutils.Bool(self.HasContributingGuide),
 	}
 }
 
