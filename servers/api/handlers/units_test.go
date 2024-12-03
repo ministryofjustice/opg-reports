@@ -11,8 +11,8 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/fakerextensions/fakermany"
 	"github.com/ministryofjustice/opg-reports/models"
 	"github.com/ministryofjustice/opg-reports/servers/api/handlers"
-	"github.com/ministryofjustice/opg-reports/servers/api/inputs"
 	"github.com/ministryofjustice/opg-reports/servers/api/lib"
+	"github.com/ministryofjustice/opg-reports/servers/inputs"
 )
 
 func TestApiHandlersUnitsListHandler(t *testing.T) {

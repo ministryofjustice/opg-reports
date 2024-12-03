@@ -11,7 +11,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/dbs/adaptors"
 	"github.com/ministryofjustice/opg-reports/internal/dbs/crud"
 	"github.com/ministryofjustice/opg-reports/models"
-	"github.com/ministryofjustice/opg-reports/servers/api/inputs"
+	"github.com/ministryofjustice/opg-reports/servers/inputs"
 )
 
 var (
