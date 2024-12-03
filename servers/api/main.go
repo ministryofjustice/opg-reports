@@ -26,65 +26,36 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/fileutils"
 	"github.com/ministryofjustice/opg-reports/pkg/consts"
 	"github.com/ministryofjustice/opg-reports/pkg/envar"
+	"github.com/ministryofjustice/opg-reports/servers/api/handlers"
 	"github.com/ministryofjustice/opg-reports/servers/api/lib"
-	"github.com/ministryofjustice/opg-reports/sources/costs"
-	"github.com/ministryofjustice/opg-reports/sources/costs/costsapi"
-	"github.com/ministryofjustice/opg-reports/sources/releases"
-	"github.com/ministryofjustice/opg-reports/sources/releases/releasesapi"
-	"github.com/ministryofjustice/opg-reports/sources/standards"
-	"github.com/ministryofjustice/opg-reports/sources/standards/standardsapi"
-	"github.com/ministryofjustice/opg-reports/sources/uptime"
-	"github.com/ministryofjustice/opg-reports/sources/uptime/uptimeapi"
 )
 
 var (
-	mode        string = info.Fixtures
-	localDBPath string = "./databases/api.db"
-)
-var (
-	bucketName string = info.BucketName
-	bucketDB   string = "./databases/api.db"
+	mode        string = info.Fixtures        // decides which set of endpoints to use
+	localDBPath string = "./databases/api.db" // path to the database
+	bucketName  string = info.BucketName      // name of the bucket to pull database from
+	bucketDB    string = "./databases/api.db" // name of the database within the bucket
 )
 
-// we split the api handlers into simple & full groups
-// `simple` is used for the basic install
-// `full` covers all options
-// Set using the bi.Mode which is a ldflag
 var (
-	simpleSegments map[string]*lib.ApiSegment = map[string]*lib.ApiSegment{
-		standardsapi.Segment: {
-			DbFile:       "./databases/standards.db",
-			SetupFunc:    standards.Setup,
-			RegisterFunc: standardsapi.Register,
+	allHandlers map[string]map[string]lib.RegisterHandlerFunc = map[string]map[string]lib.RegisterHandlerFunc{
+		"simple": {
+			"github-repository-standards": handlers.RegisterGitHubRepositoryStandards,
+			"github-teams":                handlers.RegisterGitHubTeams,
+			"units":                       handlers.RegisterUnits,
+		},
+		"full": {
+			"aws-accounts":                handlers.RegisterAwsAccounts,
+			"aws-costs":                   handlers.RegisterAwsCosts,
+			"aws-uptime":                  handlers.RegisterAwsUptime,
+			"github-repositories":         handlers.RegisterGitHubRepositories,
+			"github-releases":             handlers.RegisterGitHubRelases,
+			"github-repository-standards": handlers.RegisterGitHubRepositoryStandards,
+			"github-teams":                handlers.RegisterGitHubTeams,
+			"units":                       handlers.RegisterUnits,
 		},
 	}
-	fullSegments map[string]*lib.ApiSegment = map[string]*lib.ApiSegment{
-		costsapi.Segment: {
-			DbFile:       "./databases/costs.db",
-			SetupFunc:    costs.Setup,
-			RegisterFunc: costsapi.Register,
-		},
-		standardsapi.Segment: {
-			DbFile:       "./databases/standards.db",
-			SetupFunc:    standards.Setup,
-			RegisterFunc: standardsapi.Register,
-		},
-		uptimeapi.Segment: {
-			DbFile:       "./databases/uptime.db",
-			SetupFunc:    uptime.Setup,
-			RegisterFunc: uptimeapi.Register,
-		},
-		releasesapi.Segment: {
-			DbFile:       "./databases/releases.db",
-			SetupFunc:    releases.Setup,
-			RegisterFunc: releasesapi.Register,
-		},
-	}
-	segmentChoices map[string]map[string]*lib.ApiSegment = map[string]map[string]*lib.ApiSegment{
-		"simple": simpleSegments,
-		"full":   fullSegments,
-	}
-	segments = segmentChoices[mode]
+	Handlers map[string]lib.RegisterHandlerFunc = allHandlers[mode]
 )
 
 // init is used to fetch stored databases from s3
@@ -93,10 +64,6 @@ func init() {
 	var (
 		ctx context.Context = context.Background()
 	)
-	// this is the old seeding
-	// TODO: remove when everything is using single db
-	lib.SetupSegments(ctx, segments)
-
 	// new way of seeding
 	// - if we are using the real data set, go fetch it
 	if info.Dataset == "real" {
@@ -137,7 +104,7 @@ func Run() {
 	// create the api
 	api = humago.New(mux, huma.DefaultConfig(apiTitle, apiVersion))
 	// get the cli and run it
-	cmd := lib.CLI(ctx, api, &server, segments, databasePath)
+	cmd := lib.CLI(ctx, api, &server, Handlers, databasePath)
 	cmd.Run()
 
 }

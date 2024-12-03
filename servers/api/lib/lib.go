@@ -13,12 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// ApiSegment captures data for each part of the api (in the folder ./sources/)
-type ApiSegment struct {
-	DbFile       string
-	SetupFunc    func(ctx context.Context, dbFilepath string, seed bool)
-	RegisterFunc func(api huma.API)
-}
+type RegisterHandlerFunc func(api huma.API)
 
 // CliOptions is empty, used just as a place holder to match the func signature
 type CliOptions struct{}
@@ -44,15 +39,15 @@ func ApiVersion() string {
 
 // CLI returns the api wrapped as a cli command and appends not only the api routes
 // but also a command to output the api spec (`openapi`)
-func CLI(ctx context.Context, api huma.API, server *http.Server, segments map[string]*ApiSegment, dbPath string) (cli humacli.CLI) {
+func CLI(ctx context.Context, api huma.API, server *http.Server, handlers map[string]RegisterHandlerFunc, dbPath string) (cli humacli.CLI) {
 	var shutdownDelay time.Duration = 5 * time.Second
 
 	cli = humacli.New(func(hooks humacli.Hooks, opts *CliOptions) {
 		var addr = server.Addr
 
-		AddMiddleware(api, segments, dbPath)
-		AddHomepage(api, segments)
-		RegisterSegments(api, segments)
+		AddMiddleware(api, dbPath)
+		AddHomepage(api)
+		RegisterHandlers(api, handlers)
 
 		hooks.OnStart(func() {
 			slog.Info("Starting api server...")

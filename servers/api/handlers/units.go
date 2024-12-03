@@ -16,7 +16,7 @@ import (
 
 var (
 	UnitsSegment string   = "units"
-	UnitTags     []string = []string{"units"}
+	UnitTags     []string = []string{"Units"}
 )
 
 // --- units list

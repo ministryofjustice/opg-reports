@@ -20,7 +20,7 @@ import (
 
 var (
 	AwsCostsSegment string   = "aws/costs"
-	AwsCostsTags    []string = []string{"aws", "costs"}
+	AwsCostsTags    []string = []string{"AWS costs"}
 )
 
 type AwsCostsTotalBody struct {

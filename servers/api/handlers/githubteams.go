@@ -18,7 +18,7 @@ import (
 
 var (
 	GitHubTeamsSegment string   = "github/teams"
-	GitHubTeamsTags    []string = []string{"github", "teams"}
+	GitHubTeamsTags    []string = []string{"GitHub teams"}
 )
 
 // --- github teams list

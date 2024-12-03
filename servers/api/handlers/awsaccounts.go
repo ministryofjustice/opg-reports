@@ -18,7 +18,7 @@ import (
 
 var (
 	AwsAccountsSegment string   = "aws/accounts"
-	AwsAccountsTags    []string = []string{"aws", "accounts"}
+	AwsAccountsTags    []string = []string{"AWS accounts"}
 )
 
 // -- Account listing

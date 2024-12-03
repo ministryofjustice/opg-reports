@@ -20,7 +20,7 @@ import (
 
 var (
 	GitHubReleasesSegment string   = "github/releases"
-	GitHubReleasesTags    []string = []string{"github", "releases"}
+	GitHubReleasesTags    []string = []string{"GitHub releases"}
 )
 
 // -- Release listing

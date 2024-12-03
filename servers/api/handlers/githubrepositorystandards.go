@@ -18,7 +18,7 @@ import (
 
 var (
 	GitHubRepositoryStandardsSegment string   = "github/standards"
-	GitHubRepositoryStandardsTags    []string = []string{"github", "repository", "standards"}
+	GitHubRepositoryStandardsTags    []string = []string{"GitHub repository standards"}
 )
 
 // -- Release listing

@@ -37,6 +37,8 @@ type GitHubRepository struct {
 	LastCommitDate string `json:"last_commit_date,omitempty" db:"last_commit_date" faker:"date_string"`
 	// Many to many join between repo and teams
 	GitHubTeams GitHubTeams `json:"github_teams,omitempty" db:"github_teams" faker:"-"`
+	// Indirect info thats returned in some api endpoints to allow filtering by the unit
+	Units Units `json:"units,omitempty" db:"units" faker:"-"`
 }
 
 // UniqueValue returns the value representing the value of

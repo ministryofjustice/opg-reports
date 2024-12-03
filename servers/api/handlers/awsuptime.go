@@ -20,7 +20,7 @@ import (
 
 var (
 	AwsUptimeSegment string   = "aws/uptime"
-	AwsUptimeTags    []string = []string{"aws", "uptime"}
+	AwsUptimeTags    []string = []string{"AWS uptime"}
 )
 
 // AwsUptimeListBody contains the resposne body to send back

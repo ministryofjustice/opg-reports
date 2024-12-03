@@ -9,7 +9,7 @@ import (
 
 // AddHomepage registers a simple home page as the default
 // root of the api
-func AddHomepage(api huma.API, segments map[string]*ApiSegment) {
+func AddHomepage(api huma.API) {
 	//
 	huma.Register(api, huma.Operation{
 		OperationID:   "get-homepage",
