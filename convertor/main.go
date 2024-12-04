@@ -10,13 +10,18 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/ministryofjustice/opg-reports/collectors/githubreleases/lib"
 	v1 "github.com/ministryofjustice/opg-reports/convertor/v1"
 	"github.com/ministryofjustice/opg-reports/info"
+	"github.com/ministryofjustice/opg-reports/internal/dateformats"
+	"github.com/ministryofjustice/opg-reports/internal/dateintervals"
+	"github.com/ministryofjustice/opg-reports/internal/dateutils"
 	"github.com/ministryofjustice/opg-reports/internal/structs"
 	"github.com/ministryofjustice/opg-reports/models"
 	"github.com/ministryofjustice/opg-reports/pkg/awscfg"
@@ -161,6 +166,25 @@ func ConvertV1s() {
 
 }
 
+// GetReleases fetches releases for the last year to populate that data
+func GetReleases() {
+	var (
+		endDay   = time.Now().UTC()
+		startDay = dateutils.Reset(endDay, dateintervals.Year)
+	)
+	slog.Info("[convertor] Fetching previous releases ...",
+		slog.String("end", endDay.Format(dateformats.YMD)),
+		slog.String("start", startDay.Format(dateformats.YMD)))
+	args := &lib.Arguments{
+		Organisation: "ministryofjustice",
+		Team:         "opg",
+		StartDate:    startDay.Format(dateformats.YMD),
+		OutputFile:   convertedDir + "/github_releases.json",
+	}
+	lib.Run(args)
+
+}
+
 func Run(download bool) (err error) {
 	var (
 		sess *session.Session
@@ -176,6 +200,7 @@ func Run(download bool) (err error) {
 		Download(sess, svc)
 	}
 	ConvertV1s()
+	GetReleases()
 
 	return
 

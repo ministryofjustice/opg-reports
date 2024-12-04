@@ -151,7 +151,7 @@ func PullRequestsToReleases(repo *github.Repository, teams models.GitHubTeams, p
 			Name:             *pr.Title,
 			Date:             pr.MergedAt.Format(dateformats.Full),
 			SourceURL:        *pr.HTMLURL,
-			RelaseType:       models.GitHubWorkflowRelease,
+			RelaseType:       models.GitHubPRMergeRelease,
 			GitHubRepository: (*models.GitHubRepositoryForeignKey)(ghRepo),
 			Count:            1,
 		}

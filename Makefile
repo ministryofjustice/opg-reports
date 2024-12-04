@@ -2,6 +2,7 @@ SHELL = bash
 #============ PARAMS ==============
 BUCKET_PROFILE ?= shared-development-operator
 IMPORT_DOWNLOAD ?= true
+GITHUB_ACCESS_TOKEN ?= ${GITHUB_TOKEN}
 #============ BUILD INFO ==============
 BUILD_DIR = ./builds/
 API_VERSION = v1
@@ -56,16 +57,17 @@ openapi:
 ## Output build info
 buildinfo:
 	@echo "=== BUILD INFO"
-	@echo "COMMIT:         ${COMMIT}"
-	@echo "TIMESTAMP:      ${TIMESTAMP}"
-	@echo "SEMVER:         ${SEMVER}"
+	@echo "COMMIT:           ${COMMIT}"
+	@echo "TIMESTAMP:        ${TIMESTAMP}"
+	@echo "SEMVER:           ${SEMVER}"
 	@echo "=== CONFIG INFO"
-	@echo "ORGANISATION:   ${ORGANISATION}"
-	@echo "DATASET:        ${DATASET}"
-	@echo "FIXTURES:       ${FIXTURES}"
-	@echo "BUCKET_NAME:    ${BUCKET_NAME}"
+	@echo "ORGANISATION:     ${ORGANISATION}"
+	@echo "DATASET:          ${DATASET}"
+	@echo "FIXTURES:         ${FIXTURES}"
+	@echo "BUCKET_NAME:      ${BUCKET_NAME}"
 	@echo "=== PARAMS"
-	@echo "BUCKET_PROFILE: ${BUCKET_PROFILE}"
+	@echo "BUCKET_PROFILE:   ${BUCKET_PROFILE}"
+	@echo "IMPORT_DOWNLOAD:  ${IMPORT_DOWNLOAD}"
 	@echo "==="
 .PHONY: buildinfo
 
@@ -87,7 +89,7 @@ clean:
 ## Run the api from dev source - will copy existing db to location
 api:
 	@mkdir -p ./servers/api/databases
-	@cp ./build/databases/api.db ./servers/api/databases
+	@cp ./builds/databases/api.db ./servers/api/databases && echo "copied db ${tick}" || echo "no db to copy"
 	@cd ./servers/api && go run main.go
 .PHONY: api
 
@@ -109,8 +111,9 @@ data/upload: build
 #========= IMPORT DATA =========
 # Import all old data - order is important due to data gaps
 import: build
-	@cd ./builds/ && aws-vault exec ${BUCKET_PROFILE} -- ./convertor --download=${IMPORT_DOWNLOAD}
+	@cd ./builds/ && aws-vault exec ${BUCKET_PROFILE} -- env GITHUB_ACCESS_TOKEN=${GITHUB_ACCESS_TOKEN} ./convertor --download=${IMPORT_DOWNLOAD}
 	@cd ./builds && ./importer -type=github-standards -file=./converted-data/github_standards.json
+	@cd ./builds && ./importer -type=github-releases -file=./converted-data/github_releases.json
 	@cd ./builds && ./importer -type=aws-uptime -file=./converted-data/aws_uptime.json
 	@cd ./builds && ./importer -type=aws-costs -file=./converted-data/aws_costs.json
 .PHONY: import

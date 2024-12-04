@@ -70,6 +70,7 @@ func Run(args *Arguments) (err error) {
 		}
 
 		slog.Info("[githubreleases] found for dates.",
+			slog.String("repository", *repo.FullName),
 			slog.String("StartDate", args.StartDate),
 			slog.String("EndDate", args.EndDate),
 			slog.Int("pull_requests", len(merged)),
