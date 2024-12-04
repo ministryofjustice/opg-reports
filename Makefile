@@ -84,8 +84,10 @@ clean:
 .PHONY: clean
 #========= RUN =========
 
-## Run the api from dev source
+## Run the api from dev source - will copy existing db to location
 api:
+	@mkdir -p ./servers/api/databases
+	@cp ./build/databases/api.db ./servers/api/databases
 	@cd ./servers/api && go run main.go
 .PHONY: api
 
