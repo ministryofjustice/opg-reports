@@ -9,7 +9,9 @@ import (
 	"github.com/ministryofjustice/opg-reports/pkg/nums"
 )
 
-type Transformable interface {
+// DateTable interface is used for tables whose
+// date values are headers rather than column values
+type DateTable interface {
 	TDate() string
 	TValue() string
 }
@@ -24,7 +26,7 @@ type Transformable interface {
 // and sets the value of that to be .Cost. If a value is already represent, it "adds" to it.
 //
 // For ease, it returns the key-value used so this can be tracked
-func recordToRow[T Transformable](item T, columns []string, existingData map[string]map[string]interface{}) (key string, err error) {
+func recordToRow[T DateTable](item T, columns []string, existingData map[string]map[string]interface{}) (key string, err error) {
 	var (
 		ok          bool
 		v           interface{}
@@ -126,7 +128,7 @@ func recordToRow[T Transformable](item T, columns []string, existingData map[str
 //			"2024-03":     "0.0000",
 //		},
 //	}
-func ResultsToRows[T Transformable](apiData []T, columnValues map[string][]interface{}, dateRange []string) (dataAsMap map[string]map[string]interface{}, err error) {
+func ResultsToRows[T DateTable](apiData []T, columnValues map[string][]interface{}, dateRange []string) (dataAsMap map[string]map[string]interface{}, err error) {
 	// columns is sorted column names only - this is to ensure 'key' order is a match
 	var columns []string = SortedColumnNames(columnValues)
 	// found tracks which 'key' has real data and inserted in to the data map

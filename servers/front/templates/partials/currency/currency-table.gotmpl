@@ -11,8 +11,9 @@
 <table class="govuk-table currency-table">
     <thead class="govuk-table__head">
         <tr class="govuk-table__row">
+            <th class="govuk-table__header compare-header"></th>
             {{- range $x, $col := $columns -}}
-                <th class="govuk-table__header data-header"><span>{{ title $col }}</span></th>
+                <th class="govuk-table__header data-header dh-{{ $col }}" data-col-name="{{ $col }}"><span>{{ title $col }}</span></th>
             {{- end -}}
             {{- range $i, $d := $dates -}}
                 <th class="govuk-table__header data-cell" data-col="{{$i}}"><span>{{ $d }}</span></th>
@@ -28,16 +29,15 @@
             {{- $columnCount := 0 -}}
             {{- $rowTotal := "0.0" -}}
             <tr class="govuk-table__row" data-row="{{ $rowCount }}">
-
+                <th class="govuk-table__header compare-header">
+                    <span class="tick comparison-selector-holder">
+                        <input type="checkbox" name="comp{{ $rowCount }}" value="{{ $rowCount }}" class="comparison-selector">
+                    </span>
+                </th>
                 {{- range $x, $col := $columns -}}
-                    <th data-col="{{ $columnCount }}" class="govuk-table__header">
-                        {{- if eq $columnCount 0 -}}
-                            <span class="tick comparison-selector-holder">
-                                <input type="checkbox" name="comp" value="{{ $rowCount }}" class="comparison-selector">
-                            </span>
-                        {{- end -}}
-
-                        <span>{{- valueFromMap $col $row -}}</span>
+                    {{- $val := valueFromMap $col $row -}}
+                    <th data-col="{{ $columnCount }}" class="govuk-table__header data-header dh-{{ $col }}" data-col-name="{{ $col }}">
+                        <span>{{- $val -}}</span>
                     </th>
                     {{- $columnCount = increment $columnCount -}}
                 {{- end -}}

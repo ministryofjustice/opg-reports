@@ -31,13 +31,13 @@ const (
 	AwsUptimeList                endpoints.ApiEndpoint = "/{version}/aws/uptime/list/{start_month:-6}/{end_month:0}"                                // Returns all uptime data between dates
 	AwsUptimeMonthAverage        endpoints.ApiEndpoint = "/{version}/aws/uptime/average/month/{start_month:-6}/{end_month:0}"                       // Returns average uptime % between dates
 	AwsUptimeMonthAverageUnit    endpoints.ApiEndpoint = "/{version}/aws/uptime/average-per-unit/month/{start_month:-6}/{end_month:0}"              // Returns average uptime % between dates grouped by unit
-	AwsUptimeDayAverage          endpoints.ApiEndpoint = "/{version}/aws/uptime/average/day/{start_day:-14}/{end_day:0}"                            // Returns average uptime % between dates
-	AwsUptimeDayAverageUnit      endpoints.ApiEndpoint = "/{version}/aws/uptime/average-per-unit/day/{start_day:-14}/{end_day:0}"                   // Returns average uptime % between dates grouped by unit
+	AwsUptimeDayAverage          endpoints.ApiEndpoint = "/{version}/aws/uptime/average/day/{start_day:-7}/{end_day:0}"                             // Returns average uptime % between dates
+	AwsUptimeDayAverageUnit      endpoints.ApiEndpoint = "/{version}/aws/uptime/average-per-unit/day/{start_day:-7}/{end_day:0}"                    // Returns average uptime % between dates grouped by unit
 	GitHubReleaseList            endpoints.ApiEndpoint = "/{version}/github/release/list/{start_month:-6}/{end_month:0}"                            // Return all releases between the dates
 	GitHubReleaseMonthCount      endpoints.ApiEndpoint = "/{version}/github/release/count/month/{start_month:-6}/{end_month:0}"                     // Return count of all releases grouped by month
 	GitHubReleaseMonthCountUnit  endpoints.ApiEndpoint = "/{version}/github/release/count-per-unit/month/{start_month:-6}/{end_month:0}"            // Return count of releases grouped by month and unit
-	GitHubReleaseDayCount        endpoints.ApiEndpoint = "/{version}/github/release/count/day/{start_day:-14}/{end_day:0}"                          // Return count of all releases grouped by day
-	GitHubReleaseDayCountUnit    endpoints.ApiEndpoint = "/{version}/github/release/count-per-unit/day/{start_day:-14}/{end_day:0}"                 // Return count of releases grouped by day and unit
+	GitHubReleaseDayCount        endpoints.ApiEndpoint = "/{version}/github/release/count/day/{start_day:-7}/{end_day:0}"                           // Return count of all releases grouped by day
+	GitHubReleaseDayCountUnit    endpoints.ApiEndpoint = "/{version}/github/release/count-per-unit/day/{start_day:-7}/{end_day:0}"                  // Return count of releases grouped by day and unit
 	GitHubRepositoryList         endpoints.ApiEndpoint = "/{version}/github/repository/list"                                                        // Return list of all repositories
 	GitHubRespoitoryStandardList endpoints.ApiEndpoint = "/{version}/github/standard/list"                                                          // Return list of all repository standards
 	GitHubTeamList               endpoints.ApiEndpoint = "/{version}/github/team/list"                                                              // Return all github teams
@@ -194,7 +194,7 @@ func teamItems() (navs []*navigation.Navigation) {
 	navs = []*navigation.Navigation{}
 
 	for _, team := range teams {
-		months := dateutils.Range(-4, 0, dateintervals.Month)
+		months := dateutils.Range(-4, 1, dateintervals.Month)
 		slices.Reverse(months)
 		unitFilter := endpoints.ApiEndpoint("?unit=" + team)
 
@@ -246,7 +246,7 @@ func teamItems() (navs []*navigation.Navigation) {
 			ymd := m.Format(dateformats.YMD)
 			end := dateutils.Reset(m.AddDate(0, 1, 0), dateintervals.Month).Format(dateformats.YMD)
 			uri := string(AwsUptimeDayAverage)
-			uri = strings.ReplaceAll(uri, "{start_day:-14}", ymd)
+			uri = strings.ReplaceAll(uri, "{start_day:-7}", ymd)
 			uri = strings.ReplaceAll(uri, "{end_day:0}", end)
 
 			n := navigation.New(
