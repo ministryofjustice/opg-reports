@@ -20,11 +20,19 @@ var (
 	BucketName   string = "report-data-development" // Name of the bucket where all data is stored
 )
 
+// Server default locations
 const (
 	ServerDefaultFrontAddr string = "localhost:8080"
 	ServerDefaultApiAddr   string = "localhost:8081"
 )
 
+// CostsBillingDay is the day in the month where updated billing data has been
+// fetched and we can use the month prior to the current.
+//
+// Example - 10th April would be looking at Feb costs, 15th April can see March costs
+const AwsBillingDay int = 15
+
+// GovUK asset version to download
 const GovUKFrontendVersion string = "5.7.1"
 
 // Log outputs the build and config details via slog.Info

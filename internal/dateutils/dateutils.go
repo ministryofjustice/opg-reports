@@ -114,7 +114,7 @@ func Times(start time.Time, end time.Time, interval dateintervals.Interval) (tim
 	start = Reset(start, interval)
 	end = Reset(end, interval)
 
-	for d := start; d.After(end) == false; d = Add(d, 1, interval) {
+	for d := start; d.Equal(end) == false && d.After(end) == false; d = Add(d, 1, interval) {
 		times = append(times, d)
 	}
 	return

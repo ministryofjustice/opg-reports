@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ministryofjustice/opg-reports/info"
 	"github.com/ministryofjustice/opg-reports/internal/dateformats"
 	"github.com/ministryofjustice/opg-reports/internal/dateutils"
 	"github.com/ministryofjustice/opg-reports/internal/navigation"
@@ -33,6 +34,11 @@ func Increment(i interface{}) (result interface{}) {
 
 // Title generates a title case string
 func Title(s string) string {
+	// strip elements of the field name
+	s = strings.ReplaceAll(s, "aws_account_number", "account")
+	s = strings.ReplaceAll(s, "aws_account_", "")
+	s = strings.ReplaceAll(s, "_name", "")
+
 	s = strings.ReplaceAll(s, "/", " ")
 	s = strings.ReplaceAll(s, "_", " ")
 	s = strings.ReplaceAll(s, "-", " ")
@@ -125,4 +131,6 @@ var All map[string]interface{} = map[string]interface{}{
 	"percentage": Percentage,
 	"day":        Day,
 	"dayBefore":  DayBefore,
+	// info
+	"awsBillingDay": func() int { return info.AwsBillingDay },
 }

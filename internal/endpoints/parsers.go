@@ -5,9 +5,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ministryofjustice/opg-reports/pkg/bi"
-	"github.com/ministryofjustice/opg-reports/pkg/consts"
-	"github.com/ministryofjustice/opg-reports/pkg/convert"
+	"github.com/ministryofjustice/opg-reports/info"
+	"github.com/ministryofjustice/opg-reports/internal/dateformats"
+	"github.com/ministryofjustice/opg-reports/internal/dateintervals"
+	"github.com/ministryofjustice/opg-reports/internal/dateutils"
 )
 
 // dateArgs uses default values and the passed args slice to work out
@@ -35,7 +36,7 @@ func dateArgs(ago int, ts time.Time, args []string) (modifier int, date time.Tim
 
 	// 2nd arg is a base date
 	if len(args) > 1 {
-		if v, err := time.Parse(consts.DateFormatYearMonthDay, args[1]); err == nil {
+		if v, err := time.Parse(dateformats.YMD, args[1]); err == nil {
 			date = v
 		}
 	}
@@ -52,10 +53,10 @@ func year(uri string, pg *parserGroup) (u string) {
 	u = uri
 
 	ago, date := dateArgs(0, time.Now().UTC(), pg.Arguments)
-	date = convert.DateResetYear(date)
-	date = convert.DateAddYear(date, ago)
+	date = dateutils.Reset(date, dateintervals.Year)
+	date = dateutils.Add(date, ago, dateintervals.Year)
 
-	u = strings.ReplaceAll(uri, pg.Original, date.Format(consts.DateFormatYearMonthDay))
+	u = strings.ReplaceAll(uri, pg.Original, date.Format(dateformats.YMD))
 
 	return
 }
@@ -70,10 +71,10 @@ func month(uri string, pg *parserGroup) (u string) {
 	u = uri
 
 	ago, date := dateArgs(-9, time.Now().UTC(), pg.Arguments)
-	date = convert.DateResetMonth(date)
-	date = convert.DateAddMonth(date, ago)
+	date = dateutils.Reset(date, dateintervals.Month)
+	date = dateutils.Add(date, ago, dateintervals.Month)
 
-	u = strings.ReplaceAll(uri, pg.Original, date.Format(consts.DateFormatYearMonthDay))
+	u = strings.ReplaceAll(uri, pg.Original, date.Format(dateformats.YMD))
 
 	return
 }
@@ -89,10 +90,10 @@ func day(uri string, pg *parserGroup) (u string) {
 	u = uri
 
 	ago, date := dateArgs(-1, time.Now().UTC(), pg.Arguments)
-	date = convert.DateResetDay(date)
-	date = convert.DateAddDay(date, ago)
+	date = dateutils.Reset(date, dateintervals.Day)
+	date = dateutils.Add(date, ago, dateintervals.Day)
 
-	u = strings.ReplaceAll(uri, pg.Original, date.Format(consts.DateFormatYearMonthDay))
+	u = strings.ReplaceAll(uri, pg.Original, date.Format(dateformats.YMD))
 
 	return
 }
@@ -107,16 +108,16 @@ func billingMonth(uri string, pg *parserGroup) (u string) {
 	ago, date := dateArgs(0, time.Now().UTC(), pg.Arguments)
 
 	// process the date arguments with defaults
-	if date.Day() < consts.CostsBillingDay {
-		date = convert.DateAddMonth(date, -2)
+	if date.Day() < info.AwsBillingDay {
+		date = dateutils.Add(date, -2, dateintervals.Month)
 	} else {
-		date = convert.DateAddMonth(date, -1)
+		date = dateutils.Add(date, -1, dateintervals.Month)
 	}
 
-	date = convert.DateResetMonth(date)
-	date = convert.DateAddMonth(date, ago)
+	date = dateutils.Reset(date, dateintervals.Month)
+	date = dateutils.Add(date, ago, dateintervals.Month)
 
-	u = strings.ReplaceAll(uri, pg.Original, date.Format(consts.DateFormatYearMonthDay))
+	u = strings.ReplaceAll(uri, pg.Original, date.Format(dateformats.YMD))
 
 	return
 }
@@ -127,7 +128,8 @@ func billingMonth(uri string, pg *parserGroup) (u string) {
 //	{version} => v1
 //	{version:-1} => v1
 func version(uri string, pg *parserGroup) (u string) {
+	var version = "v1"
 	u = uri
-	u = strings.ReplaceAll(u, pg.Original, bi.ApiVersion)
+	u = strings.ReplaceAll(u, pg.Original, version)
 	return
 }

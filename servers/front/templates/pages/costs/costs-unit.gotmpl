@@ -5,7 +5,8 @@
     {{ $unitEnv := .CostsPerUnitEnv }}
 
     <h1 class="govuk-heading-l">Costs per team</h1>
-    <p class="govuk-body">Cost data shown below are grouped by month for the last 9 months.</p>
+    <p class="govuk-body">Cost data shown below are grouped by month for the last {{ len $unit.DateRange }} months.</p>
+    <p class="govuk-body">Our AWS billing day ({{ awsBillingDay }}th) is mid-month, so the costs below are for <strong>[{{ day $unit.Request.StartDate }}]</strong> and <strong>[{{ dayBefore $unit.Request.EndDate }}]</strong>.</p>
     <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
     {{ if $unit }}
