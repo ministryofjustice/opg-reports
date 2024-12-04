@@ -38,8 +38,8 @@ func TestApiHandlersGitHubRepositoryStandardsListHandler(t *testing.T) {
 
 	units = fakermany.Fake[*models.Unit](1)
 	teams = fakermany.Fake[*models.GitHubTeam](1)
-	repos = fakermany.Fake[*models.GitHubRepository](5)
-	standards = fakermany.Fake[*models.GitHubRepositoryStandard](5)
+	repos = fakermany.Fake[*models.GitHubRepository](10)
+	standards = fakermany.Fake[*models.GitHubRepositoryStandard](10)
 
 	for _, team := range teams {
 		team.Units = units
@@ -85,9 +85,16 @@ func TestApiHandlersGitHubRepositoryStandardsListHandler(t *testing.T) {
 	if handlers.GitHubRepositoryStandardsListOperationID != response.Body.Operation {
 		t.Errorf("operation did not match - expected [%s] actual [%v]", handlers.GitHubRepositoryStandardsListOperationID, response.Body.Operation)
 	}
-	// check the number of results
-	if len(standards) != len(response.Body.Result) {
-		t.Errorf("error with number of results - expected [%d] actual [%v]", len(standards), len(response.Body.Result))
+
+	// check the number of results - data should be filtered by archived status
+	total := 0
+	for _, s := range standards {
+		if s.IsArchived == 0 {
+			total += 1
+		}
+	}
+	if total != len(response.Body.Result) {
+		t.Errorf("error with number of results - expected [%d] actual [%v]", total, len(response.Body.Result))
 		fmt.Printf("%+v\n", response.Body.Result)
 	}
 
