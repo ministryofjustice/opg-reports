@@ -2,9 +2,9 @@ package endpoints
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
-
-	"github.com/ministryofjustice/opg-reports/pkg/bi"
 )
 
 // TestEndpointParserGroupsCountMatch checks that
@@ -58,7 +58,7 @@ func TestEndpointParsing(t *testing.T) {
 	var checks = map[string]string{
 		"/test/{month:0,2024-01-01}/end":                            "/test/2024-01-01/end",
 		"/test/{month:1,2024-01-20}/end":                            "/test/2024-02-01/end",
-		"/{version}/{month:-1,2024-03-15}/end":                      "/" + bi.ApiVersion + "/2024-02-01/end",
+		"/{version}/{month:-1,2024-03-15}/end":                      "/v1/2024-02-01/end",
 		"/test/{year:0,2024-11-09}/end":                             "/test/2024-01-01/end",
 		"/test/{day:-1,2024-03-01}/end":                             "/test/2024-02-29/end",
 		"/test/{day:1,2024-02-28}/end":                              "/test/2024-02-29/end",
@@ -69,10 +69,25 @@ func TestEndpointParsing(t *testing.T) {
 
 	for uri, expected := range checks {
 		var ep = ApiEndpoint(uri)
-		var actual = ep.Parse()
+		var actual = ep.Parse(nil)
 		if expected != actual {
 			t.Errorf("url parse failed - expected [%s] actual [%s]", expected, actual)
 		}
+	}
+
+}
+
+func TestEndpointParsingWithRequest(t *testing.T) {
+
+	var (
+		uri         = "/{version}/test/{day:0}/{month:0}/{year:0}/{billing_date:0}"
+		testRequest = httptest.NewRequest(http.MethodGet, "/?day=2024-01-01&month=2023-06-01&year=2022-01-01&billing_date=2021-11-01", nil)
+		ep          = ApiEndpoint(uri)
+		expected    = "/v1/test/2024-01-01/2023-06-01/2022-01-01/2021-11-01"
+		actual      = ep.Parse(testRequest)
+	)
+	if expected != actual {
+		t.Errorf("failed to use request query strings: expected [%s] actual [%s]", expected, actual)
 	}
 
 }

@@ -18,10 +18,10 @@ const Timeout time.Duration = time.Second * 4
 // This is used to go get data from the api
 //
 // Uses Response to make the call to get the content
-func Fetch(host string, uri endpoints.ApiEndpoint) (content []byte, code int, err error) {
+func Fetch(host string, uri endpoints.ApiEndpoint, request *http.Request) (content []byte, code int, err error) {
 	var (
 		response *http.Response
-		url      string = host + uri.Parse()
+		url      string = host + uri.Parse(request)
 	)
 
 	response, err = Response(url, Timeout)

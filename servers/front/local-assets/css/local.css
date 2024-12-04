@@ -29,11 +29,20 @@ CUSTOM STYLES
 .releasecount,
 .uptime,
 .currency,
-.api-signature
+.api-signature,
+.reporting-tag
 {
     font-family: monospace;
 }
-
+/* tags */
+.reporting-tag {
+    display: inline-block;
+    width: auto;
+    margin-right:5px;
+    margin-bottom:5px;
+    font-size: 0.8rem;
+    max-width: 100%; /* the base gov uk style forces max of 160px */
+}
 /* side bar navigation */
 .app-header{
     border-bottom: 10px solid #1d70b8
@@ -51,7 +60,7 @@ CUSTOM STYLES
 }
 
 .app-split-pane__nav {
-    width:150px;
+    width:160px;
 }
 
 .app-split-pane__content {

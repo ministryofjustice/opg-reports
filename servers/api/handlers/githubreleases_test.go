@@ -223,7 +223,7 @@ func TestApiHandlersGitHubReleasesCountPerUnitHandler(t *testing.T) {
 
 	repos = fakermany.Fake[*models.GitHubRepository](1)
 	teams = fakermany.Fake[*models.GitHubTeam](1)
-	releases = fakermany.Fake[*models.GitHubRelease](100)
+	releases = fakermany.Fake[*models.GitHubRelease](50)
 
 	for _, repo := range repos {
 		repo.GitHubTeams = teams

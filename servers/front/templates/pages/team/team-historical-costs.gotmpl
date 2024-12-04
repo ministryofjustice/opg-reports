@@ -1,0 +1,24 @@
+{{ define "team-historical-costs" }}
+    {{ template "head" . }}
+
+    {{ $detailedCosts := .TeamCostsPerUnit }}
+
+    <h1 class="govuk-heading-l">{{ title $detailedCosts.Request.Unit }} historical costs</h1>
+    <p class="govuk-body">Showing {{ len $detailedCosts.DateRange }} months of data between <strong>[{{ day $detailedCosts.Request.StartDate }}]</strong> and <strong>[{{ dayBefore $detailedCosts.Request.EndDate }}]</strong>.</p>
+
+
+
+    {{ if $detailedCosts }}
+
+        <section class='outer'>
+            <h2 class="govuk-heading-m">Costs by month</h2>
+            <p class="govuk-body">Detailed breakdown of costs.</p>
+
+            <div class="compare dataset">
+                {{ template "currency-table" $detailedCosts }}
+            </div>
+        </section>
+    {{ end }}
+
+    {{ template "foot" . }}
+{{ end }}

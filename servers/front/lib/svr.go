@@ -224,7 +224,7 @@ func (self *Svr) Handler(writer http.ResponseWriter, request *http.Request) {
 
 	// get the data for each endpoint - use go routines
 	if len(activePage.Data) > 0 {
-		FetchDataForPage(self.Api, activePage, pageData)
+		FetchDataForPage(self.Api, activePage, pageData, request)
 	}
 	self.Response.Write(activePage.Display.PageTemplate, pageData, writer)
 	return
@@ -279,7 +279,7 @@ func (self *Svr) Run() {
 // It uses go func call with a mutex and waitgroup to handle calling
 // the api multiple times concurrently - this will mean pages with
 // multiple blocks should perform better.
-func FetchDataForPage(api *Api, activePage *navigation.Navigation, pageData map[string]interface{}) {
+func FetchDataForPage(api *Api, activePage *navigation.Navigation, pageData map[string]interface{}, request *http.Request) {
 	var (
 		mutex     *sync.Mutex    = &sync.Mutex{}
 		waitgroup sync.WaitGroup = sync.WaitGroup{}
@@ -290,7 +290,7 @@ func FetchDataForPage(api *Api, activePage *navigation.Navigation, pageData map[
 		go func(a *Api, nd *navigation.Data) {
 			mutex.Lock()
 			defer mutex.Unlock()
-			Fetcher(a, nd, nd.Body)
+			Fetcher(a, nd, request, nd.Body)
 			// deal with the data
 			// - if we have a transformer, set it
 			// - otherwise pass it raw
@@ -313,7 +313,7 @@ func FetchDataForPage(api *Api, activePage *navigation.Navigation, pageData map[
 // and set the result item.
 // Uses `fetch.Fetch` to call the api, and then uses Unmarshalling to convert
 // the string data from the response into a struct.
-func Fetcher[T any](api *Api, nav *navigation.Data, result T) {
+func Fetcher[T any](api *Api, nav *navigation.Data, request *http.Request, result T) {
 	var (
 		host   = fmt.Sprintf("http://%s", api.Addr)
 		source = nav.Source
@@ -322,10 +322,14 @@ func Fetcher[T any](api *Api, nav *navigation.Data, result T) {
 		slog.Error("no return type set on this nav item", slog.String("source", source.String()))
 		return
 	}
-	content, code, err := fetch.Fetch(host, source)
+	content, code, err := fetch.Fetch(host, source, request)
 	// error checks
 	if err != nil || code != http.StatusOK {
-		slog.Error("error calling api", slog.Int("statusCode", code), slog.String("err", fmt.Sprintf("%v", err)), slog.String("source", source.Parse()), slog.String("host", host))
+		slog.Error("error calling api",
+			slog.Int("statusCode", code),
+			slog.String("err", fmt.Sprintf("%v", err)),
+			slog.String("source", source.Parse(request)),
+			slog.String("host", host))
 		return
 	}
 

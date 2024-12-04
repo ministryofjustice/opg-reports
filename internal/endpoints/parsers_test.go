@@ -27,7 +27,7 @@ func TestEndpointParserYear(t *testing.T) {
 		fmt.Println(pg[0])
 	}
 
-	actual := year(string(uri), pg[0])
+	actual := year(string(uri), pg[0], nil)
 
 	if expected != actual {
 		t.Errorf("year parsed failed - expected [%s] actual [%v]", expected, actual)
@@ -52,7 +52,7 @@ func TestEndpointParserMonthCurrent(t *testing.T) {
 		t.Errorf("arguments failed")
 	}
 
-	actual := month(string(uri), pg[0])
+	actual := month(string(uri), pg[0], nil)
 
 	if expected != actual {
 		t.Errorf("month parsed failed - expected [%s] actual [%v]", expected, actual)
@@ -78,7 +78,7 @@ func TestEndpointParserDay(t *testing.T) {
 		fmt.Println(pg[0])
 	}
 
-	actual := day(string(uri), pg[0])
+	actual := day(string(uri), pg[0], nil)
 
 	if expected != actual {
 		t.Errorf("day parsed failed - expected [%s] actual [%v]", expected, actual)

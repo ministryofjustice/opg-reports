@@ -24,6 +24,7 @@ package endpoints
 
 import (
 	"log/slog"
+	"net/http"
 	"regexp"
 	"strings"
 )
@@ -34,7 +35,7 @@ type parserGroup struct {
 	Arguments []string
 }
 
-type parserFunc func(uri string, pg *parserGroup) string
+type parserFunc func(uri string, pg *parserGroup, request *http.Request) string
 
 // pattern matches anything in between {}
 //   - /test/{word:-1}/bar => {word:-1}
@@ -93,14 +94,14 @@ func (self ApiEndpoint) parserGroups() (found []*parserGroup) {
 
 // Parse replaces all magic values - {NAME:x,y,z} - with their resolved values
 // and therefore creates the uri to call the api with
-func (self ApiEndpoint) Parse() (u string) {
+func (self ApiEndpoint) Parse(request *http.Request) (u string) {
 	u = string(self)
 
 	var groups = self.parserGroups()
 
 	for _, pg := range groups {
 		if parser, ok := parsers[pg.Name]; ok {
-			u = parser(u, pg)
+			u = parser(u, pg, request)
 		} else {
 			slog.Error("unknown url group match:", slog.String("name", pg.Name), slog.String("url", string(self)))
 		}

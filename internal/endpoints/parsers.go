@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -49,14 +50,20 @@ func dateArgs(ago int, ts time.Time, args []string) (modifier int, date time.Tim
 //
 //	{year:-2} => 1st day of the year, 2 months ago
 //	{year:-1,2024-02-03} => 2023-01-01
-func year(uri string, pg *parserGroup) (u string) {
+func year(uri string, pg *parserGroup, request *http.Request) (u string) {
+	var dateStr string = ""
 	u = uri
 
-	ago, date := dateArgs(0, time.Now().UTC(), pg.Arguments)
-	date = dateutils.Reset(date, dateintervals.Year)
-	date = dateutils.Add(date, ago, dateintervals.Year)
+	if request != nil && request.URL.Query().Has(pg.Name) {
+		dateStr = request.URL.Query().Get(pg.Name)
+	} else {
+		ago, date := dateArgs(0, time.Now().UTC(), pg.Arguments)
+		date = dateutils.Reset(date, dateintervals.Year)
+		date = dateutils.Add(date, ago, dateintervals.Year)
+		dateStr = date.Format(dateformats.YMD)
+	}
 
-	u = strings.ReplaceAll(uri, pg.Original, date.Format(dateformats.YMD))
+	u = strings.ReplaceAll(uri, pg.Original, dateStr)
 
 	return
 }
@@ -67,14 +74,18 @@ func year(uri string, pg *parserGroup) (u string) {
 //
 //	{month:-2} => 1st day of the month, 2 months ago
 //	{month:-1,2024-02-03} => 2024-01-01
-func month(uri string, pg *parserGroup) (u string) {
+func month(uri string, pg *parserGroup, request *http.Request) (u string) {
+	var dateStr string = ""
 	u = uri
-
-	ago, date := dateArgs(-9, time.Now().UTC(), pg.Arguments)
-	date = dateutils.Reset(date, dateintervals.Month)
-	date = dateutils.Add(date, ago, dateintervals.Month)
-
-	u = strings.ReplaceAll(uri, pg.Original, date.Format(dateformats.YMD))
+	if request != nil && request.URL.Query().Has(pg.Name) {
+		dateStr = request.URL.Query().Get(pg.Name)
+	} else {
+		ago, date := dateArgs(-9, time.Now().UTC(), pg.Arguments)
+		date = dateutils.Reset(date, dateintervals.Month)
+		date = dateutils.Add(date, ago, dateintervals.Month)
+		dateStr = date.Format(dateformats.YMD)
+	}
+	u = strings.ReplaceAll(uri, pg.Original, dateStr)
 
 	return
 }
@@ -86,14 +97,20 @@ func month(uri string, pg *parserGroup) (u string) {
 //	{day:-2} => 2 days ago at 00:00:00
 //	{day:1,2024-02-03} => 2024-02-04
 //	{day:0,2024-02-03} => 2024-02-03
-func day(uri string, pg *parserGroup) (u string) {
+func day(uri string, pg *parserGroup, request *http.Request) (u string) {
+	var dateStr string = ""
 	u = uri
 
-	ago, date := dateArgs(-1, time.Now().UTC(), pg.Arguments)
-	date = dateutils.Reset(date, dateintervals.Day)
-	date = dateutils.Add(date, ago, dateintervals.Day)
+	if request != nil && request.URL.Query().Has(pg.Name) {
+		dateStr = request.URL.Query().Get(pg.Name)
+	} else {
+		ago, date := dateArgs(-1, time.Now().UTC(), pg.Arguments)
+		date = dateutils.Reset(date, dateintervals.Day)
+		date = dateutils.Add(date, ago, dateintervals.Day)
+		dateStr = date.Format(dateformats.YMD)
+	}
 
-	u = strings.ReplaceAll(uri, pg.Original, date.Format(dateformats.YMD))
+	u = strings.ReplaceAll(uri, pg.Original, dateStr)
 
 	return
 }
@@ -101,23 +118,28 @@ func day(uri string, pg *parserGroup) (u string) {
 // billingMonth provides a YYYY-MM-DD string for the first
 // day of the month, base on billing cycle
 // Defaults to latest billing month
-func billingMonth(uri string, pg *parserGroup) (u string) {
+func billingMonth(uri string, pg *parserGroup, request *http.Request) (u string) {
+	var dateStr string = ""
+
 	u = uri
-	var date = time.Now().UTC()
 
-	ago, date := dateArgs(0, time.Now().UTC(), pg.Arguments)
-
-	// process the date arguments with defaults
-	if date.Day() < info.AwsBillingDay {
-		date = dateutils.Add(date, -2, dateintervals.Month)
+	if request != nil && request.URL.Query().Has(pg.Name) {
+		dateStr = request.URL.Query().Get(pg.Name)
 	} else {
-		date = dateutils.Add(date, -1, dateintervals.Month)
+		ago, date := dateArgs(0, time.Now().UTC(), pg.Arguments)
+		// process the date arguments with defaults
+		if date.Day() < info.AwsBillingDay {
+			date = dateutils.Add(date, -2, dateintervals.Month)
+		} else {
+			date = dateutils.Add(date, -1, dateintervals.Month)
+		}
+
+		date = dateutils.Reset(date, dateintervals.Month)
+		date = dateutils.Add(date, ago, dateintervals.Month)
+		dateStr = date.Format(dateformats.YMD)
 	}
 
-	date = dateutils.Reset(date, dateintervals.Month)
-	date = dateutils.Add(date, ago, dateintervals.Month)
-
-	u = strings.ReplaceAll(uri, pg.Original, date.Format(dateformats.YMD))
+	u = strings.ReplaceAll(uri, pg.Original, dateStr)
 
 	return
 }
@@ -127,7 +149,7 @@ func billingMonth(uri string, pg *parserGroup) (u string) {
 //
 //	{version} => v1
 //	{version:-1} => v1
-func version(uri string, pg *parserGroup) (u string) {
+func version(uri string, pg *parserGroup, request *http.Request) (u string) {
 	var version = "v1"
 	u = uri
 	u = strings.ReplaceAll(u, pg.Original, version)

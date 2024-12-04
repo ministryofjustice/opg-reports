@@ -28,7 +28,7 @@ type GitHubRepository struct {
 	Ts             string `json:"ts,omitempty" db:"ts"  faker:"time_string" doc:"Time the record was created."` // TS is timestamp when the record was created
 	Owner          string `json:"owner,omitempty" db:"owner" faker:"oneof: ministryofjusice"`
 	Name           string `json:"name,omitempty" db:"name" faker:"word"`
-	FullName       string `json:"full_name,omitempty" db:"full_name" faker:"unique"`
+	FullName       string `json:"full_name,omitempty" db:"full_name" faker:"word,unique"`
 	CreatedAt      string `json:"created_at,omitempty" db:"created_at" faker:"date_string"`
 	DefaultBranch  string `json:"default_branch,omitempty" db:"default_branch" faker:"oneof: main, master"`
 	Archived       uint8  `json:"archived,omitempty" db:"archived" faker:"oneof: 0, 1"`

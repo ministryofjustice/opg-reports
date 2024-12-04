@@ -44,6 +44,8 @@ LEFT JOIN github_repositories_github_teams ON github_repositories_github_teams.g
 LEFT JOIN github_teams_units ON github_teams_units.github_team_id = github_repositories_github_teams.github_team_id
 LEFT JOIN units on units.id = github_teams_units.unit_id
 LEFT JOIN github_teams on github_teams.id = github_teams_units.github_team_id
+WHERE
+	archived = 0
 {WHERE}
 GROUP BY github_repositories.id
 ORDER BY github_repositories.full_name ASC
