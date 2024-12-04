@@ -7,6 +7,8 @@ import (
 	"slices"
 )
 
+const defaultFloat string = "0.00"
+
 // KVPair generates a string from the key and value in the form `name:value`.
 //
 // Used when flatterning a map into a slice so the key of the map

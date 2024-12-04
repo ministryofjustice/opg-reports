@@ -85,7 +85,7 @@ func FloatString(s interface{}, layout string) string {
 func Percentage(s interface{}, places int) string {
 	var pl = strconv.Itoa(places)
 	var layout = "%." + pl + "f"
-	return FloatString(s, layout) + " %"
+	return FloatString(s, layout) + "%"
 }
 
 // Matches is used by top navigation to see if it is a match for the active root

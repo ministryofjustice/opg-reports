@@ -8,22 +8,18 @@
     <h1 class="govuk-heading-l">{{ title $uptime.Request.Unit }} latest</h1>
     <p class="govuk-body">Showing {{ len $uptime.DateRange }} days of data between <strong>[{{ day $uptime.Request.StartDate }}]</strong> and <strong>[{{ dayBefore $uptime.Request.EndDate }}]</strong>.</p>
 
-
     {{ if $uptime }}
-
-        <section class='outer'>
-            <h2 class="govuk-heading-m">Uptime</h2>
-
-            <div class="compare dataset">
-                {{ template "uptime-table" $uptime }}
-            </div>
-        </section>
+    <section class='outer team-uptime-{{ $uptime.Operation }}'>
+        <h2 class="govuk-heading-m">Uptime</h2>
+        <div class="compare dataset">
+            {{ template "uptime-table" $uptime }}
+        </div>
+    </section>
     {{ end }}
 
     {{ if $releases }}
-    <section class='outer'>
+    <section class='outer team-releases-{{ $releases.Operation }}'>
         <h2 class="govuk-heading-m">Releases</h2>
-
         <div class="compare dataset">
             {{ template "releases-table" $releases }}
         </div>
@@ -31,12 +27,12 @@
     {{ end }}
 
     {{ if $repos }}
-        <section class='outer'>
-            <p class="govuk-body">{{ title $uptime.Request.Unit }} look after the following code bases:</p>
-            {{- range $repos.Result -}}
-            <a href="https://github.com/{{.FullName }}" class="govuk-tag govuk-tag--grey reporting-tag">{{ .Name }}</a>
-            {{- end -}}
-        </section>
+    <section class='outer team-repositories-{{ $repos.Operation }}'>
+        <p class="govuk-body">{{ title $uptime.Request.Unit }} look after the following code bases:</p>
+        {{- range $repos.Result -}}
+        <a href="https://github.com/{{.FullName }}" class="govuk-tag govuk-tag--grey reporting-tag">{{ .Name }}</a>
+        {{- end -}}
+    </section>
     {{ end }}
 
 

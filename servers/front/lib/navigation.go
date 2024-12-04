@@ -190,7 +190,7 @@ func overviewItems() (overview *navigation.Navigation) {
 }
 
 func teamItems() (navs []*navigation.Navigation) {
-	var teams []string = []string{"sirius", "modernise", "use", "make", "digideps", "serve"}
+	var teams []string = []string{"digideps", "make", "modernise", "serve", "sirius", "use"}
 	navs = []*navigation.Navigation{}
 
 	for _, team := range teams {

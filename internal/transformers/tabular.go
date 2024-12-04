@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"slices"
 
-	"github.com/ministryofjustice/opg-reports/pkg/consts"
 	"github.com/ministryofjustice/opg-reports/pkg/convert"
 	"github.com/ministryofjustice/opg-reports/pkg/nums"
 )
@@ -55,7 +54,7 @@ func recordToRow[T Transformable](item T, columns []string, existingData map[str
 	// now we set the date cost value
 	// if there is a value present, and it is not the default value
 	// then Add those together
-	if v, ok = existingRow[date]; ok && v.(string) != consts.DefaultFloatString {
+	if v, ok = existingRow[date]; ok && v.(string) != defaultFloat {
 		existingRow[date] = nums.Add(existingRow[date], value)
 	} else {
 		existingRow[date] = value
