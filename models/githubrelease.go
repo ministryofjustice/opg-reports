@@ -40,7 +40,7 @@ type GitHubRelease struct {
 	// join to units - takes many left joins to get this
 	Units Units `json:"units,omitempty" db:"units" faker:"-"`
 	// Only used on sql command that fetches releases per unit to flattern the struct
-	Unit string `json:"unit,omitempty" db:"unit" faker:"-"`
+	UnitName string `json:"unit_name,omitempty" db:"unit_name" faker:"-"`
 }
 
 // TDate

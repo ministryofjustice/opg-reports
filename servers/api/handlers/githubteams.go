@@ -17,12 +17,12 @@ import (
 )
 
 var (
-	GitHubTeamsSegment string   = "github/teams"
+	GitHubTeamsSegment string   = "github/team"
 	GitHubTeamsTags    []string = []string{"GitHub teams"}
 )
 
 const GitHubTeamsDescription string = `Returns all github teams within the database.`
-const GitHubTeamsOperationID string = "get-github-teams-list"
+const GitHubTeamsOperationID string = "get-github-team-list"
 const gitHubTeamsSQL string = `
 SELECT
 	github_teams.*,

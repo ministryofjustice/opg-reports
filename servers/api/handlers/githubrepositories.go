@@ -17,11 +17,11 @@ import (
 )
 
 var (
-	GitHubRepositoriesSegment string   = "github/repositories"
+	GitHubRepositoriesSegment string   = "github/repository"
 	GitHubRepositoriesTags    []string = []string{"GitHub repositories"}
 )
 
-const GitHubRepositoriesListOperationID string = "get-github-repositories-list"
+const GitHubRepositoriesListOperationID string = "get-github-repository-list"
 const GitHubRepositoriesListDescription string = `Returns all github repositories`
 
 const GitHubRepositoriesListSQL string = `

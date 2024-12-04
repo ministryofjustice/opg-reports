@@ -25,6 +25,12 @@ func Format(value string) string {
 	return f
 }
 
+func Time(s string) (t time.Time, err error) {
+	layout := Format(s)
+	t, err = time.Parse(layout, s)
+	return
+}
+
 // Reformat will convert a date string from its current format into the new layout
 // passed along.
 //

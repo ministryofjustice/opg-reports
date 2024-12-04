@@ -4,7 +4,7 @@ import "github.com/ministryofjustice/opg-reports/models"
 
 type GitHubReleasesListBody struct {
 	Operation string                  `json:"operation,omitempty" doc:"contains the operation id"`
-	Request   *OptionalDateRangeInput `json:"request,omitempty" doc:"the original request"`
+	Request   *DateRangeUnitInput     `json:"request,omitempty" doc:"the original request"`
 	Result    []*models.GitHubRelease `json:"result,omitempty" doc:"list of all units returned by the api."`
 	Errors    []error                 `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
 }

@@ -100,6 +100,7 @@ func GitHubStandards(ctx context.Context, adaptor dbs.Adaptor, standards []*mode
 
 	// update the forien keys
 	for _, std := range standards {
+		std.GitHubRepositoryFullName = std.GitHubRepository.FullName
 		std.GitHubRepositoryID = std.GitHubRepository.ID
 	}
 	// insert standards

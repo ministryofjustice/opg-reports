@@ -20,6 +20,13 @@ var (
 	BucketName   string = "report-data-development" // Name of the bucket where all data is stored
 )
 
+const (
+	ServerDefaultFrontAddr string = "localhost:8080"
+	ServerDefaultApiAddr   string = "localhost:8081"
+)
+
+const GovUKFrontendVersion string = "5.7.1"
+
 // Log outputs the build and config details via slog.Info
 func Log() {
 	slog.Info("Build info",

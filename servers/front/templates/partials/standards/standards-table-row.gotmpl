@@ -7,7 +7,7 @@
 <tr data-baseline="{{ $passedBase }}" data-extended="{{ $passedExt }}" class="govuk-table__row summary">
 
     <td class="expand">
-        <strong data-toggle="detail-{{ .Name }}" class="govuk-tag govuk-tag--blue" title="Show/Hide details">+</strong>
+        <strong data-toggle="detail-ghs{{ .ID }}" class="govuk-tag govuk-tag--blue" title="Show/Hide details">+</strong>
     </td>
     <th class="repo-name">
         <a href="https://github.com/{{ .FullName }}">{{ .FullName }}</a>
@@ -29,7 +29,7 @@
 </tr>
 <tr data-baseline="{{ $passedBase }}" data-extended="{{ $passedExt }}" class="govuk-table__row details">
     <td></td>
-    <td class="detail detail-{{ .Name }}" colspan="3">
+    <td class="detail detail-ghs{{ .ID }}" colspan="3">
         {{ range $k, $v := .Info }}
             <div>
                 <strong class="kvfield govuk-tag govuk-tag--grey key">{{ title $k }}</strong>
@@ -48,7 +48,7 @@
 </tr>
 <tr data-baseline="{{ $passedBase }}" data-extended="{{ $passedExt }}" class="govuk-table__row details">
     <td></td>
-    <td class="detail detail-{{ .Name }}" colspan="3">
+    <td class="detail detail-ghs{{ .ID }}" colspan="3">
         {{ range $key, $pass := .Baseline }}
             {{ if $pass }}
                 <strong class="govuk-tag govuk-tag--green standards-tag">[B] {{ title $key }}</strong>

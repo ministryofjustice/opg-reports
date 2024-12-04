@@ -10,11 +10,11 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ministryofjustice/opg-reports/pkg/bi"
-	"github.com/ministryofjustice/opg-reports/pkg/convert"
-	"github.com/ministryofjustice/opg-reports/pkg/fetch"
-	"github.com/ministryofjustice/opg-reports/pkg/navigation"
-	"github.com/ministryofjustice/opg-reports/pkg/render"
+	"github.com/ministryofjustice/opg-reports/info"
+	"github.com/ministryofjustice/opg-reports/internal/fetch"
+	"github.com/ministryofjustice/opg-reports/internal/navigation"
+	"github.com/ministryofjustice/opg-reports/internal/render"
+	"github.com/ministryofjustice/opg-reports/internal/structs"
 )
 
 // Cfg contains the config data (address, mux server)
@@ -187,7 +187,7 @@ func (self *Svr) Handler(writer http.ResponseWriter, request *http.Request) {
 		flat       = self.Navigation.Flat()
 		pageData   = map[string]interface{}{
 			//
-			"Signature": bi.Signature(),
+			"Signature": info.BuildInfo(),
 			// org is used in the header
 			"Organisation": self.Response.Organisation,
 			"Path":         request.URL.Path,
@@ -329,7 +329,7 @@ func Fetcher[T any](api *Api, nav *navigation.Data, result T) {
 		return
 	}
 
-	if err := convert.UnmarshalInto(content, result); err != nil {
+	if err := structs.Unmarshal(content, result); err != nil {
 		slog.Error("error converting into body", slog.String("err", err.Error()))
 		return
 	}

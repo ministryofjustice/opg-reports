@@ -56,7 +56,7 @@ ORDER BY aws_uptime.date ASC;
 //
 // Endpoints:
 //
-//	/version/aws/uptime/list?unit=<unit>
+//	/version/aws/uptime/list/{start_date}/{end_date}?unit=<unit>
 func ApiAwsUptimeListHandler(ctx context.Context, input *inout.DateRangeUnitInput) (response *inout.AwsUptimeListResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
@@ -228,7 +228,7 @@ func ApiAwsUptimeAveragesPerUnitHandler(ctx context.Context, input *inout.Requir
 func RegisterAwsUptime(api huma.API) {
 	var uri string = ""
 
-	uri = "/{version}/" + AwsUptimeSegment + "/list"
+	uri = "/{version}/" + AwsUptimeSegment + "/list/{start_date}/{end_date}"
 	slog.Info("[api] handler register ", slog.String("uri", uri))
 	huma.Register(api, huma.Operation{
 		OperationID:   AwsUptimeListOperationID,
@@ -240,7 +240,7 @@ func RegisterAwsUptime(api huma.API) {
 		Tags:          AwsUptimeTags,
 	}, ApiAwsUptimeListHandler)
 
-	uri = "/{version}/" + AwsUptimeSegment + "/averages/{interval}/{start_date}/{end_date}"
+	uri = "/{version}/" + AwsUptimeSegment + "/average/{interval}/{start_date}/{end_date}"
 	slog.Info("[api] handler register ", slog.String("uri", uri))
 	huma.Register(api, huma.Operation{
 		OperationID:   AwsUptimeAveragesOperationID,
@@ -252,7 +252,7 @@ func RegisterAwsUptime(api huma.API) {
 		Tags:          AwsUptimeTags,
 	}, ApiAwsUptimeAveragesHandler)
 
-	uri = "/{version}/" + AwsUptimeSegment + "/averages-per-unit/{interval}/{start_date}/{end_date}"
+	uri = "/{version}/" + AwsUptimeSegment + "/average-per-unit/{interval}/{start_date}/{end_date}"
 	slog.Info("[api] handler register ", slog.String("uri", uri))
 	huma.Register(api, huma.Operation{
 		OperationID:   AwsUptimeAveragesPerUnitOperationID,

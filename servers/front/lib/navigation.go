@@ -1,49 +1,59 @@
 package lib
 
 import (
-	"github.com/ministryofjustice/opg-reports/pkg/endpoints"
-	"github.com/ministryofjustice/opg-reports/pkg/navigation"
-	"github.com/ministryofjustice/opg-reports/sources/costs/costsfront"
-	"github.com/ministryofjustice/opg-reports/sources/costs/costsio"
-	"github.com/ministryofjustice/opg-reports/sources/releases/releasesfront"
-	"github.com/ministryofjustice/opg-reports/sources/releases/releasesio"
-	"github.com/ministryofjustice/opg-reports/sources/standards/standardsio"
-	"github.com/ministryofjustice/opg-reports/sources/uptime/uptimefront"
-	"github.com/ministryofjustice/opg-reports/sources/uptime/uptimeio"
+	"github.com/ministryofjustice/opg-reports/internal/endpoints"
+	"github.com/ministryofjustice/opg-reports/internal/navigation"
+	"github.com/ministryofjustice/opg-reports/servers/inout"
 )
 
-// Cost endpoints to call formatted with required placeholders
+// AwsAccounts
+const AwsAccountsList endpoints.ApiEndpoint = "/{version}/aws/accounts/list"
+
 const (
-	CostsUriTotal                  endpoints.ApiEndpoint = "/{version}/costs/aws/total/{billing_date:-11}/{billing_date:0}"
-	CostsUriMonthlyTax             endpoints.ApiEndpoint = "/{version}/costs/aws/tax-overview/{billing_date:-11}/{billing_date:0}/month"
-	CostsUriMonthlyUnit            endpoints.ApiEndpoint = "/{version}/costs/aws/unit/{billing_date:-9}/{billing_date:0}/month"
-	CostsUriMonthlyUnitEnvironment endpoints.ApiEndpoint = "/{version}/costs/aws/unit-environment/{billing_date:-9}/{billing_date:0}/month"
-	CostsUriMonthlyDetailed        endpoints.ApiEndpoint = "/{version}/costs/aws/detailed/{billing_date:-6}/{billing_date:0}/month"
-	CostsUriDailyUnit              endpoints.ApiEndpoint = "/{version}/costs/aws/unit/{billing_date:-1}/{billing_date:0}/day"
-	CostsUriDailyUnitEnvironment   endpoints.ApiEndpoint = "/{version}/costs/aws/unit-environment/{billing_date:-1}/{billing_date:0}/day"
-	CostsUriDailyDetailed          endpoints.ApiEndpoint = "/{version}/costs/aws/detailed/{billing_date:-1}/{billing_date:0}/day"
+	AwsCostsTotal endpoints.ApiEndpoint = "/{version}/aws/costs/total/{billing_date:-6}/{billing_date:0}" // Fetches the overal total between the dates (ex. Tax)
+	AwsCostsList  endpoints.ApiEndpoint = "/{version}/aws/costs/list/{billing_date:-6}/{billing_date:0}"  // Returns all database entries between the dates (ex. Tax)
+
+	AwsCostsMonthTaxes       endpoints.ApiEndpoint = "/{version}/aws/costs/tax/month/{billing_date:-6}/{billing_date:0}"              // Returns monthly totals with and without tax - can be filtered by unit
+	AwsCostsMonthSum         endpoints.ApiEndpoint = "/{version}/aws/costs/sum/month/{billing_date:-6}/{billing_date:0}"              // Returns monthly totals without tax - can be filtered by unit
+	AwsCostsMonthSumUnit     endpoints.ApiEndpoint = "/{version}/aws/costs/sum-per-unit/month/{billing_date:-6}/{billing_date:0}"     // Returns monthly totals group by unit
+	AwsCostsMonthSumUnitEnv  endpoints.ApiEndpoint = "/{version}/aws/costs/sum-per-unit-env/month/{billing_date:-6}/{billing_date:0}" // Returns monthly totals grouped by the unit and account environment
+	AwsCostsMonthSumDetailed endpoints.ApiEndpoint = "/{version}/aws/costs/sum-detailed/month/{billing_date:-6}/{billing_date:0}"     // Returns costs grouped by month, unit, account number, account environment, aws service and aws region - can be filtered by unit
+
+	AwsCostsDayTaxes       endpoints.ApiEndpoint = "/{version}/aws/costs/tax/day/{billing_date:-1}/{billing_date:0}"              // Returns daily totals with and without tax - can be filtered by unit
+	AwsCostsDaySum         endpoints.ApiEndpoint = "/{version}/aws/costs/sum/day/{billing_date:-1}/{billing_date:0}"              // Returns daily totals without tax - can be filtered by unit
+	AwsCostsDaySumUnit     endpoints.ApiEndpoint = "/{version}/aws/costs/sum-per-unit/day/{billing_date:-1}/{billing_date:0}"     // Returns daily totals group by unit
+	AwsCostsDaySumUnitEnv  endpoints.ApiEndpoint = "/{version}/aws/costs/sum-per-unit-env/day/{billing_date:-1}/{billing_date:0}" // Returns daily totals grouped by the unit and account environment
+	AwsCostsDaySumDetailed endpoints.ApiEndpoint = "/{version}/aws/costs/sum-detailed/day/{billing_date:-1}/{billing_date:0}"     // Returns costs grouped by day, unit, account number, account environment, aws service and aws region - can be filtered by unit
+
 )
 
-// Standards endpoints
 const (
-	StandardsUri endpoints.ApiEndpoint = "/{version}/standards/github/false"
+	AwsUptimeList endpoints.ApiEndpoint = "/{version}/aws/uptime/list/{month:-6}/{month:0}" // Returns all uptime data between dates
+
+	AwsUptimeMonthAverage     endpoints.ApiEndpoint = "/{version}/aws/uptime/average/month/{month:-6}/{month:0}"          // Returns average uptime % between dates
+	AwsUptimeMonthAverageUnit endpoints.ApiEndpoint = "/{version}/aws/uptime/average-per-unit/month/{month:-6}/{month:0}" // Returns average uptime % between dates grouped by unit
+
+	AwsUptimeDayAverage     endpoints.ApiEndpoint = "/{version}/aws/uptime/average/day/{day:-14}/{day:0}"          // Returns average uptime % between dates
+	AwsUptimeDayAverageUnit endpoints.ApiEndpoint = "/{version}/aws/uptime/average-per-unit/day/{day:-14}/{day:0}" // Returns average uptime % between dates grouped by unit
 )
 
-// Uptime endpoints
 const (
-	UptimeOverallMonthlyUri endpoints.ApiEndpoint = "/{version}/uptime/aws/overall/{month:-9}/{month:0}/month"
-	UptimePerUnitMonthlyUri endpoints.ApiEndpoint = "/{version}/uptime/aws/unit/{month:-9}/{month:0}/month"
-	UptimePerUnitBillingUri endpoints.ApiEndpoint = "/{version}/uptime/aws/unit/{billing_date:-6}/{billing_date:0}/month"
-	UptimeOverallDailylUri  endpoints.ApiEndpoint = "/{version}/uptime/aws/overall/{day:-14}/{day:0}/day"
-	UptimePerUnitDailylUri  endpoints.ApiEndpoint = "/{version}/uptime/aws/unit/{day:-14}/{day:0}/day"
+	GitHubReleaseList endpoints.ApiEndpoint = "/{version}/github/release/list/{month:-6}/{month:0}" // Return all releases between the dates
+
+	GitHubReleaseMonthCount     endpoints.ApiEndpoint = "/{version}/github/release/count/month/{month:-6}/{month:0}"          // Return count of all releases grouped by month
+	GitHubReleaseMonthCountUnit endpoints.ApiEndpoint = "/{version}/github/release/count-per-unit/month/{month:-6}/{month:0}" // Return count of releases grouped by month and unit
+
+	GitHubReleaseDayCount     endpoints.ApiEndpoint = "/{version}/github/release/count/day/{day:-14}/{day:0}"          // Return count of all releases grouped by day
+	GitHubReleaseDayCountUnit endpoints.ApiEndpoint = "/{version}/github/release/count-per-unit/day/{day:-14}/{day:0}" // Return count of releases grouped by day and unit
 )
 
-// Releases endpoints
-const (
-	// /v1/releases/github/counts/2022-01-01/2024-04-01/month
-	ReleasesOverallMonthly endpoints.ApiEndpoint = "/{version}/releases/github/counts/all/{month:-9}/{month:0}/month"
-	ReleasesUnitMonthly    endpoints.ApiEndpoint = "/{version}/releases/github/counts/unit/{month:-9}/{month:0}/month"
-)
+const GitHubRepositoryList endpoints.ApiEndpoint = "/{version}/github/repository/list" // Return list of all repositories
+
+const GitHubRespoitoryStandardList endpoints.ApiEndpoint = "/{version}/github/standard/list" // Return list of all repository standards
+
+const GitHubTeamList endpoints.ApiEndpoint = "/{version}/github/team/list" // Return all github teams
+
+const UnitList endpoints.ApiEndpoint = "/{version}/unit/list" // Return all units
 
 // -- Costs navigation items
 
@@ -53,10 +63,10 @@ var costsTaxOverview = navigation.New(
 	"/costs/tax-overview",
 	&navigation.Display{PageTemplate: "costs-tax"},
 	&navigation.Data{
-		Source:      CostsUriMonthlyTax,
+		Source:      AwsCostsMonthTaxes,
 		Namespace:   "CostsTax",
-		Body:        &costsio.CostsTaxOverviewBody{},
-		Transformer: costsfront.TransformResult,
+		Body:        &inout.AwsCostsTaxesBody{},
+		Transformer: inout.Transform,
 	})
 
 // costsPerTeam config
@@ -65,16 +75,16 @@ var costsPerTeam = navigation.New(
 	"/costs/unit",
 	&navigation.Display{PageTemplate: "costs-unit"},
 	&navigation.Data{
-		Source:      CostsUriMonthlyUnit,
+		Source:      AwsCostsMonthSumUnit,
 		Namespace:   "CostsPerUnit",
-		Body:        &costsio.CostsStandardBody{},
-		Transformer: costsfront.TransformResult,
+		Body:        &inout.AwsCostsSumPerUnitBody{},
+		Transformer: inout.Transform,
 	},
 	&navigation.Data{
-		Source:      CostsUriMonthlyUnitEnvironment,
+		Source:      AwsCostsMonthSumUnitEnv,
 		Namespace:   "CostsPerUnitEnv",
-		Body:        &costsio.CostsStandardBody{},
-		Transformer: costsfront.TransformResult,
+		Body:        &inout.AwsCostsSumPerUnitEnvBody{},
+		Transformer: inout.Transform,
 	},
 )
 
@@ -84,10 +94,10 @@ var costsDetailed = navigation.New(
 	"/costs/detailed",
 	&navigation.Display{PageTemplate: "costs-detailed"},
 	&navigation.Data{
-		Source:      CostsUriMonthlyDetailed,
+		Source:      AwsCostsMonthSumDetailed,
 		Namespace:   "CostsDetailed",
-		Body:        &costsio.CostsStandardBody{},
-		Transformer: costsfront.TransformResult,
+		Body:        &inout.AwsCostsSumFullDetailsBody{},
+		Transformer: inout.Transform,
 	},
 )
 
@@ -109,9 +119,9 @@ var ghStandards = navigation.New(
 	"/standards/repositories",
 	&navigation.Display{PageTemplate: "standards-github-repositories"},
 	&navigation.Data{
-		Source:    StandardsUri,
+		Source:    GitHubRespoitoryStandardList,
 		Namespace: "RepositoryStandards",
-		Body:      &standardsio.StandardsBody{},
+		Body:      &inout.GitHubRepositoryStandardsListBody{},
 	},
 )
 
@@ -130,16 +140,16 @@ var uptimeAws = navigation.New(
 	"/uptime/aws",
 	&navigation.Display{PageTemplate: "uptime-aws"},
 	&navigation.Data{
-		Source:      UptimeOverallMonthlyUri,
+		Source:      AwsUptimeMonthAverage,
 		Namespace:   "UptimeOverall",
-		Body:        &uptimeio.UptimeBody{},
-		Transformer: uptimefront.TransformResult,
+		Body:        &inout.AwsUptimeAveragesBody{},
+		Transformer: inout.Transform,
 	},
 	&navigation.Data{
-		Source:      UptimePerUnitMonthlyUri,
+		Source:      AwsUptimeMonthAverageUnit,
 		Namespace:   "UptimeUnit",
-		Body:        &uptimeio.UptimeBody{},
-		Transformer: uptimefront.TransformResult,
+		Body:        &inout.AwsUptimeAveragesPerUnitBody{},
+		Transformer: inout.Transform,
 	},
 )
 
@@ -157,16 +167,16 @@ var releasePerMonth = navigation.New(
 	"/releases/monthly",
 	&navigation.Display{PageTemplate: "releases-github"},
 	&navigation.Data{
-		Source:      ReleasesOverallMonthly,
+		Source:      GitHubReleaseMonthCount,
 		Namespace:   "ReleasesOverallMonthly",
-		Body:        &releasesio.ReleasesBody{},
-		Transformer: releasesfront.TransformResult,
+		Body:        &inout.GitHubReleasesCountBody{},
+		Transformer: inout.Transform,
 	},
 	&navigation.Data{
-		Source:      ReleasesUnitMonthly,
+		Source:      GitHubReleaseMonthCountUnit,
 		Namespace:   "ReleasesUnitMonthly",
-		Body:        &releasesio.ReleasesBody{},
-		Transformer: releasesfront.TransformResult,
+		Body:        &inout.GitHubReleasesCountPerUnitBody{},
+		Transformer: inout.Transform,
 	},
 )
 
@@ -184,17 +194,23 @@ var siriusHistorical = navigation.New(
 	"/sirius/month",
 	&navigation.Display{PageTemplate: "team-historical"},
 	&navigation.Data{
-		Source:      UptimePerUnitBillingUri + "?unit=Sirius",
+		Source:      AwsUptimeMonthAverage + "?unit=sirius",
 		Namespace:   "TeamUptimeUnit",
-		Body:        &uptimeio.UptimeBody{},
-		Transformer: uptimefront.TransformResult,
+		Body:        &inout.AwsUptimeAveragesBody{},
+		Transformer: inout.Transform,
 	},
 	&navigation.Data{
-		Source:      CostsUriMonthlyDetailed + "?unit=Sirius",
+		Source:      AwsCostsMonthSumDetailed + "?unit=sirius",
 		Namespace:   "TeamCostsPerUnit",
-		Body:        &costsio.CostsStandardBody{},
-		Transformer: costsfront.TransformResult,
+		Body:        &inout.AwsCostsSumFullDetailsBody{},
+		Transformer: inout.Transform,
 	},
+	// &navigation.Data{
+	// 	Source:      GitHubReleaseDayCount + "?unit=Sirius",
+	// 	Namespace:   "TeamReleases",
+	// 	Body:        &inout.GitHubReleasesCountBody{},
+	// 	Transformer: inout.Transform,
+	// },
 )
 
 var sirius = navigation.New(
@@ -202,11 +218,17 @@ var sirius = navigation.New(
 	"/sirius",
 	&navigation.Display{PageTemplate: "team-overview", IsHeader: true},
 	&navigation.Data{
-		Source:      UptimePerUnitDailylUri + "?unit=Sirius",
+		Source:      AwsUptimeDayAverage + "?unit=sirius",
 		Namespace:   "TeamUptimeUnit",
-		Body:        &uptimeio.UptimeBody{},
-		Transformer: uptimefront.TransformResult,
+		Body:        &inout.AwsUptimeAveragesBody{},
+		Transformer: inout.Transform,
 	},
+	// &navigation.Data{
+	// 	Source:      GitHubReleaseDayCount + "?unit=Sirius",
+	// 	Namespace:   "TeamReleases",
+	// 	Body:        &inout.GitHubReleasesCountBody{},
+	// 	Transformer: inout.Transform,
+	// },
 	siriusHistorical,
 )
 
@@ -230,9 +252,9 @@ var single = navigation.New(
 	"/standards/repositories",
 	&navigation.Display{PageTemplate: "standards-github-repositories"},
 	&navigation.Data{
-		Source:    StandardsUri,
+		Source:    GitHubRespoitoryStandardList,
 		Namespace: "RepositoryStandards",
-		Body:      &standardsio.StandardsBody{},
+		Body:      &inout.GitHubRepositoryStandardsListBody{},
 	},
 )
 

@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	GitHubRepositoryStandardsSegment string   = "github/standards"
+	GitHubRepositoryStandardsSegment string   = "github/standard"
 	GitHubRepositoryStandardsTags    []string = []string{"GitHub repository standards"}
 )
 
@@ -45,11 +45,18 @@ SELECT
 			'id', units.id,
 			'name', units.name
 		)
-	) as units
+	) as units,
+	json_group_array(
+		DISTINCT json_object(
+			'id', github_teams.id,
+			'slug', github_teams.slug
+		)
+	) as github_teams
 FROM github_repository_standards
 LEFT JOIN github_repositories on github_repositories.id = github_repository_standards.github_repository_id
 LEFT JOIN github_repositories_github_teams ON github_repositories_github_teams.github_repository_id = github_repository_standards.github_repository_id
 LEFT JOIN github_teams_units ON github_teams_units.github_team_id = github_repositories_github_teams.github_team_id
+LEFT JOIN github_teams ON github_teams.id = github_repositories_github_teams.github_team_id
 LEFT JOIN units on units.id = github_teams_units.unit_id
 {WHERE}
 GROUP BY github_repository_standards.id

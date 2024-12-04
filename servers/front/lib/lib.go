@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/ministryofjustice/opg-reports/internal/navigation"
 	"github.com/ministryofjustice/opg-reports/pkg/govukassets"
-	"github.com/ministryofjustice/opg-reports/pkg/navigation"
 )
 
 // DownloadGovUKAssets fetches the assets from govuk front end

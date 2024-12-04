@@ -3,21 +3,20 @@ package main
 import (
 	"net/http"
 
-	"github.com/ministryofjustice/opg-reports/pkg/bi"
-	"github.com/ministryofjustice/opg-reports/pkg/consts"
-	"github.com/ministryofjustice/opg-reports/pkg/envar"
-	"github.com/ministryofjustice/opg-reports/pkg/tmplfuncs"
+	"github.com/ministryofjustice/opg-reports/info"
+	"github.com/ministryofjustice/opg-reports/internal/envar"
+	"github.com/ministryofjustice/opg-reports/internal/tmplfuncs"
 	"github.com/ministryofjustice/opg-reports/servers/front/lib"
 )
 
 const assetsDirectory string = "./"
 const templateDir string = "./templates"
 
-var apiVersion = bi.ApiVersion
-var mode = bi.Mode
+var apiVersion = "v1"
+var mode = info.Fixtures
 
 func main() {
-	bi.Dump()
+	info.Log()
 	Run()
 }
 
@@ -27,12 +26,12 @@ func Run() {
 
 	svr := lib.NewSvr(
 		&lib.Cfg{
-			Addr: envar.Get("FRONT_ADDR", consts.ServerDefaultFrontAddr),
+			Addr: envar.Get("FRONT_ADDR", info.ServerDefaultFrontAddr),
 			Mux:  http.NewServeMux(),
 		},
 		&lib.Response{
-			Organisation: bi.Organisation,
-			GovUKVersion: consts.GovUKFrontendVersion,
+			Organisation: info.Organisation,
+			GovUKVersion: info.GovUKFrontendVersion,
 			Templates:    lib.TemplateFiles(templateDir),
 			Funcs:        tmplfuncs.All,
 			Errors:       []error{},
@@ -42,7 +41,7 @@ func Run() {
 		},
 		&lib.Api{
 			Version: apiVersion,
-			Addr:    envar.Get("API_ADDR", consts.ServerDefaultApiAddr),
+			Addr:    envar.Get("API_ADDR", info.ServerDefaultApiAddr),
 		},
 	)
 

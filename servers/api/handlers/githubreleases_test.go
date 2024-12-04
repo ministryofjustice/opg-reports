@@ -88,9 +88,12 @@ func TestApiHandlersGitHubReleasesListHandler(t *testing.T) {
 	}
 
 	// should return everything
-	response, err = handlers.ApiGitHubReleasesListHandler(ctx, &inout.OptionalDateRangeInput{
-		Version: "v1",
-	})
+	in := &inout.DateRangeUnitInput{
+		Version:   "v1",
+		StartDate: fakerextras.TimeStringMin.AddDate(0, 0, -1).Format(dateformats.YMD),
+		EndDate:   fakerextras.TimeStringMax.AddDate(0, 0, 1).Format(dateformats.YMD),
+	}
+	response, err = handlers.ApiGitHubReleasesListHandler(ctx, in)
 
 	if err != nil {
 		t.Errorf("unexpected error: [%s]", err.Error())

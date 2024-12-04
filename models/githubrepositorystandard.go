@@ -60,6 +60,27 @@ type GitHubRepositoryStandard struct {
 	GitHubRepository         *GitHubRepositoryForeignKey `json:"github_repository,omitempty" db:"github_repository" faker:"-"`
 	// Indirect info thats returned in some api endpoints to allow filtering by the unit
 	Units Units `json:"units,omitempty" db:"units" faker:"-"`
+	// Indirect join to teams
+	GitHubTeams GitHubTeams `json:"github_teams,omitempty" db:"github_teams" faker:"-"`
+}
+
+func (self *GitHubRepositoryStandard) FullName() string {
+	return self.GitHubRepositoryFullName
+}
+
+func (self *GitHubRepositoryStandard) IsCompliantBaseline() bool {
+	return intutils.Bool(self.CompliantBaseline)
+}
+
+func (self *GitHubRepositoryStandard) IsCompliantExtended() bool {
+	return intutils.Bool(self.CompliantExtended)
+}
+
+func (self *GitHubRepositoryStandard) TeamList() (teams []string) {
+	for _, t := range self.GitHubTeams {
+		teams = append(teams, t.Slug)
+	}
+	return
 }
 
 // UniqueValue returns the value representing the value of

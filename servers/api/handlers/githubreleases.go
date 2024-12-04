@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	GitHubReleasesSegment string   = "github/releases"
+	GitHubReleasesSegment string   = "github/release"
 	GitHubReleasesTags    []string = []string{"GitHub releases"}
 )
 
@@ -55,7 +55,10 @@ LEFT JOIN github_repositories ON github_repositories.id = github_releases.github
 LEFT JOIN github_repositories_github_teams ON github_repositories_github_teams.github_repository_id = github_releases.github_repository_id
 LEFT JOIN github_teams_units ON github_teams_units.github_team_id = github_repositories_github_teams.github_team_id
 LEFT JOIN units ON units.id = github_teams_units.unit_id
-{WHERE}
+WHERE
+	github_releases.date >= :start_date
+	AND github_releases.date < :end_date
+	{WHERE}
 GROUP BY github_releases.id
 ORDER BY github_releases.date ASC;
 `
@@ -66,8 +69,8 @@ ORDER BY github_releases.date ASC;
 //
 // Endpoints:
 //
-//	/version/github/releases/list?unit=<unit>&start_date=<date>&end_date=<date>
-func ApiGitHubReleasesListHandler(ctx context.Context, input *inout.OptionalDateRangeInput) (response *inout.GitHubReleasesListResponse, err error) {
+//	/version/github/release/list/{start_date}/{end_date}?unit=<unit>
+func ApiGitHubReleasesListHandler(ctx context.Context, input *inout.DateRangeUnitInput) (response *inout.GitHubReleasesListResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
 		results []*models.GitHubRelease       = []*models.GitHubRelease{}
@@ -85,11 +88,8 @@ func ApiGitHubReleasesListHandler(ctx context.Context, input *inout.OptionalDate
 	response = &inout.GitHubReleasesListResponse{}
 
 	// check for start, end and unit being passed
-	if input.StartDate != "" && input.EndDate != "" && input.Unit != "" {
-		where = "WHERE github_releases.date >= :start_date AND github_releases.date < :end_date AND units.Name = :unit "
-		sqlStmt = strings.ReplaceAll(sqlStmt, replace, where)
-	} else if input.Unit != "" {
-		where = "WHERE units.Name = :unit "
+	if input.Unit != "" {
+		where = "AND units.Name = :unit "
 		sqlStmt = strings.ReplaceAll(sqlStmt, replace, where)
 	} else {
 		sqlStmt = strings.ReplaceAll(sqlStmt, replace, where)
@@ -119,6 +119,7 @@ const GitHubReleasesCountDescription string = `Returns count of github releases 
 Can also be filtered by unit name.`
 const gitHubReleasesCountSQL string = `
 SELECT
+	'Count' as unit_name,
 	COUNT(DISTINCT github_releases.id) as count,
 	strftime(:date_format, github_releases.date) as date
 FROM github_releases
@@ -140,7 +141,7 @@ ORDER BY strftime(:date_format, github_releases.date) ASC;
 //
 // Endpoints:
 //
-//	/version/github/releases/count/{interval}/{start_date}/{end_date}?unit=<unit>
+//	/version/github/release/count/{interval}/{start_date}/{end_date}?unit=<unit>
 func ApiGitHubReleasesCountHandler(ctx context.Context, input *inout.RequiredGroupedDateRangeUnitInput) (response *inout.GitHubReleasesCountResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
@@ -154,10 +155,10 @@ func ApiGitHubReleasesCountHandler(ctx context.Context, input *inout.RequiredGro
 			Request:     input,
 			Operation:   GitHubReleasesCountOperationID,
 			DateRange:   dateutils.Dates(input.Start(), input.End(), input.GetInterval()),
-			ColumnOrder: []string{"unit"},
+			ColumnOrder: []string{"unit_name"},
 			// hard code the unit column to only have the word count
 			ColumnValues: map[string][]interface{}{
-				"unit": {"count"},
+				"unit_name": {"Count"},
 			},
 		}
 	)
@@ -202,7 +203,7 @@ Can also be filtered by unit name.`
 //	unit -> github_teams_units -> github_repositories_github_teams -> github_repositories -> github_releases
 const gitHubReleasesCountPerUnitSQL string = `
 SELECT
-	units.name as unit,
+	units.name as unit_name,
 	COUNT(DISTINCT github_releases.id) as count,
 	strftime(:date_format, github_releases.date) as date
 FROM units
@@ -223,7 +224,7 @@ ORDER BY strftime(:date_format, github_releases.date), units.name ASC;
 //
 // Endpoints:
 //
-//	/version/github/releases/count-per-unit/{interval}/{start_date}/{end_date}
+//	/version/github/release/count-per-unit/{interval}/{start_date}/{end_date}
 func ApiGitHubReleasesCountPerUnitHandler(ctx context.Context, input *inout.RequiredGroupedDateRangeInput) (response *inout.GitHubReleasesCountPerUnitResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
@@ -235,7 +236,7 @@ func ApiGitHubReleasesCountPerUnitHandler(ctx context.Context, input *inout.Requ
 			Request:     input,
 			Operation:   GitHubReleasesCountPerUnitOperationID,
 			DateRange:   dateutils.Dates(input.Start(), input.End(), input.GetInterval()),
-			ColumnOrder: []string{"unit"},
+			ColumnOrder: []string{"unit_name"},
 		}
 	)
 	// setup response
@@ -265,7 +266,7 @@ func ApiGitHubReleasesCountPerUnitHandler(ctx context.Context, input *inout.Requ
 func RegisterGitHubRelases(api huma.API) {
 	var uri string = ""
 
-	uri = "/{version}/" + GitHubReleasesSegment + "/list"
+	uri = "/{version}/" + GitHubReleasesSegment + "/list/{start_date}/{end_date}"
 	slog.Info("[api] handler register ", slog.String("uri", uri))
 	huma.Register(api, huma.Operation{
 		OperationID:   GitHubReleasesListOperationID,
