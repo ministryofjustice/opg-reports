@@ -244,14 +244,16 @@ func teamItems() (navs []*navigation.Navigation) {
 		uptimes := []*navigation.Navigation{}
 		for _, m := range months {
 			ymd := m.Format(dateformats.YMD)
+			ym := m.Format(dateformats.YM)
 			end := dateutils.Reset(m.AddDate(0, 1, 0), dateintervals.Month).Format(dateformats.YMD)
+
 			uri := string(AwsUptimeDayAverage)
 			uri = strings.ReplaceAll(uri, "{start_day:-7}", ymd)
 			uri = strings.ReplaceAll(uri, "{end_day:0}", end)
 
 			n := navigation.New(
 				m.Format(dateformats.YM),
-				fmt.Sprintf("/%s/uptime/day/%s/%s", team, ymd, end),
+				fmt.Sprintf("/%s/uptime/day/%s", team, ym),
 				&navigation.Display{PageTemplate: "team-uptime-day"},
 				&navigation.Data{
 					Source:      endpoints.ApiEndpoint(uri) + unitFilter,
