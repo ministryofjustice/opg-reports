@@ -43,7 +43,7 @@
                 {{- range $i, $date := $dates -}}
                     {{- $val := valueFromMap $date $row -}}
                     <td data-col="{{ $columnCount }}" class="govuk-table__cell data-cell">
-                        <span title="{{ $val }}" class="uptime">{{ percentage $val }}</span>
+                        <span title="{{ $val }}" class="uptime">{{ percentage $val 4 }}</span>
                     </td>
                     {{- $columnCount = increment $columnCount -}}
                 {{- end -}}
