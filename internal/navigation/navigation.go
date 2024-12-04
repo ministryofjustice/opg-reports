@@ -6,6 +6,9 @@
 package navigation
 
 import (
+	"slices"
+	"strings"
+
 	"github.com/ministryofjustice/opg-reports/internal/endpoints"
 )
 
@@ -105,6 +108,21 @@ func (self *Navigation) AddChild(kids ...*Navigation) {
 	}
 }
 
+func (self *Navigation) Names() (names string) {
+	var sep string = " - "
+	path := RootPath(self)
+	if len(path) > 0 {
+		list := []string{}
+		for _, p := range path {
+			list = append(list, p.Name)
+		}
+		slices.Reverse(list)
+		names = strings.Join(list, sep)
+	}
+
+	return
+}
+
 // Root finds the top level node from the node passed,
 // recursing up the tree by using hte .parent
 func Root(node *Navigation) (p *Navigation) {
@@ -112,6 +130,15 @@ func Root(node *Navigation) (p *Navigation) {
 	// more parents, so go up another level
 	if parent := node.Parent(); parent != nil {
 		p = Root(parent)
+	}
+	return
+
+}
+
+func RootPath(node *Navigation) (nodes []*Navigation) {
+	nodes = []*Navigation{node}
+	if parent := node.Parent(); parent != nil {
+		nodes = append(nodes, RootPath(parent)...)
 	}
 	return
 

@@ -47,6 +47,18 @@ func Title(s string) string {
 	return s
 }
 
+func PageTitle(strs ...string) (title string) {
+	var sep = " - "
+	title = ""
+	for i, s := range strs {
+		if i > 0 {
+			title += sep
+		}
+		title += s
+	}
+	return
+}
+
 // ValueFromMap uses the `name` as the key in the map `data` and returns
 // its value
 // if name is not a key on the map, it returns empty string
@@ -129,6 +141,7 @@ var All map[string]interface{} = map[string]interface{}{
 	"increment": Increment,
 	// formatting
 	"title":      Title,
+	"pageTitle":  PageTitle,
 	"currency":   Currency,
 	"percentage": Percentage,
 	"day":        Day,

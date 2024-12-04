@@ -6,10 +6,10 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/transformers"
 )
 
-// Transform takes the result from the api and converts
+// TransformToDateTable takes the result from the api and converts
 // the data into table rows that can be used for the front
 // end.
-func Transform(body interface{}) (result interface{}) {
+func TransformToDateTable(body interface{}) (result interface{}) {
 	var err error
 	var res map[string]map[string]interface{}
 	result = body
