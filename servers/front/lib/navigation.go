@@ -10,20 +10,20 @@ import (
 const AwsAccountsList endpoints.ApiEndpoint = "/{version}/aws/accounts/list"
 
 const (
-	AwsCostsTotal endpoints.ApiEndpoint = "/{version}/aws/costs/total/{billing_date:-6}/{billing_date:0}" // Fetches the overal total between the dates (ex. Tax)
-	AwsCostsList  endpoints.ApiEndpoint = "/{version}/aws/costs/list/{billing_date:-6}/{billing_date:0}"  // Returns all database entries between the dates (ex. Tax)
+	AwsCostsTotal endpoints.ApiEndpoint = "/{version}/aws/costs/total/{billing_date:-5}/{billing_date:1}" // Fetches the overal total between the dates (ex. Tax)
+	AwsCostsList  endpoints.ApiEndpoint = "/{version}/aws/costs/list/{billing_date:-5}/{billing_date:1}"  // Returns all database entries between the dates (ex. Tax)
 
-	AwsCostsMonthTaxes       endpoints.ApiEndpoint = "/{version}/aws/costs/tax/month/{billing_date:-6}/{billing_date:0}"              // Returns monthly totals with and without tax - can be filtered by unit
-	AwsCostsMonthSum         endpoints.ApiEndpoint = "/{version}/aws/costs/sum/month/{billing_date:-6}/{billing_date:0}"              // Returns monthly totals without tax - can be filtered by unit
-	AwsCostsMonthSumUnit     endpoints.ApiEndpoint = "/{version}/aws/costs/sum-per-unit/month/{billing_date:-6}/{billing_date:0}"     // Returns monthly totals group by unit
-	AwsCostsMonthSumUnitEnv  endpoints.ApiEndpoint = "/{version}/aws/costs/sum-per-unit-env/month/{billing_date:-6}/{billing_date:0}" // Returns monthly totals grouped by the unit and account environment
-	AwsCostsMonthSumDetailed endpoints.ApiEndpoint = "/{version}/aws/costs/sum-detailed/month/{billing_date:-6}/{billing_date:0}"     // Returns costs grouped by month, unit, account number, account environment, aws service and aws region - can be filtered by unit
+	AwsCostsMonthTaxes       endpoints.ApiEndpoint = "/{version}/aws/costs/tax/month/{billing_date:-5}/{billing_date:1}"              // Returns monthly totals with and without tax - can be filtered by unit
+	AwsCostsMonthSum         endpoints.ApiEndpoint = "/{version}/aws/costs/sum/month/{billing_date:-5}/{billing_date:1}"              // Returns monthly totals without tax - can be filtered by unit
+	AwsCostsMonthSumUnit     endpoints.ApiEndpoint = "/{version}/aws/costs/sum-per-unit/month/{billing_date:-5}/{billing_date:1}"     // Returns monthly totals group by unit
+	AwsCostsMonthSumUnitEnv  endpoints.ApiEndpoint = "/{version}/aws/costs/sum-per-unit-env/month/{billing_date:-5}/{billing_date:1}" // Returns monthly totals grouped by the unit and account environment
+	AwsCostsMonthSumDetailed endpoints.ApiEndpoint = "/{version}/aws/costs/sum-detailed/month/{billing_date:-5}/{billing_date:1}"     // Returns costs grouped by month, unit, account number, account environment, aws service and aws region - can be filtered by unit
 
-	AwsCostsDayTaxes       endpoints.ApiEndpoint = "/{version}/aws/costs/tax/day/{billing_date:-1}/{billing_date:0}"              // Returns daily totals with and without tax - can be filtered by unit
-	AwsCostsDaySum         endpoints.ApiEndpoint = "/{version}/aws/costs/sum/day/{billing_date:-1}/{billing_date:0}"              // Returns daily totals without tax - can be filtered by unit
-	AwsCostsDaySumUnit     endpoints.ApiEndpoint = "/{version}/aws/costs/sum-per-unit/day/{billing_date:-1}/{billing_date:0}"     // Returns daily totals group by unit
-	AwsCostsDaySumUnitEnv  endpoints.ApiEndpoint = "/{version}/aws/costs/sum-per-unit-env/day/{billing_date:-1}/{billing_date:0}" // Returns daily totals grouped by the unit and account environment
-	AwsCostsDaySumDetailed endpoints.ApiEndpoint = "/{version}/aws/costs/sum-detailed/day/{billing_date:-1}/{billing_date:0}"     // Returns costs grouped by day, unit, account number, account environment, aws service and aws region - can be filtered by unit
+	AwsCostsDayTaxes       endpoints.ApiEndpoint = "/{version}/aws/costs/tax/day/{billing_date:0}/{billing_date:1}"              // Returns daily totals with and without tax - can be filtered by unit
+	AwsCostsDaySum         endpoints.ApiEndpoint = "/{version}/aws/costs/sum/day/{billing_date:0}/{billing_date:1}"              // Returns daily totals without tax - can be filtered by unit
+	AwsCostsDaySumUnit     endpoints.ApiEndpoint = "/{version}/aws/costs/sum-per-unit/day/{billing_date:0}/{billing_date:1}"     // Returns daily totals group by unit
+	AwsCostsDaySumUnitEnv  endpoints.ApiEndpoint = "/{version}/aws/costs/sum-per-unit-env/day/{billing_date:0}/{billing_date:1}" // Returns daily totals grouped by the unit and account environment
+	AwsCostsDaySumDetailed endpoints.ApiEndpoint = "/{version}/aws/costs/sum-detailed/day/{billing_date:0}/{billing_date:1}"     // Returns costs grouped by day, unit, account number, account environment, aws service and aws region - can be filtered by unit
 
 )
 

@@ -1,6 +1,7 @@
 SHELL = bash
 #============ PARAMS ==============
 BUCKET_PROFILE ?= shared-development-operator
+IMPORT_DOWNLOAD ?= true
 #============ BUILD INFO ==============
 BUILD_DIR = ./builds/
 API_VERSION = v1
@@ -93,13 +94,23 @@ front:
 	@cd ./servers/front && go run main.go
 .PHONY: front
 
+#========= DOWNLOAD DATA =========
+data/download: build
+	@mkdir -p ./builds/databases
+	@aws-vault exec ${BUCKET_PROFILE} -- aws s3 sync --quiet s3://${BUCKET_NAME}/databases/api.db ./builds/databases/api.db
+.PHONY: data/download
+
+data/upload: build
+	@mkdir -p ./builds/databases
+	@aws-vault exec ${BUCKET_PROFILE} -- aws s3 cp --sse AES256 --recursive ./builds/databases/ s3://${BUCKET_NAME}/databases/
+.PHONY: data/upload
 #========= IMPORT DATA =========
 # Import all old data - order is important due to data gaps
 import: build
-	@cd ./builds/ && aws-vault exec ${BUCKET_PROFILE} -- ./bin/convertor --download=false
-	@cd ./builds && ./bin/importer -type=github-standards -file=./converted-data/github_standards.json
-	@cd ./builds && ./bin/importer -type=aws-uptime -file=./converted-data/aws_uptime.json
-	@cd ./builds && ./bin/importer -type=aws-costs -file=./converted-data/aws_costs.json
+	@cd ./builds/ && aws-vault exec ${BUCKET_PROFILE} -- ./convertor --download=${IMPORT_DOWNLOAD}
+	@cd ./builds && ./importer -type=github-standards -file=./converted-data/github_standards.json
+	@cd ./builds && ./importer -type=aws-uptime -file=./converted-data/aws_uptime.json
+	@cd ./builds && ./importer -type=aws-costs -file=./converted-data/aws_costs.json
 .PHONY: import
 #========= BUILD GO BINARIES =========
 # Build all binaries
@@ -112,26 +123,26 @@ build/servers: build/servers/api build/servers/front
 ## Build the api into build directory
 build/servers/api:
 	@echo -n "[building] servers/api .................. "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/api ./servers/api/main.go && echo "${tick}"
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/api ./servers/api/main.go && echo "${tick}"
 .PHONY: build/servers/api
 
 ## Build the api into build directory
 build/servers/front:
 	@echo -n "[building] servers/front ................ "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/front ./servers/front/main.go && echo "${tick}"
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/front ./servers/front/main.go && echo "${tick}"
 .PHONY: build/servers/front
 
 ## build the convertor tool
 build/convertor:
 	@echo -n "[building] convertor .................... "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/convertor ./convertor/main.go && echo "${tick}"
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/convertor ./convertor/main.go && echo "${tick}"
 .PHONY: build/convertor
 
 
 ## build the importer tool
 build/importer:
 	@echo -n "[building] importer ..................... "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/importer ./importer/main.go && echo "${tick}"
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/importer ./importer/main.go && echo "${tick}"
 .PHONY: build/importer
 
 ## build all collectors
@@ -141,24 +152,24 @@ build/collectors: build/collectors/awscosts build/collectors/awsuptime build/col
 ## build the aws costs collector
 build/collectors/awscosts:
 	@echo -n "[building] collectors/awscosts .......... "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/awscosts ./collectors/awscosts/main.go && echo "${tick}"
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/awscosts ./collectors/awscosts/main.go && echo "${tick}"
 .PHONY: build/collectors/awscosts
 
 ## build the aws uptime collector
 build/collectors/awsuptime:
 	@echo -n "[building] collectors/awsuptime ......... "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/awsuptime ./collectors/awsuptime/main.go && echo "${tick}"
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/awsuptime ./collectors/awsuptime/main.go && echo "${tick}"
 .PHONY: build/collectors/awsuptime
 
 ## build the github standards collector
 build/collectors/githubstandards:
 	@echo -n "[building] collectors/githubstandards ... "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/githubstandards ./collectors/githubstandards/main.go && echo "${tick}"
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/githubstandards ./collectors/githubstandards/main.go && echo "${tick}"
 .PHONY: build/collectors/githubstandards
 
 ## build the github releases collector
 build/collectors/githubreleases:
 	@echo -n "[building] collectors/githubreleases .... "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/bin/githubreleases ./collectors/githubreleases/main.go && echo "${tick}"
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/githubreleases ./collectors/githubreleases/main.go && echo "${tick}"
 .PHONY: build/collectors/githubreleases
 

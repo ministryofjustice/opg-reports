@@ -82,8 +82,10 @@ func FloatString(s interface{}, layout string) string {
 // Percentage presumes the string is a float and
 // returns a string with 4 decimals and a trailing %
 // marker
-func Percentage(s interface{}) string {
-	return FloatString(s, "%.4f") + " %"
+func Percentage(s interface{}, places int) string {
+	var pl = strconv.Itoa(places)
+	var layout = "%." + pl + "f"
+	return FloatString(s, layout) + " %"
 }
 
 // Matches is used by top navigation to see if it is a match for the active root

@@ -11,7 +11,7 @@
     {{- if $results -}}
 
         <section class='outer'>
-            <p class="govuk-body">There are <strong>{{ $results.BaselineCounters.Compliant}}</strong> / <strong>{{ $results.BaselineCounters.Total}}</strong> (<strong>{{ $results.BaselineCounters.Percentage}}%</strong>) repositories passing baseline compliance standards and <strong>{{ $results.ExtendedCounters.Compliant}}</strong> / <strong>{{ $results.ExtendedCounters.Total}}</strong> (<strong>{{ $results.ExtendedCounters.Percentage}}%</strong>) repositories passing extended compliance standards.</p>
+            <p class="govuk-body">There are <strong>{{ $results.BaselineCounters.Compliant}}</strong> / <strong>{{ $results.BaselineCounters.Total }}</strong> (<strong>{{ percentage $results.BaselineCounters.Percentage 2 }}</strong>) repositories passing baseline compliance standards and <strong>{{ $results.ExtendedCounters.Compliant }}</strong> / <strong>{{ $results.ExtendedCounters.Total }}</strong> (<strong>{{ percentage $results.ExtendedCounters.Percentage 2 }}</strong>) repositories passing extended compliance standards.</p>
             <div class="dataset">
                 {{ template "standards-table" $results }}
             </div>

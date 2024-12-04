@@ -29,7 +29,7 @@ type AwsUptime struct {
 	Unit *UnitForeignKey `json:"unit,omitempty" db:"unit" faker:"-"`
 	// Used for query results
 	UnitName string `json:"unit_name,omitempty" db:"unit_name" faker:"-"`
-	Count    int    `json:"count" db:"count" faker:"-"`
+	Count    int    `json:"count,omitempty" db:"count" faker:"-"`
 }
 
 // TDate

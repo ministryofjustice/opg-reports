@@ -28,7 +28,7 @@ var TypeProcessors = map[string]importerFunc{
 }
 
 var (
-	defaultDBPath     string = "./api.db"
+	defaultDBPath     string = "./databases/api.db"
 	defaultSourceFile string = "./data.json"
 )
 
