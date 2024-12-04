@@ -1,12 +1,11 @@
-{{ define "team-historical-costs" }}
+{{ define "team-per-month-costs" }}
     {{ template "head" . }}
 
     {{ $detailedCosts := .TeamCostsPerUnit }}
 
-    <h1 class="govuk-heading-l">{{ title $detailedCosts.Request.Unit }} historical costs</h1>
+    <h1 class="govuk-heading-l">{{ title $detailedCosts.Request.Unit }} monthly costs</h1>
+    <p class="govuk-body">All costs are grouped together for the month and AWS service.</p>
     <p class="govuk-body">Showing {{ len $detailedCosts.DateRange }} months of data between <strong>[{{ day $detailedCosts.Request.StartDate }}]</strong> and <strong>[{{ dayBefore $detailedCosts.Request.EndDate }}]</strong>.</p>
-
-
 
     {{ if $detailedCosts }}
 

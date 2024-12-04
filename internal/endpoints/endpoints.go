@@ -43,11 +43,19 @@ var pattern string = `(?mi){(.*?)}`
 
 // parsers maps the keyword in string to funcs that process them
 var parsers map[string]parserFunc = map[string]parserFunc{
-	"year":         year,
-	"month":        month,
-	"day":          day,
-	"billing_date": billingMonth,
-	"version":      version,
+	"year":               year,
+	"start_year":         year,
+	"end_year":           year,
+	"month":              month,
+	"start_month":        month,
+	"end_month":          month,
+	"day":                day,
+	"start_day":          day,
+	"end_day":            day,
+	"billing_date":       billingMonth,
+	"start_billing_date": billingMonth,
+	"end_billing_date":   billingMonth,
+	"version":            version,
 }
 
 type ApiEndpoint string

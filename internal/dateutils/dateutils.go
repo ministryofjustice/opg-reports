@@ -107,6 +107,16 @@ func Dates(start time.Time, end time.Time, interval dateintervals.Interval) (dat
 	return
 }
 
+func Range(start int, end int, interval dateintervals.Interval) (times []time.Time) {
+	var now = time.Now().UTC()
+	var s, e time.Time
+
+	s = Add(now, start, interval)
+	e = Add(now, end, interval)
+	return Times(s, e, interval)
+
+}
+
 // Times generates all the time.Time values between the start and end times passed, incrementing by the
 // interval.
 func Times(start time.Time, end time.Time, interval dateintervals.Interval) (times []time.Time) {

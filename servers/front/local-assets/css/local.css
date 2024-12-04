@@ -96,6 +96,9 @@ CUSTOM STYLES
     font-weight: 400;
     font-size: 1.1rem;
 }
+.app-subnav__section-item.sub-sub{
+    margin-left:10px;
+}
 
 /* COMPONENTS */
 .dataset .comparison-selector {

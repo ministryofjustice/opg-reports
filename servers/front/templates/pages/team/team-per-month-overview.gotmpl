@@ -1,4 +1,4 @@
-{{ define "team-historical" }}
+{{ define "team-per-month-overview" }}
     {{ template "head" . }}
 
     {{ $uptime := .TeamUptimeUnit }}
@@ -6,7 +6,8 @@
     {{ $releases := .TeamReleases }}
 
 
-    <h1 class="govuk-heading-l">{{ title $uptime.Request.Unit }} historical overview</h1>
+    <h1 class="govuk-heading-l">{{ title $uptime.Request.Unit }} monthly overview</h1>
+    <p class="govuk-body">All data is grouped based on the month.</p>
     <p class="govuk-body">Showing {{ len $uptime.DateRange }} months of data between <strong>[{{ day $uptime.Request.StartDate }}]</strong> and <strong>[{{ dayBefore $uptime.Request.EndDate }}]</strong>.</p>
 
     {{ if $uptime }}
