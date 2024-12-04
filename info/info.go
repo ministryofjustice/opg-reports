@@ -5,14 +5,12 @@ import (
 	"log/slog"
 )
 
-// Values that are replaced at build relating to versioning details
 var (
 	Commit    string = "eb5aa62ac8848d48c6ee37ab629f52a3c70e2f55" // Current commit
 	Timestamp string = "2024-06-09T10:07:33Z00:00"                // Current timestamp
 	Semver    string = "0.0.1"                                    // Current semver
 )
 
-// Values that are replaced at build time which relate to configuration
 var (
 	Organisation string = "OPG"                     // Name of the organisation - used to display in the front end
 	Dataset      string = "real"                    // Used by the api init to decide if we should download real or generate seeded database

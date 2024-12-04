@@ -74,6 +74,8 @@ ORDER BY github_repository_standards.github_repository_full_name ASC
 func ApiGitHubRepositoryStandardsListHandler(ctx context.Context, input *inout.VersionUnitInput) (response *inout.GitHubRepositoryStandardsListResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
+		base    *inout.GitHubRepositoryStandardsCount
+		ext     *inout.GitHubRepositoryStandardsCount
 		results []*models.GitHubRepositoryStandard       = []*models.GitHubRepositoryStandard{}
 		dbPath  string                                   = ctx.Value(dbPathKey).(string)
 		sqlStmt string                                   = gitHubRepositoryStandardsListSQL
@@ -108,6 +110,22 @@ func ApiGitHubRepositoryStandardsListHandler(ctx context.Context, input *inout.V
 	} else {
 		body.Result = results
 	}
+
+	base = &inout.GitHubRepositoryStandardsCount{Total: len(results), Compliant: 0, Percentage: 0.0}
+	ext = &inout.GitHubRepositoryStandardsCount{Total: len(results), Compliant: 0, Percentage: 0.0}
+	// update counters
+	for _, row := range results {
+		if row.IsCompliantBaseline() {
+			base.Compliant += 1
+		}
+		if row.IsCompliantExtended() {
+			ext.Compliant += 1
+		}
+	}
+	base.Percentage = (float64(base.Compliant) / float64(base.Total)) * 100
+	ext.Percentage = (float64(ext.Compliant) / float64(ext.Total)) * 100
+	body.BaselineCounters = base
+	body.ExtendedCounters = ext
 	response.Body = body
 	return
 }
