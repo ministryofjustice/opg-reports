@@ -31,9 +31,9 @@ type GitHubRepository struct {
 	FullName       string `json:"full_name,omitempty" db:"full_name" faker:"word,unique"`
 	CreatedAt      string `json:"created_at,omitempty" db:"created_at" faker:"date_string"`
 	DefaultBranch  string `json:"default_branch,omitempty" db:"default_branch" faker:"oneof: main, master"`
-	Archived       uint8  `json:"archived,omitempty" db:"archived" faker:"oneof: 0, 1"`
-	Private        uint8  `json:"private,omitempty" db:"private" faker:"oneof: 0, 1"`
-	License        string `json:"license,omitempty" db:"license" faker:"oneof: MIT, GPL"`
+	Archived       uint8  `json:"archived" db:"archived" faker:"oneof: 0, 1"`
+	Private        uint8  `json:"private" db:"private" faker:"oneof: 0, 1"`
+	License        string `json:"license" db:"license" faker:"oneof: MIT, GPL"`
 	LastCommitDate string `json:"last_commit_date,omitempty" db:"last_commit_date" faker:"date_string"`
 	// Many to many join between repo and teams
 	GitHubTeams GitHubTeams `json:"github_teams,omitempty" db:"github_teams" faker:"-"`

@@ -75,11 +75,13 @@ func Run(args *Arguments) (err error) {
 			slog.String("EndDate", args.EndDate),
 			slog.Int("pull_requests", len(merged)),
 			slog.Int("workflow_runs", len(runs)))
+
+		repoModel := models.NewRepository(ctx, client, repo)
 		// convert to releases
 		if len(runs) > 0 {
-			rels, err = WorkflowRunsToReleases(repo, teams, runs)
+			rels, err = WorkflowRunsToReleases(repoModel, teams, runs)
 		} else if len(merged) > 0 {
-			rels, err = PullRequestsToReleases(repo, teams, merged)
+			rels, err = PullRequestsToReleases(repoModel, teams, merged)
 		}
 
 		// attach the releases to the main set

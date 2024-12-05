@@ -101,17 +101,9 @@ func TeamList(ctx context.Context, client *github.Client, organisation string, r
 }
 
 // WorkflowRunsToReleases converts a slice of workflow runs into a slice of Release which can then be stored
-func WorkflowRunsToReleases(repo *github.Repository, teams models.GitHubTeams, runs []*github.WorkflowRun) (all []*models.GitHubRelease, err error) {
-	var now = time.Now().UTC().Format(dateformats.Full)
-	var ghRepo *models.GitHubRepository
+func WorkflowRunsToReleases(ghRepo *models.GitHubRepository, teams models.GitHubTeams, runs []*github.WorkflowRun) (all []*models.GitHubRelease, err error) {
 
 	all = []*models.GitHubRelease{}
-	ghRepo = &models.GitHubRepository{
-		Ts:          now,
-		FullName:    *repo.FullName,
-		Name:        *repo.Name,
-		GitHubTeams: teams,
-	}
 
 	for _, run := range runs {
 		var ts = time.Now().UTC().Format(dateformats.Full)
@@ -132,17 +124,9 @@ func WorkflowRunsToReleases(repo *github.Repository, teams models.GitHubTeams, r
 }
 
 // PullRequestsToReleases converts a set of pull requests into releases
-func PullRequestsToReleases(repo *github.Repository, teams models.GitHubTeams, prs []*github.PullRequest) (all []*models.GitHubRelease, err error) {
-	var now = time.Now().UTC().Format(dateformats.Full)
-	var ghRepo *models.GitHubRepository
+func PullRequestsToReleases(ghRepo *models.GitHubRepository, teams models.GitHubTeams, prs []*github.PullRequest) (all []*models.GitHubRelease, err error) {
 
 	all = []*models.GitHubRelease{}
-	ghRepo = &models.GitHubRepository{
-		Ts:          now,
-		FullName:    *repo.FullName,
-		Name:        *repo.Name,
-		GitHubTeams: teams,
-	}
 
 	for _, pr := range prs {
 		var ts = time.Now().UTC().Format(dateformats.Full)
