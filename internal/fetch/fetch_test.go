@@ -7,8 +7,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ministryofjustice/opg-reports/pkg/endpoints"
-	"github.com/ministryofjustice/opg-reports/pkg/fetch"
+	"github.com/ministryofjustice/opg-reports/internal/endpoints"
+	"github.com/ministryofjustice/opg-reports/internal/fetch"
 )
 
 type testO struct{}
@@ -40,7 +40,7 @@ func TestFetchSimple(t *testing.T) {
 	var ep endpoints.ApiEndpoint = "/"
 	var full, _ = url.Parse(mock.URL)
 
-	content, code, err := fetch.Fetch("http://"+full.Host, ep)
+	content, code, err := fetch.Fetch("http://"+full.Host, ep, nil)
 
 	if err != nil {
 		t.Errorf("unexpected error: [%s]", err.Error())

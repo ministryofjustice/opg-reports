@@ -3,7 +3,7 @@ package nums_test
 import (
 	"testing"
 
-	"github.com/ministryofjustice/opg-reports/pkg/nums"
+	"github.com/ministryofjustice/opg-reports/internal/nums"
 )
 
 // TestNumsAdd tests the various versions

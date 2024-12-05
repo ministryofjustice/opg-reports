@@ -12,8 +12,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/costexplorer"
+	"github.com/ministryofjustice/opg-reports/internal/dateformats"
 	"github.com/ministryofjustice/opg-reports/models"
-	"github.com/ministryofjustice/opg-reports/pkg/consts"
 	"github.com/ministryofjustice/opg-reports/pkg/convert"
 )
 
@@ -37,7 +37,7 @@ type Arguments struct {
 // flag.Parse to fetch values
 func SetupArgs(args *Arguments) {
 
-	flag.StringVar(&args.Month, "month", defMonth.Format(consts.DateFormatYearMonthDay), "month to fetch data for.")
+	flag.StringVar(&args.Month, "month", defMonth.Format(dateformats.YMD), "month to fetch data for.")
 	flag.StringVar(&args.ID, "id", "", "AWS account id.")
 	flag.StringVar(&args.Name, "name", "", "AWS account name.")
 	flag.StringVar(&args.Label, "label", "", "Account label.")
@@ -70,7 +70,7 @@ func ValidateArgs(args *Arguments) (err error) {
 	}
 
 	if args.Month == "-" {
-		args.Month = defMonth.Format(consts.DateFormat)
+		args.Month = defMonth.Format(dateformats.Full)
 	}
 
 	if args.Env == "" || args.Env == "-" {
@@ -143,7 +143,7 @@ func CostData(client *costexplorer.CostExplorer, startDate time.Time, endDate ti
 // Flat converts the multi dimensional raw data into a flat slice of costs.Cost entryies
 func Flat(raw *costexplorer.GetCostAndUsageOutput, args *Arguments) (flat []*models.AwsCost, err error) {
 	slog.Debug("Flattening cost data")
-	now := time.Now().UTC().Format(consts.DateFormat)
+	now := time.Now().UTC().Format(dateformats.Full)
 
 	flat = []*models.AwsCost{}
 	unit := &models.Unit{

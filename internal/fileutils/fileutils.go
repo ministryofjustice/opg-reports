@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ministryofjustice/opg-reports/pkg/fetch"
+	"github.com/ministryofjustice/opg-reports/internal/fetch"
 )
 
 // Exists checks if the file exists

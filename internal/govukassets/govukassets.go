@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ministryofjustice/opg-reports/info"
 	"github.com/ministryofjustice/opg-reports/internal/fileutils"
-	"github.com/ministryofjustice/opg-reports/pkg/consts"
 )
 
 // url (with version value to replace) for the release zip
@@ -68,7 +68,7 @@ func (self *FrontEndAssets) Extract(zipFilepath string) (extractedDir string, ex
 // also moves those to live under the /assets/ path so there is one single
 // path for all assets - `/assets/` - making includes / redirects easier
 func (self *FrontEndAssets) Move(originDir string, files []string, destinationDir string) (moved []string, err error) {
-	var v = consts.GovUKFrontendVersion
+	var v = info.GovUKFrontendVersion
 	moved = []string{}
 
 	// move the css and js files into the assets folder
@@ -145,7 +145,7 @@ func (self *FrontEndAssets) Close() {
 
 func FrontEnd() *FrontEndAssets {
 	return &FrontEndAssets{
-		Version: consts.GovUKFrontendVersion,
+		Version: info.GovUKFrontendVersion,
 		Source:  frontEndLocation,
 	}
 }

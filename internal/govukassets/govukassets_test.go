@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ministryofjustice/opg-reports/info"
 	"github.com/ministryofjustice/opg-reports/internal/fileutils"
-	"github.com/ministryofjustice/opg-reports/pkg/consts"
-	"github.com/ministryofjustice/opg-reports/pkg/govukassets"
+	"github.com/ministryofjustice/opg-reports/internal/govukassets"
 )
 
 // TestGovUKAssetsFrontEndFull checks each method on the
@@ -21,7 +21,7 @@ func TestGovUKAssetsFrontEndFull(t *testing.T) {
 
 	// check the url
 	url := fe.Url()
-	if !strings.Contains(url, consts.GovUKFrontendVersion) {
+	if !strings.Contains(url, info.GovUKFrontendVersion) {
 		t.Errorf("version number was not set")
 	}
 

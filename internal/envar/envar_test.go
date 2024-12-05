@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ministryofjustice/opg-reports/pkg/envar"
+	"github.com/ministryofjustice/opg-reports/internal/envar"
 )
 
 func TestGet(t *testing.T) {

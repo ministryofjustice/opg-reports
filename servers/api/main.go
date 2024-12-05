@@ -23,9 +23,8 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
 	"github.com/ministryofjustice/opg-reports/info"
+	"github.com/ministryofjustice/opg-reports/internal/envar"
 	"github.com/ministryofjustice/opg-reports/internal/fileutils"
-	"github.com/ministryofjustice/opg-reports/pkg/consts"
-	"github.com/ministryofjustice/opg-reports/pkg/envar"
 	"github.com/ministryofjustice/opg-reports/servers/api/handlers"
 	"github.com/ministryofjustice/opg-reports/servers/api/lib"
 )
@@ -92,7 +91,7 @@ func Run() {
 		ctx          context.Context = context.Background()
 		apiTitle     string          = lib.ApiTitle()
 		apiVersion   string          = lib.ApiVersion()
-		addr         string          = envar.Get("API_ADDR", consts.ServerDefaultApiAddr)
+		addr         string          = envar.Get("API_ADDR", info.ServerDefaultApiAddr)
 		databasePath string          = envar.Get("DB_PATH", localDBPath)
 	)
 

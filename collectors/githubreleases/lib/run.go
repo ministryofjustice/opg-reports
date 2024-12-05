@@ -10,9 +10,9 @@ import (
 	"github.com/google/go-github/v62/github"
 	"github.com/ministryofjustice/opg-reports/internal/dateformats"
 	"github.com/ministryofjustice/opg-reports/internal/dateutils"
+	"github.com/ministryofjustice/opg-reports/internal/githubcfg"
+	"github.com/ministryofjustice/opg-reports/internal/githubclient"
 	"github.com/ministryofjustice/opg-reports/models"
-	"github.com/ministryofjustice/opg-reports/pkg/githubcfg"
-	"github.com/ministryofjustice/opg-reports/pkg/githubclient"
 )
 
 func Run(args *Arguments) (err error) {

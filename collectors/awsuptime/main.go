@@ -33,12 +33,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/ministryofjustice/opg-reports/collectors/awsuptime/lib"
+	"github.com/ministryofjustice/opg-reports/internal/awscfg"
+	"github.com/ministryofjustice/opg-reports/internal/awsclient"
+	"github.com/ministryofjustice/opg-reports/internal/awssession"
 	"github.com/ministryofjustice/opg-reports/internal/dateformats"
 	"github.com/ministryofjustice/opg-reports/models"
-	"github.com/ministryofjustice/opg-reports/pkg/awscfg"
-	"github.com/ministryofjustice/opg-reports/pkg/awsclient"
-	"github.com/ministryofjustice/opg-reports/pkg/awssession"
-	"github.com/ministryofjustice/opg-reports/pkg/consts"
 	"github.com/ministryofjustice/opg-reports/pkg/convert"
 )
 
@@ -78,10 +77,10 @@ func Run(args *lib.Arguments) (err error) {
 	startDate = convert.DateResetDay(startDate)
 
 	// overwrite month with the parsed version
-	args.Day = startDate.Format(consts.DateFormatYearMonthDay)
+	args.Day = startDate.Format(dateformats.YMD)
 	endDate = startDate.AddDate(0, 0, 1)
 
-	now := time.Now().UTC().Format(consts.DateFormat)
+	now := time.Now().UTC().Format(dateformats.Full)
 	// get all of the named metrics for this setup
 	if metrics = lib.GetListOfMetrics(client); len(metrics) > 0 {
 		datapoints, err = lib.GetMetricsStats(client, metrics, startDate, endDate)
@@ -99,7 +98,7 @@ func Run(args *lib.Arguments) (err error) {
 		}
 
 		for _, dp := range datapoints {
-			ts := time.Now().UTC().Format(consts.DateFormat)
+			ts := time.Now().UTC().Format(dateformats.Full)
 
 			up := &models.AwsUptime{
 				Ts:         ts,

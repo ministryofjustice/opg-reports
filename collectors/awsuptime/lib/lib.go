@@ -12,7 +12,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
-	"github.com/ministryofjustice/opg-reports/pkg/consts"
+	"github.com/ministryofjustice/opg-reports/internal/dateformats"
 	"github.com/ministryofjustice/opg-reports/pkg/convert"
 )
 
@@ -40,7 +40,7 @@ type Arguments struct {
 // flag.Parse to fetch values
 func SetupArgs(args *Arguments) {
 
-	flag.StringVar(&args.Day, "day", defDay.Format(consts.DateFormatYearMonthDay), "day to fetch data for.")
+	flag.StringVar(&args.Day, "day", defDay.Format(dateformats.YMD), "day to fetch data for.")
 	flag.StringVar(&args.Unit, "unit", "", "Unit / team name.")
 	flag.StringVar(&args.AccountID, "id", "", "AWS account id")
 	flag.StringVar(&args.OutputFile, "output", "./data/{day}_{unit}_aws_uptime.json", "Filepath for the output")
@@ -66,7 +66,7 @@ func ValidateArgs(args *Arguments) (err error) {
 	}
 
 	if args.Day == "-" {
-		args.Day = defDay.Format(consts.DateFormat)
+		args.Day = defDay.Format(dateformats.Full)
 	}
 
 	return

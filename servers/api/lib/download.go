@@ -10,8 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/ministryofjustice/opg-reports/pkg/awscfg"
-	"github.com/ministryofjustice/opg-reports/pkg/awssession"
+	"github.com/ministryofjustice/opg-reports/internal/awscfg"
+	"github.com/ministryofjustice/opg-reports/internal/awssession"
 )
 
 // DownloadS3DB tries to download the bucketDB from the bucketName and write the content

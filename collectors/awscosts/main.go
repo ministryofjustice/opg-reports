@@ -46,11 +46,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/costexplorer"
 	"github.com/ministryofjustice/opg-reports/collectors/awscosts/lib"
+	"github.com/ministryofjustice/opg-reports/internal/awscfg"
+	"github.com/ministryofjustice/opg-reports/internal/awsclient"
+	"github.com/ministryofjustice/opg-reports/internal/awssession"
+	"github.com/ministryofjustice/opg-reports/internal/dateformats"
 	"github.com/ministryofjustice/opg-reports/models"
-	"github.com/ministryofjustice/opg-reports/pkg/awscfg"
-	"github.com/ministryofjustice/opg-reports/pkg/awsclient"
-	"github.com/ministryofjustice/opg-reports/pkg/awssession"
-	"github.com/ministryofjustice/opg-reports/pkg/consts"
 	"github.com/ministryofjustice/opg-reports/pkg/convert"
 )
 
@@ -86,10 +86,10 @@ func Run(args *lib.Arguments) (err error) {
 	}
 	startDate = convert.DateResetMonth(startDate)
 	// overwrite month with the parsed version
-	args.Month = startDate.Format(consts.DateFormatYearMonth)
+	args.Month = startDate.Format(dateformats.YMD)
 	endDate = startDate.AddDate(0, 1, 0)
 
-	if raw, err = lib.CostData(client, startDate, endDate, costexplorer.GranularityDaily, consts.DateFormatYearMonthDay); err != nil {
+	if raw, err = lib.CostData(client, startDate, endDate, costexplorer.GranularityDaily, dateformats.YMD); err != nil {
 		slog.Error("[awscosts] getting cost data failed", slog.String("err", err.Error()))
 		return
 	}

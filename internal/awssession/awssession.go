@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/ministryofjustice/opg-reports/pkg/awscfg"
+	"github.com/ministryofjustice/opg-reports/internal/awscfg"
 )
 
 // New creates a typical aws session from the config struct

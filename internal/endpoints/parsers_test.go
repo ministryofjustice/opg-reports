@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ministryofjustice/opg-reports/pkg/consts"
-	"github.com/ministryofjustice/opg-reports/pkg/convert"
+	"github.com/ministryofjustice/opg-reports/internal/dateformats"
+	"github.com/ministryofjustice/opg-reports/internal/dateintervals"
+	"github.com/ministryofjustice/opg-reports/internal/dateutils"
 )
 
 // TestEndpointParserYear checks that the {year} keyword
@@ -14,7 +15,7 @@ import (
 func TestEndpointParserYear(t *testing.T) {
 
 	var uri ApiEndpoint = "/test/{year}/date"
-	var now = convert.DateResetYear(time.Now().UTC()).Format(consts.DateFormatYearMonthDay)
+	var now = dateutils.Reset(time.Now().UTC(), dateintervals.Year).Format(dateformats.YMD)
 	var expected = "/test/" + now + "/date"
 	var pg = uri.parserGroups()
 
@@ -65,7 +66,7 @@ func TestEndpointParserMonthCurrent(t *testing.T) {
 func TestEndpointParserDay(t *testing.T) {
 
 	var uri ApiEndpoint = "/test/{day}/date"
-	var now = convert.DateResetDay(time.Now().UTC()).AddDate(0, 0, -1).Format(consts.DateFormatYearMonthDay)
+	var now = dateutils.Reset(time.Now().UTC(), dateintervals.Day).AddDate(0, 0, -1).Format(dateformats.YMD)
 	var expected = "/test/" + now + "/date"
 	var pg = uri.parserGroups()
 

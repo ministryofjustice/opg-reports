@@ -1,6 +1,6 @@
 package githubcfg
 
-import "github.com/ministryofjustice/opg-reports/pkg/envar"
+import "github.com/ministryofjustice/opg-reports/internal/envar"
 
 // Config contains env vars
 type Config struct {

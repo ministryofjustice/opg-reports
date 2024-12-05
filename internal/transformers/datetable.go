@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"slices"
 
+	"github.com/ministryofjustice/opg-reports/internal/nums"
 	"github.com/ministryofjustice/opg-reports/internal/structs"
-	"github.com/ministryofjustice/opg-reports/pkg/nums"
 )
 
 // DateWideTable interface is used for tables whose
