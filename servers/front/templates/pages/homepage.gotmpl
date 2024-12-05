@@ -1,5 +1,62 @@
 {{ define "homepage" }}
     {{ template "head" . }}
     <h1 class="govuk-heading-l">Home</h1>
+
+    {{ $uptimeOverall := .UptimeOverall }}
+    {{ $uptimePerUnit := .UptimeUnit }}
+    {{ $uptimeFirst := first $uptimeOverall.Result }}
+
+    {{ $relasesOverall := .ReleasesOverall }}
+    {{ $releasesPerUnit := .ReleasesUnit }}
+    {{ $releasesFirst := first $relasesOverall.Result }}
+
+    <section class='outer'>
+        <h2 class="govuk-heading-m">Portfolio statistics for {{ month $uptimeFirst.Date }}</h2>
+        <table class="govuk-table portfolio-table">
+            <tbody class="govuk-table__body">
+
+            {{ if $uptimeOverall }}
+                <tr class="govuk-table__row">
+                    <th class="govuk-table__header data-header " >Total uptime</th>
+                    <th class="govuk-table__header data-header " >{{ percentage $uptimeFirst.Average 4 }}</th>
+                </tr>
+            {{ end }}
+
+            {{ if $uptimePerUnit }}
+                {{ range $uptimePerUnit.Result }}
+                <tr class="govuk-table__row">
+                     <th class="govuk-table__header data-header tbl-indent" >{{ title .UnitName }}</th>
+                     <th class="govuk-table__header data-header " >{{ percentage .Average 4 }}</th>
+                </tr>
+                {{ end }}
+            {{ end }}
+
+            {{ if $relasesOverall }}
+                <tr class="govuk-table__row">
+                    <th class="govuk-table__header data-header " >Total releases</th>
+                    <th class="govuk-table__header data-header " >{{ $releasesFirst.Count }}</th>
+                </tr>
+            {{ end }}
+
+            {{ if $releasesPerUnit }}
+                {{ range $releasesPerUnit.Result }}
+                    {{ if eq .UnitName "org" }}
+                    {{ else }}
+                    <tr class="govuk-table__row">
+                        <th class="govuk-table__header data-header tbl-indent" >{{ title .UnitName }}</th>
+                        <th class="govuk-table__header data-header " >{{ .Count }}</th>
+                    </tr>
+                    {{ end }}
+                {{ end }}
+            {{ end }}
+
+
+
+            </tbody>
+        </table>
+    </section>
+
+
+
     {{ template "foot" . }}
 {{ end }}

@@ -17,7 +17,7 @@ func TransformToDateWideTable(body interface{}) (result interface{}) {
 	)
 	result = body
 
-	slog.Info("[transformers] TransformToDateWideTable",
+	slog.Debug("[transformers] TransformToDateWideTable",
 		slog.String("type", fmt.Sprintf("%T", body)))
 	// pretty.Print(body)
 	switch body.(type) {

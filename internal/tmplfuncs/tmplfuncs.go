@@ -5,6 +5,7 @@
 package tmplfuncs
 
 import (
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -122,6 +123,16 @@ func Day(s string) (date string) {
 	return
 }
 
+// Month converts the string into a date and then back to a string
+// formatted as yyyy-mm
+func Month(s string) (date string) {
+	date = s
+	if v, err := dateutils.Time(s); err == nil {
+		date = v.Format(dateformats.YM)
+	}
+	return
+}
+
 // DayBefore converts the string into a date, removes 1 day
 // and then converts back to a string formatted as yyyy-mm-dd
 func DayBefore(s string) (date string) {
@@ -132,10 +143,20 @@ func DayBefore(s string) (date string) {
 	return
 }
 
+func First(items interface{}) (first interface{}) {
+	switch reflect.TypeOf(items).Kind() {
+	case reflect.Slice:
+		list := reflect.ValueOf(items)
+		first = list.Index(0).Interface()
+	}
+	return
+}
+
 var All map[string]interface{} = map[string]interface{}{
 	// access
 	"valueFromMap": ValueFromMap,
 	"matches":      Matches,
+	"first":        First,
 	// numeric
 	"add":       nums.Add,
 	"increment": Increment,
@@ -144,6 +165,7 @@ var All map[string]interface{} = map[string]interface{}{
 	"pageTitle":  PageTitle,
 	"currency":   Currency,
 	"percentage": Percentage,
+	"month":      Month,
 	"day":        Day,
 	"dayBefore":  DayBefore,
 	// info

@@ -15,33 +15,37 @@ import (
 )
 
 const (
-	AwsAccountsList              endpoints.ApiEndpoint = "/{version}/aws/accounts/list"                                                             // Lists all aws accounts
-	AwsCostsTotal                endpoints.ApiEndpoint = "/{version}/aws/costs/total/{start_billing_date:-5}/{end_billing_date:1}"                  // Returns the overal total between the dates (ex. Tax)
-	AwsCostsList                 endpoints.ApiEndpoint = "/{version}/aws/costs/list/{start_billing_date:-5}/{end_billing_date:1}"                   // Returns all database entries between the dates (ex. Tax)
-	AwsCostsMonthTaxes           endpoints.ApiEndpoint = "/{version}/aws/costs/tax/month/{start_billing_date:-5}/{end_billing_date:1}"              // Returns monthly totals with and without tax - can be filtered by unit
-	AwsCostsMonthSum             endpoints.ApiEndpoint = "/{version}/aws/costs/sum/month/{start_billing_date:-5}/{end_billing_date:1}"              // Returns monthly totals without tax - can be filtered by unit
-	AwsCostsMonthSumUnit         endpoints.ApiEndpoint = "/{version}/aws/costs/sum-per-unit/month/{start_billing_date:-5}/{end_billing_date:1}"     // Returns monthly totals group by unit
-	AwsCostsMonthSumUnitEnv      endpoints.ApiEndpoint = "/{version}/aws/costs/sum-per-unit-env/month/{start_billing_date:-5}/{end_billing_date:1}" // Returns monthly totals grouped by the unit and account environment
-	AwsCostsMonthSumDetailed     endpoints.ApiEndpoint = "/{version}/aws/costs/sum-detailed/month/{start_billing_date:-5}/{end_billing_date:1}"     // Returns costs grouped by month, unit, account number, account environment, aws service and aws region - can be filtered by unit
-	AwsCostsDayTaxes             endpoints.ApiEndpoint = "/{version}/aws/costs/tax/day/{start_billing_date:0}/{end_billing_date:1}"                 // Returns daily totals with and without tax - can be filtered by unit
-	AwsCostsDaySum               endpoints.ApiEndpoint = "/{version}/aws/costs/sum/day/{start_billing_date:0}/{end_billing_date:1}"                 // Returns daily totals without tax - can be filtered by unit
-	AwsCostsDaySumUnit           endpoints.ApiEndpoint = "/{version}/aws/costs/sum-per-unit/day/{start_billing_date:0}/{end_billing_date:1}"        // Returns daily totals group by unit
-	AwsCostsDaySumUnitEnv        endpoints.ApiEndpoint = "/{version}/aws/costs/sum-per-unit-env/day/{start_billing_date:0}/{end_billing_date:1}"    // Returns daily totals grouped by the unit and account environment
-	AwsCostsDaySumDetailed       endpoints.ApiEndpoint = "/{version}/aws/costs/sum-detailed/day/{start_billing_date:0}/{end_billing_date:1}"        // Returns costs grouped by day, unit, account number, account environment, aws service and aws region - can be filtered by unit
-	AwsUptimeList                endpoints.ApiEndpoint = "/{version}/aws/uptime/list/{start_month:-6}/{end_month:0}"                                // Returns all uptime data between dates
-	AwsUptimeMonthAverage        endpoints.ApiEndpoint = "/{version}/aws/uptime/average/month/{start_month:-6}/{end_month:0}"                       // Returns average uptime % between dates
-	AwsUptimeMonthAverageUnit    endpoints.ApiEndpoint = "/{version}/aws/uptime/average-per-unit/month/{start_month:-6}/{end_month:0}"              // Returns average uptime % between dates grouped by unit
-	AwsUptimeDayAverage          endpoints.ApiEndpoint = "/{version}/aws/uptime/average/day/{start_day:-7}/{end_day:0}"                             // Returns average uptime % between dates
-	AwsUptimeDayAverageUnit      endpoints.ApiEndpoint = "/{version}/aws/uptime/average-per-unit/day/{start_day:-7}/{end_day:0}"                    // Returns average uptime % between dates grouped by unit
-	GitHubReleaseList            endpoints.ApiEndpoint = "/{version}/github/release/list/{start_month:-6}/{end_month:0}"                            // Return all releases between the dates
-	GitHubReleaseMonthCount      endpoints.ApiEndpoint = "/{version}/github/release/count/month/{start_month:-6}/{end_month:0}"                     // Return count of all releases grouped by month
-	GitHubReleaseMonthCountUnit  endpoints.ApiEndpoint = "/{version}/github/release/count-per-unit/month/{start_month:-6}/{end_month:0}"            // Return count of releases grouped by month and unit
-	GitHubReleaseDayCount        endpoints.ApiEndpoint = "/{version}/github/release/count/day/{start_day:-7}/{end_day:0}"                           // Return count of all releases grouped by day
-	GitHubReleaseDayCountUnit    endpoints.ApiEndpoint = "/{version}/github/release/count-per-unit/day/{start_day:-7}/{end_day:0}"                  // Return count of releases grouped by day and unit
-	GitHubRepositoryList         endpoints.ApiEndpoint = "/{version}/github/repository/list"                                                        // Return list of all repositories
-	GitHubRespoitoryStandardList endpoints.ApiEndpoint = "/{version}/github/standard/list"                                                          // Return list of all repository standards
-	GitHubTeamList               endpoints.ApiEndpoint = "/{version}/github/team/list"                                                              // Return all github teams
-	UnitList                     endpoints.ApiEndpoint = "/{version}/unit/list"                                                                     // Return all units
+	AwsAccountsList                   endpoints.ApiEndpoint = "/{version}/aws/accounts/list"                                                             // Lists all aws accounts
+	AwsCostsTotal                     endpoints.ApiEndpoint = "/{version}/aws/costs/total/{start_billing_date:-5}/{end_billing_date:1}"                  // Returns the overal total between the dates (ex. Tax)
+	AwsCostsList                      endpoints.ApiEndpoint = "/{version}/aws/costs/list/{start_billing_date:-5}/{end_billing_date:1}"                   // Returns all database entries between the dates (ex. Tax)
+	AwsCostsMonthTaxes                endpoints.ApiEndpoint = "/{version}/aws/costs/tax/month/{start_billing_date:-5}/{end_billing_date:1}"              // Returns monthly totals with and without tax - can be filtered by unit
+	AwsCostsMonthSum                  endpoints.ApiEndpoint = "/{version}/aws/costs/sum/month/{start_billing_date:-5}/{end_billing_date:1}"              // Returns monthly totals without tax - can be filtered by unit
+	AwsCostsMonthSumUnit              endpoints.ApiEndpoint = "/{version}/aws/costs/sum-per-unit/month/{start_billing_date:-5}/{end_billing_date:1}"     // Returns monthly totals group by unit
+	AwsCostsMonthSumUnitEnv           endpoints.ApiEndpoint = "/{version}/aws/costs/sum-per-unit-env/month/{start_billing_date:-5}/{end_billing_date:1}" // Returns monthly totals grouped by the unit and account environment
+	AwsCostsMonthSumDetailed          endpoints.ApiEndpoint = "/{version}/aws/costs/sum-detailed/month/{start_billing_date:-5}/{end_billing_date:1}"     // Returns costs grouped by month, unit, account number, account environment, aws service and aws region - can be filtered by unit
+	AwsCostsDayTaxes                  endpoints.ApiEndpoint = "/{version}/aws/costs/tax/day/{start_billing_date:0}/{end_billing_date:1}"                 // Returns daily totals with and without tax - can be filtered by unit
+	AwsCostsDaySum                    endpoints.ApiEndpoint = "/{version}/aws/costs/sum/day/{start_billing_date:0}/{end_billing_date:1}"                 // Returns daily totals without tax - can be filtered by unit
+	AwsCostsDaySumUnit                endpoints.ApiEndpoint = "/{version}/aws/costs/sum-per-unit/day/{start_billing_date:0}/{end_billing_date:1}"        // Returns daily totals group by unit
+	AwsCostsDaySumUnitEnv             endpoints.ApiEndpoint = "/{version}/aws/costs/sum-per-unit-env/day/{start_billing_date:0}/{end_billing_date:1}"    // Returns daily totals grouped by the unit and account environment
+	AwsCostsDaySumDetailed            endpoints.ApiEndpoint = "/{version}/aws/costs/sum-detailed/day/{start_billing_date:0}/{end_billing_date:1}"        // Returns costs grouped by day, unit, account number, account environment, aws service and aws region - can be filtered by unit
+	AwsUptimeList                     endpoints.ApiEndpoint = "/{version}/aws/uptime/list/{start_month:-6}/{end_month:0}"                                // Returns all uptime data between dates
+	AwsUptimeMonthAverage             endpoints.ApiEndpoint = "/{version}/aws/uptime/average/month/{start_month:-6}/{end_month:0}"                       // Returns average uptime % between dates
+	AwsUptimeMonthLatestAverage       endpoints.ApiEndpoint = "/{version}/aws/uptime/average/month/{start_month:-1}/{end_month:0}"                       // Returns average uptime % between dates
+	AwsUptimeMonthAverageUnit         endpoints.ApiEndpoint = "/{version}/aws/uptime/average-per-unit/month/{start_month:-6}/{end_month:0}"              // Returns average uptime % between dates grouped by unit
+	AwsUptimeMonthLatestAverageUnit   endpoints.ApiEndpoint = "/{version}/aws/uptime/average-per-unit/month/{start_month:-1}/{end_month:0}"              // Returns average uptime % between dates grouped by unit
+	AwsUptimeDayAverage               endpoints.ApiEndpoint = "/{version}/aws/uptime/average/day/{start_day:-7}/{end_day:0}"                             // Returns average uptime % between dates
+	AwsUptimeDayAverageUnit           endpoints.ApiEndpoint = "/{version}/aws/uptime/average-per-unit/day/{start_day:-7}/{end_day:0}"                    // Returns average uptime % between dates grouped by unit
+	GitHubReleaseList                 endpoints.ApiEndpoint = "/{version}/github/release/list/{start_month:-6}/{end_month:0}"                            // Return all releases between the dates
+	GitHubReleaseMonthCount           endpoints.ApiEndpoint = "/{version}/github/release/count/month/{start_month:-6}/{end_month:0}"                     // Return count of all releases grouped by month
+	GitHubReleaseMonthLatestCount     endpoints.ApiEndpoint = "/{version}/github/release/count/month/{start_month:-1}/{end_month:0}"                     // Return count of all releases grouped by month
+	GitHubReleaseMonthCountUnit       endpoints.ApiEndpoint = "/{version}/github/release/count-per-unit/month/{start_month:-6}/{end_month:0}"            // Return count of releases grouped by month and unit
+	GitHubReleaseMonthLatestCountUnit endpoints.ApiEndpoint = "/{version}/github/release/count-per-unit/month/{start_month:-1}/{end_month:0}"            // Return count of releases grouped by month and unit
+	GitHubReleaseDayCount             endpoints.ApiEndpoint = "/{version}/github/release/count/day/{start_day:-7}/{end_day:0}"                           // Return count of all releases grouped by day
+	GitHubReleaseDayCountUnit         endpoints.ApiEndpoint = "/{version}/github/release/count-per-unit/day/{start_day:-7}/{end_day:0}"                  // Return count of releases grouped by day and unit
+	GitHubRepositoryList              endpoints.ApiEndpoint = "/{version}/github/repository/list"                                                        // Return list of all repositories
+	GitHubRespoitoryStandardList      endpoints.ApiEndpoint = "/{version}/github/standard/list"                                                          // Return list of all repository standards
+	GitHubTeamList                    endpoints.ApiEndpoint = "/{version}/github/team/list"                                                              // Return all github teams
+	UnitList                          endpoints.ApiEndpoint = "/{version}/unit/list"                                                                     // Return all units
 )
 
 // NavigationChoices is the set of all navigation structures
@@ -182,6 +186,26 @@ func overviewItems() (overview *navigation.Navigation) {
 		"Overview",
 		"/",
 		&navigation.Display{PageTemplate: "homepage"},
+		&navigation.Data{
+			Source:    AwsUptimeMonthLatestAverage,
+			Namespace: "UptimeOverall",
+			Body:      &inout.AwsUptimeAveragesBody{},
+		},
+		&navigation.Data{
+			Source:    AwsUptimeMonthLatestAverageUnit,
+			Namespace: "UptimeUnit",
+			Body:      &inout.AwsUptimeAveragesPerUnitBody{},
+		},
+		&navigation.Data{
+			Source:    GitHubReleaseMonthLatestCount,
+			Namespace: "ReleasesOverall",
+			Body:      &inout.GitHubReleasesCountBody{},
+		},
+		&navigation.Data{
+			Source:    GitHubReleaseMonthLatestCountUnit,
+			Namespace: "ReleasesUnit",
+			Body:      &inout.GitHubReleasesCountPerUnitBody{},
+		},
 		up,
 		release,
 		costs,

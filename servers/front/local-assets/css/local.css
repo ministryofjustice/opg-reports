@@ -31,10 +31,12 @@ CUSTOM STYLES
 .data-cellish{
     font-size:1rem;
 }
-
 .compare-header{
     padding-left:0;
     padding-right:3px;
+}
+.govuk-table__header.tbl-indent {
+    padding-left:30px;
 }
 /* monospace */
 .releasecount,
