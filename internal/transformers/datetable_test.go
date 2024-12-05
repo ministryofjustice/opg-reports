@@ -22,15 +22,21 @@ func (self *tabTest) UID() string {
 	return fmt.Sprintf("%s-%d", "costs", self.ID)
 }
 
-// TDate
-// Transformable interface
-func (self *tabTest) TDate() string {
+// DateWideDateValue returns the value of the date field
+// Interfaces:
+//   - transformers.dateWideTable
+func (self *tabTest) DateWideDateValue() string {
 	return self.Date
 }
 
-// TValue
-// Transformable interface
-func (self *tabTest) TValue() string {
+func (self *tabTest) DateDeepDateColumn() string {
+	return "date"
+}
+
+// DateWideValue returns the value to use in the date column
+// Interfaces:
+//   - transformers.dateWideTable
+func (self *tabTest) DateWideValue() string {
 	return self.Cost
 }
 
@@ -47,7 +53,7 @@ var standardSampleData = []*tabTest{
 	{Unit: "B", Environment: "development", Service: "ecs", Date: "2024-01", Cost: "10.0"},
 	{Unit: "B", Environment: "development", Service: "ec2", Date: "2024-01", Cost: "-4.72"},
 }
-var expected = map[string]map[string]interface{}{
+var expectedWide = map[string]map[string]interface{}{
 	"environment:development^service:ecs^unit:A^": {
 		"environment": "development",
 		"unit":        "A",
@@ -82,6 +88,44 @@ var expected = map[string]map[string]interface{}{
 	},
 }
 
+var expectedDeep = map[string]map[string]interface{}{
+	"date:2024-01^environment:development^service:ecs^unit:A^": {
+		"environment": "development",
+		"unit":        "A",
+		"service":     "ecs",
+		"date":        "2024-01",
+		"cost":        "-1.01",
+	},
+	"date:2024-02^environment:development^service:ecs^unit:A^": {
+		"environment": "development",
+		"unit":        "A",
+		"service":     "ecs",
+		"date":        "2024-02",
+		"cost":        "3.01",
+	},
+	"date:2024-01^environment:development^service:ec2^unit:A^": {
+		"environment": "development",
+		"unit":        "A",
+		"service":     "ec2",
+		"date":        "2024-01",
+		"cost":        "3.51",
+	},
+	"date:2024-01^environment:development^service:ecs^unit:B^": {
+		"environment": "development",
+		"unit":        "B",
+		"service":     "ecs",
+		"date":        "2024-01",
+		"cost":        "10.0",
+	},
+	"date:2024-01^environment:development^service:ec2^unit:B^": {
+		"environment": "development",
+		"unit":        "B",
+		"service":     "ec2",
+		"date":        "2024-01",
+		"cost":        "10.0",
+	},
+}
+
 // TestTransformersResultsToDateRows checks that a preset
 // series of data that mimics api info for costs will come out
 // in the expected setup via DateResultsToRows
@@ -93,7 +137,7 @@ func TestTransformersResultsToDateRows(t *testing.T) {
 	}
 
 	for key, actualRow := range actual {
-		var expectedRow = expected[key]
+		var expectedRow = expectedWide[key]
 
 		for field, actualValue := range actualRow {
 			var expectedValue = expectedRow[field]
@@ -102,6 +146,29 @@ func TestTransformersResultsToDateRows(t *testing.T) {
 				t.Errorf("error with table data [%s] expected field [%s] does not match - [%v]==[%v]", key, field, expectedValue, actualValue)
 			}
 
+		}
+
+	}
+
+}
+
+// TestTransformersResultsToDateRows
+func TestTransformersResultsToDeepRows(t *testing.T) {
+
+	actual, err := ResultsToDeepRows(standardSampleData, colValues, dateRanges)
+
+	if err != nil {
+		t.Errorf("unexpected error: [%s]", err.Error())
+	}
+
+	for key, actualRow := range actual {
+		var expectedRow = expectedDeep[key]
+
+		for field, actualValue := range actualRow {
+			var expectedValue = expectedRow[field]
+			if expectedValue.(string) != actualValue.(string) {
+				t.Errorf("error with table data [%s] expected field [%s] does not match - [%v]==[%v]", key, field, expectedValue, actualValue)
+			}
 		}
 
 	}

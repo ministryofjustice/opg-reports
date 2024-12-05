@@ -18,6 +18,8 @@ func FloatF(s string) (f string) {
 	return
 }
 
+// FloatSToIntS convert a string within a float to a int as a string
+// Used to compare stringifyied floats loosely to avoid minor rounding errors
 func FloatSToIntS(s string) (f string) {
 	val, _ := strconv.ParseFloat(s, 10)
 	f = fmt.Sprintf("%d", int(val))

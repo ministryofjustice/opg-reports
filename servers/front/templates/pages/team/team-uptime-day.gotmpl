@@ -10,7 +10,7 @@
     <section class='outer team-uptime-{{ $uptime.Operation }}'>
         <h2 class="govuk-heading-m">Uptime</h2>
         <div class="compare dataset">
-            {{ template "uptime-table" $uptime }}
+            {{ template "uptime-table-deep" $uptime }}
         </div>
     </section>
     {{ end }}

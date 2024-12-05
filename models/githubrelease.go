@@ -43,19 +43,28 @@ type GitHubRelease struct {
 	UnitName string `json:"unit_name,omitempty" db:"unit_name" faker:"-"`
 }
 
-// TDate
+// DateWideDateValue
 // Interfaces:
 //   - transformers.DateTable
-func (self *GitHubRelease) TDate() string {
+func (self *GitHubRelease) DateWideDateValue() string {
 	return self.Date
 }
 
-// TValue
+// DateWideValue
 // Always 1 so it increments per period
 // Interfaces:
 //   - transformers.DateTable
-func (self *GitHubRelease) TValue() string {
+func (self *GitHubRelease) DateWideValue() string {
 	return strconv.Itoa(self.Count)
+}
+
+// DateDeepDateColumn returns the column that contains dates that should be added to
+// the column values from the api
+//
+// Interfaces:
+//   - transformers.DateDeepTable
+func (self *GitHubRelease) DateDeepDateColumn() string {
+	return "date"
 }
 
 // UniqueValue returns the value representing the value of

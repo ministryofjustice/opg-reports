@@ -9,7 +9,7 @@ import (
 
 // TransformToDateWideTable takes the result from the api and converts
 // the data into table rows that can be used for the front
-// end with dates as column headers, so merging items into less rows
+// end adding dates as column headers and therefor merging items into same row
 func TransformToDateWideTable(body interface{}) (result interface{}) {
 	var err error
 	var res map[string]map[string]interface{}
@@ -77,15 +77,30 @@ func TransformToDateWideTable(body interface{}) (result interface{}) {
 	}
 
 	if err != nil {
-		slog.Error("[transformers] api transform error", slog.String("err", err.Error()), slog.String("type", fmt.Sprintf("%T", body)))
+		slog.Error("[transformers] api transform error",
+			slog.String("err", err.Error()),
+			slog.String("type", fmt.Sprintf("%T", body)))
 	}
 
 	return
 }
 
-// func TransformToDateDeepTable(body interface{}) (result interface{}) {
-// 	var err error
-// 	var res map[string]map[string]interface{}
-// 	result = body
+func TransformToDateDeepTable(body interface{}) (result interface{}) {
+	var err error
+	var res map[string]map[string]interface{}
+	result = body
 
-// }
+	switch body.(type) {
+	case *AwsUptimeAveragesBody:
+		var bdy = body.(*AwsUptimeAveragesBody)
+		if res, err = transformers.ResultsToDeepRows(bdy.Result, bdy.ColumnValues, bdy.DateRange); err == nil {
+			bdy.TableRows = res
+			if len(bdy.Result) > 0 {
+				bdy.ColumnOrder = append(bdy.ColumnOrder, bdy.Result[0].DateDeepDateColumn())
+			}
+			result = bdy
+		}
+	}
+
+	return
+}

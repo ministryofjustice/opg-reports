@@ -32,18 +32,27 @@ type AwsUptime struct {
 	Count    int    `json:"count,omitempty" db:"count" faker:"-"`
 }
 
-// TDate
+// DateWideDateValue
 // interfaces:
 //   - transformers.DateTable
-func (self *AwsUptime) TDate() string {
+func (self *AwsUptime) DateWideDateValue() string {
 	return self.Date
 }
 
-// TValue
+// DateWideValue
 // interfaces:
 //   - transformers.DateTable
-func (self *AwsUptime) TValue() string {
+func (self *AwsUptime) DateWideValue() string {
 	return fmt.Sprintf("%g", self.Average)
+}
+
+// DateDeepDateColumn returns the column that contains dates that should be added to
+// the column values from the api
+//
+// Interfaces:
+//   - transformers.DateDeepTable
+func (self *AwsUptime) DateDeepDateColumn() string {
+	return "date"
 }
 
 // UniqueValue returns the value representing the value of

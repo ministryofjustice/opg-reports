@@ -34,18 +34,27 @@ type AwsCost struct {
 	Count                 int                   `json:"count,omitempty" db:"count" faker:"-"`                                     // Count returned from grouped db calls
 }
 
-// TDate
+// DateWideDateValue
 // Interfaces:
 //   - DateTable
-func (self *AwsCost) TDate() string {
+func (self *AwsCost) DateWideDateValue() string {
 	return self.Date
 }
 
-// TValue
+// DateWideValue
 // Interfaces:
 //   - transformers.DateTable
-func (self *AwsCost) TValue() string {
+func (self *AwsCost) DateWideValue() string {
 	return self.Cost
+}
+
+// DateDeepDateColumn returns the column that contains dates that should be added to
+// the column values from the api
+//
+// Interfaces:
+//   - transformers.DateDeepTable
+func (self *AwsCost) DateDeepDateColumn() string {
+	return "date"
 }
 
 // Interfaces:

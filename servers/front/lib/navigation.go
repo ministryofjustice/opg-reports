@@ -44,6 +44,8 @@ const (
 	UnitList                     endpoints.ApiEndpoint = "/{version}/unit/list"                                                                     // Return all units
 )
 
+// NavigationChoices is the set of all navigation structures
+// to share and should then use info.Fixtures to choose
 var NavigationChoices = map[string][]*navigation.Navigation{}
 
 func overviewItems() (overview *navigation.Navigation) {
@@ -259,7 +261,7 @@ func teamItems() (navs []*navigation.Navigation) {
 					Source:      endpoints.ApiEndpoint(uri) + unitFilter,
 					Namespace:   "TeamUptimeUnit",
 					Body:        &inout.AwsUptimeAveragesBody{},
-					Transformer: inout.TransformToDateWideTable,
+					Transformer: inout.TransformToDateDeepTable,
 				},
 			)
 			uptimes = append(uptimes, n)
@@ -328,12 +330,8 @@ func init() {
 	full = append(full, teamNavs...)
 
 	// NavigationChoices is the set of all navigation structures
-	// to share
-	// This is the then selected in the sfront by using
-	// bi.Navigation as the key for this map
-	// This allows the navigation to be changed at run time
+	// to share and should then use info.Fixtures to choose
 	NavigationChoices = map[string][]*navigation.Navigation{
-		// "simple": simple,
 		"simple": simple,
 		"full":   full,
 	}

@@ -5,15 +5,15 @@ import (
 	"log/slog"
 	"slices"
 
-	"github.com/ministryofjustice/opg-reports/pkg/convert"
+	"github.com/ministryofjustice/opg-reports/internal/structs"
 	"github.com/ministryofjustice/opg-reports/pkg/nums"
 )
 
-// DateTable interface is used for tables whose
+// DateWideTable interface is used for tables whose
 // date values are headers rather than column values
-type DateTable interface {
-	TDate() string
-	TValue() string
+type dateWideTable interface {
+	DateWideDateValue() string
+	DateWideValue() string
 }
 
 // recordToDateRow takes a DateTable struct and adds its data into an existing table row.
@@ -26,17 +26,17 @@ type DateTable interface {
 // and sets the value of that to be .Cost. If a value is already represent, it "adds" to it.
 //
 // For ease, it returns the key-value used so this can be tracked
-func recordToDateRow[T DateTable](item T, columns []string, existingData map[string]map[string]interface{}) (key string, err error) {
+func recordToDateRow[T dateWideTable](item T, columns []string, existingData map[string]map[string]interface{}) (key string, err error) {
 	var (
 		ok          bool
 		v           interface{}
-		date        string                 = item.TDate()
-		value       string                 = item.TValue()
+		date        string                 = item.DateWideDateValue()
+		value       string                 = item.DateWideValue()
 		asMap       map[string]interface{} = map[string]interface{}{}
 		existingRow map[string]interface{} = map[string]interface{}{}
 	)
 
-	if err = convert.Cast(item, asMap); err != nil {
+	if err = structs.Convert(item, asMap); err != nil {
 		return
 	}
 	// this is generated id this cost item would use in the possible list
@@ -128,7 +128,7 @@ func recordToDateRow[T DateTable](item T, columns []string, existingData map[str
 //			"2024-03":     "0.0000",
 //		},
 //	}
-func ResultsToDateRows[T DateTable](apiData []T, columnValues map[string][]interface{}, dateRange []string) (dataAsMap map[string]map[string]interface{}, err error) {
+func ResultsToDateRows[T dateWideTable](apiData []T, columnValues map[string][]interface{}, dateRange []string) (dataAsMap map[string]map[string]interface{}, err error) {
 	// columns is sorted column names only - this is to ensure 'key' order is a match
 	var columns []string = SortedColumnNames(columnValues)
 	// found tracks which 'key' has real data and inserted in to the data map
@@ -142,7 +142,7 @@ func ResultsToDateRows[T DateTable](apiData []T, columnValues map[string][]inter
 	for _, item := range apiData {
 		rowKey, e := recordToDateRow(item, columns, dataAsMap)
 		if e != nil {
-			slog.Error("[transformers.ResultsToRows] failed", slog.String("err", e.Error()))
+			slog.Error("[transformers] recordToDateRow failed", slog.String("err", e.Error()))
 			return
 		}
 		// insert to the list of done rows
