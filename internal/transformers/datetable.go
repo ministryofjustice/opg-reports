@@ -138,7 +138,6 @@ func ResultsToDateRows[T dateWideTable](apiData []T, columnValues map[string][]i
 
 	// generate a skel of table data
 	dataAsMap = DateTableSkeleton(columnValues, dateRange)
-
 	for _, item := range apiData {
 		rowKey, e := recordToDateRow(item, columns, dataAsMap)
 		if e != nil {
@@ -150,7 +149,6 @@ func ResultsToDateRows[T dateWideTable](apiData []T, columnValues map[string][]i
 			found = append(found, rowKey)
 		}
 	}
-
 	// remove any row that has not been marked as 'done' - these are empty combinations
 	for key := range dataAsMap {
 		if !slices.Contains(found, key) {

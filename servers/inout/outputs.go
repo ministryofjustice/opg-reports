@@ -8,8 +8,8 @@ import (
 // OperationBody is a base body that contains operation id string and
 // errors that all responses will contain
 type OperationBody struct {
-	Operation string  `json:"operation,omitempty" doc:"contains the operation id"`
-	Errors    []error `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
+	Operation string  `json:"operation" doc:"contains the operation id"`
+	Errors    []error `json:"errors" doc:"list of any errors that occured in the request"`
 }
 
 func NewOperationBody() *OperationBody {
@@ -30,7 +30,7 @@ func NewColumnBody() *ColumnBody {
 // DateRangeBody provides list of dates that an api call convers - used in conjuntion
 // with start / end date queries
 type DateRangeBody struct {
-	DateRange []string `json:"date_range,omitempty" db:"-" doc:"all dates within the range requested"`
+	DateRange []string `json:"date_range" db:"-" doc:"all dates within the range requested"`
 }
 
 func NewDateRangeBody() *DateRangeBody {
@@ -38,7 +38,7 @@ func NewDateRangeBody() *DateRangeBody {
 }
 
 type RequestBody[T any] struct {
-	Request T `json:"request,omitempty" doc:"the original request"`
+	Request T `json:"request" doc:"the original request"`
 }
 
 func NewDateRequestBody[T any](t T) *RequestBody[T] {
@@ -46,7 +46,7 @@ func NewDateRequestBody[T any](t T) *RequestBody[T] {
 }
 
 type ResultBody[T dbs.Row] struct {
-	Result []T `json:"result,omitempty" doc:"list of all units returned by the api."`
+	Result []T `json:"result" doc:"list of all units returned by the api."`
 }
 
 func NewResultBody[T dbs.Row]() *ResultBody[T] {

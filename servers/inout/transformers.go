@@ -11,8 +11,10 @@ import (
 // the data into table rows that can be used for the front
 // end adding dates as column headers and therefor merging items into same row
 func TransformToDateWideTable(body interface{}) (result interface{}) {
-	var err error
-	var res map[string]map[string]interface{}
+	var (
+		err error
+		res map[string]map[string]interface{}
+	)
 	result = body
 
 	slog.Info("[transformers] TransformToDateWideTable",
