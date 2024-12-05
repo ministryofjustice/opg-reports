@@ -385,8 +385,8 @@ func TestApiHandlersAwsCostsSumHandler(t *testing.T) {
 	// now compare and make sure the actual matches the expected value
 	for _, res := range response.Body.Result {
 		var ym = res.Date
-		var expect = strutils.FloatF(expected[ym])
-		var actual = strutils.FloatF(res.Cost)
+		var expect = strutils.FloatSToIntS(expected[ym])
+		var actual = strutils.FloatSToIntS(res.Cost)
 		if expect != actual {
 			t.Errorf("costs for [%s] did not match - expected [%s] actual [%v]", ym, expect, actual)
 		}

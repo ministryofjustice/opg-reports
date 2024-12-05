@@ -18,6 +18,12 @@ func FloatF(s string) (f string) {
 	return
 }
 
+func FloatSToIntS(s string) (f string) {
+	val, _ := strconv.ParseFloat(s, 10)
+	f = fmt.Sprintf("%d", int(val))
+	return
+}
+
 // Adds converts strings to floats, add them together and returns
 // the value
 // Uses Add, and swallows the error
