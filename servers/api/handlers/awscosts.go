@@ -52,7 +52,7 @@ func ApiAwsCostsTotalHandler(ctx context.Context, input *inout.DateRangeUnitInpu
 		replace string                   = "{WHERE}"
 		sqlStmt string                   = AwsCostsTotalSQL
 		param   statements.Named         = input
-		body    *inout.AwsCostsTotalBody = &inout.AwsCostsTotalBody{}
+		body    *inout.AwsCostsTotalBody = inout.NewAwsCostsTotalBody()
 	)
 	body.Request = input
 	body.Operation = AwsCostsTotalOperationID
@@ -128,7 +128,7 @@ func ApiAwsCostsListHandler(ctx context.Context, input *inout.DateRangeUnitInput
 		replace string                  = "{WHERE}"
 		sqlStmt string                  = awsCostsListSQL
 		param   statements.Named        = input
-		body    *inout.AwsCostsListBody = &inout.AwsCostsListBody{}
+		body    *inout.AwsCostsListBody = inout.NewAwsCostsListBody()
 	)
 	body.Request = input
 	body.Operation = AwsCostsListOperationID
@@ -203,7 +203,7 @@ func ApiAwsCostsTaxesHandler(ctx context.Context, input *inout.RequiredGroupedDa
 		replace string                   = "{WHERE}"
 		sqlStmt string                   = AwsCostsTaxesSQL
 		param   statements.Named         = input
-		body    *inout.AwsCostsTaxesBody = &inout.AwsCostsTaxesBody{}
+		body    *inout.AwsCostsTaxesBody = inout.NewAwsCostsTaxesBody()
 	)
 	body.Request = input
 	body.Operation = AwsCostsTaxesOperationID
@@ -274,7 +274,7 @@ func ApiAwsCostsSumHandler(ctx context.Context, input *inout.RequiredGroupedDate
 		replace string                 = "{WHERE}"
 		sqlStmt string                 = awsCostsSumSQL
 		param   statements.Named       = input
-		body    *inout.AwsCostsSumBody = &inout.AwsCostsSumBody{}
+		body    *inout.AwsCostsSumBody = inout.NewAwsCostsSumBody()
 	)
 	body.Request = input
 	body.Operation = AwsCostsSumOperationID
@@ -342,7 +342,7 @@ func ApiAwsCostsSumPerUnitHandler(ctx context.Context, input *inout.RequiredGrou
 		dbPath  string                        = ctx.Value(dbPathKey).(string)
 		sqlStmt string                        = awsCostsSumPerUnitSQL
 		param   statements.Named              = input
-		body    *inout.AwsCostsSumPerUnitBody = &inout.AwsCostsSumPerUnitBody{}
+		body    *inout.AwsCostsSumPerUnitBody = inout.NewAwsCostsSumPerUnitBody()
 	)
 	body.Request = input
 	body.Operation = AwsCostsSumPerUnitOperationID
@@ -402,7 +402,7 @@ func ApiAwsCostsSumPerUnitEnvHandler(ctx context.Context, input *inout.RequiredG
 		dbPath  string                           = ctx.Value(dbPathKey).(string)
 		sqlStmt string                           = awsCostsSumPerUnitEnvSQL
 		param   statements.Named                 = input
-		body    *inout.AwsCostsSumPerUnitEnvBody = &inout.AwsCostsSumPerUnitEnvBody{}
+		body    *inout.AwsCostsSumPerUnitEnvBody = inout.NewAwsCostsSumPerUnitEnvBody()
 	)
 	body.Request = input
 	body.Operation = AwsCostsSumPerUnitEnvOperationID
@@ -474,7 +474,7 @@ func ApiAwsCostsSumFullDetailsHandler(ctx context.Context, input *inout.Required
 		param   statements.Named                  = input
 		where   string                            = ""
 		replace string                            = "{WHERE}"
-		body    *inout.AwsCostsSumFullDetailsBody = &inout.AwsCostsSumFullDetailsBody{}
+		body    *inout.AwsCostsSumFullDetailsBody = inout.NewAwsCostsSumFullDetailsBody()
 	)
 	body.Request = input
 	body.Operation = AwsCostsSumFullDetailsOperationID

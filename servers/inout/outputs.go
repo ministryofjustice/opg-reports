@@ -12,28 +12,11 @@ type OperationBody struct {
 	Errors    []error `json:"errors,omitempty" doc:"list of any errors that occured in the request"`
 }
 
-// ResultBody contains the results as a generic list
-type ResultBody[T dbs.Row] struct {
-	Result []T `json:"result,omitempty" doc:"list of data returned by the api."`
-}
-
-func (self *ResultBody[T]) GetResults() []T {
-	return self.Result
-}
-
-type RequestBody[T any] struct {
-	Request T `json:"request,omitempty" doc:"the original request"`
-}
-
 // ColumnBody is for api data that is likely shown as a table and provides
 // column details to allow maniluplation into tabluar structure
 type ColumnBody struct {
 	ColumnOrder  []string                 `json:"column_order" db:"-" doc:"List of columns set in the order they should be rendered for each row."`
 	ColumnValues map[string][]interface{} `json:"column_values" db:"-" doc:"Contains all of the ordered columns possible values, to help display rendering."`
-}
-
-func (self *ColumnBody) GetColumnValues() map[string][]interface{} {
-	return self.ColumnValues
 }
 
 // DateRangeBody provides list of dates that an api call convers - used in conjuntion
@@ -42,8 +25,12 @@ type DateRangeBody struct {
 	DateRange []string `json:"date_range,omitempty" db:"-" doc:"all dates within the range requested"`
 }
 
-func (self *DateRangeBody) GetDateRange() []string {
-	return self.DateRange
+type RequestBody[T any] struct {
+	Request T `json:"request,omitempty" doc:"the original request"`
+}
+
+type ResultBody[T dbs.Row] struct {
+	Result []T `json:"result,omitempty" doc:"list of all units returned by the api."`
 }
 
 // DateWideTableBody is for api data that should be converted into table rows
@@ -58,17 +45,17 @@ type DateWideTableBody struct {
 //
 // Returned from handlers.ApiAwsAccountsListHandler
 type AwsAccountsListBody struct {
-	OperationBody
-	ResultBody[*models.AwsAccount]
-	RequestBody[*VersionUnitInput]
+	*OperationBody
+	*RequestBody[*VersionUnitInput]
+	*ResultBody[*models.AwsAccount]
 }
 
-// AwsAccountsListResponse is the main object returned from a huma handler and
-// contains the body
-//
-// Returned from handlers.ApiAwsAccountsListHandler
-type AwsAccountsListResponse struct {
-	Body *AwsAccountsListBody
+func NewAwsAccountsListBody() *AwsAccountsListBody {
+	return &AwsAccountsListBody{
+		OperationBody: &OperationBody{},
+		RequestBody:   &RequestBody[*VersionUnitInput]{},
+		ResultBody:    &ResultBody[*models.AwsAccount]{},
+	}
 }
 
 // AwsCostsTotalBody is api an response body. Intended to be used for
@@ -76,17 +63,17 @@ type AwsAccountsListResponse struct {
 //
 // Returned from handlers.ApiAwsCostsTotalHandler
 type AwsCostsTotalBody struct {
-	OperationBody
-	ResultBody[*models.AwsCost]
-	RequestBody[*DateRangeUnitInput]
+	*OperationBody
+	*RequestBody[*DateRangeUnitInput]
+	*ResultBody[*models.AwsCost]
 }
 
-// AwsCostsTotalResponse is the main object returned from a huma handler and
-// contains the body with more data in.
-//
-// Returned from handlers.ApiAwsCostsTotalHandler
-type AwsCostsTotalResponse struct {
-	Body *AwsCostsTotalBody
+func NewAwsCostsTotalBody() *AwsCostsTotalBody {
+	return &AwsCostsTotalBody{
+		OperationBody: &OperationBody{},
+		RequestBody:   &RequestBody[*DateRangeUnitInput]{},
+		ResultBody:    &ResultBody[*models.AwsCost]{},
+	}
 }
 
 // AwsCostsListBody is api an response body. Intended to be used for
@@ -94,17 +81,17 @@ type AwsCostsTotalResponse struct {
 //
 // Returned from handlers.ApiAwsCostsListHandler
 type AwsCostsListBody struct {
-	OperationBody
-	ResultBody[*models.AwsCost]
-	RequestBody[*DateRangeUnitInput]
+	*OperationBody
+	*RequestBody[*DateRangeUnitInput]
+	*ResultBody[*models.AwsCost]
 }
 
-// AwsCostsListResponse is the main object returned from a huma handler and
-// contains the body with more data in.
-//
-// Returned from handlers.ApiAwsCostsListHandler
-type AwsCostsListResponse struct {
-	Body *AwsCostsListBody
+func NewAwsCostsListBody() *AwsCostsListBody {
+	return &AwsCostsListBody{
+		OperationBody: &OperationBody{},
+		RequestBody:   &RequestBody[*DateRangeUnitInput]{},
+		ResultBody:    &ResultBody[*models.AwsCost]{},
+	}
 }
 
 // AwsCostsTaxesBody is api an response body. Intended to be used for
@@ -114,20 +101,23 @@ type AwsCostsListResponse struct {
 // Returned from handlers.ApiAwsCostsTaxesHandler
 // Transform: TransformToDateWideTable
 type AwsCostsTaxesBody struct {
-	OperationBody
-	ColumnBody
-	DateWideTableBody
-	DateRangeBody
-	ResultBody[*models.AwsCost]
-	RequestBody[*RequiredGroupedDateRangeUnitInput]
+	*OperationBody
+	*ColumnBody
+	*DateWideTableBody
+	*DateRangeBody
+	*RequestBody[*RequiredGroupedDateRangeUnitInput]
+	*ResultBody[*models.AwsCost]
 }
 
-// AwsCostsTaxesResponse is the main object returned from a huma handler and
-// contains the body with more data in.
-//
-// Returned from handlers.ApiAwsCostsTaxesHandler
-type AwsCostsTaxesResponse struct {
-	Body *AwsCostsTaxesBody
+func NewAwsCostsTaxesBody() *AwsCostsTaxesBody {
+	return &AwsCostsTaxesBody{
+		OperationBody:     &OperationBody{},
+		ColumnBody:        &ColumnBody{},
+		DateWideTableBody: &DateWideTableBody{},
+		DateRangeBody:     &DateRangeBody{},
+		RequestBody:       &RequestBody[*RequiredGroupedDateRangeUnitInput]{},
+		ResultBody:        &ResultBody[*models.AwsCost]{},
+	}
 }
 
 // AwsCostsSumBody is api an response body. Intended to be used for
@@ -137,20 +127,23 @@ type AwsCostsTaxesResponse struct {
 // Returned from handlers.ApiAwsCostsSumHandler
 // Transform: TransformToDateWideTable
 type AwsCostsSumBody struct {
-	OperationBody
-	ColumnBody
-	DateWideTableBody
-	DateRangeBody
-	ResultBody[*models.AwsCost]
-	RequestBody[*RequiredGroupedDateRangeUnitInput]
+	*OperationBody
+	*ColumnBody
+	*DateWideTableBody
+	*DateRangeBody
+	*RequestBody[*RequiredGroupedDateRangeUnitInput]
+	*ResultBody[*models.AwsCost]
 }
 
-// AwsCostsSumResponse is the main object returned from a huma handler and
-// contains the body with more data in.
-//
-// Returned from handlers.ApiAwsCostsSumHandler
-type AwsCostsSumResponse struct {
-	Body *AwsCostsSumBody
+func NewAwsCostsSumBody() *AwsCostsSumBody {
+	return &AwsCostsSumBody{
+		OperationBody:     &OperationBody{},
+		ColumnBody:        &ColumnBody{},
+		DateWideTableBody: &DateWideTableBody{},
+		DateRangeBody:     &DateRangeBody{},
+		RequestBody:       &RequestBody[*RequiredGroupedDateRangeUnitInput]{},
+		ResultBody:        &ResultBody[*models.AwsCost]{},
+	}
 }
 
 // AwsCostsSumPerUnitBody is api an response body. Intended to be used for
@@ -160,20 +153,23 @@ type AwsCostsSumResponse struct {
 // Returned from handlers.ApiAwsCostsSumPerUnitHandler
 // Transform: TransformToDateWideTable
 type AwsCostsSumPerUnitBody struct {
-	OperationBody
-	ColumnBody
-	DateWideTableBody
-	DateRangeBody
-	ResultBody[*models.AwsCost]
-	RequestBody[*RequiredGroupedDateRangeInput]
+	*OperationBody
+	*ColumnBody
+	*DateWideTableBody
+	*DateRangeBody
+	*RequestBody[*RequiredGroupedDateRangeInput]
+	*ResultBody[*models.AwsCost]
 }
 
-// AwsCostsSumPerUnitResponse is the main object returned from a huma handler and
-// contains the body with more data in.
-//
-// Returned from handlers.ApiAwsCostsSumPerUnitHandler
-type AwsCostsSumPerUnitResponse struct {
-	Body *AwsCostsSumPerUnitBody
+func NewAwsCostsSumPerUnitBody() *AwsCostsSumPerUnitBody {
+	return &AwsCostsSumPerUnitBody{
+		OperationBody:     &OperationBody{},
+		ColumnBody:        &ColumnBody{},
+		DateWideTableBody: &DateWideTableBody{},
+		DateRangeBody:     &DateRangeBody{},
+		RequestBody:       &RequestBody[*RequiredGroupedDateRangeInput]{},
+		ResultBody:        &ResultBody[*models.AwsCost]{},
+	}
 }
 
 // AwsCostsSumPerUnitEnvBody is api an response body. Intended to be used for
@@ -183,20 +179,23 @@ type AwsCostsSumPerUnitResponse struct {
 // Returned from handlers.ApiAwsCostsSumPerUnitEnvHandler
 // Transform: TransformToDateWideTable
 type AwsCostsSumPerUnitEnvBody struct {
-	OperationBody
-	ColumnBody
-	DateWideTableBody
-	DateRangeBody
-	ResultBody[*models.AwsCost]
-	RequestBody[*RequiredGroupedDateRangeInput]
+	*OperationBody
+	*ColumnBody
+	*DateWideTableBody
+	*DateRangeBody
+	*RequestBody[*RequiredGroupedDateRangeInput]
+	*ResultBody[*models.AwsCost]
 }
 
-// AwsCostsSumPerUnitEnvResponse is the main object returned from a huma handler and
-// contains the body with more data in.
-//
-// Returned from handlers.ApiAwsCostsSumPerUnitEnvHandler
-type AwsCostsSumPerUnitEnvResponse struct {
-	Body *AwsCostsSumPerUnitEnvBody
+func NewAwsCostsSumPerUnitEnvBody() *AwsCostsSumPerUnitEnvBody {
+	return &AwsCostsSumPerUnitEnvBody{
+		OperationBody:     &OperationBody{},
+		ColumnBody:        &ColumnBody{},
+		DateWideTableBody: &DateWideTableBody{},
+		DateRangeBody:     &DateRangeBody{},
+		RequestBody:       &RequestBody[*RequiredGroupedDateRangeInput]{},
+		ResultBody:        &ResultBody[*models.AwsCost]{},
+	}
 }
 
 // AwsCostsSumFullDetailsBody is api an response body. Intended to be used for
@@ -207,20 +206,23 @@ type AwsCostsSumPerUnitEnvResponse struct {
 // Returned from handlers.ApiAwsCostsSumFullDetailsHandler
 // Transform: TransformToDateWideTable
 type AwsCostsSumFullDetailsBody struct {
-	OperationBody
-	ColumnBody
-	DateWideTableBody
-	DateRangeBody
-	ResultBody[*models.AwsCost]
-	RequestBody[*RequiredGroupedDateRangeUnitInput]
+	*OperationBody
+	*ColumnBody
+	*DateWideTableBody
+	*DateRangeBody
+	*RequestBody[*RequiredGroupedDateRangeUnitInput]
+	*ResultBody[*models.AwsCost]
 }
 
-// AwsCostsSumFullDetailsResponse is the main object returned from a huma handler and
-// contains the body with more data in.
-//
-// Returned from handlers.ApiAwsCostsSumFullDetailsHandler
-type AwsCostsSumFullDetailsResponse struct {
-	Body *AwsCostsSumFullDetailsBody
+func NewAwsCostsSumFullDetailsBody() *AwsCostsSumFullDetailsBody {
+	return &AwsCostsSumFullDetailsBody{
+		OperationBody:     &OperationBody{},
+		ColumnBody:        &ColumnBody{},
+		DateWideTableBody: &DateWideTableBody{},
+		DateRangeBody:     &DateRangeBody{},
+		RequestBody:       &RequestBody[*RequiredGroupedDateRangeUnitInput]{},
+		ResultBody:        &ResultBody[*models.AwsCost]{},
+	}
 }
 
 // AwsUptimeListBody is api an response body. Intended to be used for
@@ -229,17 +231,17 @@ type AwsCostsSumFullDetailsResponse struct {
 //
 // Returned from handlers.ApiAwsUptimeListHandler
 type AwsUptimeListBody struct {
-	OperationBody
-	ResultBody[*models.AwsUptime]
-	RequestBody[*DateRangeUnitInput]
+	*OperationBody
+	*RequestBody[*DateRangeUnitInput]
+	*ResultBody[*models.AwsUptime]
 }
 
-// AwsUptimeListResponse is the main object returned from a huma handler and
-// contains the body with more data in.
-//
-// Returned from handlers.ApiAwsUptimeListHandler
-type AwsUptimeListResponse struct {
-	Body *AwsUptimeListBody
+func NewAwsUptimeListBody() *AwsUptimeListBody {
+	return &AwsUptimeListBody{
+		OperationBody: &OperationBody{},
+		RequestBody:   &RequestBody[*DateRangeUnitInput]{},
+		ResultBody:    &ResultBody[*models.AwsUptime]{},
+	}
 }
 
 // AwsUptimeAveragesBody is api an response body. Used to return a
@@ -248,20 +250,23 @@ type AwsUptimeListResponse struct {
 //
 // Returned from handlers.ApiAwsUptimeAveragesHandler
 type AwsUptimeAveragesBody struct {
-	OperationBody
-	ColumnBody
-	DateWideTableBody
-	DateRangeBody
-	ResultBody[*models.AwsUptime]
-	RequestBody[*RequiredGroupedDateRangeUnitInput]
+	*OperationBody
+	*ColumnBody
+	*DateWideTableBody
+	*DateRangeBody
+	*RequestBody[*RequiredGroupedDateRangeUnitInput]
+	*ResultBody[*models.AwsUptime]
 }
 
-// AwsUptimeAveragesResponse is the main object returned from a huma handler and
-// contains the body with more data in.
-//
-// Returned from handlers.ApiAwsUptimeAveragesHandler
-type AwsUptimeAveragesResponse struct {
-	Body *AwsUptimeAveragesBody
+func NewAwsUptimeAveragesBody() *AwsUptimeAveragesBody {
+	return &AwsUptimeAveragesBody{
+		OperationBody:     &OperationBody{},
+		ColumnBody:        &ColumnBody{},
+		DateWideTableBody: &DateWideTableBody{},
+		DateRangeBody:     &DateRangeBody{},
+		RequestBody:       &RequestBody[*RequiredGroupedDateRangeUnitInput]{},
+		ResultBody:        &ResultBody[*models.AwsUptime]{},
+	}
 }
 
 // AwsUptimeAveragesPerUnitBody is api an response body. Used to return a
@@ -270,20 +275,23 @@ type AwsUptimeAveragesResponse struct {
 //
 // Returned from handlers.ApiAwsUptimeAveragesPerUnitHandler
 type AwsUptimeAveragesPerUnitBody struct {
-	OperationBody
-	ColumnBody
-	DateWideTableBody
-	DateRangeBody
-	ResultBody[*models.AwsUptime]
-	RequestBody[*RequiredGroupedDateRangeInput]
+	*OperationBody
+	*ColumnBody
+	*DateWideTableBody
+	*DateRangeBody
+	*RequestBody[*RequiredGroupedDateRangeInput]
+	*ResultBody[*models.AwsUptime]
 }
 
-// AwsUptimeAveragesPerUnitResponse is the main object returned from a huma handler and
-// contains the body with more data in.
-//
-// Returned from handlers.ApiAwsUptimeAveragesPerUnitHandler
-type AwsUptimeAveragesPerUnitResponse struct {
-	Body *AwsUptimeAveragesPerUnitBody
+func NewAwsUptimeAveragesPerUnitBody() *AwsUptimeAveragesPerUnitBody {
+	return &AwsUptimeAveragesPerUnitBody{
+		OperationBody:     &OperationBody{},
+		ColumnBody:        &ColumnBody{},
+		DateWideTableBody: &DateWideTableBody{},
+		DateRangeBody:     &DateRangeBody{},
+		RequestBody:       &RequestBody[*RequiredGroupedDateRangeInput]{},
+		ResultBody:        &ResultBody[*models.AwsUptime]{},
+	}
 }
 
 // GitHubReleasesListBody is api an response body. Used to return a
@@ -292,17 +300,17 @@ type AwsUptimeAveragesPerUnitResponse struct {
 //
 // Returned from handlers.ApiGitHubReleasesListHandler
 type GitHubReleasesListBody struct {
-	OperationBody
-	ResultBody[*models.GitHubRelease]
-	RequestBody[*DateRangeUnitInput]
+	*OperationBody
+	*RequestBody[*DateRangeUnitInput]
+	*ResultBody[*models.GitHubRelease]
 }
 
-// GitHubReleasesListResponse is the main object returned from a huma handler and
-// contains the body with more data in.
-//
-// Returned from handlers.ApiGitHubReleasesListHandler
-type GitHubReleasesListResponse struct {
-	Body *GitHubReleasesListBody
+func NewGitHubReleasesListBody() *GitHubReleasesListBody {
+	return &GitHubReleasesListBody{
+		OperationBody: &OperationBody{},
+		RequestBody:   &RequestBody[*DateRangeUnitInput]{},
+		ResultBody:    &ResultBody[*models.GitHubRelease]{},
+	}
 }
 
 // GitHubReleasesCountBody is api an response body. Used to return a
@@ -311,20 +319,23 @@ type GitHubReleasesListResponse struct {
 //
 // Returned from handlers.ApiGitHubReleasesCountHandler
 type GitHubReleasesCountBody struct {
-	OperationBody
-	ColumnBody
-	DateWideTableBody
-	DateRangeBody
-	ResultBody[*models.GitHubRelease]
-	Request *RequiredGroupedDateRangeUnitInput `json:"request,omitempty" doc:"the original request"`
+	*OperationBody
+	*ColumnBody
+	*DateWideTableBody
+	*DateRangeBody
+	*RequestBody[*RequiredGroupedDateRangeUnitInput]
+	*ResultBody[*models.GitHubRelease]
 }
 
-// GitHubReleasesCountResponse is the main object returned from a huma handler and
-// contains the body with more data in.
-//
-// Returned from handlers.ApiGitHubReleasesCountHandler
-type GitHubReleasesCountResponse struct {
-	Body *GitHubReleasesCountBody
+func NewGitHubReleasesCountBody() *GitHubReleasesCountBody {
+	return &GitHubReleasesCountBody{
+		OperationBody:     &OperationBody{},
+		ColumnBody:        &ColumnBody{},
+		DateWideTableBody: &DateWideTableBody{},
+		DateRangeBody:     &DateRangeBody{},
+		RequestBody:       &RequestBody[*RequiredGroupedDateRangeUnitInput]{},
+		ResultBody:        &ResultBody[*models.GitHubRelease]{},
+	}
 }
 
 // GitHubReleasesCountPerUnitBody is api an response body. Used to return a
@@ -332,20 +343,23 @@ type GitHubReleasesCountResponse struct {
 //
 // Returned from handlers.ApiGitHubReleasesCountPerUnitHandler
 type GitHubReleasesCountPerUnitBody struct {
-	OperationBody
-	ColumnBody
-	DateWideTableBody
-	DateRangeBody
-	ResultBody[*models.GitHubRelease]
-	RequestBody[*RequiredGroupedDateRangeInput]
+	*OperationBody
+	*ColumnBody
+	*DateWideTableBody
+	*DateRangeBody
+	*RequestBody[*RequiredGroupedDateRangeInput]
+	*ResultBody[*models.GitHubRelease]
 }
 
-// GitHubReleasesCountPerUnitResponse is the main object returned from a huma handler and
-// contains the body with more data in.
-//
-// Returned from handlers.ApiGitHubReleasesCountPerUnitHandler
-type GitHubReleasesCountPerUnitResponse struct {
-	Body *GitHubReleasesCountPerUnitBody
+func NewGitHubReleasesCountPerUnitBody() *GitHubReleasesCountPerUnitBody {
+	return &GitHubReleasesCountPerUnitBody{
+		OperationBody:     &OperationBody{},
+		ColumnBody:        &ColumnBody{},
+		DateWideTableBody: &DateWideTableBody{},
+		DateRangeBody:     &DateRangeBody{},
+		RequestBody:       &RequestBody[*RequiredGroupedDateRangeInput]{},
+		ResultBody:        &ResultBody[*models.GitHubRelease]{},
+	}
 }
 
 // GitHubRepositoriesListBody is api an response body. Used to return a
@@ -353,17 +367,17 @@ type GitHubReleasesCountPerUnitResponse struct {
 //
 // Returned from handlers.ApiGitHubRepositoriesListHandler
 type GitHubRepositoriesListBody struct {
-	OperationBody
-	ResultBody[*models.GitHubRepository]
-	RequestBody[*VersionUnitInput]
+	*OperationBody
+	*RequestBody[*VersionUnitInput]
+	*ResultBody[*models.GitHubRepository]
 }
 
-// GitHubRepositoriesListResponse is the main object returned from a huma handler and
-// contains the body with more data in.
-//
-// Returned from handlers.ApiGitHubRepositoriesListHandler
-type GitHubRepositoriesListResponse struct {
-	Body *GitHubRepositoriesListBody
+func NewGitHubRepositoriesListBody() *GitHubRepositoriesListBody {
+	return &GitHubRepositoriesListBody{
+		OperationBody: &OperationBody{},
+		RequestBody:   &RequestBody[*VersionUnitInput]{},
+		ResultBody:    &ResultBody[*models.GitHubRepository]{},
+	}
 }
 
 // GitHubRepositoryStandardsListBody contains the resposne body to send back
@@ -371,9 +385,9 @@ type GitHubRepositoriesListResponse struct {
 //
 // Returned from handlers.ApiGitHubRepositoryStandardsListHandler
 type GitHubRepositoryStandardsListBody struct {
-	OperationBody
-	ResultBody[*models.GitHubRepositoryStandard]
-	RequestBody[*VersionUnitInput]
+	*OperationBody
+	*RequestBody[*VersionUnitInput]
+	*ResultBody[*models.GitHubRepositoryStandard]
 	BaselineCounters *GitHubRepositoryStandardsCount `json:"baseline_counters" doc:"Compliance counters"`
 	ExtendedCounters *GitHubRepositoryStandardsCount `json:"extended_counters" doc:"Compliance counters"`
 }
@@ -385,11 +399,14 @@ type GitHubRepositoryStandardsCount struct {
 	Percentage float64 `json:"percentage" db:"-" faker:"-" doc:"Percentage of record that comply"`
 }
 
-// GitHubRepositoryStandardsListResponse is the main response struct
-//
-// Returned from handlers.ApiGitHubRepositoryStandardsListHandler
-type GitHubRepositoryStandardsListResponse struct {
-	Body *GitHubRepositoryStandardsListBody
+func NewGitHubRepositoryStandardsListBody() *GitHubRepositoryStandardsListBody {
+	return &GitHubRepositoryStandardsListBody{
+		OperationBody:    &OperationBody{},
+		RequestBody:      &RequestBody[*VersionUnitInput]{},
+		ResultBody:       &ResultBody[*models.GitHubRepositoryStandard]{},
+		BaselineCounters: &GitHubRepositoryStandardsCount{},
+		ExtendedCounters: &GitHubRepositoryStandardsCount{},
+	}
 }
 
 // GitHubTeamsListBody is api an response body. Used to return a
@@ -397,16 +414,17 @@ type GitHubRepositoryStandardsListResponse struct {
 //
 // Returned from handlers.ApiGitHubTeamsListHandler
 type GitHubTeamsListBody struct {
-	OperationBody
-	ResultBody[*models.GitHubTeam]
-	RequestBody[*VersionUnitInput]
+	*OperationBody
+	*RequestBody[*VersionUnitInput]
+	*ResultBody[*models.GitHubTeam]
 }
 
-// GitHubTeamsResponse is a response struct from huma api handler
-//
-// Returned from handlers.ApiGitHubTeamsListHandler
-type GitHubTeamsResponse struct {
-	Body *GitHubTeamsListBody
+func NewGitHubTeamsListBody() *GitHubTeamsListBody {
+	return &GitHubTeamsListBody{
+		OperationBody: &OperationBody{},
+		RequestBody:   &RequestBody[*VersionUnitInput]{},
+		ResultBody:    &ResultBody[*models.GitHubTeam]{},
+	}
 }
 
 // UnitsListBody is api an response body. Used to return a
@@ -414,9 +432,151 @@ type GitHubTeamsResponse struct {
 //
 // Returned from handlers.ApiUnitsListHandler
 type UnitsListBody struct {
-	OperationBody
-	ResultBody[*models.Unit]
-	RequestBody[*VersionInput]
+	*OperationBody
+	*RequestBody[*VersionInput]
+	*ResultBody[*models.Unit]
+}
+
+func NewUnitsListBody() *UnitsListBody {
+	return &UnitsListBody{
+		OperationBody: &OperationBody{},
+		RequestBody:   &RequestBody[*VersionInput]{},
+		ResultBody:    &ResultBody[*models.Unit]{},
+	}
+}
+
+// AwsAccountsListResponse is the main object returned from a huma handler and
+// contains the body
+//
+// Returned from handlers.ApiAwsAccountsListHandler
+type AwsAccountsListResponse struct {
+	Body *AwsAccountsListBody
+}
+
+// AwsCostsTotalResponse is the main object returned from a huma handler and
+// contains the body with more data in.
+//
+// Returned from handlers.ApiAwsCostsTotalHandler
+type AwsCostsTotalResponse struct {
+	Body *AwsCostsTotalBody
+}
+
+// AwsCostsListResponse is the main object returned from a huma handler and
+// contains the body with more data in.
+//
+// Returned from handlers.ApiAwsCostsListHandler
+type AwsCostsListResponse struct {
+	Body *AwsCostsListBody
+}
+
+// AwsCostsTaxesResponse is the main object returned from a huma handler and
+// contains the body with more data in.
+//
+// Returned from handlers.ApiAwsCostsTaxesHandler
+type AwsCostsTaxesResponse struct {
+	Body *AwsCostsTaxesBody
+}
+
+// AwsCostsSumResponse is the main object returned from a huma handler and
+// contains the body with more data in.
+//
+// Returned from handlers.ApiAwsCostsSumHandler
+type AwsCostsSumResponse struct {
+	Body *AwsCostsSumBody
+}
+
+// AwsCostsSumPerUnitResponse is the main object returned from a huma handler and
+// contains the body with more data in.
+//
+// Returned from handlers.ApiAwsCostsSumPerUnitHandler
+type AwsCostsSumPerUnitResponse struct {
+	Body *AwsCostsSumPerUnitBody
+}
+
+// AwsCostsSumPerUnitEnvResponse is the main object returned from a huma handler and
+// contains the body with more data in.
+//
+// Returned from handlers.ApiAwsCostsSumPerUnitEnvHandler
+type AwsCostsSumPerUnitEnvResponse struct {
+	Body *AwsCostsSumPerUnitEnvBody
+}
+
+// AwsCostsSumFullDetailsResponse is the main object returned from a huma handler and
+// contains the body with more data in.
+//
+// Returned from handlers.ApiAwsCostsSumFullDetailsHandler
+type AwsCostsSumFullDetailsResponse struct {
+	Body *AwsCostsSumFullDetailsBody
+}
+
+// AwsUptimeListResponse is the main object returned from a huma handler and
+// contains the body with more data in.
+//
+// Returned from handlers.ApiAwsUptimeListHandler
+type AwsUptimeListResponse struct {
+	Body *AwsUptimeListBody
+}
+
+// AwsUptimeAveragesResponse is the main object returned from a huma handler and
+// contains the body with more data in.
+//
+// Returned from handlers.ApiAwsUptimeAveragesHandler
+type AwsUptimeAveragesResponse struct {
+	Body *AwsUptimeAveragesBody
+}
+
+// AwsUptimeAveragesPerUnitResponse is the main object returned from a huma handler and
+// contains the body with more data in.
+//
+// Returned from handlers.ApiAwsUptimeAveragesPerUnitHandler
+type AwsUptimeAveragesPerUnitResponse struct {
+	Body *AwsUptimeAveragesPerUnitBody
+}
+
+// GitHubReleasesListResponse is the main object returned from a huma handler and
+// contains the body with more data in.
+//
+// Returned from handlers.ApiGitHubReleasesListHandler
+type GitHubReleasesListResponse struct {
+	Body *GitHubReleasesListBody
+}
+
+// GitHubReleasesCountResponse is the main object returned from a huma handler and
+// contains the body with more data in.
+//
+// Returned from handlers.ApiGitHubReleasesCountHandler
+type GitHubReleasesCountResponse struct {
+	Body *GitHubReleasesCountBody
+}
+
+// GitHubReleasesCountPerUnitResponse is the main object returned from a huma handler and
+// contains the body with more data in.
+//
+// Returned from handlers.ApiGitHubReleasesCountPerUnitHandler
+type GitHubReleasesCountPerUnitResponse struct {
+	Body *GitHubReleasesCountPerUnitBody
+}
+
+// GitHubRepositoriesListResponse is the main object returned from a huma handler and
+// contains the body with more data in.
+//
+// Returned from handlers.ApiGitHubRepositoriesListHandler
+type GitHubRepositoriesListResponse struct {
+	Body *GitHubRepositoriesListBody
+}
+
+// GitHubRepositoryStandardsListResponse is the main response struct
+//
+// Returned from handlers.ApiGitHubRepositoryStandardsListHandler
+type GitHubRepositoryStandardsListResponse struct {
+	Body *GitHubRepositoryStandardsListBody
+}
+
+// GitHubTeamsResponse is a response struct from huma api handler
+//
+// Returned from handlers.ApiGitHubTeamsListHandler
+type GitHubTeamsResponse struct {
+	Body *GitHubTeamsListBody
 }
 
 // UnitsListResponse is a response struct from huma api handler

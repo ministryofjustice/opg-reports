@@ -68,7 +68,7 @@ func ApiGitHubRepositoriesListHandler(ctx context.Context, input *inout.VersionU
 		where   string                            = ""
 		replace string                            = "{WHERE}"
 		param   statements.Named                  = input
-		body    *inout.GitHubRepositoriesListBody = &inout.GitHubRepositoriesListBody{}
+		body    *inout.GitHubRepositoriesListBody = inout.NewGitHubRepositoriesListBody()
 	)
 	body.Request = input
 	body.Operation = GitHubRepositoriesListOperationID

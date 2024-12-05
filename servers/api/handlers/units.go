@@ -58,7 +58,7 @@ func ApiUnitsListHandler(ctx context.Context, input *inout.VersionInput) (respon
 		adaptor dbs.Adaptor
 		results []*models.Unit       = []*models.Unit{}
 		dbPath  string               = ctx.Value(dbPathKey).(string)
-		body    *inout.UnitsListBody = &inout.UnitsListBody{}
+		body    *inout.UnitsListBody = inout.NewUnitsListBody()
 	)
 	body.Request = input
 	body.Operation = UnitListOperationID

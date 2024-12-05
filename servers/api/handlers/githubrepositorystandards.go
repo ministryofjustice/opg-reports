@@ -84,7 +84,7 @@ func ApiGitHubRepositoryStandardsListHandler(ctx context.Context, input *inout.V
 		where   string                                   = ""
 		replace string                                   = "{WHERE}"
 		param   statements.Named                         = input
-		body    *inout.GitHubRepositoryStandardsListBody = &inout.GitHubRepositoryStandardsListBody{}
+		body    *inout.GitHubRepositoryStandardsListBody = inout.NewGitHubRepositoryStandardsListBody()
 	)
 	body.Request = input
 	body.Operation = GitHubRepositoryStandardsListOperationID

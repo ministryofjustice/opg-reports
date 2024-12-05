@@ -79,7 +79,7 @@ func ApiGitHubReleasesListHandler(ctx context.Context, input *inout.DateRangeUni
 		replace string                        = "{WHERE}"
 		sqlStmt string                        = gitHubReleasesListSQL
 		param   statements.Named              = input
-		body    *inout.GitHubReleasesListBody = &inout.GitHubReleasesListBody{}
+		body    *inout.GitHubReleasesListBody = inout.NewGitHubReleasesListBody()
 	)
 	body.Request = input
 	body.Operation = GitHubReleasesListOperationID
@@ -151,7 +151,7 @@ func ApiGitHubReleasesCountHandler(ctx context.Context, input *inout.RequiredGro
 		replace string                         = "{WHERE}"
 		sqlStmt string                         = gitHubReleasesCountSQL
 		param   statements.Named               = input
-		body    *inout.GitHubReleasesCountBody = &inout.GitHubReleasesCountBody{}
+		body    *inout.GitHubReleasesCountBody = inout.NewGitHubReleasesCountBody()
 	)
 	body.Request = input
 	body.Operation = GitHubReleasesCountOperationID
@@ -229,7 +229,7 @@ func ApiGitHubReleasesCountPerUnitHandler(ctx context.Context, input *inout.Requ
 		dbPath  string                                = ctx.Value(dbPathKey).(string)
 		sqlStmt string                                = gitHubReleasesCountPerUnitSQL
 		param   statements.Named                      = input
-		body    *inout.GitHubReleasesCountPerUnitBody = &inout.GitHubReleasesCountPerUnitBody{}
+		body    *inout.GitHubReleasesCountPerUnitBody = inout.NewGitHubReleasesCountPerUnitBody()
 	)
 	body.Request = input
 	body.Operation = GitHubReleasesCountPerUnitOperationID

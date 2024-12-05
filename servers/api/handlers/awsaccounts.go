@@ -53,7 +53,7 @@ func ApiAwsAccountsListHandler(ctx context.Context, input *inout.VersionUnitInpu
 		where   string                     = ""
 		replace string                     = "{WHERE}"
 		param   statements.Named           = input
-		body    *inout.AwsAccountsListBody = &inout.AwsAccountsListBody{}
+		body    *inout.AwsAccountsListBody = inout.NewAwsAccountsListBody()
 	)
 	body.Request = input
 	body.Operation = AwsAccountsListOperationID

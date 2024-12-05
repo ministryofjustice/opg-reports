@@ -71,7 +71,7 @@ func ApiGitHubTeamsListHandler(ctx context.Context, input *inout.VersionUnitInpu
 		replace string                     = "{WHERE}"
 		sqlStmt string                     = gitHubTeamsSQL
 		param   statements.Named           = input
-		body    *inout.GitHubTeamsListBody = &inout.GitHubTeamsListBody{}
+		body    *inout.GitHubTeamsListBody = inout.NewGitHubTeamsListBody()
 	)
 	body.Request = input
 	body.Operation = GitHubTeamsOperationID

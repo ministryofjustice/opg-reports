@@ -66,7 +66,7 @@ func ApiAwsUptimeListHandler(ctx context.Context, input *inout.DateRangeUnitInpu
 		where   string                   = ""
 		replace string                   = "{WHERE}"
 		param   statements.Named         = input
-		body    *inout.AwsUptimeListBody = &inout.AwsUptimeListBody{}
+		body    *inout.AwsUptimeListBody = inout.NewAwsUptimeListBody()
 	)
 	body.Request = input
 	body.Operation = AwsUptimeListOperationID
@@ -75,7 +75,7 @@ func ApiAwsUptimeListHandler(ctx context.Context, input *inout.DateRangeUnitInpu
 	response = &inout.AwsUptimeListResponse{}
 	// check for unit
 	if input.Unit != "" {
-		where = "WHERE units.Name = :unit "
+		where = "AND units.Name = :unit "
 		sqlStmt = strings.ReplaceAll(sqlStmt, replace, where)
 	} else {
 		sqlStmt = strings.ReplaceAll(sqlStmt, replace, where)
@@ -130,7 +130,7 @@ func ApiAwsUptimeAveragesHandler(ctx context.Context, input *inout.RequiredGroup
 		where   string                       = ""
 		replace string                       = "{WHERE}"
 		param   statements.Named             = input
-		body    *inout.AwsUptimeAveragesBody = &inout.AwsUptimeAveragesBody{}
+		body    *inout.AwsUptimeAveragesBody = inout.NewAwsUptimeAveragesBody()
 	)
 	body.Request = input
 	body.Operation = AwsUptimeAveragesOperationID
@@ -194,7 +194,7 @@ func ApiAwsUptimeAveragesPerUnitHandler(ctx context.Context, input *inout.Requir
 		dbPath  string                              = ctx.Value(dbPathKey).(string)
 		sqlStmt string                              = AwsUptimeAveragesPerUnitSQL
 		param   statements.Named                    = input
-		body    *inout.AwsUptimeAveragesPerUnitBody = &inout.AwsUptimeAveragesPerUnitBody{}
+		body    *inout.AwsUptimeAveragesPerUnitBody = inout.NewAwsUptimeAveragesPerUnitBody()
 	)
 	body.Request = input
 	body.Operation = AwsUptimeAveragesPerUnitOperationID
