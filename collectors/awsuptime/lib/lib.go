@@ -13,7 +13,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/ministryofjustice/opg-reports/internal/dateformats"
-	"github.com/ministryofjustice/opg-reports/pkg/convert"
+	"github.com/ministryofjustice/opg-reports/internal/dateintervals"
+	"github.com/ministryofjustice/opg-reports/internal/dateutils"
 )
 
 const (
@@ -25,7 +26,7 @@ const (
 )
 
 var (
-	defDay = convert.DateResetDay(time.Now().UTC()).AddDate(0, 0, -1)
+	defDay = dateutils.Reset(time.Now().UTC(), dateintervals.Day).AddDate(0, 0, -1)
 )
 
 // Arguments represents all the named arguments for this collector

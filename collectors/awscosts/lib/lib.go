@@ -13,13 +13,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/costexplorer"
 	"github.com/ministryofjustice/opg-reports/internal/dateformats"
+	"github.com/ministryofjustice/opg-reports/internal/dateintervals"
+	"github.com/ministryofjustice/opg-reports/internal/dateutils"
 	"github.com/ministryofjustice/opg-reports/models"
-	"github.com/ministryofjustice/opg-reports/pkg/convert"
 )
 
 var (
 	defEnv   = "production"
-	defMonth = convert.DateResetMonth(time.Now().UTC()).AddDate(0, -1, 0)
+	defMonth = dateutils.Reset(time.Now().UTC(), dateintervals.Month).AddDate(0, -1, 0)
 )
 
 // Arguments represents all the named arguments for this collector

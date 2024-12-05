@@ -19,13 +19,13 @@ import (
 	"github.com/ministryofjustice/opg-reports/collectors/githubreleases/lib"
 	v1 "github.com/ministryofjustice/opg-reports/convertor/v1"
 	"github.com/ministryofjustice/opg-reports/info"
+	"github.com/ministryofjustice/opg-reports/internal/awscfg"
+	"github.com/ministryofjustice/opg-reports/internal/awssession"
 	"github.com/ministryofjustice/opg-reports/internal/dateformats"
 	"github.com/ministryofjustice/opg-reports/internal/dateintervals"
 	"github.com/ministryofjustice/opg-reports/internal/dateutils"
 	"github.com/ministryofjustice/opg-reports/internal/structs"
 	"github.com/ministryofjustice/opg-reports/models"
-	"github.com/ministryofjustice/opg-reports/pkg/awscfg"
-	"github.com/ministryofjustice/opg-reports/pkg/awssession"
 )
 
 var (

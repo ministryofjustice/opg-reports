@@ -50,8 +50,9 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/awsclient"
 	"github.com/ministryofjustice/opg-reports/internal/awssession"
 	"github.com/ministryofjustice/opg-reports/internal/dateformats"
+	"github.com/ministryofjustice/opg-reports/internal/dateintervals"
+	"github.com/ministryofjustice/opg-reports/internal/dateutils"
 	"github.com/ministryofjustice/opg-reports/models"
-	"github.com/ministryofjustice/opg-reports/pkg/convert"
 )
 
 var (
@@ -80,11 +81,11 @@ func Run(args *lib.Arguments) (err error) {
 		return
 	}
 
-	if startDate, err = convert.ToTime(args.Month); err != nil {
+	if startDate, err = dateutils.Time(args.Month); err != nil {
 		slog.Error("[awscosts] month conversion failed", slog.String("err", err.Error()))
 		return
 	}
-	startDate = convert.DateResetMonth(startDate)
+	startDate = dateutils.Reset(startDate, dateintervals.Month)
 	// overwrite month with the parsed version
 	args.Month = startDate.Format(dateformats.YMD)
 	endDate = startDate.AddDate(0, 1, 0)

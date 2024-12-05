@@ -6,7 +6,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/ministryofjustice/opg-reports/internal/dateformats"
 	"github.com/ministryofjustice/opg-reports/internal/dateintervals"
-	"github.com/ministryofjustice/opg-reports/pkg/convert"
+	"github.com/ministryofjustice/opg-reports/internal/dateutils"
 )
 
 // VersionInput is the version part of the uri path and has the following fields for the uri:
@@ -39,13 +39,13 @@ type DateRangeUnitInput struct {
 }
 
 func (self *DateRangeUnitInput) Start() (t time.Time) {
-	if val, err := convert.ToTime(self.StartDate); err == nil {
+	if val, err := dateutils.Time(self.StartDate); err == nil {
 		t = val
 	}
 	return
 }
 func (self *DateRangeUnitInput) End() (t time.Time) {
-	if val, err := convert.ToTime(self.EndDate); err == nil {
+	if val, err := dateutils.Time(self.EndDate); err == nil {
 		t = val
 	}
 	return
@@ -65,13 +65,13 @@ type OptionalDateRangeInput struct {
 }
 
 func (self *OptionalDateRangeInput) Start() (t time.Time) {
-	if val, err := convert.ToTime(self.StartDate); err == nil {
+	if val, err := dateutils.Time(self.StartDate); err == nil {
 		t = val
 	}
 	return
 }
 func (self *OptionalDateRangeInput) End() (t time.Time) {
-	if val, err := convert.ToTime(self.EndDate); err == nil {
+	if val, err := dateutils.Time(self.EndDate); err == nil {
 		t = val
 	}
 	return
@@ -94,14 +94,14 @@ type RequiredGroupedDateRangeInput struct {
 }
 
 func (self *RequiredGroupedDateRangeInput) Start() (t time.Time) {
-	if val, err := convert.ToTime(self.StartDate); err == nil {
+	if val, err := dateutils.Time(self.StartDate); err == nil {
 		t = val
 	}
 	return
 }
 
 func (self *RequiredGroupedDateRangeInput) End() (t time.Time) {
-	if val, err := convert.ToTime(self.EndDate); err == nil {
+	if val, err := dateutils.Time(self.EndDate); err == nil {
 		t = val
 	}
 	return
@@ -141,14 +141,14 @@ type RequiredGroupedDateRangeUnitInput struct {
 }
 
 func (self *RequiredGroupedDateRangeUnitInput) Start() (t time.Time) {
-	if val, err := convert.ToTime(self.StartDate); err == nil {
+	if val, err := dateutils.Time(self.StartDate); err == nil {
 		t = val
 	}
 	return
 }
 
 func (self *RequiredGroupedDateRangeUnitInput) End() (t time.Time) {
-	if val, err := convert.ToTime(self.EndDate); err == nil {
+	if val, err := dateutils.Time(self.EndDate); err == nil {
 		t = val
 	}
 	return
