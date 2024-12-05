@@ -15,6 +15,9 @@ func TransformToDateWideTable(body interface{}) (result interface{}) {
 	var res map[string]map[string]interface{}
 	result = body
 
+	slog.Info("[transformers] TransformToDateWideTable",
+		slog.String("type", fmt.Sprintf("%T", body)))
+	// pretty.Print(body)
 	switch body.(type) {
 	// -- AWS Costs
 	case *AwsCostsTaxesBody:
@@ -56,7 +59,8 @@ func TransformToDateWideTable(body interface{}) (result interface{}) {
 		}
 	case *AwsUptimeAveragesPerUnitBody:
 		var bdy = body.(*AwsUptimeAveragesPerUnitBody)
-		if res, err = transformers.ResultsToDateRows(bdy.Result, bdy.ColumnValues, bdy.DateRange); err == nil {
+		res, err = transformers.ResultsToDateRows(bdy.Result, bdy.ColumnValues, bdy.DateRange)
+		if err == nil {
 			bdy.TableRows = res
 			result = bdy
 		}

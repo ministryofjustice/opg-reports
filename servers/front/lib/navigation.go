@@ -258,10 +258,9 @@ func teamItems() (navs []*navigation.Navigation) {
 				fmt.Sprintf("/%s/uptime/day/%s", team, ym),
 				&navigation.Display{PageTemplate: "team-uptime-day"},
 				&navigation.Data{
-					Source:      endpoints.ApiEndpoint(uri) + unitFilter,
-					Namespace:   "TeamUptimeUnit",
-					Body:        &inout.AwsUptimeAveragesBody{},
-					Transformer: inout.TransformToDateDeepTable,
+					Source:    endpoints.ApiEndpoint(uri) + unitFilter,
+					Namespace: "TeamUptimeUnitDay",
+					Body:      &inout.AwsUptimeAveragesBody{},
 				},
 			)
 			uptimes = append(uptimes, n)

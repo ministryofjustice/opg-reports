@@ -36,7 +36,7 @@ func recordToDateRow[T dateWideTable](item T, columns []string, existingData map
 		existingRow map[string]interface{} = map[string]interface{}{}
 	)
 
-	if err = structs.Convert(item, asMap); err != nil {
+	if asMap, err = structs.ToMap(item); err != nil {
 		return
 	}
 	// this is generated id this cost item would use in the possible list
@@ -149,7 +149,6 @@ func ResultsToDateRows[T dateWideTable](apiData []T, columnValues map[string][]i
 		if !slices.Contains(found, rowKey) {
 			found = append(found, rowKey)
 		}
-
 	}
 
 	// remove any row that has not been marked as 'done' - these are empty combinations

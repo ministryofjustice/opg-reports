@@ -1,7 +1,6 @@
 {{ define "uptime-table-deep" }}
 
-{{ $result := .TableRows }}
-{{ $columns := .ColumnOrder }}
+{{ $result := .Result }}
 
 {{- if gt (len $result) 0 -}}
 
@@ -11,11 +10,8 @@
     <thead class="govuk-table__head">
         <tr class="govuk-table__row">
             <th class="govuk-table__header compare-header"></th>
-            {{- range $x, $col := $columns -}}
-                <th class="govuk-table__header data-header dh-{{ $col }}" data-col-name="{{ $col }}"><span>{{ title $col }}</span></th>
-            {{- end -}}
-
-            <th class="govuk-table__header data-cellish "><span>Trend</span></th>
+            <th class="govuk-table__header data-header dh-date" data-col-name="date"><span>Date</span></th>
+            <th class="govuk-table__header data-header dh-average" data-col-name="average"><span>Average %</span></th>
 
         </tr>
     </thead>
@@ -23,28 +19,24 @@
     <tbody class="govuk-table__body">
         {{- $rowCount := 0 -}}
         {{- range $i, $row := $result -}}
-            {{- $columnCount := 0 -}}
             <tr class="govuk-table__row" data-row="{{ $rowCount }}">
                 <th class="govuk-table__header compare-header">
                     <span class="tick comparison-selector-holder">
                         <input type="checkbox" name="comp{{ $rowCount }}" value="{{ $rowCount }}" class="comparison-selector">
                     </span>
                 </th>
-                {{- range $x, $col := $columns -}}
-                    <th data-col="{{ $columnCount }}" class="govuk-table__header data-header dh-{{ $col }}" data-col-name="{{ $col }}">
-                        <span>{{- valueFromMap $col $row -}}</span>
-                    </th>
-                    {{- $columnCount = increment $columnCount -}}
-                {{- end -}}
 
-                <td class="govuk-table__cell data-cellish sparkline"><div class="loader"></div></td>
+                <th data-col="0" class="govuk-table__header data-header dh-date" data-col-name="date">
+                    <span>{{- $row.Date -}}</span>
+                </th>
+                <th data-col="0" class="govuk-table__header data-cell dh-average" data-col-name="average">
+                    <span>{{- percentage $row.Average 4 -}}</span>
+                </th>
+            </tr>
+
             </tr>
             {{- $rowCount = increment $rowCount -}}
-
-
-
         {{- end -}}
-
     </tbody>
 
 </table>
