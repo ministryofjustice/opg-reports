@@ -1,6 +1,7 @@
 {{ define "homepage" }}
     {{ template "head" . }}
-    <h1 class="govuk-heading-l">Home</h1>
+    <h1 class="govuk-heading-l">Reports</h1>
+    <p class="govuk-body">This website contains core reporting data used within {{ .Organisation }} and is powered via an API.</p>
 
     {{ $uptimeOverall := .UptimeOverall }}
     {{ $uptimePerUnit := .UptimeUnit }}
