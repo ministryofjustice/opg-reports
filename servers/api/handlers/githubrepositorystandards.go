@@ -84,11 +84,11 @@ func ApiGitHubRepositoryStandardsListHandler(ctx context.Context, input *inout.V
 		where   string                                   = ""
 		replace string                                   = "{WHERE}"
 		param   statements.Named                         = input
-		body    *inout.GitHubRepositoryStandardsListBody = &inout.GitHubRepositoryStandardsListBody{
-			Request:   input,
-			Operation: GitHubRepositoryStandardsListOperationID,
-		}
+		body    *inout.GitHubRepositoryStandardsListBody = &inout.GitHubRepositoryStandardsListBody{}
 	)
+	body.Request = input
+	body.Operation = GitHubRepositoryStandardsListOperationID
+
 	// setup response
 	response = &inout.GitHubRepositoryStandardsListResponse{}
 	// check for unit

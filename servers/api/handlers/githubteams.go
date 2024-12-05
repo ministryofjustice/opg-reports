@@ -71,11 +71,10 @@ func ApiGitHubTeamsListHandler(ctx context.Context, input *inout.VersionUnitInpu
 		replace string                     = "{WHERE}"
 		sqlStmt string                     = gitHubTeamsSQL
 		param   statements.Named           = input
-		body    *inout.GitHubTeamsListBody = &inout.GitHubTeamsListBody{
-			Request:   input,
-			Operation: GitHubTeamsOperationID,
-		}
+		body    *inout.GitHubTeamsListBody = &inout.GitHubTeamsListBody{}
 	)
+	body.Request = input
+	body.Operation = GitHubTeamsOperationID
 	// setup response
 	response = &inout.GitHubTeamsResponse{}
 	// if there is a unit, setup the where clause

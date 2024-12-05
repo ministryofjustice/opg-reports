@@ -56,7 +56,7 @@ func overviewItems() (overview *navigation.Navigation) {
 			Source:      AwsCostsMonthTaxes,
 			Namespace:   "CostsTax",
 			Body:        &inout.AwsCostsTaxesBody{},
-			Transformer: inout.TransformToDateTable,
+			Transformer: inout.TransformToDateWideTable,
 		})
 
 	// costsPerTeam config
@@ -68,13 +68,13 @@ func overviewItems() (overview *navigation.Navigation) {
 			Source:      AwsCostsMonthSumUnit,
 			Namespace:   "CostsPerUnit",
 			Body:        &inout.AwsCostsSumPerUnitBody{},
-			Transformer: inout.TransformToDateTable,
+			Transformer: inout.TransformToDateWideTable,
 		},
 		&navigation.Data{
 			Source:      AwsCostsMonthSumUnitEnv,
 			Namespace:   "CostsPerUnitEnv",
 			Body:        &inout.AwsCostsSumPerUnitEnvBody{},
-			Transformer: inout.TransformToDateTable,
+			Transformer: inout.TransformToDateWideTable,
 		},
 	)
 
@@ -87,7 +87,7 @@ func overviewItems() (overview *navigation.Navigation) {
 			Source:      AwsCostsMonthSumDetailed,
 			Namespace:   "CostsDetailed",
 			Body:        &inout.AwsCostsSumFullDetailsBody{},
-			Transformer: inout.TransformToDateTable,
+			Transformer: inout.TransformToDateWideTable,
 		},
 	)
 
@@ -133,13 +133,13 @@ func overviewItems() (overview *navigation.Navigation) {
 			Source:      AwsUptimeMonthAverage,
 			Namespace:   "UptimeOverall",
 			Body:        &inout.AwsUptimeAveragesBody{},
-			Transformer: inout.TransformToDateTable,
+			Transformer: inout.TransformToDateWideTable,
 		},
 		&navigation.Data{
 			Source:      AwsUptimeMonthAverageUnit,
 			Namespace:   "UptimeUnit",
 			Body:        &inout.AwsUptimeAveragesPerUnitBody{},
-			Transformer: inout.TransformToDateTable,
+			Transformer: inout.TransformToDateWideTable,
 		},
 	)
 
@@ -160,13 +160,13 @@ func overviewItems() (overview *navigation.Navigation) {
 			Source:      GitHubReleaseMonthCount,
 			Namespace:   "ReleasesOverallMonthly",
 			Body:        &inout.GitHubReleasesCountBody{},
-			Transformer: inout.TransformToDateTable,
+			Transformer: inout.TransformToDateWideTable,
 		},
 		&navigation.Data{
 			Source:      GitHubReleaseMonthCountUnit,
 			Namespace:   "ReleasesUnitMonthly",
 			Body:        &inout.GitHubReleasesCountPerUnitBody{},
-			Transformer: inout.TransformToDateTable,
+			Transformer: inout.TransformToDateWideTable,
 		},
 	)
 
@@ -206,19 +206,19 @@ func teamItems() (navs []*navigation.Navigation) {
 				Source:      AwsUptimeMonthAverage + unitFilter,
 				Namespace:   "TeamUptimeUnit",
 				Body:        &inout.AwsUptimeAveragesBody{},
-				Transformer: inout.TransformToDateTable,
+				Transformer: inout.TransformToDateWideTable,
 			},
 			&navigation.Data{
 				Source:      GitHubReleaseMonthCount + unitFilter,
 				Namespace:   "TeamReleases",
 				Body:        &inout.GitHubReleasesCountBody{},
-				Transformer: inout.TransformToDateTable,
+				Transformer: inout.TransformToDateWideTable,
 			},
 			&navigation.Data{
 				Source:      GitHubRepositoryList + unitFilter,
 				Namespace:   "TeamRepositories",
 				Body:        &inout.GitHubRepositoriesListBody{},
-				Transformer: inout.TransformToDateTable,
+				Transformer: inout.TransformToDateWideTable,
 			},
 		)
 		monthlyCosts := navigation.New(
@@ -229,7 +229,7 @@ func teamItems() (navs []*navigation.Navigation) {
 				Source:      AwsCostsMonthSumDetailed + unitFilter,
 				Namespace:   "TeamCostsPerUnit",
 				Body:        &inout.AwsCostsSumFullDetailsBody{},
-				Transformer: inout.TransformToDateTable,
+				Transformer: inout.TransformToDateWideTable,
 			},
 		)
 		// -- uptime data per month
@@ -259,7 +259,7 @@ func teamItems() (navs []*navigation.Navigation) {
 					Source:      endpoints.ApiEndpoint(uri) + unitFilter,
 					Namespace:   "TeamUptimeUnit",
 					Body:        &inout.AwsUptimeAveragesBody{},
-					Transformer: inout.TransformToDateTable,
+					Transformer: inout.TransformToDateWideTable,
 				},
 			)
 			uptimes = append(uptimes, n)
@@ -280,19 +280,19 @@ func teamItems() (navs []*navigation.Navigation) {
 				Source:      AwsUptimeDayAverage + unitFilter,
 				Namespace:   "TeamUptimeUnit",
 				Body:        &inout.AwsUptimeAveragesBody{},
-				Transformer: inout.TransformToDateTable,
+				Transformer: inout.TransformToDateWideTable,
 			},
 			&navigation.Data{
 				Source:      GitHubReleaseDayCount + unitFilter,
 				Namespace:   "TeamReleases",
 				Body:        &inout.GitHubReleasesCountBody{},
-				Transformer: inout.TransformToDateTable,
+				Transformer: inout.TransformToDateWideTable,
 			},
 			&navigation.Data{
 				Source:      GitHubRepositoryList + unitFilter,
 				Namespace:   "TeamRepositories",
 				Body:        &inout.GitHubRepositoriesListBody{},
-				Transformer: inout.TransformToDateTable,
+				Transformer: inout.TransformToDateWideTable,
 			},
 			monthly,
 			uptime,

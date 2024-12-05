@@ -66,11 +66,11 @@ func ApiAwsUptimeListHandler(ctx context.Context, input *inout.DateRangeUnitInpu
 		where   string                   = ""
 		replace string                   = "{WHERE}"
 		param   statements.Named         = input
-		body    *inout.AwsUptimeListBody = &inout.AwsUptimeListBody{
-			Request:   input,
-			Operation: AwsUptimeListOperationID,
-		}
+		body    *inout.AwsUptimeListBody = &inout.AwsUptimeListBody{}
 	)
+	body.Request = input
+	body.Operation = AwsUptimeListOperationID
+
 	// setup response
 	response = &inout.AwsUptimeListResponse{}
 	// check for unit
@@ -130,13 +130,12 @@ func ApiAwsUptimeAveragesHandler(ctx context.Context, input *inout.RequiredGroup
 		where   string                       = ""
 		replace string                       = "{WHERE}"
 		param   statements.Named             = input
-		body    *inout.AwsUptimeAveragesBody = &inout.AwsUptimeAveragesBody{
-			Request:     input,
-			Operation:   AwsUptimeAveragesOperationID,
-			DateRange:   dateutils.Dates(input.Start(), input.End(), input.GetInterval()),
-			ColumnOrder: []string{"unit_name"},
-		}
+		body    *inout.AwsUptimeAveragesBody = &inout.AwsUptimeAveragesBody{}
 	)
+	body.Request = input
+	body.Operation = AwsUptimeAveragesOperationID
+	body.DateRange = dateutils.Dates(input.Start(), input.End(), input.GetInterval())
+	body.ColumnOrder = []string{"unit_name"}
 	// setup response
 	response = &inout.AwsUptimeAveragesResponse{}
 	// check for unit
@@ -195,13 +194,12 @@ func ApiAwsUptimeAveragesPerUnitHandler(ctx context.Context, input *inout.Requir
 		dbPath  string                              = ctx.Value(dbPathKey).(string)
 		sqlStmt string                              = AwsUptimeAveragesPerUnitSQL
 		param   statements.Named                    = input
-		body    *inout.AwsUptimeAveragesPerUnitBody = &inout.AwsUptimeAveragesPerUnitBody{
-			Request:     input,
-			Operation:   AwsUptimeAveragesPerUnitOperationID,
-			DateRange:   dateutils.Dates(input.Start(), input.End(), input.GetInterval()),
-			ColumnOrder: []string{"unit_name"},
-		}
+		body    *inout.AwsUptimeAveragesPerUnitBody = &inout.AwsUptimeAveragesPerUnitBody{}
 	)
+	body.Request = input
+	body.Operation = AwsUptimeAveragesPerUnitOperationID
+	body.DateRange = dateutils.Dates(input.Start(), input.End(), input.GetInterval())
+	body.ColumnOrder = []string{"unit_name"}
 	// setup response
 	response = &inout.AwsUptimeAveragesPerUnitResponse{}
 

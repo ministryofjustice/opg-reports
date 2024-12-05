@@ -3,7 +3,7 @@ package transformers_test
 import (
 	"testing"
 
-	"github.com/ministryofjustice/opg-reports/pkg/transformers"
+	"github.com/ministryofjustice/opg-reports/internal/transformers"
 )
 
 // TestTransformersKVPair checks that the KVPair is generated

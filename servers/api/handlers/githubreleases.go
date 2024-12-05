@@ -79,11 +79,11 @@ func ApiGitHubReleasesListHandler(ctx context.Context, input *inout.DateRangeUni
 		replace string                        = "{WHERE}"
 		sqlStmt string                        = gitHubReleasesListSQL
 		param   statements.Named              = input
-		body    *inout.GitHubReleasesListBody = &inout.GitHubReleasesListBody{
-			Request:   input,
-			Operation: GitHubReleasesListOperationID,
-		}
+		body    *inout.GitHubReleasesListBody = &inout.GitHubReleasesListBody{}
 	)
+	body.Request = input
+	body.Operation = GitHubReleasesListOperationID
+
 	// setup response
 	response = &inout.GitHubReleasesListResponse{}
 
@@ -151,17 +151,14 @@ func ApiGitHubReleasesCountHandler(ctx context.Context, input *inout.RequiredGro
 		replace string                         = "{WHERE}"
 		sqlStmt string                         = gitHubReleasesCountSQL
 		param   statements.Named               = input
-		body    *inout.GitHubReleasesCountBody = &inout.GitHubReleasesCountBody{
-			Request:     input,
-			Operation:   GitHubReleasesCountOperationID,
-			DateRange:   dateutils.Dates(input.Start(), input.End(), input.GetInterval()),
-			ColumnOrder: []string{"unit_name"},
-			// hard code the unit column to only have the word count
-			ColumnValues: map[string][]interface{}{
-				"unit_name": {"Count"},
-			},
-		}
+		body    *inout.GitHubReleasesCountBody = &inout.GitHubReleasesCountBody{}
 	)
+	body.Request = input
+	body.Operation = GitHubReleasesCountOperationID
+	body.DateRange = dateutils.Dates(input.Start(), input.End(), input.GetInterval())
+	body.ColumnOrder = []string{"unit_name"}
+	body.ColumnValues = map[string][]interface{}{"unit_name": {"Count"}}
+
 	// setup response
 	response = &inout.GitHubReleasesCountResponse{}
 
@@ -232,13 +229,13 @@ func ApiGitHubReleasesCountPerUnitHandler(ctx context.Context, input *inout.Requ
 		dbPath  string                                = ctx.Value(dbPathKey).(string)
 		sqlStmt string                                = gitHubReleasesCountPerUnitSQL
 		param   statements.Named                      = input
-		body    *inout.GitHubReleasesCountPerUnitBody = &inout.GitHubReleasesCountPerUnitBody{
-			Request:     input,
-			Operation:   GitHubReleasesCountPerUnitOperationID,
-			DateRange:   dateutils.Dates(input.Start(), input.End(), input.GetInterval()),
-			ColumnOrder: []string{"unit_name"},
-		}
+		body    *inout.GitHubReleasesCountPerUnitBody = &inout.GitHubReleasesCountPerUnitBody{}
 	)
+	body.Request = input
+	body.Operation = GitHubReleasesCountPerUnitOperationID
+	body.DateRange = dateutils.Dates(input.Start(), input.End(), input.GetInterval())
+	body.ColumnOrder = []string{"unit_name"}
+
 	// setup response
 	response = &inout.GitHubReleasesCountPerUnitResponse{}
 

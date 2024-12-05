@@ -34,14 +34,14 @@ type AwsUptime struct {
 
 // TDate
 // interfaces:
-//   - transformers.Transformable
+//   - transformers.DateTable
 func (self *AwsUptime) TDate() string {
 	return self.Date
 }
 
 // TValue
 // interfaces:
-//   - transformers.Transformable
+//   - transformers.DateTable
 func (self *AwsUptime) TValue() string {
 	return fmt.Sprintf("%g", self.Average)
 }

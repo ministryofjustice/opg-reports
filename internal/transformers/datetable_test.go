@@ -1,10 +1,8 @@
-package transformers_test
+package transformers
 
 import (
 	"fmt"
 	"testing"
-
-	"github.com/ministryofjustice/opg-reports/pkg/transformers"
 )
 
 type tabTest struct {
@@ -56,40 +54,40 @@ var expected = map[string]map[string]interface{}{
 		"service":     "ecs",
 		"2024-01":     "-1.01",
 		"2024-02":     "3.01",
-		"2024-03":     "0.0000",
+		"2024-03":     defaultFloat,
 	},
 	"environment:development^service:ecs^unit:B^": {
 		"environment": "development",
 		"unit":        "B",
 		"service":     "ecs",
 		"2024-01":     "10.0",
-		"2024-02":     "0.0000",
-		"2024-03":     "0.0000",
+		"2024-02":     defaultFloat,
+		"2024-03":     defaultFloat,
 	},
 	"environment:development^service:ec2^unit:A^": {
 		"environment": "development",
 		"unit":        "A",
 		"service":     "ec2",
 		"2024-01":     "3.51",
-		"2024-02":     "0.0000",
-		"2024-03":     "0.0000",
+		"2024-02":     defaultFloat,
+		"2024-03":     defaultFloat,
 	},
 	"environment:development^service:ec2^unit:B^": {
 		"environment": "development",
 		"unit":        "B",
 		"service":     "ec2",
 		"2024-01":     "-4.72",
-		"2024-02":     "0.0000",
-		"2024-03":     "0.0000",
+		"2024-02":     defaultFloat,
+		"2024-03":     defaultFloat,
 	},
 }
 
-// TestTransformersResultsToRows checks that a preset
+// TestTransformersResultsToDateRows checks that a preset
 // series of data that mimics api info for costs will come out
-// in the expected setup via ResultsToRows
-func TestTransformersResultsToRows(t *testing.T) {
+// in the expected setup via DateResultsToRows
+func TestTransformersResultsToDateRows(t *testing.T) {
 
-	actual, err := transformers.ResultsToRows(standardSampleData, colValues, dateRanges)
+	actual, err := ResultsToDateRows(standardSampleData, colValues, dateRanges)
 	if err != nil {
 		t.Errorf("unexpected error: [%s]", err.Error())
 	}

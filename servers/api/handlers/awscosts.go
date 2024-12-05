@@ -23,7 +23,7 @@ var (
 	AwsCostsTags    []string = []string{"AWS costs"}
 )
 
-const AwsCostsTotalOperationID string = "get-aws-costs-ytd"
+const AwsCostsTotalOperationID string = "get-aws-costs-total"
 const AwsCostsTotalDescription string = `Returns total sum of all aws costs.`
 const AwsCostsTotalSQL string = `
 SELECT
@@ -52,11 +52,10 @@ func ApiAwsCostsTotalHandler(ctx context.Context, input *inout.DateRangeUnitInpu
 		replace string                   = "{WHERE}"
 		sqlStmt string                   = AwsCostsTotalSQL
 		param   statements.Named         = input
-		body    *inout.AwsCostsTotalBody = &inout.AwsCostsTotalBody{
-			Request:   input,
-			Operation: AwsCostsTotalOperationID,
-		}
+		body    *inout.AwsCostsTotalBody = &inout.AwsCostsTotalBody{}
 	)
+	body.Request = input
+	body.Operation = AwsCostsTotalOperationID
 	// setup response
 	response = &inout.AwsCostsTotalResponse{}
 
@@ -129,11 +128,10 @@ func ApiAwsCostsListHandler(ctx context.Context, input *inout.DateRangeUnitInput
 		replace string                  = "{WHERE}"
 		sqlStmt string                  = awsCostsListSQL
 		param   statements.Named        = input
-		body    *inout.AwsCostsListBody = &inout.AwsCostsListBody{
-			Request:   input,
-			Operation: AwsCostsListOperationID,
-		}
+		body    *inout.AwsCostsListBody = &inout.AwsCostsListBody{}
 	)
+	body.Request = input
+	body.Operation = AwsCostsListOperationID
 	// setup response
 	response = &inout.AwsCostsListResponse{}
 
@@ -205,13 +203,13 @@ func ApiAwsCostsTaxesHandler(ctx context.Context, input *inout.RequiredGroupedDa
 		replace string                   = "{WHERE}"
 		sqlStmt string                   = AwsCostsTaxesSQL
 		param   statements.Named         = input
-		body    *inout.AwsCostsTaxesBody = &inout.AwsCostsTaxesBody{
-			Request:     input,
-			Operation:   AwsCostsTaxesOperationID,
-			DateRange:   dateutils.Dates(input.Start(), input.End(), input.GetInterval()),
-			ColumnOrder: []string{"service"},
-		}
+		body    *inout.AwsCostsTaxesBody = &inout.AwsCostsTaxesBody{}
 	)
+	body.Request = input
+	body.Operation = AwsCostsTaxesOperationID
+	body.DateRange = dateutils.Dates(input.Start(), input.End(), input.GetInterval())
+	body.ColumnOrder = []string{"service"}
+
 	// setup response
 	response = &inout.AwsCostsTaxesResponse{}
 
@@ -276,13 +274,12 @@ func ApiAwsCostsSumHandler(ctx context.Context, input *inout.RequiredGroupedDate
 		replace string                 = "{WHERE}"
 		sqlStmt string                 = awsCostsSumSQL
 		param   statements.Named       = input
-		body    *inout.AwsCostsSumBody = &inout.AwsCostsSumBody{
-			Request:     input,
-			Operation:   AwsCostsSumOperationID,
-			DateRange:   dateutils.Dates(input.Start(), input.End(), input.GetInterval()),
-			ColumnOrder: []string{"unit_name"},
-		}
+		body    *inout.AwsCostsSumBody = &inout.AwsCostsSumBody{}
 	)
+	body.Request = input
+	body.Operation = AwsCostsSumOperationID
+	body.DateRange = dateutils.Dates(input.Start(), input.End(), input.GetInterval())
+	body.ColumnOrder = []string{"unit_name"}
 	// setup response
 	response = &inout.AwsCostsSumResponse{}
 	// setup the sql - if unit is set in the input, add where for it
@@ -345,13 +342,12 @@ func ApiAwsCostsSumPerUnitHandler(ctx context.Context, input *inout.RequiredGrou
 		dbPath  string                        = ctx.Value(dbPathKey).(string)
 		sqlStmt string                        = awsCostsSumPerUnitSQL
 		param   statements.Named              = input
-		body    *inout.AwsCostsSumPerUnitBody = &inout.AwsCostsSumPerUnitBody{
-			Request:     input,
-			Operation:   AwsCostsSumPerUnitOperationID,
-			DateRange:   dateutils.Dates(input.Start(), input.End(), input.GetInterval()),
-			ColumnOrder: []string{"unit_name"},
-		}
+		body    *inout.AwsCostsSumPerUnitBody = &inout.AwsCostsSumPerUnitBody{}
 	)
+	body.Request = input
+	body.Operation = AwsCostsSumPerUnitOperationID
+	body.DateRange = dateutils.Dates(input.Start(), input.End(), input.GetInterval())
+	body.ColumnOrder = []string{"unit_name"}
 	// setup response
 	response = &inout.AwsCostsSumPerUnitResponse{}
 	// hook up adaptor
@@ -406,13 +402,12 @@ func ApiAwsCostsSumPerUnitEnvHandler(ctx context.Context, input *inout.RequiredG
 		dbPath  string                           = ctx.Value(dbPathKey).(string)
 		sqlStmt string                           = awsCostsSumPerUnitEnvSQL
 		param   statements.Named                 = input
-		body    *inout.AwsCostsSumPerUnitEnvBody = &inout.AwsCostsSumPerUnitEnvBody{
-			Request:     input,
-			Operation:   AwsCostsSumPerUnitEnvOperationID,
-			DateRange:   dateutils.Dates(input.Start(), input.End(), input.GetInterval()),
-			ColumnOrder: []string{"unit_name", "aws_account_environment"},
-		}
+		body    *inout.AwsCostsSumPerUnitEnvBody = &inout.AwsCostsSumPerUnitEnvBody{}
 	)
+	body.Request = input
+	body.Operation = AwsCostsSumPerUnitEnvOperationID
+	body.DateRange = dateutils.Dates(input.Start(), input.End(), input.GetInterval())
+	body.ColumnOrder = []string{"unit_name", "aws_account_environment"}
 	// setup response
 	response = &inout.AwsCostsSumPerUnitEnvResponse{}
 	// hook up adaptor
@@ -479,13 +474,12 @@ func ApiAwsCostsSumFullDetailsHandler(ctx context.Context, input *inout.Required
 		param   statements.Named                  = input
 		where   string                            = ""
 		replace string                            = "{WHERE}"
-		body    *inout.AwsCostsSumFullDetailsBody = &inout.AwsCostsSumFullDetailsBody{
-			Request:     input,
-			Operation:   AwsCostsSumFullDetailsOperationID,
-			DateRange:   dateutils.Dates(input.Start(), input.End(), input.GetInterval()),
-			ColumnOrder: []string{"unit_name", "aws_account_environment", "aws_account_number", "service", "region"},
-		}
+		body    *inout.AwsCostsSumFullDetailsBody = &inout.AwsCostsSumFullDetailsBody{}
 	)
+	body.Request = input
+	body.Operation = AwsCostsSumFullDetailsOperationID
+	body.DateRange = dateutils.Dates(input.Start(), input.End(), input.GetInterval())
+	body.ColumnOrder = []string{"unit_name", "aws_account_environment", "aws_account_number", "service", "region"}
 	// setup response
 	response = &inout.AwsCostsSumFullDetailsResponse{}
 	// hook up adaptor

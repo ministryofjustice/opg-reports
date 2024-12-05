@@ -45,7 +45,7 @@ type GitHubRelease struct {
 
 // TDate
 // Interfaces:
-//   - transformers.Transformable
+//   - transformers.DateTable
 func (self *GitHubRelease) TDate() string {
 	return self.Date
 }
@@ -53,7 +53,7 @@ func (self *GitHubRelease) TDate() string {
 // TValue
 // Always 1 so it increments per period
 // Interfaces:
-//   - transformers.Transformable
+//   - transformers.DateTable
 func (self *GitHubRelease) TValue() string {
 	return strconv.Itoa(self.Count)
 }

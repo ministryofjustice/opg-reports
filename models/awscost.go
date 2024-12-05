@@ -36,14 +36,14 @@ type AwsCost struct {
 
 // TDate
 // Interfaces:
-//   - transformers.Transformable
+//   - DateTable
 func (self *AwsCost) TDate() string {
 	return self.Date
 }
 
 // TValue
 // Interfaces:
-//   - transformers.Transformable
+//   - transformers.DateTable
 func (self *AwsCost) TValue() string {
 	return self.Cost
 }

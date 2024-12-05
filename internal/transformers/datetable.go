@@ -16,7 +16,7 @@ type DateTable interface {
 	TValue() string
 }
 
-// recordToRow takes a Transformable struct and adds its data into an existing table row.
+// recordToDateRow takes a DateTable struct and adds its data into an existing table row.
 //
 // By using the list of columns it generates a key-value string to identify which table row
 // this record relates to.
@@ -26,7 +26,7 @@ type DateTable interface {
 // and sets the value of that to be .Cost. If a value is already represent, it "adds" to it.
 //
 // For ease, it returns the key-value used so this can be tracked
-func recordToRow[T DateTable](item T, columns []string, existingData map[string]map[string]interface{}) (key string, err error) {
+func recordToDateRow[T DateTable](item T, columns []string, existingData map[string]map[string]interface{}) (key string, err error) {
 	var (
 		ok          bool
 		v           interface{}
@@ -65,10 +65,10 @@ func recordToRow[T DateTable](item T, columns []string, existingData map[string]
 	return
 }
 
-// ResultsToRows converts a list of costs (generally from the api) into a series of table rows
+// ResultsToDateRows converts a list of data (generally from the api) into a series of table rows
 // that can then be used for rendering.
 //
-// It uses the columnValues & date range to generate a skeleton set or rows that cover all
+// It uses the columnValues & dateRange to generate a skeleton set or rows that cover all
 // possible combinations of the columns and fills these with empty values ("" for column,
 // "0.0000" for the date fields).
 //
@@ -128,7 +128,7 @@ func recordToRow[T DateTable](item T, columns []string, existingData map[string]
 //			"2024-03":     "0.0000",
 //		},
 //	}
-func ResultsToRows[T DateTable](apiData []T, columnValues map[string][]interface{}, dateRange []string) (dataAsMap map[string]map[string]interface{}, err error) {
+func ResultsToDateRows[T DateTable](apiData []T, columnValues map[string][]interface{}, dateRange []string) (dataAsMap map[string]map[string]interface{}, err error) {
 	// columns is sorted column names only - this is to ensure 'key' order is a match
 	var columns []string = SortedColumnNames(columnValues)
 	// found tracks which 'key' has real data and inserted in to the data map
@@ -140,7 +140,7 @@ func ResultsToRows[T DateTable](apiData []T, columnValues map[string][]interface
 	dataAsMap = DateTableSkeleton(columnValues, dateRange)
 
 	for _, item := range apiData {
-		rowKey, e := recordToRow(item, columns, dataAsMap)
+		rowKey, e := recordToDateRow(item, columns, dataAsMap)
 		if e != nil {
 			slog.Error("[transformers.ResultsToRows] failed", slog.String("err", e.Error()))
 			return

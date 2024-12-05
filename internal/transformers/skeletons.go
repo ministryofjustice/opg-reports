@@ -78,3 +78,99 @@ func DateTableSkeleton(columnValues map[string][]interface{}, dateRange []string
 	}
 	return
 }
+
+// TableSkeleton creates a series of skeleton rows from the known
+// column values.
+//
+// `columnValues` is from the api result `.column_values` and contains
+// all the possible column values - with the additional dates values
+//
+// # Example
+//
+// Input:
+//
+//	columnValues := map[string][]interface{}{
+//		"unit":        {"A", "B"},
+//		"environment": {"development", "production"},
+//		"service":     {"ecs", "ec2"},
+//		"date":        {"2024-01"},
+//	}
+//
+// Output:
+//
+//	map[string]map[string]interface{}{
+//		"date:2024-01^environment:development^service:ec2^unit:A^": {
+//		  "date": "",
+//		  "environment": "",
+//		  "service": "",
+//		  "unit": ""
+//		},
+//		"date:2024-01^environment:development^service:ec2^unit:B^": {
+//		  "date": "",
+//		  "environment": "",
+//		  "service": "",
+//		  "unit": ""
+//		},
+//		"date:2024-01^environment:development^service:ecs^unit:A^": {
+//		  "date": "",
+//		  "environment": "",
+//		  "service": "",
+//		  "unit": ""
+//		},
+//		"date:2024-01^environment:development^service:ecs^unit:B^": {
+//		  "date": "",
+//		  "environment": "",
+//		  "service": "",
+//		  "unit": ""
+//		},
+//		"date:2024-01^environment:production^service:ec2^unit:A^": {
+//		  "date": "",
+//		  "environment": "",
+//		  "service": "",
+//		  "unit": ""
+//		},
+//		"date:2024-01^environment:production^service:ec2^unit:B^": {
+//		  "date": "",
+//		  "environment": "",
+//		  "service": "",
+//		  "unit": ""
+//		},
+//		"date:2024-01^environment:production^service:ecs^unit:A^": {
+//		  "date": "",
+//		  "environment": "",
+//		  "service": "",
+//		  "unit": ""
+//		},
+//		"date:2024-01^environment:production^service:ecs^unit:B^": {
+//		  "date": "",
+//		  "environment": "",
+//		  "service": "",
+//		  "unit": ""
+//		}
+//	}
+func TableSkeleton(columnValues map[string][]interface{}) (skel map[string]map[string]interface{}) {
+	var columnValuesAsList [][]string
+	var columnValuePermutations []string
+	skel = map[string]map[string]interface{}{}
+
+	columnValuesAsList = ColumnValuesList(columnValues)
+
+	if len(columnValuesAsList) == 1 {
+		columnValuePermutations = columnValuesAsList[0]
+	} else if len(columnValuesAsList) > 1 {
+		columnValuePermutations = Permutations(columnValuesAsList...)
+	}
+
+	for _, permutation := range columnValuePermutations {
+		// insert the unique line into the skeleton
+		if _, ok := skel[permutation]; !ok {
+			skel[permutation] = map[string]interface{}{}
+		}
+		// insert the columns into the row with empty strings
+		for column := range columnValues {
+			skel[permutation][column] = ""
+		}
+
+	}
+	return
+}
