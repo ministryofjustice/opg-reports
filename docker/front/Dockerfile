@@ -31,7 +31,6 @@ COPY --from=build /gobin/front /gobin
 COPY --from=build /app/servers/front/templates ./templates
 COPY --from=build /app/servers/front/local-assets ./local-assets
 RUN rm -Rf /app
-RUN apk --update --no-cache add "sqlite=~3.47"
 ENTRYPOINT ["./front"]
 
 
@@ -44,5 +43,4 @@ RUN mkdir -p ./local-assets ./templates
 COPY --from=build /gobin/front /gobin
 COPY --from=build /app/servers/front/templates ./templates
 COPY --from=build /app/servers/front/local-assets ./local-assets
-RUN apk --update --no-cache add "sqlite=~3.47"
 ENTRYPOINT ["./front"]
