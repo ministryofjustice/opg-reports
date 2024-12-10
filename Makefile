@@ -1,24 +1,25 @@
 SHELL = bash
-#============ PARAMS ==============
+#======================================
+# these are parameters used in the make file tasks
 BUCKET_PROFILE ?= shared-development-operator
 IMPORT_DOWNLOAD ?= true
 GITHUB_ACCESS_TOKEN ?= ${GITHUB_TOKEN}
-#============ BUILD INFO ==============
-BUILD_DIR = ./builds/
-API_VERSION = v1
-
-COMMIT = $(shell git rev-parse HEAD)
-TIMESTAMP = $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
+SERVICES ?= api front
+BUILD_DIR ?= ./builds/
+# these are used for building the applications
+COMMIT ?= $(shell git rev-parse HEAD)
+TIMESTAMP ?= $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 SEMVER ?= v0.0.1
-
-ORGANISATION = OPG
+ORGANISATION ?= OPG
 DATASET ?= real
 FIXTURES ?= full
 BUCKET_NAME ?= report-data-development
 #======================================
+# the generates go ld flags that replace parts of the info with build values
 pkg=github.com/ministryofjustice/opg-reports/info
 LDFLAGS:="-X '${pkg}.Commit=${COMMIT}' -X '${pkg}.Timestamp=${TIMESTAMP}' -X '${pkg}.Semver=${SEMVER}' -X '${pkg}.Organisation=${ORGANISATION}' -X '${pkg}.Dataset=${DATASET}' -X '${pkg}.Fixtures=${FIXTURES}' -X '${pkg}.BucketName=${BUCKET_NAME}'"
 #======================================
+images := $(shell docker images -a | grep 'opg-reports/*' | awk '{print $$1":"$$2}')
 tick="✅"
 
 ## run all tests
@@ -51,25 +52,9 @@ coverage:
 
 ## Output the open api spec
 openapi:
-	@env CGO_ENABLED=1 go run ./servers/api/main.go openapi > openapi.yaml
+	@env CGO_ENABLED=1 go run ./servers/api/main.go openapi > openapi.yaml && echo "${tick}"
 .PHONY: openapi
 
-## Output build info
-buildinfo:
-	@echo "=== BUILD INFO"
-	@echo "COMMIT:           ${COMMIT}"
-	@echo "TIMESTAMP:        ${TIMESTAMP}"
-	@echo "SEMVER:           ${SEMVER}"
-	@echo "=== CONFIG INFO"
-	@echo "ORGANISATION:     ${ORGANISATION}"
-	@echo "DATASET:          ${DATASET}"
-	@echo "FIXTURES:         ${FIXTURES}"
-	@echo "BUCKET_NAME:      ${BUCKET_NAME}"
-	@echo "=== PARAMS"
-	@echo "BUCKET_PROFILE:   ${BUCKET_PROFILE}"
-	@echo "IMPORT_DOWNLOAD:  ${IMPORT_DOWNLOAD}"
-	@echo "==="
-.PHONY: buildinfo
 
 ## Removes an existing build artifacts
 clean:
@@ -84,8 +69,8 @@ clean:
 	@rm -Rf ./collectors/githubreleases/data
 	@rm -Rf ./collectors/awsuptime/data
 .PHONY: clean
-#========= RUN =========
 
+#========= RUN =========
 ## Run the api from dev source - will copy existing db to location
 api:
 	@mkdir -p ./servers/api/databases
@@ -118,63 +103,59 @@ import: build
 	@cd ./builds && ./importer -type=aws-costs -file=./converted-data/aws_costs.json
 .PHONY: import
 #========= BUILD GO BINARIES =========
-# Build all binaries
-build: buildinfo build/collectors build/convertor build/importer build/servers
-.PHONY: build
 
-build/servers: build/servers/api build/servers/front
-.PHONY: build/servers
-
-## Build the api into build directory
-build/servers/api:
-	@echo -n "[building] servers/api .................. "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/api ./servers/api/main.go && echo "${tick}"
-.PHONY: build/servers/api
-
-## Build the api into build directory
-build/servers/front:
-	@echo -n "[building] servers/front ................ "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/front ./servers/front/main.go && echo "${tick}"
-.PHONY: build/servers/front
-
-## build the convertor tool
-build/convertor:
-	@echo -n "[building] convertor .................... "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/convertor ./convertor/main.go && echo "${tick}"
-.PHONY: build/convertor
-
-
-## build the importer tool
-build/importer:
-	@echo -n "[building] importer ..................... "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/importer ./importer/main.go && echo "${tick}"
-.PHONY: build/importer
-
-## build all collectors
-build/collectors: build/collectors/awscosts build/collectors/awsuptime build/collectors/githubstandards build/collectors/githubreleases
-.PHONY: build/collectors
-
-## build the aws costs collector
-build/collectors/awscosts:
+# Build all binaries for local usage
+build:
+	@mkdir -p .${BUILD_DIR}
+	@echo "=== BUILD INFO"
+	@echo "${LDFLAGS}" | sed "s#github.com/ministryofjustice/opg-reports/info.##g" | sed "s#-X#\\n#g" | sed "s#'##g"
+	@echo "==="
 	@echo -n "[building] collectors/awscosts .......... "
 	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/awscosts ./collectors/awscosts/main.go && echo "${tick}"
-.PHONY: build/collectors/awscosts
-
-## build the aws uptime collector
-build/collectors/awsuptime:
 	@echo -n "[building] collectors/awsuptime ......... "
 	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/awsuptime ./collectors/awsuptime/main.go && echo "${tick}"
-.PHONY: build/collectors/awsuptime
-
-## build the github standards collector
-build/collectors/githubstandards:
-	@echo -n "[building] collectors/githubstandards ... "
-	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/githubstandards ./collectors/githubstandards/main.go && echo "${tick}"
-.PHONY: build/collectors/githubstandards
-
-## build the github releases collector
-build/collectors/githubreleases:
 	@echo -n "[building] collectors/githubreleases .... "
 	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/githubreleases ./collectors/githubreleases/main.go && echo "${tick}"
-.PHONY: build/collectors/githubreleases
+	@echo -n "[building] collectors/githubstandards ... "
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/githubstandards ./collectors/githubstandards/main.go && echo "${tick}"
+	@echo -n "[building] convertor .................... "
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/convertor ./convertor/main.go && echo "${tick}"
+	@echo -n "[building] importer ..................... "
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/importer ./importer/main.go && echo "${tick}"
+	@echo -n "[building] servers/api .................. "
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/api ./servers/api/main.go && echo "${tick}"
+	@echo -n "[building] servers/front ................ "
+	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/front ./servers/front/main.go && echo "${tick}"
+.PHONY: local/build
 
+#========= DOCKER =========
+docker/build:
+	@env DOCKER_BUILDKIT=0 docker compose \
+		--verbose \
+		-f docker-compose.yml \
+		-f docker/docker-compose.dev.yml \
+		build ${SERVICES} \
+		--build-arg LDFLAGS=${LDFLAGS} \
+		--parallel
+.PHONY: docker/build
+
+docker/up: docker/build
+	@env DOCKER_BUILDKIT=0 docker compose \
+		--verbose \
+		-f docker-compose.yml \
+		-f docker/docker-compose.dev.yml \
+		up \
+		-d ${SERVICES}
+.PHONY: docker/up
+
+docker/clean:
+	@docker image rm $(images) || echo "ok"
+	@docker compose rm api front
+	@docker container prune -f
+	@docker image prune -f --filter="dangling=true"
+.PHONY: docker/clean
+
+## run docker compose down, turning off all docker containers
+docker/down:
+	@docker compose down
+.PHONY: docker/down
