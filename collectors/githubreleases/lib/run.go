@@ -69,7 +69,7 @@ func Run(args *Arguments) (err error) {
 			merged, err = MergedPullRequests(ctx, client, args, repo)
 		}
 
-		slog.Info("[githubreleases] found for dates.",
+		slog.Debug("[githubreleases] found for dates.",
 			slog.String("repository", *repo.FullName),
 			slog.String("StartDate", args.StartDate),
 			slog.String("EndDate", args.EndDate),

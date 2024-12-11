@@ -60,9 +60,8 @@ var (
 // init is used to fetch stored databases from s3
 // or create dummy versions of them
 func init() {
-	var (
-		ctx context.Context = context.Background()
-	)
+	var ctx context.Context = context.Background()
+
 	// new way of seeding
 	// - if we are using the real data set, go fetch it
 	if info.Dataset == "real" {

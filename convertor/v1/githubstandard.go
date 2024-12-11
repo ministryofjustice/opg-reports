@@ -1,134 +1,14 @@
 package v1
 
 import (
-	"fmt"
+	"encoding/json"
 	"strings"
 	"time"
 
 	"github.com/ministryofjustice/opg-reports/internal/dateformats"
 	"github.com/ministryofjustice/opg-reports/internal/dateutils"
-	"github.com/ministryofjustice/opg-reports/internal/structs"
 	"github.com/ministryofjustice/opg-reports/models"
 )
-
-type AwsCost struct {
-	ID           int    `json:"id"`
-	Ts           string `json:"ts"`
-	Organisation string `json:"organisation"`
-	AccountID    string `json:"account_id"`
-	AccountName  string `json:"account_name"`
-	Unit         string `json:"unit"`
-	Label        string `json:"label"`
-	Environment  string `json:"environment"`
-	Service      string `json:"service"`
-	Region       string `json:"region"`
-	Date         string `json:"date"`
-	Cost         string `json:"cost"`
-}
-
-// V2 converts this version of AwsCosts into a models.AwsCost
-func (self *AwsCost) V2() *models.AwsCost {
-	var (
-		unit    *models.Unit
-		account *models.AwsAccount
-		cost    *models.AwsCost
-		ts      string
-		now     string = time.Now().UTC().Format(dateformats.Full)
-	)
-	// costs have a different time format, so convert between
-	if self.Ts == "" {
-		self.Ts = now
-	} else {
-		self.Ts = dateutils.Convert(self.Ts, dateformats.Old, dateformats.Full)
-	}
-	ts = self.Ts
-	unit = &models.Unit{
-		Ts:   ts,
-		Name: strings.ToLower(self.Unit),
-	}
-	account = &models.AwsAccount{
-		Ts:          ts,
-		Number:      self.AccountID,
-		Name:        strings.ToLower(self.AccountName),
-		Label:       strings.ToLower(self.Label),
-		Environment: strings.ToLower(self.Environment),
-		Unit:        (*models.UnitForeignKey)(unit),
-	}
-	cost = &models.AwsCost{
-		Ts:         ts,
-		Region:     self.Region,
-		Service:    self.Service,
-		Date:       self.Date,
-		Cost:       self.Cost,
-		AwsAccount: (*models.AwsAccountForeignKey)(account),
-		Unit:       (*models.UnitForeignKey)(unit),
-	}
-	return cost
-}
-
-type AwsUptime struct {
-	ID      int     `json:"id"`
-	Ts      string  `json:"ts"`
-	Unit    string  `json:"unit"`
-	Average float64 `json:"average"`
-	Date    string  `json:"date"`
-}
-
-// V2 converts
-// Not a complete conversion, have to work out account data after
-func (self *AwsUptime) V2() *models.AwsUptime {
-	var (
-		account *models.AwsAccount
-		uptime  *models.AwsUptime
-		unit    *models.Unit
-		ts      string
-		now     string = time.Now().UTC().Format(dateformats.Full)
-	)
-	if self.Ts == "" {
-		self.Ts = now
-	}
-	ts = dateutils.Reformat(self.Ts, dateformats.Full)
-
-	unit = &models.Unit{
-		Ts:   ts,
-		Name: strings.ToLower(self.Unit),
-	}
-	account = self.Account(unit)
-	uptime = &models.AwsUptime{
-		Ts:         ts,
-		Date:       self.Date,
-		Average:    self.Average,
-		Unit:       (*models.UnitForeignKey)(unit),
-		AwsAccount: (*models.AwsAccountForeignKey)(account),
-	}
-	return uptime
-}
-
-func (self *AwsUptime) Account(unit *models.Unit) (account *models.AwsAccount) {
-	account = &models.AwsAccount{
-		Environment: "production",
-		Ts:          self.Ts,
-		Name:        strings.ToLower(fmt.Sprintf("%s production", unit.Name)),
-		Label:       strings.ToLower(unit.Name),
-	}
-
-	switch unit.Name {
-	case "digideps":
-		account.Number = "515688267891"
-	case "make":
-		account.Number = "980242665824"
-	case "modernise":
-		account.Number = "313879017102"
-	case "serve":
-		account.Number = "933639921819"
-	case "sirius":
-		account.Number = "649098267436"
-	case "use":
-		account.Number = "690083044361"
-	}
-
-	return
-}
 
 type GithubStandard struct {
 	ID                             int    `json:"-"`
@@ -168,12 +48,15 @@ type GithubStandard struct {
 	Teams                          string `json:"teams"`
 }
 
-func (self *GithubStandard) V2() *models.GitHubRepositoryStandard {
+// MarshalJSON converts from current version to model version so
+// when writing this struct to a json file it will take the form
+// of a new model
+func (self *GithubStandard) MarshalJSON() (bytes []byte, err error) {
 	var (
 		teams    []*models.GitHubTeam
 		repo     *models.GitHubRepository
-		standard = &models.GitHubRepositoryStandard{}
 		ts       string
+		standard *models.GitHubRepositoryStandard
 		now      string = time.Now().UTC().Format(dateformats.Full)
 	)
 	if self.Ts == "" {
@@ -181,8 +64,39 @@ func (self *GithubStandard) V2() *models.GitHubRepositoryStandard {
 	}
 	ts = dateutils.Reformat(self.Ts, dateformats.Full)
 
-	// swap over
-	structs.Convert(self, standard)
+	// setup new to include all of the old
+	standard = &models.GitHubRepositoryStandard{
+		Ts:                             self.Ts,
+		CompliantBaseline:              uint8(self.CompliantBaseline),
+		CompliantExtended:              uint8(self.CompliantExtended),
+		CountOfClones:                  self.CountOfClones,
+		CountOfForks:                   self.CountOfForks,
+		CountOfPullRequests:            self.CountOfPullRequests,
+		CountOfWebHooks:                self.CountOfWebHooks,
+		DefaultBranch:                  self.DefaultBranch,
+		HasCodeOfConduct:               uint8(self.HasCodeOfConduct),
+		HasCodeownerApprovalRequired:   uint8(self.HasCodeownerApprovalRequired),
+		HasContributingGuide:           uint8(self.HasContributingGuide),
+		HasDefaultBranchOfMain:         uint8(self.HasDefaultBranchOfMain),
+		HasDefaultBranchProtection:     uint8(self.HasDefaultBranchProtection),
+		HasDeleteBranchOnMerge:         uint8(self.HasDeleteBranchOnMerge),
+		HasDescription:                 uint8(self.HasDescription),
+		HasDiscussions:                 uint8(self.HasDiscussions),
+		HasDownloads:                   uint8(self.HasDownloads),
+		HasIssues:                      uint8(self.HasIssues),
+		HasLicense:                     uint8(self.HasLicense),
+		HasPages:                       uint8(self.HasPages),
+		HasPullRequestApprovalRequired: uint8(self.HasPullRequestApprovalRequired),
+		HasReadme:                      uint8(self.HasReadme),
+		HasRulesEnforcedForAdmins:      uint8(self.HasRulesEnforcedForAdmins),
+		HasVulnerabilityAlerts:         uint8(self.HasVulnerabilityAlerts),
+		HasWiki:                        uint8(self.HasWiki),
+		IsArchived:                     uint8(self.IsArchived),
+		IsPrivate:                      uint8(self.IsPrivate),
+		License:                        self.License,
+		LastCommitDate:                 self.LastCommitDate,
+	}
+
 	// create the team list
 	for _, name := range strings.Split(self.Teams, "#") {
 		if len(name) > 0 {
@@ -190,7 +104,7 @@ func (self *GithubStandard) V2() *models.GitHubRepositoryStandard {
 				Ts:   ts,
 				Slug: strings.ReplaceAll(strings.ToLower(name), " ", "-"),
 			}
-			team.Units = self.TeamUnits(team)
+			team.Units = team.StandardUnits()
 			teams = append(teams, team)
 		}
 	}
@@ -212,10 +126,7 @@ func (self *GithubStandard) V2() *models.GitHubRepositoryStandard {
 	standard.GitHubRepositoryFullName = repo.FullName
 	standard.GitHubRepository = (*models.GitHubRepositoryForeignKey)(repo)
 
-	return standard
-}
+	bytes, err = json.MarshalIndent(standard, "", "  ")
 
-func (self *GithubStandard) TeamUnits(team *models.GitHubTeam) (units models.Units) {
-	units = team.StandardUnits()
 	return
 }

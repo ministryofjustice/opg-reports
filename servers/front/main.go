@@ -20,9 +20,12 @@ func main() {
 	Run()
 }
 
-func Run() {
-	// download the assets
+func init() {
+	// download the assets from gov uk
 	lib.DownloadGovUKAssets(assetsDirectory)
+}
+
+func Run() {
 
 	svr := lib.NewSvr(
 		&lib.Cfg{
