@@ -39,6 +39,7 @@ var (
 var (
 	allHandlers map[string]map[string]lib.RegisterHandlerFunc = map[string]map[string]lib.RegisterHandlerFunc{
 		"simple": {
+			"dataset":                     handlers.RegisterDatasets,
 			"github-repository-standards": handlers.RegisterGitHubRepositoryStandards,
 			"github-teams":                handlers.RegisterGitHubTeams,
 			"units":                       handlers.RegisterUnits,
@@ -47,6 +48,7 @@ var (
 			"aws-accounts":                handlers.RegisterAwsAccounts,
 			"aws-costs":                   handlers.RegisterAwsCosts,
 			"aws-uptime":                  handlers.RegisterAwsUptime,
+			"dataset":                     handlers.RegisterDatasets,
 			"github-repositories":         handlers.RegisterGitHubRepositories,
 			"github-releases":             handlers.RegisterGitHubRelases,
 			"github-repository-standards": handlers.RegisterGitHubRepositoryStandards,

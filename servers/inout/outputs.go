@@ -41,7 +41,7 @@ type RequestBody[T any] struct {
 	Request T `json:"request" doc:"the original request"`
 }
 
-func NewDateRequestBody[T any](t T) *RequestBody[T] {
+func NewRequestBody[T any](t T) *RequestBody[T] {
 	return &RequestBody[T]{Request: t}
 }
 
@@ -78,7 +78,7 @@ type AwsAccountsListBody struct {
 func NewAwsAccountsListBody() *AwsAccountsListBody {
 	return &AwsAccountsListBody{
 		OperationBody: NewOperationBody(),
-		RequestBody:   NewDateRequestBody(&VersionUnitInput{}),
+		RequestBody:   NewRequestBody(&VersionUnitInput{}),
 		ResultBody:    NewResultBody[*models.AwsAccount](),
 	}
 }
@@ -96,7 +96,7 @@ type AwsCostsTotalBody struct {
 func NewAwsCostsTotalBody() *AwsCostsTotalBody {
 	return &AwsCostsTotalBody{
 		OperationBody: NewOperationBody(),
-		RequestBody:   NewDateRequestBody(&DateRangeUnitInput{}),
+		RequestBody:   NewRequestBody(&DateRangeUnitInput{}),
 		ResultBody:    NewResultBody[*models.AwsCost](),
 	}
 }
@@ -114,7 +114,7 @@ type AwsCostsListBody struct {
 func NewAwsCostsListBody() *AwsCostsListBody {
 	return &AwsCostsListBody{
 		OperationBody: NewOperationBody(),
-		RequestBody:   NewDateRequestBody(&DateRangeUnitInput{}),
+		RequestBody:   NewRequestBody(&DateRangeUnitInput{}),
 		ResultBody:    NewResultBody[*models.AwsCost](),
 	}
 }
@@ -140,7 +140,7 @@ func NewAwsCostsTaxesBody() *AwsCostsTaxesBody {
 		ColumnBody:        NewColumnBody(),
 		DateWideTableBody: NewDateWideTableBody(),
 		DateRangeBody:     NewDateRangeBody(),
-		RequestBody:       NewDateRequestBody(&RequiredGroupedDateRangeUnitInput{}),
+		RequestBody:       NewRequestBody(&RequiredGroupedDateRangeUnitInput{}),
 		ResultBody:        NewResultBody[*models.AwsCost](),
 	}
 }
@@ -166,7 +166,7 @@ func NewAwsCostsSumBody() *AwsCostsSumBody {
 		ColumnBody:        NewColumnBody(),
 		DateWideTableBody: NewDateWideTableBody(),
 		DateRangeBody:     NewDateRangeBody(),
-		RequestBody:       NewDateRequestBody(&RequiredGroupedDateRangeUnitInput{}),
+		RequestBody:       NewRequestBody(&RequiredGroupedDateRangeUnitInput{}),
 		ResultBody:        NewResultBody[*models.AwsCost](),
 	}
 }
@@ -192,7 +192,7 @@ func NewAwsCostsSumPerUnitBody() *AwsCostsSumPerUnitBody {
 		ColumnBody:        NewColumnBody(),
 		DateWideTableBody: NewDateWideTableBody(),
 		DateRangeBody:     NewDateRangeBody(),
-		RequestBody:       NewDateRequestBody(&RequiredGroupedDateRangeInput{}),
+		RequestBody:       NewRequestBody(&RequiredGroupedDateRangeInput{}),
 		ResultBody:        NewResultBody[*models.AwsCost](),
 	}
 }
@@ -218,7 +218,7 @@ func NewAwsCostsSumPerUnitEnvBody() *AwsCostsSumPerUnitEnvBody {
 		ColumnBody:        NewColumnBody(),
 		DateWideTableBody: NewDateWideTableBody(),
 		DateRangeBody:     NewDateRangeBody(),
-		RequestBody:       NewDateRequestBody(&RequiredGroupedDateRangeInput{}),
+		RequestBody:       NewRequestBody(&RequiredGroupedDateRangeInput{}),
 		ResultBody:        NewResultBody[*models.AwsCost](),
 	}
 }
@@ -245,7 +245,7 @@ func NewAwsCostsSumFullDetailsBody() *AwsCostsSumFullDetailsBody {
 		ColumnBody:        NewColumnBody(),
 		DateWideTableBody: NewDateWideTableBody(),
 		DateRangeBody:     NewDateRangeBody(),
-		RequestBody:       NewDateRequestBody(&RequiredGroupedDateRangeUnitInput{}),
+		RequestBody:       NewRequestBody(&RequiredGroupedDateRangeUnitInput{}),
 		ResultBody:        NewResultBody[*models.AwsCost](),
 	}
 }
@@ -264,7 +264,7 @@ type AwsUptimeListBody struct {
 func NewAwsUptimeListBody() *AwsUptimeListBody {
 	return &AwsUptimeListBody{
 		OperationBody: NewOperationBody(),
-		RequestBody:   NewDateRequestBody(&DateRangeUnitInput{}),
+		RequestBody:   NewRequestBody(&DateRangeUnitInput{}),
 		ResultBody:    NewResultBody[*models.AwsUptime](),
 	}
 }
@@ -289,7 +289,7 @@ func NewAwsUptimeAveragesBody() *AwsUptimeAveragesBody {
 		ColumnBody:        NewColumnBody(),
 		DateWideTableBody: NewDateWideTableBody(),
 		DateRangeBody:     NewDateRangeBody(),
-		RequestBody:       NewDateRequestBody(&RequiredGroupedDateRangeUnitInput{}),
+		RequestBody:       NewRequestBody(&RequiredGroupedDateRangeUnitInput{}),
 		ResultBody:        NewResultBody[*models.AwsUptime](),
 	}
 }
@@ -314,8 +314,22 @@ func NewAwsUptimeAveragesPerUnitBody() *AwsUptimeAveragesPerUnitBody {
 		ColumnBody:        NewColumnBody(),
 		DateWideTableBody: NewDateWideTableBody(),
 		DateRangeBody:     NewDateRangeBody(),
-		RequestBody:       NewDateRequestBody(&RequiredGroupedDateRangeInput{}),
+		RequestBody:       NewRequestBody(&RequiredGroupedDateRangeInput{}),
 		ResultBody:        NewResultBody[*models.AwsUptime](),
+	}
+}
+
+type DatasetsListBody struct {
+	*OperationBody
+	*RequestBody[*VersionInput]
+	*ResultBody[*models.Dataset]
+}
+
+func NewDatasetsListBody() *DatasetsListBody {
+	return &DatasetsListBody{
+		OperationBody: NewOperationBody(),
+		RequestBody:   NewRequestBody(&VersionInput{}),
+		ResultBody:    NewResultBody[*models.Dataset](),
 	}
 }
 
@@ -333,7 +347,7 @@ type GitHubReleasesListBody struct {
 func NewGitHubReleasesListBody() *GitHubReleasesListBody {
 	return &GitHubReleasesListBody{
 		OperationBody: NewOperationBody(),
-		RequestBody:   NewDateRequestBody(&DateRangeUnitInput{}),
+		RequestBody:   NewRequestBody(&DateRangeUnitInput{}),
 		ResultBody:    NewResultBody[*models.GitHubRelease](),
 	}
 }
@@ -358,7 +372,7 @@ func NewGitHubReleasesCountBody() *GitHubReleasesCountBody {
 		ColumnBody:        NewColumnBody(),
 		DateWideTableBody: NewDateWideTableBody(),
 		DateRangeBody:     NewDateRangeBody(),
-		RequestBody:       NewDateRequestBody(&RequiredGroupedDateRangeUnitInput{}),
+		RequestBody:       NewRequestBody(&RequiredGroupedDateRangeUnitInput{}),
 		ResultBody:        NewResultBody[*models.GitHubRelease](),
 	}
 }
@@ -382,7 +396,7 @@ func NewGitHubReleasesCountPerUnitBody() *GitHubReleasesCountPerUnitBody {
 		ColumnBody:        NewColumnBody(),
 		DateWideTableBody: NewDateWideTableBody(),
 		DateRangeBody:     NewDateRangeBody(),
-		RequestBody:       NewDateRequestBody(&RequiredGroupedDateRangeInput{}),
+		RequestBody:       NewRequestBody(&RequiredGroupedDateRangeInput{}),
 		ResultBody:        NewResultBody[*models.GitHubRelease](),
 	}
 }
@@ -400,7 +414,7 @@ type GitHubRepositoriesListBody struct {
 func NewGitHubRepositoriesListBody() *GitHubRepositoriesListBody {
 	return &GitHubRepositoriesListBody{
 		OperationBody: NewOperationBody(),
-		RequestBody:   NewDateRequestBody(&VersionUnitInput{}),
+		RequestBody:   NewRequestBody(&VersionUnitInput{}),
 		ResultBody:    NewResultBody[*models.GitHubRepository](),
 	}
 }
@@ -427,7 +441,7 @@ type GitHubRepositoryStandardsCount struct {
 func NewGitHubRepositoryStandardsListBody() *GitHubRepositoryStandardsListBody {
 	return &GitHubRepositoryStandardsListBody{
 		OperationBody:    NewOperationBody(),
-		RequestBody:      NewDateRequestBody(&VersionUnitInput{}),
+		RequestBody:      NewRequestBody(&VersionUnitInput{}),
 		ResultBody:       NewResultBody[*models.GitHubRepositoryStandard](),
 		BaselineCounters: &GitHubRepositoryStandardsCount{},
 		ExtendedCounters: &GitHubRepositoryStandardsCount{},
@@ -447,7 +461,7 @@ type GitHubTeamsListBody struct {
 func NewGitHubTeamsListBody() *GitHubTeamsListBody {
 	return &GitHubTeamsListBody{
 		OperationBody: NewOperationBody(),
-		RequestBody:   NewDateRequestBody(&VersionUnitInput{}),
+		RequestBody:   NewRequestBody(&VersionUnitInput{}),
 		ResultBody:    NewResultBody[*models.GitHubTeam](),
 	}
 }
@@ -465,7 +479,7 @@ type UnitsListBody struct {
 func NewUnitsListBody() *UnitsListBody {
 	return &UnitsListBody{
 		OperationBody: NewOperationBody(),
-		RequestBody:   NewDateRequestBody(&VersionInput{}),
+		RequestBody:   NewRequestBody(&VersionInput{}),
 		ResultBody:    NewResultBody[*models.Unit](),
 	}
 }
@@ -556,6 +570,10 @@ type AwsUptimeAveragesResponse struct {
 // Returned from handlers.ApiAwsUptimeAveragesPerUnitHandler
 type AwsUptimeAveragesPerUnitResponse struct {
 	Body *AwsUptimeAveragesPerUnitBody
+}
+
+type DatasetsListResponse struct {
+	Body *DatasetsListBody
 }
 
 // GitHubReleasesListResponse is the main object returned from a huma handler and

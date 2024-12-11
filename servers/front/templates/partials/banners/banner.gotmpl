@@ -1,6 +1,6 @@
 {{ define "banner" }}
-<header class="govuk-header app-header" role="banner">
-  <div class="govuk-header__container app-width-container app-header__container">
+<header class="govuk-header app-header dataset__{{ .Dataset }}" role="banner">
+  <div class="govuk-header__container app-width-container app-header__container dataset__{{ .Dataset }}">
     <div class="govuk-header__logo app-header__logo">
       <a href="/" class="govuk-header__link govuk-header__link--homepage">
         <svg focusable="false" role="img" class="govuk-header__logotype" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 148 30" height="30" width="148" aria-label="GOV.UK">
@@ -11,6 +11,14 @@
       </a>
     </div>
   </div>
+
 </header>
+{{ if ne .Dataset "real" }}
+<div class="dataset-warning">
+  <div class="govuk-warning-text app-width-container">
+    <span class="govuk-warning-text__icon" aria-hidden="true">!</span><strong class="govuk-warning-text__text"><span class="govuk-visually-hidden">Warning</span>This site is using test data.</strong>
+  </div>
+</div>
+{{ end }}
 <a id="top"></a>
 {{ end }}

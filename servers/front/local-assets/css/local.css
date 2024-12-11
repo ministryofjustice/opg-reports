@@ -11,9 +11,31 @@ GOV UK STYLE OVERWRITES
     margin-top:10px;
     font-size: 0.8rem;
 }
+
 /*************************
 CUSTOM STYLES
 *************************/
+.dataset__real{
+    border-color: #1d70b8;
+}
+.dataset__fake {
+    border-color: #d4351c;
+    border-bottom-color: #d4351c;
+}
+.dataset-warning {
+    background:#d4351c;
+}
+.dataset-warning .govuk-warning-text{
+    margin-bottom:0;
+    padding-bottom:20px;
+}
+.dataset-warning .govuk-warning-text__text{
+    color: white;
+}
+.dataset-warning .govuk-warning-text__icon{
+    background:#d4351c;
+    border-color:white;
+}
 /* body containers */
 .app-content{
     padding: 15px;
@@ -57,9 +79,7 @@ CUSTOM STYLES
     max-width: 100%; /* the base gov uk style forces max of 160px */
 }
 /* side bar navigation */
-.app-header{
-    border-bottom: 10px solid #1d70b8
-}
+
 .app-width-container{
     margin-left:30px;
     margin-right:30px;

@@ -11,10 +11,12 @@ import (
 	"sync"
 
 	"github.com/ministryofjustice/opg-reports/info"
+	"github.com/ministryofjustice/opg-reports/internal/endpoints"
 	"github.com/ministryofjustice/opg-reports/internal/fetch"
 	"github.com/ministryofjustice/opg-reports/internal/navigation"
 	"github.com/ministryofjustice/opg-reports/internal/render"
 	"github.com/ministryofjustice/opg-reports/internal/structs"
+	"github.com/ministryofjustice/opg-reports/servers/inout"
 )
 
 // Cfg contains the config data (address, mux server)
@@ -177,22 +179,17 @@ type Svr struct {
 //
 // The returned data is merged into the pageData map under the namespace
 // tracked in the navigation item.
-//
-// That data has been casted into the .Body attribute, so will be of the
-// expected struct within the template (generally a `StandardBody`).
 func (self *Svr) Handler(writer http.ResponseWriter, request *http.Request) {
 	slog.Info("[svr.Handler] uri: " + request.URL.String())
 	var (
 		activePage *navigation.Navigation
 		flat       = self.Navigation.Flat()
 		pageData   = map[string]interface{}{
-			//
-			"Signature": info.BuildInfo(),
-			// org is used in the header
-			"Organisation": self.Response.Organisation,
-			"Path":         request.URL.Path,
-			// used for path to the css etc
-			"GovUKVersion": self.Response.GovUKVersion,
+			"Dataset":      "real",
+			"Signature":    info.BuildInfo(),
+			"Organisation": self.Response.Organisation, // org is used in the header
+			"Path":         request.URL.Path,           // used for path to the css etc
+			"GovUKVersion": self.Response.GovUKVersion, // GovUK version
 			// empty placeholders
 			"NavigationActive":  nil,
 			"NavigationRoot":    nil,
@@ -201,6 +198,8 @@ func (self *Svr) Handler(writer http.ResponseWriter, request *http.Request) {
 		}
 	)
 	self.Response.Reset()
+	// go get the dataset type
+	pageData["Dataset"] = FetchDataset(self.Api)
 	// activate items in the stack
 	activePage = navigation.ActivateFlat(flat, request)
 	if activePage == nil {
@@ -262,6 +261,23 @@ func (self *Svr) Run() {
 
 	self.Cfg.Server().ListenAndServe()
 
+}
+
+// FetchDataset is a extra api call to check if the data being used is
+// real or fake to allow this to be show on the front end
+func FetchDataset(api *Api) (dataset string) {
+	var (
+		host                         = fmt.Sprintf("http://%s", api.Addr)
+		source endpoints.ApiEndpoint = "/v1/dataset/list"
+	)
+	dataset = "fake"
+	if content, code, err := fetch.Fetch(host, source, nil); code == http.StatusOK && err == nil {
+		var res = inout.NewDatasetsListBody()
+		if e := structs.Unmarshal(content, &res); e == nil {
+			dataset = res.Result[0].Name
+		}
+	}
+	return
 }
 
 // FetchDataForPage iterates over the data items for this navigation item
