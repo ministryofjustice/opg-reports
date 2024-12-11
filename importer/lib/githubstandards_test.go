@@ -51,10 +51,10 @@ func Test_processStandards(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 	defer adaptor.DB().Close()
-	// bootstrap the database - this will now recreate the standards table
+
 	err = crud.Bootstrap(ctx, adaptor, models.Full()...)
 	if err != nil {
-		return
+		t.Fatalf(err.Error())
 	}
 
 	_, err = processGithubStandards(ctx, adaptor, sourceFile)

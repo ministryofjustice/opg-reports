@@ -101,7 +101,7 @@ func Insert[A dbs.Adaptor, T dbs.Insertable, R dbs.InsertableRow](ctx context.Co
 	return
 }
 
-// Truncate drops an existing table
+// Truncate drops an existing table and then recreates it
 func Truncate[A dbs.Adaptor, T dbs.Insertable](ctx context.Context, adaptor A, table T) (err error) {
 	var (
 		tx           *sqlx.Tx
@@ -139,5 +139,7 @@ func Truncate[A dbs.Adaptor, T dbs.Insertable](ctx context.Context, adaptor A, t
 	if err != nil {
 		transactions.Rollback()
 	}
+
+	_, err = CreateTable(ctx, adaptor, table)
 	return
 }

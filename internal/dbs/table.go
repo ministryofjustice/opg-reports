@@ -28,7 +28,7 @@ type Createable interface {
 // Insertable interface provides methods used to insert value into this
 // table from a struct of it - provides the insert query details
 type Insertable interface {
-	Table
+	CreateableTable
 	// InsertColumns returns list of fields that should be inserted
 	// and the store wrapper will work out the values
 	InsertColumns() []string
@@ -39,12 +39,3 @@ type Insertable interface {
 	// UpsertUpdate provides string for the `UPDATE SET ...` part of the upsert
 	UpsertUpdate() string
 }
-
-// type Joiner interface {
-// 	sql.Scanner
-// 	JoinOneToMany | JoinManyToMany
-// }
-
-// type JoinOneToMany interface{}
-
-// type JoinManyToMany interface{}

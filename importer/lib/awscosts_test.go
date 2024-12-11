@@ -40,6 +40,10 @@ func Test_processAwsCosts(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 	defer adaptor.DB().Close()
+	err = crud.Bootstrap(ctx, adaptor, models.Full()...)
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
 
 	// make some fake units
 	units = fakermany.Fake[*models.Unit](3)
@@ -59,11 +63,6 @@ func Test_processAwsCosts(t *testing.T) {
 	}
 
 	structs.ToFile(costs, sourceFile)
-	// bootstrap the database - this will now recreate the standards table
-	err = crud.Bootstrap(ctx, adaptor, models.Full()...)
-	if err != nil {
-		return
-	}
 
 	res, err = processAwsCosts(ctx, adaptor, sourceFile)
 	if err != nil {
