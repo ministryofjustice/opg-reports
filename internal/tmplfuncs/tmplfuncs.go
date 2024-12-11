@@ -133,6 +133,14 @@ func Month(s string) (date string) {
 	return
 }
 
+func MonthName(s string) (date string) {
+	date = s
+	if v, err := dateutils.Time(s); err == nil {
+		date = v.Format(dateformats.NameYM)
+	}
+	return
+}
+
 // DayBefore converts the string into a date, removes 1 day
 // and then converts back to a string formatted as yyyy-mm-dd
 func DayBefore(s string) (date string) {
@@ -168,6 +176,7 @@ var All map[string]interface{} = map[string]interface{}{
 	"month":      Month,
 	"day":        Day,
 	"dayBefore":  DayBefore,
+	"monthName":  MonthName,
 	// info
 	"awsBillingDay": func() int { return info.AwsBillingDay },
 }

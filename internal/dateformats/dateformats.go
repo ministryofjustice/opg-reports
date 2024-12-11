@@ -5,10 +5,11 @@ package dateformats
 import "time"
 
 const (
-	Full string = time.RFC3339
-	Y    string = "2006"
-	YM   string = "2006-01"
-	YMD  string = "2006-01-02"
+	Full   string = time.RFC3339
+	Y      string = "2006"
+	YM     string = "2006-01"
+	YMD    string = "2006-01-02"
+	NameYM string = "January 2006"
 )
 
 // old formats used in earlier versions of data
