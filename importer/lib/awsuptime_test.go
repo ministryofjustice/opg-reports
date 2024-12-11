@@ -7,6 +7,7 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
 	"github.com/ministryofjustice/opg-reports/internal/dbs/adaptors"
+	"github.com/ministryofjustice/opg-reports/internal/dbs/crud"
 	"github.com/ministryofjustice/opg-reports/internal/fakerextensions/fakerextras"
 	"github.com/ministryofjustice/opg-reports/internal/fakerextensions/fakermany"
 	"github.com/ministryofjustice/opg-reports/internal/structs"
@@ -57,6 +58,11 @@ func Test_processAwsUptime(t *testing.T) {
 	}
 
 	structs.ToFile(uptime, sourceFile)
+	// bootstrap the database - this will now recreate the standards table
+	err = crud.Bootstrap(ctx, adaptor, models.Full()...)
+	if err != nil {
+		return
+	}
 
 	res, err = processAwsUptime(ctx, adaptor, sourceFile)
 	if err != nil {

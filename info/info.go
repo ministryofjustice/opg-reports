@@ -13,8 +13,8 @@ var (
 
 var (
 	Organisation string = "OPG"                     // Name of the organisation - used to display in the front end
-	Dataset      string = "real"                    // Used by the api init to decide if we should download real or generate seeded database
-	Fixtures     string = "full"                    // Used by front and api to determine if we're using all areas of just standards
+	Dataset      string = "real"                    // Used by the api init to decide if we should download real or generate seeded database. Allowed values: "real", "fake"
+	Fixtures     string = "full"                    // Used by front and api to determine if we're using all areas of just standards. Allowed values: "full", "simple"
 	BucketName   string = "report-data-development" // Name of the bucket where all data is stored
 )
 

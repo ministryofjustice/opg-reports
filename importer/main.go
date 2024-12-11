@@ -29,15 +29,17 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"time"
 
 	"github.com/ministryofjustice/opg-reports/importer/lib"
+	"github.com/ministryofjustice/opg-reports/internal/dateformats"
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
 	"github.com/ministryofjustice/opg-reports/internal/dbs/adaptors"
+	"github.com/ministryofjustice/opg-reports/internal/dbs/crud"
+	"github.com/ministryofjustice/opg-reports/models"
 )
 
-var (
-	args = &lib.Arguments{}
-)
+var args = &lib.Arguments{}
 
 func Run(args *lib.Arguments) (err error) {
 	var (
@@ -51,8 +53,27 @@ func Run(args *lib.Arguments) (err error) {
 		return
 	}
 	adaptor, err = adaptors.NewSqlite(args.DatabasePath, false)
+	defer adaptor.DB().Close()
 
+	// remove existing dataset tracking table
+	err = crud.Truncate(ctx, adaptor, &models.Dataset{})
+	if err != nil {
+		return
+	}
+	// bootstrap the database - this will now recreate the standards table
+	err = crud.Bootstrap(ctx, adaptor, models.Full()...)
+	if err != nil {
+		return
+	}
 	_, err = f(ctx, adaptor, args.SourceFile)
+
+	// insert record
+	isReal := []*models.Dataset{
+		{Name: "real", Ts: time.Now().UTC().Format(dateformats.Full)},
+	}
+	if _, err = crud.Insert(ctx, adaptor, &models.Dataset{}, isReal...); err != nil {
+		return
+	}
 
 	return
 

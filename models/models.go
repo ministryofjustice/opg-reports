@@ -8,6 +8,7 @@ func Full() []interface{} {
 		&AwsAccount{},                 // AwsAccount details attached to other aws models
 		&AwsCost{},                    // AwsCosts model
 		&AwsUptime{},                  // AwsUptime tracking
+		&Dataset{},                    // Single record table to say if data is real or not
 		&GitHubRepositoryGitHubTeam{}, // Many to many join between repo and teams
 		&GitHubTeamUnit{},             // Many to many between guthub team and base units
 		&GitHubTeam{},                 // GitHub team models used on other github models

@@ -75,7 +75,7 @@ clean:
 ## Run the api from dev source - will copy existing db to location
 api:
 	@mkdir -p ./servers/api/databases
-	@cp ./builds/databases/api.db ./servers/api/databases && echo "copied db ${passed}" || echo "no db to copy"
+	@cp ./builds/databases/api.db ./servers/api/databases && echo "copied db ${passed}" || echo "no db to copy ${failed}"
 	@cd ./servers/api && go run main.go
 .PHONY: api
 
@@ -106,9 +106,9 @@ import/s3download:
 
 ## Convert the old format of data into the new version and output to known location
 import/convert:
-	@echo -n "[converting] aws_costs .................. " && ./builds/convertor -type="aws-costs" -source=./builds/bucket-data/aws_costs -destination=./builds/converted-data/aws_costs.json && echo "${passed}" || echo "${failed}"
-	@echo -n "[converting] aws_uptime ................. " && ./builds/convertor -type="aws-uptime" -source=./builds/bucket-data/aws_uptime -destination=./builds/converted-data/aws_uptime.json && echo "${passed}" || echo "${failed}"
-	@echo -n "[converting] github_standards ........... " && ./builds/convertor -type="github-standards" -source=./builds/bucket-data/github_standards -destination=./builds/converted-data/github_standards.json && echo "${passed}" || echo "${failed}"
+	@echo "[converting] aws_costs .................. " && ./builds/convertor -type="aws-costs" -source=./builds/bucket-data/aws_costs -destination=./builds/converted-data/aws_costs.json && echo "${passed}" || echo "${failed}"
+	@echo "[converting] aws_uptime ................. " && ./builds/convertor -type="aws-uptime" -source=./builds/bucket-data/aws_uptime -destination=./builds/converted-data/aws_uptime.json && echo "${passed}" || echo "${failed}"
+	@echo "[converting] github_standards ........... " && ./builds/convertor -type="github-standards" -source=./builds/bucket-data/github_standards -destination=./builds/converted-data/github_standards.json && echo "${passed}" || echo "${failed}"
 .PHONY: import/convert
 
 ## Generates releases as of 2024 - this is used as releases were not captured on the old method but we
@@ -122,11 +122,14 @@ import/releases:
 ## - Converts to new format
 ## - Generates releases
 ## - Imports to new database
-import: clean build import/s3download import/convert import/releases
-# @cd ./builds && ./importer -type=github-standards -file=./converted-data/github_standards.json
-# @cd ./builds && ./importer -type=github-releases -file=./converted-data/github_releases.json
-# @cd ./builds && ./importer -type=aws-uptime -file=./converted-data/aws_uptime.json
-# @cd ./builds && ./importer -type=aws-costs -file=./converted-data/aws_costs.json
+import/all: clean build import/s3download import/convert import/releases import
+.PHONY: import/all
+## Imports to new database
+import:
+	@./builds/importer -database="./builds/databases/api.db" -type=github-standards -file=./builds/converted-data/github_standards.json
+	@./builds/importer -database="./builds/databases/api.db" -type=github-releases -file=./builds/converted-data/github_releases.json
+	@./builds/importer -database="./builds/databases/api.db" -type=aws-uptime -file=./builds/converted-data/aws_uptime.json
+	@./builds/importer -database="./builds/databases/api.db" -type=aws-costs -file=./builds/converted-data/aws_costs.json
 .PHONY: import
 
 #========= BUILD GO BINARIES =========

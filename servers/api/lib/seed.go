@@ -3,7 +3,9 @@ package lib
 import (
 	"context"
 	"log/slog"
+	"time"
 
+	"github.com/ministryofjustice/opg-reports/internal/dateformats"
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
 	"github.com/ministryofjustice/opg-reports/internal/dbs/adaptors"
 	"github.com/ministryofjustice/opg-reports/internal/dbs/crud"
@@ -73,6 +75,18 @@ func SeedDB(ctx context.Context, dbPath string) {
 	if err != nil {
 		slog.Error("[seed] error with seeding aws uptime", slog.String("err", err.Error()))
 		panic(err)
+	}
+	// -- mark this data as dummy data
+	err = crud.Truncate(ctx, adaptor, &models.Dataset{})
+	if err != nil {
+		return
+	}
+	// insert record
+	isTest := []*models.Dataset{
+		{Name: "fake", Ts: time.Now().UTC().Format(dateformats.Full)},
+	}
+	if _, err = crud.Insert(ctx, adaptor, &models.Dataset{}, isTest...); err != nil {
+		return
 	}
 
 }

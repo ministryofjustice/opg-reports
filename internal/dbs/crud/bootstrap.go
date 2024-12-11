@@ -37,6 +37,7 @@ func Bootstrap[A dbs.Adaptor](ctx context.Context, adaptor A, setupItems ...inte
 	// checking it implments CreateableTable
 	for _, setup := range setupItems {
 		ct, ok := setup.(dbs.CreateableTable)
+
 		if !ok {
 			err = ErrModelIsNotCorrectInterface
 			return
@@ -51,7 +52,6 @@ func Bootstrap[A dbs.Adaptor](ctx context.Context, adaptor A, setupItems ...inte
 		if err != nil {
 			return
 		}
-
 	}
 
 	return

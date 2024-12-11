@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
-	"github.com/ministryofjustice/opg-reports/internal/dbs/crud"
 	"github.com/ministryofjustice/opg-reports/internal/structs"
 	"github.com/ministryofjustice/opg-reports/models"
 	"github.com/ministryofjustice/opg-reports/seed"
@@ -24,12 +23,6 @@ func processAwsUptime(ctx context.Context, adaptor dbs.Adaptor, path string) (re
 	}
 	// read the file and convert into standards list
 	if err = structs.UnmarshalFile(path, &uptime); err != nil {
-		return
-	}
-
-	// bootstrap the database - this will now recreate the standards table
-	err = crud.Bootstrap(ctx, adaptor, models.Full()...)
-	if err != nil {
 		return
 	}
 
