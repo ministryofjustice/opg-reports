@@ -167,7 +167,7 @@ func TestApiHandlersAwsCostsSumPerUnitEnvHandler(t *testing.T) {
 	}
 
 	// query the api handler
-	in := &inout.RequiredGroupedDateRangeInput{
+	in := &inout.RequiredGroupedDateRangeUnitInput{
 		Version:   "v1",
 		Interval:  "month",
 		StartDate: fakerextras.TimeStringMin.AddDate(0, 0, -1).Format(dateformats.YMD),

@@ -386,6 +386,7 @@ WHERE
 	aws_costs.date >= :start_date
 	AND aws_costs.date < :end_date
 	AND service != 'Tax'
+	{WHERE}
 GROUP BY units.id, aws_accounts.environment, strftime(:date_format, aws_costs.date)
 ORDER BY aws_costs.date ASC;
 `
@@ -395,7 +396,7 @@ ORDER BY aws_costs.date ASC;
 // Endpoints:
 //
 //	/version/aws/costs/sum-per-unit-env/{interval}/{start_date}/{end_date}
-func ApiAwsCostsSumPerUnitEnvHandler(ctx context.Context, input *inout.RequiredGroupedDateRangeInput) (response *inout.AwsCostsSumPerUnitEnvResponse, err error) {
+func ApiAwsCostsSumPerUnitEnvHandler(ctx context.Context, input *inout.RequiredGroupedDateRangeUnitInput) (response *inout.AwsCostsSumPerUnitEnvResponse, err error) {
 	var (
 		adaptor dbs.Adaptor
 		results []*models.AwsCost                = []*models.AwsCost{}
@@ -403,6 +404,8 @@ func ApiAwsCostsSumPerUnitEnvHandler(ctx context.Context, input *inout.RequiredG
 		sqlStmt string                           = awsCostsSumPerUnitEnvSQL
 		param   statements.Named                 = input
 		body    *inout.AwsCostsSumPerUnitEnvBody = inout.NewAwsCostsSumPerUnitEnvBody()
+		where   string                           = ""
+		replace string                           = "{WHERE}"
 	)
 	body.Request = input
 	body.Operation = AwsCostsSumPerUnitEnvOperationID
@@ -416,6 +419,12 @@ func ApiAwsCostsSumPerUnitEnvHandler(ctx context.Context, input *inout.RequiredG
 		slog.Error("[api] aws costs sum per unit env adaptor error", slog.String("err", err.Error()))
 	}
 	defer adaptor.DB().Close()
+
+	if input.Unit != "" {
+		where = "AND units.Name = :unit "
+	}
+	sqlStmt = strings.ReplaceAll(sqlStmt, replace, where)
+
 	// get the data and attach results / errors to the response
 	results, err = crud.Select[*models.AwsCost](ctx, adaptor, sqlStmt, param)
 	if err != nil {

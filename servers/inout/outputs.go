@@ -208,7 +208,7 @@ type AwsCostsSumPerUnitEnvBody struct {
 	*ColumnBody
 	*DateWideTableBody
 	*DateRangeBody
-	*RequestBody[*RequiredGroupedDateRangeInput]
+	*RequestBody[*RequiredGroupedDateRangeUnitInput]
 	*ResultBody[*models.AwsCost]
 }
 
@@ -218,7 +218,7 @@ func NewAwsCostsSumPerUnitEnvBody() *AwsCostsSumPerUnitEnvBody {
 		ColumnBody:        NewColumnBody(),
 		DateWideTableBody: NewDateWideTableBody(),
 		DateRangeBody:     NewDateRangeBody(),
-		RequestBody:       NewRequestBody(&RequiredGroupedDateRangeInput{}),
+		RequestBody:       NewRequestBody(&RequiredGroupedDateRangeUnitInput{}),
 		ResultBody:        NewResultBody[*models.AwsCost](),
 	}
 }

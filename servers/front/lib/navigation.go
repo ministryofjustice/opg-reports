@@ -252,6 +252,12 @@ func teamItems() (navs []*navigation.Navigation) {
 				Body:        &inout.AwsCostsSumPerUnitBody{},
 				Transformer: inout.TransformToDateWideTable,
 			},
+			&navigation.Data{
+				Source:      AwsCostsMonthSumUnitEnv + unitFilter,
+				Namespace:   "TeamCostsPerMonthEnv",
+				Body:        &inout.AwsCostsSumPerUnitEnvBody{},
+				Transformer: inout.TransformToDateWideTable,
+			},
 		)
 
 		monthlyCosts := navigation.New(

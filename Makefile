@@ -1,3 +1,6 @@
+# Makefile
+#	Run `make import` and then run `make api` in one terminal and `make front` in another.
+
 SHELL = bash
 #======================================
 # these are parameters used in the make file tasks
@@ -85,6 +88,8 @@ front:
 .PHONY: front
 
 #========= DOWNLOAD DATABASE =========
+aws-creds:
+	@aws-vault exec ${BUCKET_PROFILE} -- aws sts get-caller-identity
 data/download: build
 	@mkdir -p ./builds/databases
 	@aws-vault exec ${BUCKET_PROFILE} -- aws s3 sync --quiet s3://${BUCKET_NAME}/databases/api.db ./builds/databases/api.db
@@ -117,19 +122,21 @@ import/releases:
 	@echo "[generating] github_releases ............ " && env GITHUB_ACCESS_TOKEN=${GITHUB_ACCESS_TOKEN} ./builds/githubreleases -organisation="ministryofjustice" -team="opg" -output="./builds/converted-data/github_releases.json" -start="2024-01-01"
 .PHONY: import/releases
 
+## Imports to new database
+import/data:
+	@./builds/importer -database="./builds/databases/api.db" -type=github-standards -file=./builds/converted-data/github_standards.json
+	@./builds/importer -database="./builds/databases/api.db" -type=github-releases -file=./builds/converted-data/github_releases.json
+	@./builds/importer -database="./builds/databases/api.db" -type=aws-uptime -file=./builds/converted-data/aws_uptime.json
+	@./builds/importer -database="./builds/databases/api.db" -type=aws-costs -file=./builds/converted-data/aws_costs.json
+.PHONY: import/data
+
+
 ## Imports older data from previous versions into the latest database setup
 ## - Downloads from s3
 ## - Converts to new format
 ## - Generates releases
 ## - Imports to new database
-import/all: clean build import/s3download import/convert import/releases import
-.PHONY: import/all
-## Imports to new database
-import:
-	@./builds/importer -database="./builds/databases/api.db" -type=github-standards -file=./builds/converted-data/github_standards.json
-	@./builds/importer -database="./builds/databases/api.db" -type=github-releases -file=./builds/converted-data/github_releases.json
-	@./builds/importer -database="./builds/databases/api.db" -type=aws-uptime -file=./builds/converted-data/aws_uptime.json
-	@./builds/importer -database="./builds/databases/api.db" -type=aws-costs -file=./builds/converted-data/aws_costs.json
+import: aws-creds clean build import/s3download import/convert import/releases import/data
 .PHONY: import
 
 #========= BUILD GO BINARIES =========

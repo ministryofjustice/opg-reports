@@ -13,6 +13,9 @@
     {{ $costs := .TeamCostsPerMonth }}
     {{ $costsLen := len $costs.TableRows }}
 
+    {{ $costsEnv := .TeamCostsPerMonthEnv }}
+    {{ $costsEnvLen := len $costsEnv.TableRows }}
+
     <h1 class="govuk-heading-l">{{ title $uptime.Request.Unit }} monthly overview</h1>
     <p class="govuk-body">All data is grouped based on the month.</p>
     <p class="govuk-body">Showing {{ len $uptime.DateRange }} months of data between <strong>[{{ day $uptime.Request.StartDate }}]</strong> and <strong>[{{ dayBefore $uptime.Request.EndDate }}]</strong>.</p>
@@ -63,7 +66,25 @@
             {{ else }}
             <div class="govuk-warning-text">
                 <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-                <strong class="govuk-warning-text__text"><span class="govuk-visually-hidden">Warning</span>There are no costs recorded  in this time period.</strong>
+                <strong class="govuk-warning-text__text"><span class="govuk-visually-hidden">Warning</span>There are no costs recorded in this time period.</strong>
+            </div>
+            {{ end }}
+        </section>
+    {{ end }}
+
+    {{ if $costsEnv }}
+        <section class='outer team-costs-{{ $costsEnv.Operation }}'>
+            <h2 class="govuk-heading-m">Costs per environment</h2>
+            {{ if gt $costsEnvLen 0 }}
+            <p class="govuk-body">Monhtly overview of AWS costs per environment.</p>
+
+            <div class="compare dataset">
+                {{ template "currency-table" $costsEnv }}
+            </div>
+            {{ else }}
+            <div class="govuk-warning-text">
+                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+                <strong class="govuk-warning-text__text"><span class="govuk-visually-hidden">Warning</span>There are no costs recorded in this time period.</strong>
             </div>
             {{ end }}
         </section>
