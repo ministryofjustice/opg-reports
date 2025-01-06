@@ -5,7 +5,7 @@
 
     <h1 class="govuk-heading-l">Tax overview</h1>
     <p class="govuk-body">Our costs split by with & without tax values for the last {{ len $tax.DateRange }} months for comparison to finance data.</p>
-    <p class="govuk-body">Our AWS billing day ({{ awsBillingDay }}th) is mid-month, so the costs below are for <strong>[{{ day $tax.Request.StartDate }}]</strong> and <strong>[{{ dayBefore $tax.Request.EndDate }}]</strong>.</p>
+    <p class="govuk-body">Our AWS billing day ({{ awsBillingDay }}th) is mid-month, so the costs below are for <strong data-query-param="start_billing_date">[{{ day $tax.Request.StartDate }}]</strong> and <strong data-query-param="end_billing_date">[{{ dayBefore $tax.Request.EndDate }}]</strong>.</p>
 
     <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 

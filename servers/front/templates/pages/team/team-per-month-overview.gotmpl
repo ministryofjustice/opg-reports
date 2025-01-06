@@ -1,24 +1,24 @@
 {{ define "team-per-month-overview" }}
     {{ template "head" . }}
 
-    {{ $uptime := .TeamUptimeUnit }}
+    {{ $uptime := .TeamOverviewUptimeUnit }}
     {{ $uptimeLen := len $uptime.TableRows }}
 
-    {{ $repos := .TeamRepositories }}
+    {{ $repos := .TeamOverviewRepositories }}
     {{ $reposLen := len $repos.Result }}
 
-    {{ $releases := .TeamReleases }}
+    {{ $releases := .TeamOverviewReleases }}
     {{ $releasesLen := len $releases.TableRows }}
 
-    {{ $costs := .TeamCostsPerMonth }}
+    {{ $costs := .TeamOverviewCostsPerMonth }}
     {{ $costsLen := len $costs.TableRows }}
 
-    {{ $costsEnv := .TeamCostsPerMonthEnv }}
+    {{ $costsEnv := .TeamOverviewCostsPerMonthEnv }}
     {{ $costsEnvLen := len $costsEnv.TableRows }}
 
     <h1 class="govuk-heading-l">{{ title $uptime.Request.Unit }} monthly overview</h1>
-    <p class="govuk-body">All data is grouped based on the month.</p>
-    <p class="govuk-body">Showing {{ len $uptime.DateRange }} months of data between <strong>[{{ day $uptime.Request.StartDate }}]</strong> and <strong>[{{ dayBefore $uptime.Request.EndDate }}]</strong>.</p>
+    <p class="govuk-body">All data is grouped together based on the month.</p>
+    <p class="govuk-body">Showing {{ len $uptime.DateRange }} months of data between <strong data-query-param="start_month">[{{ day $uptime.Request.StartDate }}]</strong> and <strong data-query-param="end_month">[{{ dayBefore $uptime.Request.EndDate }}]</strong>.</p>
 
     {{ if $uptime }}
     <section class='outer team-uptime-{{ $uptime.Operation }}'>

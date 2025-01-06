@@ -5,7 +5,7 @@
 
     <h1 class="govuk-heading-l">Detailed costs</h1>
     <p class="govuk-body">A detailed breakdown of our costs over the past {{ len $detailed.DateRange }} months.</p>
-    <p class="govuk-body">Our AWS billing day ({{ awsBillingDay }}th) is mid-month, so the costs below are for <strong>[{{ day $detailed.Request.StartDate }}]</strong> and <strong>[{{ dayBefore $detailed.Request.EndDate }}]</strong>.</p>
+    <p class="govuk-body">Our AWS billing day ({{ awsBillingDay }}th) is mid-month, so the costs below are for <strong data-query-param="start_billing_date">[{{ day $detailed.Request.StartDate }}]</strong> and <strong data-query-param="end_billing_date">[{{ dayBefore $detailed.Request.EndDate }}]</strong>.</p>
     <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
     {{ if $detailed }}

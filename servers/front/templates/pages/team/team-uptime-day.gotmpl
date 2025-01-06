@@ -4,7 +4,7 @@
     {{ $uptime := .TeamUptimeUnitDay }}
 
     <h1 class="govuk-heading-l">{{ title $uptime.Request.Unit }} daily uptime for a month</h1>
-    <p class="govuk-body">Showing {{ len $uptime.DateRange }} days of data between <strong>[{{ day $uptime.Request.StartDate }}]</strong> and <strong>[{{ dayBefore $uptime.Request.EndDate }}]</strong>.</p>
+    <p class="govuk-body">Showing {{ len $uptime.DateRange }} days of data between <strong data-query-param="start_day">[{{ day $uptime.Request.StartDate }}]</strong> and <strong data-query-param="end_day">[{{ dayBefore $uptime.Request.EndDate }}]</strong>.</p>
 
     {{ if $uptime }}
     <section class='outer team-uptime-{{ $uptime.Operation }}'>
