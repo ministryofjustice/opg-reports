@@ -103,13 +103,11 @@ func NewRepositoryStandard(ctx context.Context, client *github.Client, r *github
 	}
 	// -- has
 	g.HasCodeOfConduct = 0
-	if _, _, _, err := client.Repositories.GetContents(ctx, repo.Owner, repo.Name,
-		codeOfConductPath, nil); err == nil {
+	if _, _, _, err := client.Repositories.GetContents(ctx, repo.Owner, repo.Name, codeOfConductPath, nil); err == nil {
 		g.HasCodeOfConduct = 1
 	}
 	g.HasContributingGuide = 0
-	if _, _, _, err := client.Repositories.GetContents(ctx, repo.Owner, repo.Name,
-		contributingGuidePath, nil); err == nil {
+	if _, _, _, err := client.Repositories.GetContents(ctx, repo.Owner, repo.Name, contributingGuidePath, nil); err == nil {
 		g.HasContributingGuide = 1
 	}
 	g.HasReadme = 0

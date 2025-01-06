@@ -10,6 +10,9 @@
     {{ $releases := .TeamReleases }}
     {{ $releasesLen := len $releases.TableRows }}
 
+    {{ $costs := .TeamCostsPerMonth }}
+    {{ $costsLen := len $costs.TableRows }}
+
     <h1 class="govuk-heading-l">{{ title $uptime.Request.Unit }} monthly overview</h1>
     <p class="govuk-body">All data is grouped based on the month.</p>
     <p class="govuk-body">Showing {{ len $uptime.DateRange }} months of data between <strong>[{{ day $uptime.Request.StartDate }}]</strong> and <strong>[{{ dayBefore $uptime.Request.EndDate }}]</strong>.</p>
@@ -47,6 +50,25 @@
     </section>
     {{ end }}
 
+
+    {{ if $costs }}
+        <section class='outer team-costs-{{ $costs.Operation }}'>
+            <h2 class="govuk-heading-m">Costs</h2>
+            {{ if gt $costsLen 0 }}
+            <p class="govuk-body">Monhtly overview of AWS costs.</p>
+
+            <div class="compare dataset">
+                {{ template "currency-table" $costs }}
+            </div>
+            {{ else }}
+            <div class="govuk-warning-text">
+                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+                <strong class="govuk-warning-text__text"><span class="govuk-visually-hidden">Warning</span>There are no costs recorded  in this time period.</strong>
+            </div>
+            {{ end }}
+        </section>
+    {{ end }}
+
     {{ if $repos }}
     <section class='outer team-repositories-{{ $repos.Operation }}'>
         {{ if gt $reposLen 0 }}
@@ -62,6 +84,8 @@
         {{ end }}
     </section>
     {{ end }}
+
+
 
 
     {{ template "foot" . }}

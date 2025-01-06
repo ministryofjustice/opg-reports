@@ -246,7 +246,14 @@ func teamItems() (navs []*navigation.Navigation) {
 				Body:        &inout.GitHubRepositoriesListBody{},
 				Transformer: inout.TransformToDateWideTable,
 			},
+			&navigation.Data{
+				Source:      AwsCostsMonthSum + unitFilter,
+				Namespace:   "TeamCostsPerMonth",
+				Body:        &inout.AwsCostsSumPerUnitBody{},
+				Transformer: inout.TransformToDateWideTable,
+			},
 		)
+
 		monthlyCosts := navigation.New(
 			"Costs",
 			fmt.Sprintf("/%s/month/costs", team),
