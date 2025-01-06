@@ -47,6 +47,7 @@ func GitHubReleases(ctx context.Context, adaptor dbs.Adaptor, releases []*models
 				found = r
 			}
 		}
+		// TODO?
 		// now the teams
 		for _, team := range repo.GitHubTeams {
 			// add to main list of teams

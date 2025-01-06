@@ -1,13 +1,8 @@
 package models
 
 import (
-	"context"
 	"fmt"
-	"strings"
-	"time"
 
-	"github.com/google/go-github/v62/github"
-	"github.com/ministryofjustice/opg-reports/internal/dateformats"
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
 )
 
@@ -129,21 +124,4 @@ func (self *GitHubRepositoryGitHubTeam) SetID(id int) {
 //   - dbs.Cloneable
 func (self *GitHubRepositoryGitHubTeam) New() dbs.Cloneable {
 	return &GitHubRepositoryGitHubTeam{}
-}
-
-// NewGitHubTeams returns a GitHubTeams ([]*GitHubTeam) of all the teams attached to the repo whose org and name is passed.
-func NewGitHubTeams(ctx context.Context, client *github.Client, organisation string, repoName string) (teams GitHubTeams, err error) {
-	teams = GitHubTeams{}
-	opts := &github.ListOptions{PerPage: 100}
-
-	if teamList, _, err := client.Repositories.ListTeams(ctx, organisation, repoName, opts); err == nil {
-		for _, team := range teamList {
-			var ts = time.Now().UTC().Format(dateformats.Full)
-			teams = append(teams, &GitHubTeam{
-				Ts:   ts,
-				Slug: strings.ToLower(*team.Slug),
-			})
-		}
-	}
-	return
 }

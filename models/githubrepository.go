@@ -1,13 +1,8 @@
 package models
 
 import (
-	"context"
 	"fmt"
-	"time"
 
-	"github.com/google/go-github/v62/github"
-	"github.com/ministryofjustice/opg-reports/internal/bools"
-	"github.com/ministryofjustice/opg-reports/internal/dateformats"
 	"github.com/ministryofjustice/opg-reports/internal/dbs"
 	"github.com/ministryofjustice/opg-reports/internal/structs"
 )
@@ -219,33 +214,5 @@ func (self *GitHubRepositoryForeignKey) Scan(src interface{}) (err error) {
 	default:
 		err = fmt.Errorf("unsupported scan src type")
 	}
-	return
-}
-
-// NewRepositoryFromRemote converts a github.Repository over to local version and fetches some additional
-// innformation like license name and list of teams
-func NewRepository(ctx context.Context, client *github.Client, r *github.Repository) (repo *GitHubRepository) {
-	var ts = time.Now().UTC().Format(dateformats.Full)
-	repo = &GitHubRepository{
-		Ts:            ts,
-		Owner:         r.GetOwner().GetLogin(),
-		Name:          r.GetName(),
-		FullName:      r.GetFullName(),
-		CreatedAt:     r.GetCreatedAt().Format(dateformats.Full),
-		DefaultBranch: r.GetDefaultBranch(),
-		Archived:      bools.Int(r.GetArchived()),
-		Private:       bools.Int(r.GetPrivate()),
-	}
-	// get the license and attach the name
-	if l := r.GetLicense(); l != nil {
-		repo.License = l.GetName()
-	}
-	// get the default branch and grab the dates
-	if branch, _, err := client.Repositories.GetBranch(ctx, repo.Owner, repo.Name, repo.DefaultBranch, 1); err == nil {
-		repo.LastCommitDate = branch.Commit.Commit.Author.Date.Time.String()
-	}
-
-	repo.GitHubTeams, _ = NewGitHubTeams(ctx, client, repo.Owner, repo.Name)
-
 	return
 }
