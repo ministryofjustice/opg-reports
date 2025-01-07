@@ -15,3 +15,8 @@ servers/front/assets
 # Ignore todo / temp files
 todo.txt
 scratch.txt
+# Ignore terraform state folders and files
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
