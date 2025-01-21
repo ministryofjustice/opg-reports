@@ -125,7 +125,7 @@ import/to-db:
 ## - Converts to new format
 ## - Generates releases
 ## - Imports to new database
-import: aws-creds build/clean build data/download-s3 import/convert import/releases import/to-db
+import: aws-creds build/info build/clean build data/download-s3 import/convert import/releases import/to-db
 .PHONY: import
 
 #========= BUILD GO BINARIES =========
@@ -144,12 +144,15 @@ build/clean:
 	@rm -Rf ./collectors/awsuptime/data
 .PHONY: build/clean
 
-## Build all binaries for local usage
-build:
-	@mkdir -p .${BUILD_DIR}
+## output build info
+build/info:
 	@echo "=== BUILD INFO"
 	@echo "${LDFLAGS}" | sed "s#github.com/ministryofjustice/opg-reports/info.##g" | sed "s#-X#\\n#g" | sed "s#'##g"
 	@echo "==="
+.PHONY: build/info
+## Build all binaries for local usage
+build:
+	@mkdir -p .${BUILD_DIR}
 	@echo -n "[building] collectors/awscosts .......... "
 	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/awscosts ./collectors/awscosts/main.go && echo "${passed}" || echo "${failed}"
 	@echo -n "[building] collectors/awsuptime ......... "
@@ -166,7 +169,7 @@ build:
 	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/api ./servers/api/main.go && echo "${passed}" || echo "${failed}"
 	@echo -n "[building] servers/front ................ "
 	@env CGO_ENABLED=1 go build -ldflags=${LDFLAGS} -o ${BUILD_DIR}/front ./servers/front/main.go && echo "${passed}" || echo "${failed}"
-.PHONY: local/build
+.PHONY: build
 
 #========= DOCKER =========
 ## Build local development version of the docker image
