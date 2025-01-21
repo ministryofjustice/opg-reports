@@ -25,6 +25,8 @@ func Format(value string) string {
 	return f
 }
 
+// Time converts string to a time.Time using time.Parse
+// and Format
 func Time(s string) (t time.Time, err error) {
 	layout := Format(s)
 	t, err = time.Parse(layout, s)
@@ -107,6 +109,7 @@ func Dates(start time.Time, end time.Time, interval dateintervals.Interval) (dat
 	return
 }
 
+// Range returns a list of times using NOW and the start / end ints to adjust range
 func Range(start int, end int, interval dateintervals.Interval) (times []time.Time) {
 	var now = time.Now().UTC()
 	var s, e time.Time
@@ -127,5 +130,28 @@ func Times(start time.Time, end time.Time, interval dateintervals.Interval) (tim
 	for d := start; d.Equal(end) == false && d.After(end) == false; d = Add(d, 1, interval) {
 		times = append(times, d)
 	}
+	return
+}
+
+// TimesI is like Times, but allows custom interval count - allowing counting every X days / months
+func TimesI(start time.Time, end time.Time, interval dateintervals.Interval, inc int) (times []time.Time) {
+	times = []time.Time{}
+	start = Reset(start, interval)
+	end = Reset(end, interval)
+
+	for d := start; d.Equal(end) == false && d.After(end) == false; d = Add(d, inc, interval) {
+		times = append(times, d)
+	}
+	return
+}
+
+// CountInRange returns how many of interval exists between start and end
+func CountInRange(start time.Time, end time.Time, interval dateintervals.Interval) (count int) {
+	count = 0
+
+	for d := start; d.Equal(end) == false && d.After(end) == false; d = Add(d, 1, interval) {
+		count += 1
+	}
+
 	return
 }

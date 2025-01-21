@@ -34,6 +34,7 @@ func Run(args *Arguments) (err error) {
 		slog.String("Team", args.Team),
 		slog.String("StartDate", args.StartDate),
 		slog.String("EndDate", args.EndDate),
+		slog.String("Repository", args.Repository),
 		slog.String("OutputFile", args.OutputFile),
 	)
 	args.StartDate = dateutils.Reformat(args.StartDate, dateformats.YMD)

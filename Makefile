@@ -59,21 +59,6 @@ openapi:
 .PHONY: openapi
 
 
-## Removes an existing build artifacts
-clean:
-	@echo "[cleaning] .............................. ${passed}"
-	@rm -f ./code-coverage.out
-	@rm -f ./openapi.yaml
-	@rm -Rf ./builds
-	@rm -Rf ./databases
-	@rm -Rf ./servers/api/databases
-	@rm -Rf ./servers/front/assets
-	@rm -Rf ./collectors/awscosts/data
-	@rm -Rf ./collectors/githubstandards/data
-	@rm -Rf ./collectors/githubreleases/data
-	@rm -Rf ./collectors/awsuptime/data
-.PHONY: clean
-
 #========= RUN =========
 ## Run the api from dev source - will copy existing db to location
 api:
@@ -87,28 +72,32 @@ front:
 	@cd ./servers/front && go run main.go
 .PHONY: front
 
-#========= DOWNLOAD DATABASE =========
+#========= DATA =========
+## aws-creds triggers the aws vault call and outputs the identity details
 aws-creds:
-	@aws-vault exec ${BUCKET_PROFILE} -- aws sts get-caller-identity
-data/download: build
+	@aws-vault exec ${BUCKET_PROFILE} -- aws sts get-caller-identity --output=json --no-cli-pager
+
+## download the database from the s3 bucket
+data/download-db: build
 	@mkdir -p ./builds/databases
 	@aws-vault exec ${BUCKET_PROFILE} -- aws s3 sync --quiet s3://${BUCKET_NAME}/databases/api.db ./builds/databases/api.db
-.PHONY: data/download
+.PHONY: data/download-db
 
+## upload the database to the s3 bucket
 data/upload: build
 	@mkdir -p ./builds/databases
 	@aws-vault exec ${BUCKET_PROFILE} -- aws s3 cp --sse AES256 --recursive ./builds/databases/ s3://${BUCKET_NAME}/databases/
 .PHONY: data/upload
 
-#========= IMPORT DATA =========
 ## Downloads the existing / old data formats from s2 bucket into local directories.
-import/s3download:
+data/download-s3:
 	@mkdir -p ./builds/bucket-data/github_standards ./builds/bucket-data/aws_costs ./builds/bucket-data/aws_uptime
 	@echo -n "[downloading] aws_costs ................. " && aws-vault exec ${BUCKET_PROFILE} -- aws s3 sync --quiet s3://${BUCKET_NAME}/aws_costs ./builds/bucket-data/aws_costs && echo "${passed}" || echo "${failed}"
 	@echo -n "[downloading] aws_uptime ................ " && aws-vault exec ${BUCKET_PROFILE} -- aws s3 sync --quiet s3://${BUCKET_NAME}/aws_uptime ./builds/bucket-data/aws_uptime && echo "${passed}" || echo "${failed}"
 	@echo -n "[downloading] github_standards .......... " && aws-vault exec ${BUCKET_PROFILE} -- aws s3 sync --quiet s3://${BUCKET_NAME}/github_standards ./builds/bucket-data/github_standards && echo "${passed}" || echo "${failed}"
-.PHONY: import/s3download
+.PHONY: data/download-s3
 
+#========= IMPORT DATA =========
 ## Convert the old format of data into the new version and output to known location
 import/convert:
 	@echo "[converting] aws_costs .................. " && ./builds/convertor -type="aws-costs" -source=./builds/bucket-data/aws_costs -destination=./builds/converted-data/aws_costs.json && echo "${passed}" || echo "${failed}"
@@ -123,12 +112,12 @@ import/releases:
 .PHONY: import/releases
 
 ## Imports to new database
-import/data:
+import/to-db:
 	@./builds/importer -database="./builds/databases/api.db" -type=github-standards -file=./builds/converted-data/github_standards.json
 	@./builds/importer -database="./builds/databases/api.db" -type=github-releases -file=./builds/converted-data/github_releases.json
 	@./builds/importer -database="./builds/databases/api.db" -type=aws-uptime -file=./builds/converted-data/aws_uptime.json
 	@./builds/importer -database="./builds/databases/api.db" -type=aws-costs -file=./builds/converted-data/aws_costs.json
-.PHONY: import/data
+.PHONY: import/to-db
 
 
 ## Imports older data from previous versions into the latest database setup
@@ -136,10 +125,25 @@ import/data:
 ## - Converts to new format
 ## - Generates releases
 ## - Imports to new database
-import: aws-creds clean build import/s3download import/convert import/releases import/data
+import: aws-creds build/clean build data/download-s3 import/convert import/releases import/to-db
 .PHONY: import
 
 #========= BUILD GO BINARIES =========
+## Removes an existing build artifacts
+build/clean:
+	@echo "[cleaning] .............................. ${passed}"
+	@rm -f ./code-coverage.out
+	@rm -f ./openapi.yaml
+	@rm -Rf ./builds
+	@rm -Rf ./databases
+	@rm -Rf ./servers/api/databases
+	@rm -Rf ./servers/front/assets
+	@rm -Rf ./collectors/awscosts/data
+	@rm -Rf ./collectors/githubstandards/data
+	@rm -Rf ./collectors/githubreleases/data
+	@rm -Rf ./collectors/awsuptime/data
+.PHONY: build/clean
+
 ## Build all binaries for local usage
 build:
 	@mkdir -p .${BUILD_DIR}

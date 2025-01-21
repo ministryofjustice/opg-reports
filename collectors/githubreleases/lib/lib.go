@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/go-github/v62/github"
@@ -34,6 +35,7 @@ type Arguments struct {
 	StartDate    string
 	EndDate      string
 	OutputFile   string // OutputFile is destination of data. Default "./data/{start}_{end}_github_releases.json"
+	Repository   string // Optional repository filter
 }
 
 // SetupArgs maps flag values to properies on the arg passed and runs
@@ -45,7 +47,7 @@ func SetupArgs(args *Arguments) {
 	flag.StringVar(&args.StartDate, "start", defDay.Format(dateformats.YMD), "start date to fetch data for.")
 	flag.StringVar(&args.EndDate, "end", defDay.Format(dateformats.YMD), "end date to fetch data for.")
 	flag.StringVar(&args.OutputFile, "output", "./data/{start}_{end}_github_releases.json", "Filepath for the output")
-
+	flag.StringVar(&args.Repository, "repository", "", "Filter results to just this repository. Optional")
 	flag.Parse()
 }
 
@@ -163,7 +165,18 @@ func AllRepos(ctx context.Context, client *github.Client, args *Arguments) (all 
 			err = e
 			return
 		}
-		all = append(all, pg...)
+		// If there is no filter, than attach all
+		// otherwise, look specifically for it
+		if args.Repository == "" {
+			all = append(all, pg...)
+		} else {
+			slog.Debug("[githubreleases] filtering results", slog.String("repository", args.Repository))
+			for _, repo := range pg {
+				if *repo.FullName == args.Repository {
+					all = append(all, repo)
+				}
+			}
+		}
 		page = resp.NextPage
 	}
 
@@ -185,48 +198,210 @@ func cleanWorkflowRunName(name string) (clean string) {
 // Cleans up the workflow name, removing some known starting elements such as
 // `[Workflow]`, `[Job]` - and trims whitespace
 // Uses page iterating for loop to handle api calls
+//
+// Note: API returns a max of 1k results in one call, so a long time range will
+// likely cause multiple api calls to happen
+//
+// Note: makes async calls the github api to fetch api data
 func WorkflowRuns(ctx context.Context, client *github.Client, args *Arguments, repo *github.Repository) (all []*github.WorkflowRun, err error) {
 	var (
-		sdt, _         = dateutils.Time(args.StartDate)
-		edt, _         = dateutils.Time(args.EndDate)
-		startDay       = sdt.Format(dateformats.YMD)
-		endDay         = edt.Format(dateformats.YMD)
-		actionsService = client.Actions
-		page           = 1
-		opts           = &github.ListWorkflowRunsOptions{
-			Branch:  *repo.DefaultBranch,
-			Status:  "success",
-			Created: fmt.Sprintf("%s..%s", startDay, endDay),
-		}
+		opts           []*github.ListWorkflowRunsOptions
+		total          int                    = 0
+		actionsService *github.ActionsService = client.Actions
+
+		mutex *sync.Mutex    = &sync.Mutex{}
+		wg    sync.WaitGroup = sync.WaitGroup{}
 	)
-	opts.PerPage = 100
 	all = []*github.WorkflowRun{}
 
+	total, opts, err = decideWorkflowApiCall(ctx, client, args, repo)
+	if err != nil {
+		return
+	}
+	slog.Info("[githubreleases] decided on api calls required.",
+		slog.Int("apiCallCount", len(opts)),
+		slog.Int("total", total),
+		slog.String("repo", *repo.FullName))
+
+	for idx, opt := range opts {
+		wg.Add(1)
+		// use a go routine to make this call
+		go func(o *github.ListWorkflowRunsOptions, i int) {
+			slog.Debug("[githubreleases] getting workflow runs",
+				slog.Int("i", i),
+				slog.String("range", opt.Created),
+				slog.String("repo", *repo.FullName))
+
+			found, e := fetcher(ctx, repo, args, opt, actionsService)
+
+			mutex.Lock()
+			defer mutex.Unlock()
+			if e != nil {
+				err = errors.Join(e, err)
+			} else {
+				all = append(all, found...)
+			}
+
+			wg.Done()
+		}(opt, idx)
+	}
+	wg.Wait()
+
+	return
+}
+
+// fetcher called in go routine to get data
+func fetcher(ctx context.Context, repo *github.Repository, args *Arguments, opt *github.ListWorkflowRunsOptions, actionsService *github.ActionsService) (found []*github.WorkflowRun, err error) {
+	var page int = 1
+	found = []*github.WorkflowRun{}
+
 	for page > 0 {
-		var workflow *github.WorkflowRuns
-		var resp *github.Response
-		opts.Page = page
-
-		workflow, resp, err = actionsService.ListRepositoryWorkflowRuns(ctx, args.Organisation, *repo.Name, opts)
-		slog.Debug("[githubreleases] getting workflow runs",
-			slog.String("day", opts.Created),
-			slog.Int("page", opts.Page),
-			slog.Int("total", *workflow.TotalCount),
+		var (
+			runs *github.WorkflowRuns
+			resp *github.Response
+		)
+		opt.Page = page
+		runs, resp, err = actionsService.ListRepositoryWorkflowRuns(ctx, args.Organisation, *repo.Name, opt)
+		slog.Debug("[githubreleases] workflow run results",
+			slog.Int("currentPage", opt.Page),
+			slog.Int("nextPage", resp.NextPage),
+			slog.Int("total", *runs.TotalCount),
 			slog.String("repo", *repo.FullName))
-
+		// error
 		if err != nil {
+			fmt.Println(err)
 			return
 		}
-
-		for _, run := range workflow.WorkflowRuns {
+		// loop over all workflow run names
+		for _, run := range runs.WorkflowRuns {
 			var name = cleanWorkflowRunName(*run.Name)
+			slog.Debug("[githubreleases] workflow name",
+				slog.String("created", run.CreatedAt.String()),
+				slog.String("workflow", name),
+				slog.String("repo", *repo.FullName))
 
 			if strings.HasPrefix(name, pathToLive) {
-				all = append(all, run)
+				found = append(found, run)
 			}
 		}
 
 		page = resp.NextPage
+
+	}
+	return
+}
+
+// decideWorkflowApiCall determines how many times call this api end point
+//
+// ListRepositoryWorkflowRuns when called returns at most 1k records at a time, so
+// we make the first call to the api to figure out the number of results for the
+// entire time range and then decide if we need to make multiple calls.
+//
+// When asking for a long time range this could well be split down to monthly or weekly
+// date ranges to call the api in.
+//
+// NOTE: If the repo has more than 1k workflow runs per day, there is currently nothing to handle that!
+func decideWorkflowApiCall(ctx context.Context, client *github.Client, args *Arguments, repo *github.Repository) (resultCount int, allOpts []*github.ListWorkflowRunsOptions, err error) {
+	var (
+		apiResultLimit = 1000
+		perPage        = 100
+		page           = 1
+
+		start, _ = dateutils.Time(args.StartDate)
+		end, _   = dateutils.Time(args.EndDate)
+
+		actionsService = client.Actions
+		workflowRuns   *github.WorkflowRuns
+		resp           *github.Response
+
+		months = dateutils.CountInRange(start, end, dateintervals.Month)
+		days   = dateutils.CountInRange(start, end, dateintervals.Day)
+		weeks  = (days / 7)
+
+		opts = &github.ListWorkflowRunsOptions{
+			Branch:              *repo.DefaultBranch,
+			ExcludePullRequests: true,
+			Status:              "success",
+		}
+	)
+
+	allOpts = []*github.ListWorkflowRunsOptions{}
+
+	// see how many total pages there are between these dates
+	opts.Page = page
+	opts.PerPage = perPage
+	opts.Created = fmt.Sprintf("%s..%s", start.Format(dateformats.YMD), end.Format(dateformats.YMD))
+
+	workflowRuns, resp, err = actionsService.ListRepositoryWorkflowRuns(ctx, args.Organisation, *repo.Name, opts)
+	if err != nil {
+		return
+	}
+
+	resultCount = *workflowRuns.TotalCount
+	monthPages := (resultCount / months)
+	weekPages := (resultCount / weeks)
+	dayPages := (resultCount / days)
+
+	slog.Debug("[githubreleases] repository workflow counts",
+		slog.String("dateRange", opts.Created),
+		slog.Int("months", months),
+		slog.Int("weeks", weeks),
+		slog.Int("days", days),
+		slog.Int("apiResultLimit", apiResultLimit),
+		slog.Int("lastPage", resp.LastPage),
+		slog.Int("resultCount", resultCount),
+		slog.Int("monthPages", monthPages),
+		slog.Int("weekPages", weekPages),
+		slog.Int("dayPages", dayPages),
+	)
+
+	created := []string{}
+
+	if resultCount <= apiResultLimit {
+		slog.Debug("[githubreleases] one api call for ALL")
+		created = append(created, opts.Created)
+	} else if monthPages <= perPage {
+		slog.Debug("[githubreleases] api calls per MONTH")
+		created = createdStrings(end, dateutils.Times(start, end, dateintervals.Month))
+	} else if weekPages <= perPage {
+		slog.Debug("[githubreleases] api calls per WEEK")
+		created = createdStrings(end, dateutils.TimesI(start, end, dateintervals.Day, 7))
+	} else {
+		slog.Debug("[githubreleases] api calls per DAY")
+		created = createdStrings(end, dateutils.Times(start, end, dateintervals.Day))
+	}
+	// generate the list of opts to call to catch as much as we can
+	for _, str := range created {
+		opt := &github.ListWorkflowRunsOptions{
+			Branch:              *repo.DefaultBranch,
+			ExcludePullRequests: true,
+			Status:              "success",
+			Created:             str,
+		}
+		opt.Page = page
+		opt.PerPage = perPage
+		allOpts = append(allOpts, opt)
+	}
+
+	return
+}
+
+// createdStrings uses the dates passed to created date ranges for use in api calls
+func createdStrings(end time.Time, dates []time.Time) (created []string) {
+	created = []string{}
+
+	l := len(dates)
+	for i, date := range dates {
+		e := date
+		if i+1 < l {
+			e = dates[i+1]
+		} else {
+			e = end
+		}
+		created = append(
+			created,
+			fmt.Sprintf("%s..%s", date.Format(dateformats.YMD), e.Format(dateformats.YMD)),
+		)
 	}
 	return
 }
