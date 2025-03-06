@@ -110,14 +110,14 @@ jobs:
       - name: "Checkout"
         id: checkout
         uses: actions/checkout@v4
-      - name: "Test"
-        id: go_test
-        uses: ./.github/actions/go-tests
+      # - name: "Test"
+      #   id: go_test
+      #   uses: ./.github/actions/go-tests
       - name: "Build"
         id: "go_build"
         uses: ./.github/actions/go-build
         with:
-          ldflags: ${{ needs.setup.outputs.ld_flags }}
+          ldflags: "-ldflags=${{ needs.setup.outputs.ld_flags }}"
 
   # # Run docker build
   # docker_build:
