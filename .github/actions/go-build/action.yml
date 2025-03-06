@@ -59,26 +59,24 @@ runs:
         build_dir=./builds/bin/${os_arch}
         mkdir -p ${build_dir}
 
-        echo go build ${{ env.FLAGS }} -o ${build_dir}/awscosts ./collectors/awscosts/main.go
-
         go mod tidy
 
         echo -n "[building] collectors/awscosts .......... "
         go build ${{ env.FLAGS }} -o ${build_dir}/awscosts ./collectors/awscosts/main.go && echo "${passed}"
         echo -n "[building] collectors/awsuptime ......... "
-        go build ${{ env.FLAGS }} -o ${build_dir}/awsuptime ./collectors/awsuptime/main.go && echo "${passed}" || echo "${failed}"
+        go build ${{ env.FLAGS }} -o ${build_dir}/awsuptime ./collectors/awsuptime/main.go && echo "${passed}"
         echo -n "[building] collectors/githubreleases .... "
-        env CGO_ENABLED=1 go build ${{ env.FLAGS }} -o ${build_dir}/githubreleases ./collectors/githubreleases/main.go && echo "${passed}" || echo "${failed}"
+        go build ${{ env.FLAGS }} -o ${build_dir}/githubreleases ./collectors/githubreleases/main.go && echo "${passed}"
         echo -n "[building] collectors/githubstandards ... "
-        env CGO_ENABLED=1 go build ${{ env.FLAGS }} -o ${build_dir}/githubstandards ./collectors/githubstandards/main.go && echo "${passed}" || echo "${failed}"
+        go build ${{ env.FLAGS }} -o ${build_dir}/githubstandards ./collectors/githubstandards/main.go && echo "${passed}"
         echo -n "[building] convertor .................... "
-        env CGO_ENABLED=1 go build ${{ env.FLAGS }} -o ${build_dir}/convertor ./convertor/main.go && echo "${passed}" || echo "${failed}"
+        go build ${{ env.FLAGS }} -o ${build_dir}/convertor ./convertor/main.go && echo "${passed}"
         echo -n "[building] importer ..................... "
-        env CGO_ENABLED=1 go build ${{ env.FLAGS }} -o ${build_dir}/importer ./importer/main.go && echo "${passed}" || echo "${failed}"
+        go build ${{ env.FLAGS }} -o ${build_dir}/importer ./importer/main.go && echo "${passed}"
         echo -n "[building] servers/api .................. "
-        env CGO_ENABLED=1 go build ${{ env.FLAGS }} -o ${build_dir}/api ./servers/api/main.go && echo "${passed}" || echo "${failed}"
+        go build ${{ env.FLAGS }} -o ${build_dir}/api ./servers/api/main.go && echo "${passed}"
         echo -n "[building] servers/front ................ "
-        env CGO_ENABLED=1 go build ${{ env.FLAGS }} -o ${build_dir}/front ./servers/front/main.go && echo "${passed}" || echo "${failed}"
+        go build ${{ env.FLAGS }} -o ${build_dir}/front ./servers/front/main.go && echo "${passed}"
 
 
         echo "os_arch=${os_arch}" >> $GITHUB_OUTPUT
@@ -112,3 +110,4 @@ runs:
         echo "| os_arch | ${{ steps.build.outputs.os_arch }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| dir | ${{ steps.build.outputs.built }}/${{ steps.build.outputs.os_arch }} |"  >> $GITHUB_STEP_SUMMARY
         echo "| artifact | ${{ steps.create_artifact.outputs.artifact }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| ldflags | ${{ inputs.ldflags }} |"  >> $GITHUB_STEP_SUMMARY
