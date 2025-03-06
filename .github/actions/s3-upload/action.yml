@@ -1,0 +1,42 @@
+name: "Upload to S3"
+description: "Upload all files in a directory to an s3 bucket"
+
+inputs:
+  directory:
+    description: "Local directory to upload into the bucket"
+    required: true
+  bucket:
+    description: "Name of the bucket to upload to."
+    required: true
+  bucket_path:
+    description: "Bucket path / folder structure"
+    required: true
+    default: ""
+
+runs:
+  using: "composite"
+  steps:
+    - name: "List"
+      shell: bash
+      working-directory: ${{ inputs.directory }}
+      run: |
+        ls -lah .
+    - name: "Upload"
+      id: upload
+      shell: bash
+      working-directory: ${{ inputs.directory }}
+      run: |
+        aws s3 cp --recursive . s3://${{ inputs.bucket }}/${{ inputs.bucket_path }} --sse AES256
+    ###############
+    #   SUMMARY
+    ###############
+    - name: "Summary [S3 Upload: ${{ inputs.bucket }} ]"
+      id: upload_summary
+      shell: bash
+      run:  |
+        echo "### S3 Upload Summary" >> $GITHUB_STEP_SUMMARY
+        echo "| Variable | Value |" >> $GITHUB_STEP_SUMMARY
+        echo "| --- | --- |"  >> $GITHUB_STEP_SUMMARY
+        echo "| directory | ${{ inputs.directory }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| bucket | ${{ inputs.bucket }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| bucket_path | ${{ inputs.bucket_path }} |"  >> $GITHUB_STEP_SUMMARY

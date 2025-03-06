@@ -1,0 +1,91 @@
+name: "OPG Accounts: Get account matrix"
+description: "Fetch the latest release from opg-metadata and return the account in a matrix format."
+
+inputs:
+  github_token:
+    description: "Token with permissions to read all releases from opg-metadata"
+    required: true
+
+  repository:
+    description: "repository to get accounts from. default: opg-metadata"
+    default: "ministryofjustice/opg-metadata"
+
+  release:
+    description: "version of the account data to fetch, when 'latest' uses latest"
+    default: "latest"
+
+  prereleases:
+    description: "When true, will include prereleases"
+    default: "false"
+
+  file:
+    description: "File to read in"
+    default: "accounts.aws.json"
+
+outputs:
+  matrix:
+    description: "Matrix formatted string that can be imported as json to use as job stratergy."
+    value: ${{ steps.data.outputs.matrix }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Prepare download folder"
+      id: prep_download_folder
+      shell: bash
+      run: |
+        rm -Rf ./opg-metadata-release
+        mkdir -p ./opg-metadata-release
+    - name: "Get release tag"
+      id: tag
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        release: ${{ inputs.release }}
+        repo: ${{ inputs.repository }}
+        exclude: ${{ inputs.prereleases == 'false' && '--exclude-pre-releases' || '' }}
+      run: |
+        tag=${{ env.release }}
+        if [[ "${{ env.release }}" == "latest" ]]; then
+          tag=$(gh release list --repo ${{ env.repo }} --order "desc" ${{ env.exclude }} --limit 1 --json tagName --jq '.[].tagName')
+        fi
+        echo "tag=${tag}" >> $GITHUB_OUTPUT
+    - name: "Download release [tag:${{ steps.tag.outputs.tag }}]"
+      id: download
+      shell: bash
+      working-directory: ./opg-metadata-release
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        repo: ${{ inputs.repository }}
+        tag: ${{ steps.tag.outputs.tag }}
+      run: |
+        gh release download ${{ env.tag }} --clobber --repo ${{ env.repo }} --pattern "*.tar.gz"
+        ls -lth
+    - name: "Extract release"
+      id: extract
+      shell: bash
+      working-directory: ./opg-metadata-release
+      run: |
+        tar -xvzf metadata.tar.gz
+        ls -lth
+    - name: "Load file [file:${{ inputs.file }}]"
+      id: data
+      shell: bash
+      working-directory: ./opg-metadata-release
+      env:
+        filename: ${{ inputs.file }}
+        debug: ${{ runner.debug == '1' && 'debug' || '' }}
+      run: |
+        data=$(cat ${{ env.filename }})
+        matrix="{ "include": ${data} }"
+        echo "matrix<<EOF" >> $GITHUB_OUTPUT
+        echo "${matrix}" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        if [[ "${{ env.debug }}" == "debug" ]]; then
+          echo "${matrix}"
+        fi
+    - name: "clean up"
+      shell: bash
+      if: always()
+      run: |
+        rm -Rf ./opg-metadata-release

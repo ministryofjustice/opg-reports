@@ -1,0 +1,147 @@
+name: "Docker: Build, Scan and Push"
+description: "Build docker images"
+
+inputs:
+  branch_name:
+    description: "Git branch name"
+    required: true
+
+  tag:
+    description: "Semver tag value"
+    required: true
+
+  dockerfile:
+    description: "Path to Dockerfile"
+    required: true
+
+  buildx_version:
+    description: "Buildx version"
+    default: "v0.15.1"
+
+  buildx_platforms:
+    description: "List of platforms to generate images for"
+    default: "linux/amd64"
+
+  ecr_repository:
+    description: "Name of ECR repository"
+    required: true
+
+  ecr_registry_id:
+    description: "AWS registry ID"
+    default: "311462405659"
+
+  checkout_repo:
+    description: "Force a checkout of the repository"
+    default: "false"
+
+  path_to_live:
+    description: "When set to true, pushes images following production conventions."
+    default: "false"
+# outputs:
+
+
+runs:
+  using: "composite"
+  steps:
+    # checkout self
+    - name: "Force checkout repository"
+      if: ${{ inputs.checkout_repo == 'true' }}
+      id: checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+
+    # QEMU for multi platforms
+    - name: Set up QEMU
+      id: setup_qemu
+      uses: docker/setup-qemu-action@v3.1.0
+    # Setup docker buildx
+    - name: "Set up Docker Buildx"
+      uses: docker/setup-buildx-action@v3.4.0
+      id: docker_buildx_setup
+      with:
+        version: ${{ inputs.buildx_version }}
+        platforms: ${{ inputs.buildx_platforms }}
+    # Login to ecr registry
+    - name: "ECR login"
+      id: ecr_login
+      uses: aws-actions/amazon-ecr-login@v2.0.1
+      with:
+        mask-password: true
+        registries: ${{ inputs.ecr_registry_id }}
+    # Build image
+    - name: "Build image [image: ${{ inputs.ecr_repository }} ]"
+      uses: docker/build-push-action@v6.3.0
+      with:
+        context: .
+        file: ${{ inputs.dockerfile }}
+        platforms: ${{ inputs.buildx_platforms }}
+        push: false
+        load: true
+        cache-from: type=registry,ref=${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:cache-${{ inputs.branch_name }}
+        tags: |
+          ${{ inputs.ecr_repository }}:${{ inputs.tag }}
+        build-args: |
+          TAG=${{ inputs.tag }}
+      env:
+        SOURCE_DATE_EPOCH: 0
+
+
+    # Push the image
+    # for a PR
+    - name: "Push image to ECR [PR]"
+      if: ${{ inputs.path_to_live != 'true' }}
+      uses: docker/build-push-action@v6.3.0
+      env:
+        SOURCE_DATE_EPOCH: 0
+      with:
+        context: .
+        file: ${{ inputs.dockerfile }}
+        builder: ${{ steps.docker_buildx_setup.outputs.name }}
+        push: true
+        platforms:  ${{ inputs.buildx_platforms }}
+        cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,type=registry,ref=${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:cache-${{ inputs.branch_name }}
+        tags: |
+          ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}
+          ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:development-${{ inputs.tag }}
+          ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:development-latest
+        build-args: |
+          TAG=${{ inputs.tag }}
+
+    - name: "Summary [tag: ${{ inputs.tag }}]"
+      shell: bash
+      if: ${{ inputs.path_to_live != 'true' }}
+      run: |
+        echo "tags:"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:development-${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:development-latest"  >> $GITHUB_STEP_SUMMARY
+
+    # For live
+    - name: "Push image to ECR [Path to live]"
+      if: ${{ inputs.path_to_live == 'true' }}
+      uses: docker/build-push-action@v6.3.0
+      with:
+        context: .
+        file: ${{ inputs.dockerfile }}
+        builder: ${{ steps.docker_buildx_setup.outputs.name }}
+        push: true
+        platforms: ${{ inputs.buildx_platforms }}
+        cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,type=registry,ref=${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:cache-${{ inputs.branch_name }}
+        tags: |
+          ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}
+          ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:main-${{ inputs.tag }}
+          ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:latest
+        build-args: |
+          TAG=${{ inputs.tag }}
+      env:
+        SOURCE_DATE_EPOCH: 0
+    - name: "Summary [Path to live]"
+      shell: bash
+      if: ${{ inputs.path_to_live == 'true' }}
+      run: |
+        echo "tags:"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:main-${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:latest"  >> $GITHUB_STEP_SUMMARY

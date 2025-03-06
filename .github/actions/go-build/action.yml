@@ -1,0 +1,112 @@
+name: "Go: Build"
+description: "Build the go code within the opg-reports repository so it can then be released"
+
+inputs:
+  ldflags:
+    description: "Build time ldflags to use in the build commands. Should include the argument"
+    default: ""
+
+  create_artifact:
+    description: "Boolean when set to true will create a tarball containing all binaries"
+    default: "false"
+
+outputs:
+  artifact:
+    description: "Artifact tar ball containing the built binaries"
+    value: ${{ steps.create_artifact.outputs.artifact }}
+  build_dir:
+    description: "top level build dir"
+    value: ${{ steps.build.outputs.built }}
+  dir:
+    description: "top level build dir"
+    value: "${{ steps.build.outputs.built }}/${{ steps.build.outputs.os_arch }}"
+
+
+runs:
+  using: "composite"
+  steps:
+    # checkout self
+    - name: "Checkout"
+      id: checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    # setup the go version and pull from cache etc
+    - name: "Setup go"
+      id: setup_go
+      uses: actions/setup-go@v4
+      with:
+        cache: false
+        go-version-file: './go.mod'
+
+    ###############
+    #   BUILD
+    ###############
+    - name: "Build all go"
+      id: build
+      shell: bash
+      env:
+        passed: "✅"
+        failed: "❌"
+        FLAGS: "${{ inputs.ldflags != '' && '-ldflags=' || '' }}"
+      run: |
+        echo "Build go"
+
+        os="$(uname | tr '[:upper:]' '[:lower:]')"
+        arch="$(uname -m | sed 's/x86_64/amd64/')"
+        os_arch="${os}_${arch}"
+        build_dir=./builds/bin/${os_arch}
+        mkdir -p ${build_dir}
+
+        go mod tidy
+
+        echo -n "[building] collectors/awscosts .......... "
+        env CGO_ENABLED=1 go build ${{ env.FLAGS }}${{ inputs.ldflags }} -o ${build_dir}/awscosts ./collectors/awscosts/main.go && echo "${passed}" || echo "${failed}"
+        echo -n "[building] collectors/awsuptime ......... "
+        env CGO_ENABLED=1 go build ${{ env.FLAGS }}${{ inputs.ldflags }} -o ${build_dir}/awsuptime ./collectors/awsuptime/main.go && echo "${passed}" || echo "${failed}"
+        echo -n "[building] collectors/githubreleases .... "
+        env CGO_ENABLED=1 go build ${{ env.FLAGS }}${{ inputs.ldflags }} -o ${build_dir}/githubreleases ./collectors/githubreleases/main.go && echo "${passed}" || echo "${failed}"
+        echo -n "[building] collectors/githubstandards ... "
+        env CGO_ENABLED=1 go build ${{ env.FLAGS }}${{ inputs.ldflags }} -o ${build_dir}/githubstandards ./collectors/githubstandards/main.go && echo "${passed}" || echo "${failed}"
+        echo -n "[building] convertor .................... "
+        env CGO_ENABLED=1 go build ${{ env.FLAGS }}${{ inputs.ldflags }} -o ${build_dir}/convertor ./convertor/main.go && echo "${passed}" || echo "${failed}"
+        echo -n "[building] importer ..................... "
+        env CGO_ENABLED=1 go build ${{ env.FLAGS }}${{ inputs.ldflags }} -o ${build_dir}/importer ./importer/main.go && echo "${passed}" || echo "${failed}"
+        echo -n "[building] servers/api .................. "
+        env CGO_ENABLED=1 go build ${{ env.FLAGS }}${{ inputs.ldflags }} -o ${build_dir}/api ./servers/api/main.go && echo "${passed}" || echo "${failed}"
+        echo -n "[building] servers/front ................ "
+        env CGO_ENABLED=1 go build ${{ env.FLAGS }}${{ inputs.ldflags }} -o ${build_dir}/front ./servers/front/main.go && echo "${passed}" || echo "${failed}"
+
+
+        echo "os_arch=${os_arch}" >> $GITHUB_OUTPUT
+        echo "built=./builds/bin" >> $GITHUB_OUTPUT
+
+    - name: "Create artifact [${{ inputs.create_artifact }}]"
+      id: create_artifact
+      shell: bash
+      if: ${{ inputs.create_artifact == 'true' }}
+      env:
+        dir: ${{ steps.build.outputs.built }}
+        arch: ${{ steps.build.outputs.os_arch }}
+        tarball: "${{ steps.build.outputs.os_arch }}.tar.gz"
+      working-directory: ${{ steps.build.outputs.built }}
+      run: |
+        echo "Creating tarball artifact"
+        rm -f ${{ env.tarball }}
+        tar -czvf ${{ env.tarball }} ${{ env.arch }}
+        echo "artifact=${{ env.dir }}/${{ env.tarball }}" >> $GITHUB_OUTPUT
+
+    ###############
+    #   SUMMARY
+    ###############
+    - name: "Summary"
+      id: summary
+      shell: bash
+      run:  |
+        echo "### Go Build Summary" >> $GITHUB_STEP_SUMMARY
+        echo "| Variable | Value |" >> $GITHUB_STEP_SUMMARY
+        echo "| --- | --- |"  >> $GITHUB_STEP_SUMMARY
+        echo "| os_arch | ${{ steps.build.outputs.os_arch }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| dir | ${{ steps.build.outputs.built }}/${{ steps.build.outputs.os_arch }} |"  >> $GITHUB_STEP_SUMMARY
+        echo "| artifact | ${{ steps.create_artifact.outputs.artifact }} |"  >> $GITHUB_STEP_SUMMARY
