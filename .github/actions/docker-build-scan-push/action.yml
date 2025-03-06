@@ -79,8 +79,8 @@ runs:
       uses: docker/build-push-action@v6.3.0
       env:
         SOURCE_DATE_EPOCH: 0
-        BUILD_TAG: ${{ format('TAG={0}', inputs.tag) }}
-        BUILD_ARGS: ${{ join(env.BUILD_TAG, inputs.docker_build_args) }}
+        BUILD_TAG: ${{ inputs.tag }}
+        EXTRA_BUILD_ARGS: ${{ inputs.docker_build_args }}
       with:
         context: .
         file: ${{ inputs.dockerfile }}
@@ -91,9 +91,8 @@ runs:
         tags: |
           ${{ inputs.ecr_repository }}:${{ inputs.tag }}
         build-args: |
-          ${BUILD_ARGS}
-
-
+          TAG=${BUILD_TAG}
+          ${EXTRA_BUILD_ARGS}
 
     # Push the image
     # for a PR
@@ -102,8 +101,8 @@ runs:
       uses: docker/build-push-action@v6.3.0
       env:
         SOURCE_DATE_EPOCH: 0
-        BUILD_TAG: ${{ format('TAG={0}', inputs.tag) }}
-        BUILD_ARGS: ${{ join(env.BUILD_TAG, inputs.docker_build_args) }}
+        BUILD_TAG: ${{ inputs.tag }}
+        EXTRA_BUILD_ARGS: ${{ inputs.docker_build_args }}
       with:
         context: .
         file: ${{ inputs.dockerfile }}
@@ -116,7 +115,8 @@ runs:
           ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:development-${{ inputs.tag }}
           ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:development-latest
         build-args: |
-          ${BUILD_ARGS}
+          TAG=${BUILD_TAG}
+          ${EXTRA_BUILD_ARGS}
 
     - name: "Summary [tag: ${{ inputs.tag }}]"
       shell: bash
@@ -133,8 +133,8 @@ runs:
       uses: docker/build-push-action@v6.3.0
       env:
         SOURCE_DATE_EPOCH: 0
-        BUILD_TAG: ${{ format('TAG={0}', inputs.tag) }}
-        BUILD_ARGS: ${{ join(env.BUILD_TAG, inputs.docker_build_args) }}
+        BUILD_TAG: ${{ inputs.tag }}
+        EXTRA_BUILD_ARGS: ${{ inputs.docker_build_args }}
       with:
         context: .
         file: ${{ inputs.dockerfile }}
@@ -147,7 +147,8 @@ runs:
           ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:main-${{ inputs.tag }}
           ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:latest
         build-args: |
-          ${BUILD_ARGS}
+          TAG=${BUILD_TAG}
+          ${EXTRA_BUILD_ARGS}
 
     - name: "Summary [Path to live]"
       shell: bash

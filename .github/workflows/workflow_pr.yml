@@ -146,7 +146,7 @@ jobs:
           tag: ${{ needs.setup.outputs.semver_tag }}
           dockerfile: './docker/api/Dockerfile'
           path_to_live: ${{ env.path_to_live }}
-          docker_build_args: ${{ needs.setup.outputs.ld_flags }}
+          docker_build_args: "LDFLAGS=${{ needs.setup.outputs.ld_flags }}"
       # # build front
       # - name: "Build [front]"
       #   id: build_front
