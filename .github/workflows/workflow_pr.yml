@@ -92,13 +92,13 @@ jobs:
         run: |
           isodate=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-          commit="-X '${pkg}.Commit=${commit} "
-          timestamp="-X '${pkg}.Timestamp=${isodate} "
-          semver="-X '${pkg}.Semver=${tag} "
-          org="-X '${pkg}.Organisation=${org} "
-          dataset="-X '${pkg}.Dataset=${dataset} "
-          fixtures="-X '${pkg}.Fixtures=${fixtures} "
-          bucket="-X '${pkg}.BucketName=${aws_s3_bucket} "
+          commit="-X '${pkg}.Commit=${commit}' "
+          timestamp="-X '${pkg}.Timestamp=${isodate}' "
+          semver="-X '${pkg}.Semver=${tag}' "
+          org="-X '${pkg}.Organisation=${org}' "
+          dataset="-X '${pkg}.Dataset=${dataset}' "
+          fixtures="-X '${pkg}.Fixtures=${fixtures}' "
+          bucket="-X '${pkg}.BucketName=${aws_s3_bucket}' "
           echo "FLAGS=${commit}${timestamp}${semver}${org}${dataset}${fixtures}${bucket}" >> $GITHUB_OUTPUT
 
   # build & test go
