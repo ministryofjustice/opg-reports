@@ -3,6 +3,7 @@
 
 SHELL = bash
 #======================================
+RELEASES_START_DATE ?= 2024-06-01
 # these are parameters used in the make file tasks
 BUCKET_PROFILE ?= shared-development-operator
 IMPORT_DOWNLOAD ?= true
@@ -108,7 +109,7 @@ import/convert:
 ## Generates releases as of 2024 - this is used as releases were not captured on the old method but we
 ## can get that data historically
 import/releases:
-	@echo "[generating] github_releases ............ " && env GITHUB_ACCESS_TOKEN=${GITHUB_ACCESS_TOKEN} ./builds/githubreleases -organisation="ministryofjustice" -team="opg" -output="./builds/converted-data/github_releases.json" -start="2024-01-01"
+	@echo "[generating] github_releases ............ " && env GITHUB_ACCESS_TOKEN=${GITHUB_ACCESS_TOKEN} ./builds/githubreleases -organisation="ministryofjustice" -team="opg" -output="./builds/converted-data/github_releases.json" -start="${RELEASES_START_DATE}"
 .PHONY: import/releases
 
 ## Imports to new database

@@ -96,7 +96,7 @@ func (self *GithubStandard) MarshalJSON() (bytes []byte, err error) {
 		License:                        self.License,
 		LastCommitDate:                 self.LastCommitDate,
 	}
-
+	// TODO
 	// create the team list
 	for _, name := range strings.Split(self.Teams, "#") {
 		if len(name) > 0 {

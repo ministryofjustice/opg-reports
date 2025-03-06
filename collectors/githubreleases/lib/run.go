@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"os"
+	"time"
 
 	"github.com/google/go-github/v62/github"
 	"github.com/ministryofjustice/opg-reports/internal/dateformats"
@@ -59,15 +59,17 @@ func Run(args *Arguments) (err error) {
 		)
 
 		slog.Info(fmt.Sprintf("[%d/%d] %s", i+1, total, *repo.FullName))
-
+		// rough api rate limiting help - TODO: make better
+		time.Sleep(1 * time.Second)
 		// Look for workflow runs first
 		runs, err = WorkflowRuns(ctx, client, args, repo)
-		if err != nil {
-			return
-		}
 		// if theres none, look for merges
 		if len(runs) == 0 {
 			merged, err = MergedPullRequests(ctx, client, args, repo)
+		}
+		if err != nil {
+			slog.Error("error with workflows or merges..", slog.String("err", err.Error()))
+			return
 		}
 
 		slog.Debug("[githubreleases] found for dates.",
@@ -85,18 +87,34 @@ func Run(args *Arguments) (err error) {
 			rels, err = PullRequestsToReleases(repoModel, teams, merged)
 		}
 
+		if err != nil {
+			slog.Error("error converting to releases..", slog.String("err", err.Error()))
+			return
+		}
+
 		// attach the releases to the main set
 		allReleases = append(allReleases, rels...)
-
+		// Save to file during loop
+		// Save(allReleases, args)
 	}
 
 	// write to file
 	content, err = json.MarshalIndent(allReleases, "", "  ")
 	if err != nil {
 		slog.Error("[githubreleases] error marshaling", slog.String("err", err.Error()))
-		os.Exit(1)
+		return
 	}
 	WriteToFile(content, args)
 
 	return
 }
+
+// func Save(allReleases []*models.GitHubRelease, args *Arguments) {
+// 	// write to file
+// 	content, err := json.MarshalIndent(allReleases, "", "  ")
+// 	if err != nil {
+// 		slog.Error("[githubreleases] error marshaling", slog.String("err", err.Error()))
+// 		os.Exit(1)
+// 	}
+// 	WriteToFile(content, args)
+// }

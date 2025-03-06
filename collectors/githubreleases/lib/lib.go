@@ -216,6 +216,7 @@ func WorkflowRuns(ctx context.Context, client *github.Client, args *Arguments, r
 
 	total, opts, err = decideWorkflowApiCall(ctx, client, args, repo)
 	if err != nil {
+		slog.Error("error working out api call count", slog.String("err", err.Error()))
 		return
 	}
 	slog.Info("[githubreleases] decided on api calls required.",
@@ -358,16 +359,16 @@ func decideWorkflowApiCall(ctx context.Context, client *github.Client, args *Arg
 	created := []string{}
 
 	if resultCount <= apiResultLimit {
-		slog.Debug("[githubreleases] one api call for ALL")
+		slog.Info("[githubreleases] one api call for ALL")
 		created = append(created, opts.Created)
 	} else if monthPages <= perPage {
-		slog.Debug("[githubreleases] api calls per MONTH")
+		slog.Info("[githubreleases] api calls per MONTH")
 		created = createdStrings(end, dateutils.Times(start, end, dateintervals.Month))
 	} else if weekPages <= perPage {
-		slog.Debug("[githubreleases] api calls per WEEK")
+		slog.Info("[githubreleases] api calls per WEEK")
 		created = createdStrings(end, dateutils.TimesI(start, end, dateintervals.Day, 7))
 	} else {
-		slog.Debug("[githubreleases] api calls per DAY")
+		slog.Info("[githubreleases] api calls per DAY")
 		created = createdStrings(end, dateutils.Times(start, end, dateintervals.Day))
 	}
 	// generate the list of opts to call to catch as much as we can
