@@ -28,6 +28,9 @@ locals {
 
   default_tags = merge(local.mandatory_moj_tags, local.optional_tags)
 
+  reports_api_tag      = local.environment.api_tag
+  reports_frontend_tag = local.environment.front_tag
+
 }
 
 variable "default_role" {
@@ -46,6 +49,8 @@ variable "environments" {
     object({
       account_id   = string
       account_name = string
+      api_tag      = string
+      front_tag    = string
     })
   )
 }
