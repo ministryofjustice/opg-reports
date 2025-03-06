@@ -147,18 +147,18 @@ jobs:
           dockerfile: './docker/api/Dockerfile'
           path_to_live: ${{ env.path_to_live }}
           docker_build_args: LDFLAGS=${{ needs.setup.outputs.ld_flags }}
-      # # build front
-      # - name: "Build [front]"
-      #   id: build_front
-      #   uses: ./.github/actions/docker-build-scan-push
-      #   with:
-      #     ecr_registry_id: ${{ needs.setup.outputs.ecr_registry_id}}
-      #     ecr_repository: ${{ needs.setup.outputs.ecr_repository_front}}
-      #     branch_name: ${{ needs.setup.outputs.branch_name }}
-      #     tag: ${{ needs.setup.outputs.semver_tag }}
-      #     dockerfile: './docker/front/Dockerfile'
-      #     path_to_live: ${{ env.path_to_live }}
-      #     docker_build_args: ${{ needs.setup.outputs.ld_flags }}
+      # build front
+      - name: "Build [front]"
+        id: build_front
+        uses: ./.github/actions/docker-build-scan-push
+        with:
+          ecr_registry_id: ${{ needs.setup.outputs.ecr_registry_id}}
+          ecr_repository: ${{ needs.setup.outputs.ecr_repository_front}}
+          branch_name: ${{ needs.setup.outputs.branch_name }}
+          tag: ${{ needs.setup.outputs.semver_tag }}
+          dockerfile: './docker/front/Dockerfile'
+          path_to_live: ${{ env.path_to_live }}
+          docker_build_args: LDFLAGS=${{ needs.setup.outputs.ld_flags }}
 
 
   # #--fork-remove-start
