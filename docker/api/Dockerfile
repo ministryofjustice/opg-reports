@@ -36,6 +36,7 @@ ENTRYPOINT ["./api"]
 
 # setup production image
 FROM alpine:3.21.0
+EXPOSE 8081
 ENV CGO_ENABLED=1 GOOS=linux
 RUN mkdir -p /gobin
 WORKDIR /gobin

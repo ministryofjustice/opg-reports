@@ -70,16 +70,8 @@ locals {
         value = "http://${aws_service_discovery_service.reports_api.name}.${aws_service_discovery_private_dns_namespace.reports.name}:8081"
       },
       {
-        name  = "API_SCHEME",
-        value = "http"
-      },
-      {
         name  = "FRONT_ADDR",
         value = ":8080"
-      },
-      {
-        name  = "CONFIG_FILE",
-        value = "./config.json"
       }
     ],
     logConfiguration = {

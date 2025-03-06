@@ -24,7 +24,7 @@ RUN env CGO_ENABLED=1 go build -ldflags="${LDFLAGS}" -o /gobin/front ./servers/f
 
 # setup the development image
 FROM build AS development
-EXPOSE 8081
+EXPOSE 8080
 ENV CGO_ENABLED=1 GOOS=linux
 RUN mkdir -p /gobin
 WORKDIR /gobin
@@ -38,6 +38,7 @@ ENTRYPOINT ["./front"]
 
 # setup production image
 FROM alpine:3.21.0
+EXPOSE 8080
 ENV CGO_ENABLED=1 GOOS=linux
 RUN mkdir -p /gobin
 WORKDIR /gobin
