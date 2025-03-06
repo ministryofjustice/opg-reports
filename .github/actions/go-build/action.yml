@@ -59,10 +59,12 @@ runs:
         build_dir=./builds/bin/${os_arch}
         mkdir -p ${build_dir}
 
+        echo go build ${{ env.FLAGS }} -o ${build_dir}/awscosts ./collectors/awscosts/main.go
+
         go mod tidy
 
         echo -n "[building] collectors/awscosts .......... "
-        go build ${{ env.FLAGS }} -o ${build_dir}/awscosts ./collectors/awscosts/main.go && echo "${passed}" || echo "${failed}"
+        go build ${{ env.FLAGS }} -o ${build_dir}/awscosts ./collectors/awscosts/main.go && echo "${passed}"
         echo -n "[building] collectors/awsuptime ......... "
         go build ${{ env.FLAGS }} -o ${build_dir}/awsuptime ./collectors/awsuptime/main.go && echo "${passed}" || echo "${failed}"
         echo -n "[building] collectors/githubreleases .... "

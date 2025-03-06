@@ -117,7 +117,7 @@ jobs:
         id: "go_build"
         uses: ./.github/actions/go-build
         with:
-          ldflags: "-ldflags=${{ needs.setup.outputs.ld_flags }}"
+          ldflags: -ldflags="${{ needs.setup.outputs.ld_flags }}"
 
   # # Run docker build
   # docker_build:
