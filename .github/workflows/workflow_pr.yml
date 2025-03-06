@@ -161,44 +161,44 @@ jobs:
           docker_build_args: LDFLAGS=${{ needs.setup.outputs.ld_flags }}
 
 
-  # #--fork-remove-start
-  # # Run the terraform for development workspace
-  # terraform_development:
-  #   name: "[Terraform] Development"
-  #   runs-on: ubuntu-latest
-  #   needs: [setup, docker_build]
-  #   steps:
-  #     - name: "Checkout"
-  #       id: checkout
-  #       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
-  #     # setup ssh keys
-  #     - uses: webfactory/ssh-agent@v0.9.0
-  #       with:
-  #         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_EXTERNAL_MODULES }}
-  #     # configure the aws role
-  #     - name: "Configure AWS credentials for terraform"
-  #       id: configure_aws_creds
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
-  #         aws-region: "eu-west-1"
-  #         role-session-name: GitHubActionsOpgReportsTerraform
-  #     - name: "Account level terraform"
-  #       uses: ./.github/actions/terraform
-  #       with:
-  #         apply: true
-  #         directory: ./terraform/account
-  #         workspace: ${{ needs.setup.outputs.terraform_workspace_development }}
-  #         version: ${{ needs.setup.outputs.terraform_version_account }}
-  #     - name: "Environment level terraform"
-  #       uses: ./.github/actions/terraform
-  #       with:
-  #         apply: true
-  #         directory: ./terraform/environment
-  #         workspace: ${{ needs.setup.outputs.terraform_workspace_development }}
-  #         version: ${{ needs.setup.outputs.terraform_version_environment }}
-  # #--fork-remove-end
+  #--fork-remove-start
+  # Run the terraform for development workspace
+  terraform_development:
+    name: "[Terraform] Development"
+    runs-on: ubuntu-latest
+    needs: [setup, docker_build]
+    steps:
+      - name: "Checkout"
+        id: checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+      # setup ssh keys
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_EXTERNAL_MODULES }}
+      # configure the aws role
+      - name: "Configure AWS credentials for terraform"
+        id: configure_aws_creds
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
+          aws-region: "eu-west-1"
+          role-session-name: GitHubActionsOpgReportsTerraform
+      - name: "Account level terraform"
+        uses: ./.github/actions/terraform
+        with:
+          apply: false
+          directory: ./terraform/account
+          workspace: ${{ needs.setup.outputs.terraform_workspace_development }}
+          version: ${{ needs.setup.outputs.terraform_version_account }}
+      - name: "Environment level terraform"
+        uses: ./.github/actions/terraform
+        with:
+          apply: false
+          directory: ./terraform/environment
+          workspace: ${{ needs.setup.outputs.terraform_workspace_development }}
+          version: ${{ needs.setup.outputs.terraform_version_environment }}
+  #--fork-remove-end
 
   # # do the release
   # release:
