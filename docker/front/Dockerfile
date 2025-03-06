@@ -1,5 +1,6 @@
 # setup base docker image building the application
 FROM golang:1.23.4-alpine AS build
+ARG TAG
 ARG LDFLAGS
 WORKDIR /app
 COPY --link info ./info
@@ -15,6 +16,7 @@ RUN mkdir -p /gobin
 RUN update-ca-certificates
 RUN apk --update --no-cache add build-base
 RUN apk --update --no-cache add "sqlite=>=3.47"
+RUN date && echo "TAG: ${TAG}"
 RUN date && echo "FLAGS: ${LDFLAGS}" | sed "s#github.com/ministryofjustice/opg-reports/info.##g" | sed "s#-X#\\n#g" | sed "s#'##g"
 RUN env CGO_ENABLED=1 go mod tidy
 RUN env CGO_ENABLED=1 go build -ldflags="${LDFLAGS}" -o /gobin/front ./servers/front/main.go && echo "OK"
