@@ -14,6 +14,10 @@ inputs:
     description: "Path to Dockerfile"
     required: true
 
+  docker_build_args:
+    description: "Build arguments for docker"
+    default: ""
+
   buildx_version:
     description: "Buildx version"
     default: "v0.15.1"
@@ -73,6 +77,10 @@ runs:
     # Build image
     - name: "Build image [image: ${{ inputs.ecr_repository }} ]"
       uses: docker/build-push-action@v6.3.0
+      env:
+        SOURCE_DATE_EPOCH: 0
+        BUILD_TAG: ${{ format('TAG={0}', inputs.tag) }}
+        BUILD_ARGS: ${{ join(env.BUILD_TAG, inputs.docker_build_args) }}
       with:
         context: .
         file: ${{ inputs.dockerfile }}
@@ -83,9 +91,8 @@ runs:
         tags: |
           ${{ inputs.ecr_repository }}:${{ inputs.tag }}
         build-args: |
-          TAG=${{ inputs.tag }}
-      env:
-        SOURCE_DATE_EPOCH: 0
+          ${BUILD_ARGS}
+
 
 
     # Push the image
@@ -95,6 +102,8 @@ runs:
       uses: docker/build-push-action@v6.3.0
       env:
         SOURCE_DATE_EPOCH: 0
+        BUILD_TAG: ${{ format('TAG={0}', inputs.tag) }}
+        BUILD_ARGS: ${{ join(env.BUILD_TAG, inputs.docker_build_args) }}
       with:
         context: .
         file: ${{ inputs.dockerfile }}
@@ -107,7 +116,7 @@ runs:
           ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:development-${{ inputs.tag }}
           ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:development-latest
         build-args: |
-          TAG=${{ inputs.tag }}
+          ${BUILD_ARGS}
 
     - name: "Summary [tag: ${{ inputs.tag }}]"
       shell: bash
@@ -122,6 +131,10 @@ runs:
     - name: "Push image to ECR [Path to live]"
       if: ${{ inputs.path_to_live == 'true' }}
       uses: docker/build-push-action@v6.3.0
+      env:
+        SOURCE_DATE_EPOCH: 0
+        BUILD_TAG: ${{ format('TAG={0}', inputs.tag) }}
+        BUILD_ARGS: ${{ join(env.BUILD_TAG, inputs.docker_build_args) }}
       with:
         context: .
         file: ${{ inputs.dockerfile }}
@@ -134,9 +147,8 @@ runs:
           ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:main-${{ inputs.tag }}
           ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:latest
         build-args: |
-          TAG=${{ inputs.tag }}
-      env:
-        SOURCE_DATE_EPOCH: 0
+          ${BUILD_ARGS}
+
     - name: "Summary [Path to live]"
       shell: bash
       if: ${{ inputs.path_to_live == 'true' }}

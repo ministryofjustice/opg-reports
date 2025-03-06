@@ -34,8 +34,6 @@ jobs:
   setup:
     name: "Setup"
     runs-on: ubuntu-latest
-
-
     outputs:
       aws_s3_bucket: ${{ env.aws_s3_bucket }}
       aws_role_s3_download: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
@@ -119,66 +117,48 @@ jobs:
         with:
           ldflags: -ldflags="${{ needs.setup.outputs.ld_flags }}"
 
-  # # Run docker build
-  # docker_build:
-  #   name: "[Docker] Build"
-  #   runs-on: ubuntu-latest
-  #   needs: [setup, go_test_and_build]
-  #   steps:
-  #     # checkout repo
-  #     - name: "Checkout"
-  #       id: checkout
-  #       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
-  #     # setup s3 creds
-  #     # - name: "Configure AWS credentials for S3 access"
-  #     #   id: configure_aws_creds_s3
-  #     #   uses: aws-actions/configure-aws-credentials@v4
-  #     #   with:
-  #     #     aws-region: "eu-west-1"
-  #     #     role-duration-seconds: 900
-  #     #     role-to-assume: ${{ needs.setup.outputs.aws_role_s3_download }}
-  #     #     role-session-name: opg-reports-download-s3-assets
-  #     # # download the s3 assets locally
-  #     # - name: "Build assets"
-  #     #   id: build_setup
-  #     #   env:
-  #     #     GH_TOKEN: ${{ github.token }}
-  #     #     BUCKET_NAME: ${{ needs.setup.outputs.aws_s3_bucket }}
-  #     #   run: |
-  #     #     mkdir -p
-  #     #     aws s3 sync --quiet s3://${BUCKET_NAME}/databases/api.db ./builds/databases/api.db
-  #     #     make data/download-db AWS_BUCKET="${{ env.bucket }}"
-  #     # switch aws creds for ecr push
-  #     - name: "Configure AWS credentials for ECR"
-  #       id: configure_aws_creds_ecr
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         aws-region: "eu-west-1"
-  #         role-duration-seconds: 900
-  #         role-to-assume: ${{ needs.setup.outputs.aws_role_ecr_login_and_push }}
-  #         role-session-name: opg-reports-ecr-access
-  #     # build api
-  #     - name: "Build [api]"
-  #       id: build_api
-  #       uses: ./.github/actions/docker_build_scan_push
-  #       with:
-  #         ecr_registry_id: ${{ needs.setup.outputs.ecr_registry_id}}
-  #         ecr_repository: ${{ needs.setup.outputs.ecr_repository_api}}
-  #         branch_name: ${{ needs.setup.outputs.branch_name }}
-  #         tag: ${{ needs.setup.outputs.semver_tag }}
-  #         dockerfile: './docker/api/Dockerfile'
-  #         path_to_live: ${{ env.path_to_live }}
-  #     # build front
-  #     - name: "Build [front]"
-  #       id: build_front
-  #       uses: ./.github/actions/docker_build_scan_push
-  #       with:
-  #         ecr_registry_id: ${{ needs.setup.outputs.ecr_registry_id}}
-  #         ecr_repository: ${{ needs.setup.outputs.ecr_repository_front}}
-  #         branch_name: ${{ needs.setup.outputs.branch_name }}
-  #         tag: ${{ needs.setup.outputs.semver_tag }}
-  #         dockerfile: './docker/front/Dockerfile'
-  #         path_to_live: ${{ env.path_to_live }}
+  # Run docker build
+  docker_build:
+    name: "[Docker] Build"
+    runs-on: ubuntu-latest
+    needs: [setup, go_test_and_build]
+    steps:
+      # checkout repo
+      - name: "Checkout"
+        id: checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+      - name: "Configure AWS credentials for ECR"
+        id: configure_aws_creds_ecr
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: "eu-west-1"
+          role-duration-seconds: 900
+          role-to-assume: ${{ needs.setup.outputs.aws_role_ecr_login_and_push }}
+          role-session-name: opg-reports-ecr-access
+      # build api
+      - name: "Build [api]"
+        id: build_api
+        uses: ./.github/actions/docker_build_scan_push
+        with:
+          ecr_registry_id: ${{ needs.setup.outputs.ecr_registry_id}}
+          ecr_repository: ${{ needs.setup.outputs.ecr_repository_api}}
+          branch_name: ${{ needs.setup.outputs.branch_name }}
+          tag: ${{ needs.setup.outputs.semver_tag }}
+          dockerfile: './docker/api/Dockerfile'
+          path_to_live: ${{ env.path_to_live }}
+          docker_build_args: ${{ needs.setup.outputs.ld_flags }}
+      # # build front
+      # - name: "Build [front]"
+      #   id: build_front
+      #   uses: ./.github/actions/docker_build_scan_push
+      #   with:
+      #     ecr_registry_id: ${{ needs.setup.outputs.ecr_registry_id}}
+      #     ecr_repository: ${{ needs.setup.outputs.ecr_repository_front}}
+      #     branch_name: ${{ needs.setup.outputs.branch_name }}
+      #     tag: ${{ needs.setup.outputs.semver_tag }}
+      #     dockerfile: './docker/front/Dockerfile'
+      #     path_to_live: ${{ env.path_to_live }}
+      #     docker_build_args: ${{ needs.setup.outputs.ld_flags }}
 
 
   # #--fork-remove-start
