@@ -58,7 +58,7 @@ locals {
       protocol      = "tcp"
     }],
     healthCheck = {
-      command     = ["CMD-SHELL", "wget -O /dev/null -S http://localhost:8080/overview/ 2>&1 || exit 1    "],
+      command     = ["CMD-SHELL", "wget -O /dev/null -S http://localhost:8080/ 2>&1 || exit 1    "],
       startPeriod = 30,
       interval    = 15,
       timeout     = 10,
