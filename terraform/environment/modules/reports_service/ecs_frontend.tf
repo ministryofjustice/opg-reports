@@ -67,7 +67,7 @@ locals {
     environment = [
       {
         name  = "API_ADDR",
-        value = "http://${aws_service_discovery_service.reports_api.name}.${aws_service_discovery_private_dns_namespace.reports.name}:8081"
+        value = "${aws_service_discovery_service.reports_api.name}.${aws_service_discovery_private_dns_namespace.reports.name}:8081"
       },
       {
         name  = "FRONT_ADDR",

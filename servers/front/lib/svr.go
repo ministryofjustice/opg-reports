@@ -203,7 +203,7 @@ func (self *Svr) Handler(writer http.ResponseWriter, request *http.Request) {
 	// activate items in the stack
 	activePage = navigation.ActivateFlat(flat, request)
 	if activePage == nil {
-		e := fmt.Errorf("requested url [%s] does not match any navigation item.", request.URL.String())
+		e := fmt.Errorf("requested url [%s] does not match any navigation item", request.URL.String())
 		// Return with error
 		self.Response.WriteWithError(e, writer)
 		return
@@ -267,7 +267,8 @@ func (self *Svr) Run() {
 // real or fake to allow this to be show on the front end
 func FetchDataset(api *Api) (dataset string) {
 	var (
-		host                         = fmt.Sprintf("http://%s", api.Addr)
+		addr                         = strings.ReplaceAll(api.Addr, "http://", "")
+		host                         = fmt.Sprintf("http://%s", addr)
 		source endpoints.ApiEndpoint = "/v1/dataset/list"
 	)
 	dataset = "fake"
