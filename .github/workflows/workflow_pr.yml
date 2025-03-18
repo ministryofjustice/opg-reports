@@ -206,6 +206,7 @@ jobs:
         uses: ./.github/actions/go-build
         with:
           create_artifact: true
+          ldflags: -ldflags="${{ needs.setup.outputs.ld_flags }}"
       - name: "Create a release"
         id: create_release
         uses: ncipollo/release-action@v1.13.0
