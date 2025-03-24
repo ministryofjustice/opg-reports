@@ -22,6 +22,11 @@ variable "reports_frontend_tag" {
   default = "latest"
 }
 
+variable "s3_data_bucket" {
+  type    = string
+  default = "The S3 bucket where all of the reports data is stored"
+}
+
 variable "tags" {
   type = map(string)
 }

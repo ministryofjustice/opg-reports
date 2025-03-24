@@ -7,6 +7,7 @@ module "reports_service" {
   tags                 = local.default_tags
   reports_api_tag      = local.reports_api_tag
   reports_frontend_tag = local.reports_frontend_tag
+  s3_data_bucket       = module.data_bucket.bucket
 
   providers = {
     aws            = aws

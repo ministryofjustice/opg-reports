@@ -71,6 +71,10 @@ locals {
       {
         name  = "API_ADDR",
         value = ":8081"
+      },
+      {
+        name  = "S3_DATA_BUCKET",
+        value = var.s3_data_bucket.id
       }
     ],
     "mountPoints" = [],
