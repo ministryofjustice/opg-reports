@@ -27,7 +27,7 @@ variable "s3_data_bucket" {
     arn = string
     id  = string
   })
-  default = "The S3 bucket where all of the reports data is stored"
+  description = "The S3 bucket where all of the reports data is stored"
 }
 
 variable "tags" {
