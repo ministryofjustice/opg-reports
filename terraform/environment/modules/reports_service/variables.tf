@@ -23,7 +23,10 @@ variable "reports_frontend_tag" {
 }
 
 variable "s3_data_bucket" {
-  type    = string
+  type = object({
+    arn = string
+    id  = string
+  })
   default = "The S3 bucket where all of the reports data is stored"
 }
 
