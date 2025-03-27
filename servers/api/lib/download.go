@@ -77,7 +77,7 @@ func DownloadS3DB(bucketName string, bucketDB string, localPath string) (ok bool
 	body, err = io.ReadAll(result.Body)
 	if err != nil {
 		ok = false
-		slog.Error("[api] reading result body faield", slog.String("err", err.Error()))
+		slog.Error("[api] reading result body failed", slog.String("err", err.Error()))
 		return
 	}
 
