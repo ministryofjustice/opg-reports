@@ -18,7 +18,7 @@ func New(cfg *awscfg.Config) (sess *session.Session, err error) {
 	slog.Debug("[awssession.New]", slog.String("region", cfg.Region))
 
 	return session.NewSession(&aws.Config{
-		Credentials: credentials.NewStaticCredentials(cfg.AccessKeyID, cfg.SecretAccessKey, cfg.SessionToken),
+		// Credentials: credentials.NewStaticCredentials(cfg.AccessKeyID, cfg.SecretAccessKey, cfg.SessionToken),
 		Region:      aws.String(cfg.Region),
 	})
 }
