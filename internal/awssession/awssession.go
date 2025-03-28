@@ -12,11 +12,20 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/envar"
 )
 
-// New creates a typical aws session from the config struct
-func New(region string) (sess *session.Session, err error) {
-	if region == "" {
-		region = envar.Get("AWS_DEFAULT_REGION", "eu-west-1")
-	}
+// New creates a typical aws session with the default region
+func New() (sess *session.Session, err error) {
+	region = envar.Get("AWS_DEFAULT_REGION", "eu-west-1")
+
+	slog.Debug("[awssession.New]", slog.String("region", region))
+
+	return session.NewSession(&aws.Config{
+		Region:      aws.String(region),
+	})
+}
+
+
+// New creates a typical aws session with a set region
+func NewWithRegion(region string) (sess *session.Session, err error) {
 	slog.Debug("[awssession.New]", slog.String("region", region))
 
 	return session.NewSession(&aws.Config{
