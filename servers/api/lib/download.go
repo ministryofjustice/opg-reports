@@ -10,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/ministryofjustice/opg-reports/internal/awscfg"
 	"github.com/ministryofjustice/opg-reports/internal/awssession"
 )
 
@@ -26,13 +25,12 @@ func DownloadS3DB(bucketName string, bucketDB string, localPath string) (ok bool
 		tempFile     *os.File
 		body         []byte
 		tempFilename string
-		awsCfg       *awscfg.Config = awscfg.FromEnv()
 		localDir     string         = filepath.Dir(localPath)
 		ext          string         = filepath.Ext(localPath)
 	)
 	ok = true
 
-	if sess, err = awssession.New(awsCfg); err != nil {
+	if sess, err = awssession.New(); err != nil {
 		ok = false
 		slog.Error("[api] downloading from s3 - aws session failed", slog.String("err", err.Error()))
 		return

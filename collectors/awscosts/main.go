@@ -46,18 +46,18 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/costexplorer"
 	"github.com/ministryofjustice/opg-reports/collectors/awscosts/lib"
-	"github.com/ministryofjustice/opg-reports/internal/awscfg"
 	"github.com/ministryofjustice/opg-reports/internal/awsclient"
 	"github.com/ministryofjustice/opg-reports/internal/awssession"
 	"github.com/ministryofjustice/opg-reports/internal/dateformats"
 	"github.com/ministryofjustice/opg-reports/internal/dateintervals"
 	"github.com/ministryofjustice/opg-reports/internal/dateutils"
+	"github.com/ministryofjustice/opg-reports/internal/envar"
 	"github.com/ministryofjustice/opg-reports/models"
 )
 
 var (
 	args   = &lib.Arguments{}
-	awsCfg = awscfg.FromEnv()
+	region = envar.Get("AWS_DEFAULT_REGION", "eu-west-1")
 )
 
 func Run(args *lib.Arguments) (err error) {
@@ -71,7 +71,7 @@ func Run(args *lib.Arguments) (err error) {
 		content   []byte
 	)
 
-	if s, err = awssession.New(awsCfg); err != nil {
+	if s, err = awssession.New(); err != nil {
 		slog.Error("[awscosts] aws session failed", slog.String("err", err.Error()))
 		return
 	}
@@ -116,7 +116,7 @@ func main() {
 
 	slog.Info("[awscosts] starting...")
 	slog.Debug("[awscosts]", slog.String("args", fmt.Sprintf("%+v", args)))
-	slog.Debug("[awscosts]", slog.String("region", awsCfg.Region))
+	slog.Debug("[awscosts]", slog.String("region", region))
 
 	if err = lib.ValidateArgs(args); err != nil {
 		slog.Error("arg validation failed", slog.String("err", err.Error()))

@@ -33,7 +33,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/ministryofjustice/opg-reports/collectors/awsuptime/lib"
-	"github.com/ministryofjustice/opg-reports/internal/awscfg"
 	"github.com/ministryofjustice/opg-reports/internal/awsclient"
 	"github.com/ministryofjustice/opg-reports/internal/awssession"
 	"github.com/ministryofjustice/opg-reports/internal/dateformats"
@@ -45,7 +44,6 @@ import (
 var (
 	args   = &lib.Arguments{}
 	region = "us-east-1"
-	awsCfg = awscfg.FromEnvForcedRegion(region)
 )
 
 func Run(args *lib.Arguments) (err error) {
@@ -60,7 +58,7 @@ func Run(args *lib.Arguments) (err error) {
 		uptimeData []*models.AwsUptime
 	)
 
-	if s, err = awssession.New(awsCfg); err != nil {
+	if s, err = awssession.New(region); err != nil {
 		slog.Error("[awsuptime] aws session failed", slog.String("err", err.Error()))
 		return
 	}
@@ -130,7 +128,7 @@ func main() {
 
 	slog.Info("[awsuptime] starting...")
 	slog.Debug("[awsuptime]", slog.String("args", fmt.Sprintf("%+v", args)))
-	slog.Debug("[awsuptime]", slog.String("region", awsCfg.Region))
+	slog.Debug("[awsuptime]", slog.String("region", region))
 
 	if err = lib.ValidateArgs(args); err != nil {
 		slog.Error("arg validation failed", slog.String("err", err.Error()))

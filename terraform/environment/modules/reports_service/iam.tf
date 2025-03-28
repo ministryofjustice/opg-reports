@@ -45,7 +45,7 @@ data "aws_iam_policy_document" "reports_api" {
   statement {
     sid       = "AllowS3download"
     effect    = "Allow"
-    resources = [var.s3_data_bucket.arn]
+    resources = ["${var.s3_data_bucket.arn}/*"]
 
     actions = [
       "s3:GetObject",
