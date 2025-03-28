@@ -58,7 +58,7 @@ func Run(args *lib.Arguments) (err error) {
 		uptimeData []*models.AwsUptime
 	)
 
-	if s, err = awssession.New(region); err != nil {
+	if s, err = awssession.NewWithRegion(region); err != nil {
 		slog.Error("[awsuptime] aws session failed", slog.String("err", err.Error()))
 		return
 	}
