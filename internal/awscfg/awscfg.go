@@ -10,6 +10,7 @@
 package awscfg
 
 import (
+	"os"
 	"log/slog"
 
 	"github.com/ministryofjustice/opg-reports/internal/envar"
@@ -35,6 +36,7 @@ func FromEnv() ( cfg *Config) {
 		SecretAccessKey: envar.Get("AWS_SECRET_ACCESS_KEY", ""),
 		SessionToken:    envar.Get("AWS_SESSION_TOKEN", ""),
 	}
+	slog.Info("Environment - ", slog.String("ENVIRON", os.Environ()))
 	slog.Info("AWS access key", slog.String("AWS_ACCESS_KEY_ID", cfg.AccessKeyID))
 	return
 }
