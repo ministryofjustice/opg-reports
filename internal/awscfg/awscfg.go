@@ -10,9 +10,6 @@
 package awscfg
 
 import (
-	"os"
-	"log/slog"
-
 	"github.com/ministryofjustice/opg-reports/internal/envar"
 )
 
@@ -26,19 +23,14 @@ type Config struct {
 
 // FromEnv creates a config struct directly from environment
 // variables - with default value for region of eu-west-1
-func FromEnv() ( cfg *Config) {
+func FromEnv() *Config {
 
-
-
-	cfg = &Config{
+	return &Config{
 		Region:          envar.Get("AWS_DEFAULT_REGION", "eu-west-1"),
 		AccessKeyID:     envar.Get("AWS_ACCESS_KEY_ID", ""),
 		SecretAccessKey: envar.Get("AWS_SECRET_ACCESS_KEY", ""),
 		SessionToken:    envar.Get("AWS_SESSION_TOKEN", ""),
 	}
-	slog.Info("Environment - ", slog.Any("ENVIRON", os.Environ()))
-	slog.Info("AWS access key", slog.String("AWS_ACCESS_KEY_ID", cfg.AccessKeyID))
-	return
 }
 
 func FromEnvForcedRegion(region string) (c *Config) {
