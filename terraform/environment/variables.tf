@@ -28,9 +28,18 @@ locals {
 
   default_tags = merge(local.mandatory_moj_tags, local.optional_tags)
 
-  reports_api_tag      = local.environment.api_tag
-  reports_frontend_tag = local.environment.front_tag
+  reports_api_tag      = var.api_image_tag != "" ? var.api_image_tag : local.environment.api_tag
+  reports_frontend_tag = var.front_image_tag != "" ? var.front_image_tag : local.environment.front_tag
 
+}
+
+variable api_image_tag {
+  type    = string
+  default = ""
+}
+variable front_image_tag {
+  type    = string
+  default = ""
 }
 
 variable "default_role" {

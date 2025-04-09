@@ -184,6 +184,9 @@ jobs:
           version: ${{ needs.setup.outputs.terraform_version_account }}
       - name: "Environment level terraform"
         uses: ./.github/actions/terraform
+        env:
+          TF_VAR_api_image_tag: development-${{ needs.setup.outputs.semver_tag }}
+          TF_VAR_front_image_tag: development-${{ needs.setup.outputs.semver_tag }}
         with:
           apply: true
           directory: ./terraform/environment
