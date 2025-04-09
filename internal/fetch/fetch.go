@@ -11,7 +11,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/internal/endpoints"
 )
 
-const Timeout time.Duration = time.Second * 4
+const Timeout time.Duration = time.Second * 15
 
 // Fetch gets data from the uri passsed and returns the repsonse, response code and
 // any error
@@ -44,7 +44,7 @@ func Response(url string, timeout time.Duration) (response *http.Response, err e
 		request *http.Request
 		client  http.Client
 	)
-	slog.Info("[fetch.Response] url", slog.String("url", url))
+	slog.Info("[fetch.Response] url", slog.String("url", url), slog.String("timeout", timeout.String()))
 	request, err = http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return
