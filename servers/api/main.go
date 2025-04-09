@@ -30,10 +30,10 @@ import (
 )
 
 var (
-	mode        string = info.Fixtures        							// decides which set of endpoints to use
-	localDBPath string = "./databases/api.db" 							// path to the database
-	bucketName  string = envar.Get("S3_DATA_BUCKET", info.BucketName) 	// name of the bucket to pull database from
-	bucketDB    string = "./databases/api.db" 							// name of the database within the bucket
+	mode        string = info.Fixtures                                // decides which set of endpoints to use
+	localDBPath string = "./databases/api.db"                         // path to the database
+	bucketName  string = envar.Get("S3_DATA_BUCKET", info.BucketName) // name of the bucket to pull database from
+	bucketDB    string = "./databases/api.db"                         // name of the database within the bucket
 )
 
 var (
