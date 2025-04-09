@@ -33,11 +33,11 @@ locals {
 
 }
 
-variable api_image_tag {
+variable "api_image_tag" {
   type    = string
   default = ""
 }
-variable front_image_tag {
+variable "front_image_tag" {
   type    = string
   default = ""
 }
