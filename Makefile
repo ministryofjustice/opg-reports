@@ -85,7 +85,7 @@ data/download-db: build
 .PHONY: data/download-db
 
 ## upload the database to the s3 bucket
-data/upload: build
+data/upload:
 	@mkdir -p ./builds/databases
 	@aws-vault exec ${BUCKET_PROFILE} -- aws s3 cp --sse AES256 --recursive ./builds/databases/ s3://${BUCKET_NAME}/databases/
 .PHONY: data/upload
