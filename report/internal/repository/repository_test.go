@@ -26,3 +26,67 @@ func TestRepositoryNew(t *testing.T) {
 	}
 
 }
+
+type tModel struct {
+	ID   int    `json:"id" db:"id"`
+	Name string `json:"name" db:"name"`
+}
+
+func TestRepositoryInsertAndSelectWithTestTable(t *testing.T) {
+	var (
+		err     error
+		bounded []*BoundStatement
+		dir     = t.TempDir()
+		ctx     = t.Context()
+		cfg     = config.NewConfig()
+		lg      = slog.New(slog.NewTextHandler(os.Stdout, nil))
+	)
+
+	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "testinsert.db")
+
+	repo, err := New(ctx, lg, cfg)
+	if err != nil {
+		t.Errorf("unexpected error: %s", err.Error())
+	}
+	// Create
+	newTbl := `CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE) STRICT;`
+	_, err = repo.Exec(newTbl)
+	if err != nil {
+		t.Errorf("unexpected error: %s", err.Error())
+	}
+	// Insert
+	stmt := `INSERT INTO test (name) VALUES (:name) ON CONFLICT (name) DO UPDATE SET name=excluded.name RETURNING id;`
+	bounded = []*BoundStatement{
+		{
+			Data:      &tModel{Name: "test01"},
+			Statement: stmt,
+		},
+		{
+			Data:      &tModel{Name: "test02"},
+			Statement: stmt,
+		},
+	}
+
+	err = repo.Insert(bounded...)
+	if err != nil {
+		t.Errorf("unexpected error: %s", err.Error())
+	}
+	// returned values should also be set
+	for _, b := range bounded {
+		if b.Returned.(int64) <= 0 {
+			t.Errorf("return value missing from insert")
+		}
+	}
+
+	// Select
+	stmt = `SELECT id, name FROM test`
+	res := []*tModel{}
+	sel := &BoundStatement{Statement: stmt, Returned: res}
+	err = repo.Select(sel)
+
+	fmt.Printf("%+v\n", sel)
+	fmt.Printf("%+v\n", err.Error())
+
+	t.Fail()
+
+}

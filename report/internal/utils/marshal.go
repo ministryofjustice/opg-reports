@@ -11,6 +11,14 @@ func Marshal[T any](item T) (bytes []byte, err error) {
 	return
 }
 
+func MarshalStr[T any](item T) (str string) {
+	bytes, err := json.MarshalIndent(item, "", "  ")
+	if err == nil {
+		str = string(bytes)
+	}
+	return
+}
+
 // Unmarshal takes []byte - likely from file content or similar - and uses
 // json.Unmarshal to convert that to the struct passed in destination
 func Unmarshal[T any](content []byte, destination T) (err error) {
