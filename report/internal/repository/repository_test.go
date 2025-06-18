@@ -7,7 +7,13 @@ import (
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
+	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
+
+type tModel struct {
+	ID   int    `json:"id" db:"id"`
+	Name string `json:"name" db:"name"`
+}
 
 func TestRepositoryNew(t *testing.T) {
 	var (
@@ -19,17 +25,12 @@ func TestRepositoryNew(t *testing.T) {
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test.db")
 	lg := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	_, err = New(ctx, lg, cfg)
+	_, err = New[*tModel](ctx, lg, cfg)
 
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
 
-}
-
-type tModel struct {
-	ID   int    `json:"id" db:"id"`
-	Name string `json:"name" db:"name"`
 }
 
 func TestRepositoryInsertAndSelectWithTestTable(t *testing.T) {
@@ -44,7 +45,7 @@ func TestRepositoryInsertAndSelectWithTestTable(t *testing.T) {
 
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "testinsert.db")
 
-	repo, err := New(ctx, lg, cfg)
+	repo, err := New[*tModel](ctx, lg, cfg)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
@@ -78,14 +79,16 @@ func TestRepositoryInsertAndSelectWithTestTable(t *testing.T) {
 		}
 	}
 
-	// Select
+	// Select without any params
 	stmt = `SELECT id, name FROM test`
-	res := []*tModel{}
-	sel := &BoundStatement{Statement: stmt, Returned: res}
+	sel := &BoundStatement{Statement: stmt}
 	err = repo.Select(sel)
+	if err != nil {
+		t.Errorf("unexpected error: %s", err.Error())
+	}
 
-	fmt.Printf("%+v\n", sel)
-	fmt.Printf("%+v\n", err.Error())
+	fmt.Printf("%+v\n", utils.MarshalStr(sel))
+	fmt.Printf("%+v\n", err)
 
 	t.Fail()
 

@@ -9,10 +9,11 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/ministryofjustice/opg-reports/report/config"
+	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
-type Repository struct {
+type Repository[T interfaces.Model] struct {
 	ctx  context.Context
 	conf *config.Config
 	log  *slog.Logger
@@ -24,13 +25,13 @@ type empty struct{}
 
 // init is called via New and it creates database using the
 // full SCHEMA
-func (self *Repository) init() (err error) {
+func (self *Repository[T]) init() (err error) {
 	_, err = self.Exec(SCHEMA)
 	return
 }
 
 // connection internal helper to handle connecting to the db
-func (self *Repository) connection() (db *sqlx.DB, err error) {
+func (self *Repository[T]) connection() (db *sqlx.DB, err error) {
 	var dbSource string = self.conf.Database.Source()
 
 	self.log.With("dbSource", dbSource).Debug("connecting to database...")
@@ -45,7 +46,7 @@ func (self *Repository) connection() (db *sqlx.DB, err error) {
 // Exec runs a complete statement against the database and returns any error
 // Used for mostly calls without parameters (like create / delete) that either
 // return no result or simple value
-func (self *Repository) Exec(statement string) (result sql.Result, err error) {
+func (self *Repository[T]) Exec(statement string) (result sql.Result, err error) {
 	var (
 		db          *sqlx.DB
 		transaction *sqlx.Tx
@@ -78,7 +79,7 @@ func (self *Repository) Exec(statement string) (result sql.Result, err error) {
 // Insert creates a transaction for each bound statement and will fail if any
 // insert fails.
 // On fail a rollback is triggered
-func (self *Repository) Insert(boundStatements ...*BoundStatement) (err error) {
+func (self *Repository[T]) Insert(boundStatements ...*BoundStatement) (err error) {
 	var (
 		db          *sqlx.DB
 		transaction *sqlx.Tx
@@ -131,7 +132,7 @@ func (self *Repository) Insert(boundStatements ...*BoundStatement) (err error) {
 
 // Select uses the boundStatement to run command against the database
 // and attach the result to a data item
-func (self *Repository) Select(boundStatement *BoundStatement) (err error) {
+func (self *Repository[T]) Select(boundStatement *BoundStatement) (err error) {
 	var (
 		db          *sqlx.DB
 		transaction *sqlx.Tx
@@ -139,6 +140,7 @@ func (self *Repository) Select(boundStatement *BoundStatement) (err error) {
 		data                       = boundStatement.Data
 		options     *sql.TxOptions = &sql.TxOptions{ReadOnly: false, Isolation: sql.LevelDefault}
 		log                        = self.log.With("operation", "select")
+		returned                   = []T{}
 	)
 	// db connection
 	db, err = self.connection()
@@ -162,13 +164,12 @@ func (self *Repository) Select(boundStatement *BoundStatement) (err error) {
 		data = &empty{}
 	}
 
-	returnable := []map[string]interface{}{}
-	err = statement.SelectContext(self.ctx, &returnable, data)
+	err = statement.SelectContext(self.ctx, &returned, data)
 	if err != nil && err != sql.ErrNoRows {
 		log.Error("stmt context failed", "error", err.Error())
 		return
 	}
-	boundStatement.Returned = returnable
+	boundStatement.Returned = returned
 
 	log.Debug("executing transaction...")
 	err = transaction.Commit()
@@ -177,7 +178,7 @@ func (self *Repository) Select(boundStatement *BoundStatement) (err error) {
 }
 
 // New creates a new repo
-func New(ctx context.Context, log *slog.Logger, conf *config.Config) (rp *Repository, err error) {
+func New[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config) (rp *Repository[T], err error) {
 	if log == nil {
 		return nil, fmt.Errorf("no logger passed for owner service")
 	}
@@ -185,7 +186,7 @@ func New(ctx context.Context, log *slog.Logger, conf *config.Config) (rp *Reposi
 		return nil, fmt.Errorf("no config passed for owner service")
 	}
 	log = log.WithGroup("repository")
-	rp = &Repository{
+	rp = &Repository[T]{
 		ctx:  ctx,
 		log:  log,
 		conf: conf,

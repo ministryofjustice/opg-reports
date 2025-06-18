@@ -1,5 +1,5 @@
 package interfaces
 
 type Service interface {
-	Seed()
+	Seed() (err error)
 }
