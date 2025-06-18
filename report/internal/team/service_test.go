@@ -1,4 +1,4 @@
-package owner
+package team
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/internal/repository"
 )
 
-func TestOwnerServiceNew(t *testing.T) {
+func TestTeamServiceNew(t *testing.T) {
 	var (
 		err error
 		dir = t.TempDir()
@@ -20,18 +20,18 @@ func TestOwnerServiceNew(t *testing.T) {
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test.db")
 
 	lg := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	rep, _ := repository.New[*Owner](ctx, lg, cfg)
+	rep, _ := repository.New[*Team](ctx, lg, cfg)
 
 	_, err = NewService(ctx, lg, rep)
 	if err != nil {
 		t.Errorf("unexpected error creating service: [%s]", err.Error())
 	}
 
-	_, err = NewService[*Owner](ctx, nil, nil)
+	_, err = NewService[*Team](ctx, nil, nil)
 	if err == nil {
 		t.Errorf("New service should have thrown error without a log or repository")
 	}
-	_, err = NewService[*Owner](ctx, lg, nil)
+	_, err = NewService[*Team](ctx, lg, nil)
 	if err == nil {
 		t.Errorf("New service should have thrown error without a repository")
 	}

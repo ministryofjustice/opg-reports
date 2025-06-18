@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
+// tModel just used to test repo functions
 type tModel struct {
 	ID   int    `json:"id" db:"id"`
 	Name string `json:"name" db:"name"`
@@ -58,14 +58,8 @@ func TestRepositoryInsertAndSelectWithTestTable(t *testing.T) {
 	// Insert
 	stmt := `INSERT INTO test (name) VALUES (:name) ON CONFLICT (name) DO UPDATE SET name=excluded.name RETURNING id;`
 	bounded = []*BoundStatement{
-		{
-			Data:      &tModel{Name: "test01"},
-			Statement: stmt,
-		},
-		{
-			Data:      &tModel{Name: "test02"},
-			Statement: stmt,
-		},
+		{Statement: stmt, Data: &tModel{Name: "test01"}},
+		{Statement: stmt, Data: &tModel{Name: "test02"}},
 	}
 
 	err = repo.Insert(bounded...)
@@ -87,9 +81,9 @@ func TestRepositoryInsertAndSelectWithTestTable(t *testing.T) {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
 
-	fmt.Printf("%+v\n", utils.MarshalStr(sel))
-	fmt.Printf("%+v\n", err)
-
-	t.Fail()
+	res := sel.Returned.([]*tModel)
+	if len(res) < len(bounded) {
+		t.Errorf("failed to return all records")
+	}
 
 }
