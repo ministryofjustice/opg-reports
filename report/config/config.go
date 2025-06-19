@@ -14,8 +14,10 @@ type Database struct {
 }
 
 // Source returns the full connection string to use with the database drivers
-func (self *Database) Source() string {
-	return fmt.Sprintf("%s%s", self.Path, self.Params)
+func (self *Database) Source() (src string) {
+	src = fmt.Sprintf("%s%s", self.Path, self.Params)
+
+	return
 }
 
 // Github provides connection details to access github org

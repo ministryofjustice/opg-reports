@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
+	"os"
+	"path/filepath"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
@@ -33,6 +35,10 @@ func (self *Repository[T]) init() (err error) {
 // connection internal helper to handle connecting to the db
 func (self *Repository[T]) connection() (db *sqlx.DB, err error) {
 	var dbSource string = self.conf.Database.Source()
+
+	// create the file path
+	dir := filepath.Dir(self.conf.Database.Path)
+	os.MkdirAll(dir, os.ModePerm)
 
 	self.log.With("dbSource", dbSource).Debug("connecting to database...")
 	db, err = sqlx.ConnectContext(self.ctx, self.conf.Database.Driver, dbSource)

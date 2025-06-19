@@ -2,7 +2,9 @@
 *.zip
 *.tar.gz
 # Ignore data folders
-**/__data__/*
+**/__data/*
+**/__downloads/*
+**/__database/*
 # Ignore database and sql files
 *.db
 *.db-*

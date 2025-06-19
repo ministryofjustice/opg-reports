@@ -20,8 +20,10 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
-const databasePath string = "./api.db"
+const databasePath string = "./__database/api.db"
 
+// importFunc is a short hand to express the pattern of functions used so the importers var
+// is cleaner
 type importFunc func(ctx context.Context, log *slog.Logger, conf *config.Config) (err error)
 
 var importers map[string][]importFunc = map[string][]importFunc{
@@ -82,14 +84,15 @@ func ImportTeams(ctx context.Context, log *slog.Logger, conf *config.Config) (er
 func runner(ctx context.Context, log *slog.Logger, choice string) (err error) {
 
 	var conf = config.NewConfig()
+	// setup some config overrides
 	conf.Github.Organisation = "ministryofjustice"
 	conf.Database.Path = databasePath
 
 	if funcList, ok := importers[choice]; ok {
-		for _, importFunc := range funcList {
+		for _, lambdaF := range funcList {
 			// run the function and if there is an, flag that
 			// to bre returned
-			e := importFunc(ctx, log, conf)
+			e := lambdaF(ctx, log, conf)
 			if e != nil {
 				err = errors.Join(e, err)
 				return
