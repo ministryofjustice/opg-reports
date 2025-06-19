@@ -43,8 +43,9 @@ type GetReleaseOptions struct {
 	ExcludeNoAssets    bool
 }
 
-// getAllReleases returns all releases for a repository without any filtering
-// - repositoryName should not include the organsiation name
+// getAllReleases returns all releases for a repository without any filtering.
+//
+// The repositoryName should not include the organsiation name
 func (self *Repository) getAllReleases(organisation string, repositoryName string) (releases []*github.RepositoryRelease, err error) {
 	var (
 		client *github.Client
@@ -83,6 +84,7 @@ func (self *Repository) getAllReleases(organisation string, repositoryName strin
 // GetReleases returns all releases for a repository with some basic filtering options available.
 //
 // If options is nil (or all values are false) then all releases are returned.
+// The repositoryName should not include the organsiation name
 func (self *Repository) GetReleases(organisation string, repositoryName string, options *GetReleaseOptions) (releases []*github.RepositoryRelease, err error) {
 	// setup log to be for this operation
 	var log = self.log.With("repositoryName", repositoryName, "operation", "GetReleases")
@@ -125,8 +127,9 @@ func (self *Repository) GetReleases(organisation string, repositoryName string, 
 }
 
 // GetLatestRelease returns the latest published release for a repository.
-// If you are looking for a prerelease / draft then use GetReleases to return all and then limit to what you need
-// - repositoryName should not include the organsiation name
+//
+// If you are looking for a prerelease / draft then use GetReleases to return all and then limit to what you need.
+// The repositoryName should not include the organsiation name
 func (self *Repository) GetLatestRelease(organisation string, repositoryName string) (release *github.RepositoryRelease, err error) {
 	var client *github.Client
 	var log = self.log.With("repositoryName", repositoryName, "operation", "GetLatestRelease")
@@ -143,7 +146,9 @@ func (self *Repository) GetLatestRelease(organisation string, repositoryName str
 }
 
 // GetLatestReleaseAsset gets the latest release and then checks for an asset with a matching name.
-// If the fuzzyMatch is true a strings.Contains check is used, otherwise an exact match is required
+//
+// If the fuzzyMatch is true a strings.Contains check is used, otherwise an exact match is required.
+// The repositoryName should not include the organsiation name
 func (self *Repository) GetLatestReleaseAsset(organisation string, repositoryName string, assetName string, fuzzyMatch bool) (asset *github.ReleaseAsset, err error) {
 	// setup
 	var (
@@ -179,6 +184,11 @@ func (self *Repository) GetLatestReleaseAsset(organisation string, repositoryNam
 	return
 }
 
+// DownloadReleaseAsset tries to download the file associated with the assetID from via the github api and copy the content
+// to the destination path given.
+//
+// If the body from the api call is empty the an error is returned.
+// The repositoryName should not include the organsiation name
 func (self *Repository) DownloadReleaseAsset(organisation string, repositoryName string, assetID int64, destinationFilePath string) (destination *os.File, err error) {
 	var (
 		rc io.ReadCloser
@@ -198,12 +208,12 @@ func (self *Repository) DownloadReleaseAsset(organisation string, repositoryName
 	}
 	// not an error, but warn
 	if rc == nil {
-		log.Warn("asset download was empty")
+		err = fmt.Errorf("asset download was empty")
 		return
 	}
 	// close at the end
 	defer rc.Close()
-
+	// copy the file
 	destination, err = utils.FileCopy(rc, destinationFilePath)
 
 	return

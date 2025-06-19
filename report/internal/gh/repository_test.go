@@ -81,6 +81,7 @@ func TestGhLastReleaseAssetAndDownload(t *testing.T) {
 		err error
 		dir = t.TempDir()
 		fp  = fmt.Sprintf("%s/%s", dir, "metadata.tar.gz")
+		// fp  = "./metadata.tar.gz"
 		ctx = t.Context()
 		cfg = config.NewConfig()
 		lg  = slog.New(slog.NewTextHandler(os.Stdout, nil))
