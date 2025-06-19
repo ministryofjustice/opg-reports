@@ -7,9 +7,7 @@ import (
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/gh"
 	"github.com/ministryofjustice/opg-reports/report/internal/sqldb"
-	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
 func TestTeamServiceNew(t *testing.T) {
@@ -72,37 +70,4 @@ func TestTeamServiceGetAll(t *testing.T) {
 	if len(res) <= 0 {
 		t.Errorf("no results found in service")
 	}
-}
-
-func TestTeamServiceImport(t *testing.T) {
-
-	if utils.GetEnvVar("GH_TOKEN", "") == "" {
-		t.Skip("No GH_TOKEN, skipping test")
-	}
-
-	var (
-		err error
-		dir = t.TempDir()
-		ctx = t.Context()
-		cfg = config.NewConfig()
-		lg  = slog.New(slog.NewTextHandler(os.Stdout, nil))
-	)
-	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test.db")
-	cfg.Github.Organisation = "ministryofjustice"
-
-	// team repo
-	rep, _ := sqldb.New[*Team](ctx, lg, cfg)
-	// github repo
-	gh, err := gh.New(ctx, lg, cfg)
-	// service
-	srv, err := NewService(ctx, lg, cfg, rep)
-	if err != nil {
-		t.Errorf("unexpected error creating service: [%s]", err.Error())
-	}
-	err = srv.Import(gh)
-
-	fmt.Printf("error-->%+v\n", err)
-
-	t.Fail()
-
 }

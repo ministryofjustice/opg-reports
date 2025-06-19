@@ -4,15 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"os"
 	"time"
 
-	"github.com/google/go-github/v62/github"
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/gh"
 	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
 	"github.com/ministryofjustice/opg-reports/report/internal/sqldb"
-	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
 type Service[T interfaces.Model] struct {
@@ -26,6 +22,7 @@ type Service[T interfaces.Model] struct {
 // we create 3 dummy teams
 func (self *Service[T]) Seed() (err error) {
 	var (
+		log   = self.log.With("operation", "Seed")
 		now   = time.Now().UTC().Format(time.RFC3339)
 		seeds = []*sqldb.BoundStatement{
 			{Statement: stmtInsert, Data: &Team{Name: "TeamA", CreatedAt: now}},
@@ -33,42 +30,9 @@ func (self *Service[T]) Seed() (err error) {
 			{Statement: stmtInsert, Data: &Team{Name: "TeamC", CreatedAt: now}},
 		}
 	)
+	log.Debug("inserting seed data...")
 	err = self.store.Insert(seeds...)
 
-	return
-}
-
-// Import will fetch published opg-metadata content and convert all 'billing_unit'
-// entries within the opg-metadata account list to become teams.
-//
-// The latest release is downloaded, extracted and the accounts.json used as the
-// dataset
-//
-// Uses the gh repository to fetch the data from github
-func (self *Service[T]) Import(gh *gh.Repository) (err error) {
-	var (
-		asset          *github.ReleaseAsset
-		downloadedFile *os.File
-		org            string = self.conf.Github.Organisation
-		dataRepo       string = "opg-metadata"
-		assetName      string = "metadata.tar.gz"
-		downloadTo     string = "./team-service-import/" + assetName
-		extractTo      string = "./team-service-import/" + dataRepo
-	)
-	// get the latest relase and the asset details that match the name
-	asset, err = gh.GetLatestReleaseAsset(org, dataRepo, assetName, false)
-	if err != nil {
-		return
-	}
-	// download this asset
-	downloadedFile, err = gh.DownloadReleaseAsset(org, dataRepo, *asset.ID, downloadTo)
-	if err != nil {
-		return
-	}
-	defer downloadedFile.Close()
-
-	// now extract the tar.gz
-	err = utils.TarGzExtract(downloadedFile, extractTo)
 	return
 }
 
@@ -76,11 +40,13 @@ func (self *Service[T]) Import(gh *gh.Repository) (err error) {
 // Calls the database
 func (self *Service[T]) GetAllTeams() (teams []*Team, err error) {
 	var selectStmt = &sqldb.BoundStatement{Statement: stmtSelectAll}
-	teams = []*Team{}
+	var log = self.log.With("operation", "GetAllTeams")
 
-	err = self.store.Select(selectStmt)
-	// cast the data back to struct
-	if err == nil {
+	teams = []*Team{}
+	log.Debug("getting all teams from database...")
+
+	if err = self.store.Select(selectStmt); err == nil {
+		// cast the data back to struct
 		teams = selectStmt.Returned.([]*Team)
 	}
 
