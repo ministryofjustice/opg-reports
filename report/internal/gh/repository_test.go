@@ -101,6 +101,8 @@ func TestGhLastReleaseAssetAndDownload(t *testing.T) {
 	}
 
 	f, err := repo.DownloadReleaseAsset("ministryofjustice", "opg-metadata", *found.ID, fp)
+	defer f.Close()
+
 	if err != nil {
 		t.Errorf("unexpected error found: %s", err.Error())
 	}

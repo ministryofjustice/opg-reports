@@ -37,10 +37,11 @@ func (self *Repository) connection() (client *github.Client, err error) {
 	return
 }
 
+// GetReleaseOptions used in release queries
 type GetReleaseOptions struct {
-	ExcludePrereleases bool
-	ExcludeDraft       bool
-	ExcludeNoAssets    bool
+	ExcludePrereleases bool // Exclude releases marked as prereleases
+	ExcludeDraft       bool // Exclude anything marked as a draft
+	ExcludeNoAssets    bool // Exclude anything that does not have assets
 }
 
 // getAllReleases returns all releases for a repository without any filtering.
@@ -184,11 +185,13 @@ func (self *Repository) GetLatestReleaseAsset(organisation string, repositoryNam
 	return
 }
 
-// DownloadReleaseAsset tries to download the file associated with the assetID from via the github api and copy the content
-// to the destination path given.
+// DownloadReleaseAsset tries to download the file associated with the assetID from via the github api
+// and copy the content to the destination path given.
 //
-// If the body from the api call is empty the an error is returned.
-// The repositoryName should not include the organsiation name
+// If the body from the api call is empty the an error is returned. The repositoryName should not
+// include the organsiation name
+//
+// The returned `*os.File` is not closed and will need to be handled
 func (self *Repository) DownloadReleaseAsset(organisation string, repositoryName string, assetID int64, destinationFilePath string) (destination *os.File, err error) {
 	var (
 		rc io.ReadCloser
@@ -214,11 +217,17 @@ func (self *Repository) DownloadReleaseAsset(organisation string, repositoryName
 	// close at the end
 	defer rc.Close()
 	// copy the file
-	destination, err = utils.FileCopy(rc, destinationFilePath)
+	err = utils.FileCopy(rc, destinationFilePath)
+	// if there was no error with the copy, return a pointer to the file
+	if err == nil {
+		destination, err = os.Open(destinationFilePath)
+	}
 
 	return
 }
 
+// New provides a configured Github repository object for use to fetch details from
+// their API.
 func New(ctx context.Context, log *slog.Logger, conf *config.Config) (rp *Repository, err error) {
 	if log == nil {
 		return nil, fmt.Errorf("no logger passed for github repository")

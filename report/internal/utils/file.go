@@ -19,9 +19,9 @@ func FileExists(path string) bool {
 }
 
 // FileCopy copies the content of the source io.Reader the new destionation file path
-func FileCopy(source io.Reader, destinationPath string) (destination *os.File, err error) {
+func FileCopy(source io.Reader, destinationPath string) (err error) {
 	var directory string = filepath.Dir(destinationPath)
-
+	var destination *os.File
 	// try to make the directory path
 	if err = os.MkdirAll(directory, os.ModePerm); err != nil {
 		return

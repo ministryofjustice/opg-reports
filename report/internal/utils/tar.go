@@ -3,7 +3,6 @@ package utils
 import (
 	"archive/tar"
 	"compress/gzip"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -32,21 +31,21 @@ func TarGzExtract(targz io.Reader, extractTo string) (err error) {
 
 		// grab next & handle errors
 		header, err = tarReader.Next()
-		// end of tar ball
+		// end of tar ball - not actually an error
 		if err == io.EOF {
+			err = nil
 			break
 		} else if err != nil {
 			return
 		}
-		// add prefix to extraction
+		// add prefix to extraction to push into another place
 		header.Name = filepath.Join(extractTo, header.Name)
 
 		switch header.Typeflag {
 		// directories
 		case tar.TypeDir:
-			err = os.Mkdir(header.Name, os.ModePerm)
+			err = os.MkdirAll(header.Name, os.ModePerm)
 			if err != nil {
-				fmt.Printf("%s\n", header.Name)
 				return
 			}
 		// files
