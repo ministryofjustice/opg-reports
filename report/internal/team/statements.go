@@ -1,16 +1,16 @@
 package team
 
 // list of sql insert statements of various types
-const stmtDropTable string = `DROP TABLE IF EXISTS team`
+const stmtDropTable string = `DROP TABLE IF EXISTS teams`
 const stmtSelectAll string = `
 SELECT
 	id,
 	name,
 	created_at
-FROM team
+FROM teams
 ORDER BY name ASC;`
 const stmtInsert string = `
-INSERT INTO team (
+INSERT INTO teams (
 	name,
 	created_at
 ) VALUES (

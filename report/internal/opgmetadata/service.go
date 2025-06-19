@@ -81,11 +81,14 @@ func (self *Service) GetAllAccounts() (accounts []map[string]interface{}, err er
 	)
 	accounts = []map[string]interface{}{}
 	// download the repo artifact
-	self.Download()
+	err = self.Download()
+	if err != nil {
+		return
+	}
 
 	// check the account file exists
 	if !utils.FileExists(accountFile) {
-		err = fmt.Errorf("account data file not found")
+		err = fmt.Errorf("account data file not found [%s]", accountFile)
 		return
 	}
 	// unmarshal the account data
@@ -121,13 +124,17 @@ func (self *Service) GetAllTeams() (teams []map[string]interface{}, err error) {
 // NewService returns a configured opgmetadata service object
 func NewService(ctx context.Context, log *slog.Logger, conf *config.Config, store *gh.Repository) (srv *Service, err error) {
 	if log == nil {
-		return nil, fmt.Errorf("no logger passed for opgmetada service")
+		return nil, fmt.Errorf("no logger passed for opgmetadata service")
 	}
 	if conf == nil {
-		return nil, fmt.Errorf("no config passed for opgmetada service")
+		return nil, fmt.Errorf("no config passed for opgmetadata service")
 	}
+	if conf.Github == nil || conf.Github.Organisation == "" || conf.Github.Token == "" {
+		return nil, fmt.Errorf("no github config details passed for opgmetadata service")
+	}
+
 	if store == nil {
-		return nil, fmt.Errorf("no repository passed for teopgmetadaam service")
+		return nil, fmt.Errorf("no repository passed for opgmetadata service")
 	}
 
 	srv = &Service{

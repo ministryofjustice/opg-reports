@@ -30,8 +30,27 @@ func (self *Service[T]) Seed() (err error) {
 			{Statement: stmtInsert, Data: &Team{Name: "TeamC", CreatedAt: now}},
 		}
 	)
-	log.Debug("inserting seed data...")
+	log.Info("inserting seed data ...")
 	err = self.store.Insert(seeds...)
+
+	return
+}
+
+// Import uses the data passed to write to the database
+func (self Service[T]) Import(rows []*Team) (inserted []*Team, err error) {
+	var (
+		log     = self.log.With("operation", "Import")
+		now     = time.Now().UTC().Format(time.RFC3339)
+		inserts = []*sqldb.BoundStatement{}
+	)
+	log.Info("importing ...")
+	log.Debug("generating bound statements ...")
+	for _, row := range rows {
+		row.CreatedAt = now
+		inserts = append(inserts, &sqldb.BoundStatement{Statement: stmtInsert, Data: row})
+	}
+	log.Debug("running insert ...")
+	err = self.store.Insert(inserts...)
 
 	return
 }
