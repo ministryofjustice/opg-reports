@@ -1,4 +1,4 @@
-package repository
+package sqldb
 
 import (
 	"context"
@@ -180,12 +180,12 @@ func (self *Repository[T]) Select(boundStatement *BoundStatement) (err error) {
 // New creates a new repo
 func New[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config) (rp *Repository[T], err error) {
 	if log == nil {
-		return nil, fmt.Errorf("no logger passed for owner service")
+		return nil, fmt.Errorf("no logger passed for sqldb repository")
 	}
 	if conf == nil {
-		return nil, fmt.Errorf("no config passed for owner service")
+		return nil, fmt.Errorf("no config passed for sqldb repository")
 	}
-	log = log.WithGroup("repository")
+	log = log.WithGroup("sqldb")
 	rp = &Repository[T]{
 		ctx:  ctx,
 		log:  log,

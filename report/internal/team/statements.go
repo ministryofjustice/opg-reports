@@ -1,14 +1,14 @@
 package team
 
 // list of sql insert statements of various types
+const stmtDropTable string = `DROP TABLE IF EXISTS team`
 const stmtSelectAll string = `
 SELECT
 	id,
 	name,
 	created_at
 FROM team
-ORDER BY name ASC;
-`
+ORDER BY name ASC;`
 const stmtInsert string = `
 INSERT INTO team (
 	name,

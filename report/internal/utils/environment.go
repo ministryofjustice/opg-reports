@@ -11,3 +11,7 @@ func GetEnvVar(key, def string) string {
 
 	return def
 }
+
+func SetEnvVar(key, value string) error {
+	return os.Setenv(key, value)
+}
