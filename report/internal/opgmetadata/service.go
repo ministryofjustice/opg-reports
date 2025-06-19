@@ -142,7 +142,7 @@ func NewService(ctx context.Context, log *slog.Logger, conf *config.Config, stor
 		log:       log.With("service", "opgmetadata"),
 		conf:      conf,
 		store:     store,
-		directory: "./data/",
+		directory: "./__data__/",
 	}
 	return
 }

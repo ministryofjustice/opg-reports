@@ -1,6 +1,8 @@
 # Ignore zip etc
 *.zip
 *.tar.gz
+# Ignore data folders
+**/__data__/*
 # Ignore database and sql files
 *.db
 *.db-*
