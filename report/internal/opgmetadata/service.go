@@ -41,7 +41,7 @@ func (self *Service) Download() (err error) {
 		downloadedFile *os.File
 		dir            string         = self.directory
 		org            string         = self.conf.Github.Organisation
-		log            *slog.Logger   = self.log.With("operation", "Download", "dataRepo", dataRepo, "assetName", assetName)
+		log            *slog.Logger   = self.log.With("operation", "Download", "dataRepo", dataRepo, "assetName", assetName, "org", org)
 		downloadTo     string         = filepath.Join(dir, assetName)
 		extractTo      string         = filepath.Join(dir, dataRepo)
 		gh             *gh.Repository = self.store
@@ -51,7 +51,7 @@ func (self *Service) Download() (err error) {
 		return
 	}
 	// get the latest relase and the asset details that match the name
-	log.Debug("getting the latest release asset via repository")
+	log.Info("Downloading the latest release asset ...")
 	asset, err = gh.GetLatestReleaseAsset(org, dataRepo, assetName, false)
 	if err != nil {
 		return
