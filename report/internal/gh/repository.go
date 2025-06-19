@@ -3,11 +3,16 @@ package gh
 import (
 	"context"
 	"fmt"
+	"io"
 	"log/slog"
+	"net/http"
+	"os"
+	"strings"
 
 	"github.com/gofri/go-github-ratelimit/github_ratelimit"
 	"github.com/google/go-github/v62/github"
 	"github.com/ministryofjustice/opg-reports/report/config"
+	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
 type Repository struct {
@@ -32,7 +37,7 @@ func (self *Repository) connection() (client *github.Client, err error) {
 	return
 }
 
-type ReleaseOptions struct {
+type GetReleaseOptions struct {
 	ExcludePrereleases bool
 	ExcludeDraft       bool
 	ExcludeNoAssets    bool
@@ -78,9 +83,9 @@ func (self *Repository) getAllReleases(organisation string, repositoryName strin
 // GetReleases returns all releases for a repository with some basic filtering options available.
 //
 // If options is nil (or all values are false) then all releases are returned.
-func (self *Repository) GetReleases(organisation string, repositoryName string, options *ReleaseOptions) (releases []*github.RepositoryRelease, err error) {
+func (self *Repository) GetReleases(organisation string, repositoryName string, options *GetReleaseOptions) (releases []*github.RepositoryRelease, err error) {
 	// setup log to be for this operation
-	var log = self.log.With("repositoryName", repositoryName, "operation", "Releases")
+	var log = self.log.With("repositoryName", repositoryName, "operation", "GetReleases")
 	releases = []*github.RepositoryRelease{}
 	// first, get all releases
 	all, err := self.getAllReleases(organisation, repositoryName)
@@ -120,7 +125,7 @@ func (self *Repository) GetReleases(organisation string, repositoryName string, 
 }
 
 // GetLatestRelease returns the latest published release for a repository.
-// If you are looking for a prerelease / draft then use GetReleases with options configured
+// If you are looking for a prerelease / draft then use GetReleases to return all and then limit to what you need
 // - repositoryName should not include the organsiation name
 func (self *Repository) GetLatestRelease(organisation string, repositoryName string) (release *github.RepositoryRelease, err error) {
 	var client *github.Client
@@ -134,6 +139,72 @@ func (self *Repository) GetLatestRelease(organisation string, repositoryName str
 	// get just 1 release - this should be the latest
 	log.Debug("getting last release")
 	release, _, err = client.Repositories.GetLatestRelease(self.ctx, organisation, repositoryName)
+	return
+}
+
+// GetLatestReleaseAsset gets the latest release and then checks for an asset with a matching name.
+// If the fuzzyMatch is true a strings.Contains check is used, otherwise an exact match is required
+func (self *Repository) GetLatestReleaseAsset(organisation string, repositoryName string, assetName string, fuzzyMatch bool) (asset *github.ReleaseAsset, err error) {
+	// setup
+	var (
+		release *github.RepositoryRelease
+		log     = self.log.With("repositoryName", repositoryName, "operation", "GetLatestReleaseAsset", "assetName", assetName)
+	)
+	// get the release
+	release, err = self.GetLatestRelease(organisation, repositoryName)
+	// if error or not found, return
+	if err != nil || release == nil {
+		return
+	}
+	// if there are no assets, return but without an error
+	if len(release.Assets) == 0 {
+		log.With("assets", len(release.Assets), "id", *release.ID).Warn("no assets found")
+		return
+	}
+
+	// check each asset and return when asset match is found
+	for _, a := range release.Assets {
+		var nm = *a.Name
+		// if fuzzyMatch is true checj string contains
+		if fuzzyMatch && strings.Contains(nm, assetName) {
+			asset = a
+			return
+		} else if nm == assetName {
+			asset = a
+			return
+		}
+	}
+	log.Warn("no matching asset found")
+
+	return
+}
+
+func (self *Repository) DownloadReleaseAsset(organisation string, repositoryName string, assetID int64, destinationFilePath string) (destination *os.File, err error) {
+	var (
+		rc io.ReadCloser
+		//redirect string
+		client *github.Client
+		log    = self.log.With("operation", "DownloadAsset", "assetID", assetID)
+	)
+	// get api client
+	client, err = self.connection()
+	if err != nil {
+		return
+	}
+	log.Debug("downloading asset")
+	rc, _, err = client.Repositories.DownloadReleaseAsset(self.ctx, organisation, repositoryName, assetID, http.DefaultClient)
+	if err != nil {
+		return
+	}
+	// not an error, but warn
+	if rc == nil {
+		log.Warn("asset download was empty")
+		return
+	}
+	// close at the end
+	defer rc.Close()
+
+	destination, err = utils.FileCopy(rc, destinationFilePath)
 
 	return
 }
