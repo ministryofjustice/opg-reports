@@ -6,69 +6,37 @@ Import data into a database
 package main
 
 import (
-	"context"
-	"errors"
-	"fmt"
-	"log/slog"
-	"os"
-
 	"github.com/ministryofjustice/opg-reports/report/cmd/importer/teams"
 	"github.com/ministryofjustice/opg-reports/report/config"
+	"github.com/spf13/cobra"
 )
 
-const databasePath string = "./__database/api.db"
-
-// importFunc is a short hand to express the pattern of functions used so the importers var
-// is cleaner
-type importFunc func(ctx context.Context, log *slog.Logger, conf *config.Config, args []string) (err error)
-
-var importers map[string][]importFunc = map[string][]importFunc{
-	"all":   {teams.Import},
-	"teams": {teams.Import},
+// root command
+var rootCmd = &cobra.Command{
+	Use:   "importer",
+	Short: "Importer",
+	Long:  `importer sub-commands will import data directly to the local database.`,
 }
 
-// runner checks the choice against the known list of import options
-// and will run each function in order thats attached
-func runner(ctx context.Context, log *slog.Logger, choice string, args []string) (err error) {
+var conf, viperConf = config.New() // Get the configuration data and the viper config for mapping to cli args
 
-	var conf = config.NewConfig()
-	// setup some config overrides
-	conf.Database.Path = databasePath
+// list of commands to attach to the root
+var (
+	teamCmd = teams.Cmd(conf, viperConf)
+)
 
-	// look for an run functions to import
-	if funcList, ok := importers[choice]; ok {
-		for _, lambdaF := range funcList {
-			// run the function and if there is an, flag that
-			// to bre returned
-			e := lambdaF(ctx, log, conf, args)
-			if e != nil {
-				err = errors.Join(e, err)
-				return
-			}
-		}
-	} else {
-		err = fmt.Errorf("unsupported import [%s]", choice)
-	}
+// init
+// - Binds global config values to parameters
+func init() {
+	// bind the database.path config item to the shorter --db
+	rootCmd.PersistentFlags().StringVar(&conf.Database.Path, "db", conf.Database.Path, "Path to database file")
+	viperConf.BindPFlag("database.path", rootCmd.PersistentFlags().Lookup("db"))
 
-	return
 }
 
 func main() {
-	var (
-		err error
-		log *slog.Logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
-		ctx              = context.Background()
-	)
 
-	if len(os.Args) <= 1 {
-		log.Error("no arguments passed")
-		os.Exit(1)
-	}
+	rootCmd.AddCommand(teamCmd)
+	rootCmd.Execute()
 
-	err = runner(ctx, log, os.Args[1], os.Args[2:])
-
-	if err != nil {
-		log.Error(err.Error())
-		os.Exit(1)
-	}
 }
