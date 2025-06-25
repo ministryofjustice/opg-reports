@@ -20,6 +20,8 @@ import (
 // Example:
 //
 //	importer teams --db=$path --org=githubOrgansiation
+//
+// interface: ImporterCLICommand
 func Cmd(conf *config.Config, viperConf *viper.Viper) (cmd *cobra.Command) {
 	// handles importing only team data
 	cmd = &cobra.Command{
@@ -52,6 +54,8 @@ func Cmd(conf *config.Config, viperConf *viper.Viper) (cmd *cobra.Command) {
 //
 // The account.json is parsed and all unique billing_units are converted into team.Team
 // entries and inserted into the databse using the team.Service.Import method
+//
+// // interface: ImporterImportCommand
 func Import(ctx context.Context, log *slog.Logger, conf *config.Config) (err error) {
 	log.Info("running [team] imports ...")
 
