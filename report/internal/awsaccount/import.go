@@ -20,52 +20,55 @@ import (
 //
 // interface: ImporterImportCommand
 func Import(ctx context.Context, log *slog.Logger, conf *config.Config) (err error) {
+	var (
+		gr          *gh.Repository
+		metaService *opgmetadata.Service
+		rawAccounts []map[string]interface{}
+		list        []*AwsAccountImport
+		store       *sqldb.Repository[*AwsAccount]
+		now         string                  = time.Now().UTC().Format(time.RFC3339)
+		inserts     []*sqldb.BoundStatement = []*sqldb.BoundStatement{}
+	)
+	log = log.With("operation", "Import", "service", "awsaccount")
 	log.Info("running [awsaccounts] imports ...")
 
-	var now = time.Now().UTC().Format(time.RFC3339)
 	// fetch the gh repository first and then create the opgmeta data service
-	gh, err := gh.New(ctx, log, conf)
+	gr, err = gh.New(ctx, log, conf)
 	if err != nil {
 		return
 	}
-	metaService, err := opgmetadata.NewService(ctx, log, conf, gh)
+	// get the service
+	metaService, err = opgmetadata.NewService(ctx, log, conf, gr)
 	if err != nil {
 		return
 	}
-
 	// get just the aws accounts
-	rawAccounts, err := metaService.GetAllAwsAccounts()
+	rawAccounts, err = metaService.GetAllAwsAccounts()
 	if err != nil {
 		return
 	}
-
 	// convert to db model
-	list := []*AwsAccountImport{}
+	list = []*AwsAccountImport{}
 	err = utils.Convert(rawAccounts, &list)
 	if err != nil {
 		return
 	}
-	// before we insert, set environment to production if empty
-	for _, acc := range list {
-		if acc.Environment == "" {
-			acc.Environment = "production"
-		}
-		if acc.CreatedAt == "" {
-			acc.CreatedAt = now
-		}
-	}
-	// sqldb
-	store, err := sqldb.New[*AwsAccount](ctx, log, conf)
+	// sqldb setup
+	store, err = sqldb.New[*AwsAccount](ctx, log, conf)
 	if err != nil {
 		return
 	}
-	// service
-	srv, err := NewService(ctx, log, conf, store)
-	if err != nil {
-		return
+	log.Info("importing ...")
+	log.Debug("generating bound statements ...")
+	for _, row := range list {
+		if row.Environment == "" {
+			row.Environment = "production"
+		}
+		row.CreatedAt = now
+		inserts = append(inserts, &sqldb.BoundStatement{Statement: stmtImport, Data: row})
 	}
-
-	_, err = srv.Import(list)
+	log.Debug("running insert ...")
+	err = store.Insert(inserts...)
 
 	return
 }

@@ -11,7 +11,8 @@ type AwsAccount struct {
 	TeamID int `json:"team_id,omitempty" db:"team_id"`
 }
 
-// AwsAccountImport captures an extra field for select
+// AwsAccountImport captures an extra field from the metadata which
+// is used in the stmtInsert to resolve join to team
 type AwsAccountImport struct {
 	AwsAccount
 	BillingUnit string `json:"billing_unit,omitempty" db:"billing_unit"`

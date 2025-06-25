@@ -35,25 +35,6 @@ func (self *Service[T]) Seed() (err error) {
 	return
 }
 
-// Import uses the data passed to write to the database
-func (self Service[T]) Import(rows []*AwsAccountImport) (inserted []*AwsAccountImport, err error) {
-	var (
-		log     = self.log.With("operation", "Import")
-		now     = time.Now().UTC().Format(time.RFC3339)
-		inserts = []*sqldb.BoundStatement{}
-	)
-	log.Info("importing ...")
-	log.Debug("generating bound statements ...")
-	for _, row := range rows {
-		row.CreatedAt = now
-		inserts = append(inserts, &sqldb.BoundStatement{Statement: stmtImport, Data: row})
-	}
-	log.Debug("running insert ...")
-	err = self.store.Insert(inserts...)
-
-	return
-}
-
 // GetAllAccounts returns all accounts as a slice from the database
 func (self *Service[T]) GetAllAccounts() (teams []T, err error) {
 	var selectStmt = &sqldb.BoundStatement{Statement: stmtSelectAll}
