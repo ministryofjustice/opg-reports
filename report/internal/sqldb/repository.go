@@ -109,6 +109,7 @@ func (self *Repository[T]) Insert(boundStatements ...*BoundStatement) (err error
 		var data = boundStmt.Data
 
 		statement, err = transaction.PrepareNamedContext(self.ctx, boundStmt.Statement)
+
 		if err != nil {
 			log.Error("prepared stmt failed", "error", err.Error())
 			return
@@ -120,7 +121,7 @@ func (self *Repository[T]) Insert(boundStatements ...*BoundStatement) (err error
 
 		err = statement.GetContext(self.ctx, &boundStmt.Returned, data)
 		if err != nil && err != sql.ErrNoRows {
-			log.Error("stmt context failed", "error", err.Error())
+			log.Error("stmt context failed", "error", err.Error(), "sql", statement.QueryString)
 			return
 		}
 

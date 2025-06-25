@@ -1,14 +1,22 @@
 package awsaccount
 
+import (
+	"fmt"
+
+	"github.com/ministryofjustice/opg-reports/report/internal/utils"
+)
+
 type AwsAccount struct {
-	ID          string `json:"id" db:"id"` // This is the AWS Account ID as a string
-	CreatedAt   string `json:"created_at" db:"created_at" example:"2019-08-24T14:15:22Z"`
+	ID          string `json:"id,omitempty" db:"id"` // This is the AWS Account ID as a string
+	CreatedAt   string `json:"created_at,omitempty" db:"created_at" example:"2019-08-24T14:15:22Z"`
 	Name        string `json:"name,omitempty" db:"name"`
 	Label       string `json:"label,omitempty" db:"label"`
 	Environment string `json:"environment,omitempty" db:"environment"`
 
-	// join to teams
-	TeamID int `json:"team_id,omitempty" db:"team_id"`
+	// Joins
+	// TeamID is the raw db column that stores the association
+	TeamID int         `json:"team_id,omitempty" db:"team_id"`
+	Team   *hasOneTeam `json:"team,omitempty" db:"team"`
 }
 
 // AwsAccountImport captures an extra field from the metadata which
@@ -16,4 +24,25 @@ type AwsAccount struct {
 type AwsAccountImport struct {
 	AwsAccount
 	BillingUnit string `json:"billing_unit,omitempty" db:"billing_unit"`
+}
+
+// team is internal and used for handling the account->team join
+type team struct {
+	ID   int    `json:"id,omitempty" db:"id" example:"1"`
+	Name string `json:"name,omitempty" db:"name" example:"Sirius"`
+}
+
+type hasOneTeam team
+
+// Scan handles the processing of the join data
+func (self *hasOneTeam) Scan(src interface{}) (err error) {
+	switch src.(type) {
+	case []byte:
+		err = utils.Unmarshal(src.([]byte), self)
+	case string:
+		err = utils.Unmarshal([]byte(src.(string)), self)
+	default:
+		err = fmt.Errorf("unsupported scan src type")
+	}
+	return
 }

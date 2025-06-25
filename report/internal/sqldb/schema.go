@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS teams (
 
 CREATE INDEX IF NOT EXISTS team_name ON teams(name);
 
-CREATE TABLE IF NOT EXISTS awsaccounts (
+CREATE TABLE IF NOT EXISTS aws_accounts (
 	id TEXT PRIMARY KEY,
 	created_at TEXT,
 	name TEXT NOT NULL,
@@ -19,5 +19,5 @@ CREATE TABLE IF NOT EXISTS awsaccounts (
 	team_id INTEGER
 ) WITHOUT ROWID;
 
-CREATE INDEX IF NOT EXISTS awsaccounts_id ON awsaccounts(id);
+CREATE INDEX IF NOT EXISTS aws_accounts_id ON aws_accounts(id);
 `

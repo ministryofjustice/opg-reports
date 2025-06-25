@@ -2,18 +2,24 @@ package awsaccount
 
 // list of sql insert statements of various types
 const stmtDropTable string = `DROP TABLE IF EXISTS awsaccounts`
+
 const stmtSelectAll string = `
 SELECT
-	id,
-	name,
-	label,
-	environment,
-	created_at
-FROM awsaccounts
-ORDER BY id ASC;`
+	aws_accounts.id,
+	aws_accounts.name,
+	aws_accounts.label,
+	aws_accounts.environment,
+	json_object(
+		'id', teams.id,
+		'name', teams.name
+	) as team
+FROM aws_accounts
+LEFT JOIN teams on teams.id = aws_accounts.team_id
+GROUP BY aws_accounts.id
+ORDER BY aws_accounts.name ASC;`
 
 const stmtImport string = `
-INSERT INTO awsaccounts (
+INSERT INTO aws_accounts (
 	id,
 	name,
 	label,
@@ -36,7 +42,7 @@ ON CONFLICT (id)
 RETURNING id;`
 
 const stmtInsert string = `
-INSERT INTO awsaccounts (
+INSERT INTO aws_accounts (
 	id,
 	name,
 	label,

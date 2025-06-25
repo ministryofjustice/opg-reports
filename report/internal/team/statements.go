@@ -4,11 +4,20 @@ package team
 const stmtDropTable string = `DROP TABLE IF EXISTS teams`
 const stmtSelectAll string = `
 SELECT
-	id,
-	name,
-	created_at
+	teams.id,
+	teams.name,
+	json_group_array(
+		DISTINCT json_object(
+			'id', aws_accounts.id,
+			'name', aws_accounts.name,
+			'label', aws_accounts.label,
+			'environment', aws_accounts.environment
+		)
+	) filter ( where aws_accounts.id is not null) as aws_accounts
 FROM teams
-ORDER BY name ASC;`
+LEFT JOIN aws_accounts ON aws_accounts.team_id = teams.id
+GROUP BY teams.id
+ORDER BY teams.name ASC`
 
 const stmtImport string = `
 INSERT INTO teams (
