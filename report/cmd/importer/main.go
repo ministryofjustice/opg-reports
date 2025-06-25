@@ -6,6 +6,7 @@ Import data into a database
 package main
 
 import (
+	"github.com/ministryofjustice/opg-reports/report/cmd/importer/awsaccounts"
 	"github.com/ministryofjustice/opg-reports/report/cmd/importer/teams"
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/spf13/cobra"
@@ -22,7 +23,8 @@ var conf, viperConf = config.New() // Get the configuration data and the viper c
 
 // list of commands to attach to the root
 var (
-	teamCmd = teams.Cmd(conf, viperConf)
+	teamCmd       = teams.Cmd(conf, viperConf)
+	awsAccountCmd = awsaccounts.Cmd(conf, viperConf)
 )
 
 // init
@@ -36,7 +38,7 @@ func init() {
 
 func main() {
 
-	rootCmd.AddCommand(teamCmd)
+	rootCmd.AddCommand(teamCmd, awsAccountCmd)
 	rootCmd.Execute()
 
 }

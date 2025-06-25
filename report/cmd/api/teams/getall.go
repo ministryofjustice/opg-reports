@@ -47,7 +47,7 @@ func handleAllTeams(ctx context.Context, log *slog.Logger, conf *config.Config, 
 		return
 	}
 	// convert database team data to response version of Team
-	err = utils.Convert(&teams, &responseTeams)
+	err = utils.Convert(teams, &responseTeams)
 	if err != nil {
 		err = huma.Error500InternalServerError("failed to convert data to teams", err)
 		return

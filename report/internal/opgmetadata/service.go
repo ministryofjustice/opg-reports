@@ -72,12 +72,10 @@ func (self *Service) Download() (err error) {
 	return
 }
 
-// GetAllAccounts returns all accounts from the meta data set which can then be used for import
-// into the accounts table
-func (self *Service) GetAllAccounts() (accounts []map[string]interface{}, err error) {
+func (self *Service) accountsFromFile(file string) (accounts []map[string]interface{}, err error) {
 	var (
 		dir         string = self.directory
-		accountFile string = filepath.Join(dir, dataRepo, "accounts.json")
+		accountFile string = filepath.Join(dir, dataRepo, file)
 	)
 	accounts = []map[string]interface{}{}
 	// download the repo artifact
@@ -95,6 +93,17 @@ func (self *Service) GetAllAccounts() (accounts []map[string]interface{}, err er
 	err = utils.UnmarshalFile(accountFile, &accounts)
 
 	return
+}
+
+// GetAllAccounts returns all accounts from the meta data set which can then be used for import
+// into the accounts table
+func (self *Service) GetAllAccounts() (accounts []map[string]interface{}, err error) {
+	return self.accountsFromFile("accounts.json")
+}
+
+// GetAllAwsAccounts returns just AWS accounts from the metadata set which can then be used
+func (self *Service) GetAllAwsAccounts() (accounts []map[string]interface{}, err error) {
+	return self.accountsFromFile("accounts.aws.json")
 }
 
 // GetAllTeams uses the list of all accounts to return the billing_unit names which

@@ -1,0 +1,72 @@
+package awsaccount
+
+import (
+	"fmt"
+	"testing"
+
+	"github.com/ministryofjustice/opg-reports/report/config"
+	"github.com/ministryofjustice/opg-reports/report/internal/sqldb"
+	"github.com/ministryofjustice/opg-reports/report/internal/utils"
+)
+
+func TestAwsAccountServiceNew(t *testing.T) {
+	var (
+		err error
+		dir = t.TempDir()
+		ctx = t.Context()
+		cfg = config.NewConfig()
+	)
+	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test.db")
+
+	lg := utils.Logger("WARN", "TEXT")
+	rep, _ := sqldb.New[*AwsAccount](ctx, lg, cfg)
+
+	_, err = NewService(ctx, lg, cfg, rep)
+	if err != nil {
+		t.Errorf("unexpected error creating service: [%s]", err.Error())
+	}
+
+	_, err = NewService[*AwsAccount](ctx, nil, nil, nil)
+	if err == nil {
+		t.Errorf("New service should have thrown error without a log or repository")
+	}
+	_, err = NewService[*AwsAccount](ctx, lg, nil, nil)
+	if err == nil {
+		t.Errorf("New service should have thrown error without a repository")
+	}
+
+}
+
+func TestAwsAccountServiceGetAll(t *testing.T) {
+	var (
+		err error
+		dir = t.TempDir()
+		ctx = t.Context()
+		cfg = config.NewConfig()
+		lg  = utils.Logger("WARN", "TEXT")
+	)
+	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test.db")
+
+	rep, err := sqldb.New[*AwsAccount](ctx, lg, cfg)
+	if err != nil {
+		t.Errorf("unexpected error creating repository: [%s]", err.Error())
+	}
+
+	srv, err := NewService(ctx, lg, cfg, rep)
+	if err != nil {
+		t.Errorf("unexpected error creating service: [%s]", err.Error())
+	}
+	// insert standard items
+	err = srv.Seed()
+	if err != nil {
+		t.Errorf("unexpected error seeding service: [%s]", err.Error())
+	}
+	// fetch everything
+	res, err := srv.GetAllAccounts()
+	if err != nil {
+		t.Errorf("unexpected error getting data from service: [%s]", err.Error())
+	}
+	if len(res) <= 0 {
+		t.Errorf("no results found in service")
+	}
+}
