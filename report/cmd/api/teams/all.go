@@ -12,7 +12,7 @@ import (
 )
 
 // RegisterAllTeams registers the `get-teams-all`
-func RegisterAllTeams(log *slog.Logger, conf *config.Config, api huma.API) {
+func RegisterGetTeamsAll(log *slog.Logger, conf *config.Config, api huma.API) {
 	var operation = huma.Operation{
 		OperationID:   "get-teams-all",
 		Method:        http.MethodGet,
@@ -22,12 +22,12 @@ func RegisterAllTeams(log *slog.Logger, conf *config.Config, api huma.API) {
 		DefaultStatus: http.StatusOK,
 	}
 	huma.Register(api, operation, func(ctx context.Context, input *struct{}) (*GetTeamsAllResponse, error) {
-		return handleAllTeams(ctx, log, conf, input)
+		return handleGetTeamsAll(ctx, log, conf, input)
 	})
 }
 
 // handleAllTeams deals with each request and fetches
-func handleAllTeams(ctx context.Context, log *slog.Logger, conf *config.Config, input *struct{}) (response *GetTeamsAllResponse, err error) {
+func handleGetTeamsAll(ctx context.Context, log *slog.Logger, conf *config.Config, input *struct{}) (response *GetTeamsAllResponse, err error) {
 	var (
 		service       *team.Service[*team.Team]
 		teams         []*team.Team

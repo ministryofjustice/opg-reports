@@ -10,13 +10,12 @@ SELECT
 	aws_accounts.label,
 	aws_accounts.environment,
 	json_object(
-		'id', teams.id,
 		'name', teams.name
 	) as team
 FROM aws_accounts
 LEFT JOIN teams on teams.id = aws_accounts.team_id
 GROUP BY aws_accounts.id
-ORDER BY aws_accounts.name ASC;`
+ORDER BY teams.name ASC, aws_accounts.name ASC, aws_accounts.environment ASC;`
 
 const stmtImport string = `
 INSERT INTO aws_accounts (

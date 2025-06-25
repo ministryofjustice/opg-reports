@@ -7,20 +7,21 @@ import (
 )
 
 type AwsAccount struct {
-	ID          string `json:"id,omitempty" db:"id"` // This is the AWS Account ID as a string
+	ID          string `json:"id,omitempty" db:"id" example:"012345678910"` // This is the AWS Account ID as a string
+	Name        string `json:"name,omitempty" db:"name" example:"Public API"`
+	Label       string `json:"label,omitempty" db:"label" example:"aurora-cluster"`
+	Environment string `json:"environment,omitempty" db:"environment" example:"development|preproduction|production"`
 	CreatedAt   string `json:"created_at,omitempty" db:"created_at" example:"2019-08-24T14:15:22Z"`
-	Name        string `json:"name,omitempty" db:"name"`
-	Label       string `json:"label,omitempty" db:"label"`
-	Environment string `json:"environment,omitempty" db:"environment"`
 
 	// Joins
-	// TeamID is the raw db column that stores the association
-	TeamID int         `json:"team_id,omitempty" db:"team_id"`
+	// TeamID is the raw db column that stores the association, should not
+	TeamID int         `json:"team_id" db:"team_id"`
 	Team   *hasOneTeam `json:"team,omitempty" db:"team"`
 }
 
 // AwsAccountImport captures an extra field from the metadata which
-// is used in the stmtInsert to resolve join to team
+// is used in the stmtInsert to create the initial join to team based
+// on the billing_unit name
 type AwsAccountImport struct {
 	AwsAccount
 	BillingUnit string `json:"billing_unit,omitempty" db:"billing_unit"`
@@ -28,8 +29,7 @@ type AwsAccountImport struct {
 
 // team is internal and used for handling the account->team join
 type team struct {
-	ID   int    `json:"id,omitempty" db:"id" example:"1"`
-	Name string `json:"name,omitempty" db:"name" example:"Sirius"`
+	Name string `json:"name,omitempty" db:"name" example:"SRE"`
 }
 
 type hasOneTeam team

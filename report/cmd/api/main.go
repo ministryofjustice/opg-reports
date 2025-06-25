@@ -10,6 +10,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
 	"github.com/danielgtaylor/huma/v2/humacli"
+	"github.com/ministryofjustice/opg-reports/report/cmd/api/awsaccounts"
 	"github.com/ministryofjustice/opg-reports/report/cmd/api/home"
 	"github.com/ministryofjustice/opg-reports/report/cmd/api/teams"
 	"github.com/ministryofjustice/opg-reports/report/config"
@@ -20,8 +21,9 @@ import (
 type register func(log *slog.Logger, conf *config.Config, api huma.API)
 
 var EndPoints = map[string]register{
-	"home":          home.RegisterHomepage,
-	"get-teams-all": teams.RegisterAllTeams,
+	"home":                home.RegisterGetHomepage,
+	"get-teams-all":       teams.RegisterGetTeamsAll,
+	"get-awsaccounts-all": awsaccounts.RegisterGetAwsAccountsAll,
 }
 
 // root command
