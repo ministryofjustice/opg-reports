@@ -11,6 +11,14 @@ func Marshal[T any](item T) (bytes []byte, err error) {
 	return
 }
 
+func MustMarshal[T any](item T) (bytes []byte) {
+	bytes = []byte{}
+	if b, err := json.MarshalIndent(item, "", "  "); err == nil {
+		bytes = b
+	}
+	return
+}
+
 func MarshalStr[T any](item T) (str string) {
 	bytes, err := json.MarshalIndent(item, "", "  ")
 	if err == nil {

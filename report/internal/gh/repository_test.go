@@ -2,8 +2,6 @@ package gh
 
 import (
 	"fmt"
-	"log/slog"
-	"os"
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
@@ -22,7 +20,7 @@ func TestGhAllReleases(t *testing.T) {
 		err error
 		ctx = t.Context()
 		cfg = config.NewConfig()
-		lg  = slog.New(slog.NewTextHandler(os.Stdout, nil))
+		lg  = utils.Logger("WARN", "TEXT")
 	)
 
 	repo, err := New(ctx, lg, cfg)
@@ -52,7 +50,7 @@ func TestGhLastReleases(t *testing.T) {
 		err error
 		ctx = t.Context()
 		cfg = config.NewConfig()
-		lg  = slog.New(slog.NewTextHandler(os.Stdout, nil))
+		lg  = utils.Logger("WARN", "TEXT")
 	)
 
 	repo, err := New(ctx, lg, cfg)
@@ -84,7 +82,7 @@ func TestGhLastReleaseAssetAndDownload(t *testing.T) {
 		// fp  = "./metadata.tar.gz"
 		ctx = t.Context()
 		cfg = config.NewConfig()
-		lg  = slog.New(slog.NewTextHandler(os.Stdout, nil))
+		lg  = utils.Logger("WARN", "TEXT")
 	)
 
 	repo, err := New(ctx, lg, cfg)

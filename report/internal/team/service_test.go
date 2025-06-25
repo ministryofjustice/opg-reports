@@ -2,12 +2,11 @@ package team
 
 import (
 	"fmt"
-	"log/slog"
-	"os"
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/sqldb"
+	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
 func TestTeamServiceNew(t *testing.T) {
@@ -19,7 +18,7 @@ func TestTeamServiceNew(t *testing.T) {
 	)
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test.db")
 
-	lg := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	lg := utils.Logger("WARN", "TEXT")
 	rep, _ := sqldb.New[*Team](ctx, lg, cfg)
 
 	_, err = NewService(ctx, lg, cfg, rep)
@@ -44,7 +43,7 @@ func TestTeamServiceGetAll(t *testing.T) {
 		dir = t.TempDir()
 		ctx = t.Context()
 		cfg = config.NewConfig()
-		lg  = slog.New(slog.NewTextHandler(os.Stdout, nil))
+		lg  = utils.Logger("WARN", "TEXT")
 	)
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test.db")
 

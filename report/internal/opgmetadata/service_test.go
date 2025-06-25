@@ -1,8 +1,6 @@
 package opgmetadata
 
 import (
-	"log/slog"
-	"os"
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
@@ -21,7 +19,7 @@ func TestOpgMetaDataServiceDownload(t *testing.T) {
 		dir string = t.TempDir()
 		ctx        = t.Context()
 		cfg        = config.NewConfig()
-		lg         = slog.New(slog.NewTextHandler(os.Stdout, nil))
+		lg         = utils.Logger("WARN", "TEXT")
 	)
 
 	cfg.Github.Organisation = "ministryofjustice"
@@ -47,7 +45,7 @@ func TestOpgMetaDataServiceGetAccounts(t *testing.T) {
 		dir string = t.TempDir()
 		ctx        = t.Context()
 		cfg        = config.NewConfig()
-		lg         = slog.New(slog.NewTextHandler(os.Stdout, nil))
+		lg         = utils.Logger("WARN", "TEXT")
 	)
 
 	cfg.Github.Organisation = "ministryofjustice"
@@ -77,7 +75,7 @@ func TestOpgMetaDataServiceGetTeams(t *testing.T) {
 		dir string = t.TempDir()
 		ctx        = t.Context()
 		cfg        = config.NewConfig()
-		lg         = slog.New(slog.NewTextHandler(os.Stdout, nil))
+		lg         = utils.Logger("WARN", "TEXT")
 	)
 
 	cfg.Github.Organisation = "ministryofjustice"

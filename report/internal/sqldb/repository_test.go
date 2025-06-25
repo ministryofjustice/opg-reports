@@ -2,11 +2,10 @@ package sqldb
 
 import (
 	"fmt"
-	"log/slog"
-	"os"
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
+	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
 // tModel just used to test repo functions
@@ -23,7 +22,7 @@ func TestRepositoryNew(t *testing.T) {
 		cfg = config.NewConfig()
 	)
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test.db")
-	lg := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	lg := utils.Logger("WARN", "TEXT")
 
 	_, err = New[*tModel](ctx, lg, cfg)
 
@@ -40,7 +39,7 @@ func TestRepositoryInsertAndSelectWithTestTable(t *testing.T) {
 		dir     = t.TempDir()
 		ctx     = t.Context()
 		cfg     = config.NewConfig()
-		lg      = slog.New(slog.NewTextHandler(os.Stdout, nil))
+		lg      = utils.Logger("WARN", "TEXT")
 	)
 
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "testinsert.db")

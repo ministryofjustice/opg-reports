@@ -132,7 +132,6 @@ func NewService(ctx context.Context, log *slog.Logger, conf *config.Config, stor
 	if conf.Github == nil || conf.Github.Organisation == "" || conf.Github.Token == "" {
 		return nil, fmt.Errorf("no github config details passed for opgmetadata service")
 	}
-
 	if store == nil {
 		return nil, fmt.Errorf("no repository passed for opgmetadata service")
 	}
