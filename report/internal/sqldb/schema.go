@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS awsaccounts (
 	created_at TEXT,
 	name TEXT NOT NULL,
 	label TEXT NOT NULL,
-	environment TEXT DEFAULT "production" NOT NULL
+	environment TEXT DEFAULT "production" NOT NULL,
+	team_id INTEGER
 ) WITHOUT ROWID;
 
 CREATE INDEX IF NOT EXISTS awsaccounts_id ON awsaccounts(id);

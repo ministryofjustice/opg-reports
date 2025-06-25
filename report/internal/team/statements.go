@@ -9,6 +9,18 @@ SELECT
 	created_at
 FROM teams
 ORDER BY name ASC;`
+
+const stmtImport string = `
+INSERT INTO teams (
+	name,
+	created_at
+) VALUES (
+	:name,
+	:created_at
+) ON CONFLICT (name)
+ 	DO UPDATE SET name=excluded.name
+RETURNING id;`
+
 const stmtInsert string = `
 INSERT INTO teams (
 	name,

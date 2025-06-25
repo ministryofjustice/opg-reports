@@ -47,7 +47,7 @@ func (self Service[T]) Import(rows []*Team) (inserted []*Team, err error) {
 	log.Debug("generating bound statements ...")
 	for _, row := range rows {
 		row.CreatedAt = now
-		inserts = append(inserts, &sqldb.BoundStatement{Statement: stmtInsert, Data: row})
+		inserts = append(inserts, &sqldb.BoundStatement{Statement: stmtImport, Data: row})
 	}
 	log.Debug("running insert ...")
 	err = self.store.Insert(inserts...)
