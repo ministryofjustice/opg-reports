@@ -29,8 +29,8 @@ var (
 // - Binds global config values to parameters
 func init() {
 	// bind the database.path config item to the shorter --db
-	rootCmd.PersistentFlags().StringVar(&conf.Database.Path, "db", conf.Database.Path, "Path to database file")
-	viperConf.BindPFlag("database.path", rootCmd.PersistentFlags().Lookup("db"))
+	rootCmd.PersistentFlags().StringVar(&conf.Database.Path, "database.path", conf.Database.Path, "Path to database file")
+	viperConf.BindPFlag("database.path", rootCmd.PersistentFlags().Lookup("database.path"))
 
 }
 

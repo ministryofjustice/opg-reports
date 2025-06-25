@@ -57,16 +57,16 @@ func (self Service[T]) Import(rows []*Team) (inserted []*Team, err error) {
 
 // GetAllTeams returns all teams as a slice from the database
 // Calls the database
-func (self *Service[T]) GetAllTeams() (teams []*Team, err error) {
+func (self *Service[T]) GetAllTeams() (teams []T, err error) {
 	var selectStmt = &sqldb.BoundStatement{Statement: stmtSelectAll}
 	var log = self.log.With("operation", "GetAllTeams")
 
-	teams = []*Team{}
+	teams = []T{}
 	log.Debug("getting all teams from database...")
 
 	if err = self.store.Select(selectStmt); err == nil {
 		// cast the data back to struct
-		teams = selectStmt.Returned.([]*Team)
+		teams = selectStmt.Returned.([]T)
 	}
 
 	return

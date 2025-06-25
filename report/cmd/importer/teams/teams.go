@@ -28,8 +28,7 @@ func Cmd(conf *config.Config, viperConf *viper.Viper) (cmd *cobra.Command) {
 		Long:  `teams command imports organsiational teams from the opg-metadata repository. In order to use this command you will need a GITHUB_TOKEN set with correct permissions.`,
 		Example: `
   importer teams
-	--db=$pathToFile
-	--gh-org=$githubOrganisationName`,
+	--org=$githubOrganisationName`,
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
 				ctx context.Context = context.Background()

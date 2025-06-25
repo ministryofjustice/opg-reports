@@ -14,6 +14,8 @@ import (
 type Config struct {
 	Database *Database
 	Github   *Github
+	Versions *Versions
+	Servers  *Servers
 	Log      *Log
 }
 
@@ -42,6 +44,24 @@ type Log struct {
 	Type  string
 }
 
+// Servers contains api & front end config
+type Servers struct {
+	Api   *Server
+	Front *Server
+}
+
+// Server contains the address to use to contact the server
+type Server struct {
+	Name string
+	Addr string
+}
+
+// Versions contains version data about the build
+type Versions struct {
+	Semver string
+	Commit string
+}
+
 // setup a default config item that we use as a baseline
 var defaultConfig = &Config{
 	Database: &Database{
@@ -54,8 +74,16 @@ var defaultConfig = &Config{
 		Token:        "",
 	},
 	Log: &Log{
-		Level: "WARN",
+		Level: "INFO",
 		Type:  "TEXT",
+	},
+	Versions: &Versions{
+		Semver: "0.0.0",
+		Commit: "000000",
+	},
+	Servers: &Servers{
+		Api:   &Server{Name: "OPG", Addr: "localhost:8081"},
+		Front: &Server{Name: "OPG", Addr: "localhost:8080"},
 	},
 }
 
