@@ -11,6 +11,7 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/awsaccount"
+	"github.com/ministryofjustice/opg-reports/report/internal/awscost"
 	"github.com/ministryofjustice/opg-reports/report/internal/team"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 	"github.com/spf13/cobra"
@@ -60,7 +61,11 @@ func seedData(ctx context.Context, log *slog.Logger, conf *config.Config) (err e
 	if err != nil {
 		return
 	}
-
+	// Seed awscosts
+	_, err = awscost.Seed(ctx, log, conf, nil)
+	if err != nil {
+		return
+	}
 	return
 }
 
