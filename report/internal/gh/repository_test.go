@@ -12,16 +12,16 @@ import (
 // - will skip if no GH_TOKEN is set
 func TestGhAllReleases(t *testing.T) {
 
-	if utils.GetEnvVar("GH_TOKEN", "") == "" {
-		t.Skip("No GH_TOKEN, skipping test")
-	}
-
 	var (
 		err error
 		ctx = t.Context()
 		cfg = config.NewConfig()
 		lg  = utils.Logger("WARN", "TEXT")
 	)
+
+	if cfg.Github.Token == "" {
+		t.Skip("No GITHUB_TOKEN, skipping test")
+	}
 
 	repo, err := New(ctx, lg, cfg)
 	if err != nil {
@@ -42,16 +42,15 @@ func TestGhAllReleases(t *testing.T) {
 // - will skip if no GH_TOKEN is set
 func TestGhLastReleases(t *testing.T) {
 
-	if utils.GetEnvVar("GH_TOKEN", "") == "" {
-		t.Skip("No GH_TOKEN, skipping test")
-	}
-
 	var (
 		err error
 		ctx = t.Context()
 		cfg = config.NewConfig()
 		lg  = utils.Logger("WARN", "TEXT")
 	)
+	if cfg.Github.Token == "" {
+		t.Skip("No GITHUB_TOKEN, skipping test")
+	}
 
 	repo, err := New(ctx, lg, cfg)
 	if err != nil {
@@ -71,10 +70,6 @@ func TestGhLastReleases(t *testing.T) {
 // - will skip if no GH_TOKEN is set
 func TestGhLastReleaseAssetAndDownload(t *testing.T) {
 
-	if utils.GetEnvVar("GH_TOKEN", "") == "" {
-		t.Skip("No GH_TOKEN, skipping test")
-	}
-
 	var (
 		err error
 		dir = t.TempDir()
@@ -84,6 +79,9 @@ func TestGhLastReleaseAssetAndDownload(t *testing.T) {
 		cfg = config.NewConfig()
 		lg  = utils.Logger("WARN", "TEXT")
 	)
+	if cfg.Github.Token == "" {
+		t.Skip("No GITHUB_TOKEN, skipping test")
+	}
 
 	repo, err := New(ctx, lg, cfg)
 	if err != nil {

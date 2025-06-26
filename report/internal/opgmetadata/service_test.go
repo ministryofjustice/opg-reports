@@ -10,10 +10,6 @@ import (
 
 func TestOpgMetaDataServiceDownload(t *testing.T) {
 
-	if utils.GetEnvVar("GH_TOKEN", "") == "" {
-		t.Skip("No GH_TOKEN, skipping test")
-	}
-
 	var (
 		err error
 		dir string = t.TempDir()
@@ -21,6 +17,9 @@ func TestOpgMetaDataServiceDownload(t *testing.T) {
 		cfg        = config.NewConfig()
 		lg         = utils.Logger("WARN", "TEXT")
 	)
+	if cfg.Github.Token == "" {
+		t.Skip("No GITHUB_TOKEN, skipping test")
+	}
 
 	cfg.Github.Organisation = "ministryofjustice"
 	gh, _ := gh.New(ctx, lg, cfg)
@@ -36,10 +35,6 @@ func TestOpgMetaDataServiceDownload(t *testing.T) {
 
 func TestOpgMetaDataServiceGetAccounts(t *testing.T) {
 
-	if utils.GetEnvVar("GH_TOKEN", "") == "" {
-		t.Skip("No GH_TOKEN, skipping test")
-	}
-
 	var (
 		err error
 		dir string = t.TempDir()
@@ -47,6 +42,9 @@ func TestOpgMetaDataServiceGetAccounts(t *testing.T) {
 		cfg        = config.NewConfig()
 		lg         = utils.Logger("WARN", "TEXT")
 	)
+	if cfg.Github.Token == "" {
+		t.Skip("No GITHUB_TOKEN, skipping test")
+	}
 
 	cfg.Github.Organisation = "ministryofjustice"
 	gh, _ := gh.New(ctx, lg, cfg)
@@ -66,10 +64,6 @@ func TestOpgMetaDataServiceGetAccounts(t *testing.T) {
 
 func TestOpgMetaDataServiceGetTeams(t *testing.T) {
 
-	if utils.GetEnvVar("GH_TOKEN", "") == "" {
-		t.Skip("No GH_TOKEN, skipping test")
-	}
-
 	var (
 		err error
 		dir string = t.TempDir()
@@ -77,6 +71,9 @@ func TestOpgMetaDataServiceGetTeams(t *testing.T) {
 		cfg        = config.NewConfig()
 		lg         = utils.Logger("WARN", "TEXT")
 	)
+	if cfg.Github.Token == "" {
+		t.Skip("No GITHUB_TOKEN, skipping test")
+	}
 
 	cfg.Github.Organisation = "ministryofjustice"
 	gh, _ := gh.New(ctx, lg, cfg)
