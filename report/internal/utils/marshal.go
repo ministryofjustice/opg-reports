@@ -11,6 +11,7 @@ func Marshal[T any](item T) (bytes []byte, err error) {
 	return
 }
 
+// MustMarshal wraps Marshal and swallows any error - risky to use
 func MustMarshal[T any](item T) (bytes []byte) {
 	bytes = []byte{}
 	if b, err := json.MarshalIndent(item, "", "  "); err == nil {
@@ -19,7 +20,12 @@ func MustMarshal[T any](item T) (bytes []byte) {
 	return
 }
 
+// MarshalStr converts the json.Marshal result into a string to easier
+// usage.
+//
+// If an error occurs the returned string is empty.
 func MarshalStr[T any](item T) (str string) {
+	str = ""
 	bytes, err := json.MarshalIndent(item, "", "  ")
 	if err == nil {
 		str = string(bytes)
