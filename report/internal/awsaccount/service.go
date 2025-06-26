@@ -23,16 +23,16 @@ func (self *Service[T]) Close() (err error) {
 }
 
 // GetAllAccounts returns all accounts as a slice from the database
-func (self *Service[T]) GetAllAccounts() (teams []T, err error) {
+func (self *Service[T]) GetAllAccounts() (accounts []T, err error) {
 	var selectStmt = &sqldb.BoundStatement{Statement: stmtSelectAll}
 	var log = self.log.With("operation", "GetAllAccounts")
 
-	teams = []T{}
+	accounts = []T{}
 	log.Debug("getting all awsaccounts from database...")
 
+	// cast the data back to struct
 	if err = self.store.Select(selectStmt); err == nil {
-		// cast the data back to struct
-		teams = selectStmt.Returned.([]T)
+		accounts = selectStmt.Returned.([]T)
 	}
 
 	return

@@ -8,7 +8,6 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/awsaccount"
-	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
 func RegisterGetAwsAccountsAll(log *slog.Logger, conf *config.Config, api huma.API) {
@@ -28,31 +27,25 @@ func RegisterGetAwsAccountsAll(log *slog.Logger, conf *config.Config, api huma.A
 // handleGetAwsAccountsAll deals with each request and fetches
 func handleGetAwsAccountsAll(ctx context.Context, log *slog.Logger, conf *config.Config, input *struct{}) (response *GetAwsAccountsAllResponse, err error) {
 	var (
-		service      *awsaccount.Service[*awsaccount.AwsAccount]
-		accounts     []*awsaccount.AwsAccount
-		responseData []*AwsAccount = []*AwsAccount{}
+		service  *awsaccount.Service[*AwsAccount]
+		accounts []*AwsAccount
 	)
 	response = &GetAwsAccountsAllResponse{}
 
-	service, err = Service(ctx, log, conf)
+	service, err = Service[*AwsAccount](ctx, log, conf)
 	if err != nil {
 		err = huma.Error500InternalServerError("failed to connect to service", err)
 		return
 	}
+	defer service.Close()
 
 	accounts, err = service.GetAllAccounts()
 	if err != nil {
 		err = huma.Error500InternalServerError("failed find all accounts", err)
 		return
 	}
-	// convert database data to response version - stripping any extra fields etc
-	err = utils.Convert(accounts, &responseData)
-	if err != nil {
-		err = huma.Error500InternalServerError("failed to convert data to accounts", err)
-		return
-	}
 
-	response.Body.Data = responseData
+	response.Body.Data = accounts
 
 	return
 }

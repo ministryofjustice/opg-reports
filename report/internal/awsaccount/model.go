@@ -15,7 +15,7 @@ type AwsAccount struct {
 
 	// Joins
 	// TeamID is the raw db column that stores the association, should not
-	TeamID int         `json:"team_id" db:"team_id"`
+	TeamID int         `json:"team_id,omitempty" db:"team_id"`
 	Team   *hasOneTeam `json:"team,omitempty" db:"team"`
 }
 

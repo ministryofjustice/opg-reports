@@ -6,12 +6,13 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/awsaccount"
+	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
 )
 
 // Service is a small helper that fetches the service for awsaccount.AwsAccount related calls
 // and returns that
-func Service(ctx context.Context, log *slog.Logger, conf *config.Config) (srv *awsaccount.Service[*awsaccount.AwsAccount], err error) {
+func Service[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config) (srv *awsaccount.Service[T], err error) {
 
-	srv, err = awsaccount.Default[*awsaccount.AwsAccount](ctx, log, conf)
+	srv, err = awsaccount.Default[T](ctx, log, conf)
 	return
 }

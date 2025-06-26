@@ -5,13 +5,14 @@ import (
 	"log/slog"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
+	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
 	"github.com/ministryofjustice/opg-reports/report/internal/team"
 )
 
 // Service is a small helper that fetches the service for team.Team related calls
 // and returns that
-func Service(ctx context.Context, log *slog.Logger, conf *config.Config) (srv *team.Service[*team.Team], err error) {
+func Service[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config) (srv *team.Service[T], err error) {
 
-	srv, err = team.Default[*team.Team](ctx, log, conf)
+	srv, err = team.Default[T](ctx, log, conf)
 	return
 }
