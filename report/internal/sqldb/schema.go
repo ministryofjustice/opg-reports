@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS teams (
 	name TEXT NOT NULL UNIQUE
 ) STRICT;
 
-CREATE INDEX IF NOT EXISTS team_name ON teams(name);
+CREATE INDEX IF NOT EXISTS team_name_idx ON teams(name);
 
 CREATE TABLE IF NOT EXISTS aws_accounts (
 	id TEXT PRIMARY KEY,
@@ -19,5 +19,20 @@ CREATE TABLE IF NOT EXISTS aws_accounts (
 	team_id INTEGER
 ) WITHOUT ROWID;
 
-CREATE INDEX IF NOT EXISTS aws_accounts_id ON aws_accounts(id);
+CREATE INDEX IF NOT EXISTS aws_accounts_id_idx ON aws_accounts(id);
+
+CREATE TABLE IF NOT EXISTS aws_costs (
+	id INTEGER PRIMARY KEY,
+	created_at TEXT,
+	region TEXT DEFAULT "NoRegion" NOT NULL,
+	service TEXT NOT NULL,
+	date TEXT NOT NULL,
+	cost TEXT NOT NULL,
+	aws_account_id TEXT,
+	UNIQUE (aws_account_id,date,region,service)
+) STRICT;
+
+CREATE INDEX IF NOT EXISTS aws_costs_date_idx ON aws_costs(date);
+CREATE INDEX IF NOT EXISTS aws_costs_date_account_idx ON aws_costs(date, aws_account_id);
+CREATE INDEX IF NOT EXISTS aws_costs_unique_idx ON aws_costs(aws_account_id,date,region,service);
 `
