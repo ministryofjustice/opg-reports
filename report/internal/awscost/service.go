@@ -25,16 +25,31 @@ func (self *Service[T]) Close() (err error) {
 // GetAll will return all records
 //
 // Using this is generally a bad idea as this table will contain millions of rows
-func (self *Service[T]) GetAll() (accounts []T, err error) {
+func (self *Service[T]) GetAll() (data []T, err error) {
 	var selectStmt = &sqldb.BoundStatement{Statement: stmtSelectAll}
 	var log = self.log.With("operation", "GetAll")
 
-	accounts = []T{}
+	data = []T{}
 	log.Debug("getting all awscosts from database...")
 
 	// cast the data back to struct
 	if err = self.store.Select(selectStmt); err == nil {
-		accounts = selectStmt.Returned.([]T)
+		data = selectStmt.Returned.([]T)
+	}
+
+	return
+}
+
+func (self *Service[T]) GetTop20() (data []T, err error) {
+	var selectStmt = &sqldb.BoundStatement{Statement: stmtSelectTop20}
+	var log = self.log.With("operation", "GetTop20")
+
+	data = []T{}
+	log.Debug("getting top20 awscosts from database...")
+
+	// cast the data back to struct
+	if err = self.store.Select(selectStmt); err == nil {
+		data = selectStmt.Returned.([]T)
 	}
 
 	return

@@ -11,6 +11,7 @@ import (
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
 	"github.com/danielgtaylor/huma/v2/humacli"
 	"github.com/ministryofjustice/opg-reports/report/cmd/api/awsaccounts"
+	"github.com/ministryofjustice/opg-reports/report/cmd/api/awscosts"
 	"github.com/ministryofjustice/opg-reports/report/cmd/api/home"
 	"github.com/ministryofjustice/opg-reports/report/cmd/api/teams"
 	"github.com/ministryofjustice/opg-reports/report/config"
@@ -21,9 +22,13 @@ import (
 type register func(log *slog.Logger, conf *config.Config, api huma.API)
 
 var EndPoints = map[string]register{
-	"home":                home.RegisterGetHomepage,
-	"get-teams-all":       teams.RegisterGetTeamsAll,
+	"home": home.RegisterGetHomepage,
+	// TEAMS
+	"get-teams-all": teams.RegisterGetTeamsAll,
+	// AWS ACCOUNTS
 	"get-awsaccounts-all": awsaccounts.RegisterGetAwsAccountsAll,
+	// AWS COSTS
+	"get-awscosts-top20": awscosts.RegisterGetAwsCostsTop20,
 }
 
 // root command
@@ -37,7 +42,6 @@ var rootCmd = &cobra.Command{
 			log *slog.Logger    = utils.Logger(conf.Log.Level, conf.Log.Type)
 		)
 		runner(ctx, log, conf)
-		// fmt.Printf("%+v\n", utils.MarshalStr(conf))
 	},
 }
 
