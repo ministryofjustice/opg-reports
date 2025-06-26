@@ -42,7 +42,7 @@ func TestAwsAccountServiceNew(t *testing.T) {
 func TestAwsAccountServiceGetAll(t *testing.T) {
 	var (
 		err error
-		dir = "./" //t.TempDir()
+		dir = t.TempDir()
 		ctx = t.Context()
 		cfg = config.NewConfig()
 		lg  = utils.Logger("WARN", "TEXT")
