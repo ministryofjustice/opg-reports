@@ -66,7 +66,7 @@ func (self *Service) Download() (err error) {
 
 	// now extract the tar.gz
 	log.With("downloadedFile", downloadedFile, "extractTo", extractTo).Debug("extracting downloaded file...")
-	err = utils.TarGzExtract(downloadedFile, extractTo)
+	err = utils.TarGzExtract(extractTo, downloadedFile)
 	// set download flag
 	self.downloaded = (err == nil)
 	return

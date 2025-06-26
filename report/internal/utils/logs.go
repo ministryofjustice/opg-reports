@@ -6,6 +6,10 @@ import (
 	"strings"
 )
 
+// Logger returns a configured slog.Logger instance
+// that sets the log level and log handler.
+//
+// By default, the level is set to Info and TextHandler
 func Logger(lvl string, as string) (logger *slog.Logger) {
 	var options = &slog.HandlerOptions{}
 
