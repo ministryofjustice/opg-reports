@@ -199,6 +199,7 @@ func (self *Repository) DownloadReleaseAsset(organisation string, repositoryName
 		client *github.Client
 		log    = self.log.With("operation", "DownloadAsset", "assetID", assetID)
 	)
+
 	// get api client
 	client, err = self.connection()
 	if err != nil {
@@ -219,6 +220,7 @@ func (self *Repository) DownloadReleaseAsset(organisation string, repositoryName
 	// copy the file
 	err = utils.FileCopy(rc, destinationFilePath)
 	// if there was no error with the copy, return a pointer to the file
+	// and clean up the download directory path
 	if err == nil {
 		destination, err = os.Open(destinationFilePath)
 	}

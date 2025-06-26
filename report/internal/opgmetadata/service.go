@@ -33,19 +33,35 @@ func (self *Service) SetDirectory(dir string) {
 	self.directory = dir
 }
 
+// GetDirectory
+func (self *Service) GetDirectory() string {
+	if self.directory == "" {
+		dir, _ := os.MkdirTemp("./", "__download-*")
+		self.directory = dir
+		defer os.RemoveAll(dir)
+	}
+	return self.directory
+}
+
+func (self *Service) Close() (err error) {
+	err = os.RemoveAll(self.GetDirectory())
+	return
+}
+
 // Download fetches the data from the repostitory asset and extracts the zip file to
 // the local filesystem
 func (self *Service) Download() (err error) {
 	var (
 		asset          *github.ReleaseAsset
 		downloadedFile *os.File
-		dir            string         = self.directory
+		dir            string         = self.GetDirectory()
 		org            string         = self.conf.Github.Organisation
 		log            *slog.Logger   = self.log.With("operation", "Download", "dataRepo", dataRepo, "assetName", assetName, "org", org)
 		downloadTo     string         = filepath.Join(dir, assetName)
 		extractTo      string         = filepath.Join(dir, dataRepo)
 		gh             *gh.Repository = self.store
 	)
+
 	// if already downloaded, skip calling again
 	if self.downloaded {
 		return
@@ -74,7 +90,7 @@ func (self *Service) Download() (err error) {
 
 func (self *Service) accountsFromFile(file string) (accounts []map[string]interface{}, err error) {
 	var (
-		dir         string = self.directory
+		dir         string = self.GetDirectory()
 		accountFile string = filepath.Join(dir, dataRepo, file)
 	)
 	accounts = []map[string]interface{}{}
@@ -145,12 +161,13 @@ func NewService(ctx context.Context, log *slog.Logger, conf *config.Config, stor
 		return nil, fmt.Errorf("no repository passed for opgmetadata service")
 	}
 
+	// make a temp dir to use for download path and then remove to directory to clean it up
+
 	srv = &Service{
-		ctx:       ctx,
-		log:       log.With("service", "opgmetadata"),
-		conf:      conf,
-		store:     store,
-		directory: "./__downloads/github/",
+		ctx:   ctx,
+		log:   log.With("service", "opgmetadata"),
+		conf:  conf,
+		store: store,
 	}
 	return
 }

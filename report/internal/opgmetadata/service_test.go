@@ -24,8 +24,14 @@ func TestOpgMetaDataServiceDownload(t *testing.T) {
 	cfg.Github.Organisation = "ministryofjustice"
 	gh, _ := gh.New(ctx, lg, cfg)
 	srv, _ := NewService(ctx, lg, cfg, gh)
+	defer srv.Close()
 
 	srv.SetDirectory(dir)
+	err = srv.Download()
+	if err != nil {
+		t.Errorf("unexpected error: %s", err.Error())
+	}
+	// run second time to check for redownload errors / overwrites
 	err = srv.Download()
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
@@ -49,6 +55,8 @@ func TestOpgMetaDataServiceGetAccounts(t *testing.T) {
 	cfg.Github.Organisation = "ministryofjustice"
 	gh, _ := gh.New(ctx, lg, cfg)
 	srv, _ := NewService(ctx, lg, cfg, gh)
+	defer srv.Close()
+
 	srv.SetDirectory(dir)
 
 	accs, err := srv.GetAllAccounts()
@@ -58,6 +66,12 @@ func TestOpgMetaDataServiceGetAccounts(t *testing.T) {
 
 	if len(accs) <= 0 {
 		t.Errorf("error with number of accounts found")
+	}
+
+	// run again to check for re-download errors
+	_, err = srv.GetAllAccounts()
+	if err != nil {
+		t.Errorf("unexpected error: %s", err.Error())
 	}
 
 }
@@ -79,6 +93,7 @@ func TestOpgMetaDataServiceGetTeams(t *testing.T) {
 	gh, _ := gh.New(ctx, lg, cfg)
 	srv, _ := NewService(ctx, lg, cfg, gh)
 	srv.SetDirectory(dir)
+	defer srv.Close()
 
 	teams, err := srv.GetAllTeams()
 	if err != nil {

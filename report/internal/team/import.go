@@ -45,6 +45,8 @@ func Import(ctx context.Context, log *slog.Logger, conf *config.Config) (err err
 	if err != nil {
 		return
 	}
+	defer metaService.Close()
+
 	raw, err = metaService.GetAllTeams()
 	if err != nil {
 		return

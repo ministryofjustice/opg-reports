@@ -66,7 +66,7 @@ func TarGzCreate(writeTo string, files []string) (err error) {
 	)
 	// if destination exists, return error so we dont overwrite
 	if FileExists(writeTo) {
-		return fmt.Errorf("file [%s] already exists, wont overwrite", writeTo)
+		return fmt.Errorf("file [%s] already exists, won't overwrite", writeTo)
 	}
 	// create the parent directory path
 	err = os.MkdirAll(parentDir, os.ModePerm)

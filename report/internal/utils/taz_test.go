@@ -15,7 +15,7 @@ type testTar struct {
 func TestTarGzSuccess(t *testing.T) {
 	var (
 		err         error
-		dir         = "./" //t.TempDir()
+		dir         = t.TempDir()
 		srcDir      = filepath.Join(dir, "src")
 		srcFileA    = filepath.Join(srcDir, "a.json")
 		srcFileB    = filepath.Join(srcDir, "b.json")

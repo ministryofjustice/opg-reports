@@ -42,6 +42,8 @@ func Import(ctx context.Context, log *slog.Logger, conf *config.Config) (err err
 	if err != nil {
 		return
 	}
+	defer metaService.Close()
+
 	// get just the aws accounts
 	rawAccounts, err = metaService.GetAllAwsAccounts()
 	if err != nil {

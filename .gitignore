@@ -4,6 +4,7 @@
 # Ignore data folders
 **/__data/*
 **/__downloads/*
+**/__download-*/*
 **/__database/*
 # Ignore database and sql files
 *.db
