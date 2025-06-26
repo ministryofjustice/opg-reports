@@ -18,6 +18,7 @@ func RegisterGetAwsCostsTop20(log *slog.Logger, conf *config.Config, api huma.AP
 		Summary:       "Return top 20 most expensice costs",
 		Description:   "Returns a list of most expensive costs",
 		DefaultStatus: http.StatusOK,
+		Tags:          []string{"AWS Costs"},
 	}
 	huma.Register(api, operation, func(ctx context.Context, input *struct{}) (*GetAwsCostsTop20Response, error) {
 		return handleGetAwsCostsTop20(ctx, log, conf, input)

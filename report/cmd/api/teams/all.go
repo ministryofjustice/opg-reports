@@ -19,6 +19,7 @@ func RegisterGetTeamsAll(log *slog.Logger, conf *config.Config, api huma.API) {
 		Summary:       "Return all teams",
 		Description:   "Returns a list of all teams known about.",
 		DefaultStatus: http.StatusOK,
+		Tags:          []string{"Teams"},
 	}
 	huma.Register(api, operation, func(ctx context.Context, input *struct{}) (*GetTeamsAllResponse, error) {
 		return handleGetTeamsAll(ctx, log, conf, input)

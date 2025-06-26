@@ -23,6 +23,7 @@ func RegisterGetHomepage(log *slog.Logger, conf *config.Config, api huma.API) {
 		Summary:       "Home",
 		Description:   "Operates as the root of the API and a simple endpoint to test connectivity with, but returns no data.",
 		DefaultStatus: http.StatusOK,
+		Tags:          []string{"Home"},
 	}
 
 	huma.Register(api, operation, func(ctx context.Context, input *struct{}) (homepage *HomepageResponse, err error) {
