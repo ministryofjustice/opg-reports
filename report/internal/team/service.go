@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"time"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
@@ -16,24 +15,6 @@ type Service[T interfaces.Model] struct {
 	log   *slog.Logger
 	conf  *config.Config
 	store *sqldb.Repository[T]
-}
-
-// Seed is used to insert test data to the team table, so for now
-// we create 3 dummy teams
-func (self *Service[T]) Seed() (err error) {
-	var (
-		log   = self.log.With("operation", "Seed")
-		now   = time.Now().UTC().Format(time.RFC3339)
-		seeds = []*sqldb.BoundStatement{
-			{Statement: stmtInsert, Data: &Team{Name: "TeamA", CreatedAt: now}},
-			{Statement: stmtInsert, Data: &Team{Name: "TeamB", CreatedAt: now}},
-			{Statement: stmtInsert, Data: &Team{Name: "TeamC", CreatedAt: now}},
-		}
-	)
-	log.Info("inserting seed data ...")
-	err = self.store.Insert(seeds...)
-
-	return
 }
 
 // GetAllTeams returns all teams as a slice from the database
@@ -70,5 +51,17 @@ func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf 
 		conf:  conf,
 		store: store,
 	}
+	return
+}
+
+// Default generates the default repository and then the service
+func Default[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config) (srv *Service[T], err error) {
+
+	store, err := sqldb.New[T](ctx, log, conf)
+	if err != nil {
+		return
+	}
+	srv, err = NewService[T](ctx, log, conf, store)
+
 	return
 }

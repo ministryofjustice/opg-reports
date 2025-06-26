@@ -1,11 +1,13 @@
-package awsaccount
+package awsaccount_test
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
+	"github.com/ministryofjustice/opg-reports/report/internal/awsaccount"
 	"github.com/ministryofjustice/opg-reports/report/internal/sqldb"
+	"github.com/ministryofjustice/opg-reports/report/internal/team"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
@@ -16,21 +18,21 @@ func TestAwsAccountServiceNew(t *testing.T) {
 		ctx = t.Context()
 		cfg = config.NewConfig()
 	)
-	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test.db")
+	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test-awsaccounts-connection.db")
 
 	lg := utils.Logger("WARN", "TEXT")
-	rep, _ := sqldb.New[*AwsAccount](ctx, lg, cfg)
+	rep, _ := sqldb.New[*awsaccount.AwsAccount](ctx, lg, cfg)
 
-	_, err = NewService(ctx, lg, cfg, rep)
+	_, err = awsaccount.NewService(ctx, lg, cfg, rep)
 	if err != nil {
 		t.Errorf("unexpected error creating service: [%s]", err.Error())
 	}
 
-	_, err = NewService[*AwsAccount](ctx, nil, nil, nil)
+	_, err = awsaccount.NewService[*awsaccount.AwsAccount](ctx, nil, nil, nil)
 	if err == nil {
 		t.Errorf("New service should have thrown error without a log or repository")
 	}
-	_, err = NewService[*AwsAccount](ctx, lg, nil, nil)
+	_, err = awsaccount.NewService[*awsaccount.AwsAccount](ctx, lg, nil, nil)
 	if err == nil {
 		t.Errorf("New service should have thrown error without a repository")
 	}
@@ -40,33 +42,36 @@ func TestAwsAccountServiceNew(t *testing.T) {
 func TestAwsAccountServiceGetAll(t *testing.T) {
 	var (
 		err error
-		dir = t.TempDir()
+		dir = "./" //t.TempDir()
 		ctx = t.Context()
 		cfg = config.NewConfig()
 		lg  = utils.Logger("WARN", "TEXT")
 	)
-	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test.db")
+	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test-awsaccounts-getall.db")
 
-	rep, err := sqldb.New[*AwsAccount](ctx, lg, cfg)
+	// insert standard items including teams before this to create joins
+	_, err = team.Seed(ctx, lg, cfg, nil)
 	if err != nil {
-		t.Errorf("unexpected error creating repository: [%s]", err.Error())
+		t.Errorf("unexpected error seeding: [%s]", err.Error())
+	}
+	insert, err := awsaccount.Seed(ctx, lg, cfg, nil)
+	if err != nil {
+		t.Errorf("unexpected error seeding: [%s]", err.Error())
 	}
 
-	srv, err := NewService(ctx, lg, cfg, rep)
+	// generate the service useing default
+	srv, err := awsaccount.Default[*awsaccount.AwsAccount](ctx, lg, cfg)
 	if err != nil {
 		t.Errorf("unexpected error creating service: [%s]", err.Error())
 	}
-	// insert standard items
-	err = srv.Seed()
-	if err != nil {
-		t.Errorf("unexpected error seeding service: [%s]", err.Error())
-	}
+
 	// fetch everything
 	res, err := srv.GetAllAccounts()
 	if err != nil {
 		t.Errorf("unexpected error getting data from service: [%s]", err.Error())
 	}
-	if len(res) <= 0 {
-		t.Errorf("no results found in service")
+	if len(res) != len(insert) {
+		t.Errorf("incorrect number of results found in service")
 	}
+
 }

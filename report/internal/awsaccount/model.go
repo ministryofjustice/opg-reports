@@ -19,14 +19,6 @@ type AwsAccount struct {
 	Team   *hasOneTeam `json:"team,omitempty" db:"team"`
 }
 
-// AwsAccountImport captures an extra field from the metadata which
-// is used in the stmtInsert to create the initial join to team based
-// on the billing_unit name
-type AwsAccountImport struct {
-	AwsAccount
-	BillingUnit string `json:"billing_unit,omitempty" db:"billing_unit"`
-}
-
 // team is internal and used for handling the account->team join
 type team struct {
 	Name string `json:"name,omitempty" db:"name" example:"SRE"`
@@ -44,5 +36,20 @@ func (self *hasOneTeam) Scan(src interface{}) (err error) {
 	default:
 		err = fmt.Errorf("unsupported scan src type")
 	}
+	return
+}
+
+// AwsAccountImport captures an extra field from the metadata which
+// is used in the stmtInsert to create the initial join to team based
+// on the billing_unit name
+type AwsAccountImport struct {
+	AwsAccount
+	BillingUnit string `json:"billing_unit,omitempty" db:"billing_unit"`
+}
+
+func newImportAccount(account *AwsAccount, billingUnit string) (acc *AwsAccountImport) {
+	acc = &AwsAccountImport{}
+	utils.Convert(account, &acc)
+	acc.BillingUnit = billingUnit
 	return
 }

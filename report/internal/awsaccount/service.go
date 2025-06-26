@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"time"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
@@ -16,23 +15,6 @@ type Service[T interfaces.Model] struct {
 	log   *slog.Logger
 	conf  *config.Config
 	store *sqldb.Repository[T]
-}
-
-// Seed is used to insert test data to the table, so for now we create 3 dummy versions
-func (self *Service[T]) Seed() (err error) {
-	var (
-		log   = self.log.With("operation", "Seed")
-		now   = time.Now().UTC().Format(time.RFC3339)
-		seeds = []*sqldb.BoundStatement{
-			{Statement: stmtInsert, Data: &AwsAccount{ID: "001A", Name: "Acc01A", Label: "A", Environment: "development", CreatedAt: now}},
-			{Statement: stmtInsert, Data: &AwsAccount{ID: "001B", Name: "Acc01B", Label: "B", Environment: "production", CreatedAt: now}},
-			{Statement: stmtInsert, Data: &AwsAccount{ID: "002A", Name: "Acc02A", Label: "A", Environment: "production", CreatedAt: now}},
-		}
-	)
-	log.Info("inserting seed data ...")
-	err = self.store.Insert(seeds...)
-
-	return
 }
 
 // GetAllAccounts returns all accounts as a slice from the database
@@ -51,6 +33,7 @@ func (self *Service[T]) GetAllAccounts() (teams []T, err error) {
 	return
 }
 
+// NewService creates a service using the values passed
 func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, store *sqldb.Repository[T]) (srv *Service[T], err error) {
 	if log == nil {
 		return nil, fmt.Errorf("no logger passed for awsaccount service")
@@ -68,5 +51,17 @@ func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf 
 		conf:  conf,
 		store: store,
 	}
+	return
+}
+
+// Default generates the default repository as and then the service
+func Default[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config) (srv *Service[T], err error) {
+
+	store, err := sqldb.New[T](ctx, log, conf)
+	if err != nil {
+		return
+	}
+	srv, err = NewService[T](ctx, log, conf, store)
+
 	return
 }

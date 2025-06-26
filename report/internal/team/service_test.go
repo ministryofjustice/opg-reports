@@ -16,7 +16,7 @@ func TestTeamServiceNew(t *testing.T) {
 		ctx = t.Context()
 		cfg = config.NewConfig()
 	)
-	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test.db")
+	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test-team-connection.db")
 
 	lg := utils.Logger("WARN", "TEXT")
 	rep, _ := sqldb.New[*Team](ctx, lg, cfg)
@@ -45,28 +45,26 @@ func TestTeamServiceGetAll(t *testing.T) {
 		cfg = config.NewConfig()
 		lg  = utils.Logger("WARN", "TEXT")
 	)
-	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test.db")
+	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test-team-getall.db")
 
-	rep, err := sqldb.New[*Team](ctx, lg, cfg)
+	// insert standard items
+	// 	- needs teams to be seeded first
+	insert, err := Seed(ctx, lg, cfg, nil)
 	if err != nil {
-		t.Errorf("unexpected error creating repository: [%s]", err.Error())
+		t.Errorf("unexpected error seeding: [%s]", err.Error())
 	}
 
-	srv, err := NewService(ctx, lg, cfg, rep)
+	// generate the service
+	srv, err := Default[*Team](ctx, lg, cfg)
 	if err != nil {
 		t.Errorf("unexpected error creating service: [%s]", err.Error())
-	}
-	// insert standard items
-	err = srv.Seed()
-	if err != nil {
-		t.Errorf("unexpected error seeding service: [%s]", err.Error())
 	}
 	// fetch everything
 	res, err := srv.GetAllTeams()
 	if err != nil {
 		t.Errorf("unexpected error getting data from service: [%s]", err.Error())
 	}
-	if len(res) <= 0 {
+	if len(res) != len(insert) {
 		t.Errorf("no results found in service")
 	}
 }
