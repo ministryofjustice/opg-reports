@@ -231,12 +231,17 @@ func (self *Repository) DownloadReleaseAsset(organisation string, repositoryName
 // New provides a configured Github repository object for use to fetch details from
 // their API.
 func New(ctx context.Context, log *slog.Logger, conf *config.Config) (rp *Repository, err error) {
+	rp = &Repository{}
+
 	if log == nil {
-		return nil, fmt.Errorf("no logger passed for github repository")
+		err = fmt.Errorf("no logger passed for github repository")
+		return
 	}
 	if conf == nil {
-		return nil, fmt.Errorf("no config passed for github repository")
+		err = fmt.Errorf("no config passed for github repository")
+		return
 	}
+
 	log = log.WithGroup("github")
 	rp = &Repository{
 		ctx:  ctx,

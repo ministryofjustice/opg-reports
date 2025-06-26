@@ -1,6 +1,7 @@
 package utils_test
 
 import (
+	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -11,7 +12,7 @@ type testStruct struct {
 	Name string `json:"name,omitempty"`
 }
 
-func TestStructToJsonFile(t *testing.T) {
+func TestStructFromAndToJsonFiles(t *testing.T) {
 	var (
 		err      error
 		file     string
@@ -21,6 +22,13 @@ func TestStructToJsonFile(t *testing.T) {
 		itemsIn  = []*testStruct{{Name: "test2"}, {Name: "test3"}}
 		itemsOut = []*testStruct{}
 	)
+
+	// test a failing structojson - something that isnt a struct
+	file = filepath.Join(dir, "fail.json")
+	err = utils.StructToJsonFile(file, func() { fmt.Print("here") })
+	if err == nil {
+		t.Errorf("expected an error when non-struct used")
+	}
 
 	// test single item being written to a file
 	file = filepath.Join(dir, "single.json")
@@ -56,6 +64,12 @@ func TestStructToJsonFile(t *testing.T) {
 	}
 	if len(itemsOut) != len(itemsIn) {
 		t.Errorf("original and imported dont match:")
+	}
+
+	// test loading a file doesnt exist throws an error
+	err = utils.StructFromJsonFile("foo-bar.md", &itemsOut)
+	if err == nil {
+		t.Errorf("expected error for a file that doesnt exist")
 	}
 
 }

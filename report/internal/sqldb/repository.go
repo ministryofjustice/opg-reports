@@ -186,12 +186,18 @@ func (self *Repository[T]) Select(boundStatement *BoundStatement) (err error) {
 
 // New creates a new repo
 func New[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config) (rp *Repository[T], err error) {
+	rp = &Repository[T]{}
+
 	if log == nil {
-		return nil, fmt.Errorf("no logger passed for sqldb repository")
+		err = fmt.Errorf("no logger passed for sqldb repository")
+		return
 	}
+
 	if conf == nil {
-		return nil, fmt.Errorf("no config passed for sqldb repository")
+		err = fmt.Errorf("no config passed for sqldb repository")
+		return
 	}
+
 	log = log.WithGroup("sqldb")
 	rp = &Repository[T]{
 		ctx:  ctx,
