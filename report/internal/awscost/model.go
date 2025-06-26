@@ -18,6 +18,8 @@ type AwsCost struct {
 	// AwsAccount joins
 	AwsAccountID string            `json:"aws_account_id,omitempty" db:"aws_account_id"`
 	AwsAccount   *hasOneAwsAccount `json:"aws_account,omitempty" db:"aws_account"`
+	// Team joins
+	Team *costHasOneTeam `json:"team,omitempty" db:"team"`
 }
 
 // awsAccount is used to capture sql join data
@@ -33,6 +35,26 @@ type hasOneAwsAccount awsAccount
 
 // Scan handles the processing of the join data
 func (self *hasOneAwsAccount) Scan(src interface{}) (err error) {
+	switch src.(type) {
+	case []byte:
+		err = utils.Unmarshal(src.([]byte), self)
+	case string:
+		err = utils.Unmarshal([]byte(src.(string)), self)
+	default:
+		err = fmt.Errorf("unsupported scan src type")
+	}
+	return
+}
+
+// costTeam maps to the team model
+type costTeam struct {
+	Name string `json:"name,omitempty" db:"name" example:"SRE"`
+}
+
+type costHasOneTeam costTeam
+
+// Scan handles the processing of the join data
+func (self *costHasOneTeam) Scan(src interface{}) (err error) {
 	switch src.(type) {
 	case []byte:
 		err = utils.Unmarshal(src.([]byte), self)

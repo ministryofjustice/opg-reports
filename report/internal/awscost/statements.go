@@ -16,9 +16,13 @@ SELECT
 		'name', aws_accounts.name,
 		'label', aws_accounts.label,
 		'environment', aws_accounts.environment
-	) as aws_account
+	) as aws_account,
+	json_object(
+		'name', teams.name
+	) as team
 FROM aws_costs
 LEFT JOIN aws_accounts on aws_accounts.id = aws_costs.aws_account_id
+LEFT JOIN teams on teams.id = aws_accounts.team_id
 GROUP BY aws_costs.id
 ORDER BY
 	CAST(aws_costs.cost as REAL) DESC,
@@ -38,9 +42,13 @@ SELECT
 		'name', aws_accounts.name,
 		'label', aws_accounts.label,
 		'environment', aws_accounts.environment
-	) as aws_account
+	) as aws_account,
+	json_object(
+		'name', teams.name
+	) as team
 FROM aws_costs
 LEFT JOIN aws_accounts on aws_accounts.id = aws_costs.aws_account_id
+LEFT JOIN teams on teams.id = aws_accounts.team_id
 GROUP BY aws_costs.id
 ORDER BY
 	CAST(aws_costs.cost as REAL) DESC,
