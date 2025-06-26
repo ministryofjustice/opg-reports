@@ -200,7 +200,7 @@ func New[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config
 	}
 
 	if !utils.FileExists(rp.conf.Database.Path) {
-		log.With("dbPath", rp.conf.Database.Path).Warn("Database not found, so creating")
+		log.With("database.path", rp.conf.Database.Path).Warn("Database not found, so creating")
 		err = rp.init()
 	}
 
