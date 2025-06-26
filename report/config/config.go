@@ -14,6 +14,7 @@ import (
 type Config struct {
 	Database *Database
 	Github   *Github
+	Aws      *Aws
 	Versions *Versions
 	Servers  *Servers
 	Log      *Log
@@ -36,6 +37,31 @@ func (self *Database) Source() (src string) {
 type Github struct {
 	Organisation string
 	Token        string
+}
+
+type region struct {
+	Region string
+}
+type session struct {
+	Token string
+}
+
+type Aws struct {
+	Region  string
+	Default region
+	Session session
+}
+
+func (self *Aws) GetRegion() string {
+	if self.Region != "" {
+		return self.Region
+	} else if self.Default.Region != "" {
+		return self.Default.Region
+	}
+	return ""
+}
+func (self *Aws) GetToken() string {
+	return self.Session.Token
 }
 
 // Log handles the slog setup used for the application
@@ -72,6 +98,11 @@ var defaultConfig = &Config{
 	Github: &Github{
 		Organisation: "ministryofjustice",
 		Token:        "",
+	},
+	Aws: &Aws{
+		Region:  "",
+		Default: region{Region: ""},
+		Session: session{Token: ""},
 	},
 	Log: &Log{
 		Level: "INFO",
