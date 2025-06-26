@@ -14,9 +14,9 @@ func defaultSeeds() (seeds []*sqldb.BoundStatement) {
 	var now = time.Now().UTC().Format(time.RFC3339)
 
 	seeds = []*sqldb.BoundStatement{
-		{Statement: stmtImport, Data: &AwsAccountImport{AwsAccount: AwsAccount{ID: "001A", Name: "Acc01A", Label: "A", Environment: "development", CreatedAt: now}, BillingUnit: "TeamA"}},
-		{Statement: stmtImport, Data: &AwsAccountImport{AwsAccount: AwsAccount{ID: "001B", Name: "Acc01B", Label: "B", Environment: "production", CreatedAt: now}, BillingUnit: "TeamA"}},
-		{Statement: stmtImport, Data: &AwsAccountImport{AwsAccount: AwsAccount{ID: "002A", Name: "Acc02A", Label: "A", Environment: "production", CreatedAt: now}, BillingUnit: "TeamB"}},
+		{Statement: stmtImport, Data: &awsAccountImport{AwsAccount: AwsAccount{ID: "001A", Name: "Acc01A", Label: "A", Environment: "development", CreatedAt: now}, TeamName: "TeamA"}},
+		{Statement: stmtImport, Data: &awsAccountImport{AwsAccount: AwsAccount{ID: "001B", Name: "Acc01B", Label: "B", Environment: "production", CreatedAt: now}, TeamName: "TeamA"}},
+		{Statement: stmtImport, Data: &awsAccountImport{AwsAccount: AwsAccount{ID: "002A", Name: "Acc02A", Label: "A", Environment: "production", CreatedAt: now}, TeamName: "TeamB"}},
 	}
 
 	return

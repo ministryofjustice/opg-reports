@@ -34,27 +34,10 @@ INSERT INTO aws_accounts (
 	:environment,
 	:created_at,
 	id
-FROM teams WHERE name=:billing_unit LIMIT 1
+FROM teams WHERE name=:team_name LIMIT 1
 ON CONFLICT (id)
  	DO UPDATE SET
 		name=excluded.name,
 		label=excluded.label,
 		environment=excluded.environment
-RETURNING id;`
-
-const stmtInsert string = `
-INSERT INTO aws_accounts (
-	id,
-	name,
-	label,
-	environment,
-	created_at
-) VALUES (
-	:id,
-	:name,
-	:label,
-	:environment,
-	:created_at
-) ON CONFLICT (id)
- 	DO UPDATE SET name=excluded.name, label=excluded.label, environment=excluded.environment
 RETURNING id;`

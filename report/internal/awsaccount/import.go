@@ -24,7 +24,7 @@ func Import(ctx context.Context, log *slog.Logger, conf *config.Config) (err err
 		gr          *gh.Repository
 		metaService *opgmetadata.Service
 		rawAccounts []map[string]interface{}
-		list        []*AwsAccountImport
+		list        []*awsAccountImport
 		store       *sqldb.Repository[*AwsAccount]
 		now         string                  = time.Now().UTC().Format(time.RFC3339)
 		inserts     []*sqldb.BoundStatement = []*sqldb.BoundStatement{}
@@ -50,7 +50,7 @@ func Import(ctx context.Context, log *slog.Logger, conf *config.Config) (err err
 		return
 	}
 	// convert to db model
-	list = []*AwsAccountImport{}
+	list = []*awsAccountImport{}
 	err = utils.Convert(rawAccounts, &list)
 	if err != nil {
 		return

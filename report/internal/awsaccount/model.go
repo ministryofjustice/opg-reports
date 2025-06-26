@@ -39,17 +39,10 @@ func (self *hasOneTeam) Scan(src interface{}) (err error) {
 	return
 }
 
-// AwsAccountImport captures an extra field from the metadata which
+// awsAccountImport captures an extra field from the metadata which
 // is used in the stmtInsert to create the initial join to team based
 // on the billing_unit name
-type AwsAccountImport struct {
+type awsAccountImport struct {
 	AwsAccount
-	BillingUnit string `json:"billing_unit,omitempty" db:"billing_unit"`
-}
-
-func newImportAccount(account *AwsAccount, billingUnit string) (acc *AwsAccountImport) {
-	acc = &AwsAccountImport{}
-	utils.Convert(account, &acc)
-	acc.BillingUnit = billingUnit
-	return
+	TeamName string `json:"billing_unit,omitempty" db:"team_name"`
 }
