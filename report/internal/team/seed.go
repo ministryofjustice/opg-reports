@@ -22,7 +22,8 @@ func defaultSeeds() (seeds []*sqldb.BoundStatement) {
 	return
 }
 
-// Seed populates the account tables with data passed along.
+// Seed populates the account tables with data passed along. Runs a delete
+// on the table before inserting new seeds
 //
 // If seeds is nil then defaultSeeds are used instead.
 func Seed(ctx context.Context, log *slog.Logger, conf *config.Config, seeds []*sqldb.BoundStatement) (inserted []*sqldb.BoundStatement, err error) {
@@ -41,7 +42,12 @@ func Seed(ctx context.Context, log *slog.Logger, conf *config.Config, seeds []*s
 	if err != nil {
 		return
 	}
-	log.Info("inserting seeds ...")
+	log.Info("deleting all [team] entries ...")
+	_, err = store.Exec(stmtDeleteAll)
+	if err != nil {
+		return
+	}
+	log.Info("inserting [team] seeds ...")
 	err = store.Insert(seeds...)
 	// if there is no error then return the data
 	if err == nil {

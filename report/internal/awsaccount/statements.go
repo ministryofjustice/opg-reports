@@ -1,7 +1,9 @@
 package awsaccount
 
 // list of sql insert statements of various types
-const stmtDropTable string = `DROP TABLE IF EXISTS awsaccounts`
+const stmtDropTable string = `DROP TABLE IF EXISTS aws_accounts`
+
+const stmtDeleteAll string = `DELETE FROM aws_accounts`
 
 const stmtSelectAll string = `
 SELECT

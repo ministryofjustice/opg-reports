@@ -2,6 +2,7 @@ package team
 
 // list of sql insert statements of various types
 const stmtDropTable string = `DROP TABLE IF EXISTS teams`
+const stmtDeleteAll string = `DELETE FROM teams`
 const stmtSelectAll string = `
 SELECT
 	teams.id,

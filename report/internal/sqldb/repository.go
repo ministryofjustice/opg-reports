@@ -25,7 +25,7 @@ type Repository[T interfaces.Model] struct {
 // passed
 type empty struct{}
 
-// init is called via New and it creates database using the
+// Init is called via New and it creates database using the
 // full SCHEMA
 func (self *Repository[T]) init() (err error) {
 	_, err = self.Exec(SCHEMA)

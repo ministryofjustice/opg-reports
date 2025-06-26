@@ -16,6 +16,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Get the configuration data and the viper config for mapping to cli args
+var conf, viperConf = config.New()
+
+// useFixtures is flag set by cli args to decide if using fixture data
+var useFixtures bool = false
+
 // root command
 var rootCmd = &cobra.Command{
 	Use:   "importer",
@@ -27,23 +33,51 @@ var rootCmd = &cobra.Command{
 			ctx context.Context = context.Background()
 			log *slog.Logger    = utils.Logger(conf.Log.Level, conf.Log.Type)
 		)
-		// Import teams
-		err = team.Import(ctx, log, conf)
-		if err != nil {
-			slog.Error(err.Error())
-			return
+
+		if useFixtures {
+			log.Info("using seed data ...")
+			err = seedData(ctx, log, conf)
+		} else {
+			log.Info("importing real data ...")
+			err = realData(ctx, log, conf)
 		}
-		// Import accounts
-		err = awsaccount.Import(ctx, log, conf)
 		if err != nil {
-			slog.Error(err.Error())
+			log.Error("error running imports", "error", err.Error())
 			return
 		}
 
 	},
 }
 
-var conf, viperConf = config.New() // Get the configuration data and the viper config for mapping to cli args
+func seedData(ctx context.Context, log *slog.Logger, conf *config.Config) (err error) {
+	// Seed team data
+	_, err = team.Seed(ctx, log, conf, nil)
+	if err != nil {
+		return
+	}
+	// Seed awsaccounts
+	_, err = awsaccount.Seed(ctx, log, conf, nil)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+// Run the importers that will use real data
+func realData(ctx context.Context, log *slog.Logger, conf *config.Config) (err error) {
+	// Import teams
+	err = team.Import(ctx, log, conf)
+	if err != nil {
+		return
+	}
+	// Import accounts
+	err = awsaccount.Import(ctx, log, conf)
+	if err != nil {
+		return
+	}
+	return
+}
 
 // init
 // - Binds global config values to parameters
@@ -55,6 +89,9 @@ func init() {
 	// bind the github.organisation config item to the shorter --org
 	rootCmd.PersistentFlags().StringVar(&conf.Github.Organisation, "github.organisation", conf.Github.Organisation, "GitHub organisation name")
 	viperConf.BindPFlag("github.organisation", rootCmd.PersistentFlags().Lookup("github.organisation"))
+
+	// bind a flag to decide if we are using fixture data or not
+	rootCmd.PersistentFlags().BoolVar(&useFixtures, "fixtures", false, "When true, use a small predtermined dataset.")
 
 }
 
