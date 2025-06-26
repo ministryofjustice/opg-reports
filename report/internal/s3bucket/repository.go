@@ -67,7 +67,12 @@ func (self *Repository) ListBucket(bucket string, prefix string) (fileList []str
 	return
 }
 
-// Download fetches the set of files from the s3 bucket and write them to the locaDir while maintaining any sub folder structures
+// Download fetches the set of files from the s3 bucket and write them to the locaDir while maintaining any sub folder structures.
+//
+// Uses a batch download object with an After hook that write the content of the buffer to the file system - this allows many
+// downloads at once and no need to run save afterwards.
+//
+// If the number of downloadedFiles does not match the number files an error is returned.
 func (self *Repository) Download(bucket string, files []string, localDir string) (downloadedFiles []string, err error) {
 	var (
 		client        *s3.S3
@@ -91,66 +96,35 @@ func (self *Repository) Download(bucket string, files []string, localDir string)
 		)
 		os.MkdirAll(parentDir, os.ModePerm)
 
+		buff := aws.NewWriteAtBuffer([]byte{})
+		// create a batch download object with s3 info and after trigger that with write the file
+		// to local files
 		batchDownload = append(batchDownload, s3manager.BatchDownloadObject{
 			Object: &s3.GetObjectInput{
 				Bucket: aws.String(bucket),
 				Key:    aws.String(file),
 			},
-			Writer: &buffer{Path: localFile},
+			Writer: buff,
+			After: func() error {
+				log.Debug("writing downloaded file", "destination", localFile)
+				if e := os.WriteFile(localFile, buff.Bytes(), os.ModePerm); e == nil {
+					downloadedFiles = append(downloadedFiles, localFile)
+				}
+				return nil
+			},
 		})
 
 	}
-	// run at end to write to files to local storage
-	defer func() {
-		for _, obj := range batchDownload {
-			buf, ok := obj.Writer.(*buffer)
-			lg := log.With("objectKey", *obj.Object.Key)
 
-			if !ok {
-				lg.Error("issue with downloading item")
-				continue
-			}
-			n, err := buf.Save()
-			if err != nil {
-				lg.Error("error saving buffer to local file")
-				continue
-			}
-			if n < 1 {
-				lg.Error("error with saved buffer size")
-				continue
-			}
-			lg.Warn("downloaded to " + buf.Path)
-			downloadedFiles = append(downloadedFiles, buf.Path)
-		}
-	}()
-	// handle with interator
-	err = s3manager.NewDownloaderWithClient(client).DownloadWithIterator(self.ctx, &s3manager.DownloadObjectsIterator{Objects: batchDownload})
-	return
-}
+	// setup with interator
+	downloader := s3manager.NewDownloaderWithClient(client)
+	err = downloader.DownloadWithIterator(self.ctx, &s3manager.DownloadObjectsIterator{
+		Objects: batchDownload,
+	})
 
-type buffer struct {
-	Path string
-	buf  *aws.WriteAtBuffer
-}
-
-func (b *buffer) WriteAt(p []byte, off int64) (n int, err error) {
-	if b.buf == nil {
-		b.buf = &aws.WriteAtBuffer{}
+	if len(downloadedFiles) != len(files) {
+		err = fmt.Errorf("downloaded a different nubmer of files, expected [%d] actual [%d]", len(files), len(downloadedFiles))
 	}
-	return b.buf.WriteAt(p, off)
-}
-
-func (b *buffer) Save() (n int, err error) {
-	if b.buf == nil {
-		return
-	}
-	var f *os.File
-	f, err = os.Create(b.Path)
-	if err != nil {
-		return
-	}
-	defer f.Close()
-	n, err = f.Write(b.buf.Bytes())
 	return
 }
 
