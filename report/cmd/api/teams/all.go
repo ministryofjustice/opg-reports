@@ -40,6 +40,7 @@ func handleGetTeamsAll(ctx context.Context, log *slog.Logger, conf *config.Confi
 		err = huma.Error500InternalServerError("failed to connect to service", err)
 		return
 	}
+	defer service.Close()
 
 	teams, err = service.GetAllTeams()
 	if err != nil {

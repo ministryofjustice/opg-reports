@@ -14,6 +14,7 @@ import (
 func TestAwsAccountServiceNew(t *testing.T) {
 	var (
 		err error
+		srv *awsaccount.Service[*awsaccount.AwsAccount]
 		dir = t.TempDir()
 		ctx = t.Context()
 		cfg = config.NewConfig()
@@ -23,19 +24,23 @@ func TestAwsAccountServiceNew(t *testing.T) {
 	lg := utils.Logger("WARN", "TEXT")
 	rep, _ := sqldb.New[*awsaccount.AwsAccount](ctx, lg, cfg)
 
-	_, err = awsaccount.NewService(ctx, lg, cfg, rep)
+	srv, err = awsaccount.NewService(ctx, lg, cfg, rep)
 	if err != nil {
 		t.Errorf("unexpected error creating service: [%s]", err.Error())
 	}
+	defer srv.Close()
 
-	_, err = awsaccount.NewService[*awsaccount.AwsAccount](ctx, nil, nil, nil)
+	srv, err = awsaccount.NewService[*awsaccount.AwsAccount](ctx, nil, nil, nil)
 	if err == nil {
 		t.Errorf("New service should have thrown error without a log or repository")
 	}
-	_, err = awsaccount.NewService[*awsaccount.AwsAccount](ctx, lg, nil, nil)
+	defer srv.Close()
+
+	srv, err = awsaccount.NewService[*awsaccount.AwsAccount](ctx, lg, nil, nil)
 	if err == nil {
 		t.Errorf("New service should have thrown error without a repository")
 	}
+	defer srv.Close()
 
 }
 
@@ -64,6 +69,7 @@ func TestAwsAccountServiceGetAll(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error creating service: [%s]", err.Error())
 	}
+	defer srv.Close()
 
 	// fetch everything
 	res, err := srv.GetAllAccounts()

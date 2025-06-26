@@ -12,6 +12,7 @@ import (
 func TestTeamServiceNew(t *testing.T) {
 	var (
 		err error
+		srv *Service[*Team]
 		dir = t.TempDir()
 		ctx = t.Context()
 		cfg = config.NewConfig()
@@ -21,19 +22,23 @@ func TestTeamServiceNew(t *testing.T) {
 	lg := utils.Logger("WARN", "TEXT")
 	rep, _ := sqldb.New[*Team](ctx, lg, cfg)
 
-	_, err = NewService(ctx, lg, cfg, rep)
+	srv, err = NewService(ctx, lg, cfg, rep)
 	if err != nil {
 		t.Errorf("unexpected error creating service: [%s]", err.Error())
 	}
+	defer srv.Close()
 
-	_, err = NewService[*Team](ctx, nil, nil, nil)
+	srv, err = NewService[*Team](ctx, nil, nil, nil)
 	if err == nil {
 		t.Errorf("New service should have thrown error without a log or repository")
 	}
-	_, err = NewService[*Team](ctx, lg, nil, nil)
+	defer srv.Close()
+
+	srv, err = NewService[*Team](ctx, lg, nil, nil)
 	if err == nil {
 		t.Errorf("New service should have thrown error without a repository")
 	}
+	defer srv.Close()
 
 }
 
@@ -59,6 +64,7 @@ func TestTeamServiceGetAll(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error creating service: [%s]", err.Error())
 	}
+	defer srv.Close()
 	// fetch everything
 	res, err := srv.GetAllTeams()
 	if err != nil {

@@ -17,6 +17,11 @@ type Service[T interfaces.Model] struct {
 	store *sqldb.Repository[T]
 }
 
+// Close function to do any clean up
+func (self *Service[T]) Close() (err error) {
+	return
+}
+
 // GetAllTeams returns all teams as a slice from the database
 // Calls the database
 func (self *Service[T]) GetAllTeams() (teams []T, err error) {
@@ -35,14 +40,19 @@ func (self *Service[T]) GetAllTeams() (teams []T, err error) {
 }
 
 func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, store *sqldb.Repository[T]) (srv *Service[T], err error) {
+	srv = &Service[T]{}
+
 	if log == nil {
-		return nil, fmt.Errorf("no logger passed for team service")
+		err = fmt.Errorf("no logger passed for team service")
+		return
 	}
 	if conf == nil {
-		return nil, fmt.Errorf("no config passed for team service")
+		err = fmt.Errorf("no config passed for team service")
+		return
 	}
 	if store == nil {
-		return nil, fmt.Errorf("no repository passed for team service")
+		err = fmt.Errorf("no repository passed for team service")
+		return
 	}
 
 	srv = &Service[T]{
