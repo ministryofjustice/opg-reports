@@ -10,6 +10,10 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/internal/awscost"
 )
 
+// RegisterGetAwsCostsTop20 registers the API endpoint to handle returning the 20 most expensive AWS
+// costs from the data.
+//
+// Registers the helper function to handle the request as well as the details for api spec
 func RegisterGetAwsCostsTop20(log *slog.Logger, conf *config.Config, api huma.API, service *awscost.Service[*AwsCost]) {
 	var operation = huma.Operation{
 		OperationID:   "get-awscosts-top20",
@@ -25,7 +29,10 @@ func RegisterGetAwsCostsTop20(log *slog.Logger, conf *config.Config, api huma.AP
 	})
 }
 
-// handleGetAwsCostsTop20
+// handleGetAwsCostsTop20 returns the 20 most expensive cost entries within the data store.
+//
+// Tax is excluded, as tax entry is a month's worth of tax in a single entry so will always
+// be one of highest line items costs
 func handleGetAwsCostsTop20(ctx context.Context, log *slog.Logger, conf *config.Config, service *awscost.Service[*AwsCost], input *struct{}) (response *GetAwsCostsTop20Response, err error) {
 	var costs []*AwsCost
 	response = &GetAwsCostsTop20Response{}

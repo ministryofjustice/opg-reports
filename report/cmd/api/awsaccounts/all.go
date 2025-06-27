@@ -10,6 +10,10 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/internal/awsaccount"
 )
 
+// RegisterGetAwsAccountsAll handles registering the endpoint to return all aws accounts stored
+// in the data.
+//
+// Attaches both the handler (`handleGetAwsAccountsAll`) and the spec details to the huma api
 func RegisterGetAwsAccountsAll(log *slog.Logger, conf *config.Config, api huma.API, service *awsaccount.Service[*AwsAccount]) {
 	var operation = huma.Operation{
 		OperationID:   "get-awsaccounts-all",

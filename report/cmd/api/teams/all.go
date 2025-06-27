@@ -10,7 +10,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/internal/team"
 )
 
-// RegisterAllTeams registers the `get-teams-all`
+// RegisterAllTeams registers the `get-teams-all` endpoint
 func RegisterGetTeamsAll(log *slog.Logger, conf *config.Config, api huma.API, service *team.Service[*Team]) {
 	var operation = huma.Operation{
 		OperationID:   "get-teams-all",
