@@ -16,6 +16,7 @@ type AwsCost struct {
 // GetAwsCostsTop20Response
 type GetAwsCostsTop20Response struct {
 	Body struct {
-		Data []*AwsCost
+		Count int        `json:"count,omityempty"`
+		Data  []*AwsCost `json:"data"`
 	}
 }

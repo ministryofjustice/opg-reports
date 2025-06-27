@@ -43,6 +43,7 @@ func handleGetAwsCostsTop20(ctx context.Context, log *slog.Logger, conf *config.
 	}
 
 	response.Body.Data = costs
+	response.Body.Count = len(costs)
 
 	return
 }

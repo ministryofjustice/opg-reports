@@ -15,6 +15,8 @@ func defaultSeeds() (seeds []*sqldb.BoundStatement) {
 		{Statement: stmtImport, Data: &Team{Name: "TeamA"}},
 		{Statement: stmtImport, Data: &Team{Name: "TeamB"}},
 		{Statement: stmtImport, Data: &Team{Name: "TeamC"}},
+		{Statement: stmtImport, Data: &Team{Name: "TeamD"}},
+		{Statement: stmtImport, Data: &Team{Name: "TeamE"}},
 	}
 
 	return
