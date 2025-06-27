@@ -132,6 +132,7 @@ func (self *Repository[T]) Insert(boundStatements ...*BoundStatement) (err error
 	if err != nil {
 		log.Error("transaction commit failed", "error", err.Error())
 		transaction.Rollback()
+		return
 	}
 	// now check all the bound statements executed
 	err = checkSuccess(boundStatements...)
