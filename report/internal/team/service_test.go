@@ -19,7 +19,7 @@ func TestTeamServiceNew(t *testing.T) {
 	)
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test-team-connection.db")
 
-	lg := utils.Logger("WARN", "TEXT")
+	lg := utils.Logger("ERROR", "TEXT")
 	rep, _ := sqldb.New[*Team](ctx, lg, cfg)
 
 	srv, err = NewService(ctx, lg, cfg, rep)
@@ -48,7 +48,7 @@ func TestTeamServiceGetAll(t *testing.T) {
 		dir = t.TempDir()
 		ctx = t.Context()
 		cfg = config.NewConfig()
-		lg  = utils.Logger("WARN", "TEXT")
+		lg  = utils.Logger("ERROR", "TEXT")
 	)
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test-team-getall.db")
 

@@ -28,7 +28,7 @@ func TestHandleGetAwsCostsTop20(t *testing.T) {
 		dir = t.TempDir()
 		ctx = t.Context()
 		cfg = config.NewConfig()
-		lg  = utils.Logger("WARN", "TEXT")
+		lg  = utils.Logger("ERROR", "TEXT")
 	)
 	// overwrite the database location
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test-costs-top20.db")

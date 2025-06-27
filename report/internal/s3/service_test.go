@@ -23,7 +23,7 @@ func TestS3Service(t *testing.T) {
 		prefix        = "github_standards/"
 		ctx           = t.Context()
 		cfg           = config.NewConfig()
-		lg            = utils.Logger("WARN", "TEXT")
+		lg            = utils.Logger("ERROR", "TEXT")
 	)
 	if cfg.Aws.Session.Token == "" {
 		t.Skip("No AWS_SESSION_TOKEN, skipping test")

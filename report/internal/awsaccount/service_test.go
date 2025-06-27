@@ -21,7 +21,7 @@ func TestAwsAccountServiceNew(t *testing.T) {
 	)
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test-awsaccounts-connection.db")
 
-	lg := utils.Logger("WARN", "TEXT")
+	lg := utils.Logger("ERROR", "TEXT")
 	rep, _ := sqldb.New[*awsaccount.AwsAccount](ctx, lg, cfg)
 
 	srv, err = awsaccount.NewService(ctx, lg, cfg, rep)
@@ -50,7 +50,7 @@ func TestAwsAccountServiceGetAll(t *testing.T) {
 		dir = t.TempDir()
 		ctx = t.Context()
 		cfg = config.NewConfig()
-		lg  = utils.Logger("WARN", "TEXT")
+		lg  = utils.Logger("ERROR", "TEXT")
 	)
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test-awsaccounts-getall.db")
 

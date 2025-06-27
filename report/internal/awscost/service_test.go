@@ -22,7 +22,7 @@ func TestServiceNew(t *testing.T) {
 	)
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test-awscost-connection.db")
 
-	lg := utils.Logger("WARN", "TEXT")
+	lg := utils.Logger("ERROR", "TEXT")
 	rep, _ := sqldb.New[*awscost.AwsCost](ctx, lg, cfg)
 
 	srv, err = awscost.NewService(ctx, lg, cfg, rep)
@@ -51,7 +51,7 @@ func TestServiceGetAll(t *testing.T) {
 		dir = t.TempDir()
 		ctx = t.Context()
 		cfg = config.NewConfig()
-		lg  = utils.Logger("WARN", "TEXT")
+		lg  = utils.Logger("ERROR", "TEXT")
 	)
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test-awscost-getall.db")
 

@@ -19,7 +19,7 @@ func TestOpgMetaDataServiceDownloadAndExtract(t *testing.T) {
 		dir  string = t.TempDir()
 		ctx         = t.Context()
 		conf        = config.NewConfig()
-		log         = utils.Logger("WARN", "TEXT")
+		log         = utils.Logger("ERROR", "TEXT")
 	)
 
 	ghs, _ := gh.New(ctx, log, conf)
@@ -49,7 +49,7 @@ func TestOpgMetaDataServiceDownloadAndReturn(t *testing.T) {
 		dir  string = t.TempDir()
 		ctx         = t.Context()
 		conf        = config.NewConfig()
-		log         = utils.Logger("WARN", "TEXT")
+		log         = utils.Logger("ERROR", "TEXT")
 	)
 	if conf.Github.Token == "" {
 		t.Skip("No GITHUB_TOKEN, skipping test")

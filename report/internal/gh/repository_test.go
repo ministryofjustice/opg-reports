@@ -16,7 +16,7 @@ func TestGhAllReleases(t *testing.T) {
 		err error
 		ctx = t.Context()
 		cfg = config.NewConfig()
-		lg  = utils.Logger("WARN", "TEXT")
+		lg  = utils.Logger("ERROR", "TEXT")
 	)
 
 	if cfg.Github.Token == "" {
@@ -46,7 +46,7 @@ func TestGhLastReleases(t *testing.T) {
 		err error
 		ctx = t.Context()
 		cfg = config.NewConfig()
-		lg  = utils.Logger("WARN", "TEXT")
+		lg  = utils.Logger("ERROR", "TEXT")
 	)
 	if cfg.Github.Token == "" {
 		t.Skip("No GITHUB_TOKEN, skipping test")
@@ -77,7 +77,7 @@ func TestGhLastReleaseAssetAndDownload(t *testing.T) {
 		// fp  = "./metadata.tar.gz"
 		ctx = t.Context()
 		cfg = config.NewConfig()
-		lg  = utils.Logger("WARN", "TEXT")
+		lg  = utils.Logger("ERROR", "TEXT")
 	)
 	if cfg.Github.Token == "" {
 		t.Skip("No GITHUB_TOKEN, skipping test")

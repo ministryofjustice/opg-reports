@@ -22,7 +22,7 @@ func TestRepositoryNew(t *testing.T) {
 		cfg = config.NewConfig()
 	)
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test.db")
-	lg := utils.Logger("WARN", "TEXT")
+	lg := utils.Logger("ERROR", "TEXT")
 
 	_, err = New[*tModel](ctx, lg, cfg)
 
@@ -39,7 +39,7 @@ func TestRepositoryInsertAndSelectWithTestTable(t *testing.T) {
 		dir     = t.TempDir()
 		ctx     = t.Context()
 		cfg     = config.NewConfig()
-		lg      = utils.Logger("WARN", "TEXT")
+		lg      = utils.Logger("ERROR", "TEXT")
 	)
 
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "testinsert.db")

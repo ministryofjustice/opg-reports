@@ -14,7 +14,7 @@ func TestS3BucketListBucket(t *testing.T) {
 		err error
 		ctx = t.Context()
 		cfg = config.NewConfig()
-		lg  = utils.Logger("WARN", "TEXT")
+		lg  = utils.Logger("ERROR", "TEXT")
 	)
 
 	if cfg.Aws.GetToken() == "" {
@@ -45,7 +45,7 @@ func TestS3BucketListAndDownloadBucket(t *testing.T) {
 		dlDir = filepath.Join(dir, "__download/")
 		ctx   = t.Context()
 		cfg   = config.NewConfig()
-		lg    = utils.Logger("WARN", "TEXT")
+		lg    = utils.Logger("ERROR", "TEXT")
 	)
 
 	if cfg.Aws.GetToken() == "" {
