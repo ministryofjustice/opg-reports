@@ -18,18 +18,12 @@ import (
 // the information to be pulled and updated to be used in this version of reporting tools
 //
 // Using the `conf.Aws.Bucket` settings, calls s3 api to list all files within the bucket that
-// match the prefix (typically a subfolder pattern). Then downloads each of those files
+// matches the prefix (typically a subfolder pattern). Then downloads each of those files
 // to local storage (to a temp folder).
 //
-// S3 files are downloaded locally to a temp folder underneath the `conf.Aws.Bucket.Local` path
-// which is removed on exit via a defer.
+
 //
-// Once downloaded, the each file is converted to a struct (`[]*AwsCostImport`) and merged
-// with a sql statement (`stmtImport`) for insertion.
-//
-// All sql statements are then run in one block, using a `sqldb` repository to handle
-// transaction based inserts.
-//
+
 // If any of the file->struct conversions fail then the an error is returned and no
 // inserts are run.
 //
@@ -53,12 +47,12 @@ import (
 // interface: ImporterExistingCommand
 func Existing(ctx context.Context, log *slog.Logger, conf *config.Config, service *s3.Service[*AwsCostImport]) (err error) {
 	var (
-		store   *sqldb.Repository[*AwsCostImport]
-		bucket  string                  = conf.Aws.Buckets.Costs.Name
-		prefix  string                  = conf.Aws.Buckets.Costs.Prefix
-		costs   []*AwsCostImport        = []*AwsCostImport{}
-		inserts []*sqldb.BoundStatement = []*sqldb.BoundStatement{}
-		sw                              = utils.Stopwatch()
+		store         *sqldb.Repository[*AwsCostImport]
+		bucket        string   = conf.Aws.Buckets.Costs.Name
+		prefix        string   = conf.Aws.Buckets.Costs.Prefix
+		files         []string = []string{}
+		sw                     = utils.Stopwatch()
+		totalInserted          = 0
 	)
 	defer service.Close()
 	// timer
@@ -70,34 +64,38 @@ func Existing(ctx context.Context, log *slog.Logger, conf *config.Config, servic
 
 	// add info to the logger
 	log = log.With("operation", "Existing", "service", "awscost")
-	log.Info("[awscost] starting existing records import ...")
+	log.Debug("[awscost] starting existing records import ...")
 
-	// use the service to download and convert data to the structs we want
-	costs, err = service.DownloadAndReturnData(bucket, prefix)
-
-	// for each file we need to generate the bounded sql statements
-	for _, row := range costs {
-		inserts = append(inserts, &sqldb.BoundStatement{Data: row, Statement: stmtImport})
-	}
-
-	log.With("count", len(inserts)).Debug("records to insert ...")
-
-	// now insert the cost data
-	log.Debug("creating datastore ...")
+	log.Debug("[awscost] creating datastore ...")
 	store, err = sqldb.New[*AwsCostImport](ctx, log, conf)
 	if err != nil {
 		return
 	}
+	log.Debug("[awscost] downloading files ...")
+	// We handle each file rather than all together due to memory usage concerns
+	files, err = service.Download(bucket, prefix)
+	log.With("count", len(files)).Debug("[awscost] downloaded files.")
 
-	log.Debug("running insert ...")
-	err = store.Insert(inserts...)
-	if err != nil {
-		return
+	for _, file := range files {
+		var (
+			costs   []*AwsCostImport        = []*AwsCostImport{}
+			inserts []*sqldb.BoundStatement = []*sqldb.BoundStatement{}
+		)
+		utils.StructFromJsonFile(file, &costs)
+		// for each file we need to generate the bounded sql statements
+		for _, row := range costs {
+			inserts = append(inserts, &sqldb.BoundStatement{Data: row, Statement: stmtImport})
+		}
+		log.With("count", len(inserts), "file", file).Debug("[awscost] inserting records from file ...")
+		if e := store.Insert(inserts...); e != nil {
+			return
+		}
+		totalInserted += len(inserts)
 	}
 
 	log.With(
 		"seconds", sw.Stop().Seconds(),
-		"inserted", len(inserts)).
+		"inserted", totalInserted).
 		Info("[awscost] existing records imported.")
 	return
 }

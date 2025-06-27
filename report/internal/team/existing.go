@@ -47,13 +47,13 @@ func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *c
 	if err != nil || len(data) <= 0 {
 		return
 	}
-	log.Debug("converting to local format ...")
+	log.Debug("[team] converting to local format ...")
 	// convert data list
 	err = utils.Convert(data, &teams)
 	if err != nil || len(teams) <= 0 {
 		return
 	}
-	log.Debug("generating unique list of team names ...")
+	log.Debug("[team] generating unique list of team names ...")
 	// now filter this down to unique billing_unit values
 	for _, item := range teams {
 		names = append(names, item.Name)
@@ -64,15 +64,15 @@ func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *c
 	for _, nm := range names {
 		inserts = append(inserts, &sqldb.BoundStatement{Statement: stmtImport, Data: &TeamImport{Name: nm}})
 	}
-	log.With("count", len(inserts)).Debug("records to insert ...")
+	log.With("count", len(inserts)).Debug("[team] records to insert ...")
 
-	log.Debug("creating writer store for insert...")
+	log.Debug("[team] creating writer store for insert ...")
 	store, err = sqldb.New[*TeamImport](ctx, log, conf)
 	if err != nil {
 		return
 	}
 
-	log.Debug("running insert ...")
+	log.Debug("[team] running insert ...")
 	err = store.Insert(inserts...)
 	if err != nil {
 		return

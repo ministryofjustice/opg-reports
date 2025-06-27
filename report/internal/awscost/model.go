@@ -67,6 +67,25 @@ func (self *costHasOneTeam) Scan(src interface{}) (err error) {
 }
 
 // AwsCostImport is used for data import / seeding and contains additional data in older formats
+//
+// Example cost entry:
+//
+//	{
+//		"id": 0,
+//		"ts": "2024-08-15 18:52:55.055478 +0000 UTC",
+//		"organisation": "OPG",
+//		"account_id": "050256574573",
+//		"account_name": "Make development",
+//		"unit": "Make",
+//		"label": "make",
+//		"environment": "development",
+//		"service": "Amazon Simple Storage Service",
+//		"region": "eu-west-1",
+//		"date": "2023-07-31",
+//		"cost": "0.2309542206"
+//	}
+//
+// We use the old account_id field for the join information
 type AwsCostImport struct {
 	AwsCost
 	AccountID string `json:"account_id" db:"account_id"`

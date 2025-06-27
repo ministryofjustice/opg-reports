@@ -55,12 +55,13 @@ func (self *Service[T]) Close() (err error) {
 func (self *Service[T]) Download(bucket string, prefix string) (downloaded []string, err error) {
 	var log *slog.Logger = self.log.With("operation", "Download", "bucket", bucket, "prefix", prefix)
 
-	log.Debug("listing bucket")
+	log.Debug("listing bucket ...")
 	listing, err := self.store.ListBucket(bucket, prefix)
 	if err != nil {
 		return
 	}
-	log.Debug("downloading bucket bucket")
+	log.With("bucketCount", len(listing)).Debug("downloading bucket ...")
+
 	downloaded, err = self.store.Download(bucket, listing, self.GetDirectory())
 	if err != nil {
 		return
@@ -76,6 +77,8 @@ func (self *Service[T]) Download(bucket string, prefix string) (downloaded []str
 
 // DownloadAndReturnData downloads (via `.Download`) all files locally and then
 // reads `.json` files, coverting the data into a slice T
+//
+// Warning: for large number of files, this can be very memory intensive
 func (self *Service[T]) DownloadAndReturnData(bucket string, prefix string) (data []T, err error) {
 	var (
 		downloadedFiles []string     = []string{}
