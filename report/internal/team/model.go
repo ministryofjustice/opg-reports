@@ -49,3 +49,23 @@ func (self *hasManyAwsAccounts) Scan(src interface{}) (err error) {
 	}
 	return
 }
+
+// TeamImport captures the team name under its prior name of
+// `billing_unit`and hides the current Name property.
+//
+// Example account from the opg-metadata source file:
+//
+//	{
+//		"id": "500000067891",
+//		"name": "My production",
+//		"billing_unit": "Team A",
+//		"label": "prod",
+//		"environment": "production",
+//		"type": "aws",
+//		"uptime_tracking": true
+//	}
+//
+// We only want `billing_unit` field
+type TeamImport struct {
+	Name string `json:"billing_unit,omitempty" db:"name"`
+}

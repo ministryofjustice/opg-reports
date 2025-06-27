@@ -23,6 +23,33 @@ func FileExists(path string) bool {
 	return true
 }
 
+// DirExists checks if the path exists and is a directory
+func DirExists(path string) (exists bool) {
+	exists = false
+	info, err := os.Stat(path)
+
+	if err == nil && info.IsDir() {
+		exists = true
+	}
+	return
+}
+
+// FileList returns all files in a directory that have the matching extension.
+//
+// If `ext` is empty, then all files are returned
+func FileList(directory string, ext string) (files []string) {
+	files = []string{}
+	filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
+		if err == nil &&
+			!info.IsDir() &&
+			(ext == "" || filepath.Ext(info.Name()) == ext) {
+			files = append(files, path)
+		}
+		return nil
+	})
+	return
+}
+
 // FileCopy copies the content of the source io.Reader the new destionation file path
 //
 // If the destination path is a directory or a file that already exists, this will fail

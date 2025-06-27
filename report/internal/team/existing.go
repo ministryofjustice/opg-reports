@@ -3,8 +3,10 @@ package team
 import (
 	"context"
 	"log/slog"
+	"slices"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
+	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
 	"github.com/ministryofjustice/opg-reports/report/internal/opgmetadata"
 	"github.com/ministryofjustice/opg-reports/report/internal/sqldb"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
@@ -19,14 +21,21 @@ import (
 // The account.json is parsed and all unique billing_units are converted into team.Team
 // entries and inserted into the databse using the team.Service.Import method
 //
-// // interface: ImporterExistingCommand
-func Existing(ctx context.Context, log *slog.Logger, conf *config.Config, service *opgmetadata.Service) (err error) {
+// T = *Team
+//
+// interface: ImporterExistingCommand
+func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, service *opgmetadata.Service[T]) (err error) {
 	var (
-		raw     []map[string]interface{}
-		list    []*Team
-		store   *sqldb.Repository[*Team]
-		inserts []*sqldb.BoundStatement = []*sqldb.BoundStatement{}
-		sw                              = utils.Stopwatch()
+		data     []T
+		store    *sqldb.Repository[T]
+		inserts  []*sqldb.BoundStatement = []*sqldb.BoundStatement{}
+		names    []string                = []string{}
+		teams    []*TeamImport           = []*TeamImport{}
+		owner    string                  = conf.Github.Organisation
+		repo     string                  = conf.Github.Metadata.Repository
+		asset    string                  = conf.Github.Metadata.Asset
+		dataFile string                  = "accounts.json"
+		sw                               = utils.Stopwatch()
 	)
 	defer service.Close()
 	// timer
@@ -34,34 +43,35 @@ func Existing(ctx context.Context, log *slog.Logger, conf *config.Config, servic
 	log = log.With("operation", "Existing", "service", "team")
 	log.Info("[team] starting existing records import ...")
 
-	log.Debug("getting teams ...")
-	raw, err = service.GetAllTeams()
-	if err != nil {
+	data, err = service.DownloadAndReturn(owner, repo, asset, dataFile)
+	if err != nil || len(data) <= 0 {
 		return
 	}
-	// now we have raw team data, we need to create a team store and service
-	// convert the maps into structs and import to the database
-	log.Debug("covnerting to Team ...")
-	// convert raw to teams
-	list = []*Team{}
-	err = utils.Convert(raw, &list)
-
-	// sqldb
-	log.Debug("creating datastore ...")
-	store, err = sqldb.New[*Team](ctx, log, conf)
-	if err != nil {
+	log.Debug("converting to local format ...")
+	// convert data list
+	err = utils.Convert(data, &teams)
+	if err != nil || len(teams) <= 0 {
 		return
 	}
+	log.Debug("generating unique list of team names ...")
+	// now filter this down to unique billing_unit values
+	for _, item := range teams {
+		names = append(names, item.Name)
+	}
+	slices.Sort(names)
+	names = slices.Compact(names)
 
 	log.Debug("generating bound statements ...")
-	for _, row := range list {
-		inserts = append(inserts, &sqldb.BoundStatement{Statement: stmtImport, Data: row})
+	for _, nm := range names {
+		inserts = append(inserts, &sqldb.BoundStatement{Statement: stmtImport, Data: &TeamImport{Name: nm}})
 	}
-	log.Debug("running inserts ...")
+
+	log.Debug("running insert ...")
 	err = store.Insert(inserts...)
 	if err != nil {
 		return
 	}
+
 	log.With(
 		"seconds", sw.Stop().Seconds(),
 		"inserted", len(inserts)).

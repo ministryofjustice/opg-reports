@@ -12,12 +12,12 @@ import (
 func defaultSeeds() (seeds []*sqldb.BoundStatement) {
 
 	seeds = []*sqldb.BoundStatement{
-		{Statement: stmtImport, Data: &awsAccountImport{AwsAccount: AwsAccount{ID: "001A", Name: "Acc01A", Label: "A", Environment: "development"}, TeamName: "TeamA"}},
-		{Statement: stmtImport, Data: &awsAccountImport{AwsAccount: AwsAccount{ID: "001B", Name: "Acc01B", Label: "B", Environment: "production"}, TeamName: "TeamA"}},
-		{Statement: stmtImport, Data: &awsAccountImport{AwsAccount: AwsAccount{ID: "002A", Name: "Acc02A", Label: "A", Environment: "production"}, TeamName: "TeamB"}},
-		{Statement: stmtImport, Data: &awsAccountImport{AwsAccount: AwsAccount{ID: "003A", Name: "Acc03A", Label: "A", Environment: "development"}, TeamName: "TeamC"}},
-		{Statement: stmtImport, Data: &awsAccountImport{AwsAccount: AwsAccount{ID: "003B", Name: "Acc03B", Label: "B", Environment: "production"}, TeamName: "TeamC"}},
-		{Statement: stmtImport, Data: &awsAccountImport{AwsAccount: AwsAccount{ID: "004A", Name: "Acc04A", Label: "A", Environment: "production"}, TeamName: "TeamD"}},
+		{Statement: stmtImport, Data: &AwsAccountImport{AwsAccount: AwsAccount{ID: "001A", Name: "Acc01A", Label: "A", Environment: "development"}, TeamName: "TeamA"}},
+		{Statement: stmtImport, Data: &AwsAccountImport{AwsAccount: AwsAccount{ID: "001B", Name: "Acc01B", Label: "B", Environment: "production"}, TeamName: "TeamA"}},
+		{Statement: stmtImport, Data: &AwsAccountImport{AwsAccount: AwsAccount{ID: "002A", Name: "Acc02A", Label: "A", Environment: "production"}, TeamName: "TeamB"}},
+		{Statement: stmtImport, Data: &AwsAccountImport{AwsAccount: AwsAccount{ID: "003A", Name: "Acc03A", Label: "A", Environment: "development"}, TeamName: "TeamC"}},
+		{Statement: stmtImport, Data: &AwsAccountImport{AwsAccount: AwsAccount{ID: "003B", Name: "Acc03B", Label: "B", Environment: "production"}, TeamName: "TeamC"}},
+		{Statement: stmtImport, Data: &AwsAccountImport{AwsAccount: AwsAccount{ID: "004A", Name: "Acc04A", Label: "A", Environment: "production"}, TeamName: "TeamD"}},
 	}
 
 	return

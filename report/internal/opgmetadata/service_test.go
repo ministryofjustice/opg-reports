@@ -8,100 +8,65 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
-func TestOpgMetaDataServiceDownload(t *testing.T) {
+type testM struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
 
+func TestOpgMetaDataServiceDownloadAndExtract(t *testing.T) {
 	var (
-		err error
-		dir string = t.TempDir()
-		ctx        = t.Context()
-		cfg        = config.NewConfig()
-		lg         = utils.Logger("WARN", "TEXT")
+		err  error
+		dir  string = t.TempDir()
+		ctx         = t.Context()
+		conf        = config.NewConfig()
+		log         = utils.Logger("WARN", "TEXT")
 	)
-	if cfg.Github.Token == "" {
-		t.Skip("No GITHUB_TOKEN, skipping test")
-	}
 
-	cfg.Github.Organisation = "ministryofjustice"
-	gh, _ := gh.New(ctx, lg, cfg)
-	srv, _ := NewService(ctx, lg, cfg, gh)
+	ghs, _ := gh.New(ctx, log, conf)
+	srv, _ := NewService[*testM](ctx, log, conf, ghs)
 	defer srv.Close()
 
 	srv.SetDirectory(dir)
-	err = srv.Download()
+	local, err := srv.DownloadAndExtractAsset("ministryofjustice", "opg-github-actions", "release.tar.gz")
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
-	// run second time to check for redownload errors / overwrites
-	err = srv.Download()
-	if err != nil {
-		t.Errorf("unexpected error: %s", err.Error())
+	if !utils.DirExists(local) {
+		t.Errorf("asset was not extracted")
+		t.FailNow()
+	}
+
+	files := utils.FileList(local, "")
+	if len(files) <= 0 {
+		t.Errorf("no files were extracted")
 	}
 
 }
 
-func TestOpgMetaDataServiceGetAccounts(t *testing.T) {
-
+func TestOpgMetaDataServiceDownloadAndReturn(t *testing.T) {
 	var (
-		err error
-		dir string = t.TempDir()
-		ctx        = t.Context()
-		cfg        = config.NewConfig()
-		lg         = utils.Logger("WARN", "TEXT")
+		err  error
+		dir  string = t.TempDir()
+		ctx         = t.Context()
+		conf        = config.NewConfig()
+		log         = utils.Logger("WARN", "TEXT")
 	)
-	if cfg.Github.Token == "" {
+	if conf.Github.Token == "" {
 		t.Skip("No GITHUB_TOKEN, skipping test")
 	}
 
-	cfg.Github.Organisation = "ministryofjustice"
-	gh, _ := gh.New(ctx, lg, cfg)
-	srv, _ := NewService(ctx, lg, cfg, gh)
+	ghs, _ := gh.New(ctx, log, conf)
+	srv, _ := NewService[*testM](ctx, log, conf, ghs)
 	defer srv.Close()
 
 	srv.SetDirectory(dir)
+	data, err := srv.DownloadAndReturn("ministryofjustice", "opg-metadata", "metadata.tar.gz", "accounts.json")
 
-	accs, err := srv.GetAllAccounts()
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
-
-	if len(accs) <= 0 {
-		t.Errorf("error with number of accounts found")
-	}
-
-	// run again to check for re-download errors
-	_, err = srv.GetAllAccounts()
-	if err != nil {
-		t.Errorf("unexpected error: %s", err.Error())
-	}
-
-}
-
-func TestOpgMetaDataServiceGetTeams(t *testing.T) {
-
-	var (
-		err error
-		dir string = t.TempDir()
-		ctx        = t.Context()
-		cfg        = config.NewConfig()
-		lg         = utils.Logger("WARN", "TEXT")
-	)
-	if cfg.Github.Token == "" {
-		t.Skip("No GITHUB_TOKEN, skipping test")
-	}
-
-	cfg.Github.Organisation = "ministryofjustice"
-	gh, _ := gh.New(ctx, lg, cfg)
-	srv, _ := NewService(ctx, lg, cfg, gh)
-	srv.SetDirectory(dir)
-	defer srv.Close()
-
-	teams, err := srv.GetAllTeams()
-	if err != nil {
-		t.Errorf("unexpected error: %s", err.Error())
-	}
-
-	if len(teams) <= 0 {
-		t.Errorf("error with number of teams found")
+	if len(data) <= 0 {
+		t.Errorf("expected data to be found")
 	}
 
 }

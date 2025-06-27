@@ -46,14 +46,19 @@ var existingCmd = &cobra.Command{
 	Short: "existing imports all known existing data files.",
 	Long:  `existing imports all known data files (generally json) from a mix of sources (github, s3 buckets) that covers current and prior reporting data to ensure completeness`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		var metadataService = opgmetadata.Default(ctx, log, conf)
+		// services for injection
+		var (
+			teamsService      = opgmetadata.Default[*team.TeamImport](ctx, log, conf)
+			awsAccountService = opgmetadata.Default[*awsaccount.AwsAccountImport](ctx, log, conf)
+		)
+
 		// var s3Service = s3.Default[]()
 		// TEAMS
-		err = team.Existing(ctx, log, conf, metadataService)
+		err = team.Existing(ctx, log, conf, teamsService)
 		if err != nil {
 			return
 		}
-		err = awsaccount.Existing(ctx, log, conf, metadataService)
+		err = awsaccount.Existing(ctx, log, conf, awsAccountService)
 		if err != nil {
 			return
 		}

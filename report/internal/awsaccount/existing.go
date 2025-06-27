@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
+	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
 	"github.com/ministryofjustice/opg-reports/report/internal/opgmetadata"
 	"github.com/ministryofjustice/opg-reports/report/internal/sqldb"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
@@ -28,14 +29,19 @@ import (
 //		"uptime_tracking": true
 //	}]
 //
+// T =  *AwsAccountImport
+//
 // interface: ImporterExistingCommand
-func Existing(ctx context.Context, log *slog.Logger, conf *config.Config, service *opgmetadata.Service) (err error) {
+func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, service *opgmetadata.Service[T]) (err error) {
 	var (
-		rawAccounts []map[string]interface{}
-		list        []*awsAccountImport
-		store       *sqldb.Repository[*awsAccountImport]
-		inserts     []*sqldb.BoundStatement = []*sqldb.BoundStatement{}
-		sw                                  = utils.Stopwatch()
+		data     []T
+		store    *sqldb.Repository[T]
+		inserts  []*sqldb.BoundStatement = []*sqldb.BoundStatement{}
+		owner    string                  = conf.Github.Organisation
+		repo     string                  = conf.Github.Metadata.Repository
+		asset    string                  = conf.Github.Metadata.Asset
+		dataFile string                  = "accounts.aws.json"
+		sw                               = utils.Stopwatch()
 	)
 	defer service.Close()
 	// timer
@@ -44,30 +50,10 @@ func Existing(ctx context.Context, log *slog.Logger, conf *config.Config, servic
 	log = log.With("operation", "Existing", "service", "awsaccount")
 	log.Info("[awsaccount] starting existing records import ...")
 
-	// get just the aws accounts
-	log.Debug("getting accounts ...")
-	rawAccounts, err = service.GetAllAwsAccounts()
-	if err != nil {
-		return
-	}
-	// convert to db model
-	log.Debug("converting to model ...")
-	list = []*awsAccountImport{}
-	err = utils.Convert(rawAccounts, &list)
-	if err != nil {
-		return
-	}
-	// sqldb setup
-	log.Debug("creating datastore ...")
-	store, err = sqldb.New[*awsAccountImport](ctx, log, conf)
-	if err != nil {
-		return
-	}
+	data, err = service.DownloadAndReturn(owner, repo, asset, dataFile)
+
 	log.Debug("generating bound statements ...")
-	for _, row := range list {
-		if row.Environment == "" {
-			row.Environment = "production"
-		}
+	for _, row := range data {
 		inserts = append(inserts, &sqldb.BoundStatement{Statement: stmtImport, Data: row})
 	}
 

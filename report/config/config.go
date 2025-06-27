@@ -33,8 +33,14 @@ func (self *Database) Source() (src string) {
 	return
 }
 
+type metadata struct {
+	Repository string // env: GITHUB_METADATA_REPOSITORY
+	Asset      string // env: GITHUB_METADATA_ASSET
+}
+
 // Github provides connection details to access github org
 type Github struct {
+	Metadata     *metadata
 	Organisation string // env: GITHUB_ORGANISATION
 	Token        string // env: GITHUB_TOKEN
 }
@@ -116,6 +122,10 @@ var defaultConfig = &Config{
 	Github: &Github{
 		Organisation: "ministryofjustice",
 		Token:        "",
+		Metadata: &metadata{
+			Repository: "opg-metadata",
+			Asset:      "metadata.tar.gz",
+		},
 	},
 	Aws: &Aws{
 		Region:  "",

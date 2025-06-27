@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS aws_accounts (
 	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
 	name TEXT NOT NULL,
 	label TEXT NOT NULL,
-	environment TEXT DEFAULT "production" NOT NULL,
+	environment TEXT NOT NULL DEFAULT "production",
 	team_id INTEGER
 ) WITHOUT ROWID;
 

@@ -138,7 +138,10 @@ func TarGzExtract(extractTo string, source io.Reader) (err error) {
 			// create parent directory as well in case we get to a
 			// file before a folder
 			parent := filepath.Dir(header.Name)
-			os.MkdirAll(parent, os.ModePerm)
+			err = os.MkdirAll(parent, os.ModePerm)
+			if err != nil {
+				return
+			}
 
 			// create file
 			outFile, err = os.Create(header.Name)

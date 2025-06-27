@@ -6,6 +6,10 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
+// AwsAccount is db model representing the fields we use
+// directly.
+//
+// Imports use AwsAccountImport and API returns awsaccounts.AwsAccount
 type AwsAccount struct {
 	ID          string `json:"id,omitempty" db:"id" example:"012345678910"` // This is the AWS Account ID as a string
 	Name        string `json:"name,omitempty" db:"name" example:"Public API"`
@@ -39,10 +43,22 @@ func (self *hasOneTeam) Scan(src interface{}) (err error) {
 	return
 }
 
-// awsAccountImport captures an extra field from the metadata which
+// AwsAccountImport captures an extra field from the metadata which
 // is used in the stmtInsert to create the initial join to team based
 // on the billing_unit name
-type awsAccountImport struct {
+//
+// Example account from the opg-metadata source file:
+//
+//	{
+//		"id": "500000067891",
+//		"name": "My production",
+//		"billing_unit": "Team A",
+//		"label": "prod",
+//		"environment": "production",
+//		"type": "aws",
+//		"uptime_tracking": true
+//	}
+type AwsAccountImport struct {
 	AwsAccount
 	TeamName string `json:"billing_unit,omitempty" db:"team_name"`
 }
