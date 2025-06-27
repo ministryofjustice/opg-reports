@@ -7,7 +7,6 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
-	"github.com/ministryofjustice/opg-reports/report/internal/opgmetadata"
 	"github.com/ministryofjustice/opg-reports/report/internal/sqldb"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
@@ -24,7 +23,7 @@ import (
 // T = *Team
 //
 // interface: ImporterExistingCommand
-func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, service *opgmetadata.Service[T]) (err error) {
+func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, service interfaces.MetadataService[T]) (err error) {
 	var (
 		data     []T
 		store    *sqldb.Repository[*TeamImport]
