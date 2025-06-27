@@ -133,6 +133,8 @@ func (self *Repository[T]) Insert(boundStatements ...*BoundStatement) (err error
 		log.Error("transaction commit failed", "error", err.Error())
 		transaction.Rollback()
 	}
+	// now check all the bound statements executed
+	err = checkSuccess(boundStatements...)
 
 	return
 }
@@ -182,6 +184,16 @@ func (self *Repository[T]) Select(boundStatement *BoundStatement) (err error) {
 	err = transaction.Commit()
 
 	return
+}
+
+func checkSuccess(boundStatements ...*BoundStatement) (err error) {
+	// check if everything was inserted
+	for _, stmt := range boundStatements {
+		if stmt.Returned == nil {
+			return fmt.Errorf("some statments failed to complete")
+		}
+	}
+	return nil
 }
 
 // New creates a new repo

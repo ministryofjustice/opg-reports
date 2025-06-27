@@ -48,7 +48,6 @@ func TestS3Service(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
-	utils.Debug(res)
 
 	if len(res) <= 0 {
 		t.Errorf("failed to convert data")

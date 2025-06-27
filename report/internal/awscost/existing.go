@@ -6,7 +6,7 @@ import (
 	"log/slog"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/s3"
+	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
 	"github.com/ministryofjustice/opg-reports/report/internal/sqldb"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
@@ -45,7 +45,7 @@ import (
 //	}]
 //
 // interface: ImporterExistingCommand
-func Existing(ctx context.Context, log *slog.Logger, conf *config.Config, service *s3.Service[*AwsCostImport]) (err error) {
+func Existing(ctx context.Context, log *slog.Logger, conf *config.Config, service interfaces.S3Service[*AwsCostImport]) (err error) {
 	var (
 		store         *sqldb.Repository[*AwsCostImport]
 		bucket        string   = conf.Aws.Buckets.Costs.Name
@@ -81,7 +81,10 @@ func Existing(ctx context.Context, log *slog.Logger, conf *config.Config, servic
 			costs   []*AwsCostImport        = []*AwsCostImport{}
 			inserts []*sqldb.BoundStatement = []*sqldb.BoundStatement{}
 		)
-		utils.StructFromJsonFile(file, &costs)
+		e := utils.StructFromJsonFile(file, &costs)
+		if e != nil {
+			return e
+		}
 		// for each file we need to generate the bounded sql statements
 		for _, row := range costs {
 			inserts = append(inserts, &sqldb.BoundStatement{Data: row, Statement: stmtImport})

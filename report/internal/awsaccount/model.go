@@ -24,11 +24,11 @@ type AwsAccount struct {
 }
 
 // team is internal and used for handling the account->team join
-type team struct {
+type accountTeam struct {
 	Name string `json:"name,omitempty" db:"name" example:"SRE"`
 }
 
-type hasOneTeam team
+type hasOneTeam accountTeam
 
 // Scan handles the processing of the join data
 func (self *hasOneTeam) Scan(src interface{}) (err error) {

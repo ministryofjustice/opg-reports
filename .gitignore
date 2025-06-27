@@ -3,6 +3,7 @@
 *.tar.gz
 # Ignore data folders
 **/__data/*
+**/__download_*/*
 **/__downloads/*
 **/__download-*/*
 **/__database/*

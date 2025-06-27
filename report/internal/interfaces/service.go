@@ -14,3 +14,10 @@ type MetadataService[T Model] interface {
 
 	DownloadAndReturn(owner string, repository string, assetName string, filename string) (data []T, err error)
 }
+
+type S3Service[T Model] interface {
+	Service
+
+	Download(bucket string, prefix string) (downloaded []string, err error)
+	DownloadAndReturnData(bucket string, prefix string) (data []T, err error)
+}
