@@ -190,3 +190,20 @@ func NewService(ctx context.Context, log *slog.Logger, conf *config.Config, stor
 	}
 	return
 }
+
+// Default generates the default gh repository and then the service
+func Default(ctx context.Context, log *slog.Logger, conf *config.Config) (srv *Service) {
+
+	store, err := gh.New(ctx, log, conf)
+	if err != nil {
+		log.Error("error creating github repository for opgmetadata service", "error", err.Error())
+		return nil
+	}
+	srv, err = NewService(ctx, log, conf, store)
+	if err != nil {
+		log.Error("error creating opgmetadata service", "error", err.Error())
+		return nil
+	}
+
+	return
+}

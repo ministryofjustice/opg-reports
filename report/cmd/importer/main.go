@@ -12,6 +12,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/awsaccount"
 	"github.com/ministryofjustice/opg-reports/report/internal/awscost"
+	"github.com/ministryofjustice/opg-reports/report/internal/opgmetadata"
 	"github.com/ministryofjustice/opg-reports/report/internal/sqldb"
 	"github.com/ministryofjustice/opg-reports/report/internal/team"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
@@ -45,12 +46,18 @@ var existingCmd = &cobra.Command{
 	Short: "existing imports all known existing data files.",
 	Long:  `existing imports all known data files (generally json) from a mix of sources (github, s3 buckets) that covers current and prior reporting data to ensure completeness`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-
-		err = existingData(ctx, log, conf,
-			team.Existing,
-			awsaccount.Existing,
-			awscost.Existing,
-		)
+		var metadataService = opgmetadata.Default(ctx, log, conf)
+		// var s3Service = s3.Default[]()
+		// TEAMS
+		err = team.Existing(ctx, log, conf, metadataService)
+		if err != nil {
+			return
+		}
+		err = awsaccount.Existing(ctx, log, conf, metadataService)
+		if err != nil {
+			return
+		}
+		// err = awscost.Existing(ctx, log, conf)
 
 		return
 	},
