@@ -15,9 +15,15 @@ import (
 // Existing generates new enteries for aws_cost by downloading and importing json cost
 // data from a location in an s3 bucket.
 //
+// We've been clollecting cost data for several years into these buckets, so this allows
+// the information to be pulled and updated to be used in this version of reporting tools
+//
 // Using the `conf.Aws.Bucket` settings, calls s3 api to list all files within the bucket that
 // match the prefix (typically a subfolder pattern). Then downloads each of those files
 // to local storage (to a temp folder).
+//
+// S3 files are downloaded locally to a temp folder underneath the `conf.Aws.Bucket.Local` path
+// which is removed on exit via a defer.
 //
 // Once downloaded, the each file is converted to a struct (`[]*awsCostImport`) and merged
 // with a sql statement (`stmtImport`) for insertion.
@@ -68,6 +74,9 @@ func Existing(ctx context.Context, log *slog.Logger, conf *config.Config) (err e
 	// setup a temp directory
 	os.MkdirAll(conf.Aws.Buckets.Local, os.ModePerm)
 	localDir, _ = os.MkdirTemp(conf.Aws.Buckets.Local, "aws_costs-*")
+	// clean up tmp directory, but we leave the parent
+	defer os.RemoveAll(localDir)
+
 	// add info to the logger
 	log = log.With("operation", "Existing", "service", "awscost", "dir", localDir)
 	log.Info("[awscost] starting existing records import ...")
@@ -116,9 +125,6 @@ func Existing(ctx context.Context, log *slog.Logger, conf *config.Config) (err e
 	if err != nil {
 		return
 	}
-
-	// clean up tmp directory, but we leave the parent
-	os.RemoveAll(localDir)
 
 	log.With(
 		"seconds", sw.Stop().Seconds(),
