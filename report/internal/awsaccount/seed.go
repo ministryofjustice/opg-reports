@@ -3,7 +3,6 @@ package awsaccount
 import (
 	"context"
 	"log/slog"
-	"time"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/sqldb"
@@ -11,12 +10,11 @@ import (
 
 // defaultSeeds provides a series of known accounts to be inserted into the database
 func defaultSeeds() (seeds []*sqldb.BoundStatement) {
-	var now = time.Now().UTC().Format(time.RFC3339)
 
 	seeds = []*sqldb.BoundStatement{
-		{Statement: stmtImport, Data: &awsAccountImport{AwsAccount: AwsAccount{ID: "001A", Name: "Acc01A", Label: "A", Environment: "development", CreatedAt: now}, TeamName: "TeamA"}},
-		{Statement: stmtImport, Data: &awsAccountImport{AwsAccount: AwsAccount{ID: "001B", Name: "Acc01B", Label: "B", Environment: "production", CreatedAt: now}, TeamName: "TeamA"}},
-		{Statement: stmtImport, Data: &awsAccountImport{AwsAccount: AwsAccount{ID: "002A", Name: "Acc02A", Label: "A", Environment: "production", CreatedAt: now}, TeamName: "TeamB"}},
+		{Statement: stmtImport, Data: &awsAccountImport{AwsAccount: AwsAccount{ID: "001A", Name: "Acc01A", Label: "A", Environment: "development"}, TeamName: "TeamA"}},
+		{Statement: stmtImport, Data: &awsAccountImport{AwsAccount: AwsAccount{ID: "001B", Name: "Acc01B", Label: "B", Environment: "production"}, TeamName: "TeamA"}},
+		{Statement: stmtImport, Data: &awsAccountImport{AwsAccount: AwsAccount{ID: "002A", Name: "Acc02A", Label: "A", Environment: "production"}, TeamName: "TeamB"}},
 	}
 
 	return

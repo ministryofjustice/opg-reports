@@ -22,9 +22,9 @@ type Config struct {
 
 // Database stores all the config values relating to the database connection
 type Database struct {
-	Driver string
-	Path   string
-	Params string
+	Driver string // env: DATABASE_DRIVER
+	Path   string // env: DATABASE_PATH
+	Params string // env: DATABASE_PARAMS
 }
 
 // Source returns the full connection string to use with the database drivers
@@ -35,21 +35,40 @@ func (self *Database) Source() (src string) {
 
 // Github provides connection details to access github org
 type Github struct {
-	Organisation string
-	Token        string
+	Organisation string // env: GITHUB_ORGANISATION
+	Token        string // env: GITHUB_TOKEN
 }
 
-type region struct {
-	Region string
+// AWS related internal structs used to allow AWS_DEFAULT_REGION env vars to be
+// handled directly via viper
+
+// region
+type def struct {
+	Region string // env: AWS_DEFAULT_REGION
 }
+
+// session
 type session struct {
-	Token string
+	Token string // env: AWS_SESSION_TOKEN
+}
+
+// bucketInfo
+type bucketInfo struct {
+	Name   string // env: AWS_BUCKETS_$X_NAME
+	Prefix string // env: AWS_BUCKETS_$X_PREFIX
+}
+
+// buckets
+type bucket struct {
+	Local string // env: AWS_BUCKETS_LOCAL
+	Costs bucketInfo
 }
 
 type Aws struct {
-	Region  string
-	Default region
+	Region  string // env: AWS_REGION
+	Default def
 	Session session
+	Buckets bucket
 }
 
 func (self *Aws) GetRegion() string {
@@ -66,8 +85,8 @@ func (self *Aws) GetToken() string {
 
 // Log handles the slog setup used for the application
 type Log struct {
-	Level string
-	Type  string
+	Level string // env: LOG_LEVEL
+	Type  string // env: LOG_TYPE
 }
 
 // Servers contains api & front end config
@@ -78,14 +97,14 @@ type Servers struct {
 
 // Server contains the address to use to contact the server
 type Server struct {
-	Name string
-	Addr string
+	Name string // env: $X_NAME
+	Addr string // env: $X_ADDR
 }
 
 // Versions contains version data about the build
 type Versions struct {
-	Semver string
-	Commit string
+	Semver string // env: VERSIONS_SEMVER
+	Commit string // env: VERSIONS_COMMIT
 }
 
 // setup a default config item that we use as a baseline
@@ -101,8 +120,12 @@ var defaultConfig = &Config{
 	},
 	Aws: &Aws{
 		Region:  "",
-		Default: region{Region: ""},
+		Default: def{Region: ""},
 		Session: session{Token: ""},
+		Buckets: bucket{
+			Local: "./s3bucket/",
+			Costs: bucketInfo{Name: "report-data-development", Prefix: "aws_costs/"},
+		},
 	},
 	Log: &Log{
 		Level: "INFO",

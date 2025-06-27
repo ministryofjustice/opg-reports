@@ -4,7 +4,7 @@ package sqldb
 const SCHEMA string = `
 CREATE TABLE IF NOT EXISTS teams (
 	id INTEGER PRIMARY KEY,
-	created_at TEXT,
+	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
 	name TEXT NOT NULL UNIQUE
 ) STRICT;
 
@@ -12,7 +12,7 @@ CREATE INDEX IF NOT EXISTS team_name_idx ON teams(name);
 
 CREATE TABLE IF NOT EXISTS aws_accounts (
 	id TEXT PRIMARY KEY,
-	created_at TEXT,
+	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
 	name TEXT NOT NULL,
 	label TEXT NOT NULL,
 	environment TEXT DEFAULT "production" NOT NULL,
@@ -23,7 +23,7 @@ CREATE INDEX IF NOT EXISTS aws_accounts_id_idx ON aws_accounts(id);
 
 CREATE TABLE IF NOT EXISTS aws_costs (
 	id INTEGER PRIMARY KEY,
-	created_at TEXT,
+	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
 	region TEXT DEFAULT "NoRegion" NOT NULL,
 	service TEXT NOT NULL,
 	date TEXT NOT NULL,
@@ -36,3 +36,5 @@ CREATE INDEX IF NOT EXISTS aws_costs_date_idx ON aws_costs(date);
 CREATE INDEX IF NOT EXISTS aws_costs_date_account_idx ON aws_costs(date, aws_account_id);
 CREATE INDEX IF NOT EXISTS aws_costs_unique_idx ON aws_costs(aws_account_id,date,region,service);
 `
+
+// 2006-01-02T15:04:05Z07:00

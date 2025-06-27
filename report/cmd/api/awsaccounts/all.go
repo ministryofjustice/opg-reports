@@ -15,8 +15,8 @@ func RegisterGetAwsAccountsAll(log *slog.Logger, conf *config.Config, api huma.A
 		OperationID:   "get-awsaccounts-all",
 		Method:        http.MethodGet,
 		Path:          "/v1/awsaccounts/all",
-		Summary:       "Return all AWS accounts",
-		Description:   "Returns a list of all AWS accounts known about.",
+		Summary:       "All AWS accounts",
+		Description:   "Returns a list of all AWS accounts stored.",
 		DefaultStatus: http.StatusOK,
 		Tags:          []string{"AWS Accounts"},
 	}

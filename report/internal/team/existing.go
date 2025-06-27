@@ -3,7 +3,6 @@ package team
 import (
 	"context"
 	"log/slog"
-	"time"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/gh"
@@ -21,19 +20,21 @@ import (
 // The account.json is parsed and all unique billing_units are converted into team.Team
 // entries and inserted into the databse using the team.Service.Import method
 //
-// // interface: ImporterImportCommand
-func Import(ctx context.Context, log *slog.Logger, conf *config.Config) (err error) {
+// // interface: ImporterExistingCommand
+func Existing(ctx context.Context, log *slog.Logger, conf *config.Config) (err error) {
 	var (
 		gr          *gh.Repository
 		metaService *opgmetadata.Service
 		raw         []map[string]interface{}
 		list        []*Team
 		store       *sqldb.Repository[*Team]
-		now         string                  = time.Now().UTC().Format(time.RFC3339)
 		inserts     []*sqldb.BoundStatement = []*sqldb.BoundStatement{}
+		sw                                  = utils.Stopwatch()
 	)
-	log = log.With("operation", "Import", "service", "team")
-	log.Info("running [team] imports ...")
+	// timer
+	sw.Start()
+	log = log.With("operation", "Existing", "service", "team")
+	log.Info("[team] starting existing records import ...")
 
 	// to import teams, we create an opgmetadata service and call the getTeams
 	// so fetch the gh repository first and then create the opgmeta data service
@@ -41,35 +42,45 @@ func Import(ctx context.Context, log *slog.Logger, conf *config.Config) (err err
 	if err != nil {
 		return
 	}
+	log.Debug("creating service ...")
 	metaService, err = opgmetadata.NewService(ctx, log, conf, gr)
 	if err != nil {
 		return
 	}
 	defer metaService.Close()
 
+	log.Debug("getting teams ...")
 	raw, err = metaService.GetAllTeams()
 	if err != nil {
 		return
 	}
 	// now we have raw team data, we need to create a team store and service
 	// convert the maps into structs and import to the database
-
+	log.Debug("covnerting to Team ...")
 	// convert raw to teams
 	list = []*Team{}
 	err = utils.Convert(raw, &list)
+
 	// sqldb
+	log.Debug("creating datastore ...")
 	store, err = sqldb.New[*Team](ctx, log, conf)
 	if err != nil {
 		return
 	}
-	log.Info("importing ...")
+
 	log.Debug("generating bound statements ...")
 	for _, row := range list {
-		row.CreatedAt = now
 		inserts = append(inserts, &sqldb.BoundStatement{Statement: stmtImport, Data: row})
 	}
-	log.Debug("running insert ...")
+	log.Debug("running inserts ...")
 	err = store.Insert(inserts...)
+	if err != nil {
+		return
+	}
+	log.With(
+		"seconds", sw.Stop().Seconds(),
+		"inserted", len(inserts)).
+		Info("[team] existing records imported.")
 
 	return
 }

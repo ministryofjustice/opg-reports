@@ -22,13 +22,11 @@ ORDER BY teams.name ASC`
 
 const stmtImport string = `
 INSERT INTO teams (
-	name,
-	created_at
+	name
 ) VALUES (
-	:name,
-	:created_at
+	:name
 ) ON CONFLICT (name)
  	DO UPDATE SET name=excluded.name
 RETURNING id;`
 
-const stmtInsert string = stmtImport
+// const stmtInsert string = stmtImport

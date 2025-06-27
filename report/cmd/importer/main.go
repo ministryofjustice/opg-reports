@@ -30,7 +30,7 @@ var (
 )
 
 type seedFunc func(ctx context.Context, log *slog.Logger, conf *config.Config, seeds []*sqldb.BoundStatement) (inserted []*sqldb.BoundStatement, err error)
-type importFunc func(ctx context.Context, log *slog.Logger, conf *config.Config) (err error)
+type existingFunc func(ctx context.Context, log *slog.Logger, conf *config.Config) (err error)
 
 // root command
 var rootCmd = &cobra.Command{
@@ -46,9 +46,11 @@ var existingCmd = &cobra.Command{
 	Long:  `existing imports all known data files (generally json) from a mix of sources (github, s3 buckets) that covers current and prior reporting data to ensure completeness`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 
-		err = realData(ctx, log, conf,
-			team.Import,
-			awsaccount.Import)
+		err = existingData(ctx, log, conf,
+			team.Existing,
+			awsaccount.Existing,
+			awscost.Existing,
+		)
 
 		return
 	},
@@ -63,7 +65,8 @@ var fixturesCmd = &cobra.Command{
 		err = seedData(ctx, log, conf,
 			team.Seed,
 			awsaccount.Seed,
-			awscost.Seed)
+			awscost.Seed,
+		)
 		return
 	},
 }
@@ -71,7 +74,6 @@ var fixturesCmd = &cobra.Command{
 // seedData runs seed calls
 func seedData(ctx context.Context, log *slog.Logger, conf *config.Config, seeds ...seedFunc) (err error) {
 
-	log.Info("using seed data ...")
 	for _, lambda := range seeds {
 		_, err = lambda(ctx, log, conf, nil)
 		if err != nil {
@@ -83,10 +85,9 @@ func seedData(ctx context.Context, log *slog.Logger, conf *config.Config, seeds 
 }
 
 // Run the importers that will use real data
-func realData(ctx context.Context, log *slog.Logger, conf *config.Config, imports ...importFunc) (err error) {
+func existingData(ctx context.Context, log *slog.Logger, conf *config.Config, existing ...existingFunc) (err error) {
 
-	log.Info("using real data ...")
-	for _, lambda := range imports {
+	for _, lambda := range existing {
 		err = lambda(ctx, log, conf)
 		if err != nil {
 			return

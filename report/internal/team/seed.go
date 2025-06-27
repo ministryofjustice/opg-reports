@@ -3,7 +3,6 @@ package team
 import (
 	"context"
 	"log/slog"
-	"time"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/sqldb"
@@ -11,12 +10,11 @@ import (
 
 // defaultSeeds provides a series of known accounts to be inserted into the database
 func defaultSeeds() (seeds []*sqldb.BoundStatement) {
-	var now = time.Now().UTC().Format(time.RFC3339)
 
 	seeds = []*sqldb.BoundStatement{
-		{Statement: stmtImport, Data: &Team{Name: "TeamA", CreatedAt: now}},
-		{Statement: stmtImport, Data: &Team{Name: "TeamB", CreatedAt: now}},
-		{Statement: stmtImport, Data: &Team{Name: "TeamC", CreatedAt: now}},
+		{Statement: stmtImport, Data: &Team{Name: "TeamA"}},
+		{Statement: stmtImport, Data: &Team{Name: "TeamB"}},
+		{Statement: stmtImport, Data: &Team{Name: "TeamC"}},
 	}
 
 	return

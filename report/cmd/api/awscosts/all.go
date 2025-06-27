@@ -15,8 +15,8 @@ func RegisterGetAwsCostsTop20(log *slog.Logger, conf *config.Config, api huma.AP
 		OperationID:   "get-awscosts-top20",
 		Method:        http.MethodGet,
 		Path:          "/v1/awscosts/top20",
-		Summary:       "Return top 20 most expensice costs",
-		Description:   "Returns a list of most expensive costs",
+		Summary:       "Top 20 most expensive AWS costs",
+		Description:   "Returns a list of most expensive AWS costs stored in the database (excluding tax)",
 		DefaultStatus: http.StatusOK,
 		Tags:          []string{"AWS Costs"},
 	}

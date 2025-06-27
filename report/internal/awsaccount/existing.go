@@ -3,7 +3,6 @@ package awsaccount
 import (
 	"context"
 	"log/slog"
-	"time"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/gh"
@@ -12,25 +11,40 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
-// Import generates new aws account data from the accounts.json information within the
+// Existing generates new aws account data from the accounts.json information within the
 // opg-metadata published data. The accounts.aws.json is parsed and converted to db entries
 //
 // That is a private repository so you need permissions to read and fetch data to be
 // able to download the release asset.
 //
-// interface: ImporterImportCommand
-func Import(ctx context.Context, log *slog.Logger, conf *config.Config) (err error) {
+// Example account from the opg-metadata source file:
+//
+//	[{
+//		"id": "500000067891",
+//		"name": "My production",
+//		"billing_unit": "Team A",
+//		"label": "prod",
+//		"environment": "production",
+//		"type": "aws",
+//		"uptime_tracking": true
+//	}]
+//
+// interface: ImporterExistingCommand
+func Existing(ctx context.Context, log *slog.Logger, conf *config.Config) (err error) {
 	var (
 		gr          *gh.Repository
 		metaService *opgmetadata.Service
 		rawAccounts []map[string]interface{}
 		list        []*awsAccountImport
-		store       *sqldb.Repository[*AwsAccount]
-		now         string                  = time.Now().UTC().Format(time.RFC3339)
+		store       *sqldb.Repository[*awsAccountImport]
 		inserts     []*sqldb.BoundStatement = []*sqldb.BoundStatement{}
+		sw                                  = utils.Stopwatch()
 	)
-	log = log.With("operation", "Import", "service", "awsaccount")
-	log.Info("running [awsaccounts] imports ...")
+	// timer
+	sw.Start()
+
+	log = log.With("operation", "Existing", "service", "awsaccount")
+	log.Info("[awsaccount] starting existing records import ...")
 
 	// fetch the gh repository first and then create the opgmeta data service
 	gr, err = gh.New(ctx, log, conf)
@@ -38,6 +52,7 @@ func Import(ctx context.Context, log *slog.Logger, conf *config.Config) (err err
 		return
 	}
 	// get the service
+	log.Debug("creating service ...")
 	metaService, err = opgmetadata.NewService(ctx, log, conf, gr)
 	if err != nil {
 		return
@@ -45,32 +60,42 @@ func Import(ctx context.Context, log *slog.Logger, conf *config.Config) (err err
 	defer metaService.Close()
 
 	// get just the aws accounts
+	log.Debug("getting accounts ...")
 	rawAccounts, err = metaService.GetAllAwsAccounts()
 	if err != nil {
 		return
 	}
 	// convert to db model
+	log.Debug("converting to model ...")
 	list = []*awsAccountImport{}
 	err = utils.Convert(rawAccounts, &list)
 	if err != nil {
 		return
 	}
 	// sqldb setup
-	store, err = sqldb.New[*AwsAccount](ctx, log, conf)
+	log.Debug("creating datastore ...")
+	store, err = sqldb.New[*awsAccountImport](ctx, log, conf)
 	if err != nil {
 		return
 	}
-	log.Info("importing ...")
 	log.Debug("generating bound statements ...")
 	for _, row := range list {
 		if row.Environment == "" {
 			row.Environment = "production"
 		}
-		row.CreatedAt = now
 		inserts = append(inserts, &sqldb.BoundStatement{Statement: stmtImport, Data: row})
 	}
+
 	log.Debug("running insert ...")
 	err = store.Insert(inserts...)
+	if err != nil {
+		return
+	}
+
+	log.With(
+		"seconds", sw.Stop().Seconds(),
+		"inserted", len(inserts)).
+		Info("[awsaccount] existing records imported.")
 
 	return
 }

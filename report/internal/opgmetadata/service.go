@@ -67,7 +67,7 @@ func (self *Service) Download() (err error) {
 		return
 	}
 	// get the latest relase and the asset details that match the name
-	log.Info("Downloading the latest release asset ...")
+	log.Debug("Downloading the latest release asset ...")
 	asset, err = gh.GetLatestReleaseAsset(org, dataRepo, assetName, false)
 	if err != nil {
 		return
@@ -88,38 +88,57 @@ func (self *Service) Download() (err error) {
 	return
 }
 
-func (self *Service) accountsFromFile(file string) (accounts []map[string]interface{}, err error) {
+// fromFile is internal helper to fetch from any json file
+func (self *Service) fromFile(file string) (data []map[string]interface{}, err error) {
 	var (
-		dir         string = self.GetDirectory()
-		accountFile string = filepath.Join(dir, dataRepo, file)
+		dir      string = self.GetDirectory()
+		filename string = filepath.Join(dir, dataRepo, file)
 	)
-	accounts = []map[string]interface{}{}
+	data = []map[string]interface{}{}
 	// download the repo artifact
 	err = self.Download()
 	if err != nil {
 		return
 	}
 
-	// check the account file exists
-	if !utils.FileExists(accountFile) {
-		err = fmt.Errorf("account data file not found [%s]", accountFile)
-		return
-	}
-	// unmarshal the account data
-	err = utils.UnmarshalFile(accountFile, &accounts)
+	err = utils.StructFromJsonFile(filename, &data)
 
 	return
 }
 
 // GetAllAccounts returns all accounts from the meta data set which can then be used for import
 // into the accounts table
+//
+// Example account from the opg-metadata source file:
+//
+//	[{
+//		"id": "500000067891",
+//		"name": "My production",
+//		"billing_unit": "Team A",
+//		"label": "prod",
+//		"environment": "production",
+//		"type": "aws",
+//		"uptime_tracking": true
+//	}]
 func (self *Service) GetAllAccounts() (accounts []map[string]interface{}, err error) {
-	return self.accountsFromFile("accounts.json")
+	return self.fromFile("accounts.json")
 }
 
 // GetAllAwsAccounts returns just AWS accounts from the metadata set which can then be used
+//
+// Example account from the opg-metadata source file:
+//
+//	[{
+//		"id": "500000067891",
+//		"name": "My production",
+//		"billing_unit": "Team A",
+//		"label": "prod",
+//		"environment": "production",
+//		"type": "aws",
+//		"uptime_tracking": true
+//	}]
 func (self *Service) GetAllAwsAccounts() (accounts []map[string]interface{}, err error) {
-	return self.accountsFromFile("accounts.aws.json")
+	return self.fromFile("accounts.aws.json")
 }
 
 // GetAllTeams uses the list of all accounts to return the billing_unit names which

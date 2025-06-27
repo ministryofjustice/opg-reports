@@ -25,14 +25,12 @@ INSERT INTO aws_accounts (
 	name,
 	label,
 	environment,
-	created_at,
 	team_id
 ) SELECT
 	:id,
 	:name,
 	:label,
 	:environment,
-	:created_at,
 	id
 FROM teams WHERE name=:team_name LIMIT 1
 ON CONFLICT (id)
