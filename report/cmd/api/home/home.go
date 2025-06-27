@@ -15,7 +15,7 @@ type HomepageResponse struct {
 	}
 }
 
-func RegisterGetHomepage(log *slog.Logger, conf *config.Config, api huma.API) {
+func RegisterGetHomepage(log *slog.Logger, conf *config.Config, api huma.API, service interface{}) {
 	var operation = huma.Operation{
 		OperationID:   "get-home",
 		Method:        http.MethodGet,

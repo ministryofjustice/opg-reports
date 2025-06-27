@@ -11,7 +11,7 @@ import (
 )
 
 // RegisterAllTeams registers the `get-teams-all`
-func RegisterGetTeamsAll(log *slog.Logger, conf *config.Config, api huma.API) {
+func RegisterGetTeamsAll(log *slog.Logger, conf *config.Config, api huma.API, service *team.Service[*Team]) {
 	var operation = huma.Operation{
 		OperationID:   "get-teams-all",
 		Method:        http.MethodGet,
@@ -22,20 +22,18 @@ func RegisterGetTeamsAll(log *slog.Logger, conf *config.Config, api huma.API) {
 		Tags:          []string{"Teams"},
 	}
 	huma.Register(api, operation, func(ctx context.Context, input *struct{}) (*GetTeamsAllResponse, error) {
-		return handleGetTeamsAll(ctx, log, conf, input)
+		return handleGetTeamsAll(ctx, log, conf, service, input)
 	})
 }
 
 // handleAllTeams deals with each request and fetches
-func handleGetTeamsAll(ctx context.Context, log *slog.Logger, conf *config.Config, input *struct{}) (response *GetTeamsAllResponse, err error) {
+func handleGetTeamsAll(ctx context.Context, log *slog.Logger, conf *config.Config, service *team.Service[*Team], input *struct{}) (response *GetTeamsAllResponse, err error) {
 	var (
-		service *team.Service[*Team]
-		teams   []*Team
+		teams []*Team
 	)
 	response = &GetTeamsAllResponse{}
 
-	service, err = Service[*Team](ctx, log, conf)
-	if err != nil {
+	if service == nil {
 		err = huma.Error500InternalServerError("failed to connect to service", err)
 		return
 	}

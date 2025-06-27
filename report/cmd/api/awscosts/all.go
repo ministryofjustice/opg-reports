@@ -10,7 +10,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/internal/awscost"
 )
 
-func RegisterGetAwsCostsTop20(log *slog.Logger, conf *config.Config, api huma.API) {
+func RegisterGetAwsCostsTop20(log *slog.Logger, conf *config.Config, api huma.API, service *awscost.Service[*AwsCost]) {
 	var operation = huma.Operation{
 		OperationID:   "get-awscosts-top20",
 		Method:        http.MethodGet,
@@ -21,20 +21,16 @@ func RegisterGetAwsCostsTop20(log *slog.Logger, conf *config.Config, api huma.AP
 		Tags:          []string{"AWS Costs"},
 	}
 	huma.Register(api, operation, func(ctx context.Context, input *struct{}) (*GetAwsCostsTop20Response, error) {
-		return handleGetAwsCostsTop20(ctx, log, conf, input)
+		return handleGetAwsCostsTop20(ctx, log, conf, service, input)
 	})
 }
 
 // handleGetAwsCostsTop20
-func handleGetAwsCostsTop20(ctx context.Context, log *slog.Logger, conf *config.Config, input *struct{}) (response *GetAwsCostsTop20Response, err error) {
-	var (
-		service *awscost.Service[*AwsCost]
-		costs   []*AwsCost
-	)
+func handleGetAwsCostsTop20(ctx context.Context, log *slog.Logger, conf *config.Config, service *awscost.Service[*AwsCost], input *struct{}) (response *GetAwsCostsTop20Response, err error) {
+	var costs []*AwsCost
 	response = &GetAwsCostsTop20Response{}
 
-	service, err = Service[*AwsCost](ctx, log, conf)
-	if err != nil {
+	if service == nil {
 		err = huma.Error500InternalServerError("failed to connect to service", err)
 		return
 	}

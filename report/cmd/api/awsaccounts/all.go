@@ -10,7 +10,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/internal/awsaccount"
 )
 
-func RegisterGetAwsAccountsAll(log *slog.Logger, conf *config.Config, api huma.API) {
+func RegisterGetAwsAccountsAll(log *slog.Logger, conf *config.Config, api huma.API, service *awsaccount.Service[*AwsAccount]) {
 	var operation = huma.Operation{
 		OperationID:   "get-awsaccounts-all",
 		Method:        http.MethodGet,
@@ -21,20 +21,16 @@ func RegisterGetAwsAccountsAll(log *slog.Logger, conf *config.Config, api huma.A
 		Tags:          []string{"AWS Accounts"},
 	}
 	huma.Register(api, operation, func(ctx context.Context, input *struct{}) (*GetAwsAccountsAllResponse, error) {
-		return handleGetAwsAccountsAll(ctx, log, conf, input)
+		return handleGetAwsAccountsAll(ctx, log, conf, service, input)
 	})
 }
 
 // handleGetAwsAccountsAll deals with each request and fetches
-func handleGetAwsAccountsAll(ctx context.Context, log *slog.Logger, conf *config.Config, input *struct{}) (response *GetAwsAccountsAllResponse, err error) {
-	var (
-		service  *awsaccount.Service[*AwsAccount]
-		accounts []*AwsAccount
-	)
+func handleGetAwsAccountsAll(ctx context.Context, log *slog.Logger, conf *config.Config, service *awsaccount.Service[*AwsAccount], input *struct{}) (response *GetAwsAccountsAllResponse, err error) {
+	var accounts []*AwsAccount
 	response = &GetAwsAccountsAllResponse{}
 
-	service, err = Service[*AwsAccount](ctx, log, conf)
-	if err != nil {
+	if service == nil {
 		err = huma.Error500InternalServerError("failed to connect to service", err)
 		return
 	}

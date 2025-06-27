@@ -19,18 +19,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type register func(log *slog.Logger, conf *config.Config, api huma.API)
-
-var EndPoints = map[string]register{
-	"home": home.RegisterGetHomepage,
-	// TEAMS
-	"get-teams-all": teams.RegisterGetTeamsAll,
-	// AWS ACCOUNTS
-	"get-awsaccounts-all": awsaccounts.RegisterGetAwsAccountsAll,
-	// AWS COSTS
-	"get-awscosts-top20": awscosts.RegisterGetAwsCostsTop20,
-}
-
 // root command
 var rootCmd = &cobra.Command{
 	Use:   "api",
@@ -48,12 +36,19 @@ var rootCmd = &cobra.Command{
 // Get the configuration data and the viper config for mapping to cli args
 var conf, viperConf = config.New()
 
-// RegisterHandlers attaches all the known functions to the api by calling the registeration function which does everything else
-func RegisterHandlers(ctx context.Context, log *slog.Logger, conf *config.Config, api huma.API, enpoints map[string]register) {
+// RegisterHandlers attaches all the known functions to the api.
+//
+// To allow for service injection, each is called directly, so need to be manually added
+func RegisterHandlers(ctx context.Context, log *slog.Logger, conf *config.Config, api huma.API) {
+	// HOME
+	home.RegisterGetHomepage(log, conf, api, nil)
+	// TEAMS
+	teams.RegisterGetTeamsAll(log, conf, api, teams.Service[*teams.Team](ctx, log, conf))
+	// AWS ACCOUNTS
+	awsaccounts.RegisterGetAwsAccountsAll(log, conf, api, awsaccounts.Service[*awsaccounts.AwsAccount](ctx, log, conf))
+	// AWS COSTS
+	awscosts.RegisterGetAwsCostsTop20(log, conf, api, awscosts.Service[*awscosts.AwsCost](ctx, log, conf))
 
-	for _, registerFunc := range enpoints {
-		registerFunc(log, conf, api)
-	}
 }
 
 func runner(ctx context.Context, log *slog.Logger, conf *config.Config) {
@@ -77,7 +72,7 @@ func runner(ctx context.Context, log *slog.Logger, conf *config.Config) {
 	cli = humacli.New(func(hooks humacli.Hooks, opts *struct{}) {
 		var addr = server.Addr
 
-		RegisterHandlers(ctx, log, conf, api, EndPoints)
+		RegisterHandlers(ctx, log, conf, api)
 		// startup
 		hooks.OnStart(func() {
 			log.Info("Starting api server...")

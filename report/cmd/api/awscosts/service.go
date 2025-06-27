@@ -10,8 +10,11 @@ import (
 )
 
 // Service is a small helper that fetches the service using default data store
-func Service[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config) (srv *awscost.Service[T], err error) {
+func Service[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config) (srv *awscost.Service[T]) {
 
-	srv, err = awscost.Default[T](ctx, log, conf)
+	srv, err := awscost.Default[T](ctx, log, conf)
+	if err != nil {
+		srv = nil
+	}
 	return
 }

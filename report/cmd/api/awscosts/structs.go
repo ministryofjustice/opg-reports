@@ -4,6 +4,8 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/internal/awscost"
 )
 
+// AwsCost is an API version of the database model with
+// field sanitation
 type AwsCost struct {
 	awscost.AwsCost
 	ID           int    `json:"-"`
