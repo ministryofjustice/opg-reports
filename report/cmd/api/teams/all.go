@@ -44,8 +44,8 @@ func handleGetTeamsAll(ctx context.Context, log *slog.Logger, conf *config.Confi
 		err = huma.Error500InternalServerError("failed find all teams", err)
 		return
 	}
-
 	response.Body.Data = teams
+	response.Body.Count = len(teams)
 
 	return
 }

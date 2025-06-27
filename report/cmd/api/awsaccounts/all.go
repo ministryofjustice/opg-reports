@@ -43,6 +43,7 @@ func handleGetAwsAccountsAll(ctx context.Context, log *slog.Logger, conf *config
 	}
 
 	response.Body.Data = accounts
+	response.Body.Count = len(accounts)
 
 	return
 }

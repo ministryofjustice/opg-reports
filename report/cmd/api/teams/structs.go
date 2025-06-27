@@ -12,6 +12,7 @@ type Team struct {
 // GetTeamsAllResponse is response object used by the handler
 type GetTeamsAllResponse struct {
 	Body struct {
-		Data []*Team
+		Count int     `json:"count,omityempty"`
+		Data  []*Team `json:"data"`
 	}
 }

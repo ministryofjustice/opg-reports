@@ -15,6 +15,7 @@ type AwsAccount struct {
 // GetAwsAccountsAllResponse
 type GetAwsAccountsAllResponse struct {
 	Body struct {
-		Data []*AwsAccount
+		Count int           `json:"count,omitempty"`
+		Data  []*AwsAccount `json:"data"`
 	}
 }
