@@ -17,6 +17,10 @@ type Service[T interfaces.Model] struct {
 	store *sqldb.Repository[T]
 }
 
+func (self *Service[T]) GetStore() *sqldb.Repository[T] {
+	return self.store
+}
+
 // Close function to do any clean up
 func (self *Service[T]) Close() (err error) {
 	return

@@ -27,7 +27,7 @@ import (
 func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, service *opgmetadata.Service[T]) (err error) {
 	var (
 		data     []T
-		store    *sqldb.Repository[T]
+		store    *sqldb.Repository[*TeamImport]
 		inserts  []*sqldb.BoundStatement = []*sqldb.BoundStatement{}
 		names    []string                = []string{}
 		teams    []*TeamImport           = []*TeamImport{}
@@ -61,9 +61,15 @@ func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *c
 	slices.Sort(names)
 	names = slices.Compact(names)
 
-	log.Debug("generating bound statements ...")
 	for _, nm := range names {
 		inserts = append(inserts, &sqldb.BoundStatement{Statement: stmtImport, Data: &TeamImport{Name: nm}})
+	}
+	log.With("count", len(inserts)).Debug("records to insert ...")
+
+	log.Debug("creating writer store for insert...")
+	store, err = sqldb.New[*TeamImport](ctx, log, conf)
+	if err != nil {
+		return
 	}
 
 	log.Debug("running insert ...")

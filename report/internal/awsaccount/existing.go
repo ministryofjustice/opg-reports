@@ -35,7 +35,7 @@ import (
 func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, service *opgmetadata.Service[T]) (err error) {
 	var (
 		data     []T
-		store    *sqldb.Repository[T]
+		store    *sqldb.Repository[*AwsAccountImport]
 		inserts  []*sqldb.BoundStatement = []*sqldb.BoundStatement{}
 		owner    string                  = conf.Github.Organisation
 		repo     string                  = conf.Github.Metadata.Repository
@@ -52,13 +52,25 @@ func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *c
 
 	data, err = service.DownloadAndReturn(owner, repo, asset, dataFile)
 
-	log.Debug("generating bound statements ...")
 	for _, row := range data {
 		inserts = append(inserts, &sqldb.BoundStatement{Statement: stmtImport, Data: row})
+	}
+	log.With("count", len(inserts)).Debug("records to insert ...")
+
+	log.Debug("creating writer store for insert...")
+	store, err = sqldb.New[*AwsAccountImport](ctx, log, conf)
+	if err != nil {
+		return
 	}
 
 	log.Debug("running insert ...")
 	err = store.Insert(inserts...)
+	if err != nil {
+		return
+	}
+
+	log.Debug("set empty environment values ...")
+	_, err = store.Exec(stmtUpdateEmptyEnvironments)
 	if err != nil {
 		return
 	}

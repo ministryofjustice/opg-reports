@@ -22,6 +22,10 @@ type Service[T interfaces.Model] struct {
 	directory string
 }
 
+func (self *Service[T]) GetStore() *gh.Repository {
+	return self.store
+}
+
 // SetDirectory changes the download / storage location
 func (self *Service[T]) SetDirectory(dir string) {
 	self.directory = dir

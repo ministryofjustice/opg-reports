@@ -19,6 +19,12 @@ LEFT JOIN teams on teams.id = aws_accounts.team_id
 GROUP BY aws_accounts.id
 ORDER BY teams.name ASC, aws_accounts.name ASC, aws_accounts.environment ASC;`
 
+const stmtUpdateEmptyEnvironments string = `
+UPDATE aws_accounts
+SET environment = "production"
+WHERE environment = ""
+`
+
 const stmtImport string = `
 INSERT INTO aws_accounts (
 	id,
