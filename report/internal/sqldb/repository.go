@@ -186,6 +186,8 @@ func (self *Repository[T]) Select(boundStatement *BoundStatement) (err error) {
 	return
 }
 
+// checkSuccess looks at each statments to see if there are any without a
+// Returned value, if so it flags an error
 func checkSuccess(boundStatements ...*BoundStatement) (err error) {
 	// check if everything was inserted
 	for _, stmt := range boundStatements {

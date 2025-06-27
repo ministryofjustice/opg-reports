@@ -64,7 +64,7 @@ func Existing(ctx context.Context, log *slog.Logger, conf *config.Config, servic
 
 	// add info to the logger
 	log = log.With("operation", "Existing", "service", "awscost")
-	log.Debug("[awscost] starting existing records import ...")
+	log.Info("[awscost] starting existing records import ...")
 
 	log.Debug("[awscost] creating datastore ...")
 	store, err = sqldb.New[*AwsCostImport](ctx, log, conf)
