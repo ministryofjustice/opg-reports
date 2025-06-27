@@ -5,7 +5,6 @@ import (
 	"log/slog"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/gh"
 	"github.com/ministryofjustice/opg-reports/report/internal/opgmetadata"
 	"github.com/ministryofjustice/opg-reports/report/internal/sqldb"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
@@ -21,36 +20,22 @@ import (
 // entries and inserted into the databse using the team.Service.Import method
 //
 // // interface: ImporterExistingCommand
-func Existing(ctx context.Context, log *slog.Logger, conf *config.Config) (err error) {
+func Existing(ctx context.Context, log *slog.Logger, conf *config.Config, service *opgmetadata.Service) (err error) {
 	var (
-		gr          *gh.Repository
-		metaService *opgmetadata.Service
-		raw         []map[string]interface{}
-		list        []*Team
-		store       *sqldb.Repository[*Team]
-		inserts     []*sqldb.BoundStatement = []*sqldb.BoundStatement{}
-		sw                                  = utils.Stopwatch()
+		raw     []map[string]interface{}
+		list    []*Team
+		store   *sqldb.Repository[*Team]
+		inserts []*sqldb.BoundStatement = []*sqldb.BoundStatement{}
+		sw                              = utils.Stopwatch()
 	)
+	defer service.Close()
 	// timer
 	sw.Start()
 	log = log.With("operation", "Existing", "service", "team")
 	log.Info("[team] starting existing records import ...")
 
-	// to import teams, we create an opgmetadata service and call the getTeams
-	// so fetch the gh repository first and then create the opgmeta data service
-	gr, err = gh.New(ctx, log, conf)
-	if err != nil {
-		return
-	}
-	log.Debug("creating service ...")
-	metaService, err = opgmetadata.NewService(ctx, log, conf, gr)
-	if err != nil {
-		return
-	}
-	defer metaService.Close()
-
 	log.Debug("getting teams ...")
-	raw, err = metaService.GetAllTeams()
+	raw, err = service.GetAllTeams()
 	if err != nil {
 		return
 	}

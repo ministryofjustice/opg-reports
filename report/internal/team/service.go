@@ -65,13 +65,16 @@ func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf 
 }
 
 // Default generates the default repository and then the service
-func Default[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config) (srv *Service[T], err error) {
+func Default[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config) (srv *Service[T]) {
 
 	store, err := sqldb.New[T](ctx, log, conf)
 	if err != nil {
-		return
+		return nil
 	}
 	srv, err = NewService[T](ctx, log, conf, store)
+	if err != nil {
+		return nil
+	}
 
 	return
 }

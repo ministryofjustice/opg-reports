@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"os"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/s3bucket"
+	"github.com/ministryofjustice/opg-reports/report/internal/s3"
 	"github.com/ministryofjustice/opg-reports/report/internal/sqldb"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
@@ -25,7 +24,7 @@ import (
 // S3 files are downloaded locally to a temp folder underneath the `conf.Aws.Bucket.Local` path
 // which is removed on exit via a defer.
 //
-// Once downloaded, the each file is converted to a struct (`[]*awsCostImport`) and merged
+// Once downloaded, the each file is converted to a struct (`[]*AwsCostImport`) and merged
 // with a sql statement (`stmtImport`) for insertion.
 //
 // All sql statements are then run in one block, using a `sqldb` repository to handle
@@ -52,18 +51,16 @@ import (
 //	}]
 //
 // interface: ImporterExistingCommand
-func Existing(ctx context.Context, log *slog.Logger, conf *config.Config) (err error) {
+func Existing(ctx context.Context, log *slog.Logger, conf *config.Config, service *s3.Service[*AwsCostImport]) (err error) {
 	var (
-		s3b        *s3bucket.Repository
-		store      *sqldb.Repository[*awsCostImport]
-		localDir   string
-		bucket     string                  = conf.Aws.Buckets.Costs.Name
-		prefix     string                  = conf.Aws.Buckets.Costs.Prefix
-		list       []string                = []string{}
-		downloaded []string                = []string{}
-		inserts    []*sqldb.BoundStatement = []*sqldb.BoundStatement{}
-		sw                                 = utils.Stopwatch()
+		store   *sqldb.Repository[*AwsCostImport]
+		bucket  string                  = conf.Aws.Buckets.Costs.Name
+		prefix  string                  = conf.Aws.Buckets.Costs.Prefix
+		costs   []*AwsCostImport        = []*AwsCostImport{}
+		inserts []*sqldb.BoundStatement = []*sqldb.BoundStatement{}
+		sw                              = utils.Stopwatch()
 	)
+	defer service.Close()
 	// timer
 	sw.Start()
 	// check config values are setup, otherwise we cannot download anything, so error
@@ -71,51 +68,23 @@ func Existing(ctx context.Context, log *slog.Logger, conf *config.Config) (err e
 		return fmt.Errorf("required bucket details were not found.")
 	}
 
-	// setup a temp directory
-	os.MkdirAll(conf.Aws.Buckets.Local, os.ModePerm)
-	localDir, _ = os.MkdirTemp(conf.Aws.Buckets.Local, "aws_costs-*")
-	// clean up tmp directory, but we leave the parent
-	defer os.RemoveAll(localDir)
-
 	// add info to the logger
-	log = log.With("operation", "Existing", "service", "awscost", "dir", localDir)
+	log = log.With("operation", "Existing", "service", "awscost")
 	log.Info("[awscost] starting existing records import ...")
 
-	// create the s3 repository
-	s3b, err = s3bucket.New(ctx, log, conf)
-	if err != nil {
-		return
-	}
-	// get list of all files from the bucket
-	list, err = s3b.ListBucket(bucket, prefix)
-	if err != nil {
-		return
-	}
-	log.With("count", len(list)).Debug("found files to download ...")
-	// download all the listed files
-	downloaded, err = s3b.Download(bucket, list, localDir)
-	if err != nil {
-		return
-	}
-	log.With("count", len(downloaded)).Debug("files downloaded ...")
+	// use the service to download and convert data to the structs we want
+	costs, err = service.DownloadAndReturnData(bucket, prefix)
 
 	// for each file we need to generate the bounded sql statements
-	for _, file := range downloaded {
-		var stmts []*sqldb.BoundStatement
-
-		stmts, err = fileToInsertStmts(log, file)
-		if err != nil {
-			log.Error("failed stmt fetch", "error", err.Error())
-			return
-		}
-		inserts = append(inserts, stmts...)
+	for _, row := range costs {
+		inserts = append(inserts, &sqldb.BoundStatement{Data: row, Statement: stmtImport})
 	}
 
 	log.With("count", len(inserts)).Debug("records to insert ...")
 
 	// now insert the cost data
 	log.Debug("creating datastore ...")
-	store, err = sqldb.New[*awsCostImport](ctx, log, conf)
+	store, err = sqldb.New[*AwsCostImport](ctx, log, conf)
 	if err != nil {
 		return
 	}
@@ -128,33 +97,7 @@ func Existing(ctx context.Context, log *slog.Logger, conf *config.Config) (err e
 
 	log.With(
 		"seconds", sw.Stop().Seconds(),
-		"inserted", len(inserts),
-		"files", len(list),
-		"downloaded", len(downloaded)).
+		"inserted", len(inserts)).
 		Info("[awscost] existing records imported.")
-	return
-}
-
-// fileToInsertStmts loads the file into a slice (`[]*awsCostImport{}`) and merges each entry
-// with the import sql statement, returning the resuling list.
-//
-// If the file->struct conversion fails then an error is returned instead
-func fileToInsertStmts(log *slog.Logger, filename string) (inserts []*sqldb.BoundStatement, err error) {
-	var importCosts []*awsCostImport = []*awsCostImport{}
-
-	inserts = []*sqldb.BoundStatement{}
-	log = log.With("file", filename)
-
-	log.Debug("loading json file into struct")
-	err = utils.StructFromJsonFile(filename, &importCosts)
-	if err != nil {
-		log.Error("failed to load", "error", err.Error())
-		return
-	}
-
-	for _, row := range importCosts {
-		inserts = append(inserts, &sqldb.BoundStatement{Statement: stmtImport, Data: row})
-	}
-
 	return
 }

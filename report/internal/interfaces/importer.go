@@ -10,4 +10,4 @@ import (
 )
 
 type ImporterCLICommand func(conf *config.Config, viperConf *viper.Viper) (cmd *cobra.Command)
-type ImporterExistingCommand func(ctx context.Context, log *slog.Logger, conf *config.Config) (err error)
+type ImporterExistingCommand func(ctx context.Context, log *slog.Logger, conf *config.Config, service Service) (err error)

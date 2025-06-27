@@ -15,9 +15,7 @@ import (
 // Swallows errors, but retuns nil if theres an issue
 func Service[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config) (srv *awsaccount.Service[T]) {
 
-	srv, err := awsaccount.Default[T](ctx, log, conf)
-	if err != nil {
-		srv = nil
-	}
+	srv = awsaccount.Default[T](ctx, log, conf)
+
 	return
 }

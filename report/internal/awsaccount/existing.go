@@ -5,7 +5,6 @@ import (
 	"log/slog"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/gh"
 	"github.com/ministryofjustice/opg-reports/report/internal/opgmetadata"
 	"github.com/ministryofjustice/opg-reports/report/internal/sqldb"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
@@ -30,38 +29,24 @@ import (
 //	}]
 //
 // interface: ImporterExistingCommand
-func Existing(ctx context.Context, log *slog.Logger, conf *config.Config) (err error) {
+func Existing(ctx context.Context, log *slog.Logger, conf *config.Config, service *opgmetadata.Service) (err error) {
 	var (
-		gr          *gh.Repository
-		metaService *opgmetadata.Service
 		rawAccounts []map[string]interface{}
 		list        []*awsAccountImport
 		store       *sqldb.Repository[*awsAccountImport]
 		inserts     []*sqldb.BoundStatement = []*sqldb.BoundStatement{}
 		sw                                  = utils.Stopwatch()
 	)
+	defer service.Close()
 	// timer
 	sw.Start()
 
 	log = log.With("operation", "Existing", "service", "awsaccount")
 	log.Info("[awsaccount] starting existing records import ...")
 
-	// fetch the gh repository first and then create the opgmeta data service
-	gr, err = gh.New(ctx, log, conf)
-	if err != nil {
-		return
-	}
-	// get the service
-	log.Debug("creating service ...")
-	metaService, err = opgmetadata.NewService(ctx, log, conf, gr)
-	if err != nil {
-		return
-	}
-	defer metaService.Close()
-
 	// get just the aws accounts
 	log.Debug("getting accounts ...")
-	rawAccounts, err = metaService.GetAllAwsAccounts()
+	rawAccounts, err = service.GetAllAwsAccounts()
 	if err != nil {
 		return
 	}

@@ -12,7 +12,6 @@ import (
 // Service is a small helper that fetches the service for team.Team related calls
 // and returns that
 func Service[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config) (srv *team.Service[T]) {
-
-	srv, _ = team.Default[T](ctx, log, conf)
+	srv = team.Default[T](ctx, log, conf)
 	return
 }

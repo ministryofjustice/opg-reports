@@ -65,11 +65,12 @@ func TestAwsAccountServiceGetAll(t *testing.T) {
 	}
 
 	// generate the service useing default
-	srv, err := awsaccount.Default[*awsaccount.AwsAccount](ctx, lg, cfg)
-	if err != nil {
+	srv := awsaccount.Default[*awsaccount.AwsAccount](ctx, lg, cfg)
+	if srv == nil {
 		t.Errorf("unexpected error creating service: [%s]", err.Error())
+	} else {
+		defer srv.Close()
 	}
-	defer srv.Close()
 
 	// fetch everything
 	res, err := srv.GetAllAccounts()

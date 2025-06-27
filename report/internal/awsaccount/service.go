@@ -64,13 +64,20 @@ func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf 
 }
 
 // Default generates the default repository as and then the service
-func Default[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config) (srv *Service[T], err error) {
+//
+// If there is an error creating the service, then nil is returned
+func Default[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config) (srv *Service[T]) {
 
 	store, err := sqldb.New[T](ctx, log, conf)
 	if err != nil {
-		return
+		log.Error("error creating sqldb repository", "error", err.Error())
+		return nil
 	}
 	srv, err = NewService[T](ctx, log, conf, store)
+	if err != nil {
+		log.Error("error creating awsaccount service", "error", err.Error())
+		return nil
+	}
 
 	return
 }

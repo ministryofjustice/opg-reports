@@ -66,8 +66,8 @@ func (self *costHasOneTeam) Scan(src interface{}) (err error) {
 	return
 }
 
-// awsCostImport is used for data import / seeding and contains additional data in older formats
-type awsCostImport struct {
+// AwsCostImport is used for data import / seeding and contains additional data in older formats
+type AwsCostImport struct {
 	AwsCost
 	AccountID string `json:"account_id" db:"account_id"`
 }

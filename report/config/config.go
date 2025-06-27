@@ -60,15 +60,14 @@ type bucketInfo struct {
 
 // buckets
 type bucket struct {
-	Local string // env: AWS_BUCKETS_LOCAL
-	Costs bucketInfo
+	Costs *bucketInfo
 }
 
 type Aws struct {
 	Region  string // env: AWS_REGION
-	Default def
-	Session session
-	Buckets bucket
+	Default *def
+	Session *session
+	Buckets *bucket
 }
 
 func (self *Aws) GetRegion() string {
@@ -120,11 +119,10 @@ var defaultConfig = &Config{
 	},
 	Aws: &Aws{
 		Region:  "",
-		Default: def{Region: ""},
-		Session: session{Token: ""},
-		Buckets: bucket{
-			Local: "./s3bucket/",
-			Costs: bucketInfo{Name: "report-data-development", Prefix: "aws_costs/"},
+		Default: &def{Region: ""},
+		Session: &session{Token: ""},
+		Buckets: &bucket{
+			Costs: &bucketInfo{Name: "report-data-development", Prefix: "aws_costs/"},
 		},
 	},
 	Log: &Log{

@@ -60,11 +60,13 @@ func TestTeamServiceGetAll(t *testing.T) {
 	}
 
 	// generate the service
-	srv, err := Default[*Team](ctx, lg, cfg)
-	if err != nil {
+	srv := Default[*Team](ctx, lg, cfg)
+	if srv == nil {
 		t.Errorf("unexpected error creating service: [%s]", err.Error())
+		t.FailNow()
 	}
 	defer srv.Close()
+
 	// fetch everything
 	res, err := srv.GetAllTeams()
 	if err != nil {

@@ -65,9 +65,10 @@ func TestServiceGetAll(t *testing.T) {
 	}
 
 	// generate the service useing default
-	srv, err := awscost.Default[*awscost.AwsCost](ctx, lg, cfg)
-	if err != nil {
+	srv := awscost.Default[*awscost.AwsCost](ctx, lg, cfg)
+	if srv == nil {
 		t.Errorf("unexpected error creating service: [%s]", err.Error())
+		t.FailNow()
 	}
 	defer srv.Close()
 
