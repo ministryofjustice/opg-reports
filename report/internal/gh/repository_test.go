@@ -9,7 +9,9 @@ import (
 )
 
 // TestGhAllReleases makes a call to a real api to check there are releases returned
-// - will skip if no GH_TOKEN is set
+// Uses a public repo to reduce need for token auth
+//
+// Warning - makes a real api call to the github api
 func TestGhAllReleases(t *testing.T) {
 
 	var (
@@ -19,16 +21,12 @@ func TestGhAllReleases(t *testing.T) {
 		lg  = utils.Logger("ERROR", "TEXT")
 	)
 
-	if cfg.Github.Token == "" {
-		t.Skip("No GITHUB_TOKEN, skipping test")
-	}
-
 	repo, err := New(ctx, lg, cfg)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
 
-	found, err := repo.GetReleases("ministryofjustice", "opg-reports", nil)
+	found, err := repo.GetReleases("actions", "checkout", nil)
 	if err != nil {
 		t.Errorf("unexpected error found: %s", err.Error())
 	}
@@ -39,7 +37,8 @@ func TestGhAllReleases(t *testing.T) {
 }
 
 // TestGhLastReleases
-// - will skip if no GH_TOKEN is set
+// Uses a public repo to reduce need for token auth
+// Warning - makes a real api call to the github api
 func TestGhLastReleases(t *testing.T) {
 
 	var (
@@ -48,16 +47,13 @@ func TestGhLastReleases(t *testing.T) {
 		cfg = config.NewConfig()
 		lg  = utils.Logger("ERROR", "TEXT")
 	)
-	if cfg.Github.Token == "" {
-		t.Skip("No GITHUB_TOKEN, skipping test")
-	}
 
 	repo, err := New(ctx, lg, cfg)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
 
-	found, err := repo.GetLatestRelease("ministryofjustice", "opg-metadata")
+	found, err := repo.GetLatestRelease("actions", "checkout")
 	if err != nil {
 		t.Errorf("unexpected error found: %s", err.Error())
 	}
@@ -67,36 +63,35 @@ func TestGhLastReleases(t *testing.T) {
 }
 
 // TestGhLastReleaseAssetAndDownload
-// - will skip if no GH_TOKEN is set
+// Use a poplar repo that generates a tarball (gitleaks) to
+// test a download
+// Uses a public repo to reduce need for token auth
+// Warning - makes a real api call to the github api
 func TestGhLastReleaseAssetAndDownload(t *testing.T) {
 
 	var (
 		err error
 		dir = t.TempDir()
-		fp  = fmt.Sprintf("%s/%s", dir, "metadata.tar.gz")
-		// fp  = "./metadata.tar.gz"
+		fp  = fmt.Sprintf("%s/%s", dir, "gitleaks.tar.gz")
 		ctx = t.Context()
 		cfg = config.NewConfig()
 		lg  = utils.Logger("ERROR", "TEXT")
 	)
-	if cfg.Github.Token == "" {
-		t.Skip("No GITHUB_TOKEN, skipping test")
-	}
 
 	repo, err := New(ctx, lg, cfg)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
-
-	found, err := repo.GetLatestReleaseAsset("ministryofjustice", "opg-metadata", "metadata", true)
+	found, err := repo.GetLatestReleaseAsset("gitleaks", "gitleaks", "gitleaks_(.*)_darwin_arm64.tar.gz", true)
 	if err != nil {
 		t.Errorf("unexpected error found: %s", err.Error())
 	}
 	if found == nil {
 		t.Errorf("no releases found")
+		t.FailNow()
 	}
 
-	f, err := repo.DownloadReleaseAsset("ministryofjustice", "opg-metadata", *found.ID, fp)
+	f, err := repo.DownloadReleaseAsset("gitleaks", "gitleaks", *found.ID, fp)
 	defer f.Close()
 
 	if err != nil {

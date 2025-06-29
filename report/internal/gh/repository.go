@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"strings"
+	"regexp"
 
 	"github.com/gofri/go-github-ratelimit/github_ratelimit"
 	"github.com/google/go-github/v62/github"
@@ -148,12 +148,12 @@ func (self *Repository) GetLatestRelease(organisation string, repositoryName str
 
 // GetLatestReleaseAsset gets the latest release and then checks for an asset with a matching name.
 //
-// If the fuzzyMatch is true a strings.Contains check is used, otherwise an exact match is required.
-// The repositoryName should not include the organsiation name
-func (self *Repository) GetLatestReleaseAsset(organisation string, repositoryName string, assetName string, fuzzyMatch bool) (asset *github.ReleaseAsset, err error) {
+// If the regex is true a regex is used to match against the asset name
+func (self *Repository) GetLatestReleaseAsset(organisation string, repositoryName string, assetName string, regex bool) (asset *github.ReleaseAsset, err error) {
 	// setup
 	var (
 		release *github.RepositoryRelease
+		re      *regexp.Regexp
 		log     = self.log.With("repositoryName", repositoryName, "operation", "GetLatestReleaseAsset", "assetName", assetName)
 	)
 	// get the release
@@ -161,6 +161,9 @@ func (self *Repository) GetLatestReleaseAsset(organisation string, repositoryNam
 	// if error or not found, return
 	if err != nil || release == nil {
 		return
+	}
+	if regex {
+		re = regexp.MustCompile(assetName)
 	}
 	// if there are no assets, return but without an error
 	if len(release.Assets) == 0 {
@@ -171,8 +174,8 @@ func (self *Repository) GetLatestReleaseAsset(organisation string, repositoryNam
 	// check each asset and return when asset match is found
 	for _, a := range release.Assets {
 		var nm = *a.Name
-		// if fuzzyMatch is true checj string contains
-		if fuzzyMatch && strings.Contains(nm, assetName) {
+		// if regex is enabled, then run the re check against the name
+		if regex && len(re.FindStringIndex(nm)) > 0 {
 			asset = a
 			return
 		} else if nm == assetName {

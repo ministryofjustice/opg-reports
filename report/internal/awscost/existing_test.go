@@ -80,7 +80,7 @@ func (self *testS3Srv[T]) Download(bucket string, prefix string) (downloaded []s
 ]
 `
 
-	filename := filepath.Join(self.directory, "sample-file,json")
+	filename := filepath.Join(self.directory, "sample-file.json")
 	os.WriteFile(filename, []byte(content), os.ModePerm)
 	downloaded = []string{filename}
 	return
