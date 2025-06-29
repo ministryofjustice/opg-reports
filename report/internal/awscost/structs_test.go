@@ -16,7 +16,7 @@ func TestGetGroupedCostsOptions(t *testing.T) {
 		err   error
 		valid bool
 		stmt  *sqldb.BoundStatement
-		data  map[string]string
+		data  *sqlParams
 		dir   = t.TempDir()
 		ctx   = t.Context()
 		cfg   = config.NewConfig()
@@ -48,7 +48,7 @@ func TestGetGroupedCostsOptions(t *testing.T) {
 	if !valid {
 		t.Errorf("unexpected validation failure")
 	}
-	if len(data) != 3 {
+	if data == nil {
 		t.Errorf("incorrect data items")
 	}
 
@@ -62,7 +62,7 @@ func TestGetGroupedCostsOptions(t *testing.T) {
 	if !valid {
 		t.Errorf("unexpected validation failure")
 	}
-	if _, ok := data["team_name"]; ok {
+	if data.Team != "" {
 		t.Errorf("team should not be set as a filter")
 	}
 
@@ -76,7 +76,7 @@ func TestGetGroupedCostsOptions(t *testing.T) {
 	if !valid {
 		t.Errorf("unexpected validation failure")
 	}
-	if _, ok := data["team_name"]; !ok {
+	if data.Team == "" {
 		t.Errorf("team should be set as a filter")
 	}
 
@@ -91,10 +91,10 @@ func TestGetGroupedCostsOptions(t *testing.T) {
 	if !valid {
 		t.Errorf("unexpected validation failure")
 	}
-	if _, ok := data["team_name"]; !ok {
+	if data.Team == "" {
 		t.Errorf("team should be set as a filter")
 	}
-	if _, ok := data["aws_account_id"]; ok {
+	if data.Account != "" {
 		t.Errorf("aws_account_id should NOT set as a filter")
 	}
 
@@ -109,10 +109,10 @@ func TestGetGroupedCostsOptions(t *testing.T) {
 	if !valid {
 		t.Errorf("unexpected validation failure")
 	}
-	if _, ok := data["team_name"]; !ok {
+	if data.Team == "" {
 		t.Errorf("team should be set as a filter")
 	}
-	if _, ok := data["aws_account_id"]; !ok {
+	if data.Account == "" {
 		t.Errorf("aws_account_id should be set as a filter")
 	}
 
@@ -124,25 +124,26 @@ func TestGetGroupedCostsOptions(t *testing.T) {
 	opts.Service = "true"
 	stmt, data = opts.Statement()
 	valid, _, err = repo.ValidateSelect(stmt)
+	if data.Environment == "" {
+		t.Errorf("environment should be set as a filter")
+	}
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
 	if !valid {
 		t.Errorf("unexpected validation failure")
 	}
-	if _, ok := data["team_name"]; ok {
+	if data.Team != "" {
 		t.Errorf("team should not be set as a filter")
 	}
-	if _, ok := data["aws_account_id"]; ok {
+	if data.Account != "" {
 		t.Errorf("aws_account_id should not be set as a filter")
 	}
-	if _, ok := data["environment"]; !ok {
-		t.Errorf("environment should be set as a filter")
-	}
-	if _, ok := data["region"]; ok {
+
+	if data.Region != "" {
 		t.Errorf("region should not be set as a filter")
 	}
-	if _, ok := data["service"]; ok {
+	if data.Service != "" {
 		t.Errorf("service should not be set as a filter")
 	}
 

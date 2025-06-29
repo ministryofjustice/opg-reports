@@ -55,6 +55,22 @@ func (self *Service[T]) GetTop20() (data []T, err error) {
 	return
 }
 
+// GetGroupedCosts uses a set of options to generate the sql statement that will select, filter,
+// group and order by the data set between provided dates.
+func (self *Service[T]) GetGroupedCosts(options *GetGroupedCostsOptions) (data []T, err error) {
+	var selectStmt, _ = options.Statement()
+	var log = self.log.With("operation", "GetGroupedCosts")
+
+	data = []T{}
+	log.Debug("getting grouped awscosts from database...")
+
+	// cast the data back to struct
+	if err = self.store.Select(selectStmt); err == nil {
+		data = selectStmt.Returned.([]T)
+	}
+	return
+}
+
 // NewService creates a service using the values passed
 func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, store *sqldb.Repository[T]) (srv *Service[T], err error) {
 	srv = &Service[T]{}

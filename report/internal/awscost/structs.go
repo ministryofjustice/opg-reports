@@ -24,11 +24,22 @@ type GetGroupedCostsOptions struct {
 	Environment utils.TrueOrFilter
 }
 
+type sqlParams struct {
+	StartDate   string `json:"start_date,omitempty" db:"start_date"`
+	EndDate     string `json:"end_date,omitempty" db:"end_date"`
+	DateFormat  string `json:"date_format,omitempty" db:"date_format"`
+	Region      string `json:"region,omitempty" db:"region"`
+	Service     string `json:"service,omitempty" db:"service"`
+	Team        string `json:"team_name,omitempty" db:"team_name"`
+	Account     string `json:"aws_account_id,omitempty" db:"aws_account_id"`
+	Environment string `json:"environment,omitempty" db:"environment"`
+}
+
 // Statement converts the configured options to a bound statement and provides the
 // values and :params for `stmGroupedCosts`.
 //
 // It returns the bound statement and generated data object
-func (self *GetGroupedCostsOptions) Statement() (bound *sqldb.BoundStatement, data map[string]string) {
+func (self *GetGroupedCostsOptions) Statement() (bound *sqldb.BoundStatement, params *sqlParams) {
 	var (
 		stmt            = stmGroupedCosts
 		selected string = ""
@@ -37,10 +48,10 @@ func (self *GetGroupedCostsOptions) Statement() (bound *sqldb.BoundStatement, da
 		groupby  string = ""
 	)
 	// setup the default data values
-	data = map[string]string{
-		"start_date":  self.StartDate,
-		"end_date":    self.EndDate,
-		"date_format": self.DateFormat,
+	params = &sqlParams{
+		StartDate:  self.StartDate,
+		EndDate:    self.EndDate,
+		DateFormat: self.DateFormat,
 	}
 
 	// check the team, account, env, region and service values and update the
@@ -51,16 +62,14 @@ func (self *GetGroupedCostsOptions) Statement() (bound *sqldb.BoundStatement, da
 		selected += fmt.Sprintf("%s,", "team_name")
 	}
 	if self.Team.Whereable() {
-		data["team_name"] = string(self.Team)
+		params.Team = string(self.Team)
 		where += fmt.Sprintf("%s AND ", "team_name=:team_name")
 	}
 	if self.Team.Groupable() {
-		data["g1"] = "team_name"
-		groupby += fmt.Sprintf("%s,", ":g1")
+		groupby += fmt.Sprintf("%s,", "team_name")
 	}
 	if self.Team.Orderable() {
-		data["o1"] = "team_name"
-		orderby += fmt.Sprintf("%s ASC,", ":o1")
+		orderby += fmt.Sprintf("%s ASC,", "team_name")
 	}
 
 	// Region
@@ -68,64 +77,56 @@ func (self *GetGroupedCostsOptions) Statement() (bound *sqldb.BoundStatement, da
 		selected += fmt.Sprintf("%s,", "region")
 	}
 	if self.Region.Whereable() {
-		data["region"] = string(self.Region)
+		params.Region = string(self.Region)
 		where += fmt.Sprintf("%s AND ", "region=:region")
 	}
 	if self.Region.Groupable() {
-		data["g2"] = "region"
-		groupby += fmt.Sprintf("%s,", ":g2")
+		groupby += fmt.Sprintf("%s,", "region")
 	}
 	if self.Region.Orderable() {
-		data["o2"] = "region"
-		orderby += fmt.Sprintf("%s ASC,", ":o2")
+		orderby += fmt.Sprintf("%s ASC,", "region")
 	}
 	// Service
 	if self.Service.Selectable() {
 		selected += fmt.Sprintf("%s,", "service")
 	}
 	if self.Service.Whereable() {
-		data["service"] = string(self.Service)
+		params.Service = string(self.Service)
 		where += fmt.Sprintf("%s AND ", "service=:service")
 	}
 	if self.Service.Groupable() {
-		data["g3"] = "service"
-		groupby += fmt.Sprintf("%s,", ":g3")
+		groupby += fmt.Sprintf("%s,", "service")
 	}
 	if self.Service.Orderable() {
-		data["o3"] = "service"
-		orderby += fmt.Sprintf("%s ASC,", ":o4")
+		orderby += fmt.Sprintf("%s ASC,", "service")
 	}
-	// Account
+	// Account - tag name & label as well, the account id is unique
 	if self.Account.Selectable() {
-		selected += fmt.Sprintf("%s,", "aws_account_id")
+		selected += fmt.Sprintf("%s, %s, %s,", "aws_account_id", "aws_accounts.name as account_name", "aws_accounts.label as account_label")
 	}
 	if self.Account.Whereable() {
-		data["aws_account_id"] = string(self.Account)
+		params.Account = string(self.Account)
 		where += fmt.Sprintf("%s AND ", "aws_account_id=:aws_account_id")
 	}
 	if self.Account.Groupable() {
-		data["g4"] = "aws_account_id"
-		groupby += fmt.Sprintf("%s,", ":g4")
+		groupby += fmt.Sprintf("%s,", "aws_account_id")
 	}
 	if self.Account.Orderable() {
-		data["o4"] = "aws_account_id"
-		orderby += fmt.Sprintf("%s ASC,", ":o4")
+		orderby += fmt.Sprintf("%s ASC,", "aws_account_id")
 	}
 	// Environment
 	if self.Environment.Selectable() {
 		selected += fmt.Sprintf("%s,", "aws_accounts.environment as environment")
 	}
 	if self.Environment.Whereable() {
-		data["environment"] = string(self.Environment)
+		params.Environment = string(self.Environment)
 		where += fmt.Sprintf("%s AND ", "aws_accounts.environment=:environment")
 	}
 	if self.Environment.Groupable() {
-		data["g5"] = "aws_accounts.environment"
-		groupby += fmt.Sprintf("%s,", ":g5")
+		groupby += fmt.Sprintf("%s,", "aws_accounts.environmen")
 	}
 	if self.Environment.Orderable() {
-		data["o5"] = "aws_accounts.environment"
-		orderby += fmt.Sprintf("%s ASC,", ":o5")
+		orderby += fmt.Sprintf("%s ASC,", "aws_accounts.environmen")
 	}
 
 	// Replace the placeholders with the real values
@@ -134,6 +135,6 @@ func (self *GetGroupedCostsOptions) Statement() (bound *sqldb.BoundStatement, da
 	stmt = strings.ReplaceAll(stmt, "{GROUP_BY}", groupby)
 	stmt = strings.ReplaceAll(stmt, "{ORDER_BY}", orderby)
 
-	bound = &sqldb.BoundStatement{Data: data, Statement: stmt}
+	bound = &sqldb.BoundStatement{Data: params, Statement: stmt}
 	return
 }

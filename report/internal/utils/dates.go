@@ -15,3 +15,9 @@ var DATE_FORMATS = &dateFormats{
 	YM:   "2006-01",
 	YMD:  "2006-01-02",
 }
+
+var GRANULARITY_TO_FORMAT = map[string]string{
+	"year":  "%Y",
+	"month": "%Y-%m",
+	"day":   "%Y-%m-%d",
+}

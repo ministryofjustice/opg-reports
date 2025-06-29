@@ -48,7 +48,7 @@ func RegisterHandlers(ctx context.Context, log *slog.Logger, conf *config.Config
 	awsaccounts.RegisterGetAwsAccountsAll(log, conf, api, awsaccounts.Service[*awsaccounts.AwsAccount](ctx, log, conf))
 	// AWS COSTS
 	awscosts.RegisterGetAwsCostsTop20(log, conf, api, awscosts.Service[*awscosts.AwsCost](ctx, log, conf))
-
+	awscosts.RegisterGetAwsGroupedCosts(log, conf, api, awscosts.Service[*awscosts.AwsGroupedCost](ctx, log, conf))
 }
 
 func runner(ctx context.Context, log *slog.Logger, conf *config.Config) {

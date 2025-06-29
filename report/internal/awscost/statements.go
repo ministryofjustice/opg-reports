@@ -116,6 +116,7 @@ WHERE
 	{WHERE}
     date >= :start_date
     AND date < :end_date
+	AND service != 'Tax'
 GROUP BY
 	{GROUP_BY}
 	strftime(:date_format, date)
