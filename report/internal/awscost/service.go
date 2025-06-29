@@ -40,6 +40,7 @@ func (self *Service[T]) GetAll() (data []T, err error) {
 	return
 }
 
+// GetTop20 returns top 20 most expensive costs store in the database
 func (self *Service[T]) GetTop20() (data []T, err error) {
 	var selectStmt = &sqldb.BoundStatement{Statement: stmtSelectTop20}
 	var log = self.log.With("operation", "GetTop20")
@@ -51,7 +52,6 @@ func (self *Service[T]) GetTop20() (data []T, err error) {
 	if err = self.store.Select(selectStmt); err == nil {
 		data = selectStmt.Returned.([]T)
 	}
-
 	return
 }
 

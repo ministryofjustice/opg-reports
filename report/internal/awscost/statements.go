@@ -92,27 +92,36 @@ ORDER BY
 LIMIT 20;
 `
 
-// stmtTotalCostsPerPeriod returns the total costs over all accounts / teams
-// between the :start_date & :end_date provided which are then grouped by
-// the :date_format
+// stmGroupedCosts is the base sql statements used for most cost database calls
+// that filters out Tax and groups values by at least the date column.
 //
-// Used to show total monhtly costs at a high level
-const stmtTotalCostsPerPeriod string = `
+// It contains extra :params to allow extension of the query and typically
+// generated from an api input dataset
+//
+// :date_format = used for date time grouping via strftime on the date column
+// :start_date	= lower bound on the date where
+// :end_date 	= upper bound on the date where
+// :select 		= additional columns to fetch
+// :where 		= additional where queries to include
+// :groupby 	= extra group by clauses
+// :orderby 	= extra order by options
+const stmGroupedCosts string = `
 SELECT
-    'Total' as service,
+	{SELECT}
     coalesce(SUM(cost), 0) as cost,
     strftime(:date_format, date) as date
 FROM aws_costs
+LEFT JOIN aws_accounts ON aws_accounts.id = aws_costs.aws_account_id
 WHERE
+	{WHERE}
     date >= :start_date
     AND date < :end_date
-	{WHERE}
-GROUP BY strftime(:date_format, date)
-WHERE
-    excTax.date >= :start_date
-    AND excTax.date < :end_date
-	AND excTax.service != 'Tax'
-GROUP BY strftime(:date_format, date)
-ORDER by date ASC
+GROUP BY
+	{GROUP_BY}
+	strftime(:date_format, date)
+ORDER BY
+	CAST(aws_costs.cost as REAL) DESC,
+	{ORDER_BY}
+	strftime(:date_format, date) ASC
 ;
 `

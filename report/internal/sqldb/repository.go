@@ -148,7 +148,7 @@ func (self *Repository[T]) Select(boundStatement *BoundStatement) (err error) {
 		transaction *sqlx.Tx
 		statement   *sqlx.NamedStmt
 		data                       = boundStatement.Data
-		options     *sql.TxOptions = &sql.TxOptions{ReadOnly: false, Isolation: sql.LevelDefault}
+		options     *sql.TxOptions = &sql.TxOptions{ReadOnly: true, Isolation: sql.LevelDefault}
 		log                        = self.log.With("operation", "select")
 		returned                   = []T{}
 	)
@@ -184,6 +184,25 @@ func (self *Repository[T]) Select(boundStatement *BoundStatement) (err error) {
 	log.Debug("executing transaction...")
 	err = transaction.Commit()
 
+	return
+}
+
+// ValidateSelect makes a short connection the database and tries to prepare the provided statement
+// in order to validate it without running it - allows a way to test sql ahead of running it
+func (self *Repository[T]) ValidateSelect(boundStatement *BoundStatement) (valid bool, statement *sqlx.NamedStmt, err error) {
+	var db *sqlx.DB
+	valid = false
+	// db connection
+	db, err = self.connection()
+	if err != nil {
+		return
+	}
+	defer db.Close()
+
+	statement, err = db.PrepareNamedContext(self.ctx, boundStatement.Statement)
+	if err == nil && statement.QueryString != "" {
+		valid = true
+	}
 	return
 }
 
