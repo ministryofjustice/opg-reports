@@ -42,7 +42,7 @@ func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *c
 	log = log.With("operation", "Existing", "service", "team")
 	log.Info("[team] starting existing records import ...")
 
-	data, err = service.DownloadAndReturn(owner, repo, asset, dataFile)
+	data, err = service.DownloadAndReturn(owner, repo, asset, false, dataFile)
 	if err != nil || len(data) <= 0 {
 		return
 	}

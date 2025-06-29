@@ -49,7 +49,7 @@ func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *c
 	log = log.With("operation", "Existing", "service", "awsaccount")
 	log.Info("[awsaccount] starting existing records import ...")
 
-	data, err = service.DownloadAndReturn(owner, repo, asset, dataFile)
+	data, err = service.DownloadAndReturn(owner, repo, asset, false, dataFile)
 
 	for _, row := range data {
 		inserts = append(inserts, &sqldb.BoundStatement{Statement: stmtImport, Data: row})

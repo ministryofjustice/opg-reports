@@ -24,11 +24,16 @@ type testS3Srv[T interfaces.Model] struct {
 	directory string
 }
 
+func (self *testS3Srv[T]) GetDirectory() (dir string) {
+	dir = self.directory
+	return
+}
 func (self *testS3Srv[T]) SetDirectory(dir string) {
 	self.directory = dir
 }
 
 func (self *testS3Srv[T]) Close() (err error) {
+	os.RemoveAll(filepath.Join(self.directory, "sample-file.json"))
 	return
 }
 
@@ -80,7 +85,7 @@ func (self *testS3Srv[T]) Download(bucket string, prefix string) (downloaded []s
 ]
 `
 
-	filename := filepath.Join(self.directory, "sample-file.json")
+	filename := filepath.Join(self.GetDirectory(), "sample-file.json")
 	os.WriteFile(filename, []byte(content), os.ModePerm)
 	downloaded = []string{filename}
 	return

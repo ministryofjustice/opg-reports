@@ -21,13 +21,20 @@ func TestOpgMetaDataServiceDownloadAndExtract(t *testing.T) {
 		conf        = config.NewConfig()
 		log         = utils.Logger("ERROR", "TEXT")
 	)
+	if conf.Github.Token == "" {
+		t.Skip("No GITHUB_TOKEN, skipping test")
+	}
 
 	ghs, _ := gh.New(ctx, log, conf)
 	srv, _ := NewService[*testM](ctx, log, conf, ghs)
+	if srv == nil {
+		t.Errorf("error making service")
+		t.FailNow()
+	}
 	defer srv.Close()
 
 	srv.SetDirectory(dir)
-	local, err := srv.DownloadAndExtractAsset("ministryofjustice", "opg-github-actions", "release.tar.gz")
+	local, err := srv.DownloadAndExtractAsset("gitleaks", "gitleaks", "gitleaks_(.*)_darwin_arm64.tar.gz", true)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
@@ -43,6 +50,10 @@ func TestOpgMetaDataServiceDownloadAndExtract(t *testing.T) {
 
 }
 
+// TestOpgMetaDataServiceDownloadAndReturn tests that json file is read from the
+// downloaded releases asset correctly, so this still uses the known opg repo
+// to do that
+// That means this requires an active github token to access the private repo
 func TestOpgMetaDataServiceDownloadAndReturn(t *testing.T) {
 	var (
 		err  error
@@ -57,10 +68,14 @@ func TestOpgMetaDataServiceDownloadAndReturn(t *testing.T) {
 
 	ghs, _ := gh.New(ctx, log, conf)
 	srv, _ := NewService[*testM](ctx, log, conf, ghs)
+	if srv == nil {
+		t.Errorf("error making service")
+		t.FailNow()
+	}
 	defer srv.Close()
 
 	srv.SetDirectory(dir)
-	data, err := srv.DownloadAndReturn("ministryofjustice", "opg-metadata", "metadata.tar.gz", "accounts.json")
+	data, err := srv.DownloadAndReturn("ministryofjustice", "opg-metadata", "metadata.tar.gz", false, "accounts.json")
 
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())

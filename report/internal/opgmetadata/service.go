@@ -51,7 +51,7 @@ func (self *Service[T]) Close() (err error) {
 // storage, finds all `json` files in the extracted data and reads the content of those into a T[].
 //
 // Assumes each data file contains a list of T already.
-func (self *Service[T]) DownloadAndReturnAll(owner string, repository string, assetName string) (data []T, err error) {
+func (self *Service[T]) DownloadAndReturnAll(owner string, repository string, assetName string, regex bool) (data []T, err error) {
 	var (
 		extractedDir string
 		dataFiles    = []string{}
@@ -64,7 +64,7 @@ func (self *Service[T]) DownloadAndReturnAll(owner string, repository string, as
 
 	data = []T{}
 
-	extractedDir, err = self.DownloadAndExtractAsset(owner, repository, assetName)
+	extractedDir, err = self.DownloadAndExtractAsset(owner, repository, assetName, regex)
 	if err != nil {
 		return
 	}
@@ -93,7 +93,7 @@ func (self *Service[T]) DownloadAndReturnAll(owner string, repository string, as
 // storage, finds the file matching `filename` and reads that into T[]
 //
 // filename should be relative path on where you would expect the file to be in the extracted data folder
-func (self *Service[T]) DownloadAndReturn(owner string, repository string, assetName string, filename string) (data []T, err error) {
+func (self *Service[T]) DownloadAndReturn(owner string, repository string, assetName string, regex bool, filename string) (data []T, err error) {
 	var (
 		extractedDir string
 		file         string
@@ -106,7 +106,7 @@ func (self *Service[T]) DownloadAndReturn(owner string, repository string, asset
 
 	data = []T{}
 
-	extractedDir, err = self.DownloadAndExtractAsset(owner, repository, assetName)
+	extractedDir, err = self.DownloadAndExtractAsset(owner, repository, assetName, regex)
 	if err != nil {
 		return
 	}
@@ -124,23 +124,32 @@ func (self *Service[T]) DownloadAndReturn(owner string, repository string, asset
 // to a local directory and then extracts the content.
 //
 // The path to the extracted directory is returned
-func (self *Service[T]) DownloadAndExtractAsset(owner string, repository string, assetName string) (directoryPath string, err error) {
+func (self *Service[T]) DownloadAndExtractAsset(owner string, repository string, assetName string, regex bool) (directoryPath string, err error) {
 	var (
 		asset          *github.ReleaseAsset
 		downloadedFile *os.File
+		downloadTo     string
+		extractTo      string
+		subDir         string
 		log            *slog.Logger   = self.log
-		dir            string         = self.GetDirectory()
-		downloadTo     string         = filepath.Join(dir, assetName)
-		extractTo      string         = filepath.Join(dir, "extract")
 		ghs            *gh.Repository = self.store
+		dir            string         = self.GetDirectory()
 	)
 	log = log.With("operation", "DownloadAndExtractAsset",
 		"repository", repository,
 		"assetName", assetName,
 		"owner", owner)
+
+	// download to a sub directory and use fixed paths underneath that
+	// as assetName can be a regex pattern
+	subDir, _ = os.MkdirTemp(dir, "*")
+	dir = filepath.Join(dir, subDir)
+	downloadTo = filepath.Join(dir, "downloaded")
+	extractTo = filepath.Join(dir, "extract")
+
 	// get the latest relase and the asset details that match the name
 	log.Debug("Downloading the latest release asset ...")
-	asset, err = ghs.GetLatestReleaseAsset(owner, repository, assetName, false)
+	asset, err = ghs.GetLatestReleaseAsset(owner, repository, assetName, regex)
 	if err != nil {
 		log.Error("error getting latest release asset", "err", err.Error())
 		return
@@ -181,10 +190,11 @@ func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf 
 	}
 
 	srv = &Service[T]{
-		ctx:   ctx,
-		log:   log.With("service", "opgmetadata"),
-		conf:  conf,
-		store: store,
+		ctx:       ctx,
+		log:       log.With("service", "opgmetadata"),
+		conf:      conf,
+		store:     store,
+		directory: "",
 	}
 	return
 }

@@ -40,9 +40,9 @@ type metadata struct {
 
 // Github provides connection details to access github org
 type Github struct {
-	Metadata     *metadata
-	Organisation string // env: GITHUB_ORGANISATION
-	Token        string // env: GITHUB_TOKEN
+	Metadata     *metadata // used by existing imports
+	Organisation string    // env: GITHUB_ORGANISATION - defaults to ministryofjustice
+	Token        string    // env: GITHUB_TOKEN - needs a value, but doesnt always need to be real
 }
 
 // AWS related internal structs used to allow AWS_DEFAULT_REGION env vars to be
@@ -120,10 +120,10 @@ var defaultConfig = &Config{
 		Params: "?_journal=WAL&_busy_timeout=5000&_vacuum=incremental&_synchronous=NORMAL&_cache_size=1000000000",
 	},
 	Github: &Github{
-		Organisation: "ministryofjustice",
-		Token:        "",
+		Organisation: "ministryofjustice", // default organisations
+		Token:        "",                  // needed for tests & data imports
 		Metadata: &metadata{
-			Repository: "opg-metadata",
+			Repository: "opg-metadata", // repository name for where meta
 			Asset:      "metadata.tar.gz",
 		},
 	},

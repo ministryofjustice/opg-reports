@@ -20,6 +20,9 @@ func TestGhAllReleases(t *testing.T) {
 		cfg = config.NewConfig()
 		lg  = utils.Logger("ERROR", "TEXT")
 	)
+	if cfg.Github.Token == "" {
+		t.Skip("No GITHUB_TOKEN, skipping test")
+	}
 
 	repo, err := New(ctx, lg, cfg)
 	if err != nil {
@@ -47,6 +50,9 @@ func TestGhLastReleases(t *testing.T) {
 		cfg = config.NewConfig()
 		lg  = utils.Logger("ERROR", "TEXT")
 	)
+	if cfg.Github.Token == "" {
+		t.Skip("No GITHUB_TOKEN, skipping test")
+	}
 
 	repo, err := New(ctx, lg, cfg)
 	if err != nil {
@@ -77,6 +83,9 @@ func TestGhLastReleaseAssetAndDownload(t *testing.T) {
 		cfg = config.NewConfig()
 		lg  = utils.Logger("ERROR", "TEXT")
 	)
+	if cfg.Github.Token == "" {
+		t.Skip("No GITHUB_TOKEN, skipping test")
+	}
 
 	repo, err := New(ctx, lg, cfg)
 	if err != nil {

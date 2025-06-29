@@ -26,7 +26,7 @@ func (self *testMetaSrv[T]) Close() (err error) {
 // DownloadAndReturn returns a series of fake aws_account data that will generate series
 // of team names from the billing_name value
 // To do this we'll use the TeamImport struct
-func (self *testMetaSrv[T]) DownloadAndReturn(owner string, repository string, assetName string, filename string) (data []*TeamImport, err error) {
+func (self *testMetaSrv[T]) DownloadAndReturn(owner string, repository string, assetName string, regex bool, filename string) (data []*TeamImport, err error) {
 
 	data = []*TeamImport{
 		{Name: "TeamZ"},
@@ -53,7 +53,7 @@ func TestTeamExisting(t *testing.T) {
 	)
 	conf.Database.Path = fmt.Sprintf("%s/%s", dir, "test-team-existing.db")
 	// work out number of unique values
-	data, _ := srv.DownloadAndReturn("", "", "", "")
+	data, _ := srv.DownloadAndReturn("", "", "", false, "")
 	uni := []string{}
 	for _, d := range data {
 		uni = append(uni, d.Name)

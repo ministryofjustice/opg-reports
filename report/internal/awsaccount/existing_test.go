@@ -25,7 +25,7 @@ func (self *testMetaSrv[T]) Close() (err error) {
 }
 
 // DownloadAndReturn returns a series of fake aws_account data
-func (self *testMetaSrv[T]) DownloadAndReturn(owner string, repository string, assetName string, filename string) (data []*AwsAccountImport, err error) {
+func (self *testMetaSrv[T]) DownloadAndReturn(owner string, repository string, assetName string, regex bool, filename string) (data []*AwsAccountImport, err error) {
 
 	data = []*AwsAccountImport{
 		{AwsAccount: AwsAccount{ID: "001A", Name: "TestAcc01", Label: "label-1", Environment: "production"}, TeamName: "TeamA"},
@@ -52,7 +52,7 @@ func TestAwsAccountExisting(t *testing.T) {
 	team.Seed(ctx, log, conf, nil)
 
 	// work out number of unique values
-	data, _ := srv.DownloadAndReturn("", "", "", "")
+	data, _ := srv.DownloadAndReturn("", "", "", false, "")
 	uni := []string{}
 	for _, d := range data {
 		uni = append(uni, d.ID)
