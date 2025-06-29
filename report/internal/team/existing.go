@@ -37,6 +37,7 @@ func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *c
 		sw                               = utils.Stopwatch()
 	)
 	defer service.Close()
+	defer log.With("seconds", sw.Stop().Seconds(), "inserted", len(inserts)).Info("[team] existing records end.")
 	// timer
 	sw.Start()
 	log = log.With("operation", "Existing", "service", "team")
@@ -76,11 +77,7 @@ func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *c
 	if err != nil {
 		return
 	}
-
-	log.With(
-		"seconds", sw.Stop().Seconds(),
-		"inserted", len(inserts)).
-		Info("[team] existing records imported.")
+	log.Info("[team] existing records successful")
 
 	return
 }

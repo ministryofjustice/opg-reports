@@ -91,3 +91,28 @@ ORDER BY
 	aws_costs.service ASC
 LIMIT 20;
 `
+
+// stmtTotalCostsPerPeriod returns the total costs over all accounts / teams
+// between the :start_date & :end_date provided which are then grouped by
+// the :date_format
+//
+// Used to show total monhtly costs at a high level
+const stmtTotalCostsPerPeriod string = `
+SELECT
+    'Total' as service,
+    coalesce(SUM(cost), 0) as cost,
+    strftime(:date_format, date) as date
+FROM aws_costs
+WHERE
+    date >= :start_date
+    AND date < :end_date
+	{WHERE}
+GROUP BY strftime(:date_format, date)
+WHERE
+    excTax.date >= :start_date
+    AND excTax.date < :end_date
+	AND excTax.service != 'Tax'
+GROUP BY strftime(:date_format, date)
+ORDER by date ASC
+;
+`

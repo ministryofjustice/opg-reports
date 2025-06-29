@@ -10,6 +10,14 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/internal/awscost"
 )
 
+// GetAwsCostsTop20Response
+type GetAwsCostsTop20Response struct {
+	Body struct {
+		Count int        `json:"count,omityempty"`
+		Data  []*AwsCost `json:"data"`
+	}
+}
+
 // RegisterGetAwsCostsTop20 registers the API endpoint to handle returning the 20 most expensive AWS
 // costs from the data.
 //
@@ -20,7 +28,7 @@ func RegisterGetAwsCostsTop20(log *slog.Logger, conf *config.Config, api huma.AP
 		Method:        http.MethodGet,
 		Path:          "/v1/awscosts/top20",
 		Summary:       "Top 20 most expensive AWS costs",
-		Description:   "Returns a list of most expensive AWS costs stored in the database (excluding tax)",
+		Description:   "Returns a list of most expensive AWS costs stored in the database (excluding tax).",
 		DefaultStatus: http.StatusOK,
 		Tags:          []string{"AWS Costs"},
 	}

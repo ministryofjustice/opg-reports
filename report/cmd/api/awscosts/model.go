@@ -12,11 +12,3 @@ type AwsCost struct {
 	AwsAccountID string `json:"-"` // hide the team id from any output
 	CreatedAt    string `json:"-"` // its not in the select, but blank the field incase
 }
-
-// GetAwsCostsTop20Response
-type GetAwsCostsTop20Response struct {
-	Body struct {
-		Count int        `json:"count,omityempty"`
-		Data  []*AwsCost `json:"data"`
-	}
-}
