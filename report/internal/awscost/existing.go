@@ -54,8 +54,11 @@ func Existing(ctx context.Context, log *slog.Logger, conf *config.Config, servic
 		sw                     = utils.Stopwatch()
 		totalInserted          = 0
 	)
-	defer service.Close()
-	defer log.With("seconds", sw.Stop().Seconds(), "inserted", totalInserted).Info("[awscost] existing records end.")
+	defer func() {
+		service.Close()
+		log.With("seconds", sw.Stop().Seconds(), "inserted", totalInserted).Info("[awscost] existing records end.")
+	}()
+
 	// timer
 	sw.Start()
 	// check config values are setup, otherwise we cannot download anything, so error
@@ -97,5 +100,6 @@ func Existing(ctx context.Context, log *slog.Logger, conf *config.Config, servic
 		totalInserted += len(inserts)
 	}
 	log.Info("[awsaccount] existing records successful")
+
 	return
 }

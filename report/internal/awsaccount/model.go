@@ -18,9 +18,9 @@ type AwsAccount struct {
 	CreatedAt   string `json:"created_at,omitempty" db:"created_at" example:"2019-08-24T14:15:22Z"`
 
 	// Joins
-	// TeamID is the raw db column that stores the association, should not
-	TeamID int         `json:"team_id,omitempty" db:"team_id"`
-	Team   *hasOneTeam `json:"team,omitempty" db:"team"`
+	// TeamName is the raw db column that stores the association, should not
+	TeamName string      `json:"team_name,omitempty" db:"team_name"`
+	Team     *hasOneTeam `json:"team,omitempty" db:"team"`
 }
 
 // team is internal and used for handling the account->team join

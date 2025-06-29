@@ -54,18 +54,15 @@ var existingCmd = &cobra.Command{
 			awsCostsService   = s3.Default[*awscost.AwsCostImport](ctx, log, conf)
 		)
 		// TEAMS
-		err = team.Existing(ctx, log, conf, teamsService)
-		if err != nil {
+		if err = team.Existing(ctx, log, conf, teamsService); err != nil {
 			return
 		}
 		// AWS ACCOUNTS
-		err = awsaccount.Existing(ctx, log, conf, awsAccountService)
-		if err != nil {
+		if err = awsaccount.Existing(ctx, log, conf, awsAccountService); err != nil {
 			return
 		}
 		// AWS COSTS
-		err = awscost.Existing(ctx, log, conf, awsCostsService)
-		if err != nil {
+		if err = awscost.Existing(ctx, log, conf, awsCostsService); err != nil {
 			return
 		}
 
@@ -93,19 +90,6 @@ func seedData(ctx context.Context, log *slog.Logger, conf *config.Config, seeds 
 
 	for _, lambda := range seeds {
 		_, err = lambda(ctx, log, conf, nil)
-		if err != nil {
-			return
-		}
-	}
-
-	return
-}
-
-// Run the importers that will use real data
-func existingData(ctx context.Context, log *slog.Logger, conf *config.Config, existing ...existingFunc) (err error) {
-
-	for _, lambda := range existing {
-		err = lambda(ctx, log, conf)
 		if err != nil {
 			return
 		}

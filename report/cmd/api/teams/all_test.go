@@ -51,7 +51,7 @@ func TestHandleGetTeamsAll(t *testing.T) {
 	found := 0
 	for _, item := range response.Body.Data {
 		for _, insert := range inserted {
-			if insert.Returned.(int64) == (int64)(item.ID) {
+			if insert.Returned.(string) == (string)(item.Name) {
 				found++
 			}
 		}

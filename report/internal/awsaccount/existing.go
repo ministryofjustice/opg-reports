@@ -42,8 +42,11 @@ func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *c
 		dataFile string                  = "accounts.aws.json"
 		sw                               = utils.Stopwatch()
 	)
-	defer service.Close()
-	defer log.With("seconds", sw.Stop().Seconds(), "inserted", len(inserts)).Info("[awsaccount] existing records end.")
+	defer func() {
+		service.Close()
+		log.With("seconds", sw.Stop().Seconds(), "inserted", len(inserts)).Info("[awsaccount] existing records end.")
+	}()
+
 	// timer
 	sw.Start()
 
@@ -75,5 +78,6 @@ func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *c
 		return
 	}
 	log.Info("[awsaccount] existing records successful")
+
 	return
 }

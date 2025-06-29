@@ -12,12 +12,11 @@ SELECT
 	aws_accounts.label,
 	aws_accounts.environment,
 	json_object(
-		'name', teams.name
+		'name', aws_accounts.team_name
 	) as team
 FROM aws_accounts
-LEFT JOIN teams on teams.id = aws_accounts.team_id
 GROUP BY aws_accounts.id
-ORDER BY teams.name ASC, aws_accounts.name ASC, aws_accounts.environment ASC;`
+ORDER BY aws_accounts.team_name ASC, aws_accounts.name ASC, aws_accounts.environment ASC;`
 
 const stmtUpdateEmptyEnvironments string = `
 UPDATE aws_accounts
@@ -31,13 +30,13 @@ INSERT INTO aws_accounts (
 	name,
 	label,
 	environment,
-	team_id
+	team_name
 ) SELECT
 	:id,
 	:name,
 	:label,
 	:environment,
-	id
+	teams.name
 FROM teams WHERE name=:team_name LIMIT 1
 ON CONFLICT (id)
  	DO UPDATE SET

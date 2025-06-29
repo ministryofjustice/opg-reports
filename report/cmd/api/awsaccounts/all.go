@@ -10,6 +10,14 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/internal/awsaccount"
 )
 
+// GetAwsAccountsAllResponse
+type GetAwsAccountsAllResponse struct {
+	Body struct {
+		Count int           `json:"count,omitempty"`
+		Data  []*AwsAccount `json:"data"`
+	}
+}
+
 // RegisterGetAwsAccountsAll handles registering the endpoint to return all aws accounts stored
 // in the data.
 //

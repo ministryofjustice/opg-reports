@@ -3,12 +3,9 @@ package sqldb
 // SCHEMA contains all of the database tables and indexes
 const SCHEMA string = `
 CREATE TABLE IF NOT EXISTS teams (
-	id INTEGER PRIMARY KEY,
-	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
-	name TEXT NOT NULL UNIQUE
+	name TEXT PRIMARY KEY,
+	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') )
 ) STRICT;
-
-CREATE INDEX IF NOT EXISTS team_name_idx ON teams(name);
 
 CREATE TABLE IF NOT EXISTS aws_accounts (
 	id TEXT PRIMARY KEY,
@@ -16,7 +13,7 @@ CREATE TABLE IF NOT EXISTS aws_accounts (
 	name TEXT NOT NULL,
 	label TEXT NOT NULL,
 	environment TEXT NOT NULL DEFAULT "production",
-	team_id INTEGER
+	team_name TEXT NOT NULL DEFAULT "ORG"
 ) WITHOUT ROWID;
 
 CREATE INDEX IF NOT EXISTS aws_accounts_id_idx ON aws_accounts(id);

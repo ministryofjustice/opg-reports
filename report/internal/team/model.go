@@ -9,7 +9,6 @@ import (
 // Team acts as a top level group matching accounts, github repos etc to be attached
 // as owners
 type Team struct {
-	ID        int    `json:"id,omitempty" db:"id" example:"1"`
 	CreatedAt string `json:"created_at,omitempty" db:"created_at" example:"2019-08-24T14:15:22Z"`
 	Name      string `json:"name,omitempty" db:"name" example:"SREs"`
 

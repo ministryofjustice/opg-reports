@@ -36,8 +36,11 @@ func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *c
 		dataFile string                  = "accounts.json"
 		sw                               = utils.Stopwatch()
 	)
-	defer service.Close()
-	defer log.With("seconds", sw.Stop().Seconds(), "inserted", len(inserts)).Info("[team] existing records end.")
+	defer func() {
+		service.Close()
+		log.With("seconds", sw.Stop().Seconds(), "inserted", len(inserts)).Info("[team] existing records end.")
+	}()
+
 	// timer
 	sw.Start()
 	log = log.With("operation", "Existing", "service", "team")
