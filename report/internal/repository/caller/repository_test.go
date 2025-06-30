@@ -1,11 +1,15 @@
-package id
+package caller
 
 import (
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
+	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
+
+var _ interfaces.Repository = &Repository{}
+var _ interfaces.STSRepository = &Repository{}
 
 func TestGetCallerID(t *testing.T) {
 	var (
@@ -25,10 +29,7 @@ func TestGetCallerID(t *testing.T) {
 		t.FailNow()
 	}
 
-	account, err := repo.GetAccountID()
-	if err != nil {
-		t.Errorf("unexpected error: %s", err.Error())
-	}
+	account := repo.GetAccountID()
 	if account == "" {
 		t.Errorf("failed to find account")
 	}

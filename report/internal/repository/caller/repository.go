@@ -1,4 +1,4 @@
-package id
+package caller
 
 import (
 	"context"
@@ -15,6 +15,7 @@ import (
 //
 // interfaces:
 //   - Repository
+//   - STSRepository
 type Repository struct {
 	ctx  context.Context
 	conf *config.Config
@@ -37,6 +38,8 @@ func (self *Repository) connection() (client *sts.STS, err error) {
 	return
 }
 
+// GetCallerIdentity returns the details of a sts get caller identiry call
+// directly
 func (self *Repository) GetCallerIdentity() (id *sts.GetCallerIdentityOutput, err error) {
 	var (
 		client *sts.STS
@@ -54,14 +57,18 @@ func (self *Repository) GetCallerIdentity() (id *sts.GetCallerIdentityOutput, er
 	return
 }
 
-func (self *Repository) GetAccountID() (accountID string, err error) {
+// GetAccountID uses the result from GetCallerIdentity to return just the account
+// id string - swallows errors
+func (self *Repository) GetAccountID() (accountID string) {
 	var (
+		err error
 		id  *sts.GetCallerIdentityOutput
 		log = self.log.With("operation", "GetAccountID")
 	)
 	log.Debug("getting call account id ...")
 	id, err = self.GetCallerIdentity()
 	if err != nil {
+		log.Error("error getting caller id", "error", err.Error())
 		return
 	}
 	// set the account
