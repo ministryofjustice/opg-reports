@@ -10,9 +10,9 @@ import (
 	"log/slog"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/opgmetadata"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/awsaccount"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/awscost"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/opgmetadata"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/s3"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/team"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"

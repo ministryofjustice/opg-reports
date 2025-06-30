@@ -5,8 +5,12 @@ import (
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
+	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
+
+var _ interfaces.Repository = &Repository{}
+var _ interfaces.GithubRepository = &Repository{}
 
 // TestGhAllReleases makes a call to a real api to check there are releases returned
 // Uses a public repo to reduce need for token auth
