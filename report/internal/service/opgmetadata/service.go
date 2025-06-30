@@ -18,12 +18,8 @@ type Service[T interfaces.Model] struct {
 	ctx       context.Context
 	log       *slog.Logger
 	conf      *config.Config
-	store     *gh.Repository
+	store     interfaces.GithubRepository
 	directory string
-}
-
-func (self *Service[T]) GetStore() *gh.Repository {
-	return self.store
 }
 
 // SetDirectory changes the download / storage location
@@ -132,7 +128,7 @@ func (self *Service[T]) DownloadAndExtractAsset(owner string, repository string,
 		extractTo      string
 		subDir         string
 		log            *slog.Logger   = self.log
-		ghs            *gh.Repository = self.store
+		ghs            *gh.Repository = self.store.(*gh.Repository)
 		dir            string         = self.GetDirectory()
 	)
 	log = log.With("operation", "DownloadAndExtractAsset",
@@ -175,7 +171,7 @@ func (self *Service[T]) DownloadAndExtractAsset(owner string, repository string,
 }
 
 // NewService returns a configured opgmetadata service object
-func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, store *gh.Repository) (srv *Service[T], err error) {
+func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, store interfaces.GithubRepository) (srv *Service[T], err error) {
 	if log == nil {
 		return nil, fmt.Errorf("no logger passed for opgmetadata service")
 	}
