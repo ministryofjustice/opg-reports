@@ -5,6 +5,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
+type Model interface{}
+
 type S3er interface {
 	ListBucket(bucket string, prefix string) (files []string, err error)
 	DownloadBucket(bucket string, prefix string, directory string) (downloaded []string, err error)

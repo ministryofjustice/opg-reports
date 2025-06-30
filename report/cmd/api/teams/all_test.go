@@ -31,7 +31,7 @@ func TestHandleGetTeamsAll(t *testing.T) {
 	// capture the inserted data
 	inserted := seed(ctx, lg, cfg)
 	// generate a repository and service
-	repository, _ := sqlr.New[*Team](ctx, lg, cfg)
+	repository, _ := sqlr.NewWithSelect[*Team](ctx, lg, cfg)
 	service, _ := team.NewService(ctx, lg, cfg, repository)
 	// grab the result
 	response, err := handleGetTeamsAll(ctx, lg, cfg, service, nil)

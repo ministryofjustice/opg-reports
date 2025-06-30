@@ -114,3 +114,32 @@ func TestGhLastReleaseAssetAndDownload(t *testing.T) {
 	}
 
 }
+
+func TestGhLastReleaseAssetByName(t *testing.T) {
+
+	var (
+		err error
+		dir = t.TempDir()
+		ctx = t.Context()
+		cfg = config.NewConfig()
+		lg  = utils.Logger("ERROR", "TEXT")
+	)
+	if cfg.Github.Token == "" {
+		t.Skip("No GITHUB_TOKEN, skipping test")
+	}
+
+	repo, err := New(ctx, lg, cfg)
+	if err != nil {
+		t.Errorf("unexpected error: %s", err.Error())
+	}
+
+	path, err := repo.DownloadReleaseAssetByName("gitleaks", "gitleaks", `gitleaks_(.*)gz`, true, dir)
+	if err != nil {
+		t.Errorf("unexpected error found: %s", err.Error())
+	}
+
+	if path == "" {
+		t.Errorf("file path is nil")
+	}
+
+}

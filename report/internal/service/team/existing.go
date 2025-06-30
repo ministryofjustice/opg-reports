@@ -26,7 +26,7 @@ import (
 func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, service interfaces.MetadataService[T]) (err error) {
 	var (
 		data     []T
-		store    *sqlr.Repository[*TeamImport]
+		store    *sqlr.Repository
 		inserts  []*sqlr.BoundStatement = []*sqlr.BoundStatement{}
 		names    []string               = []string{}
 		teams    []*TeamImport          = []*TeamImport{}
@@ -70,7 +70,7 @@ func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *c
 	log.With("count", len(inserts)).Debug("[team] records to insert ...")
 
 	log.Debug("[team] creating writer store for insert ...")
-	store, err = sqlr.New[*TeamImport](ctx, log, conf)
+	store, err = sqlr.New(ctx, log, conf)
 	if err != nil {
 		return
 	}

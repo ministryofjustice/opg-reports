@@ -10,7 +10,7 @@ import (
 
 // Select uses the boundStatement to run command against the database
 // and attach the result to a data item
-func (self *Repository[T]) Select(boundStatement *BoundStatement) (err error) {
+func (self *RepositoryWithSelect[T]) Select(boundStatement *BoundStatement) (err error) {
 	var (
 		db          *sqlx.DB
 		transaction *sqlx.Tx
@@ -57,7 +57,7 @@ func (self *Repository[T]) Select(boundStatement *BoundStatement) (err error) {
 
 // ValidateSelect makes a short connection the database and tries to prepare the provided statement
 // in order to validate it without running it - allows a way to test sql ahead of running it
-func (self *Repository[T]) ValidateSelect(boundStatement *BoundStatement) (valid bool, statement *sqlx.NamedStmt, err error) {
+func (self *RepositoryWithSelect[T]) ValidateSelect(boundStatement *BoundStatement) (valid bool, statement *sqlx.NamedStmt, err error) {
 	var db *sqlx.DB
 	valid = false
 	// db connection

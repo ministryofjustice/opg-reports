@@ -8,6 +8,8 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
+type tS3 struct{}
+
 func TestS3BucketList(t *testing.T) {
 	var (
 		err        error
@@ -41,9 +43,8 @@ func TestS3BucketList(t *testing.T) {
 
 func TestS3BucketDownload(t *testing.T) {
 	var (
-		err error
-		dir = t.TempDir()
-		// dir        = "./"
+		err        error
+		dir        = t.TempDir()
 		downloadTo = filepath.Join(dir, "__download/")
 		repository *Repository
 		ctx        = t.Context()
@@ -62,7 +63,6 @@ func TestS3BucketDownload(t *testing.T) {
 	}
 
 	files, err := repository.DownloadBucket("report-data-development", "github_standards/", downloadTo)
-	utils.Debug(len(files))
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 		t.FailNow()

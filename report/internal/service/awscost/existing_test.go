@@ -119,7 +119,7 @@ func TestAwsCostExisting(t *testing.T) {
 	}
 
 	// check whats been entered
-	store, _ := sqlr.New[*AwsCost](ctx, log, conf)
+	store, _ := sqlr.NewWithSelect[*AwsCost](ctx, log, conf)
 	tSrv, _ := NewService(ctx, log, conf, store)
 
 	all, err := tSrv.GetAll()

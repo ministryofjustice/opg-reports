@@ -35,7 +35,7 @@ func TestHandleGetAwsCostsTop20(t *testing.T) {
 	// capture the inserted data
 	inserted := seed(ctx, lg, cfg)
 	// generate a repository and service
-	repository, _ := sqlr.New[*AwsCost](ctx, lg, cfg)
+	repository, _ := sqlr.NewWithSelect[*AwsCost](ctx, lg, cfg)
 	service, _ := awscost.NewService(ctx, lg, cfg, repository)
 	// grab the result
 	response, err := handleGetAwsCostsTop20(ctx, lg, cfg, service, nil)

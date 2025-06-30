@@ -10,7 +10,7 @@ import (
 // Insert creates a transaction for each bound statement and will fail if any
 // insert fails.
 // On fail a rollback is triggered
-func (self *Repository[T]) Insert(boundStatements ...*BoundStatement) (err error) {
+func (self *Repository) Insert(boundStatements ...*BoundStatement) (err error) {
 	var (
 		db          *sqlx.DB
 		transaction *sqlx.Tx

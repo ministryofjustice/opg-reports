@@ -14,7 +14,7 @@ type Service[T interfaces.Model] struct {
 	ctx   context.Context
 	log   *slog.Logger
 	conf  *config.Config
-	store *sqlr.Repository[T]
+	store *sqlr.RepositoryWithSelect[T]
 }
 
 // Close function to do any clean up
@@ -39,7 +39,7 @@ func (self *Service[T]) GetAllAccounts() (accounts []T, err error) {
 }
 
 // NewService creates a service using the values passed
-func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, store *sqlr.Repository[T]) (srv *Service[T], err error) {
+func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, store *sqlr.RepositoryWithSelect[T]) (srv *Service[T], err error) {
 	srv = &Service[T]{}
 	if log == nil {
 		err = fmt.Errorf("no logger passed for awsaccount service")
@@ -68,7 +68,7 @@ func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf 
 // If there is an error creating the service, then nil is returned
 func Default[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config) (srv *Service[T]) {
 
-	store, err := sqlr.New[T](ctx, log, conf)
+	store, err := sqlr.NewWithSelect[T](ctx, log, conf)
 	if err != nil {
 		log.Error("error creating sqlr repository", "error", err.Error())
 		return nil

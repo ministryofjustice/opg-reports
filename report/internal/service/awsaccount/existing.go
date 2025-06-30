@@ -34,7 +34,7 @@ import (
 func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, service interfaces.MetadataService[T]) (err error) {
 	var (
 		data     []T
-		store    *sqlr.Repository[*AwsAccountImport]
+		store    *sqlr.RepositoryWithSelect[*AwsAccountImport]
 		inserts  []*sqlr.BoundStatement = []*sqlr.BoundStatement{}
 		owner    string                 = conf.Github.Organisation
 		repo     string                 = conf.Github.Metadata.Repository
@@ -61,7 +61,7 @@ func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *c
 	log.With("count", len(inserts)).Debug("[awsaccount] records to insert ...")
 
 	log.Debug("[awsaccount] creating writer store for insert...")
-	store, err = sqlr.New[*AwsAccountImport](ctx, log, conf)
+	store, err = sqlr.NewWithSelect[*AwsAccountImport](ctx, log, conf)
 	if err != nil {
 		return
 	}

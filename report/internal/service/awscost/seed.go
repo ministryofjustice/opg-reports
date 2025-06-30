@@ -51,7 +51,7 @@ func defaultSeeds() (seeds []*sqlr.BoundStatement) {
 // If seeds is nil then defaultSeeds are used instead.
 func Seed(ctx context.Context, log *slog.Logger, conf *config.Config, seeds []*sqlr.BoundStatement) (inserted []*sqlr.BoundStatement, err error) {
 	var (
-		store *sqlr.Repository[*AwsCost]
+		store *sqlr.RepositoryWithSelect[*AwsCost]
 	)
 
 	log = log.With("operation", "Seed", "service", "awscost")
@@ -61,7 +61,7 @@ func Seed(ctx context.Context, log *slog.Logger, conf *config.Config, seeds []*s
 	}
 
 	// create the store for inserting
-	store, err = sqlr.New[*AwsCost](ctx, log, conf)
+	store, err = sqlr.NewWithSelect[*AwsCost](ctx, log, conf)
 	if err != nil {
 		return
 	}

@@ -23,7 +23,7 @@ func TestServiceNew(t *testing.T) {
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test-awscost-connection.db")
 
 	lg := utils.Logger("ERROR", "TEXT")
-	rep, _ := sqlr.New[*awscost.AwsCost](ctx, lg, cfg)
+	rep, _ := sqlr.NewWithSelect[*awscost.AwsCost](ctx, lg, cfg)
 
 	srv, err = awscost.NewService(ctx, lg, cfg, rep)
 	if err != nil {

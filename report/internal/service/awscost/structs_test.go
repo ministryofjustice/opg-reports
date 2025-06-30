@@ -27,7 +27,7 @@ func TestGetGroupedCostsOptions(t *testing.T) {
 	team.Seed(ctx, lg, cfg, nil)
 	awsaccount.Seed(ctx, lg, cfg, nil)
 	Seed(ctx, lg, cfg, nil)
-	repo, err := sqlr.New[*AwsCost](ctx, lg, cfg)
+	repo, err := sqlr.NewWithSelect[*AwsCost](ctx, lg, cfg)
 
 	opts := &GetGroupedCostsOptions{
 		StartDate:   "2024-01",

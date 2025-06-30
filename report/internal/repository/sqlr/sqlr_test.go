@@ -24,7 +24,7 @@ func TestRepositoryNew(t *testing.T) {
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test.db")
 	lg := utils.Logger("ERROR", "TEXT")
 
-	_, err = New[*tModel](ctx, lg, cfg)
+	_, err = New(ctx, lg, cfg)
 
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
@@ -44,7 +44,7 @@ func TestRepositoryInsertAndSelectWithTestTable(t *testing.T) {
 
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "testinsert.db")
 
-	repo, err := New[*tModel](ctx, lg, cfg)
+	repo, err := New(ctx, lg, cfg)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
@@ -75,7 +75,9 @@ func TestRepositoryInsertAndSelectWithTestTable(t *testing.T) {
 	// Select without any params
 	stmt = `SELECT id, name FROM test`
 	sel := &BoundStatement{Statement: stmt}
-	err = repo.Select(sel)
+
+	reader, _ := NewWithSelect[*tModel](ctx, lg, cfg)
+	err = reader.Select(sel)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}

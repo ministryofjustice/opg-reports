@@ -22,7 +22,7 @@ func TestAwsAccountServiceNew(t *testing.T) {
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test-awsaccounts-connection.db")
 
 	lg := utils.Logger("ERROR", "TEXT")
-	rep, _ := sqlr.New[*awsaccount.AwsAccount](ctx, lg, cfg)
+	rep, _ := sqlr.NewWithSelect[*awsaccount.AwsAccount](ctx, lg, cfg)
 
 	srv, err = awsaccount.NewService(ctx, lg, cfg, rep)
 	if err != nil {

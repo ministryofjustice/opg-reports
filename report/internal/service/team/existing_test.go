@@ -68,7 +68,7 @@ func TestTeamExisting(t *testing.T) {
 	}
 	// now fetch the rows to make sure count matches
 	// grab team store setup to check after the insert
-	store, _ := sqlr.New[*Team](ctx, log, conf)
+	store, _ := sqlr.NewWithSelect[*Team](ctx, log, conf)
 	tSrv, _ := NewService(ctx, log, conf, store)
 
 	all, _ := tSrv.GetAllTeams()

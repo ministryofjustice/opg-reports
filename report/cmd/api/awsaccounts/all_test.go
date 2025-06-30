@@ -33,7 +33,7 @@ func TestHandleGetAwsAccountsAll(t *testing.T) {
 	// capture the inserted data
 	inserted := seed(ctx, lg, cfg)
 	// generate a repository and service
-	repository, _ := sqlr.New[*AwsAccount](ctx, lg, cfg)
+	repository, _ := sqlr.NewWithSelect[*AwsAccount](ctx, lg, cfg)
 	service, _ := awsaccount.NewService(ctx, lg, cfg, repository)
 	// grab the result
 	response, err := handleGetAwsAccountsAll(ctx, lg, cfg, service, nil)

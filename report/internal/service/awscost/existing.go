@@ -47,7 +47,7 @@ import (
 // interface: ImporterExistingCommand
 func Existing(ctx context.Context, log *slog.Logger, conf *config.Config, service interfaces.S3Service[*AwsCostImport]) (err error) {
 	var (
-		store         *sqlr.Repository[*AwsCostImport]
+		store         *sqlr.RepositoryWithSelect[*AwsCostImport]
 		bucket        string   = conf.Aws.Buckets.Costs.Name
 		prefix        string   = conf.Aws.Buckets.Costs.Prefix
 		files         []string = []string{}
@@ -71,7 +71,7 @@ func Existing(ctx context.Context, log *slog.Logger, conf *config.Config, servic
 	log.Info("[awscost] starting existing records import ...")
 
 	log.Debug("[awscost] creating datastore ...")
-	store, err = sqlr.New[*AwsCostImport](ctx, log, conf)
+	store, err = sqlr.NewWithSelect[*AwsCostImport](ctx, log, conf)
 	if err != nil {
 		return
 	}

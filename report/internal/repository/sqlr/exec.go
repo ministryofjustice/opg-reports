@@ -10,7 +10,7 @@ import (
 // Exec runs a complete statement against the database and returns any error
 // Used for mostly calls without parameters (like create / delete) that either
 // return no result or simple value
-func (self *Repository[T]) Exec(statement string) (result sql.Result, err error) {
+func (self *Repository) Exec(statement string) (result sql.Result, err error) {
 	var (
 		db          *sqlx.DB
 		transaction *sqlx.Tx

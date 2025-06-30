@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 
 	"github.com/google/go-github/v62/github"
@@ -116,12 +117,12 @@ func (self *Repository) GetLatestRelease(organisation string, repositoryName str
 // GetLatestReleaseAsset gets the latest release and then checks for an asset with a matching name.
 //
 // If the regex is true a regex is used to match against the asset name
-func (self *Repository) GetLatestReleaseAsset(organisation string, repositoryName string, assetName string, regex bool) (asset *github.ReleaseAsset, err error) {
+func (self *Repository) GetLatestReleaseAsset(organisation string, repositoryName string, assetName string, useRegex bool) (asset *github.ReleaseAsset, err error) {
 	// setup
 	var (
 		release *github.RepositoryRelease
-		re      *regexp.Regexp
-		log     = self.log.With("repositoryName", repositoryName, "operation", "GetLatestReleaseAsset", "assetName", assetName)
+		re      *regexp.Regexp = regexp.MustCompile(assetName)
+		log                    = self.log.With("repositoryName", repositoryName, "operation", "GetLatestReleaseAsset", "assetName", assetName)
 	)
 	// get the release
 	release, err = self.GetLatestRelease(organisation, repositoryName)
@@ -129,20 +130,17 @@ func (self *Repository) GetLatestReleaseAsset(organisation string, repositoryNam
 	if err != nil || release == nil {
 		return
 	}
-	if regex {
-		re = regexp.MustCompile(assetName)
-	}
+
 	// if there are no assets, return but without an error
 	if len(release.Assets) == 0 {
 		log.With("assets", len(release.Assets), "id", *release.ID).Warn("no assets found")
 		return
 	}
-
 	// check each asset and return when asset match is found
 	for _, a := range release.Assets {
 		var nm = *a.Name
 		// if regex is enabled, then run the re check against the name
-		if regex && len(re.FindStringIndex(nm)) > 0 {
+		if useRegex && len(re.FindStringIndex(nm)) > 0 {
 			asset = a
 			return
 		} else if nm == assetName {
@@ -194,6 +192,27 @@ func (self *Repository) DownloadReleaseAsset(organisation string, repositoryName
 	if err == nil {
 		destination, err = os.Open(destinationFilePath)
 	}
+
+	return
+}
+
+func (self *Repository) DownloadReleaseAssetByName(organisation string, repositoryName string, assetName string, regex bool, directory string) (downloadedTo string, err error) {
+	var asset *github.ReleaseAsset
+
+	downloadedTo = directory
+	asset, err = self.GetLatestReleaseAsset(organisation, repositoryName, assetName, regex)
+	if err != nil || asset == nil {
+		self.log.Error("error getting latest release asset", "err", err.Error())
+		return
+	}
+
+	downloadedTo = filepath.Join(downloadedTo, asset.GetName())
+	f, err := self.DownloadReleaseAsset(organisation, repositoryName, *asset.ID, downloadedTo)
+	if err != nil {
+		self.log.Error("error downloading the release asset", "err", err.Error())
+		return
+	}
+	f.Close()
 
 	return
 }

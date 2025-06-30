@@ -20,7 +20,7 @@ func TestTeamServiceNew(t *testing.T) {
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test-team-connection.db")
 
 	lg := utils.Logger("ERROR", "TEXT")
-	rep, _ := sqlr.New[*Team](ctx, lg, cfg)
+	rep, _ := sqlr.NewWithSelect[*Team](ctx, lg, cfg)
 
 	srv, err = NewService(ctx, lg, cfg, rep)
 	if err != nil {

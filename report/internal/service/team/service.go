@@ -14,7 +14,7 @@ type Service[T interfaces.Model] struct {
 	ctx   context.Context
 	log   *slog.Logger
 	conf  *config.Config
-	store *sqlr.Repository[T]
+	store *sqlr.RepositoryWithSelect[T]
 }
 
 // Close function to do any clean up
@@ -39,7 +39,7 @@ func (self *Service[T]) GetAllTeams() (teams []T, err error) {
 	return
 }
 
-func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, store *sqlr.Repository[T]) (srv *Service[T], err error) {
+func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, store *sqlr.RepositoryWithSelect[T]) (srv *Service[T], err error) {
 	srv = &Service[T]{}
 
 	if log == nil {
@@ -67,7 +67,7 @@ func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf 
 // Default generates the default repository and then the service
 func Default[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config) (srv *Service[T]) {
 
-	store, err := sqlr.New[T](ctx, log, conf)
+	store, err := sqlr.NewWithSelect[T](ctx, log, conf)
 	if err != nil {
 		return nil
 	}
