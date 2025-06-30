@@ -7,7 +7,7 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/awsaccount"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/awsaccount"
 )
 
 // GetAwsAccountsAllResponse

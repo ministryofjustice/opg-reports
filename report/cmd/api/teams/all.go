@@ -7,7 +7,7 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/team"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/team"
 )
 
 // RegisterAllTeams registers the `get-teams-all` endpoint

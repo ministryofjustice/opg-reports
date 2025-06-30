@@ -14,6 +14,11 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/config"
 )
 
+// Repository
+//
+// interfaces:
+//   - Repository
+//   - S3Repository
 type Repository struct {
 	ctx  context.Context
 	conf *config.Config

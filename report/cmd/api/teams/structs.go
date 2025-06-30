@@ -1,6 +1,6 @@
 package teams
 
-import "github.com/ministryofjustice/opg-reports/report/internal/team"
+import "github.com/ministryofjustice/opg-reports/report/internal/service/team"
 
 // Team is a localised version of team.Team without fields removed for api
 // sanitisation

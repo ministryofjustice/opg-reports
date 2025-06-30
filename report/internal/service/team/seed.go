@@ -5,7 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/sqldb"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqldb"
 )
 
 // defaultSeeds provides a series of known accounts to be inserted into the database

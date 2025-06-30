@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ministryofjustice/opg-reports/report/internal/sqldb"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqldb"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 

@@ -9,8 +9,8 @@ import (
 
 	"github.com/google/go-github/v62/github"
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/gh"
 	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/gh"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 

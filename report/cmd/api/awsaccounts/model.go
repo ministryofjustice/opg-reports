@@ -1,7 +1,7 @@
 package awsaccounts
 
 import (
-	"github.com/ministryofjustice/opg-reports/report/internal/awsaccount"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/awsaccount"
 )
 
 // AwsAccount is an API version of the database record - so

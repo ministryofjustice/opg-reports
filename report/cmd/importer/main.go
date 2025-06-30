@@ -1,7 +1,7 @@
 /*
 Import data into a database
 
-	importer
+	import [COMMAND]
 */
 package main
 
@@ -10,29 +10,23 @@ import (
 	"log/slog"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/awsaccount"
-	"github.com/ministryofjustice/opg-reports/report/internal/awscost"
-	"github.com/ministryofjustice/opg-reports/report/internal/opgmetadata"
-	"github.com/ministryofjustice/opg-reports/report/internal/s3"
-	"github.com/ministryofjustice/opg-reports/report/internal/sqldb"
-	"github.com/ministryofjustice/opg-reports/report/internal/team"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/opgmetadata"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/awsaccount"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/awscost"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/s3"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/team"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
+// set up in the init
 var (
-	err             error
-	conf, viperConf                 = config.New() // Get the configuration data and the viper config for mapping to cli args
-	ctx             context.Context = context.Background()
-	log             *slog.Logger    = utils.Logger(conf.Log.Level, conf.Log.Type)
+	conf      *config.Config
+	viperConf *viper.Viper
+	ctx       context.Context
+	log       *slog.Logger
 )
-
-var (
-	s3Bucket string = "" // s3Bucket tracks the --s3-bucket arg that determines if some data is fetched from existing json or from api
-)
-
-type seedFunc func(ctx context.Context, log *slog.Logger, conf *config.Config, seeds []*sqldb.BoundStatement) (inserted []*sqldb.BoundStatement, err error)
-type existingFunc func(ctx context.Context, log *slog.Logger, conf *config.Config) (err error)
 
 // root command
 var rootCmd = &cobra.Command{
@@ -42,6 +36,8 @@ var rootCmd = &cobra.Command{
 	CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
 }
 
+// existingCmd imports all the currently know and supported previous data
+// from earlier versions of reporting that are mostly stored in s3 buckets
 var existingCmd = &cobra.Command{
 	Use:   "existing",
 	Short: "existing imports all known existing data files.",
@@ -70,36 +66,33 @@ var existingCmd = &cobra.Command{
 	},
 }
 
+// fixturesCmd creates the database with simple, known fixture data that is used for testing and dev environments
 var fixturesCmd = &cobra.Command{
 	Use:   "fixtures",
 	Short: "fixtures uses known data to populate the database",
 	Long:  `fixtures empties and then populates the database with a series of known data sets to allow a create test instance.`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 
-		err = seedData(ctx, log, conf,
-			team.Seed,
-			awsaccount.Seed,
-			awscost.Seed,
-		)
+		if _, err = team.Seed(ctx, log, conf, nil); err != nil {
+			return
+		}
+		if _, err = awsaccount.Seed(ctx, log, conf, nil); err != nil {
+			return
+		}
+		if _, err = awscost.Seed(ctx, log, conf, nil); err != nil {
+			return
+		}
+
 		return
 	},
 }
 
-// seedData runs seed calls
-func seedData(ctx context.Context, log *slog.Logger, conf *config.Config, seeds ...seedFunc) (err error) {
-
-	for _, lambda := range seeds {
-		_, err = lambda(ctx, log, conf, nil)
-		if err != nil {
-			return
-		}
-	}
-
-	return
-}
-
 // init
 func init() {
+	conf, viperConf = config.New()
+	ctx = context.Background()
+	log = utils.Logger(conf.Log.Level, conf.Log.Type)
+
 	// Global flags for all commands:
 	// bind the database.path config item
 	rootCmd.PersistentFlags().StringVar(&conf.Database.Path, "database.path", conf.Database.Path, "Path to database file")

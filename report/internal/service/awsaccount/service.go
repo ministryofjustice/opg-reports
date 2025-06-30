@@ -1,4 +1,4 @@
-package team
+package awsaccount
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
-	"github.com/ministryofjustice/opg-reports/report/internal/sqldb"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqldb"
 )
 
 type Service[T interfaces.Model] struct {
@@ -17,62 +17,69 @@ type Service[T interfaces.Model] struct {
 	store *sqldb.Repository[T]
 }
 
+func (self *Service[T]) GetStore() *sqldb.Repository[T] {
+	return self.store
+}
+
 // Close function to do any clean up
 func (self *Service[T]) Close() (err error) {
 	return
 }
 
-// GetAllTeams returns all teams as a slice from the database
-// Calls the database
-func (self *Service[T]) GetAllTeams() (teams []T, err error) {
+// GetAllAccounts returns all accounts as a slice from the database
+func (self *Service[T]) GetAllAccounts() (accounts []T, err error) {
 	var selectStmt = &sqldb.BoundStatement{Statement: stmtSelectAll}
-	var log = self.log.With("operation", "GetAllTeams")
+	var log = self.log.With("operation", "GetAllAccounts")
 
-	teams = []T{}
-	log.Debug("getting all teams from database...")
+	accounts = []T{}
+	log.Debug("getting all awsaccounts from database...")
 
+	// cast the data back to struct
 	if err = self.store.Select(selectStmt); err == nil {
-		// cast the data back to struct
-		teams = selectStmt.Returned.([]T)
+		accounts = selectStmt.Returned.([]T)
 	}
 
 	return
 }
 
+// NewService creates a service using the values passed
 func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, store *sqldb.Repository[T]) (srv *Service[T], err error) {
 	srv = &Service[T]{}
-
 	if log == nil {
-		err = fmt.Errorf("no logger passed for team service")
+		err = fmt.Errorf("no logger passed for awsaccount service")
 		return
 	}
 	if conf == nil {
-		err = fmt.Errorf("no config passed for team service")
+		err = fmt.Errorf("no config passed for awsaccount service")
 		return
 	}
 	if store == nil {
-		err = fmt.Errorf("no repository passed for team service")
+		err = fmt.Errorf("no repository passed for awsaccount service")
 		return
 	}
 
 	srv = &Service[T]{
 		ctx:   ctx,
-		log:   log.With("service", "team"),
+		log:   log.With("service", "awsaccount"),
 		conf:  conf,
 		store: store,
 	}
 	return
 }
 
-// Default generates the default repository and then the service
+// Default generates the default repository as and then the service
+//
+// If there is an error creating the service, then nil is returned
 func Default[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config) (srv *Service[T]) {
 
 	store, err := sqldb.New[T](ctx, log, conf)
 	if err != nil {
+		log.Error("error creating sqldb repository", "error", err.Error())
 		return nil
 	}
 	srv, err = NewService[T](ctx, log, conf, store)
 	if err != nil {
+		log.Error("error creating awsaccount service", "error", err.Error())
 		return nil
 	}
 

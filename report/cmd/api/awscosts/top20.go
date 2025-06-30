@@ -7,7 +7,7 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/awscost"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/awscost"
 )
 
 // GetAwsCostsTop20Response

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/s3bucket"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/s3bucket"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 

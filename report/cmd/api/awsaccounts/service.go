@@ -5,8 +5,8 @@ import (
 	"log/slog"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/awsaccount"
 	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/awsaccount"
 )
 
 // Service is a small helper that fetches the service for awsaccount.AwsAccount related calls

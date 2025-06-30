@@ -7,7 +7,7 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/awscost"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/awscost"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
@@ -84,7 +84,6 @@ func handleGetAwsGroupedCosts(ctx context.Context, log *slog.Logger, conf *confi
 	}
 
 	costs, err = service.GetGroupedCosts(options)
-
 	if err != nil {
 		err = huma.Error500InternalServerError("failed find grouped costs", err)
 		return

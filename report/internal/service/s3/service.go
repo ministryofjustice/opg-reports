@@ -9,20 +9,21 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
-	"github.com/ministryofjustice/opg-reports/report/internal/s3bucket"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/s3bucket"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
+// Service is used to download, covnert and return data files from within s3 buckets.
+//
+// interfaces:
+//   - Service
+//   - S3Service
 type Service[T interfaces.Model] struct {
 	ctx       context.Context
 	log       *slog.Logger
 	conf      *config.Config
-	store     *s3bucket.Repository
+	store     interfaces.S3Repository
 	directory string
-}
-
-func (self *Service[T]) GetStore() *s3bucket.Repository {
-	return self.store
 }
 
 // SetDirectory changes the download / storage location
@@ -113,7 +114,7 @@ func (self *Service[T]) DownloadAndReturnData(bucket string, prefix string) (dat
 }
 
 // NewService returns a configured s3 service object
-func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, store *s3bucket.Repository) (srv *Service[T], err error) {
+func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, store interfaces.S3Repository) (srv *Service[T], err error) {
 	if log == nil {
 		return nil, fmt.Errorf("no logger passed for s3 service")
 	}

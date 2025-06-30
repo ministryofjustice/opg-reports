@@ -6,7 +6,7 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
-	"github.com/ministryofjustice/opg-reports/report/internal/team"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/team"
 )
 
 // Service is a small helper that fetches the service for team.Team related calls
