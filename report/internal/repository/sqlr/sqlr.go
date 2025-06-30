@@ -58,7 +58,6 @@ func (self *Repository) connection() (db *sqlx.DB, err error) {
 
 // New creates a new repo
 func New(ctx context.Context, log *slog.Logger, conf *config.Config) (rp *Repository, err error) {
-	rp = &Repository{}
 
 	if log == nil {
 		err = fmt.Errorf("no logger passed for %s", label)
@@ -69,10 +68,9 @@ func New(ctx context.Context, log *slog.Logger, conf *config.Config) (rp *Reposi
 		return
 	}
 
-	log = log.WithGroup(label)
 	rp = &Repository{
 		ctx:  ctx,
-		log:  log,
+		log:  log.WithGroup(label),
 		conf: conf,
 	}
 
@@ -95,7 +93,6 @@ func NewWithSelect[T Model](ctx context.Context, log *slog.Logger, conf *config.
 		return
 	}
 
-	log = log.WithGroup(label)
 	rps = &RepositoryWithSelect[T]{
 		Repository: Repository{
 			ctx:  ctx,
@@ -103,7 +100,7 @@ func NewWithSelect[T Model](ctx context.Context, log *slog.Logger, conf *config.
 			conf: conf,
 		},
 		ctx:  ctx,
-		log:  log,
+		log:  log.WithGroup(label),
 		conf: conf,
 	}
 
@@ -112,5 +109,21 @@ func NewWithSelect[T Model](ctx context.Context, log *slog.Logger, conf *config.
 		err = rps.init()
 	}
 
+	return
+}
+
+func Default(ctx context.Context, log *slog.Logger, conf *config.Config) (rp *Repository) {
+	rp, err := New(ctx, log, conf)
+	if err != nil {
+		log.Error("error with default", "err", err.Error())
+	}
+	return
+}
+
+func DefaultWithSelect[T Model](ctx context.Context, log *slog.Logger, conf *config.Config) (rp *RepositoryWithSelect[T]) {
+	rp, err := NewWithSelect[T](ctx, log, conf)
+	if err != nil {
+		log.Error("error with default", "err", err.Error())
+	}
 	return
 }

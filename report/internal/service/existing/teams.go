@@ -51,6 +51,11 @@ type teamDownloadOptions struct {
 func (self *Service) InsertTeams(ghs githubr.Releaser, sq sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
 	var dir string
 
+	if ghs == nil || sq == nil {
+		err = fmt.Errorf("params were nil")
+		return
+	}
+
 	dir, err = os.MkdirTemp("./", "__download-gh-*")
 	if err != nil {
 		return

@@ -49,22 +49,12 @@ var existingCmd = &cobra.Command{
 	Long:  `existing imports all known data files (generally json) from a mix of sources (github, s3 buckets) that covers current and prior reporting data to ensure completeness`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var (
-			ghr *githubr.Repository
-			sq  *sqlr.Repository
+			ghr          *githubr.Repository = githubr.Default(ctx, log, conf)
+			sq           *sqlr.Repository    = sqlr.Default(ctx, log, conf)
+			existService *existing.Service   = existing.Default(ctx, log, conf)
 		)
 
-		ghr, err = githubr.New(ctx, log, conf)
-		if err != nil {
-			return
-		}
-		sq, err = sqlr.New(ctx, log, conf)
-		if err != nil {
-			return
-		}
-
-		existSrv, _ := existing.New(ctx, log, conf)
-
-		existSrv.InsertTeams(ghr, sq)
+		existService.InsertTeams(ghr, sq)
 
 		// // repos
 		// var (

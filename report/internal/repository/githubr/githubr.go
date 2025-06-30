@@ -26,7 +26,6 @@ type GetReleaseOptions struct {
 }
 
 func New(ctx context.Context, log *slog.Logger, conf *config.Config) (rp *Repository, err error) {
-	rp = &Repository{}
 
 	if log == nil {
 		err = fmt.Errorf("no logger passed for %s", label)
@@ -37,12 +36,19 @@ func New(ctx context.Context, log *slog.Logger, conf *config.Config) (rp *Reposi
 		return
 	}
 
-	log = log.WithGroup(label)
 	rp = &Repository{
 		ctx:  ctx,
-		log:  log,
+		log:  log.WithGroup(label),
 		conf: conf,
 	}
 
+	return
+}
+
+func Default(ctx context.Context, log *slog.Logger, conf *config.Config) (rp *Repository) {
+	rp, err := New(ctx, log, conf)
+	if err != nil {
+		log.Error("error with default", "err", err.Error())
+	}
 	return
 }

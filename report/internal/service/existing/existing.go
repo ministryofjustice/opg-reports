@@ -31,3 +31,11 @@ func New(ctx context.Context, log *slog.Logger, conf *config.Config) (srv *Servi
 	}
 	return
 }
+
+func Default(ctx context.Context, log *slog.Logger, conf *config.Config) (srv *Service) {
+	srv, err := New(ctx, log, conf)
+	if err != nil {
+		log.Error("error with default", "err", err.Error())
+	}
+	return
+}
