@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqldb"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/awsaccount"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/team"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
@@ -15,7 +15,7 @@ func TestGetGroupedCostsOptions(t *testing.T) {
 	var (
 		err   error
 		valid bool
-		stmt  *sqldb.BoundStatement
+		stmt  *sqlr.BoundStatement
 		data  *sqlParams
 		dir   = t.TempDir()
 		ctx   = t.Context()
@@ -27,7 +27,7 @@ func TestGetGroupedCostsOptions(t *testing.T) {
 	team.Seed(ctx, lg, cfg, nil)
 	awsaccount.Seed(ctx, lg, cfg, nil)
 	Seed(ctx, lg, cfg, nil)
-	repo, err := sqldb.New[*AwsCost](ctx, lg, cfg)
+	repo, err := sqlr.New[*AwsCost](ctx, lg, cfg)
 
 	opts := &GetGroupedCostsOptions{
 		StartDate:   "2024-01",

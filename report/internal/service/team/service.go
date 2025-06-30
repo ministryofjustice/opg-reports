@@ -7,14 +7,14 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqldb"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
 )
 
 type Service[T interfaces.Model] struct {
 	ctx   context.Context
 	log   *slog.Logger
 	conf  *config.Config
-	store *sqldb.Repository[T]
+	store *sqlr.Repository[T]
 }
 
 // Close function to do any clean up
@@ -25,7 +25,7 @@ func (self *Service[T]) Close() (err error) {
 // GetAllTeams returns all teams as a slice from the database
 // Calls the database
 func (self *Service[T]) GetAllTeams() (teams []T, err error) {
-	var selectStmt = &sqldb.BoundStatement{Statement: stmtSelectAll}
+	var selectStmt = &sqlr.BoundStatement{Statement: stmtSelectAll}
 	var log = self.log.With("operation", "GetAllTeams")
 
 	teams = []T{}
@@ -39,7 +39,7 @@ func (self *Service[T]) GetAllTeams() (teams []T, err error) {
 	return
 }
 
-func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, store *sqldb.Repository[T]) (srv *Service[T], err error) {
+func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, store *sqlr.Repository[T]) (srv *Service[T], err error) {
 	srv = &Service[T]{}
 
 	if log == nil {
@@ -67,7 +67,7 @@ func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf 
 // Default generates the default repository and then the service
 func Default[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config) (srv *Service[T]) {
 
-	store, err := sqldb.New[T](ctx, log, conf)
+	store, err := sqlr.New[T](ctx, log, conf)
 	if err != nil {
 		return nil
 	}

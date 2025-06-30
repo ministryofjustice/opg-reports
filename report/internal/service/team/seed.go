@@ -5,13 +5,13 @@ import (
 	"log/slog"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqldb"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
 )
 
 // defaultSeeds provides a series of known accounts to be inserted into the database
-func defaultSeeds() (seeds []*sqldb.BoundStatement) {
+func defaultSeeds() (seeds []*sqlr.BoundStatement) {
 
-	seeds = []*sqldb.BoundStatement{
+	seeds = []*sqlr.BoundStatement{
 		{Statement: stmtImport, Data: &Team{Name: "TeamA"}},
 		{Statement: stmtImport, Data: &Team{Name: "TeamB"}},
 		{Statement: stmtImport, Data: &Team{Name: "TeamC"}},
@@ -26,9 +26,9 @@ func defaultSeeds() (seeds []*sqldb.BoundStatement) {
 // on the table before inserting new seeds
 //
 // If seeds is nil then defaultSeeds are used instead.
-func Seed(ctx context.Context, log *slog.Logger, conf *config.Config, seeds []*sqldb.BoundStatement) (inserted []*sqldb.BoundStatement, err error) {
+func Seed(ctx context.Context, log *slog.Logger, conf *config.Config, seeds []*sqlr.BoundStatement) (inserted []*sqlr.BoundStatement, err error) {
 	var (
-		store *sqldb.Repository[*Team]
+		store *sqlr.Repository[*Team]
 	)
 
 	log = log.With("operation", "Seed", "service", "team")
@@ -38,7 +38,7 @@ func Seed(ctx context.Context, log *slog.Logger, conf *config.Config, seeds []*s
 	}
 
 	// create the store for inserting
-	store, err = sqldb.New[*Team](ctx, log, conf)
+	store, err = sqlr.New[*Team](ctx, log, conf)
 	if err != nil {
 		return
 	}

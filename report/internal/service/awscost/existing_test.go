@@ -8,7 +8,7 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqldb"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/awsaccount"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/team"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
@@ -119,7 +119,7 @@ func TestAwsCostExisting(t *testing.T) {
 	}
 
 	// check whats been entered
-	store, _ := sqldb.New[*AwsCost](ctx, log, conf)
+	store, _ := sqlr.New[*AwsCost](ctx, log, conf)
 	tSrv, _ := NewService(ctx, log, conf, store)
 
 	all, err := tSrv.GetAll()

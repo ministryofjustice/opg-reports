@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqldb"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/awsaccount"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/awscost"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/team"
@@ -23,7 +23,7 @@ func TestServiceNew(t *testing.T) {
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test-awscost-connection.db")
 
 	lg := utils.Logger("ERROR", "TEXT")
-	rep, _ := sqldb.New[*awscost.AwsCost](ctx, lg, cfg)
+	rep, _ := sqlr.New[*awscost.AwsCost](ctx, lg, cfg)
 
 	srv, err = awscost.NewService(ctx, lg, cfg, rep)
 	if err != nil {

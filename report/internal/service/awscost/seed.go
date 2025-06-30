@@ -6,15 +6,15 @@ import (
 	"time"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqldb"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
 // defaultSeeds provides a series of known costs to be inserted into the database
-func defaultSeeds() (seeds []*sqldb.BoundStatement) {
+func defaultSeeds() (seeds []*sqlr.BoundStatement) {
 	var date = time.Now().UTC().Format(utils.DATE_FORMATS.YMD)
 
-	seeds = []*sqldb.BoundStatement{
+	seeds = []*sqlr.BoundStatement{
 		{Statement: stmtImport, Data: &AwsCostImport{AwsCost: AwsCost{Region: "eu-west-1", Service: "ECS", Date: date, Cost: "-0.01"}, AccountID: "001A"}},
 		{Statement: stmtImport, Data: &AwsCostImport{AwsCost: AwsCost{Region: "eu-west-1", Service: "S3", Date: date, Cost: "10.10"}, AccountID: "001A"}},
 		{Statement: stmtImport, Data: &AwsCostImport{AwsCost: AwsCost{Region: "eu-west-1", Service: "RDS", Date: date, Cost: "100.57"}, AccountID: "001A"}},
@@ -49,9 +49,9 @@ func defaultSeeds() (seeds []*sqldb.BoundStatement) {
 // on the table before inserting new seeds
 //
 // If seeds is nil then defaultSeeds are used instead.
-func Seed(ctx context.Context, log *slog.Logger, conf *config.Config, seeds []*sqldb.BoundStatement) (inserted []*sqldb.BoundStatement, err error) {
+func Seed(ctx context.Context, log *slog.Logger, conf *config.Config, seeds []*sqlr.BoundStatement) (inserted []*sqlr.BoundStatement, err error) {
 	var (
-		store *sqldb.Repository[*AwsCost]
+		store *sqlr.Repository[*AwsCost]
 	)
 
 	log = log.With("operation", "Seed", "service", "awscost")
@@ -61,7 +61,7 @@ func Seed(ctx context.Context, log *slog.Logger, conf *config.Config, seeds []*s
 	}
 
 	// create the store for inserting
-	store, err = sqldb.New[*AwsCost](ctx, log, conf)
+	store, err = sqlr.New[*AwsCost](ctx, log, conf)
 	if err != nil {
 		return
 	}

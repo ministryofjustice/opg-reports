@@ -1,9 +1,5 @@
 package interfaces
 
-type Service interface {
-	Close() (err error)
-}
-
 type DirService interface {
 	SetDirectory(dir string)
 	GetDirectory() string

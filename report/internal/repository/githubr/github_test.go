@@ -1,4 +1,4 @@
-package github
+package githubr
 
 // check interfaces are correct
 var (

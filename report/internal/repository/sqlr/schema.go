@@ -1,4 +1,4 @@
-package sqldb
+package sqlr
 
 // SCHEMA contains all of the database tables and indexes
 const SCHEMA string = `

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqldb"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
@@ -39,7 +39,7 @@ type sqlParams struct {
 // values and :params for `stmGroupedCosts`.
 //
 // It returns the bound statement and generated data object
-func (self *GetGroupedCostsOptions) Statement() (bound *sqldb.BoundStatement, params *sqlParams) {
+func (self *GetGroupedCostsOptions) Statement() (bound *sqlr.BoundStatement, params *sqlParams) {
 	var (
 		stmt            = stmGroupedCosts
 		selected string = ""
@@ -135,6 +135,6 @@ func (self *GetGroupedCostsOptions) Statement() (bound *sqldb.BoundStatement, pa
 	stmt = strings.ReplaceAll(stmt, "{GROUP_BY}", groupby)
 	stmt = strings.ReplaceAll(stmt, "{ORDER_BY}", orderby)
 
-	bound = &sqldb.BoundStatement{Data: params, Statement: stmt}
+	bound = &sqlr.BoundStatement{Data: params, Statement: stmt}
 	return
 }

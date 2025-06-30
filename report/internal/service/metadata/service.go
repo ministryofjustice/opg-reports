@@ -10,7 +10,7 @@ import (
 	"github.com/google/go-github/v62/github"
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/gh"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/githubr"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
@@ -18,7 +18,7 @@ type Service[T interfaces.Model] struct {
 	ctx       context.Context
 	log       *slog.Logger
 	conf      *config.Config
-	store     interfaces.GithubRepository
+	store     githubr.Releaser
 	directory string
 }
 
@@ -127,9 +127,9 @@ func (self *Service[T]) DownloadAndExtractAsset(owner string, repository string,
 		downloadTo     string
 		extractTo      string
 		subDir         string
-		log            *slog.Logger   = self.log
-		ghs            *gh.Repository = self.store.(*gh.Repository)
-		dir            string         = self.GetDirectory()
+		log            *slog.Logger        = self.log
+		ghs            *githubr.Repository = self.store.(*githubr.Repository)
+		dir            string              = self.GetDirectory()
 	)
 	log = log.With("operation", "DownloadAndExtractAsset",
 		"repository", repository,
@@ -171,7 +171,7 @@ func (self *Service[T]) DownloadAndExtractAsset(owner string, repository string,
 }
 
 // NewService returns a configured opgmetadata service object
-func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, store interfaces.GithubRepository) (srv *Service[T], err error) {
+func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, store githubr.Releaser) (srv *Service[T], err error) {
 	if log == nil {
 		return nil, fmt.Errorf("no logger passed for opgmetadata service")
 	}
@@ -198,7 +198,7 @@ func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf 
 // Default generates the default gh repository and then the service
 func Default[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config) (srv *Service[T]) {
 
-	store, err := gh.New(ctx, log, conf)
+	store, err := githubr.New(ctx, log, conf)
 	if err != nil {
 		log.Error("error creating github repository for opgmetadata service", "error", err.Error())
 		return nil

@@ -7,7 +7,7 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqldb"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
@@ -47,7 +47,7 @@ import (
 // interface: ImporterExistingCommand
 func Existing(ctx context.Context, log *slog.Logger, conf *config.Config, service interfaces.S3Service[*AwsCostImport]) (err error) {
 	var (
-		store         *sqldb.Repository[*AwsCostImport]
+		store         *sqlr.Repository[*AwsCostImport]
 		bucket        string   = conf.Aws.Buckets.Costs.Name
 		prefix        string   = conf.Aws.Buckets.Costs.Prefix
 		files         []string = []string{}
@@ -71,7 +71,7 @@ func Existing(ctx context.Context, log *slog.Logger, conf *config.Config, servic
 	log.Info("[awscost] starting existing records import ...")
 
 	log.Debug("[awscost] creating datastore ...")
-	store, err = sqldb.New[*AwsCostImport](ctx, log, conf)
+	store, err = sqlr.New[*AwsCostImport](ctx, log, conf)
 	if err != nil {
 		return
 	}
@@ -82,8 +82,8 @@ func Existing(ctx context.Context, log *slog.Logger, conf *config.Config, servic
 
 	for _, file := range files {
 		var (
-			costs   []*AwsCostImport        = []*AwsCostImport{}
-			inserts []*sqldb.BoundStatement = []*sqldb.BoundStatement{}
+			costs   []*AwsCostImport       = []*AwsCostImport{}
+			inserts []*sqlr.BoundStatement = []*sqlr.BoundStatement{}
 		)
 		e := utils.StructFromJsonFile(file, &costs)
 		if e != nil {
@@ -91,7 +91,7 @@ func Existing(ctx context.Context, log *slog.Logger, conf *config.Config, servic
 		}
 		// for each file we need to generate the bounded sql statements
 		for _, row := range costs {
-			inserts = append(inserts, &sqldb.BoundStatement{Data: row, Statement: stmtImport})
+			inserts = append(inserts, &sqlr.BoundStatement{Data: row, Statement: stmtImport})
 		}
 		log.With("count", len(inserts), "file", file).Debug("[awscost] inserting records from file ...")
 		if e := store.Insert(inserts...); e != nil {

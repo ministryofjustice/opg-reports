@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/gh"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/githubr"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
@@ -25,7 +25,7 @@ func TestOpgMetaDataServiceDownloadAndExtract(t *testing.T) {
 		t.Skip("No GITHUB_TOKEN, skipping test")
 	}
 
-	ghs, _ := gh.New(ctx, log, conf)
+	ghs, _ := githubr.New(ctx, log, conf)
 	srv, _ := NewService[*testM](ctx, log, conf, ghs)
 	if srv == nil {
 		t.Errorf("error making service")
@@ -66,7 +66,7 @@ func TestOpgMetaDataServiceDownloadAndReturn(t *testing.T) {
 		t.Skip("No GITHUB_TOKEN, skipping test")
 	}
 
-	ghs, _ := gh.New(ctx, log, conf)
+	ghs, _ := githubr.New(ctx, log, conf)
 	srv, _ := NewService[*testM](ctx, log, conf, ghs)
 	if srv == nil {
 		t.Errorf("error making service")

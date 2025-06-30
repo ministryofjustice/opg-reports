@@ -9,20 +9,16 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/s3bucket"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/awsr"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
 // Service is used to download, covnert and return data files from within s3 buckets.
-//
-// interfaces:
-//   - Service
-//   - S3Service
 type Service[T interfaces.Model] struct {
 	ctx       context.Context
 	log       *slog.Logger
 	conf      *config.Config
-	store     interfaces.S3Repository
+	store     awsr.S3er
 	directory string
 }
 
@@ -56,23 +52,12 @@ func (self *Service[T]) Close() (err error) {
 func (self *Service[T]) Download(bucket string, prefix string) (downloaded []string, err error) {
 	var log *slog.Logger = self.log.With("operation", "Download", "bucket", bucket, "prefix", prefix)
 
-	log.Debug("listing bucket ...")
-	listing, err := self.store.ListBucket(bucket, prefix)
+	downloaded, err = self.store.DownloadBucket(bucket, prefix, self.GetDirectory())
 	if err != nil {
 		return
 	}
-	log.With("bucketCount", len(listing)).Debug("downloading bucket ...")
 
-	downloaded, err = self.store.Download(bucket, listing, self.GetDirectory())
-	if err != nil {
-		return
-	}
-	if len(listing) != len(downloaded) {
-		err = fmt.Errorf("number of files downloaded does not match files in bucket")
-	}
-	log.With("bucketCount", len(listing),
-		"downloadCount", len(downloaded)).
-		Debug("downloaded")
+	log.With("downloadCount", len(downloaded)).Debug("downloaded")
 	return
 }
 
@@ -114,7 +99,7 @@ func (self *Service[T]) DownloadAndReturnData(bucket string, prefix string) (dat
 }
 
 // NewService returns a configured s3 service object
-func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, store interfaces.S3Repository) (srv *Service[T], err error) {
+func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, store awsr.S3er) (srv *Service[T], err error) {
 	if log == nil {
 		return nil, fmt.Errorf("no logger passed for s3 service")
 	}
@@ -146,7 +131,7 @@ func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf 
 // Default generates the default gh repository and then the service
 func Default[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config) (srv *Service[T]) {
 
-	store, err := s3bucket.New(ctx, log, conf)
+	store, err := awsr.New(ctx, log, conf)
 	if err != nil {
 		log.Error("error creating s3bucket repository for s3 service", "error", err.Error())
 		return nil

@@ -7,12 +7,12 @@ import (
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqldb"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/team"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
-func seed(ctx context.Context, lg *slog.Logger, cfg *config.Config) (inserted []*sqldb.BoundStatement) {
+func seed(ctx context.Context, lg *slog.Logger, cfg *config.Config) (inserted []*sqlr.BoundStatement) {
 	inserted, _ = team.Seed(ctx, lg, cfg, nil)
 	return
 }
@@ -31,7 +31,7 @@ func TestHandleGetTeamsAll(t *testing.T) {
 	// capture the inserted data
 	inserted := seed(ctx, lg, cfg)
 	// generate a repository and service
-	repository, _ := sqldb.New[*Team](ctx, lg, cfg)
+	repository, _ := sqlr.New[*Team](ctx, lg, cfg)
 	service, _ := team.NewService(ctx, lg, cfg, repository)
 	// grab the result
 	response, err := handleGetTeamsAll(ctx, lg, cfg, service, nil)

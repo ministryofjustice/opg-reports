@@ -7,7 +7,7 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqldb"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/team"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
@@ -67,7 +67,7 @@ func TestAwsAccountExisting(t *testing.T) {
 	}
 	// now fetch the rows to make sure count matches
 	// grab team store setup to check after the insert
-	store, _ := sqldb.New[*AwsAccountImport](ctx, log, conf)
+	store, _ := sqlr.New[*AwsAccountImport](ctx, log, conf)
 	tSrv, _ := NewService(ctx, log, conf, store)
 
 	all, _ := tSrv.GetAllAccounts()

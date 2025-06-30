@@ -6,7 +6,7 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqldb"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
@@ -34,13 +34,13 @@ import (
 func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, service interfaces.MetadataService[T]) (err error) {
 	var (
 		data     []T
-		store    *sqldb.Repository[*AwsAccountImport]
-		inserts  []*sqldb.BoundStatement = []*sqldb.BoundStatement{}
-		owner    string                  = conf.Github.Organisation
-		repo     string                  = conf.Github.Metadata.Repository
-		asset    string                  = conf.Github.Metadata.Asset
-		dataFile string                  = "accounts.aws.json"
-		sw                               = utils.Stopwatch()
+		store    *sqlr.Repository[*AwsAccountImport]
+		inserts  []*sqlr.BoundStatement = []*sqlr.BoundStatement{}
+		owner    string                 = conf.Github.Organisation
+		repo     string                 = conf.Github.Metadata.Repository
+		asset    string                 = conf.Github.Metadata.Asset
+		dataFile string                 = "accounts.aws.json"
+		sw                              = utils.Stopwatch()
 	)
 	defer func() {
 		service.Close()
@@ -56,12 +56,12 @@ func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *c
 	data, err = service.DownloadAndReturn(owner, repo, asset, false, dataFile)
 
 	for _, row := range data {
-		inserts = append(inserts, &sqldb.BoundStatement{Statement: stmtImport, Data: row})
+		inserts = append(inserts, &sqlr.BoundStatement{Statement: stmtImport, Data: row})
 	}
 	log.With("count", len(inserts)).Debug("[awsaccount] records to insert ...")
 
 	log.Debug("[awsaccount] creating writer store for insert...")
-	store, err = sqldb.New[*AwsAccountImport](ctx, log, conf)
+	store, err = sqlr.New[*AwsAccountImport](ctx, log, conf)
 	if err != nil {
 		return
 	}

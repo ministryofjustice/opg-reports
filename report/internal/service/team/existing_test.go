@@ -7,7 +7,7 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqldb"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
@@ -68,7 +68,7 @@ func TestTeamExisting(t *testing.T) {
 	}
 	// now fetch the rows to make sure count matches
 	// grab team store setup to check after the insert
-	store, _ := sqldb.New[*Team](ctx, log, conf)
+	store, _ := sqlr.New[*Team](ctx, log, conf)
 	tSrv, _ := NewService(ctx, log, conf, store)
 
 	all, _ := tSrv.GetAllTeams()

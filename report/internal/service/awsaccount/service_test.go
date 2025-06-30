@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqldb"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/awsaccount"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/team"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
@@ -22,7 +22,7 @@ func TestAwsAccountServiceNew(t *testing.T) {
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test-awsaccounts-connection.db")
 
 	lg := utils.Logger("ERROR", "TEXT")
-	rep, _ := sqldb.New[*awsaccount.AwsAccount](ctx, lg, cfg)
+	rep, _ := sqlr.New[*awsaccount.AwsAccount](ctx, lg, cfg)
 
 	srv, err = awsaccount.NewService(ctx, lg, cfg, rep)
 	if err != nil {

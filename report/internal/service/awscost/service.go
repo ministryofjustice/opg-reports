@@ -7,14 +7,14 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqldb"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
 )
 
 type Service[T interfaces.Model] struct {
 	ctx   context.Context
 	log   *slog.Logger
 	conf  *config.Config
-	store *sqldb.Repository[T]
+	store *sqlr.Repository[T]
 }
 
 // Close function to do any clean up
@@ -26,7 +26,7 @@ func (self *Service[T]) Close() (err error) {
 //
 // Using this is generally a bad idea as this table will contain millions of rows
 func (self *Service[T]) GetAll() (data []T, err error) {
-	var selectStmt = &sqldb.BoundStatement{Statement: stmtSelectAll}
+	var selectStmt = &sqlr.BoundStatement{Statement: stmtSelectAll}
 	var log = self.log.With("operation", "GetAll")
 
 	data = []T{}
@@ -42,7 +42,7 @@ func (self *Service[T]) GetAll() (data []T, err error) {
 
 // GetTop20 returns top 20 most expensive costs store in the database
 func (self *Service[T]) GetTop20() (data []T, err error) {
-	var selectStmt = &sqldb.BoundStatement{Statement: stmtSelectTop20}
+	var selectStmt = &sqlr.BoundStatement{Statement: stmtSelectTop20}
 	var log = self.log.With("operation", "GetTop20")
 
 	data = []T{}
@@ -72,7 +72,7 @@ func (self *Service[T]) GetGroupedCosts(options *GetGroupedCostsOptions) (data [
 }
 
 // NewService creates a service using the values passed
-func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, store *sqldb.Repository[T]) (srv *Service[T], err error) {
+func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, store *sqlr.Repository[T]) (srv *Service[T], err error) {
 	srv = &Service[T]{}
 	if log == nil {
 		err = fmt.Errorf("no logger passed for awscost service")
@@ -99,7 +99,7 @@ func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf 
 // Default generates the default repository as and then the service
 func Default[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config) (srv *Service[T]) {
 
-	store, err := sqldb.New[T](ctx, log, conf)
+	store, err := sqlr.New[T](ctx, log, conf)
 	if err != nil {
 		return nil
 	}

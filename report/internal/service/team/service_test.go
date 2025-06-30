@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqldb"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
@@ -20,7 +20,7 @@ func TestTeamServiceNew(t *testing.T) {
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test-team-connection.db")
 
 	lg := utils.Logger("ERROR", "TEXT")
-	rep, _ := sqldb.New[*Team](ctx, lg, cfg)
+	rep, _ := sqlr.New[*Team](ctx, lg, cfg)
 
 	srv, err = NewService(ctx, lg, cfg, rep)
 	if err != nil {

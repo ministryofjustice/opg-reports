@@ -7,7 +7,7 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqldb"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
@@ -26,15 +26,15 @@ import (
 func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, service interfaces.MetadataService[T]) (err error) {
 	var (
 		data     []T
-		store    *sqldb.Repository[*TeamImport]
-		inserts  []*sqldb.BoundStatement = []*sqldb.BoundStatement{}
-		names    []string                = []string{}
-		teams    []*TeamImport           = []*TeamImport{}
-		owner    string                  = conf.Github.Organisation
-		repo     string                  = conf.Github.Metadata.Repository
-		asset    string                  = conf.Github.Metadata.Asset
-		dataFile string                  = "accounts.json"
-		sw                               = utils.Stopwatch()
+		store    *sqlr.Repository[*TeamImport]
+		inserts  []*sqlr.BoundStatement = []*sqlr.BoundStatement{}
+		names    []string               = []string{}
+		teams    []*TeamImport          = []*TeamImport{}
+		owner    string                 = conf.Github.Organisation
+		repo     string                 = conf.Github.Metadata.Repository
+		asset    string                 = conf.Github.Metadata.Asset
+		dataFile string                 = "accounts.json"
+		sw                              = utils.Stopwatch()
 	)
 	defer func() {
 		service.Close()
@@ -65,12 +65,12 @@ func Existing[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *c
 	names = slices.Compact(names)
 
 	for _, nm := range names {
-		inserts = append(inserts, &sqldb.BoundStatement{Statement: stmtImport, Data: &TeamImport{Name: nm}})
+		inserts = append(inserts, &sqlr.BoundStatement{Statement: stmtImport, Data: &TeamImport{Name: nm}})
 	}
 	log.With("count", len(inserts)).Debug("[team] records to insert ...")
 
 	log.Debug("[team] creating writer store for insert ...")
-	store, err = sqldb.New[*TeamImport](ctx, log, conf)
+	store, err = sqlr.New[*TeamImport](ctx, log, conf)
 	if err != nil {
 		return
 	}

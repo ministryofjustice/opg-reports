@@ -1,4 +1,4 @@
-package github
+package awsr
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/config"
 )
 
-const label string = "github-repository"
+const label string = "aws-repository"
 
 type Repository struct {
 	ctx  context.Context
@@ -16,13 +16,7 @@ type Repository struct {
 	log  *slog.Logger
 }
 
-func (self *Repository) Close() {}
-
-// GetReleaseOptions used in release queries
-type GetReleaseOptions struct {
-	ExcludePrereleases bool // Exclude releases marked as prereleases
-	ExcludeDraft       bool // Exclude anything marked as a draft
-	ExcludeNoAssets    bool // Exclude anything that does not have assets
+func (self *Repository) Close() {
 }
 
 func New(ctx context.Context, log *slog.Logger, conf *config.Config) (rp *Repository, err error) {
