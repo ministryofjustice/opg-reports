@@ -15,6 +15,11 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
+// Repository
+//
+// Interfaces:
+//   - Repository
+//   - GithubRepository
 type Repository struct {
 	ctx  context.Context
 	conf *config.Config

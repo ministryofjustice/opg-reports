@@ -13,7 +13,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/internal/service/awsaccount"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/awscost"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/awss3"
-	"github.com/ministryofjustice/opg-reports/report/internal/service/opgmetadata"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/metadata"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/team"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 	"github.com/spf13/cobra"
@@ -45,8 +45,8 @@ var existingCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		// services for injection
 		var (
-			teamsService      = opgmetadata.Default[*team.TeamImport](ctx, log, conf)
-			awsAccountService = opgmetadata.Default[*awsaccount.AwsAccountImport](ctx, log, conf)
+			teamsService      = metadata.Default[*team.TeamImport](ctx, log, conf)
+			awsAccountService = metadata.Default[*awsaccount.AwsAccountImport](ctx, log, conf)
 			awsCostsService   = awss3.Default[*awscost.AwsCostImport](ctx, log, conf)
 		)
 		// TEAMS
