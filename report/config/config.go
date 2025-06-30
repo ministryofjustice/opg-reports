@@ -66,7 +66,9 @@ type bucketInfo struct {
 
 // buckets
 type bucket struct {
-	Costs *bucketInfo
+	Costs *bucketInfo // env: AWS_BUCKETS_COSTS - used to track location of the older reporting details
+	Db    *bucketInfo // env: AWS_BUCKETS_DB - used to track where the database is stored within ss3
+
 }
 
 type Aws struct {
@@ -133,6 +135,7 @@ var defaultConfig = &Config{
 		Session: &session{Token: ""},
 		Buckets: &bucket{
 			Costs: &bucketInfo{Name: "report-data-development", Prefix: "aws_costs/"},
+			Db:    &bucketInfo{Name: "report-data-development", Prefix: "databases/"},
 		},
 	},
 	Log: &Log{

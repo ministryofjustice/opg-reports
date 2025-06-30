@@ -28,6 +28,10 @@ var (
 	log       *slog.Logger
 )
 
+var (
+	syncDB bool = false
+)
+
 // root command
 var rootCmd = &cobra.Command{
 	Use:               "import",
@@ -87,6 +91,17 @@ var fixturesCmd = &cobra.Command{
 	},
 }
 
+// awscostsCmd imports data from the cost explorer api directyl
+var awscostsCmd = &cobra.Command{
+	Use:   "awscosts",
+	Short: "awscosts fetches data from the cost explorer api",
+	Long:  `awscosts will call the aws costexplorer api to retrieve data for period specific.`,
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+
+		return
+	},
+}
+
 // init
 func init() {
 	conf, viperConf = config.New()
@@ -95,16 +110,19 @@ func init() {
 
 	// Global flags for all commands:
 	// bind the database.path config item
-	rootCmd.PersistentFlags().StringVar(&conf.Database.Path, "database.path", conf.Database.Path, "Path to database file")
+	rootCmd.PersistentFlags().StringVar(&conf.Database.Path, "database.path", conf.Database.Path, "Path to local database file")
 	viperConf.BindPFlag("database.path", rootCmd.PersistentFlags().Lookup("database.path"))
 	// bind the github.organisation for those commands that require it
 	rootCmd.PersistentFlags().StringVar(&conf.Github.Organisation, "github.organisation", conf.Github.Organisation, "GitHub organisation name")
 	viperConf.BindPFlag("github.organisation", rootCmd.PersistentFlags().Lookup("github.organisation"))
 
+	// Command specifc args
+	// awscosts - sync-db
+	awscostsCmd.Flags().BoolVar(&syncDB, "--sync-db", true, "When true, will download the existing database from s3 & then then upload the updated version.")
 }
 
 func main() {
-	rootCmd.AddCommand(existingCmd, fixturesCmd)
+	rootCmd.AddCommand(existingCmd, fixturesCmd, awscostsCmd)
 	rootCmd.Execute()
 
 }
