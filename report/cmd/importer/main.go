@@ -12,8 +12,8 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/awsaccount"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/awscost"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/awss3"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/opgmetadata"
-	"github.com/ministryofjustice/opg-reports/report/internal/service/s3"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/team"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 	"github.com/spf13/cobra"
@@ -47,7 +47,7 @@ var existingCmd = &cobra.Command{
 		var (
 			teamsService      = opgmetadata.Default[*team.TeamImport](ctx, log, conf)
 			awsAccountService = opgmetadata.Default[*awsaccount.AwsAccountImport](ctx, log, conf)
-			awsCostsService   = s3.Default[*awscost.AwsCostImport](ctx, log, conf)
+			awsCostsService   = awss3.Default[*awscost.AwsCostImport](ctx, log, conf)
 		)
 		// TEAMS
 		if err = team.Existing(ctx, log, conf, teamsService); err != nil {
