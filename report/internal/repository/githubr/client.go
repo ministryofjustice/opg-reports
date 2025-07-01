@@ -5,12 +5,13 @@ import (
 
 	"github.com/gofri/go-github-ratelimit/github_ratelimit"
 	"github.com/google/go-github/v62/github"
+	"github.com/ministryofjustice/opg-reports/report/config"
 )
 
-// client is an internal helper to handle creating the client
-func (self *Repository) client() (client *github.Client, err error) {
+// Client is an internal helper to handle creating the client
+func Client(conf *config.Config) (client *github.Client, err error) {
 	// handle empty configs
-	if self.conf.Github == nil || self.conf.Github.Token == "" {
+	if conf.Github == nil || conf.Github.Token == "" {
 		return nil, fmt.Errorf("no github access token found in the config")
 	}
 	// get a rate limted version of the client
@@ -18,7 +19,12 @@ func (self *Repository) client() (client *github.Client, err error) {
 	if err != nil {
 		return
 	}
-	client = github.NewClient(limited).WithAuthToken(self.conf.Github.Token)
+	client = github.NewClient(limited).WithAuthToken(conf.Github.Token)
 
+	return
+}
+
+func DefaultClient(conf *config.Config) (client *github.Client) {
+	client, _ = Client(conf)
 	return
 }

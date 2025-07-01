@@ -50,11 +50,14 @@ var existingCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var (
 			ghr          *githubr.Repository = githubr.Default(ctx, log, conf)
-			sq           *sqlr.Repository    = sqlr.Default(ctx, log, conf)
+			ghc                              = githubr.DefaultClient(conf)
+			sqr          *sqlr.Repository    = sqlr.Default(ctx, log, conf)
 			existService *existing.Service   = existing.Default(ctx, log, conf)
 		)
-
-		existService.InsertTeams(ghr, sq)
+		// start with inserting teams
+		if _, err = existService.InsertTeams(ghc.Repositories, ghr, sqr); err != nil {
+			return
+		}
 
 		// // repos
 		// var (

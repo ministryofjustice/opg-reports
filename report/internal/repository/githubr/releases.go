@@ -14,19 +14,16 @@ import (
 
 // getAllReleases returns all releases for a repository without any filtering.
 //
-// The repositoryName should not include the organsiation name
-func (self *Repository) getAllReleases(organisation string, repositoryName string) (releases []*github.RepositoryRelease, err error) {
+// # The repositoryName should not include the organsiation name
+//
+// client = self.client().Repositories
+func (self *Repository) getAllReleases(client ReleaseClient, organisation string, repositoryName string) (releases []*github.RepositoryRelease, err error) {
 	var (
-		client *github.Client
-		page   int                 = 1
-		opts   *github.ListOptions = &github.ListOptions{PerPage: 200}
-		log                        = self.log.With("repositoryName", repositoryName, "operation", "getAllReleases")
+		page int                 = 1
+		opts *github.ListOptions = &github.ListOptions{PerPage: 200}
+		log                      = self.log.With("repositoryName", repositoryName, "operation", "getAllReleases")
 	)
-	// get api client
-	client, err = self.client()
-	if err != nil {
-		return
-	}
+
 	// loop around the pagination
 	for page > 0 {
 		var response *github.Response
@@ -35,7 +32,7 @@ func (self *Repository) getAllReleases(organisation string, repositoryName strin
 		opts.Page = page
 		// get all releases for the repository
 		log.With("page", page).Debug("getting next page of releases")
-		list, response, err = client.Repositories.ListReleases(self.ctx, organisation, repositoryName, opts)
+		list, response, err = client.ListReleases(self.ctx, organisation, repositoryName, opts)
 		if err != nil {
 			return
 		}
@@ -54,12 +51,12 @@ func (self *Repository) getAllReleases(organisation string, repositoryName strin
 //
 // If options is nil (or all values are false) then all releases are returned.
 // The repositoryName should not include the organsiation name
-func (self *Repository) GetReleases(organisation string, repositoryName string, options *GetReleaseOptions) (releases []*github.RepositoryRelease, err error) {
+func (self *Repository) GetReleases(client ReleaseClient, organisation string, repositoryName string, options *GetReleaseOptions) (releases []*github.RepositoryRelease, err error) {
 	// setup log to be for this operation
 	var log = self.log.With("repositoryName", repositoryName, "operation", "GetReleases")
 	releases = []*github.RepositoryRelease{}
 	// first, get all releases
-	all, err := self.getAllReleases(organisation, repositoryName)
+	all, err := self.getAllReleases(client, organisation, repositoryName)
 
 	// if there are no filter, then return everything
 	if options == nil || (!options.ExcludeDraft && !options.ExcludeNoAssets && !options.ExcludePrereleases) {
@@ -99,25 +96,19 @@ func (self *Repository) GetReleases(organisation string, repositoryName string, 
 //
 // If you are looking for a prerelease / draft then use GetReleases to return all and then limit to what you need.
 // The repositoryName should not include the organsiation name
-func (self *Repository) GetLatestRelease(organisation string, repositoryName string) (release *github.RepositoryRelease, err error) {
-	var client *github.Client
+func (self *Repository) GetLatestRelease(client ReleaseClient, organisation string, repositoryName string) (release *github.RepositoryRelease, err error) {
 	var log = self.log.With("repositoryName", repositoryName, "operation", "GetLatestRelease")
-	// get api client
-	client, err = self.client()
-	if err != nil {
-		return
-	}
 
 	// get just 1 release - this should be the latest
 	log.Debug("getting last release")
-	release, _, err = client.Repositories.GetLatestRelease(self.ctx, organisation, repositoryName)
+	release, _, err = client.GetLatestRelease(self.ctx, organisation, repositoryName)
 	return
 }
 
 // GetLatestReleaseAsset gets the latest release and then checks for an asset with a matching name.
 //
 // If the regex is true a regex is used to match against the asset name
-func (self *Repository) GetLatestReleaseAsset(organisation string, repositoryName string, assetName string, useRegex bool) (asset *github.ReleaseAsset, err error) {
+func (self *Repository) GetLatestReleaseAsset(client ReleaseClient, organisation string, repositoryName string, assetName string, useRegex bool) (asset *github.ReleaseAsset, err error) {
 	// setup
 	var (
 		release *github.RepositoryRelease
@@ -125,7 +116,7 @@ func (self *Repository) GetLatestReleaseAsset(organisation string, repositoryNam
 		log                    = self.log.With("repositoryName", repositoryName, "operation", "GetLatestReleaseAsset", "assetName", assetName)
 	)
 	// get the release
-	release, err = self.GetLatestRelease(organisation, repositoryName)
+	release, err = self.GetLatestRelease(client, organisation, repositoryName)
 	// if error or not found, return
 	if err != nil || release == nil {
 		return
@@ -160,21 +151,14 @@ func (self *Repository) GetLatestReleaseAsset(organisation string, repositoryNam
 // include the organsiation name
 //
 // The returned `*os.File` is not closed and will need to be handled
-func (self *Repository) DownloadReleaseAsset(organisation string, repositoryName string, assetID int64, destinationFilePath string) (destination *os.File, err error) {
+func (self *Repository) DownloadReleaseAsset(client ReleaseClient, organisation string, repositoryName string, assetID int64, destinationFilePath string) (destination *os.File, err error) {
 	var (
-		rc io.ReadCloser
-		//redirect string
-		client *github.Client
-		log    = self.log.With("operation", "DownloadAsset", "assetID", assetID)
+		rc  io.ReadCloser
+		log = self.log.With("operation", "DownloadAsset", "assetID", assetID)
 	)
 
-	// get api client
-	client, err = self.client()
-	if err != nil {
-		return
-	}
 	log.Debug("downloading asset")
-	rc, _, err = client.Repositories.DownloadReleaseAsset(self.ctx, organisation, repositoryName, assetID, http.DefaultClient)
+	rc, _, err = client.DownloadReleaseAsset(self.ctx, organisation, repositoryName, assetID, http.DefaultClient)
 	if err != nil {
 		return
 	}
@@ -196,18 +180,18 @@ func (self *Repository) DownloadReleaseAsset(organisation string, repositoryName
 	return
 }
 
-func (self *Repository) DownloadReleaseAssetByName(organisation string, repositoryName string, assetName string, regex bool, directory string) (downloadedTo string, err error) {
+func (self *Repository) DownloadReleaseAssetByName(client ReleaseClient, organisation string, repositoryName string, assetName string, regex bool, directory string) (downloadedTo string, err error) {
 	var asset *github.ReleaseAsset
 
 	downloadedTo = directory
-	asset, err = self.GetLatestReleaseAsset(organisation, repositoryName, assetName, regex)
+	asset, err = self.GetLatestReleaseAsset(client, organisation, repositoryName, assetName, regex)
 	if err != nil || asset == nil {
 		self.log.Error("error getting latest release asset", "err", err.Error())
 		return
 	}
 
 	downloadedTo = filepath.Join(downloadedTo, asset.GetName())
-	f, err := self.DownloadReleaseAsset(organisation, repositoryName, *asset.ID, downloadedTo)
+	f, err := self.DownloadReleaseAsset(client, organisation, repositoryName, *asset.ID, downloadedTo)
 	if err != nil {
 		self.log.Error("error downloading the release asset", "err", err.Error())
 		return

@@ -48,7 +48,7 @@ type teamDownloadOptions struct {
 
 // InsertTeams handles the inserting otf team data from opgmetadata reository
 // into the local database service
-func (self *Service) InsertTeams(ghs githubr.Releaser, sq sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
+func (self *Service) InsertTeams(client githubr.ReleaseClient, ghs githubr.Releaser, sq sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
 	var dir string
 
 	if ghs == nil || sq == nil {
@@ -62,7 +62,7 @@ func (self *Service) InsertTeams(ghs githubr.Releaser, sq sqlr.Writer) (results 
 	}
 	defer os.RemoveAll(dir)
 
-	teams, err := self.getTeamsFromMetadata(ghs, &teamDownloadOptions{
+	teams, err := self.getTeamsFromMetadata(client, ghs, &teamDownloadOptions{
 		Owner:      self.conf.Github.Organisation,
 		Repository: self.conf.Github.Metadata.Repository,
 		AssetName:  self.conf.Github.Metadata.Asset,
@@ -92,7 +92,7 @@ func (self *Service) insertTeamsToDB(sq sqlr.Writer, teams []*team) (statements 
 // into []Team
 //
 // Removes directory and files on exit
-func (self *Service) getTeamsFromMetadata(ghs githubr.Releaser, options *teamDownloadOptions) (accounts []*team, err error) {
+func (self *Service) getTeamsFromMetadata(client githubr.ReleaseClient, ghs githubr.Releaser, options *teamDownloadOptions) (accounts []*team, err error) {
 	var (
 		fp           *os.File
 		downloadedTo string
@@ -102,7 +102,8 @@ func (self *Service) getTeamsFromMetadata(ghs githubr.Releaser, options *teamDow
 	)
 	accounts = []*team{}
 	// Download the metadata asset
-	downloadedTo, err = ghs.DownloadReleaseAssetByName(options.Owner,
+	downloadedTo, err = ghs.DownloadReleaseAssetByName(client,
+		options.Owner,
 		options.Repository,
 		options.AssetName,
 		options.UseRegex,

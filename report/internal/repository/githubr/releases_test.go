@@ -20,8 +20,13 @@ func TestGhAllReleases(t *testing.T) {
 		cfg = config.NewConfig()
 		lg  = utils.Logger("ERROR", "TEXT")
 	)
+
 	if cfg.Github.Token == "" {
 		t.Skip("No GITHUB_TOKEN, skipping test")
+	}
+	client, err := Client(cfg)
+	if err != nil {
+		t.Errorf("unexpected error: %s", err.Error())
 	}
 
 	repo, err := New(ctx, lg, cfg)
@@ -29,7 +34,7 @@ func TestGhAllReleases(t *testing.T) {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
 
-	found, err := repo.GetReleases("actions", "checkout", nil)
+	found, err := repo.GetReleases(client.Repositories, "actions", "checkout", nil)
 	if err != nil {
 		t.Errorf("unexpected error found: %s", err.Error())
 	}
@@ -53,13 +58,17 @@ func TestGhLastReleases(t *testing.T) {
 	if cfg.Github.Token == "" {
 		t.Skip("No GITHUB_TOKEN, skipping test")
 	}
+	client, err := Client(cfg)
+	if err != nil {
+		t.Errorf("unexpected error: %s", err.Error())
+	}
 
 	repo, err := New(ctx, lg, cfg)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
 
-	found, err := repo.GetLatestRelease("actions", "checkout")
+	found, err := repo.GetLatestRelease(client.Repositories, "actions", "checkout")
 	if err != nil {
 		t.Errorf("unexpected error found: %s", err.Error())
 	}
@@ -86,12 +95,20 @@ func TestGhLastReleaseAssetAndDownload(t *testing.T) {
 	if cfg.Github.Token == "" {
 		t.Skip("No GITHUB_TOKEN, skipping test")
 	}
+	client, err := Client(cfg)
+	if err != nil {
+		t.Errorf("unexpected error: %s", err.Error())
+	}
 
 	repo, err := New(ctx, lg, cfg)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
-	found, err := repo.GetLatestReleaseAsset("gitleaks", "gitleaks", "gitleaks_(.*)_darwin_arm64.tar.gz", true)
+	found, err := repo.GetLatestReleaseAsset(
+		client.Repositories,
+		"gitleaks", "gitleaks", "gitleaks_(.*)_darwin_arm64.tar.gz",
+		true)
+
 	if err != nil {
 		t.Errorf("unexpected error found: %s", err.Error())
 	}
@@ -100,7 +117,9 @@ func TestGhLastReleaseAssetAndDownload(t *testing.T) {
 		t.FailNow()
 	}
 
-	f, err := repo.DownloadReleaseAsset("gitleaks", "gitleaks", *found.ID, fp)
+	f, err := repo.DownloadReleaseAsset(client.Repositories,
+		"gitleaks", "gitleaks", *found.ID,
+		fp)
 	defer f.Close()
 
 	if err != nil {
@@ -127,13 +146,20 @@ func TestGhLastReleaseAssetByName(t *testing.T) {
 	if cfg.Github.Token == "" {
 		t.Skip("No GITHUB_TOKEN, skipping test")
 	}
+	client, err := Client(cfg)
+	if err != nil {
+		t.Errorf("unexpected error: %s", err.Error())
+	}
 
 	repo, err := New(ctx, lg, cfg)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
 
-	path, err := repo.DownloadReleaseAssetByName("gitleaks", "gitleaks", `gitleaks_(.*)gz`, true, dir)
+	path, err := repo.DownloadReleaseAssetByName(client.Repositories,
+		"gitleaks", "gitleaks", `gitleaks_(.*)gz`,
+		true, dir)
+
 	if err != nil {
 		t.Errorf("unexpected error found: %s", err.Error())
 	}

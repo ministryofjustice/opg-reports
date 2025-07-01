@@ -131,6 +131,8 @@ func (self *Service[T]) DownloadAndExtractAsset(owner string, repository string,
 		ghs            *githubr.Repository = self.store.(*githubr.Repository)
 		dir            string              = self.GetDirectory()
 	)
+	client, _ := githubr.Client(self.conf)
+
 	log = log.With("operation", "DownloadAndExtractAsset",
 		"repository", repository,
 		"assetName", assetName,
@@ -145,14 +147,14 @@ func (self *Service[T]) DownloadAndExtractAsset(owner string, repository string,
 
 	// get the latest relase and the asset details that match the name
 	log.Debug("Downloading the latest release asset ...")
-	asset, err = ghs.GetLatestReleaseAsset(owner, repository, assetName, regex)
+	asset, err = ghs.GetLatestReleaseAsset(client.Repositories, owner, repository, assetName, regex)
 	if err != nil {
 		log.Error("error getting latest release asset", "err", err.Error())
 		return
 	}
 	// download this asset
 	log.With("assetID", *asset.ID).Debug("downloading the latest release asset via repository")
-	downloadedFile, err = ghs.DownloadReleaseAsset(owner, repository, *asset.ID, downloadTo)
+	downloadedFile, err = ghs.DownloadReleaseAsset(client.Repositories, owner, repository, *asset.ID, downloadTo)
 	if err != nil {
 		log.Error("error downloading the release asset", "err", err.Error())
 		return

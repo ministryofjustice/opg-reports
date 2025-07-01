@@ -22,6 +22,7 @@ func TestTeamsInsert(t *testing.T) {
 	)
 	conf.Database.Path = filepath.Join(dir, "./existing-teams.db")
 
+	client, _ := githubr.Client(conf)
 	gh, _ := githubr.New(ctx, log, conf)
 	sq, _ := sqlr.New(ctx, log, conf)
 	// existing srv
@@ -30,7 +31,7 @@ func TestTeamsInsert(t *testing.T) {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
 
-	stmts, err := srv.InsertTeams(gh, sq)
+	stmts, err := srv.InsertTeams(client.Repositories, gh, sq)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
@@ -48,11 +49,11 @@ func TestTeamsgetTeamsFromMetadata(t *testing.T) {
 		conf        = config.NewConfig()
 		log         = utils.Logger("ERROR", "TEXT")
 	)
-
+	client, _ := githubr.Client(conf)
 	srv, _ := New(ctx, log, conf)
 	gh, _ := githubr.New(ctx, log, conf)
 
-	_, err = srv.getTeamsFromMetadata(gh, &teamDownloadOptions{
+	_, err = srv.getTeamsFromMetadata(client.Repositories, gh, &teamDownloadOptions{
 		Owner:      "ministryofjustice",
 		Repository: "opg-metadata",
 		AssetName:  "metadata.tar.gz",
