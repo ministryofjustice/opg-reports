@@ -48,7 +48,7 @@ type teamDownloadOptions struct {
 
 // InsertTeams handles the inserting otf team data from opgmetadata reository
 // into the local database service
-func (self *Service) InsertTeams(client githubr.ReleaseClient, ghs githubr.Releaser, sq sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
+func (self *Service) InsertTeams(client githubr.ReleaseClient, ghs githubr.ReleaseRepository, sq sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
 	var dir string
 
 	if ghs == nil || sq == nil {
@@ -92,7 +92,7 @@ func (self *Service) insertTeamsToDB(sq sqlr.Writer, teams []*team) (statements 
 // into []Team
 //
 // Removes directory and files on exit
-func (self *Service) getTeamsFromMetadata(client githubr.ReleaseClient, ghs githubr.Releaser, options *teamDownloadOptions) (accounts []*team, err error) {
+func (self *Service) getTeamsFromMetadata(client githubr.ReleaseClient, ghs githubr.ReleaseRepository, options *teamDownloadOptions) (accounts []*team, err error) {
 	var (
 		fp           *os.File
 		downloadedTo string
