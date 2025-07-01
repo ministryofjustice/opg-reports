@@ -10,15 +10,31 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
-// stmtTeamImport
-const stmtTeamImport string = `
-INSERT INTO teams (name)
-VALUES (:name)
-ON CONFLICT (name) DO UPDATE SET name=excluded.name RETURNING name;
-`
+// stmtAwsAccountImport
+const stmtAwsAccountImport string = `
+INSERT INTO aws_accounts (
+	id,
+	name,
+	label,
+	environment,
+	team_name
+) SELECT
+	:id,
+	:name,
+	:label,
+	:environment,
+	teams.name
+FROM teams WHERE name=:team_name LIMIT 1
+ON CONFLICT (id)
+ 	DO UPDATE SET
+		name=excluded.name,
+		label=excluded.label,
+		environment=excluded.environment
+RETURNING id;`
 
-// Team captures the team name under its prior version of
-// `billing_unit` ready for inserting to db
+// awsAccount captures an extra field from the metadata which
+// is used in the stmtInsert to create the initial join to team based
+// on the billing_unit name
 //
 // Example account from the opg-metadata source file:
 //
@@ -31,14 +47,16 @@ ON CONFLICT (name) DO UPDATE SET name=excluded.name RETURNING name;
 //		"type": "aws",
 //		"uptime_tracking": true
 //	}
-//
-// We only want `billing_unit` field and are ignoring the others
-type team struct {
-	Name string `json:"billing_unit,omitempty" db:"name"`
+type awsAccount struct {
+	ID          string `json:"id,omitempty" db:"id" example:"012345678910"` // This is the AWS Account ID as a string
+	Name        string `json:"name,omitempty" db:"name" example:"Public API"`
+	Label       string `json:"label,omitempty" db:"label" example:"aurora-cluster"`
+	Environment string `json:"environment,omitempty" db:"environment" example:"development|preproduction|production"`
+	TeamName    string `json:"billing_unit,omitempty" db:"team_name"`
 }
 
-// teamDownloadOptions used as just shorthand for passing lots of options around
-type teamDownloadOptions struct {
+// accountDownloadOptions used as just shorthand for passing lots of options around
+type accountDownloadOptions struct {
 	Owner      string
 	Repository string
 	AssetName  string
@@ -48,7 +66,7 @@ type teamDownloadOptions struct {
 
 // InsertTeams handles the inserting otf team data from opgmetadata reository
 // into the local database service
-func (self *Service) InsertTeams(client githubr.ReleaseClient, ghs githubr.ReleaseRepository, sq sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
+func (self *Service) InsertAwsAccounts(client githubr.ReleaseClient, ghs githubr.ReleaseRepository, sq sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
 	var dir string
 
 	if ghs == nil || sq == nil {
@@ -62,7 +80,7 @@ func (self *Service) InsertTeams(client githubr.ReleaseClient, ghs githubr.Relea
 	}
 	defer os.RemoveAll(dir)
 
-	teams, err := self.getTeamsFromMetadata(client, ghs, &teamDownloadOptions{
+	teams, err := self.getAwsAccountsFromMetadata(client, ghs, &accountDownloadOptions{
 		Owner:      self.conf.Github.Organisation,
 		Repository: self.conf.Github.Metadata.Repository,
 		AssetName:  self.conf.Github.Metadata.Asset,
@@ -72,17 +90,17 @@ func (self *Service) InsertTeams(client githubr.ReleaseClient, ghs githubr.Relea
 	if err != nil {
 		return
 	}
-	results, err = self.insertTeamsToDB(sq, teams)
+	results, err = self.insertAwsAccountsToDB(sq, teams)
 
 	return
 }
 
 // insertTeams handles writing the records to the table
-func (self *Service) insertTeamsToDB(sq sqlr.Writer, teams []*team) (statements []*sqlr.BoundStatement, err error) {
+func (self *Service) insertAwsAccountsToDB(sq sqlr.Writer, accounts []*awsAccount) (statements []*sqlr.BoundStatement, err error) {
 	statements = []*sqlr.BoundStatement{}
 
-	for _, team := range teams {
-		statements = append(statements, &sqlr.BoundStatement{Data: team, Statement: stmtTeamImport})
+	for _, acc := range accounts {
+		statements = append(statements, &sqlr.BoundStatement{Data: acc, Statement: stmtAwsAccountImport})
 	}
 	err = sq.Insert(statements...)
 	return
@@ -92,15 +110,15 @@ func (self *Service) insertTeamsToDB(sq sqlr.Writer, teams []*team) (statements 
 // into []Team
 //
 // Removes directory and files on exit
-func (self *Service) getTeamsFromMetadata(client githubr.ReleaseClient, ghs githubr.ReleaseRepository, options *teamDownloadOptions) (teams []*team, err error) {
+func (self *Service) getAwsAccountsFromMetadata(client githubr.ReleaseClient, ghs githubr.ReleaseRepository, options *accountDownloadOptions) (accounts []*awsAccount, err error) {
 	var (
 		fp           *os.File
 		downloadedTo string
-		accountFile  string = "accounts.json"
+		accountFile  string = "accounts.aws.json"
 		downloadDir  string = filepath.Join(options.Dir, "download")
 		extractDir   string = filepath.Join(options.Dir, "extract")
 	)
-	teams = []*team{}
+	accounts = []*awsAccount{}
 	// Download the metadata asset
 	downloadedTo, err = ghs.DownloadReleaseAssetByName(client,
 		options.Owner,
@@ -129,10 +147,10 @@ func (self *Service) getTeamsFromMetadata(client githubr.ReleaseClient, ghs gith
 	// check the accounts json file exists
 	accountFile = filepath.Join(extractDir, accountFile)
 	if !utils.DirExists(extractDir) || !utils.FileExists(accountFile) {
-		err = fmt.Errorf("directory or file not found")
+		err = fmt.Errorf("directory or file not found: [%s] or [%s]", extractDir, accountFile)
 		return
 	}
 	// read the json file into local struct
-	err = utils.UnmarshalFile(accountFile, &teams)
+	err = utils.UnmarshalFile(accountFile, &accounts)
 	return
 }

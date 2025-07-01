@@ -54,8 +54,13 @@ var existingCmd = &cobra.Command{
 			sqr          *sqlr.Repository    = sqlr.Default(ctx, log, conf)
 			existService *existing.Service   = existing.Default(ctx, log, conf)
 		)
-		// start with inserting teams
+
+		// TEAMS
 		if _, err = existService.InsertTeams(ghc.Repositories, ghr, sqr); err != nil {
+			return
+		}
+		// ACCOUNTS
+		if _, err = existService.InsertAwsAccounts(ghc.Repositories, ghr, sqr); err != nil {
 			return
 		}
 
