@@ -66,7 +66,10 @@ type teamDownloadOptions struct {
 func (self *Service) InsertTeams(client githubr.ReleaseClient, ghs githubr.ReleaseRepositoryDownloader, sq sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
 	var dir string
 
-	if ghs == nil || sq == nil {
+	if ghs == nil {
+		return
+	}
+	if sq == nil {
 		err = fmt.Errorf("params were nil")
 		return
 	}

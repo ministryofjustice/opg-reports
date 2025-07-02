@@ -106,9 +106,10 @@ func TestGithubrLatestReleaseAssetAndDownload(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
+	// test_accounts_v1.json
 	found, err := repo.GetLatestReleaseAsset(
 		&mockedClient{},
-		"", "", "test_(.*)_darwin_arm64.txt",
+		"", "", "test_(.*)accounts_v1.json",
 		true)
 
 	if err != nil {
@@ -120,7 +121,7 @@ func TestGithubrLatestReleaseAssetAndDownload(t *testing.T) {
 		t.FailNow()
 	}
 	// this is the test calue that should come back
-	if *found.Name != "test_v1_darwin_arm64.txt" {
+	if *found.Name != "test_accounts_v1.json" {
 		t.Errorf("no releases match found")
 	}
 
@@ -164,7 +165,7 @@ func TestGithubrLastReleaseAssetByName(t *testing.T) {
 
 	asset, path, err := repo.DownloadReleaseAssetByName(
 		&mockedClient{},
-		"", "", "test_(.*)_darwin_arm64.txt",
+		"", "", "test_(.*)accounts_v1.json",
 		true, dir)
 
 	if err != nil {

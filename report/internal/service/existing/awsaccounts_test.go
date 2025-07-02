@@ -20,9 +20,10 @@ func TestAwsAccountsInsert(t *testing.T) {
 		conf        = config.NewConfig()
 		log         = utils.Logger("ERROR", "TEXT")
 	)
+	// set config values
 	conf.Database.Path = filepath.Join(dir, "./existing-awsaccounts.db")
+	conf.Github.Metadata.Asset = "test_accounts_v1.json"
 
-	client, _ := githubr.Client(conf)
 	gh, _ := githubr.New(ctx, log, conf)
 	sq, _ := sqlr.New(ctx, log, conf)
 	// existing srv
@@ -31,7 +32,7 @@ func TestAwsAccountsInsert(t *testing.T) {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
 
-	stmts, err := srv.InsertTeams(client.Repositories, gh, sq)
+	stmts, err := srv.InsertTeams(&mockedGitHubClient{}, gh, sq)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}

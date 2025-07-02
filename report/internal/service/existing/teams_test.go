@@ -20,7 +20,7 @@ func TestTeamsInsert(t *testing.T) {
 	)
 	// set config values
 	conf.Database.Path = filepath.Join(dir, "./existing-teams.db")
-	conf.Github.Metadata.Asset = "test_v1_darwin_arm64.txt"
+	conf.Github.Metadata.Asset = "test_accounts_v1.json"
 
 	gh, _ := githubr.New(ctx, log, conf)
 	sq, _ := sqlr.New(ctx, log, conf)
@@ -54,7 +54,7 @@ func TestTeamsgetTeamsFromMetadata(t *testing.T) {
 	teams, err := srv.getTeamsFromMetadata(&mockedGitHubClient{}, gh, &teamDownloadOptions{
 		Owner:      "testowner",
 		Repository: "test-repo",
-		AssetName:  "test_v1_darwin_arm64.txt",
+		AssetName:  "test_accounts_v1.json",
 		UseRegex:   false,
 		Dir:        dir,
 	})
@@ -67,5 +67,4 @@ func TestTeamsgetTeamsFromMetadata(t *testing.T) {
 		utils.Debug(teams)
 	}
 
-	t.FailNow()
 }

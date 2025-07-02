@@ -20,7 +20,7 @@ var t = true
 var f = false
 var id int64 = 2003
 var ids = []int64{1000, 1001, 1002, 1003}
-var nm = "test_v1_darwin_arm64.txt"
+var nm = "test_accounts_v1.json"
 var nms = []string{"R00", "R01", "R02", "R03"}
 var rel = &github.RepositoryRelease{
 	ID:         &ids[3],
