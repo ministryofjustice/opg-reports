@@ -19,13 +19,14 @@ func TestSTSCallerIdentity(t *testing.T) {
 	if conf.Aws.GetToken() == "" {
 		t.Skip("No AWS_SESSION_TOKEN, skipping test")
 	}
+	client, _ := ClientSTS(ctx, "eu-west-1")
 
 	repository, err = New(ctx, log, conf)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 		t.FailNow()
 	}
-	caller, err := repository.GetCallerIdentity()
+	caller, err := repository.GetCallerIdentity(client)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}

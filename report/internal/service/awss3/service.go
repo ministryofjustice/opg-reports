@@ -51,8 +51,8 @@ func (self *Service[T]) Close() (err error) {
 // bucket an error is returned.
 func (self *Service[T]) Download(bucket string, prefix string) (downloaded []string, err error) {
 	var log *slog.Logger = self.log.With("operation", "Download", "bucket", bucket, "prefix", prefix)
-
-	downloaded, err = self.store.DownloadBucket(bucket, prefix, self.GetDirectory())
+	client, err := awsr.ClientS3(self.ctx, self.conf.Aws.GetRegion())
+	downloaded, err = self.store.DownloadBucket(client, bucket, prefix, self.GetDirectory())
 	if err != nil {
 		return
 	}

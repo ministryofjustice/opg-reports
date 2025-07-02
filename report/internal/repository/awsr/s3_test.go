@@ -22,6 +22,7 @@ func TestS3BucketList(t *testing.T) {
 	if conf.Aws.GetToken() == "" {
 		t.Skip("No AWS_SESSION_TOKEN, skipping test")
 	}
+	client, _ := ClientS3(ctx, "eu-west-1")
 
 	repository, err = New(ctx, log, conf)
 	if err != nil {
@@ -29,7 +30,7 @@ func TestS3BucketList(t *testing.T) {
 		t.FailNow()
 	}
 
-	files, err := repository.ListBucket("report-data-development", "github_standards/")
+	files, err := repository.ListBucket(client, "report-data-development", "github_standards/")
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 		t.FailNow()
@@ -55,6 +56,7 @@ func TestS3BucketDownload(t *testing.T) {
 	if conf.Aws.GetToken() == "" {
 		t.Skip("No AWS_SESSION_TOKEN, skipping test")
 	}
+	client, _ := ClientS3(ctx, "eu-west-1")
 
 	repository, err = New(ctx, log, conf)
 	if err != nil {
@@ -62,7 +64,7 @@ func TestS3BucketDownload(t *testing.T) {
 		t.FailNow()
 	}
 
-	files, err := repository.DownloadBucket("report-data-development", "github_standards/", downloadTo)
+	files, err := repository.DownloadBucket(client, "report-data-development", "github_standards/", downloadTo)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 		t.FailNow()

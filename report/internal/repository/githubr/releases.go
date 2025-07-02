@@ -197,9 +197,6 @@ func (self *Repository) DownloadReleaseAssetByName(client ReleaseGetAndDownloade
 
 	downloadedTo = filepath.Join(downloadedTo, asset.GetName())
 	f, err := self.DownloadReleaseAsset(client, organisation, repositoryName, asset, downloadedTo)
-	// utils.Debug("post DownloadReleaseAsset")
-	// utils.Debug(downloadedTo)
-	// utils.Debug(asset)
 
 	if err != nil {
 		self.log.Error("error downloading the release asset", "err", err.Error())
