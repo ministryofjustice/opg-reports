@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/google/go-github/v62/github"
 	"github.com/ministryofjustice/opg-reports/report/internal/repository/githubr"
 	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
@@ -65,7 +66,19 @@ type accountDownloadOptions struct {
 }
 
 // InsertTeams handles the inserting otf team data from opgmetadata reository
-// into the local database service
+// into the local database service.
+//
+// Example account from the opg-metadata source file:
+//
+//	{
+//		"id": "500000067891",
+//		"name": "My production",
+//		"billing_unit": "Team A",
+//		"label": "prod",
+//		"environment": "production",
+//		"type": "aws",
+//		"uptime_tracking": true
+//	}
 func (self *Service) InsertAwsAccounts(client githubr.ReleaseClient, ghs githubr.ReleaseRepository, sq sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
 	var dir string
 
@@ -113,6 +126,7 @@ func (self *Service) insertAwsAccountsToDB(sq sqlr.Writer, accounts []*awsAccoun
 func (self *Service) getAwsAccountsFromMetadata(client githubr.ReleaseClient, ghs githubr.ReleaseRepository, options *accountDownloadOptions) (accounts []*awsAccount, err error) {
 	var (
 		fp           *os.File
+		asset        *github.ReleaseAsset
 		downloadedTo string
 		accountFile  string = "accounts.aws.json"
 		downloadDir  string = filepath.Join(options.Dir, "download")
@@ -120,7 +134,7 @@ func (self *Service) getAwsAccountsFromMetadata(client githubr.ReleaseClient, gh
 	)
 	accounts = []*awsAccount{}
 	// Download the metadata asset
-	downloadedTo, err = ghs.DownloadReleaseAssetByName(client,
+	asset, downloadedTo, err = ghs.DownloadReleaseAssetByName(client,
 		options.Owner,
 		options.Repository,
 		options.AssetName,
@@ -128,6 +142,10 @@ func (self *Service) getAwsAccountsFromMetadata(client githubr.ReleaseClient, gh
 		downloadDir)
 
 	if err != nil {
+		return
+	}
+	if asset == nil {
+		err = fmt.Errorf("nil asset returned from DownloadReleaseAssetByName")
 		return
 	}
 	// remove the files on exit

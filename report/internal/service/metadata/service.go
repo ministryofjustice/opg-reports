@@ -154,7 +154,7 @@ func (self *Service[T]) DownloadAndExtractAsset(owner string, repository string,
 	}
 	// download this asset
 	log.With("assetID", *asset.ID).Debug("downloading the latest release asset via repository")
-	downloadedFile, err = ghs.DownloadReleaseAsset(client.Repositories, owner, repository, *asset.ID, downloadTo)
+	downloadedFile, err = ghs.DownloadReleaseAsset(client.Repositories, owner, repository, asset, downloadTo)
 	if err != nil {
 		log.Error("error downloading the release asset", "err", err.Error())
 		return

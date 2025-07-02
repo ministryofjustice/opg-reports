@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/google/go-github/v62/github"
 	"github.com/ministryofjustice/opg-reports/report/internal/repository/githubr"
 	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
@@ -48,7 +49,21 @@ type teamDownloadOptions struct {
 
 // InsertTeams handles the inserting otf team data from opgmetadata reository
 // into the local database service
-func (self *Service) InsertTeams(client githubr.ReleaseClient, ghs githubr.ReleaseRepository, sq sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
+//
+// Example account from the opg-metadata source file:
+//
+//	{
+//		"id": "500000067891",
+//		"name": "My production",
+//		"billing_unit": "Team A",
+//		"label": "prod",
+//		"environment": "production",
+//		"type": "aws",
+//		"uptime_tracking": true
+//	}
+//
+// We only want `billing_unit` field and are ignoring the others
+func (self *Service) InsertTeams(client githubr.ReleaseClient, ghs githubr.ReleaseRepositoryDownloader, sq sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
 	var dir string
 
 	if ghs == nil || sq == nil {
@@ -58,6 +73,7 @@ func (self *Service) InsertTeams(client githubr.ReleaseClient, ghs githubr.Relea
 
 	dir, err = os.MkdirTemp("./", "__download-gh-*")
 	if err != nil {
+		self.log.Error("mkdir error")
 		return
 	}
 	defer os.RemoveAll(dir)
@@ -70,6 +86,7 @@ func (self *Service) InsertTeams(client githubr.ReleaseClient, ghs githubr.Relea
 		Dir:        dir,
 	})
 	if err != nil {
+		self.log.Error("error getting teams")
 		return
 	}
 	results, err = self.insertTeamsToDB(sq, teams)
@@ -92,8 +109,9 @@ func (self *Service) insertTeamsToDB(sq sqlr.Writer, teams []*team) (statements 
 // into []Team
 //
 // Removes directory and files on exit
-func (self *Service) getTeamsFromMetadata(client githubr.ReleaseClient, ghs githubr.ReleaseRepository, options *teamDownloadOptions) (teams []*team, err error) {
+func (self *Service) getTeamsFromMetadata(client githubr.ReleaseGetAndDownloader, ghs githubr.ReleaseRepositoryDownloader, options *teamDownloadOptions) (teams []*team, err error) {
 	var (
+		asset        *github.ReleaseAsset
 		fp           *os.File
 		downloadedTo string
 		accountFile  string = "accounts.json"
@@ -102,7 +120,7 @@ func (self *Service) getTeamsFromMetadata(client githubr.ReleaseClient, ghs gith
 	)
 	teams = []*team{}
 	// Download the metadata asset
-	downloadedTo, err = ghs.DownloadReleaseAssetByName(client,
+	asset, downloadedTo, err = ghs.DownloadReleaseAssetByName(client,
 		options.Owner,
 		options.Repository,
 		options.AssetName,
@@ -110,6 +128,11 @@ func (self *Service) getTeamsFromMetadata(client githubr.ReleaseClient, ghs gith
 		downloadDir)
 
 	if err != nil {
+		self.log.Error("error downloading release by asset name", "err", err.Error())
+		return
+	}
+	if asset == nil {
+		err = fmt.Errorf("nil asset returned from DownloadReleaseAssetByName")
 		return
 	}
 	// remove the files on exit
@@ -117,22 +140,30 @@ func (self *Service) getTeamsFromMetadata(client githubr.ReleaseClient, ghs gith
 		os.RemoveAll(downloadDir)
 		os.RemoveAll(extractDir)
 	}()
-	// extract the zip file
-	fp, err = os.Open(downloadedTo)
-	if err != nil {
-		return
+
+	// deal with tar balls etc
+	if *asset.ContentType == "application/gzip" {
+		// extract the zip file
+		fp, err = os.Open(downloadedTo)
+		if err != nil {
+			self.log.Error("error opening release downloaded file", "err", err.Error())
+			return
+		}
+		err = utils.TarGzExtract(extractDir, fp)
+		if err != nil {
+			self.log.Error("error extracting downloaded release", "err", err.Error())
+			return
+		}
+		// check the accounts json file exists
+		accountFile = filepath.Join(extractDir, accountFile)
+		if !utils.DirExists(extractDir) || !utils.FileExists(accountFile) {
+			err = fmt.Errorf("directory or file not found")
+			return
+		}
+		// read the json file into local struct
+		err = utils.UnmarshalFile(accountFile, &teams)
+	} else {
+		err = utils.UnmarshalFile(downloadedTo, &teams)
 	}
-	err = utils.TarGzExtract(extractDir, fp)
-	if err != nil {
-		return
-	}
-	// check the accounts json file exists
-	accountFile = filepath.Join(extractDir, accountFile)
-	if !utils.DirExists(extractDir) || !utils.FileExists(accountFile) {
-		err = fmt.Errorf("directory or file not found")
-		return
-	}
-	// read the json file into local struct
-	err = utils.UnmarshalFile(accountFile, &teams)
 	return
 }

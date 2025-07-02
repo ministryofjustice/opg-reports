@@ -147,10 +147,16 @@ func (self *Repository) GetLatestReleaseAsset(client ClientReleaseGetter, organi
 // include the organsiation name
 //
 // The returned `*os.File` is not closed and will need to be handled
-func (self *Repository) DownloadReleaseAsset(client ClientReleaseDownloader, organisation string, repositoryName string, assetID int64, destinationFilePath string) (destination *os.File, err error) {
+func (self *Repository) DownloadReleaseAsset(
+	client ClientReleaseDownloader,
+	organisation string,
+	repositoryName string,
+	asset *github.ReleaseAsset,
+	destinationFilePath string) (destination *os.File, err error) {
 	var (
-		rc  io.ReadCloser
-		log = self.log.With("operation", "DownloadAsset", "assetID", assetID)
+		assetID int64 = *asset.ID
+		rc      io.ReadCloser
+		log     = self.log.With("operation", "DownloadAsset", "assetID", assetID)
 	)
 
 	log.Debug("downloading asset")
@@ -176,18 +182,25 @@ func (self *Repository) DownloadReleaseAsset(client ClientReleaseDownloader, org
 	return
 }
 
-func (self *Repository) DownloadReleaseAssetByName(client ReleaseGetAndDownloader, organisation string, repositoryName string, assetName string, regex bool, directory string) (downloadedTo string, err error) {
-	var asset *github.ReleaseAsset
+func (self *Repository) DownloadReleaseAssetByName(client ReleaseGetAndDownloader, organisation string, repositoryName string, assetName string, regex bool, directory string) (asset *github.ReleaseAsset, downloadedTo string, err error) {
 
 	downloadedTo = directory
 	asset, err = self.GetLatestReleaseAsset(client, organisation, repositoryName, assetName, regex)
-	if err != nil || asset == nil {
+
+	if err != nil {
+		return
+	}
+	if asset == nil {
 		self.log.Error("error getting latest release asset", "err", err.Error())
 		return
 	}
 
 	downloadedTo = filepath.Join(downloadedTo, asset.GetName())
-	f, err := self.DownloadReleaseAsset(client, organisation, repositoryName, *asset.ID, downloadedTo)
+	f, err := self.DownloadReleaseAsset(client, organisation, repositoryName, asset, downloadedTo)
+	// utils.Debug("post DownloadReleaseAsset")
+	// utils.Debug(downloadedTo)
+	// utils.Debug(asset)
+
 	if err != nil {
 		self.log.Error("error downloading the release asset", "err", err.Error())
 		return

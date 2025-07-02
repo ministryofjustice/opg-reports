@@ -1,65 +1,12 @@
 package githubr
 
 import (
-	"context"
 	"fmt"
-	"io"
-	"net/http"
-	"os"
-	"path/filepath"
 	"testing"
 
-	"github.com/google/go-github/v62/github"
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
-
-// mockedR is a dummy stuck used for testing functions by using fixed values
-// so we dont have to makle api calls to github during testing
-type mockedR struct{}
-
-var t = true
-var f = false
-var id int64 = 2003
-var ids = []int64{1000, 1001, 1002, 1003}
-var nm = "test_v1_darwin_arm64.txt"
-var nms = []string{"R00", "R01", "R02", "R03"}
-var rel = &github.RepositoryRelease{
-	ID:         &ids[3],
-	Name:       &nms[3],
-	Draft:      &f,
-	Prerelease: &t,
-	Assets: []*github.ReleaseAsset{
-		{ID: &id, Name: &nm},
-	},
-}
-var rels = []*github.RepositoryRelease{
-	{ID: &ids[0], Name: &nms[0], Draft: &t, Prerelease: &t, Assets: []*github.ReleaseAsset{}},
-	{ID: &ids[1], Name: &nms[1], Draft: &f, Prerelease: &f, Assets: []*github.ReleaseAsset{}},
-	{ID: &ids[2], Name: &nms[2], Draft: &f, Prerelease: &t, Assets: []*github.ReleaseAsset{}},
-	rel,
-}
-
-func (self *mockedR) ListReleases(ctx context.Context, owner, repo string, opts *github.ListOptions) (all []*github.RepositoryRelease, resp *github.Response, err error) {
-	all = rels
-	resp = &github.Response{
-		NextPage: 0,
-	}
-	return
-}
-
-func (self *mockedR) GetLatestRelease(ctx context.Context, owner, repo string) (release *github.RepositoryRelease, resp *github.Response, err error) {
-	release = rel
-	return
-}
-
-// DownloadReleaseAsset is a dummy function that mimics downloading a specific id to a known file localtion
-func (self *mockedR) DownloadReleaseAsset(ctx context.Context, owner, repo string, id int64, followRedirectsClient *http.Client) (rc io.ReadCloser, redirectURL string, err error) {
-	var fp = filepath.Join("./", nm)
-	err = os.WriteFile(fp, []byte(`test-file`), os.ModePerm)
-	rc, _ = os.Open(fp)
-	return
-}
 
 // TestGithubrAllReleases makes a call to a real api to check there are releases returned
 // Uses a public repo to reduce need for token auth
@@ -78,7 +25,7 @@ func TestGithubrAllReleases(t *testing.T) {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
 
-	found, err := repo.GetReleases(&mockedR{}, "", "", nil)
+	found, err := repo.GetReleases(&mockedClient{}, "", "", nil)
 	if err != nil {
 		t.Errorf("unexpected error found: %s", err.Error())
 	}
@@ -86,7 +33,7 @@ func TestGithubrAllReleases(t *testing.T) {
 		t.Errorf("expected multiple releases to be returned")
 	}
 	// check filtering on the release set
-	nopre, err := repo.GetReleases(&mockedR{}, "", "", &GetReleaseOptions{ExcludePrereleases: true})
+	nopre, err := repo.GetReleases(&mockedClient{}, "", "", &GetReleaseOptions{ExcludePrereleases: true})
 	ok := true
 	for _, r := range nopre {
 		if *r.Prerelease == true {
@@ -97,7 +44,7 @@ func TestGithubrAllReleases(t *testing.T) {
 		t.Errorf("got an unexpected pre-release")
 	}
 
-	nodr, err := repo.GetReleases(&mockedR{}, "", "", &GetReleaseOptions{ExcludeDraft: true})
+	nodr, err := repo.GetReleases(&mockedClient{}, "", "", &GetReleaseOptions{ExcludeDraft: true})
 	ok = true
 	for _, r := range nodr {
 		if *r.Draft == true {
@@ -107,7 +54,7 @@ func TestGithubrAllReleases(t *testing.T) {
 	if !ok {
 		t.Errorf("got an unexpected draft")
 	}
-	noa, err := repo.GetReleases(&mockedR{}, "", "", &GetReleaseOptions{ExcludeNoAssets: true})
+	noa, err := repo.GetReleases(&mockedClient{}, "", "", &GetReleaseOptions{ExcludeNoAssets: true})
 	ok = true
 	for _, r := range noa {
 		if r.Assets == nil {
@@ -135,7 +82,7 @@ func TestGithubrLatestRelease(t *testing.T) {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
 
-	found, err := repo.GetLatestRelease(&mockedR{}, "", "")
+	found, err := repo.GetLatestRelease(&mockedClient{}, "", "")
 	if err != nil {
 		t.Errorf("unexpected error found: %s", err.Error())
 	}
@@ -160,7 +107,7 @@ func TestGithubrLatestReleaseAssetAndDownload(t *testing.T) {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
 	found, err := repo.GetLatestReleaseAsset(
-		&mockedR{},
+		&mockedClient{},
 		"", "", "test_(.*)_darwin_arm64.txt",
 		true)
 
@@ -178,8 +125,8 @@ func TestGithubrLatestReleaseAssetAndDownload(t *testing.T) {
 	}
 
 	f, err := repo.DownloadReleaseAsset(
-		&mockedR{},
-		"gitleaks", "gitleaks", *found.ID,
+		&mockedClient{},
+		"gitleaks", "gitleaks", found,
 		dest)
 	defer f.Close()
 
@@ -192,8 +139,6 @@ func TestGithubrLatestReleaseAssetAndDownload(t *testing.T) {
 	if !utils.FileExists(dest) {
 		t.Errorf("file missing")
 	}
-	// remove the dummy file
-	os.RemoveAll(filepath.Join("./", nm))
 
 }
 
@@ -217,18 +162,20 @@ func TestGithubrLastReleaseAssetByName(t *testing.T) {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
 
-	path, err := repo.DownloadReleaseAssetByName(
-		&mockedR{},
+	asset, path, err := repo.DownloadReleaseAssetByName(
+		&mockedClient{},
 		"", "", "test_(.*)_darwin_arm64.txt",
 		true, dir)
 
 	if err != nil {
 		t.Errorf("unexpected error found: %s", err.Error())
 	}
+	if asset == nil {
+		t.Errorf("unexpected nil asset returned: %s", err.Error())
+	}
 
 	if path == "" {
 		t.Errorf("file path is nil")
 	}
-	os.RemoveAll(filepath.Join("./", nm))
 
 }

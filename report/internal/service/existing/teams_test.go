@@ -10,8 +10,6 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
-type tTeam struct{}
-
 func TestTeamsInsert(t *testing.T) {
 	var (
 		err  error
@@ -20,9 +18,10 @@ func TestTeamsInsert(t *testing.T) {
 		conf        = config.NewConfig()
 		log         = utils.Logger("ERROR", "TEXT")
 	)
+	// set config values
 	conf.Database.Path = filepath.Join(dir, "./existing-teams.db")
+	conf.Github.Metadata.Asset = "test_v1_darwin_arm64.txt"
 
-	client, _ := githubr.Client(conf)
 	gh, _ := githubr.New(ctx, log, conf)
 	sq, _ := sqlr.New(ctx, log, conf)
 	// existing srv
@@ -31,7 +30,7 @@ func TestTeamsInsert(t *testing.T) {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
 
-	stmts, err := srv.InsertTeams(client.Repositories, gh, sq)
+	stmts, err := srv.InsertTeams(&mockedGitHubClient{}, gh, sq)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
@@ -49,14 +48,13 @@ func TestTeamsgetTeamsFromMetadata(t *testing.T) {
 		conf        = config.NewConfig()
 		log         = utils.Logger("ERROR", "TEXT")
 	)
-	client, _ := githubr.Client(conf)
 	srv, _ := New(ctx, log, conf)
 	gh, _ := githubr.New(ctx, log, conf)
 
-	_, err = srv.getTeamsFromMetadata(client.Repositories, gh, &teamDownloadOptions{
-		Owner:      "ministryofjustice",
-		Repository: "opg-metadata",
-		AssetName:  "metadata.tar.gz",
+	teams, err := srv.getTeamsFromMetadata(&mockedGitHubClient{}, gh, &teamDownloadOptions{
+		Owner:      "testowner",
+		Repository: "test-repo",
+		AssetName:  "test_v1_darwin_arm64.txt",
 		UseRegex:   false,
 		Dir:        dir,
 	})
@@ -64,5 +62,10 @@ func TestTeamsgetTeamsFromMetadata(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
+	if len(teams) != 1 {
+		t.Error("unexpected team data returned")
+		utils.Debug(teams)
+	}
 
+	t.FailNow()
 }
