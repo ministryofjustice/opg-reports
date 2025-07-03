@@ -3,6 +3,7 @@ package awsr
 import (
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
@@ -19,7 +20,7 @@ func TestSTSCallerIdentity(t *testing.T) {
 	if conf.Aws.GetToken() == "" {
 		t.Skip("No AWS_SESSION_TOKEN, skipping test")
 	}
-	client, _ := ClientSTS(ctx, "eu-west-1")
+	client, _ := GetClient[*sts.Client](ctx, "eu-west-1")
 
 	repository, err = New(ctx, log, conf)
 	if err != nil {

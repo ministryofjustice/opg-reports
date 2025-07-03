@@ -9,26 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
-
-// S3Client fetches a v2 version of the sts client loading from the
-// env and setting the region
-//
-// Used to establish connection to the aws api for s3 bucket calls
-func ClientS3(ctx context.Context, region string) (client *s3.Client, err error) {
-	var awscfg aws.Config
-
-	awscfg, err = config.LoadDefaultConfig(ctx, config.WithRegion(region))
-	if err != nil {
-		return
-	}
-	client = s3.NewFromConfig(awscfg)
-	return
-
-}
 
 // ListBucket returns all the files stored within the bucket and under the prefix
 // path passed.

@@ -81,6 +81,13 @@ type accountDownloadOptions struct {
 //	}
 func (self *Service) InsertAwsAccounts(client githubr.ReleaseClient, ghs githubr.ReleaseRepository, sq sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
 	var dir string
+	var sw = utils.Stopwatch()
+
+	defer func() {
+		self.log.With("seconds", sw.Stop().Seconds(), "inserted", len(results)).
+			Info("[existing:AwsAccounts] existing func finished.")
+	}()
+	self.log.Info("[existing:AwsAccounts] starting existing records import ...")
 
 	if ghs == nil || sq == nil {
 		err = fmt.Errorf("params were nil")
@@ -103,8 +110,13 @@ func (self *Service) InsertAwsAccounts(client githubr.ReleaseClient, ghs githubr
 	if err != nil {
 		return
 	}
-	results, err = self.insertAwsAccountsToDB(sq, teams)
 
+	results, err = self.insertAwsAccountsToDB(sq, teams)
+	if err != nil {
+		return
+	}
+
+	self.log.Info("[existing:AwsAccounts] existing records successful")
 	return
 }
 

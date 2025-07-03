@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
@@ -22,7 +23,7 @@ func TestS3BucketList(t *testing.T) {
 	if conf.Aws.GetToken() == "" {
 		t.Skip("No AWS_SESSION_TOKEN, skipping test")
 	}
-	client, _ := ClientS3(ctx, "eu-west-1")
+	client, _ := GetClient[*s3.Client](ctx, "eu-west-1")
 
 	repository, err = New(ctx, log, conf)
 	if err != nil {
@@ -56,7 +57,7 @@ func TestS3BucketDownload(t *testing.T) {
 	if conf.Aws.GetToken() == "" {
 		t.Skip("No AWS_SESSION_TOKEN, skipping test")
 	}
-	client, _ := ClientS3(ctx, "eu-west-1")
+	client, _ := GetClient[*s3.Client](ctx, "eu-west-1")
 
 	repository, err = New(ctx, log, conf)
 	if err != nil {

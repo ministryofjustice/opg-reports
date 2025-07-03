@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
 	"github.com/ministryofjustice/opg-reports/report/internal/repository/awsr"
@@ -51,7 +52,7 @@ func (self *Service[T]) Close() (err error) {
 // bucket an error is returned.
 func (self *Service[T]) Download(bucket string, prefix string) (downloaded []string, err error) {
 	var log *slog.Logger = self.log.With("operation", "Download", "bucket", bucket, "prefix", prefix)
-	client, err := awsr.ClientS3(self.ctx, self.conf.Aws.GetRegion())
+	client, err := awsr.GetClient[*s3.Client](self.ctx, self.conf.Aws.GetRegion())
 	downloaded, err = self.store.DownloadBucket(client, bucket, prefix, self.GetDirectory())
 	if err != nil {
 		return

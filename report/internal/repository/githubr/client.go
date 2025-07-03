@@ -8,8 +8,8 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/config"
 )
 
-// Client is an internal helper to handle creating the client
-func Client(conf *config.Config) (client *github.Client, err error) {
+// GetClient is an internal helper to handle creating the client
+func GetClient(conf *config.Config) (client *github.Client, err error) {
 	// handle empty configs
 	if conf.Github == nil || conf.Github.Token == "" {
 		return nil, fmt.Errorf("no github access token found in the config")
@@ -25,6 +25,6 @@ func Client(conf *config.Config) (client *github.Client, err error) {
 }
 
 func DefaultClient(conf *config.Config) (client *github.Client) {
-	client, _ = Client(conf)
+	client, _ = GetClient(conf)
 	return
 }

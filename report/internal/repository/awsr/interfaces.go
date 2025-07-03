@@ -31,3 +31,7 @@ type ClientS3ListAndGetter interface {
 	s3.ListObjectsV2APIClient
 	ClientS3Getter
 }
+
+type ClientS3 interface {
+	ClientS3ListAndGetter
+}

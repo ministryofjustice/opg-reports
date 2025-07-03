@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/google/go-github/v62/github"
 	"github.com/ministryofjustice/opg-reports/report/internal/repository/githubr"
@@ -65,12 +66,20 @@ type teamDownloadOptions struct {
 // We only want `billing_unit` field and are ignoring the others
 func (self *Service) InsertTeams(client githubr.ReleaseClient, ghs githubr.ReleaseRepositoryDownloader, sq sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
 	var dir string
+	var sw = utils.Stopwatch()
+
+	defer func() {
+		self.log.With("seconds", sw.Stop().Seconds(), "inserted", len(results)).
+			Info("[existing:Teams] existing func finished.")
+	}()
+	self.log.Info("[existing:Teams] starting existing records import ...")
 
 	if ghs == nil {
+		err = fmt.Errorf("ghs was nil")
 		return
 	}
 	if sq == nil {
-		err = fmt.Errorf("params were nil")
+		err = fmt.Errorf("sq was nil")
 		return
 	}
 
@@ -88,12 +97,19 @@ func (self *Service) InsertTeams(client githubr.ReleaseClient, ghs githubr.Relea
 		UseRegex:   false,
 		Dir:        dir,
 	})
+
 	if err != nil {
-		self.log.Error("error getting teams")
+		self.log.Error("error getting team metadata")
 		return
 	}
-	results, err = self.insertTeamsToDB(sq, teams)
 
+	results, err = self.insertTeamsToDB(sq, teams)
+	if err != nil {
+		self.log.Error("error inserting teams")
+		return
+	}
+
+	self.log.Info("[existing:Teams] existing records successful")
 	return
 }
 
@@ -136,6 +152,7 @@ func (self *Service) getTeamsFromMetadata(client githubr.ReleaseGetAndDownloader
 	}
 	if asset == nil {
 		err = fmt.Errorf("nil asset returned from DownloadReleaseAssetByName")
+		self.log.Error("error with asset name", "err", err.Error())
 		return
 	}
 	// remove the files on exit
@@ -144,8 +161,8 @@ func (self *Service) getTeamsFromMetadata(client githubr.ReleaseGetAndDownloader
 		os.RemoveAll(extractDir)
 	}()
 
-	// deal with tar balls etc
-	if *asset.ContentType == "application/gzip" {
+	// deal with tar balls
+	if strings.HasSuffix(*asset.Name, "tar.gz") {
 		// extract the zip file
 		fp, err = os.Open(downloadedTo)
 		if err != nil {
@@ -165,8 +182,10 @@ func (self *Service) getTeamsFromMetadata(client githubr.ReleaseGetAndDownloader
 		}
 		// read the json file into local struct
 		err = utils.UnmarshalFile(accountFile, &teams)
-	} else {
+	} else if strings.HasSuffix(*asset.Name, ".json") || strings.HasSuffix(*asset.Name, ".txt") {
 		err = utils.UnmarshalFile(downloadedTo, &teams)
+	} else {
+		err = fmt.Errorf("unsupported file type [name: %s] [type: %s]", *asset.Name, *asset.ContentType)
 	}
 	return
 }
