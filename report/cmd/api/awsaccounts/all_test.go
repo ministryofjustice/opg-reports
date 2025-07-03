@@ -9,37 +9,40 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/awsaccount"
-	"github.com/ministryofjustice/opg-reports/report/internal/service/team"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/seed"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
-func seed(ctx context.Context, lg *slog.Logger, cfg *config.Config) (inserted []*sqlr.BoundStatement) {
-	team.Seed(ctx, lg, cfg, nil)
-	inserted, _ = awsaccount.Seed(ctx, lg, cfg, nil)
+func seedDB(ctx context.Context, log *slog.Logger, conf *config.Config) (inserted []*sqlr.BoundStatement) {
+	sqc := sqlr.Default(ctx, log, conf)
+	seeder := seed.Default(ctx, log, conf)
+	seeder.Teams(sqc)
+	inserted, _ = seeder.AwsAccounts(sqc)
 	return
 }
 
 // Make sure that the handler finds the correct accounts
 func TestHandleGetAwsAccountsAll(t *testing.T) {
 	var (
-		err error
-		dir = t.TempDir()
-		ctx = t.Context()
-		cfg = config.NewConfig()
-		lg  = utils.Logger("ERROR", "TEXT")
+		err  error
+		dir  = t.TempDir()
+		ctx  = t.Context()
+		conf = config.NewConfig()
+		log  = utils.Logger("DEBUG", "TEXT")
 	)
 	// overwrite the database location
-	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test-awsaccounts-getall.db")
+	conf.Database.Path = fmt.Sprintf("%s/%s", dir, "test-awsaccounts-getall.db")
 	// capture the inserted data
-	inserted := seed(ctx, lg, cfg)
+	inserted := seedDB(ctx, log, conf)
 	// generate a repository and service
-	repository, _ := sqlr.NewWithSelect[*AwsAccount](ctx, lg, cfg)
-	service, _ := awsaccount.NewService(ctx, lg, cfg, repository)
+	repository, _ := sqlr.NewWithSelect[*AwsAccount](ctx, log, conf)
+	service, _ := awsaccount.NewService(ctx, log, conf, repository)
 	// grab the result
-	response, err := handleGetAwsAccountsAll(ctx, lg, cfg, service, nil)
+	response, err := handleGetAwsAccountsAll(ctx, log, conf, service, nil)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
+	utils.Debug(response)
 	// make sure all counts match
 	if len(inserted) != response.Body.Count {
 		t.Errorf("count doesnt match count of inserted records, expected [%d] actual [%d]", len(inserted), response.Body.Count)

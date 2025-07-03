@@ -6,6 +6,7 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/seed"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
@@ -44,23 +45,20 @@ func TestTeamServiceNew(t *testing.T) {
 
 func TestTeamServiceGetAll(t *testing.T) {
 	var (
-		err error
-		dir = t.TempDir()
-		ctx = t.Context()
-		cfg = config.NewConfig()
-		lg  = utils.Logger("ERROR", "TEXT")
+		err  error
+		dir  = t.TempDir()
+		ctx  = t.Context()
+		conf = config.NewConfig()
+		log  = utils.Logger("ERROR", "TEXT")
 	)
-	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test-team-getall.db")
+	conf.Database.Path = fmt.Sprintf("%s/%s", dir, "test-team-getall.db")
 
-	// insert standard items
-	// 	- needs teams to be seeded first
-	insert, err := Seed(ctx, lg, cfg, nil)
-	if err != nil {
-		t.Errorf("unexpected error seeding: [%s]", err.Error())
-	}
+	sqc := sqlr.Default(ctx, log, conf)
+	seeder := seed.Default(ctx, log, conf)
+	insert, _ := seeder.Teams(sqc)
 
 	// generate the service
-	srv := Default[*Team](ctx, lg, cfg)
+	srv := Default[*Team](ctx, log, conf)
 	if srv == nil {
 		t.Errorf("unexpected error creating service: [%s]", err.Error())
 		t.FailNow()

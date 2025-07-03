@@ -14,10 +14,8 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/internal/repository/awsr"
 	"github.com/ministryofjustice/opg-reports/report/internal/repository/githubr"
 	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
-	"github.com/ministryofjustice/opg-reports/report/internal/service/awsaccount"
-	"github.com/ministryofjustice/opg-reports/report/internal/service/awscost"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/existing"
-	"github.com/ministryofjustice/opg-reports/report/internal/service/team"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/seed"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -76,20 +74,26 @@ var existingCmd = &cobra.Command{
 	},
 }
 
-// fixturesCmd creates the database with simple, known fixture data that is used for testing and dev environments
-var fixturesCmd = &cobra.Command{
-	Use:   "fixtures",
-	Short: "fixtures uses known data to populate the database",
-	Long:  `fixtures empties and then populates the database with a series of known data sets to allow a create test instance.`,
+// seedCmd
+var seedCmd = &cobra.Command{
+	Use:   "seed",
+	Short: "seed inserts known test data.",
+	Long:  `seed inserts known test data for use in development.`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-
-		if _, err = team.Seed(ctx, log, conf, nil); err != nil {
+		var (
+			sqlStore    *sqlr.Repository = sqlr.Default(ctx, log, conf)
+			seedService *seed.Service    = seed.Default(ctx, log, conf)
+		)
+		// TEAMS
+		if _, err = seedService.Teams(sqlStore); err != nil {
 			return
 		}
-		if _, err = awsaccount.Seed(ctx, log, conf, nil); err != nil {
+		// ACCOUNTS
+		if _, err = seedService.AwsAccounts(sqlStore); err != nil {
 			return
 		}
-		if _, err = awscost.Seed(ctx, log, conf, nil); err != nil {
+		// COSTS
+		if _, err = seedService.AwsCosts(sqlStore); err != nil {
 			return
 		}
 
@@ -128,7 +132,7 @@ func init() {
 }
 
 func main() {
-	rootCmd.AddCommand(existingCmd, fixturesCmd, awscostsCmd)
+	rootCmd.AddCommand(existingCmd, seedCmd, awscostsCmd)
 	rootCmd.Execute()
 
 }

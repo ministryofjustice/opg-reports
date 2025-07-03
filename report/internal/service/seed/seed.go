@@ -1,4 +1,4 @@
-package existing
+package seed
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/config"
 )
 
-const label string = "existing-service"
+const label string = "seed-service"
 
 type Service struct {
 	ctx  context.Context

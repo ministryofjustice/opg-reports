@@ -8,8 +8,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/repository/awsr"
 	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
-	"github.com/ministryofjustice/opg-reports/report/internal/service/awsaccount"
-	"github.com/ministryofjustice/opg-reports/report/internal/service/team"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/seed"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
@@ -27,10 +26,11 @@ func TestAwsCostsInsert(t *testing.T) {
 	}
 	// set config values
 	conf.Database.Path = filepath.Join(dir, "./existing-awscosts.db")
-	// TODO - swap to new method when in place
-	// seed data
-	team.Seed(ctx, log, conf, nil)
-	awsaccount.Seed(ctx, log, conf, nil)
+
+	sqc := sqlr.Default(ctx, log, conf)
+	seeder := seed.Default(ctx, log, conf)
+	seeder.Teams(sqc)
+	seeder.AwsAccounts(sqc)
 
 	awc, _ := awsr.New(ctx, log, conf)
 	sq, _ := sqlr.New(ctx, log, conf)

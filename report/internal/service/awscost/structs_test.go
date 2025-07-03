@@ -6,8 +6,7 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
-	"github.com/ministryofjustice/opg-reports/report/internal/service/awsaccount"
-	"github.com/ministryofjustice/opg-reports/report/internal/service/team"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/seed"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
@@ -19,15 +18,18 @@ func TestGetGroupedCostsOptions(t *testing.T) {
 		data  *sqlParams
 		dir   = t.TempDir()
 		ctx   = t.Context()
-		cfg   = config.NewConfig()
-		lg    = utils.Logger("ERROR", "TEXT")
+		conf  = config.NewConfig()
+		log   = utils.Logger("ERROR", "TEXT")
 	)
-	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test-awscost-getopts.db")
-	// seed teams, accounts & costs to get some dummy data
-	team.Seed(ctx, lg, cfg, nil)
-	awsaccount.Seed(ctx, lg, cfg, nil)
-	Seed(ctx, lg, cfg, nil)
-	repo, err := sqlr.NewWithSelect[*AwsCost](ctx, lg, cfg)
+	conf.Database.Path = fmt.Sprintf("%s/%s", dir, "test-awscost-getopts.db")
+
+	sqc := sqlr.Default(ctx, log, conf)
+	seeder := seed.Default(ctx, log, conf)
+	seeder.Teams(sqc)
+	seeder.AwsAccounts(sqc)
+	seeder.AwsCosts(sqc)
+
+	repo, err := sqlr.NewWithSelect[*AwsCost](ctx, log, conf)
 
 	opts := &GetGroupedCostsOptions{
 		StartDate:   "2024-01",

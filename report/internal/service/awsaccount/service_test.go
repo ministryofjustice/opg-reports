@@ -7,7 +7,7 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/awsaccount"
-	"github.com/ministryofjustice/opg-reports/report/internal/service/team"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/seed"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
@@ -46,26 +46,21 @@ func TestAwsAccountServiceNew(t *testing.T) {
 
 func TestAwsAccountServiceGetAll(t *testing.T) {
 	var (
-		err error
-		dir = t.TempDir()
-		ctx = t.Context()
-		cfg = config.NewConfig()
-		lg  = utils.Logger("ERROR", "TEXT")
+		err  error
+		dir  = t.TempDir()
+		ctx  = t.Context()
+		conf = config.NewConfig()
+		log  = utils.Logger("ERROR", "TEXT")
 	)
-	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test-awsaccounts-getall.db")
+	conf.Database.Path = fmt.Sprintf("%s/%s", dir, "test-awsaccounts-getall.db")
 
 	// insert standard items including teams before this to create joins
-	_, err = team.Seed(ctx, lg, cfg, nil)
-	if err != nil {
-		t.Errorf("unexpected error seeding: [%s]", err.Error())
-	}
-	insert, err := awsaccount.Seed(ctx, lg, cfg, nil)
-	if err != nil {
-		t.Errorf("unexpected error seeding: [%s]", err.Error())
-	}
-
+	sqc := sqlr.Default(ctx, log, conf)
+	seeder := seed.Default(ctx, log, conf)
+	seeder.Teams(sqc)
+	insert, err := seeder.AwsAccounts(sqc)
 	// generate the service useing default
-	srv := awsaccount.Default[*awsaccount.AwsAccount](ctx, lg, cfg)
+	srv := awsaccount.Default[*awsaccount.AwsAccount](ctx, log, conf)
 	if srv == nil {
 		t.Errorf("unexpected error creating service: [%s]", err.Error())
 	} else {
