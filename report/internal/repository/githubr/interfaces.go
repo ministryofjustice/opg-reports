@@ -30,7 +30,7 @@ type ReleaseRepositoryGetter interface {
 
 type ReleaseRepositoryDownloader interface {
 	DownloadReleaseAsset(client ClientReleaseDownloader, organisation string, repositoryName string, asset *github.ReleaseAsset, destinationFilePath string) (destination *os.File, err error)
-	DownloadReleaseAssetByName(client ReleaseGetAndDownloader, organisation string, repositoryName string, assetName string, regex bool, directory string) (asset *github.ReleaseAsset, downloadedTo string, err error)
+	DownloadReleaseAssetByName(client ClientReleaseGetAndDownloader, organisation string, repositoryName string, assetName string, regex bool, directory string) (asset *github.ReleaseAsset, downloadedTo string, err error)
 }
 
 // ClientReleaseLister represents the methods required for the
@@ -55,9 +55,9 @@ type ClientReleaseDownloader interface {
 	DownloadReleaseAsset(ctx context.Context, owner, repo string, id int64, followRedirectsClient *http.Client) (rc io.ReadCloser, redirectURL string, err error)
 }
 
-// ReleaseGetAndDownloader represents the methods used for github
+// ClientReleaseGetAndDownloader represents the methods used for github
 // client to get and download a release
-type ReleaseGetAndDownloader interface {
+type ClientReleaseGetAndDownloader interface {
 	ClientReleaseGetter
 	ClientReleaseDownloader
 }

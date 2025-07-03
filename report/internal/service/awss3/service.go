@@ -19,7 +19,7 @@ type Service[T interfaces.Model] struct {
 	ctx       context.Context
 	log       *slog.Logger
 	conf      *config.Config
-	store     awsr.S3er
+	store     awsr.S3Repository
 	directory string
 }
 
@@ -100,7 +100,7 @@ func (self *Service[T]) DownloadAndReturnData(bucket string, prefix string) (dat
 }
 
 // NewService returns a configured s3 service object
-func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, store awsr.S3er) (srv *Service[T], err error) {
+func NewService[T interfaces.Model](ctx context.Context, log *slog.Logger, conf *config.Config, store awsr.S3Repository) (srv *Service[T], err error) {
 	if log == nil {
 		return nil, fmt.Errorf("no logger passed for s3 service")
 	}

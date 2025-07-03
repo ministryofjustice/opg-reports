@@ -35,7 +35,7 @@ ON CONFLICT (name) DO UPDATE SET name=excluded.name RETURNING name;
 //	}
 //
 // We only want `billing_unit` field and are ignoring the others
-type team struct {
+type teamItem struct {
 	Name string `json:"billing_unit,omitempty" db:"name"`
 }
 
@@ -114,7 +114,7 @@ func (self *Service) InsertTeams(client githubr.ReleaseClient, ghs githubr.Relea
 }
 
 // insertTeams handles writing the records to the table
-func (self *Service) insertTeamsToDB(sq sqlr.Writer, teams []*team) (statements []*sqlr.BoundStatement, err error) {
+func (self *Service) insertTeamsToDB(sq sqlr.Writer, teams []*teamItem) (statements []*sqlr.BoundStatement, err error) {
 	statements = []*sqlr.BoundStatement{}
 
 	for _, team := range teams {
@@ -128,7 +128,7 @@ func (self *Service) insertTeamsToDB(sq sqlr.Writer, teams []*team) (statements 
 // into []Team
 //
 // Removes directory and files on exit
-func (self *Service) getTeamsFromMetadata(client githubr.ReleaseGetAndDownloader, ghs githubr.ReleaseRepositoryDownloader, options *teamDownloadOptions) (teams []*team, err error) {
+func (self *Service) getTeamsFromMetadata(client githubr.ClientReleaseGetAndDownloader, ghs githubr.ReleaseRepositoryDownloader, options *teamDownloadOptions) (teams []*teamItem, err error) {
 	var (
 		asset        *github.ReleaseAsset
 		fp           *os.File
@@ -137,7 +137,7 @@ func (self *Service) getTeamsFromMetadata(client githubr.ReleaseGetAndDownloader
 		downloadDir  string = filepath.Join(options.Dir, "download")
 		extractDir   string = filepath.Join(options.Dir, "extract")
 	)
-	teams = []*team{}
+	teams = []*teamItem{}
 	// Download the metadata asset
 	asset, downloadedTo, err = ghs.DownloadReleaseAssetByName(client,
 		options.Owner,

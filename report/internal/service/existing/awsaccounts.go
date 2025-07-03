@@ -19,19 +19,27 @@ INSERT INTO aws_accounts (
 	label,
 	environment,
 	team_name
-) SELECT
+) VALUES (
 	:id,
 	:name,
 	:label,
 	:environment,
-	teams.name
-FROM teams WHERE name=:team_name LIMIT 1
+	:team_name
+)
 ON CONFLICT (id)
  	DO UPDATE SET
 		name=excluded.name,
 		label=excluded.label,
 		environment=excluded.environment
 RETURNING id;`
+
+const stmtAwsAccountUpdateEmptyEnvironments string = `
+UPDATE aws_accounts
+SET
+	environment = "production"
+WHERE
+	environment = ""
+`
 
 // awsAccount captures an extra field from the metadata which
 // is used in the stmtInsert to create the initial join to team based
@@ -65,7 +73,7 @@ type accountDownloadOptions struct {
 	UseRegex   bool
 }
 
-// InsertTeams handles the inserting otf team data from opgmetadata reository
+// InsertAwsAccounts handles the inserting of data from opgmetadata reository
 // into the local database service.
 //
 // Example account from the opg-metadata source file:
@@ -79,7 +87,7 @@ type accountDownloadOptions struct {
 //		"type": "aws",
 //		"uptime_tracking": true
 //	}
-func (self *Service) InsertAwsAccounts(client githubr.ReleaseClient, ghs githubr.ReleaseRepository, sq sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
+func (self *Service) InsertAwsAccounts(client githubr.ReleaseClient, source githubr.ReleaseRepository, sq sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
 	var dir string
 	var sw = utils.Stopwatch()
 
@@ -89,18 +97,21 @@ func (self *Service) InsertAwsAccounts(client githubr.ReleaseClient, ghs githubr
 	}()
 	self.log.Info("[existing:AwsAccounts] starting existing records import ...")
 
-	if ghs == nil || sq == nil {
-		err = fmt.Errorf("params were nil")
+	if source == nil {
+		err = fmt.Errorf("source was nil")
 		return
 	}
-
+	if sq == nil {
+		err = fmt.Errorf("sq was nil")
+		return
+	}
 	dir, err = os.MkdirTemp("./", "__download-gh-*")
 	if err != nil {
 		return
 	}
 	defer os.RemoveAll(dir)
 
-	teams, err := self.getAwsAccountsFromMetadata(client, ghs, &accountDownloadOptions{
+	teams, err := self.getAwsAccountsFromMetadata(client, source, &accountDownloadOptions{
 		Owner:      self.conf.Github.Organisation,
 		Repository: self.conf.Github.Metadata.Repository,
 		AssetName:  self.conf.Github.Metadata.Asset,
@@ -113,6 +124,7 @@ func (self *Service) InsertAwsAccounts(client githubr.ReleaseClient, ghs githubr
 
 	results, err = self.insertAwsAccountsToDB(sq, teams)
 	if err != nil {
+		self.log.Error("failed on insertAwsAccountsToDB", "err", err.Error())
 		return
 	}
 
@@ -128,14 +140,19 @@ func (self *Service) insertAwsAccountsToDB(sq sqlr.Writer, accounts []*awsAccoun
 		statements = append(statements, &sqlr.BoundStatement{Data: acc, Statement: stmtAwsAccountImport})
 	}
 	err = sq.Insert(statements...)
+	if err != nil {
+		return
+	}
+	// update empty environment values to default them to production
+	_, err = sq.Exec(stmtAwsAccountUpdateEmptyEnvironments)
 	return
 }
 
-// getTeamsFromMetadata downloads the release asset from repository, extracts it locally and converts the files
-// into []Team
+// getAwsAccountsFromMetadata downloads the release asset from repository, extracts it locally and converts the files
+// into []awsAccount
 //
 // Removes directory and files on exit
-func (self *Service) getAwsAccountsFromMetadata(client githubr.ReleaseClient, ghs githubr.ReleaseRepository, options *accountDownloadOptions) (accounts []*awsAccount, err error) {
+func (self *Service) getAwsAccountsFromMetadata(client githubr.ReleaseClient, source githubr.ReleaseRepository, options *accountDownloadOptions) (accounts []*awsAccount, err error) {
 	var (
 		fp           *os.File
 		asset        *github.ReleaseAsset
@@ -146,7 +163,7 @@ func (self *Service) getAwsAccountsFromMetadata(client githubr.ReleaseClient, gh
 	)
 	accounts = []*awsAccount{}
 	// Download the metadata asset
-	asset, downloadedTo, err = ghs.DownloadReleaseAssetByName(client,
+	asset, downloadedTo, err = source.DownloadReleaseAssetByName(client,
 		options.Owner,
 		options.Repository,
 		options.AssetName,

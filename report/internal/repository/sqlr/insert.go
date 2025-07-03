@@ -36,7 +36,9 @@ func (self *Repository) Insert(boundStatements ...*BoundStatement) (err error) {
 		statement, err = transaction.PrepareNamedContext(self.ctx, boundStmt.Statement)
 
 		if err != nil {
-			log.Error("prepared stmt failed", "error", err.Error())
+			log.Error("prepared insert stmt failed",
+				"error", err.Error(),
+				"stmt", boundStmt.Statement)
 			return
 		}
 		// data needs to be non-nil

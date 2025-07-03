@@ -22,7 +22,7 @@ type GetAwsGroupedCostsResponse struct {
 // GroupedAwsCostsInput is the input object for fetching grouped aws costs.
 //
 // The `Team`, `Region`, `Service`, `Account` & `Environment` properties are
-// used as a filter. When they are set to <true> they are used in the select,
+// used as a filter. When they are set to _true_ they are used in the select,
 // group and order by areas of the sql statement. When they have any other
 // value they are used as a filter.
 //
@@ -33,11 +33,11 @@ type GroupedAwsCostsInput struct {
 	StartDate   string `json:"start_date,omitempty" path:"start_date" required:"true" doc:"Earliest date to return data from (uses >=). YYYY-MM-DD." example:"2024-03-01" pattern:"([0-9]{4}-[0-9]{2}-[0-9]{2})"`
 	EndDate     string `json:"end_date,omitempty" path:"end_date" required:"true" doc:"Latest date to capture the data for (uses <). YYYY-MM-DD."  example:"2024-04-01" pattern:"([0-9]{4}-[0-9]{2}-[0-9]{2})"`
 
-	Team        string `json:"team,omitempty" query:"team" doc:"Group and filter flag for team. When <true> adds team.Name to group and selection, when any other value it becomes an exact match filter."`
-	Region      string `json:"region,omitempty" query:"region" doc:"Group and filter flag for AWS region. When <true> adds AWS region to group and selection, when any other value it becomes an exact match filter."`
-	Service     string `json:"service,omitempty" query:"service" doc:"Group and filter flag for AWS service name. When <true> adds service name to group and selection, when any other value it becomes an exact match filter."`
-	Account     string `json:"account,omitempty" query:"account" doc:"Group and filter flag for AWS account ID. When <true> adds AWS account ID to group and selection, when any other value it becomes an exact match filter."`
-	Environment string `json:"environment,omitempty" query:"environment" doc:"Group and filter flag for account environment type. When <true> adds environment to group and selection, when any other value it becomes an exact match filter."`
+	Team        string `json:"team,omitempty" query:"team" doc:"Group and filter flag for team. When _true_ adds team.Name to group and selection, when any other value it becomes an exact match filter."`
+	Region      string `json:"region,omitempty" query:"region" doc:"Group and filter flag for AWS region. When _true_ adds AWS region to group and selection, when any other value it becomes an exact match filter."`
+	Service     string `json:"service,omitempty" query:"service" doc:"Group and filter flag for AWS service name. When _true_ adds service name to group and selection, when any other value it becomes an exact match filter."`
+	Account     string `json:"account,omitempty" query:"account" doc:"Group and filter flag for AWS account ID. When _true_ adds AWS account ID to group and selection, when any other value it becomes an exact match filter."`
+	Environment string `json:"environment,omitempty" query:"environment" doc:"Group and filter flag for account environment type. When _true_ adds environment to group and selection, when any other value it becomes an exact match filter."`
 }
 
 // RegisterGetAwsGroupedCosts handles all AWS Cost request that are grouped by date + other fields.
@@ -60,9 +60,8 @@ func RegisterGetAwsGroupedCosts(log *slog.Logger, conf *config.Config, api huma.
 // underlying service to run against the database about how the cost data is grouped together
 // and what fields are used within the select / where etc.
 func handleGetAwsGroupedCosts(ctx context.Context, log *slog.Logger, conf *config.Config, service *awscost.Service[*AwsGroupedCost], input *GroupedAwsCostsInput) (response *GetAwsGroupedCostsResponse, err error) {
-	var (
-		costs []*AwsGroupedCost = []*AwsGroupedCost{}
-	)
+	var costs []*AwsGroupedCost = []*AwsGroupedCost{}
+
 	response = &GetAwsGroupedCostsResponse{}
 
 	if service == nil {

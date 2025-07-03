@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -51,13 +50,14 @@ func (self *Repository) ListBucket(client s3.ListObjectsV2APIClient, bucket stri
 // DownloadBucket finds and fetches all files under the <prefix> path and saves them to local file underneath <directory>
 // and maintains the path used by the bucket. Returns a list of all the files with their local file paths.
 //
-// Uses go concurrency to fetch the files to speed things up
+// TODO - add concurrency?
 func (self *Repository) DownloadBucket(client ClientS3ListAndGetter, bucket string, prefix string, directory string) (downloaded []string, err error) {
 	var (
-		log   *slog.Logger   = self.log.With("operation", "DownloadBucket", "bucket", bucket, "prefix", prefix)
-		mutex *sync.Mutex    = &sync.Mutex{}
-		wg    sync.WaitGroup = sync.WaitGroup{}
-		files []string       = []string{}
+		log   *slog.Logger = self.log.With("operation", "DownloadBucket", "bucket", bucket, "prefix", prefix)
+		files []string     = []string{}
+		// mutex *sync.Mutex    = &sync.Mutex{}
+		// wg    sync.WaitGroup = sync.WaitGroup{}
+
 	)
 	log.Debug("downloading bucket to local directory ...")
 
@@ -70,19 +70,19 @@ func (self *Repository) DownloadBucket(client ClientS3ListAndGetter, bucket stri
 	}
 
 	for _, file := range files {
-		wg.Add(1)
+		// wg.Add(1)
 		//
-		go func() {
-			saved, e := self.DownloadItemFromBucket(client, bucket, file, directory)
-			if e == nil {
-				mutex.Lock()
-				downloaded = append(downloaded, saved)
-				mutex.Unlock()
-			}
-			wg.Done()
-		}()
+		//go func() {
+		saved, e := self.DownloadItemFromBucket(client, bucket, file, directory)
+		if e == nil {
+			//mutex.Lock()
+			downloaded = append(downloaded, saved)
+			//mutex.Unlock()
+		}
+		//	wg.Done()
+		//}()
 	}
-	wg.Wait()
+	//wg.Wait()
 
 	return
 }
@@ -103,7 +103,7 @@ func (self *Repository) DownloadItemFromBucket(client ClientS3Getter, bucket str
 	)
 	log.Debug("downloading item from s3 ...")
 	os.MkdirAll(parentDir, os.ModePerm)
-
+	// s3
 	result, err = client.GetObject(ctx, opts)
 	if err != nil {
 		return

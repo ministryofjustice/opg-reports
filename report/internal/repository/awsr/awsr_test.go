@@ -2,6 +2,6 @@ package awsr
 
 // check interfaces are correct
 var (
-	_ S3er  = &Repository{}
-	_ STSer = &Repository{}
+	_ S3Repository  = &Repository{}
+	_ STSRepository = &Repository{}
 )

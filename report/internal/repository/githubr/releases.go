@@ -182,7 +182,7 @@ func (self *Repository) DownloadReleaseAsset(
 	return
 }
 
-func (self *Repository) DownloadReleaseAssetByName(client ReleaseGetAndDownloader, organisation string, repositoryName string, assetName string, regex bool, directory string) (asset *github.ReleaseAsset, downloadedTo string, err error) {
+func (self *Repository) DownloadReleaseAssetByName(client ClientReleaseGetAndDownloader, organisation string, repositoryName string, assetName string, regex bool, directory string) (asset *github.ReleaseAsset, downloadedTo string, err error) {
 
 	downloadedTo = directory
 	asset, err = self.GetLatestReleaseAsset(client, organisation, repositoryName, assetName, regex)

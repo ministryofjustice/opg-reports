@@ -9,7 +9,9 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/ministryofjustice/opg-reports/report/config"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/awsr"
 	"github.com/ministryofjustice/opg-reports/report/internal/repository/githubr"
 	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/awsaccount"
@@ -49,46 +51,26 @@ var existingCmd = &cobra.Command{
 	Long:  `existing imports all known data files (generally json) from a mix of sources (github, s3 buckets) that covers current and prior reporting data to ensure completeness`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var (
-			ghr          *githubr.Repository = githubr.Default(ctx, log, conf)
-			ghc                              = githubr.DefaultClient(conf)
-			sqr          *sqlr.Repository    = sqlr.Default(ctx, log, conf)
+			githubClient                     = githubr.DefaultClient(conf)
+			s3Client                         = awsr.DefaultClient[*s3.Client](ctx, "eu-west-1")
+			githubStore  *githubr.Repository = githubr.Default(ctx, log, conf)
+			s3Store      *awsr.Repository    = awsr.Default(ctx, log, conf)
+			sqlStore     *sqlr.Repository    = sqlr.Default(ctx, log, conf)
 			existService *existing.Service   = existing.Default(ctx, log, conf)
 		)
 
 		// TEAMS
-		if _, err = existService.InsertTeams(ghc.Repositories, ghr, sqr); err != nil {
+		if _, err = existService.InsertTeams(githubClient.Repositories, githubStore, sqlStore); err != nil {
 			return
 		}
 		// ACCOUNTS
-		if _, err = existService.InsertAwsAccounts(ghc.Repositories, ghr, sqr); err != nil {
+		if _, err = existService.InsertAwsAccounts(githubClient.Repositories, githubStore, sqlStore); err != nil {
 			return
 		}
-
-		// // repos
-		// var (
-		// 	ghr *githubr.Repository[*githubr.Default]
-		// )
-		// ghr, err = githubr.New[*githubr.Default](ctx, log, conf)
-
-		// // services for injection
-		// var (
-		// 	teamsService      = metadata.Default[*team.TeamImport](ctx, log, conf)
-		// 	awsAccountService = metadata.Default[*awsaccount.AwsAccountImport](ctx, log, conf)
-		// 	awsCostsService   = awss3.Default[*awscost.AwsCostImport](ctx, log, conf)
-		// )
-		// // TEAMS
-
-		// if err = team.Existing(ctx, log, conf, teamsService); err != nil {
-		// 	return
-		// }
-		// // AWS ACCOUNTS
-		// if err = awsaccount.Existing(ctx, log, conf, awsAccountService); err != nil {
-		// 	return
-		// }
-		// // AWS COSTS
-		// if err = awscost.Existing(ctx, log, conf, awsCostsService); err != nil {
-		// 	return
-		// }
+		// COSTS
+		if _, err = existService.InsertAwsCosts(s3Client, s3Store, sqlStore); err != nil {
+			return
+		}
 
 		return
 	},

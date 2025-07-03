@@ -34,7 +34,10 @@ func GetClient[T client](ctx context.Context, region string) (T, error) {
 		c = sts.NewFromConfig(awscfg)
 		return c.(T), nil
 	case *s3.Client:
-		c = s3.NewFromConfig(awscfg)
+		// disable checksum warnings
+		c = s3.NewFromConfig(awscfg, func(o *s3.Options) {
+			o.DisableLogOutputChecksumValidationSkipped = true
+		})
 		return c.(T), nil
 	default:
 		err = fmt.Errorf("client type [%T] unsupported", t)
@@ -42,4 +45,9 @@ func GetClient[T client](ctx context.Context, region string) (T, error) {
 
 	return nil, err
 
+}
+
+func DefaultClient[T client](ctx context.Context, region string) (c T) {
+	c, _ = GetClient[T](ctx, region)
+	return
 }
