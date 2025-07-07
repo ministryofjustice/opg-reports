@@ -10,7 +10,7 @@ import (
 // AwsAccountsGetter interface is used for GetAllAccounts calls
 type AwsAccountsGetter[T Model] interface {
 	Closer
-	GetAllAccounts(store sqlr.Reader) (accounts []T, err error)
+	GetAllAwsAccounts(store sqlr.Reader) (accounts []T, err error)
 }
 
 const stmtAwsAccountsSelectAll string = `
@@ -57,7 +57,7 @@ func (self *hasOneTeam) Scan(src interface{}) (err error) {
 }
 
 // GetAllAccounts returns all accounts as a slice from the database
-func (self *Service[T]) GetAllAccounts(store sqlr.Reader) (accounts []T, err error) {
+func (self *Service[T]) GetAllAwsAccounts(store sqlr.Reader) (accounts []T, err error) {
 	var selectStmt = &sqlr.BoundStatement{Statement: stmtAwsAccountsSelectAll}
 	var log = self.log.With("operation", "GetAllAccounts")
 

@@ -11,15 +11,15 @@ import (
 // AwsAccountsGetter interface is used for GetAllAccounts calls
 type AwsCostsGetter[T Model] interface {
 	Closer
-	GetAllCosts(store sqlr.Reader) (data []T, err error)
+	GetAllAwsCosts(store sqlr.Reader) (data []T, err error)
 }
 type AwsCostsTop20Getter[T Model] interface {
 	Closer
-	GetTop20Costs(store sqlr.Reader) (data []T, err error)
+	GetTop20AwsCosts(store sqlr.Reader) (data []T, err error)
 }
 type AwsCostsGroupedGetter[T Model] interface {
 	Closer
-	GetGroupedCosts(store sqlr.Reader, options *GetGroupedCostsOptions) (data []T, err error)
+	GetGroupedAwsCosts(store sqlr.Reader, options *GetGroupedCostsOptions) (data []T, err error)
 }
 
 // stmtCostsSelectAll fetches all records and orders them by cost.
@@ -330,7 +330,7 @@ func (self *GetGroupedCostsOptions) Statement() (bound *sqlr.BoundStatement, par
 // GetAllCosts will return all records
 //
 // Using this is generally a bad idea as this table will contain millions of rows
-func (self *Service[T]) GetAllCosts(store sqlr.Reader) (data []T, err error) {
+func (self *Service[T]) GetAllAwsCosts(store sqlr.Reader) (data []T, err error) {
 	var selectStmt = &sqlr.BoundStatement{Statement: stmtCostsSelectAll}
 	var log = self.log.With("operation", "GetAllCosts")
 
@@ -346,7 +346,7 @@ func (self *Service[T]) GetAllCosts(store sqlr.Reader) (data []T, err error) {
 }
 
 // GetTop20Costs returns top 20 most expensive costs store in the database
-func (self *Service[T]) GetTop20Costs(store sqlr.Reader) (data []T, err error) {
+func (self *Service[T]) GetTop20AwsCosts(store sqlr.Reader) (data []T, err error) {
 	var selectStmt = &sqlr.BoundStatement{Statement: stmtCostsSelectTop20}
 	var log = self.log.With("operation", "GetTop20Costs")
 
@@ -362,7 +362,7 @@ func (self *Service[T]) GetTop20Costs(store sqlr.Reader) (data []T, err error) {
 
 // GetGroupedCosts uses a set of options to generate the sql statement that will select, filter,
 // group and order by the data set between provided dates.
-func (self *Service[T]) GetGroupedCosts(store sqlr.Reader, options *GetGroupedCostsOptions) (data []T, err error) {
+func (self *Service[T]) GetGroupedAwsCosts(store sqlr.Reader, options *GetGroupedCostsOptions) (data []T, err error) {
 	var selectStmt, _ = options.Statement()
 	var log = self.log.With("operation", "GetGroupedCosts")
 

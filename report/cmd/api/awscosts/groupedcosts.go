@@ -83,7 +83,7 @@ func handleGetAwsGroupedCosts[T api.Model](ctx context.Context, log *slog.Logger
 		Environment: utils.TrueOrFilter(input.Environment),
 	}
 
-	costs, err = service.GetGroupedCosts(store, options)
+	costs, err = service.GetGroupedAwsCosts(store, options)
 	if err != nil {
 		err = huma.Error500InternalServerError("failed find grouped costs", err)
 		return

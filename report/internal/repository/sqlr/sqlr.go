@@ -56,7 +56,7 @@ func (self *Repository) connection() (db *sqlx.DB, err error) {
 	return
 }
 
-// New creates a new repo
+// New creates a new repo that can write to the database
 func New(ctx context.Context, log *slog.Logger, conf *config.Config) (rp *Repository, err error) {
 
 	if log == nil {
@@ -82,6 +82,7 @@ func New(ctx context.Context, log *slog.Logger, conf *config.Config) (rp *Reposi
 	return
 }
 
+// NewWithSelect creates a typed (T) version which allows selects to return a slice of T[]
 func NewWithSelect[T Model](ctx context.Context, log *slog.Logger, conf *config.Config) (rps *RepositoryWithSelect[T], err error) {
 
 	if log == nil {

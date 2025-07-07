@@ -50,7 +50,7 @@ func handleGetAwsAccountsAll[T api.Model](ctx context.Context, log *slog.Logger,
 	}
 	defer service.Close()
 
-	accounts, err = service.GetAllAccounts(store)
+	accounts, err = service.GetAllAwsAccounts(store)
 	if err != nil {
 		err = huma.Error500InternalServerError("failed find all accounts", err)
 		return

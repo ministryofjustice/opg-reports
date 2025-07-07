@@ -53,7 +53,7 @@ func handleGetAwsCostsTop20[T api.Model](ctx context.Context, log *slog.Logger, 
 	}
 	defer service.Close()
 
-	costs, err = service.GetTop20Costs(store)
+	costs, err = service.GetTop20AwsCosts(store)
 	if err != nil {
 		err = huma.Error500InternalServerError("failed find top 20", err)
 		return
