@@ -62,7 +62,7 @@ func (self *Service[T]) GetAllAwsAccounts(store sqlr.Reader) (accounts []T, err 
 	var log = self.log.With("operation", "GetAllAccounts")
 
 	accounts = []T{}
-	log.Debug("getting all awsaccounts from database...")
+	log.Debug("getting all awsaccounts from database ...")
 
 	// cast the data back to struct
 	if err = store.Select(selectStmt); err == nil {

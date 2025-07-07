@@ -47,7 +47,7 @@ func (self *Repository) connection() (db *sqlx.DB, err error) {
 	dir := filepath.Dir(self.conf.Database.Path)
 	os.MkdirAll(dir, os.ModePerm)
 
-	self.log.With("dbSource", dbSource).Debug("connecting to database...")
+	self.log.With("dbSource", dbSource).Debug("connecting to database ...")
 	db, err = sqlx.ConnectContext(self.ctx, self.conf.Database.Driver, dbSource)
 	if err != nil {
 		self.log.Error("connection failed", "error", err.Error(), "dbSource", dbSource)

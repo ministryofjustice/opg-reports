@@ -35,7 +35,7 @@ func TestAwsAccountsInsert(t *testing.T) {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
 
-	stmts, err := srv.InsertTeams(&mockedGitHubClient{}, gh, sq)
+	stmts, err := srv.InsertAwsAccounts(&mockedGitHubClient{}, gh, sq)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}

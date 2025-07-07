@@ -8,7 +8,6 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
-// AwsAccountsGetter interface is used for GetAllAccounts calls
 type AwsCostsGetter[T Model] interface {
 	Closer
 	GetAllAwsCosts(store sqlr.Reader) (data []T, err error)
@@ -367,7 +366,7 @@ func (self *Service[T]) GetGroupedAwsCosts(store sqlr.Reader, options *GetGroupe
 	var log = self.log.With("operation", "GetGroupedCosts")
 
 	data = []T{}
-	log.Debug("getting grouped awscosts from database...")
+	log.Debug("getting grouped awscosts from database ...")
 
 	// cast the data back to struct
 	if err = store.Select(selectStmt); err == nil {

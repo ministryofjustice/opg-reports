@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/google/go-github/v62/github"
 	"github.com/ministryofjustice/opg-reports/report/internal/repository/githubr"
@@ -119,6 +120,7 @@ func (self *Service) InsertAwsAccounts(client githubr.ReleaseClient, source gith
 		Dir:        dir,
 	})
 	if err != nil {
+		self.log.Error("failed to get aws accounts", "err", err.Error())
 		return
 	}
 
@@ -171,6 +173,7 @@ func (self *Service) getAwsAccountsFromMetadata(client githubr.ReleaseClient, so
 		downloadDir)
 
 	if err != nil {
+		self.log.Error("error downloading release asset", "err", err.Error())
 		return
 	}
 	if asset == nil {
@@ -182,22 +185,33 @@ func (self *Service) getAwsAccountsFromMetadata(client githubr.ReleaseClient, so
 		os.RemoveAll(downloadDir)
 		os.RemoveAll(extractDir)
 	}()
-	// extract the zip file
-	fp, err = os.Open(downloadedTo)
-	if err != nil {
-		return
+
+	// deal with tar balls
+	if strings.HasSuffix(*asset.Name, "tar.gz") {
+		// extract the zip file
+		fp, err = os.Open(downloadedTo)
+		if err != nil {
+			self.log.Error("error opening release downloaded file", "err", err.Error())
+			return
+		}
+		err = utils.TarGzExtract(extractDir, fp)
+		if err != nil {
+			self.log.Error("error extracting downloaded release", "err", err.Error())
+			return
+		}
+		// check the accounts json file exists
+		accountFile = filepath.Join(extractDir, accountFile)
+		if !utils.DirExists(extractDir) || !utils.FileExists(accountFile) {
+			err = fmt.Errorf("directory or file not found")
+			return
+		}
+		// read the json file into local struct
+		err = utils.UnmarshalFile(accountFile, &accounts)
+	} else if strings.HasSuffix(*asset.Name, ".json") || strings.HasSuffix(*asset.Name, ".txt") {
+		err = utils.UnmarshalFile(downloadedTo, &accounts)
+	} else {
+		err = fmt.Errorf("unsupported file type [name: %s] [type: %s]", *asset.Name, *asset.ContentType)
 	}
-	err = utils.TarGzExtract(extractDir, fp)
-	if err != nil {
-		return
-	}
-	// check the accounts json file exists
-	accountFile = filepath.Join(extractDir, accountFile)
-	if !utils.DirExists(extractDir) || !utils.FileExists(accountFile) {
-		err = fmt.Errorf("directory or file not found: [%s] or [%s]", extractDir, accountFile)
-		return
-	}
-	// read the json file into local struct
-	err = utils.UnmarshalFile(accountFile, &accounts)
+
 	return
 }

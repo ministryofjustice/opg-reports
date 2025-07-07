@@ -36,7 +36,7 @@ type awsCostSeed struct {
 	AccountID string `json:"account_id" db:"account_id"`
 }
 
-var date = time.Now().UTC().Format(utils.DATE_FORMATS.YMD)
+var date = time.Now().AddDate(0, -1, 0).UTC().Format(utils.DATE_FORMATS.YMD)
 var awsCostSeeds = []*sqlr.BoundStatement{
 	{Statement: stmtAwsCostSeed, Data: &awsCostSeed{Region: "eu-west-1", Service: "ECS", Date: date, Cost: "-0.01", AccountID: "001A"}},
 	{Statement: stmtAwsCostSeed, Data: &awsCostSeed{Region: "eu-west-1", Service: "S3", Date: date, Cost: "10.10", AccountID: "001A"}},

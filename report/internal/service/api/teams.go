@@ -77,7 +77,7 @@ func (self *Service[T]) GetAllTeams(store sqlr.Reader) (teams []T, err error) {
 	var log = self.log.With("operation", "GetAllTeams")
 
 	teams = []T{}
-	log.Debug("getting all teams from database...")
+	log.Debug("getting all teams from database ...")
 
 	if err = store.Select(statement); err == nil {
 		// cast the data back to struct
