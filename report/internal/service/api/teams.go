@@ -7,6 +7,12 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
+// TeamGetter interface is used for GetAllTeams calls
+type TeamGetter[T Model] interface {
+	Closer
+	GetAllTeams(store sqlr.Reader) (teams []T, err error)
+}
+
 // stmtTeamsSelectAll is sql used to fetch all teams and the join to aws accounts
 const stmtTeamsSelectAll string = `
 SELECT
@@ -23,12 +29,6 @@ FROM teams
 LEFT JOIN aws_accounts ON aws_accounts.team_name = teams.name
 GROUP BY teams.name
 ORDER BY teams.name ASC;`
-
-// TeamGetter interface is used for GetAllTeams calls
-type TeamGetter[T Model] interface {
-	Closer
-	GetAllTeams(store sqlr.Reader) (teams []T, err error)
-}
 
 // Team acts as a top level group matching accounts, github repos etc to be attached
 // as owners

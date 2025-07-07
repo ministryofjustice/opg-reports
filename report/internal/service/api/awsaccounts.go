@@ -7,6 +7,12 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
+// AwsAccountsGetter interface is used for GetAllAccounts calls
+type AwsAccountsGetter[T Model] interface {
+	Closer
+	GetAllAccounts(store sqlr.Reader) (accounts []T, err error)
+}
+
 const stmtAwsAccountsSelectAll string = `
 SELECT
 	aws_accounts.id,
@@ -19,12 +25,6 @@ SELECT
 FROM aws_accounts
 GROUP BY aws_accounts.id
 ORDER BY aws_accounts.team_name ASC, aws_accounts.name ASC, aws_accounts.environment ASC;`
-
-// TeamGetter interface is used for GetAllAccounts calls
-type AwsAccountsGetter[T Model] interface {
-	Closer
-	GetAllAccounts(store sqlr.Reader) (accounts []T, err error)
-}
 
 // AwsAccount is api response model
 type AwsAccount struct {

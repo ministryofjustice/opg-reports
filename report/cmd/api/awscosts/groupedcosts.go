@@ -7,15 +7,16 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/service/awscost"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/api"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
 // GetAwsGroupedCostsResponse
-type GetAwsGroupedCostsResponse struct {
+type GetAwsGroupedCostsResponse[T api.Model] struct {
 	Body struct {
-		Count int               `json:"count,omityempty"`
-		Data  []*AwsGroupedCost `json:"data"`
+		Count int `json:"count,omityempty"`
+		Data  []T `json:"data"`
 	}
 }
 
@@ -37,11 +38,11 @@ type GroupedAwsCostsInput struct {
 	Region      string `json:"region,omitempty" query:"region" doc:"Group and filter flag for AWS region. When _true_ adds AWS region to group and selection, when any other value it becomes an exact match filter."`
 	Service     string `json:"service,omitempty" query:"service" doc:"Group and filter flag for AWS service name. When _true_ adds service name to group and selection, when any other value it becomes an exact match filter."`
 	Account     string `json:"account,omitempty" query:"account" doc:"Group and filter flag for AWS account ID. When _true_ adds AWS account ID to group and selection, when any other value it becomes an exact match filter."`
-	Environment string `json:"environment,omitempty" query:"environment" doc:"Group and filter flag for account environment type. When _true_ adds environment to group and selection, when any other value it becomes an exact match filter."`
+	Environment string `json:"environment,omitempty" query:"environment" enum:"development,preproduciton,production,backup,true" doc:"Group and filter flag for account environment type. When _true_ adds environment to group and selection, when any other value it becomes an exact match filter."`
 }
 
 // RegisterGetAwsGroupedCosts handles all AWS Cost request that are grouped by date + other fields.
-func RegisterGetAwsGroupedCosts(log *slog.Logger, conf *config.Config, api huma.API, service *awscost.Service[*AwsGroupedCost]) {
+func RegisterGetAwsGroupedCosts[T api.Model](log *slog.Logger, conf *config.Config, humaapi huma.API, service api.AwsCostsGroupedGetter[T], store sqlr.Reader) {
 	var operation = huma.Operation{
 		OperationID:   "get-awscosts-grouped",
 		Method:        http.MethodGet,
@@ -51,18 +52,18 @@ func RegisterGetAwsGroupedCosts(log *slog.Logger, conf *config.Config, api huma.
 		DefaultStatus: http.StatusOK,
 		Tags:          []string{"AWS Costs"},
 	}
-	huma.Register(api, operation, func(ctx context.Context, input *GroupedAwsCostsInput) (*GetAwsGroupedCostsResponse, error) {
-		return handleGetAwsGroupedCosts(ctx, log, conf, service, input)
+	huma.Register(humaapi, operation, func(ctx context.Context, input *GroupedAwsCostsInput) (*GetAwsGroupedCostsResponse[T], error) {
+		return handleGetAwsGroupedCosts(ctx, log, conf, service, store, input)
 	})
 }
 
 // handleGetAwsGroupedCosts uses the input parameters to work out a series of options for the
 // underlying service to run against the database about how the cost data is grouped together
 // and what fields are used within the select / where etc.
-func handleGetAwsGroupedCosts(ctx context.Context, log *slog.Logger, conf *config.Config, service *awscost.Service[*AwsGroupedCost], input *GroupedAwsCostsInput) (response *GetAwsGroupedCostsResponse, err error) {
-	var costs []*AwsGroupedCost = []*AwsGroupedCost{}
-
-	response = &GetAwsGroupedCostsResponse{}
+func handleGetAwsGroupedCosts[T api.Model](ctx context.Context, log *slog.Logger, conf *config.Config,
+	service api.AwsCostsGroupedGetter[T], store sqlr.Reader, input *GroupedAwsCostsInput) (response *GetAwsGroupedCostsResponse[T], err error) {
+	var costs []T = []T{}
+	response = &GetAwsGroupedCostsResponse[T]{}
 
 	if service == nil {
 		err = huma.Error500InternalServerError("failed to connect to service", err)
@@ -71,7 +72,7 @@ func handleGetAwsGroupedCosts(ctx context.Context, log *slog.Logger, conf *confi
 	defer service.Close()
 
 	// create the options
-	options := &awscost.GetGroupedCostsOptions{
+	options := &api.GetGroupedCostsOptions{
 		StartDate:   input.StartDate,
 		EndDate:     input.EndDate,
 		DateFormat:  utils.GRANULARITY_TO_FORMAT[input.Granularity],
@@ -82,7 +83,7 @@ func handleGetAwsGroupedCosts(ctx context.Context, log *slog.Logger, conf *confi
 		Environment: utils.TrueOrFilter(input.Environment),
 	}
 
-	costs, err = service.GetGroupedCosts(options)
+	costs, err = service.GetGroupedCosts(store, options)
 	if err != nil {
 		err = huma.Error500InternalServerError("failed find grouped costs", err)
 		return

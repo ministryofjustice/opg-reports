@@ -43,10 +43,14 @@ var conf, viperConf = config.New()
 // To allow for service injection, each is called directly, so need to be manually added
 func RegisterHandlers(ctx context.Context, log *slog.Logger, conf *config.Config, humaapi huma.API) {
 	var (
-		teamStore         = sqlr.DefaultWithSelect[*api.Team](ctx, log, conf)
-		teamService       = api.Default[*api.Team](ctx, log, conf)
-		awsAccountsStore  = sqlr.DefaultWithSelect[*api.AwsAccount](ctx, log, conf)
-		awsAccountService = api.Default[*api.AwsAccount](ctx, log, conf)
+		teamStore          = sqlr.DefaultWithSelect[*api.Team](ctx, log, conf)
+		teamService        = api.Default[*api.Team](ctx, log, conf)
+		awsAccountsStore   = sqlr.DefaultWithSelect[*api.AwsAccount](ctx, log, conf)
+		awsAccountService  = api.Default[*api.AwsAccount](ctx, log, conf)
+		awsCostsStore      = sqlr.DefaultWithSelect[*api.AwsCost](ctx, log, conf)
+		awsCostsService    = api.Default[*api.AwsCost](ctx, log, conf)
+		awsCostsStoreGroup = sqlr.DefaultWithSelect[*api.AwsCostGrouped](ctx, log, conf)
+		awsCostsSrvGroup   = api.Default[*api.AwsCostGrouped](ctx, log, conf)
 	)
 	// HOME
 	home.RegisterGetHomepage(log, conf, humaapi)
@@ -55,13 +59,13 @@ func RegisterHandlers(ctx context.Context, log *slog.Logger, conf *config.Config
 	// AWS ACCOUNTS
 	awsaccounts.RegisterGetAwsAccountsAll(log, conf, humaapi, awsAccountService, awsAccountsStore)
 	// AWS COSTS
-	awscosts.RegisterGetAwsCostsTop20(log, conf, humaapi, awscosts.Service[*awscosts.AwsCost](ctx, log, conf))
-	awscosts.RegisterGetAwsGroupedCosts(log, conf, humaapi, awscosts.Service[*awscosts.AwsGroupedCost](ctx, log, conf))
+	awscosts.RegisterGetAwsCostsTop20(log, conf, humaapi, awsCostsService, awsCostsStore)
+	awscosts.RegisterGetAwsGroupedCosts(log, conf, humaapi, awsCostsSrvGroup, awsCostsStoreGroup)
 }
 
 func runner(ctx context.Context, log *slog.Logger, conf *config.Config) {
 	var (
-		api           huma.API
+		humaapi       huma.API
 		cli           humacli.CLI
 		server        http.Server
 		mux           *http.ServeMux = http.NewServeMux()
@@ -76,11 +80,11 @@ func runner(ctx context.Context, log *slog.Logger, conf *config.Config) {
 		Handler: mux,
 	}
 	// create the api
-	api = humago.New(mux, huma.DefaultConfig(apiName, apiVersion))
+	humaapi = humago.New(mux, huma.DefaultConfig(apiName, apiVersion))
 	cli = humacli.New(func(hooks humacli.Hooks, opts *struct{}) {
 		var addr = server.Addr
 
-		RegisterHandlers(ctx, log, conf, api)
+		RegisterHandlers(ctx, log, conf, humaapi)
 		// startup
 		hooks.OnStart(func() {
 			log.Info("Starting api server...")
