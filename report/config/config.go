@@ -67,7 +67,7 @@ type bucketInfo struct {
 // buckets
 type bucket struct {
 	Costs *bucketInfo // env: AWS_BUCKETS_COSTS - used to track location of the older reporting details
-	Db    *bucketInfo // env: AWS_BUCKETS_DB - used to track where the database is stored within ss3
+	DB    *bucketInfo // env: AWS_BUCKETS_DB - used to track where the database is stored within ss3
 
 }
 
@@ -125,7 +125,7 @@ var defaultConfig = &Config{
 		Organisation: "ministryofjustice", // default organisations
 		Token:        "",                  // needed for tests & data imports
 		Metadata: &metadata{
-			Repository: "opg-metadata", // repository name for where meta
+			Repository: "opg-metadata", // repository name for where meta data info is
 			Asset:      "metadata.tar.gz",
 		},
 	},
@@ -135,7 +135,7 @@ var defaultConfig = &Config{
 		Session: &session{Token: ""},
 		Buckets: &bucket{
 			Costs: &bucketInfo{Name: "report-data-development", Prefix: "aws_costs/"},
-			Db:    &bucketInfo{Name: "report-data-development", Prefix: "databases/"},
+			DB:    &bucketInfo{Name: "report-data-development", Prefix: "database/"},
 		},
 	},
 	Log: &Log{

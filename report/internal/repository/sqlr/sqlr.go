@@ -9,7 +9,6 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/interfaces"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
@@ -21,7 +20,7 @@ type Repository struct {
 	log  *slog.Logger
 }
 
-type RepositoryWithSelect[T interfaces.Model] struct {
+type RepositoryWithSelect[T Model] struct {
 	Repository
 	ctx  context.Context
 	conf *config.Config

@@ -16,8 +16,6 @@ type Repository struct {
 	log  *slog.Logger
 }
 
-func (self *Repository) Close() {}
-
 func New(ctx context.Context, log *slog.Logger, conf *config.Config) (rp *Repository, err error) {
 
 	if log == nil {
