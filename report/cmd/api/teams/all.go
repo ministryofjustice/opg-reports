@@ -7,11 +7,20 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/service/team"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/api"
 )
 
+// GetTeamsAllResponse is response object used by the handler
+type GetTeamsAllResponse[T api.Model] struct {
+	Body struct {
+		Count int `json:"count,omityempty"`
+		Data  []T `json:"data"`
+	}
+}
+
 // RegisterAllTeams registers the `get-teams-all` endpoint
-func RegisterGetTeamsAll(log *slog.Logger, conf *config.Config, api huma.API, service *team.Service[*Team]) {
+func RegisterGetTeamsAll[T api.Model](log *slog.Logger, conf *config.Config, humaapi huma.API, service api.TeamGetter[T], store sqlr.Reader) {
 	var operation = huma.Operation{
 		OperationID:   "get-teams-all",
 		Method:        http.MethodGet,
@@ -21,17 +30,16 @@ func RegisterGetTeamsAll(log *slog.Logger, conf *config.Config, api huma.API, se
 		DefaultStatus: http.StatusOK,
 		Tags:          []string{"Teams"},
 	}
-	huma.Register(api, operation, func(ctx context.Context, input *struct{}) (*GetTeamsAllResponse, error) {
-		return handleGetTeamsAll(ctx, log, conf, service, input)
+	huma.Register(humaapi, operation, func(ctx context.Context, input *struct{}) (*GetTeamsAllResponse[T], error) {
+		return handleGetTeamsAll[T](ctx, log, conf, service, store, input)
 	})
 }
 
 // handleAllTeams deals with each request and fetches
-func handleGetTeamsAll(ctx context.Context, log *slog.Logger, conf *config.Config, service *team.Service[*Team], input *struct{}) (response *GetTeamsAllResponse, err error) {
-	var (
-		teams []*Team
-	)
-	response = &GetTeamsAllResponse{}
+func handleGetTeamsAll[T api.Model](ctx context.Context, log *slog.Logger, conf *config.Config,
+	service api.TeamGetter[T], store sqlr.Reader, input *struct{}) (response *GetTeamsAllResponse[T], err error) {
+	var teams []T
+	response = &GetTeamsAllResponse[T]{}
 
 	if service == nil {
 		err = huma.Error500InternalServerError("failed to connect to service", err)
@@ -39,7 +47,7 @@ func handleGetTeamsAll(ctx context.Context, log *slog.Logger, conf *config.Confi
 	}
 	defer service.Close()
 
-	teams, err = service.GetAllTeams()
+	teams, err = service.GetAllTeams(store)
 	if err != nil {
 		err = huma.Error500InternalServerError("failed find all teams", err)
 		return

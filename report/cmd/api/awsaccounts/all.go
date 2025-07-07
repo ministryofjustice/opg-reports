@@ -7,14 +7,15 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/service/awsaccount"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/api"
 )
 
 // GetAwsAccountsAllResponse
-type GetAwsAccountsAllResponse struct {
+type GetAwsAccountsAllResponse[T api.Model] struct {
 	Body struct {
-		Count int           `json:"count,omitempty"`
-		Data  []*AwsAccount `json:"data"`
+		Count int `json:"count,omitempty"`
+		Data  []T `json:"data"`
 	}
 }
 
@@ -22,7 +23,7 @@ type GetAwsAccountsAllResponse struct {
 // in the data.
 //
 // Attaches both the handler (`handleGetAwsAccountsAll`) and the spec details to the huma api
-func RegisterGetAwsAccountsAll(log *slog.Logger, conf *config.Config, api huma.API, service *awsaccount.Service[*AwsAccount]) {
+func RegisterGetAwsAccountsAll[T api.Model](log *slog.Logger, conf *config.Config, humaapi huma.API, service api.AwsAccountsGetter[T], store sqlr.Reader) {
 	var operation = huma.Operation{
 		OperationID:   "get-awsaccounts-all",
 		Method:        http.MethodGet,
@@ -32,15 +33,16 @@ func RegisterGetAwsAccountsAll(log *slog.Logger, conf *config.Config, api huma.A
 		DefaultStatus: http.StatusOK,
 		Tags:          []string{"AWS Accounts"},
 	}
-	huma.Register(api, operation, func(ctx context.Context, input *struct{}) (*GetAwsAccountsAllResponse, error) {
-		return handleGetAwsAccountsAll(ctx, log, conf, service, input)
+	huma.Register(humaapi, operation, func(ctx context.Context, input *struct{}) (*GetAwsAccountsAllResponse[T], error) {
+		return handleGetAwsAccountsAll(ctx, log, conf, service, store, input)
 	})
 }
 
 // handleGetAwsAccountsAll deals with each request and fetches
-func handleGetAwsAccountsAll(ctx context.Context, log *slog.Logger, conf *config.Config, service *awsaccount.Service[*AwsAccount], input *struct{}) (response *GetAwsAccountsAllResponse, err error) {
-	var accounts []*AwsAccount
-	response = &GetAwsAccountsAllResponse{}
+func handleGetAwsAccountsAll[T api.Model](ctx context.Context, log *slog.Logger, conf *config.Config,
+	service api.AwsAccountsGetter[T], store sqlr.Reader, input *struct{}) (response *GetAwsAccountsAllResponse[T], err error) {
+	var accounts []T
+	response = &GetAwsAccountsAllResponse[T]{}
 
 	if service == nil {
 		err = huma.Error500InternalServerError("failed to connect to service", err)
@@ -48,7 +50,7 @@ func handleGetAwsAccountsAll(ctx context.Context, log *slog.Logger, conf *config
 	}
 	defer service.Close()
 
-	accounts, err = service.GetAllAccounts()
+	accounts, err = service.GetAllAccounts(store)
 	if err != nil {
 		err = huma.Error500InternalServerError("failed find all accounts", err)
 		return

@@ -1,17 +1,39 @@
-package team
+package api
 
 import (
 	"fmt"
 
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
+
+// stmtTeamsSelectAll is sql used to fetch all teams and the join to aws accounts
+const stmtTeamsSelectAll string = `
+SELECT
+	teams.name,
+	json_group_array(
+		DISTINCT json_object(
+			'id', aws_accounts.id,
+			'name', aws_accounts.name,
+			'label', aws_accounts.label,
+			'environment', aws_accounts.environment
+		)
+	) filter ( where aws_accounts.id is not null) as aws_accounts
+FROM teams
+LEFT JOIN aws_accounts ON aws_accounts.team_name = teams.name
+GROUP BY teams.name
+ORDER BY teams.name ASC;`
+
+// TeamGetter interface is used for GetAllTeams calls
+type TeamGetter[T Model] interface {
+	Closer
+	GetAllTeams(store sqlr.Reader) (teams []T, err error)
+}
 
 // Team acts as a top level group matching accounts, github repos etc to be attached
 // as owners
 type Team struct {
-	CreatedAt string `json:"created_at,omitempty" db:"created_at" example:"2019-08-24T14:15:22Z"`
-	Name      string `json:"name,omitempty" db:"name" example:"SREs"`
-
+	Name string `json:"name,omitempty" db:"name" example:"SREs"`
 	// Joins
 	// AwsAccounts is the one->many join from teams to awsaccounts
 	AwsAccounts hasManyAwsAccounts `json:"aws_accounts,omitempty" db:"aws_accounts"`
@@ -24,7 +46,7 @@ type Team struct {
 //
 // Note: struct name is unique due to how huma generates schema.
 type teamAwsAccount struct {
-	ID          string `json:"id,omitempty" db:"id" example:"012345678910"` // This is the AWS Account ID as a string
+	ID          string `json:"id,omitempty" db:"id" example:"012345678910"`
 	Name        string `json:"name,omitempty" db:"name" example:"Public API"`
 	Label       string `json:"label,omitempty" db:"label" example:"production database"`
 	Environment string `json:"environment,omitempty" db:"environment" example:"development|preproduction|production"`
@@ -49,22 +71,18 @@ func (self *hasManyAwsAccounts) Scan(src interface{}) (err error) {
 	return
 }
 
-// TeamImport captures the team name under its prior name of
-// `billing_unit`and hides the current Name property.
-//
-// Example account from the opg-metadata source file:
-//
-//	{
-//		"id": "500000067891",
-//		"name": "My production",
-//		"billing_unit": "Team A",
-//		"label": "prod",
-//		"environment": "production",
-//		"type": "aws",
-//		"uptime_tracking": true
-//	}
-//
-// We only want `billing_unit` field
-type TeamImport struct {
-	Name string `json:"billing_unit,omitempty" db:"name"`
+// GetAllTeams returns all teams and joins aws accounts as well
+func (self *Service[T]) GetAllTeams(store sqlr.Reader) (teams []T, err error) {
+	var statement = &sqlr.BoundStatement{Statement: stmtTeamsSelectAll}
+	var log = self.log.With("operation", "GetAllTeams")
+
+	teams = []T{}
+	log.Debug("getting all teams from database...")
+
+	if err = store.Select(statement); err == nil {
+		// cast the data back to struct
+		teams = statement.Returned.([]T)
+	}
+
+	return
 }

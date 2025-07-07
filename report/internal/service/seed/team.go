@@ -18,7 +18,7 @@ RETURNING name;`
 
 // teamSeed is used for seeding team data only
 type teamSeed struct {
-	Name string `json:"name,omitempty" db:"name""`
+	Name string `json:"name,omitempty" db:"name"`
 }
 
 var teamSeeds = []*sqlr.BoundStatement{

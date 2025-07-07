@@ -8,7 +8,7 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
-	"github.com/ministryofjustice/opg-reports/report/internal/service/awsaccount"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/api"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/seed"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
@@ -35,10 +35,10 @@ func TestHandleGetAwsAccountsAll(t *testing.T) {
 	// capture the inserted data
 	inserted := seedDB(ctx, log, conf)
 	// generate a repository and service
-	repository, _ := sqlr.NewWithSelect[*AwsAccount](ctx, log, conf)
-	service, _ := awsaccount.NewService(ctx, log, conf, repository)
+	repository, _ := sqlr.NewWithSelect[*api.AwsAccount](ctx, log, conf)
+	service, _ := api.New[*api.AwsAccount](ctx, log, conf)
 	// grab the result
-	response, err := handleGetAwsAccountsAll(ctx, log, conf, service, nil)
+	response, err := handleGetAwsAccountsAll(ctx, log, conf, service, repository, nil)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}

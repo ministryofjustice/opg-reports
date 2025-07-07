@@ -15,6 +15,8 @@ import (
 	"github.com/ministryofjustice/opg-reports/report/cmd/api/home"
 	"github.com/ministryofjustice/opg-reports/report/cmd/api/teams"
 	"github.com/ministryofjustice/opg-reports/report/config"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/api"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 	"github.com/spf13/cobra"
 )
@@ -39,16 +41,22 @@ var conf, viperConf = config.New()
 // RegisterHandlers attaches all the known functions to the api.
 //
 // To allow for service injection, each is called directly, so need to be manually added
-func RegisterHandlers(ctx context.Context, log *slog.Logger, conf *config.Config, api huma.API) {
+func RegisterHandlers(ctx context.Context, log *slog.Logger, conf *config.Config, humaapi huma.API) {
+	var (
+		teamStore         = sqlr.DefaultWithSelect[*api.Team](ctx, log, conf)
+		teamService       = api.Default[*api.Team](ctx, log, conf)
+		awsAccountsStore  = sqlr.DefaultWithSelect[*api.AwsAccount](ctx, log, conf)
+		awsAccountService = api.Default[*api.AwsAccount](ctx, log, conf)
+	)
 	// HOME
-	home.RegisterGetHomepage(log, conf, api, nil)
+	home.RegisterGetHomepage(log, conf, humaapi)
 	// TEAMS
-	teams.RegisterGetTeamsAll(log, conf, api, teams.Service[*teams.Team](ctx, log, conf))
+	teams.RegisterGetTeamsAll(log, conf, humaapi, teamService, teamStore)
 	// AWS ACCOUNTS
-	awsaccounts.RegisterGetAwsAccountsAll(log, conf, api, awsaccounts.Service[*awsaccounts.AwsAccount](ctx, log, conf))
+	awsaccounts.RegisterGetAwsAccountsAll(log, conf, humaapi, awsAccountService, awsAccountsStore)
 	// AWS COSTS
-	awscosts.RegisterGetAwsCostsTop20(log, conf, api, awscosts.Service[*awscosts.AwsCost](ctx, log, conf))
-	awscosts.RegisterGetAwsGroupedCosts(log, conf, api, awscosts.Service[*awscosts.AwsGroupedCost](ctx, log, conf))
+	awscosts.RegisterGetAwsCostsTop20(log, conf, humaapi, awscosts.Service[*awscosts.AwsCost](ctx, log, conf))
+	awscosts.RegisterGetAwsGroupedCosts(log, conf, humaapi, awscosts.Service[*awscosts.AwsGroupedCost](ctx, log, conf))
 }
 
 func runner(ctx context.Context, log *slog.Logger, conf *config.Config) {

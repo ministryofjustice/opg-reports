@@ -55,9 +55,6 @@ func (self *Repository) DownloadBucket(client ClientS3ListAndGetter, bucket stri
 	var (
 		log   *slog.Logger = self.log.With("operation", "DownloadBucket", "bucket", bucket, "prefix", prefix)
 		files []string     = []string{}
-		// mutex *sync.Mutex    = &sync.Mutex{}
-		// wg    sync.WaitGroup = sync.WaitGroup{}
-
 	)
 	log.Debug("downloading bucket to local directory ...")
 
@@ -70,27 +67,19 @@ func (self *Repository) DownloadBucket(client ClientS3ListAndGetter, bucket stri
 	}
 
 	for _, file := range files {
-		// wg.Add(1)
-		//
-		//go func() {
+
 		saved, e := self.DownloadItemFromBucket(client, bucket, file, directory)
 		if e == nil {
-			//mutex.Lock()
 			downloaded = append(downloaded, saved)
-			//mutex.Unlock()
 		}
-		//	wg.Done()
-		//}()
+
 	}
-	//wg.Wait()
 
 	return
 }
 
 // DownloadItemFromBucket fetches a single item from the s3 bucket and saves it to a path underneath <directory>
 // and maintaines the bucket path for hte local file.
-//
-// If <client> is nil then it will try to generate a fresh client
 func (self *Repository) DownloadItemFromBucket(client ClientS3Getter, bucket string, key string, directory string) (file string, err error) {
 	var (
 		result    *s3.GetObjectOutput

@@ -10,15 +10,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
-type client interface {
-	*s3.Client | *sts.Client
-}
-
-// GetClient fetches a v2 version of the appropriate client from various AWS
-// SDK libs.
+// GetClient fetches a aws-sdk-v2 version of the appropriate client for T
 //
 // Supports: S3, STS
-func GetClient[T client](ctx context.Context, region string) (T, error) {
+func GetClient[T *s3.Client | *sts.Client](ctx context.Context, region string) (T, error) {
 	var err error
 	var awscfg aws.Config
 	var c interface{}
@@ -34,7 +29,7 @@ func GetClient[T client](ctx context.Context, region string) (T, error) {
 		c = sts.NewFromConfig(awscfg)
 		return c.(T), nil
 	case *s3.Client:
-		// disable checksum warnings
+		// disable checksum warning outputs
 		c = s3.NewFromConfig(awscfg, func(o *s3.Options) {
 			o.DisableLogOutputChecksumValidationSkipped = true
 		})
@@ -47,7 +42,7 @@ func GetClient[T client](ctx context.Context, region string) (T, error) {
 
 }
 
-func DefaultClient[T client](ctx context.Context, region string) (c T) {
+func DefaultClient[T *s3.Client | *sts.Client](ctx context.Context, region string) (c T) {
 	c, _ = GetClient[T](ctx, region)
 	return
 }

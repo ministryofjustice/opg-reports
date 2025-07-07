@@ -8,8 +8,8 @@ import (
 
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
+	"github.com/ministryofjustice/opg-reports/report/internal/service/api"
 	"github.com/ministryofjustice/opg-reports/report/internal/service/seed"
-	"github.com/ministryofjustice/opg-reports/report/internal/service/team"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
@@ -34,10 +34,10 @@ func TestHandleGetTeamsAll(t *testing.T) {
 	// capture the inserted data
 	inserted := seedDB(ctx, lg, cfg)
 	// generate a repository and service
-	repository, _ := sqlr.NewWithSelect[*Team](ctx, lg, cfg)
-	service, _ := team.NewService(ctx, lg, cfg, repository)
+	repository, _ := sqlr.NewWithSelect[*api.Team](ctx, lg, cfg)
+	service, _ := api.New[*api.Team](ctx, lg, cfg)
 	// grab the result
-	response, err := handleGetTeamsAll(ctx, lg, cfg, service, nil)
+	response, err := handleGetTeamsAll(ctx, lg, cfg, service, repository, nil)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
