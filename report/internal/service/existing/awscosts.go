@@ -35,7 +35,7 @@ RETURNING id;
 //		"id": 0,
 //		"ts": "2024-08-15 18:52:55.055478 +0000 UTC",
 //		"organisation": "OPG",
-//		"account_id": "050116572273",
+//		"account_id": "050116572003",
 //		"account_name": "development",
 //		"unit": "TeamA",
 //		"label": "A",
@@ -65,7 +65,7 @@ type awsCost struct {
 //		"id": 0,
 //		"ts": "2024-08-15 18:52:55.055478 +0000 UTC",
 //		"organisation": "OPG",
-//		"account_id": "050116572273",
+//		"account_id": "050116570073",
 //		"account_name": "development",
 //		"unit": "TeamA",
 //		"label": "A",
@@ -77,7 +77,7 @@ type awsCost struct {
 //	}
 //
 // We use the old account_id field for the join information
-func (self *Service) InsertAwsCosts(client awsr.ClientS3ListAndGetter, source awsr.S3Repository, sq sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
+func (self *Service) InsertAwsCosts(client awsr.ClientS3ListAndGetter, source awsr.S3BucketDownloader, sq sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
 	var dir string
 	var downloaded []string
 	var totalInserted = 0

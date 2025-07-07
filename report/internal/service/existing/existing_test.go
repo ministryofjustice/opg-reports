@@ -5,8 +5,11 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"github.com/google/go-github/v62/github"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/awsr"
 )
 
 var t = true
@@ -32,7 +35,7 @@ var rels = []*github.RepositoryRelease{
 	rel,
 }
 
-// mockedGitHubClient is a dummy stuck used for testing functions by using fixed values
+// mockedGitHubClient is a mock used for testing functions by returning fixed values
 // so we dont have to makle api calls to github during testing
 type mockedGitHubClient struct{}
 
@@ -54,12 +57,54 @@ func (self *mockedGitHubClient) DownloadReleaseAsset(ctx context.Context, owner,
 	var content = `[{
 		"id": "001A",
 		"name": "dev",
-		"billing_unit": "TeamA",
+		"billing_unit": "TEAM-A",
 		"label": "A",
 		"environment": "development",
 		"type": "aws",
 		"uptime_tracking": true
 	}]`
 	rc = io.NopCloser(bytes.NewBuffer([]byte(content)))
+	return
+}
+
+// mockedS3BucketDownloader provides a mocked version of DownloadBucket that writes a dummy cost file to a
+// known location and returns that as the file path
+type mockedS3BucketDownloader struct{}
+
+// DownloadBucket generates a file with dummy cost data in to for testing inserts
+func (self *mockedS3BucketDownloader) DownloadBucket(client awsr.ClientS3ListAndGetter, bucket string, prefix string, directory string) (downloaded []string, err error) {
+	var file = filepath.Join(directory, "sample-costs.json")
+	var content = `[
+	{
+		"id": 0,
+		"ts": "2024-08-15 18:52:55.055478 +0000 UTC",
+		"organisation": "OPG",
+		"account_id": "001A",
+		"account_name": "Account 1A",
+		"unit": "TEAM-A",
+		"label": "A",
+		"environment": "development",
+		"service": "Amazon Simple Storage Service",
+		"region": "eu-west-1",
+		"date": "2025-05-31",
+		"cost": "0.2309542206"
+	},
+	{
+		"id": 0,
+		"ts": "2024-08-15 18:52:55.055478 +0000 UTC",
+		"organisation": "OPG",
+		"account_id": "001A",
+		"account_name": "Account 1A",
+		"unit": "TEAM-A",
+		"label": "A",
+		"environment": "development",
+		"service": "Amazon Simple Storage Service",
+		"region": "eu-west-1",
+		"date": "2025-04-31",
+		"cost": "107.53"
+	}
+]`
+	err = os.WriteFile(file, []byte(content), os.ModePerm)
+	downloaded = append(downloaded, file)
 	return
 }

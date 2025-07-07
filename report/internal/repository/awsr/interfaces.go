@@ -15,12 +15,22 @@ type STSRepository interface {
 	GetCallerIdentity(client ClientSTSCaller) (caller *sts.GetCallerIdentityOutput, err error)
 }
 
-// S3er is an interface that represents the functionality of this repository module which relates
+type S3BucketLister interface {
+	ListBucket(client s3.ListObjectsV2APIClient, bucket string, prefix string) (files []string, err error)
+}
+type S3BucketDownloader interface {
+	DownloadBucket(client ClientS3ListAndGetter, bucket string, prefix string, directory string) (downloaded []string, err error)
+}
+type S3BucketItemDownloader interface {
+	DownloadItemFromBucket(client ClientS3Getter, bucket string, key string, directory string) (file string, err error)
+}
+
+// S3Repository is an interface that represents the functionality of this repository module which relates
 // to S3 - so listing & downloading mostly
 type S3Repository interface {
-	ListBucket(client s3.ListObjectsV2APIClient, bucket string, prefix string) (files []string, err error)
-	DownloadBucket(client ClientS3ListAndGetter, bucket string, prefix string, directory string) (downloaded []string, err error)
-	DownloadItemFromBucket(client ClientS3Getter, bucket string, key string, directory string) (file string, err error)
+	S3BucketLister
+	S3BucketDownloader
+	S3BucketItemDownloader
 }
 
 // ClientSTSCaller represents the client (sts.Client) interface used by STSer

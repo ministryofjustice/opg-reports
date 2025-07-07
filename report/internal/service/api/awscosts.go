@@ -122,6 +122,7 @@ ORDER BY
 ;
 `
 
+// AwsCost
 type AwsCost struct {
 	Region  string `json:"region,omitempty" db:"region" example:"eu-west-1|eu-west-2|NoRegion"` // The AWS region
 	Service string `json:"service,omitempty" db:"service" example:"AWS service name"`           // The AWS service name

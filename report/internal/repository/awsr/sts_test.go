@@ -3,7 +3,6 @@ package awsr
 import (
 	"testing"
 
-	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
@@ -17,17 +16,12 @@ func TestSTSCallerIdentity(t *testing.T) {
 		log        = utils.Logger("ERROR", "TEXT")
 	)
 
-	if conf.Aws.GetToken() == "" {
-		t.Skip("No AWS_SESSION_TOKEN, skipping test")
-	}
-	client, _ := GetClient[*sts.Client](ctx, "eu-west-1")
-
 	repository, err = New(ctx, log, conf)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 		t.FailNow()
 	}
-	caller, err := repository.GetCallerIdentity(client)
+	caller, err := repository.GetCallerIdentity(&mockSTSCaller{})
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}

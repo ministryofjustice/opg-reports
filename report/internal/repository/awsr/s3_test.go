@@ -1,37 +1,19 @@
 package awsr
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
 type tS3 struct{}
 
 func TestS3BucketList(t *testing.T) {
-	var (
-		err        error
-		repository *Repository
-		ctx        = t.Context()
-		conf       = config.NewConfig()
-		log        = utils.Logger("ERROR", "TEXT")
-	)
+	var err error
 
-	if conf.Aws.GetToken() == "" {
-		t.Skip("No AWS_SESSION_TOKEN, skipping test")
-	}
-	client, _ := GetClient[*s3.Client](ctx, "eu-west-1")
+	repository := &mockS3BucketLister{}
 
-	repository, err = New(ctx, log, conf)
-	if err != nil {
-		t.Errorf("unexpected error: %s", err.Error())
-		t.FailNow()
-	}
-
-	files, err := repository.ListBucket(client, "report-data-development", "github_standards/")
+	files, err := repository.ListBucket(nil, "test-bucket-name", "prefix/")
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 		t.FailNow()
@@ -48,24 +30,12 @@ func TestS3BucketDownload(t *testing.T) {
 		err        error
 		dir        = t.TempDir()
 		downloadTo = filepath.Join(dir, "__download/")
-		repository *Repository
-		ctx        = t.Context()
-		conf       = config.NewConfig()
-		log        = utils.Logger("ERROR", "TEXT")
 	)
+	os.MkdirAll(downloadTo, os.ModePerm)
 
-	if conf.Aws.GetToken() == "" {
-		t.Skip("No AWS_SESSION_TOKEN, skipping test")
-	}
-	client, _ := GetClient[*s3.Client](ctx, "eu-west-1")
+	repository := &mockedS3BucketDownloader{}
 
-	repository, err = New(ctx, log, conf)
-	if err != nil {
-		t.Errorf("unexpected error: %s", err.Error())
-		t.FailNow()
-	}
-
-	files, err := repository.DownloadBucket(client, "report-data-development", "github_standards/", downloadTo)
+	files, err := repository.DownloadBucket(nil, "test-bucket-name", "prefix/", downloadTo)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 		t.FailNow()
