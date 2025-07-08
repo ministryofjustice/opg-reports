@@ -314,8 +314,10 @@ func dbUploadCmdRunner(
 	if err != nil {
 		return
 	}
-	defer src.Close()
-	defer os.RemoveAll(dir)
+	defer func() {
+		src.Close()
+		os.RemoveAll(dir)
+	}()
 	// copy...
 	err = utils.FileCopy(src, copyTo)
 	if err != nil {
@@ -335,7 +337,7 @@ func init() {
 	log = utils.Logger(conf.Log.Level, conf.Log.Type)
 
 	// extra options that aren't handled via config env values
-	// awscosts - sync-db
+	// awscosts - month to get data for
 	awscostsCmd.Flags().StringVar(&month, "month", utils.Month(-2), "The month to get cost data for. (YYYY-MM-DD)")
 }
 

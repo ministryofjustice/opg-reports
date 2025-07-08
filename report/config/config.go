@@ -140,7 +140,7 @@ var defaultConfig = &Config{
 		Session: &session{Token: ""},
 		Buckets: &bucket{
 			Costs: &bucketInfo{Name: "report-data-development", Prefix: "aws_costs/"},
-			DB:    &bucketInfo{Name: "report-data-development", Prefix: "database/", Key: "api.db"},
+			DB:    &bucketInfo{Name: "report-data-development", Prefix: "", Key: "database/api.db"},
 		},
 	},
 	Log: &Log{
