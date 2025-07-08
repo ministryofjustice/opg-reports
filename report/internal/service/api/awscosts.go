@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
@@ -21,11 +22,30 @@ type AwsCostsGroupedGetter[T Model] interface {
 	GetGroupedAwsCosts(store sqlr.Reader, options *GetGroupedCostsOptions) (data []T, err error)
 }
 
-// stmtCostsSelectAll fetches all records and orders them by cost.
+// stmtAwsCostsInsert used to insert records into the database the PutX functions
+const stmtAwsCostsInsert string = `
+INSERT INTO aws_costs (
+	region,
+	service,
+	date,
+	cost,
+	aws_account_id
+) VALUES (
+	:region,
+	:service,
+	:date,
+	:cost,
+	:aws_account_id
+) ON CONFLICT (aws_account_id,date,region,service)
+ 	DO UPDATE SET cost=excluded.cost
+RETURNING id;
+`
+
+// stmtAwsCostsSelectAll fetches all records and orders them by cost.
 //
 // This should never be exposed to the api layer as table
 // has millions of rows
-const stmtCostsSelectAll string = `
+const stmtAwsCostsSelectAll string = `
 SELECT
 	aws_costs.region,
 	aws_costs.service,
@@ -56,7 +76,7 @@ ORDER BY
 //
 // Excludes tax. as that is worked out on a single day for the
 // month so would always fill this list.
-const stmtCostsSelectTop20 string = `
+const stmtAwsCostsSelectTop20 string = `
 SELECT
 	aws_costs.region,
 	aws_costs.service,
@@ -86,7 +106,7 @@ ORDER BY
 LIMIT 20;
 `
 
-// stmCostsGrouped is the base sql statements used for most cost database calls
+// stmtAwsCostsGrouped is the base sql statements used for most cost database calls
 // that filters out Tax and groups values by at least the date column.
 //
 // It contains extra :params to allow extension of the query and typically
@@ -100,7 +120,7 @@ LIMIT 20;
 // {WHERE} 		= generated where clauses
 // {GROUP_BY}	= generated group by
 // {ORDER_BY}	= generated order by
-const stmCostsGrouped string = `
+const stmtAwsCostsGrouped string = `
 SELECT
 	{SELECT}
     coalesce(SUM(cost), 0) as cost,
@@ -229,7 +249,7 @@ type GetGroupedCostsOptions struct {
 // It returns the bound statement and generated data object
 func (self *GetGroupedCostsOptions) Statement() (bound *sqlr.BoundStatement, params *sqlParams) {
 	var (
-		stmt            = stmCostsGrouped
+		stmt            = stmtAwsCostsGrouped
 		selected string = ""
 		where    string = ""
 		orderby  string = ""
@@ -331,7 +351,7 @@ func (self *GetGroupedCostsOptions) Statement() (bound *sqlr.BoundStatement, par
 //
 // Using this is generally a bad idea as this table will contain millions of rows
 func (self *Service[T]) GetAllAwsCosts(store sqlr.Reader) (data []T, err error) {
-	var selectStmt = &sqlr.BoundStatement{Statement: stmtCostsSelectAll}
+	var selectStmt = &sqlr.BoundStatement{Statement: stmtAwsCostsSelectAll}
 	var log = self.log.With("operation", "GetAllCosts")
 
 	data = []T{}
@@ -347,7 +367,7 @@ func (self *Service[T]) GetAllAwsCosts(store sqlr.Reader) (data []T, err error) 
 
 // GetTop20Costs returns top 20 most expensive costs store in the database
 func (self *Service[T]) GetTop20AwsCosts(store sqlr.Reader) (data []T, err error) {
-	var selectStmt = &sqlr.BoundStatement{Statement: stmtCostsSelectTop20}
+	var selectStmt = &sqlr.BoundStatement{Statement: stmtAwsCostsSelectTop20}
 	var log = self.log.With("operation", "GetTop20Costs")
 
 	data = []T{}
@@ -373,5 +393,52 @@ func (self *Service[T]) GetGroupedAwsCosts(store sqlr.Reader, options *GetGroupe
 	if err = store.Select(selectStmt); err == nil {
 		data = selectStmt.Returned.([]T)
 	}
+	return
+}
+
+// PutAwsCosts inserts new cost records into the table.
+//
+// Expects data to be like:
+//
+//	[{
+//	  "cost": "1.152",
+//	  "date": "2025-05-31",
+//	  "region": "eu-west-2",
+//	  "service": "Amazon Virtual Private Cloud"
+//	  "aws_account_id": "01011"
+//	}]
+//
+// Note: Dont expose to the api endpoints
+func (self *Service[T]) PutAwsCosts(store sqlr.Writer, data []T) (results []*sqlr.BoundStatement, err error) {
+	var (
+		inserts []*sqlr.BoundStatement = []*sqlr.BoundStatement{}
+		log     *slog.Logger           = self.log.With("operation", "PutAwsCosts")
+	)
+	results = []*sqlr.BoundStatement{}
+
+	log.Debug("generating insert statements for aws costs")
+	// for each cost item generate the insert
+	for _, row := range data {
+		inserts = append(inserts, &sqlr.BoundStatement{Data: row, Statement: stmtAwsCostsInsert})
+	}
+	log.With("count", len(inserts)).Debug("inserting records from file ...")
+
+	// run inserts
+	if err = store.Insert(inserts...); err != nil {
+		log.Error("error inserting", "err", err.Error())
+		return
+	}
+	// only merge in the items with return values
+	for _, in := range inserts {
+		if in.Returned != nil {
+			results = append(results, in)
+		}
+	}
+	if len(results) != len(data) {
+		err = fmt.Errorf("not all costs were inserted; expected [%d] actual [%d]", len(data), len(results))
+		return
+	}
+
+	log.With("inserted", len(results)).Info("inserting records successful")
 	return
 }

@@ -39,6 +39,36 @@ func TestApiServiceGetAllAwsCosts(t *testing.T) {
 
 }
 
+func TestApiServicePutAwsCosts(t *testing.T) {
+
+	var (
+		err  error
+		dir  string = t.TempDir()
+		ctx         = t.Context()
+		conf        = config.NewConfig()
+		log         = utils.Logger("ERROR", "TEXT")
+		data        = []*AwsCost{
+			{Cost: "1.152", Date: "2025-05-31", Region: "eu-west-1", Service: "Amazon Virtual Private Cloud", AwsAccountID: "004B"},
+		}
+	)
+	// set config values
+	conf.Database.Path = filepath.Join(dir, "./api-put-awscosts.db")
+	seedDB(ctx, log, conf)
+
+	store := sqlr.DefaultWithSelect[*AwsCost](ctx, log, conf)
+	service := Default[*AwsCost](ctx, log, conf)
+
+	inserted, err := service.PutAwsCosts(store, data)
+	if err != nil {
+		t.Errorf("unexpected error: %s", err.Error())
+	}
+
+	if len(inserted) != len(data) {
+		t.Errorf("mismatching number of records: expected [%d] actual [%v]", len(inserted), len(data))
+	}
+
+}
+
 func TestApiServiceGetGroupedAwsCosts(t *testing.T) {
 	var (
 		err   error

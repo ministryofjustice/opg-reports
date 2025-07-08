@@ -43,6 +43,7 @@ var awsAccountSeeds = []*sqlr.BoundStatement{
 	{Statement: stmtAwsAccountSeed, Data: &awsAccountSeed{ID: "003A", Name: "Account 3A", Label: "A", Environment: "development", TeamName: "TEAM-C"}},
 	{Statement: stmtAwsAccountSeed, Data: &awsAccountSeed{ID: "003B", Name: "Account 3B", Label: "B", Environment: "production", TeamName: "TEAM-C"}},
 	{Statement: stmtAwsAccountSeed, Data: &awsAccountSeed{ID: "004A", Name: "Account 4A", Label: "A", Environment: "production", TeamName: "TEAM-D"}},
+	{Statement: stmtAwsAccountSeed, Data: &awsAccountSeed{ID: "004B", Name: "Account 4B", Label: "B", Environment: "production", TeamName: "TEAM-D"}},
 }
 
 // AwsAccounts populates the database (via the sqc var) with standard known enteries
