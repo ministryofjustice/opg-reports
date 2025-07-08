@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
@@ -87,8 +86,8 @@ func (self *Repository) DownloadItemFromBucket(client ClientS3Getter, bucket str
 		localFile string       = filepath.Join(directory, key)
 		parentDir string       = filepath.Dir(localFile)
 		log       *slog.Logger = self.log.With("operation", "DownloadItemFromBucket", "bucket", bucket, "key", key)
-		ctx, _                 = context.WithTimeout(self.ctx, 10*time.Second)
 		opts                   = &s3.GetObjectInput{Bucket: &bucket, Key: &key}
+		ctx                    = self.ctx
 	)
 	log.Debug("downloading item from s3 ...")
 	os.MkdirAll(parentDir, os.ModePerm)

@@ -62,6 +62,11 @@ type session struct {
 type bucketInfo struct {
 	Name   string // env: AWS_BUCKETS_$X_NAME
 	Prefix string // env: AWS_BUCKETS_$X_PREFIX
+	Key    string // env: AWS_BUCKETS_$X_KEY
+}
+
+func (self *bucketInfo) Path() string {
+	return fmt.Sprintf("%s%s", self.Prefix, self.Key)
 }
 
 // buckets
@@ -135,7 +140,7 @@ var defaultConfig = &Config{
 		Session: &session{Token: ""},
 		Buckets: &bucket{
 			Costs: &bucketInfo{Name: "report-data-development", Prefix: "aws_costs/"},
-			DB:    &bucketInfo{Name: "report-data-development", Prefix: "database/"},
+			DB:    &bucketInfo{Name: "report-data-development", Prefix: "database/", Key: "api.db"},
 		},
 	},
 	Log: &Log{

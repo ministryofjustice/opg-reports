@@ -6,14 +6,17 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
 // check interfaces are correct
 var (
-	_ S3Repository  = &Repository{}
-	_ STSRepository = &Repository{}
+	_ RepositoryS3  = &Repository{}
+	_ RepositorySTS = &Repository{}
 )
 
 var accountId = "001A"
@@ -32,9 +35,9 @@ func (self *mockSTSCaller) GetCallerIdentity(ctx context.Context, params *sts.Ge
 	}, nil
 }
 
-type mockS3BucketLister struct{}
+type mockRepositoryS3BucketLister struct{}
 
-func (self *mockS3BucketLister) ListBucket(client s3.ListObjectsV2APIClient, bucket string, prefix string) ([]string, error) {
+func (self *mockRepositoryS3BucketLister) ListBucket(client s3.ListObjectsV2APIClient, bucket string, prefix string) ([]string, error) {
 	return []string{
 		fmt.Sprintf("%s/%s%s", bucket, prefix, "sample-00.json"),
 		fmt.Sprintf("%s/%s%s", bucket, prefix, "sample-01.json"),
@@ -42,12 +45,12 @@ func (self *mockS3BucketLister) ListBucket(client s3.ListObjectsV2APIClient, buc
 	}, nil
 }
 
-// mockedS3BucketDownloader provides a mocked version of DownloadBucket that writes a dummy cost file to a
+// mockedRepositoryS3BucketDownloader provides a mocked version of DownloadBucket that writes a dummy cost file to a
 // known location and returns that as the file path
-type mockedS3BucketDownloader struct{}
+type mockedRepositoryS3BucketDownloader struct{}
 
 // DownloadBucket generates a file with dummy cost data in to for testing inserts
-func (self *mockedS3BucketDownloader) DownloadBucket(client ClientS3ListAndGetter, bucket string, prefix string, directory string) (downloaded []string, err error) {
+func (self *mockedRepositoryS3BucketDownloader) DownloadBucket(client ClientS3ListAndGetter, bucket string, prefix string, directory string) (downloaded []string, err error) {
 	var file = filepath.Join(directory, "sample-costs.json")
 	var content = `[
 	{
@@ -81,5 +84,62 @@ func (self *mockedS3BucketDownloader) DownloadBucket(client ClientS3ListAndGette
 ]`
 	err = os.WriteFile(file, []byte(content), os.ModePerm)
 	downloaded = append(downloaded, file)
+	return
+}
+
+// mockClientCostExplorerGetter returns fixed cost values for ce calls
+type mockClientCostExplorerGetter struct{}
+
+// GetCostAndUsage returns mock / fake cost data so no api call is generated
+func (self *mockClientCostExplorerGetter) GetCostAndUsage(ctx context.Context, params *costexplorer.GetCostAndUsageInput, optFns ...func(*costexplorer.Options)) (out *costexplorer.GetCostAndUsageOutput, err error) {
+	out = &costexplorer.GetCostAndUsageOutput{
+		NextPageToken: nil,
+		ResultsByTime: []types.ResultByTime{
+			{
+				TimePeriod: &types.DateInterval{
+					Start: params.TimePeriod.Start,
+					End:   params.TimePeriod.End,
+				},
+				Groups: []types.Group{
+					{
+						Keys: []string{"AWS CloudTrail", "NoRegion"},
+						Metrics: map[string]types.MetricValue{
+							params.Metrics[0]: {
+								Amount: utils.Ptr("-3.61234665"),
+								Unit:   utils.Ptr("USD"),
+							},
+						},
+					},
+					{
+						Keys: []string{"AWS CloudTrail", "eu-west-1"},
+						Metrics: map[string]types.MetricValue{
+							params.Metrics[0]: {
+								Amount: utils.Ptr("10.8865"),
+								Unit:   utils.Ptr("USD"),
+							},
+						},
+					},
+					{
+						Keys: []string{"AWS CloudTrail", "eu-west-2"},
+						Metrics: map[string]types.MetricValue{
+							params.Metrics[0]: {
+								Amount: utils.Ptr("0.1065"),
+								Unit:   utils.Ptr("USD"),
+							},
+						},
+					},
+					{
+						Keys: []string{"Amazon DynamoDB", "eu-west-2"},
+						Metrics: map[string]types.MetricValue{
+							params.Metrics[0]: {
+								Amount: utils.Ptr("0.0050711398"),
+								Unit:   utils.Ptr("USD"),
+							},
+						},
+					},
+				},
+			},
+		},
+	}
 	return
 }

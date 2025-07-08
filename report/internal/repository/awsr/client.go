@@ -6,14 +6,20 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
+// SupportedClients is a type constraint on creatign clients
+type SupportedClients interface {
+	*s3.Client | *sts.Client | *costexplorer.Client
+}
+
 // GetClient fetches a aws-sdk-v2 version of the appropriate client for T
 //
-// Supports: S3, STS
-func GetClient[T *s3.Client | *sts.Client](ctx context.Context, region string) (T, error) {
+// Supports: costexplorer, s3, sts
+func GetClient[T SupportedClients](ctx context.Context, region string) (T, error) {
 	var err error
 	var awscfg aws.Config
 	var c interface{}
@@ -25,6 +31,9 @@ func GetClient[T *s3.Client | *sts.Client](ctx context.Context, region string) (
 	}
 
 	switch any(t).(type) {
+	case *costexplorer.Client:
+		c = costexplorer.NewFromConfig(awscfg)
+		return c.(T), nil
 	case *sts.Client:
 		c = sts.NewFromConfig(awscfg)
 		return c.(T), nil
@@ -42,7 +51,7 @@ func GetClient[T *s3.Client | *sts.Client](ctx context.Context, region string) (
 
 }
 
-func DefaultClient[T *s3.Client | *sts.Client](ctx context.Context, region string) (c T) {
+func DefaultClient[T SupportedClients](ctx context.Context, region string) (c T) {
 	c, _ = GetClient[T](ctx, region)
 	return
 }

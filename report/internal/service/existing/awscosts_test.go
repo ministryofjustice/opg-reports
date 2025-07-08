@@ -34,7 +34,7 @@ func TestAwsCostsInsert(t *testing.T) {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
 
-	stmts, err := srv.InsertAwsCosts(nil, &mockedS3BucketDownloader{}, sq)
+	stmts, err := srv.InsertAwsCosts(nil, &mockedRepositoryS3BucketDownloader{}, sq)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}

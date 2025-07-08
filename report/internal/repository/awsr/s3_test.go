@@ -6,12 +6,10 @@ import (
 	"testing"
 )
 
-type tS3 struct{}
-
 func TestS3BucketList(t *testing.T) {
 	var err error
 
-	repository := &mockS3BucketLister{}
+	repository := &mockRepositoryS3BucketLister{}
 
 	files, err := repository.ListBucket(nil, "test-bucket-name", "prefix/")
 	if err != nil {
@@ -33,7 +31,7 @@ func TestS3BucketDownload(t *testing.T) {
 	)
 	os.MkdirAll(downloadTo, os.ModePerm)
 
-	repository := &mockedS3BucketDownloader{}
+	repository := &mockedRepositoryS3BucketDownloader{}
 
 	files, err := repository.DownloadBucket(nil, "test-bucket-name", "prefix/", downloadTo)
 	if err != nil {

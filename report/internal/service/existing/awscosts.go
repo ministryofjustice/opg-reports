@@ -77,7 +77,7 @@ type awsCost struct {
 //	}
 //
 // We use the old account_id field for the join information
-func (self *Service) InsertAwsCosts(client awsr.ClientS3ListAndGetter, source awsr.S3BucketDownloader, sq sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
+func (self *Service) InsertAwsCosts(client awsr.ClientS3ListAndGetter, source awsr.RepositoryS3BucketDownloader, sq sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
 	var dir string
 	var downloaded []string
 	var totalInserted = 0

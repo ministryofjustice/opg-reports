@@ -67,12 +67,12 @@ func (self *mockedGitHubClient) DownloadReleaseAsset(ctx context.Context, owner,
 	return
 }
 
-// mockedS3BucketDownloader provides a mocked version of DownloadBucket that writes a dummy cost file to a
+// mockedRepositoryS3BucketDownloader provides a mocked version of DownloadBucket that writes a dummy cost file to a
 // known location and returns that as the file path
-type mockedS3BucketDownloader struct{}
+type mockedRepositoryS3BucketDownloader struct{}
 
 // DownloadBucket generates a file with dummy cost data in to for testing inserts
-func (self *mockedS3BucketDownloader) DownloadBucket(client awsr.ClientS3ListAndGetter, bucket string, prefix string, directory string) (downloaded []string, err error) {
+func (self *mockedRepositoryS3BucketDownloader) DownloadBucket(client awsr.ClientS3ListAndGetter, bucket string, prefix string, directory string) (downloaded []string, err error) {
 	var file = filepath.Join(directory, "sample-costs.json")
 	var content = `[
 	{
