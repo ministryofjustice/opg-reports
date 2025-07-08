@@ -62,18 +62,7 @@ var existingCmd = &cobra.Command{
 			existService *existing.Service   = existing.Default(ctx, log, conf)
 		)
 
-		// TEAMS
-		if _, err = existService.InsertTeams(githubClient.Repositories, githubStore, sqlStore); err != nil {
-			return
-		}
-		// ACCOUNTS
-		if _, err = existService.InsertAwsAccounts(githubClient.Repositories, githubStore, sqlStore); err != nil {
-			return
-		}
-		// COSTS
-		if _, err = existService.InsertAwsCosts(s3Client, s3Store, sqlStore); err != nil {
-			return
-		}
+		err = existingCmdRunner(githubClient.Repositories, githubStore, s3Client, s3Store, sqlStore, existService)
 
 		return
 	},
@@ -90,18 +79,7 @@ var seedCmd = &cobra.Command{
 			sqlStore    *sqlr.Repository = sqlr.Default(ctx, log, conf)
 			seedService *seed.Service    = seed.Default(ctx, log, conf)
 		)
-		// TEAMS
-		if _, err = seedService.Teams(sqlStore); err != nil {
-			return
-		}
-		// ACCOUNTS
-		if _, err = seedService.AwsAccounts(sqlStore); err != nil {
-			return
-		}
-		// COSTS
-		if _, err = seedService.AwsCosts(sqlStore); err != nil {
-			return
-		}
+		err = seedCmdRunner(sqlStore, seedService)
 
 		return
 	},
@@ -139,47 +117,108 @@ var awscostsCmd = &cobra.Command{
 	Long:  `awscosts will call the aws costexplorer api to retrieve data for period specific.`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var (
-			stsClient = awsr.DefaultClient[*sts.Client](ctx, conf.Aws.GetRegion())
-			ceClient  = awsr.DefaultClient[*costexplorer.Client](ctx, conf.Aws.GetRegion())
-			awsStore  = awsr.Default(ctx, log, conf)
-			sqClient  = sqlr.DefaultWithSelect[*api.AwsCost](ctx, log, conf)
-			apiStore  = api.Default[*api.AwsCost](ctx, log, conf)
-			costs     = []*api.AwsCost{}
-			caller, _ = awsStore.GetCallerIdentity(stsClient)
-			start     = utils.StringToTimeReset(month, utils.TimeIntervalMonth)
-			end       = start.AddDate(0, 1, 0)
+			stsClient  = awsr.DefaultClient[*sts.Client](ctx, conf.Aws.GetRegion())
+			ceClient   = awsr.DefaultClient[*costexplorer.Client](ctx, conf.Aws.GetRegion())
+			awsStore   = awsr.Default(ctx, log, conf)
+			sqClient   = sqlr.DefaultWithSelect[*api.AwsCost](ctx, log, conf)
+			apiService = api.Default[*api.AwsCost](ctx, log, conf)
 		)
-		opts := &awsr.GetCostDataOptions{
-			StartDate:   start.Format(utils.DATE_FORMATS.YMD),
-			EndDate:     end.Format(utils.DATE_FORMATS.YMD),
-			Granularity: types.GranularityDaily,
-		}
-		// get the raw data from the api
-		data, err := awsStore.GetCostData(ceClient, opts)
-		if err != nil {
-			return
-		}
-		// convert to AwsCosts struct
-		err = utils.Convert(data, &costs)
-		if err != nil {
-			log.Error("error converting", "err", err.Error())
-			return
-		}
-		// inject the account id into the cost records
-		if caller != nil {
-			for _, c := range costs {
-				c.AwsAccountID = *caller.Account
-			}
-		}
-		// insert
-		_, err = apiStore.PutAwsCosts(sqClient, costs)
-		if err != nil {
-			log.Error("error inserting", "err", err.Error())
-			return
-		}
+
+		err = awscostsCmdRunner(stsClient, awsStore, ceClient, awsStore, sqClient, apiService)
 
 		return
 	},
+}
+
+func existingCmdRunner(
+	githubClient githubr.ReleaseClient,
+	githubStore githubr.ReleaseRepository,
+	s3Client awsr.ClientS3ListAndGetter,
+	s3Store awsr.RepositoryS3BucketDownloader,
+	sqlStore sqlr.Writer,
+	existService *existing.Service,
+) (err error) {
+
+	// TEAMS
+	if _, err = existService.InsertTeams(githubClient, githubStore, sqlStore); err != nil {
+		return
+	}
+	// ACCOUNTS
+	if _, err = existService.InsertAwsAccounts(githubClient, githubStore, sqlStore); err != nil {
+		return
+	}
+	// COSTS
+	if _, err = existService.InsertAwsCosts(s3Client, s3Store, sqlStore); err != nil {
+		return
+	}
+
+	return
+}
+
+func seedCmdRunner(
+	sqlStore sqlr.Writer,
+	seedService *seed.Service,
+) (err error) {
+
+	// TEAMS
+	if _, err = seedService.Teams(sqlStore); err != nil {
+		return
+	}
+	// ACCOUNTS
+	if _, err = seedService.AwsAccounts(sqlStore); err != nil {
+		return
+	}
+	// COSTS
+	if _, err = seedService.AwsCosts(sqlStore); err != nil {
+		return
+	}
+	return
+}
+
+func awscostsCmdRunner(
+	stsClient awsr.ClientSTSCaller,
+	stsStore awsr.RepositorySTS,
+	ceClient awsr.ClientCostExplorerGetter,
+	ceStore awsr.RepositoryCostExplorerGetter,
+	sqClient sqlr.Writer,
+	apiService *api.Service[*api.AwsCost],
+
+) (err error) {
+	var (
+		costs     = []*api.AwsCost{}
+		caller, _ = stsStore.GetCallerIdentity(stsClient)
+		start     = utils.StringToTimeReset(month, utils.TimeIntervalMonth)
+		end       = start.AddDate(0, 1, 0)
+	)
+	opts := &awsr.GetCostDataOptions{
+		StartDate:   start.Format(utils.DATE_FORMATS.YMD),
+		EndDate:     end.Format(utils.DATE_FORMATS.YMD),
+		Granularity: types.GranularityDaily,
+	}
+	// get the raw data from the api
+	data, err := ceStore.GetCostData(ceClient, opts)
+	if err != nil {
+		return
+	}
+	// convert to AwsCosts struct
+	err = utils.Convert(data, &costs)
+	if err != nil {
+		log.Error("error converting", "err", err.Error())
+		return
+	}
+	// inject the account id into the cost records
+	if caller != nil {
+		for _, c := range costs {
+			c.AwsAccountID = *caller.Account
+		}
+	}
+	// insert
+	_, err = apiService.PutAwsCosts(sqClient, costs)
+	if err != nil {
+		log.Error("error inserting", "err", err.Error())
+		return
+	}
+	return
 }
 
 // init
