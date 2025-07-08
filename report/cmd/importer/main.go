@@ -9,6 +9,7 @@ import (
 	"context"
 	"log/slog"
 	"os"
+	"path/filepath"
 
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
@@ -96,6 +97,19 @@ var dbDownloadCmd = &cobra.Command{
 			awsStore = awsr.Default(ctx, log, conf)
 		)
 		err = dbDownloadCmdRunner(s3Client, awsStore)
+		return
+	},
+}
+
+var dbUploadCmd = &cobra.Command{
+	Use:   "dbupload",
+	Short: "dbupload uploads a local database to the s3 bucket",
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var (
+			s3Client = awsr.DefaultClient[*s3.Client](ctx, "eu-west-1")
+			awsStore = awsr.Default(ctx, log, conf)
+		)
+		err = dbUploadCmdRunner(s3Client, awsStore)
 		return
 	},
 }
@@ -226,6 +240,35 @@ func dbDownloadCmdRunner(
 	return
 }
 
+func dbUploadCmdRunner(
+	client awsr.ClientS3Putter,
+	store awsr.RepositoryS3BucketItemUploader,
+) (err error) {
+	var (
+		dir, _       = os.MkdirTemp("./", "__upload-s3-*")
+		copyFrom     = conf.Database.Path
+		copyTo       = filepath.Join(dir, filepath.Base(conf.Database.Path))
+		targetBucket = conf.Aws.Buckets.DB.Name
+		targetKey    = conf.Aws.Buckets.DB.Path()
+		src          *os.File
+	)
+	// open the existing db file & copy to the new location
+	src, err = os.Open(copyFrom)
+	if err != nil {
+		return
+	}
+	// copy...
+	err = utils.FileCopy(src, copyTo)
+	if err != nil {
+		return
+	}
+	targetKey = "database/api2.db"
+	// now upload the copy
+	_, err = store.UploadItemToBucket(client, targetBucket, targetKey, copyTo)
+
+	return
+}
+
 // init
 func init() {
 	conf, viperConf = config.New()
@@ -238,7 +281,10 @@ func init() {
 }
 
 func main() {
-	rootCmd.AddCommand(existingCmd, seedCmd, dbDownloadCmd, awscostsCmd)
+	rootCmd.AddCommand(
+		existingCmd, seedCmd,
+		dbDownloadCmd, dbUploadCmd,
+		awscostsCmd)
 	rootCmd.Execute()
 
 }
