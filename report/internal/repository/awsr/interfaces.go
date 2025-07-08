@@ -40,6 +40,9 @@ type RepositoryS3BucketDownloader interface {
 type RepositoryS3BucketItemDownloader interface {
 	DownloadItemFromBucket(client ClientS3Getter, bucket string, key string, directory string) (file string, err error)
 }
+type RepositoryS3BucketItemUploader interface {
+	UploadItemToBucket(client ClientS3Putter, bucket string, key string, localFile string) (result *s3.PutObjectOutput, err error)
+}
 
 // RepositoryCostExplorer contains all the methods used to fetch cost data from the aws sdk
 type RepositoryCostExplorer interface {
@@ -62,12 +65,16 @@ type ClientSTSCaller interface {
 // ClientS3 represents an overal S3 client
 type ClientS3 interface {
 	ClientS3ListAndGetter
+	ClientS3Putter
 }
 
 // ClientS3Getter represents the client (s3.Client) used to download an item
 // from a bucket.
 type ClientS3Getter interface {
 	GetObject(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error)
+}
+type ClientS3Putter interface {
+	PutObject(ctx context.Context, params *s3.PutObjectInput, optFns ...func(*s3.Options)) (*s3.PutObjectOutput, error)
 }
 
 // ClientS3ListAndGetter represents both listing and downloading capabilities that a client

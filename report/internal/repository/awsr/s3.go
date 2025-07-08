@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 )
 
 // ListBucket returns all the files stored within the bucket and under the prefix
@@ -102,5 +103,33 @@ func (self *Repository) DownloadItemFromBucket(client ClientS3Getter, bucket str
 	if err = os.WriteFile(localFile, body, os.ModePerm); err == nil {
 		file = localFile
 	}
+	return
+}
+
+// UploadItemToBucket uploads a local file to a bucket.
+//
+// Key must contain any bucket prefix / path and the complete filename. the localFile path is
+// only used for reading content
+//
+// Uses the default sse of aes256 rather than a custom kms key
+func (self *Repository) UploadItemToBucket(client ClientS3Putter, bucket string, key string, localFile string) (result *s3.PutObjectOutput, err error) {
+	var (
+		log *slog.Logger = self.log.With("operation", "UploadItemToBucket", "bucket", bucket, "key", key, "localFile", localFile)
+		ctx              = self.ctx
+	)
+	log.Debug("uploading item to s3 ...")
+	file, err := os.Open(localFile)
+	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	result, err = client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:               &bucket,
+		Key:                  &key,
+		Body:                 file,
+		ServerSideEncryption: types.ServerSideEncryptionAes256,
+	})
+
 	return
 }

@@ -94,18 +94,8 @@ var dbDownloadCmd = &cobra.Command{
 		var (
 			s3Client = awsr.DefaultClient[*s3.Client](ctx, "eu-west-1")
 			awsStore = awsr.Default(ctx, log, conf)
-			dir, _   = os.MkdirTemp("./", "__download-s3-*")
-			local    string
 		)
-		defer os.RemoveAll(dir)
-		log.With("bucket", conf.Aws.Buckets.DB.Name, "path", conf.Aws.Buckets.DB.Path()).Debug("downloading database from s3 bucket ... ")
-		local, err = awsStore.DownloadItemFromBucket(s3Client, conf.Aws.Buckets.DB.Name, conf.Aws.Buckets.DB.Path(), dir)
-		if err != nil {
-			return
-		}
-		log.With("src", local, "dst", conf.Database.Path).Debug("renaming database ... ")
-		err = os.Rename(local, conf.Database.Path)
-
+		err = dbDownloadCmdRunner(s3Client, awsStore)
 		return
 	},
 }
@@ -123,9 +113,7 @@ var awscostsCmd = &cobra.Command{
 			sqClient   = sqlr.DefaultWithSelect[*api.AwsCost](ctx, log, conf)
 			apiService = api.Default[*api.AwsCost](ctx, log, conf)
 		)
-
 		err = awscostsCmdRunner(stsClient, awsStore, ceClient, awsStore, sqClient, apiService)
-
 		return
 	},
 }
@@ -218,6 +206,23 @@ func awscostsCmdRunner(
 		log.Error("error inserting", "err", err.Error())
 		return
 	}
+	return
+}
+
+func dbDownloadCmdRunner(
+	client awsr.ClientS3Getter,
+	store awsr.RepositoryS3BucketItemDownloader,
+) (err error) {
+	var (
+		dir, _ = os.MkdirTemp("./", "__download-s3-*")
+		local  string
+	)
+	defer os.RemoveAll(dir)
+	local, err = store.DownloadItemFromBucket(client, conf.Aws.Buckets.DB.Name, conf.Aws.Buckets.DB.Path(), dir)
+	if err != nil {
+		return
+	}
+	err = os.Rename(local, conf.Database.Path)
 	return
 }
 

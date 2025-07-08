@@ -1,9 +1,14 @@
 package awsr
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/ministryofjustice/opg-reports/report/config"
+	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
 func TestS3BucketList(t *testing.T) {
@@ -42,4 +47,28 @@ func TestS3BucketDownload(t *testing.T) {
 	if len(files) <= 0 {
 		t.Errorf("failed to list items in bucket")
 	}
+}
+
+func TestS3BucketUpload(t *testing.T) {
+	var (
+		err        error
+		ctx        = context.TODO()
+		conf       = config.NewConfig()
+		log        = utils.Logger("WARN", "TEXT")
+		dir        = t.TempDir()
+		sampleFile = filepath.Join(dir, "test.json")
+	)
+	if os.Getenv("AWS_SESSION_TOKEN") == "" {
+		t.SkipNow()
+	} else {
+
+		os.WriteFile(sampleFile, []byte(`test file!`), os.ModePerm)
+		repo := Default(ctx, log, conf)
+		client := DefaultClient[*s3.Client](ctx, "eu-west-1")
+		_, err = repo.UploadItemToBucket(client, "report-data-development", "test/test.json", sampleFile)
+		if err != nil {
+			t.Errorf("unexpected error: %s", err.Error())
+		}
+	}
+
 }
