@@ -52,7 +52,24 @@ var rootCmd = &cobra.Command{
 var existingCmd = &cobra.Command{
 	Use:   "existing",
 	Short: "existing imports all known existing data files.",
-	Long:  `existing imports all known data files (generally json) from a mix of sources (github, s3 buckets) that covers current and prior reporting data to ensure completeness`,
+	Long: `
+existing imports all known data files (generally json) from a mix of sources (github, s3 buckets) that covers current and prior reporting data to ensure completeness.
+
+env variables used that can be adjusted:
+
+	AWS_BUCKETS_COSTS_NAME
+		The name of the bucket that current stores older aws cost data
+	AWS_BUCKETS_COSTS_PREFIX
+		The bucket folder path (needs trailing /) with all cost data files within
+	DATABASE_PATH
+		The file path to the sqlite database that will be used
+	GITHUB_ORGANISATION
+		The name of the github organisation that owns the private repo
+	GITHUB_METADATA_REPOSITORY
+		The name of the repository to fetch release asset from for team / aws account lists
+	GITHUB_METADATA_ASSET
+		The name of the asset to download from the latest release on the repository
+`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var (
 			githubClient                     = githubr.DefaultClient(conf)
@@ -74,7 +91,14 @@ var existingCmd = &cobra.Command{
 var seedCmd = &cobra.Command{
 	Use:   "seed",
 	Short: "seed inserts known test data.",
-	Long:  `seed inserts known test data for use in development.`,
+	Long: `
+seed inserts known test data for use in development.
+
+env variables used that can be adjusted:
+
+	DATABASE_PATH
+		The file path to the sqlite database that will be used
+`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var (
 			sqlStore    *sqlr.Repository = sqlr.Default(ctx, log, conf)
@@ -91,6 +115,18 @@ var seedCmd = &cobra.Command{
 var dbDownloadCmd = &cobra.Command{
 	Use:   "dbdownload",
 	Short: "dbdownload downloads the database from an s3 bucket to local file system",
+	Long: `
+dbdownload downloads the database from an s3 bucket to local file system
+
+env variables used that can be adjusted:
+
+	AWS_BUCKETS_DB_NAME
+		The name of the bucket that stores the sqlite database
+	AWS_BUCKETS_DB_KEY
+		The object key in the bucket (include folder path) where the sqlite db is stored
+	DATABASE_PATH
+		The file path to the sqlite database on the local filesystem to copy the s3 version into
+`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var (
 			s3Client = awsr.DefaultClient[*s3.Client](ctx, "eu-west-1")
@@ -101,9 +137,22 @@ var dbDownloadCmd = &cobra.Command{
 	},
 }
 
+// dbUploadCmd uploads the local database to the configured s3 bucket
 var dbUploadCmd = &cobra.Command{
 	Use:   "dbupload",
 	Short: "dbupload uploads a local database to the s3 bucket",
+	Long: `
+dbupload uploads a local database to the s3 bucket
+
+env variables used that can be adjusted:
+
+	AWS_BUCKETS_DB_NAME
+		The name of the bucket to upload the database to
+	AWS_BUCKETS_DB_KEY
+		The object key for the bucket (including folder path) where the sqlite db will be uploaded
+	DATABASE_PATH
+		The file path to the sqlite database on the local filesystem to upload to s3
+`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var (
 			s3Client = awsr.DefaultClient[*s3.Client](ctx, "eu-west-1")
@@ -118,7 +167,15 @@ var dbUploadCmd = &cobra.Command{
 var awscostsCmd = &cobra.Command{
 	Use:   "awscosts",
 	Short: "awscosts fetches data from the cost explorer api",
-	Long:  `awscosts will call the aws costexplorer api to retrieve data for period specific.`,
+	Long: `
+awscosts will call the aws costexplorer api to retrieve data for period specific.
+
+env variables used that can be adjusted:
+
+	DATABASE_PATH
+		The file path to the sqlite database that will be used
+
+`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var (
 			stsClient  = awsr.DefaultClient[*sts.Client](ctx, conf.Aws.GetRegion())
@@ -130,51 +187,6 @@ var awscostsCmd = &cobra.Command{
 		err = awscostsCmdRunner(stsClient, awsStore, ceClient, awsStore, sqClient, apiService)
 		return
 	},
-}
-
-func existingCmdRunner(
-	githubClient githubr.ReleaseClient,
-	githubStore githubr.ReleaseRepository,
-	s3Client awsr.ClientS3ListAndGetter,
-	s3Store awsr.RepositoryS3BucketDownloader,
-	sqlStore sqlr.Writer,
-	existService *existing.Service,
-) (err error) {
-
-	// TEAMS
-	if _, err = existService.InsertTeams(githubClient, githubStore, sqlStore); err != nil {
-		return
-	}
-	// ACCOUNTS
-	if _, err = existService.InsertAwsAccounts(githubClient, githubStore, sqlStore); err != nil {
-		return
-	}
-	// COSTS
-	if _, err = existService.InsertAwsCosts(s3Client, s3Store, sqlStore); err != nil {
-		return
-	}
-
-	return
-}
-
-func seedCmdRunner(
-	sqlStore sqlr.Writer,
-	seedService *seed.Service,
-) (err error) {
-
-	// TEAMS
-	if _, err = seedService.Teams(sqlStore); err != nil {
-		return
-	}
-	// ACCOUNTS
-	if _, err = seedService.AwsAccounts(sqlStore); err != nil {
-		return
-	}
-	// COSTS
-	if _, err = seedService.AwsCosts(sqlStore); err != nil {
-		return
-	}
-	return
 }
 
 func awscostsCmdRunner(
@@ -223,6 +235,51 @@ func awscostsCmdRunner(
 	return
 }
 
+func existingCmdRunner(
+	githubClient githubr.ReleaseClient,
+	githubStore githubr.ReleaseRepository,
+	s3Client awsr.ClientS3ListAndGetter,
+	s3Store awsr.RepositoryS3BucketDownloader,
+	sqlStore sqlr.Writer,
+	existService *existing.Service,
+) (err error) {
+
+	// TEAMS
+	if _, err = existService.InsertTeams(githubClient, githubStore, sqlStore); err != nil {
+		return
+	}
+	// ACCOUNTS
+	if _, err = existService.InsertAwsAccounts(githubClient, githubStore, sqlStore); err != nil {
+		return
+	}
+	// COSTS
+	if _, err = existService.InsertAwsCosts(s3Client, s3Store, sqlStore); err != nil {
+		return
+	}
+
+	return
+}
+
+func seedCmdRunner(
+	sqlStore sqlr.Writer,
+	seedService *seed.Service,
+) (err error) {
+
+	// TEAMS
+	if _, err = seedService.Teams(sqlStore); err != nil {
+		return
+	}
+	// ACCOUNTS
+	if _, err = seedService.AwsAccounts(sqlStore); err != nil {
+		return
+	}
+	// COSTS
+	if _, err = seedService.AwsCosts(sqlStore); err != nil {
+		return
+	}
+	return
+}
+
 func dbDownloadCmdRunner(
 	client awsr.ClientS3Getter,
 	store awsr.RepositoryS3BucketItemDownloader,
@@ -257,12 +314,14 @@ func dbUploadCmdRunner(
 	if err != nil {
 		return
 	}
+	defer src.Close()
+	defer os.RemoveAll(dir)
 	// copy...
 	err = utils.FileCopy(src, copyTo)
 	if err != nil {
 		return
 	}
-	targetKey = "database/api2.db"
+	// targetKey = "database/api2.db"
 	// now upload the copy
 	_, err = store.UploadItemToBucket(client, targetBucket, targetKey, copyTo)
 
