@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ministryofjustice/opg-reports/report/internal/utils"
+	"opg-reports/report/internal/utils"
 )
 
 type testTar struct {

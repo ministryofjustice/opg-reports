@@ -4,9 +4,10 @@ import (
 	"testing"
 	"time"
 
+	"opg-reports/report/config"
+	"opg-reports/report/internal/utils"
+
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
-	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
 func TestCEGetCosts(t *testing.T) {

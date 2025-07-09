@@ -5,8 +5,9 @@ import (
 	"log/slog"
 	"net/http"
 
+	"opg-reports/report/config"
+
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/ministryofjustice/opg-reports/report/config"
 )
 
 type HomepageResponse struct {

@@ -4,9 +4,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"opg-reports/report/internal/repository/awsr"
+	"opg-reports/report/internal/utils"
+
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/awsr"
-	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 	"github.com/spf13/cobra"
 )
 

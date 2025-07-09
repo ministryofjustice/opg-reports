@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ministryofjustice/opg-reports/report/internal/utils"
+	"opg-reports/report/internal/utils"
+
 	"github.com/spf13/viper"
 )
 

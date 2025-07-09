@@ -3,8 +3,8 @@ package api
 import (
 	"fmt"
 
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
-	"github.com/ministryofjustice/opg-reports/report/internal/utils"
+	"opg-reports/report/internal/repository/sqlr"
+	"opg-reports/report/internal/utils"
 )
 
 // AwsAccountsGetter interface is used for GetAllAccounts calls

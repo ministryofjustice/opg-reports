@@ -8,8 +8,9 @@ import (
 	"path/filepath"
 	"regexp"
 
+	"opg-reports/report/internal/utils"
+
 	"github.com/google/go-github/v62/github"
-	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
 // GetAllReleases returns all releases for a repository without any filtering.

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
+	"opg-reports/report/config"
+	"opg-reports/report/internal/repository/sqlr"
 )
 
 const label string = "seed-service"

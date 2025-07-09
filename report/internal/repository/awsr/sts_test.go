@@ -3,8 +3,8 @@ package awsr
 import (
 	"testing"
 
-	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/utils"
+	"opg-reports/report/config"
+	"opg-reports/report/internal/utils"
 )
 
 func TestSTSCallerIdentity(t *testing.T) {

@@ -1,8 +1,8 @@
 package seed
 
 import (
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
-	"github.com/ministryofjustice/opg-reports/report/internal/utils"
+	"opg-reports/report/internal/repository/sqlr"
+	"opg-reports/report/internal/utils"
 )
 
 // stmtTeamSeed is used to insert records into the team table

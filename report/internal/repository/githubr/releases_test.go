@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/utils"
+	"opg-reports/report/config"
+	"opg-reports/report/internal/utils"
 )
 
 // TestGithubrAllReleases makes a call to a real api to check there are releases returned

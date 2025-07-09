@@ -3,9 +3,10 @@ package githubr
 import (
 	"fmt"
 
+	"opg-reports/report/config"
+
 	"github.com/gofri/go-github-ratelimit/github_ratelimit"
 	"github.com/google/go-github/v62/github"
-	"github.com/ministryofjustice/opg-reports/report/config"
 )
 
 // GetClient is an internal helper to handle creating the client

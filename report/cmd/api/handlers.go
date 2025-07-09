@@ -4,14 +4,15 @@ import (
 	"context"
 	"log/slog"
 
+	"opg-reports/report/cmd/api/awsaccounts"
+	"opg-reports/report/cmd/api/awscosts"
+	"opg-reports/report/cmd/api/home"
+	"opg-reports/report/cmd/api/teams"
+	"opg-reports/report/config"
+	"opg-reports/report/internal/repository/sqlr"
+	"opg-reports/report/internal/service/api"
+
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/ministryofjustice/opg-reports/report/cmd/api/awsaccounts"
-	"github.com/ministryofjustice/opg-reports/report/cmd/api/awscosts"
-	"github.com/ministryofjustice/opg-reports/report/cmd/api/home"
-	"github.com/ministryofjustice/opg-reports/report/cmd/api/teams"
-	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
-	"github.com/ministryofjustice/opg-reports/report/internal/service/api"
 )
 
 // RegisterHandlers attaches all the known functions to the api.

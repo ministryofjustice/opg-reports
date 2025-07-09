@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/awsr"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
-	"github.com/ministryofjustice/opg-reports/report/internal/utils"
+	"opg-reports/report/internal/repository/awsr"
+	"opg-reports/report/internal/repository/sqlr"
+	"opg-reports/report/internal/utils"
 )
 
 const stmtAwsCostImport string = `

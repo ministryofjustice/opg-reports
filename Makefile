@@ -53,7 +53,7 @@ coverage:
 #========= DOCKER =========
 ## Build local development version of the docker image
 docker/build:
-	@env DOCKER_BUILDKIT=0 \
+	@env DOCKER_BUILDKIT=1 \
 	docker compose \
 		--verbose \
 		-f docker-compose.yml \
@@ -63,9 +63,8 @@ docker/build:
 
 ## Build and run the local docker images
 docker/up: docker/build
-	@env DOCKER_BUILDKIT=0 \
+	@env DOCKER_BUILDKIT=1 \
 	docker compose \
-		--verbose \
 		-f docker-compose.yml \
 		-f docker-compose.dev.yml \
 		up \
@@ -75,12 +74,21 @@ docker/up: docker/build
 ## Clean any old docker images out
 docker/clean: docker/down
 	@docker image rm $(images) || echo "ok"
-	@docker compose rm ${SERVICES}
+	@env DOCKER_BUILDKIT=1 \
+	docker compose \
+		-f docker-compose.yml \
+		-f docker-compose.dev.yml \
+		rm ${SERVICES}
 	@docker container prune -f
 	@docker image prune -f --filter="dangling=true"
 .PHONY: docker/clean
 
 ## run docker compose down, turning off all docker containers
 docker/down:
-	@docker compose down
+	@env DOCKER_BUILDKIT=1 \
+	docker compose \
+		--verbose \
+		-f docker-compose.yml \
+		-f docker-compose.dev.yml \
+		down
 .PHONY: docker/down

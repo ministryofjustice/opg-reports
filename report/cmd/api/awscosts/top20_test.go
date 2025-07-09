@@ -6,11 +6,11 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
-	"github.com/ministryofjustice/opg-reports/report/internal/service/api"
-	"github.com/ministryofjustice/opg-reports/report/internal/service/seed"
-	"github.com/ministryofjustice/opg-reports/report/internal/utils"
+	"opg-reports/report/config"
+	"opg-reports/report/internal/repository/sqlr"
+	"opg-reports/report/internal/service/api"
+	"opg-reports/report/internal/service/seed"
+	"opg-reports/report/internal/utils"
 )
 
 func seedDB(ctx context.Context, log *slog.Logger, conf *config.Config) (inserted []*sqlr.BoundStatement) {

@@ -7,10 +7,11 @@ import (
 	"net/http"
 	"time"
 
+	"opg-reports/report/config"
+
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
 	"github.com/danielgtaylor/huma/v2/humacli"
-	"github.com/ministryofjustice/opg-reports/report/config"
 )
 
 func runner(ctx context.Context, log *slog.Logger, conf *config.Config) {

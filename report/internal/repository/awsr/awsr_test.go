@@ -6,11 +6,12 @@ import (
 	"os"
 	"path/filepath"
 
+	"opg-reports/report/internal/utils"
+
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
-	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
 // check interfaces are correct

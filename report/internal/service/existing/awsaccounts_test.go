@@ -4,11 +4,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/githubr"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
-	"github.com/ministryofjustice/opg-reports/report/internal/service/seed"
-	"github.com/ministryofjustice/opg-reports/report/internal/utils"
+	"opg-reports/report/config"
+	"opg-reports/report/internal/repository/githubr"
+	"opg-reports/report/internal/repository/sqlr"
+	"opg-reports/report/internal/service/seed"
+	"opg-reports/report/internal/utils"
 )
 
 func TestAwsAccountsInsert(t *testing.T) {

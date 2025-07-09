@@ -8,8 +8,9 @@ import (
 	"os"
 	"path/filepath"
 
+	"opg-reports/report/internal/repository/awsr"
+
 	"github.com/google/go-github/v62/github"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/awsr"
 )
 
 var t = true

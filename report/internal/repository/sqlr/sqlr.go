@@ -7,9 +7,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"opg-reports/report/config"
+	"opg-reports/report/internal/utils"
+
 	"github.com/jmoiron/sqlx"
-	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
 const label string = "sql-repository"

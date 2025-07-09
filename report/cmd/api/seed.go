@@ -4,9 +4,9 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
-	"github.com/ministryofjustice/opg-reports/report/internal/service/seed"
+	"opg-reports/report/config"
+	"opg-reports/report/internal/repository/sqlr"
+	"opg-reports/report/internal/service/seed"
 )
 
 // seedDB is called if the database doesnt exist on init, so creates a dummy one

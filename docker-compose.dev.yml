@@ -6,9 +6,9 @@ services:
     ports:
       - "8081:8081"
     volumes:
-      - ./report:/app/report
-      - ./go.mod:/app/go.mod
-      - ./go.sum:/app/go.sum
+      - ./report:/app/report:rw,delegated
+      - ./go.mod:/app/go.mod:rw,delegated
+      - ./go.sum:/app/go.sum:rw,delegated
 
   # front:
   #   platform: linux/arm64

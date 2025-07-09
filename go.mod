@@ -1,4 +1,4 @@
-module github.com/ministryofjustice/opg-reports
+module opg-reports
 
 go 1.24.4
 

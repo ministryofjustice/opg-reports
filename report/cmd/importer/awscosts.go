@@ -1,13 +1,14 @@
 package main
 
 import (
+	"opg-reports/report/internal/repository/awsr"
+	"opg-reports/report/internal/repository/sqlr"
+	"opg-reports/report/internal/service/api"
+	"opg-reports/report/internal/utils"
+
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/awsr"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
-	"github.com/ministryofjustice/opg-reports/report/internal/service/api"
-	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 	"github.com/spf13/cobra"
 )
 

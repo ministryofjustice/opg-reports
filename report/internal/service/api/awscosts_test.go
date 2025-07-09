@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
-	"github.com/ministryofjustice/opg-reports/report/internal/utils"
+	"opg-reports/report/config"
+	"opg-reports/report/internal/repository/sqlr"
+	"opg-reports/report/internal/utils"
 )
 
 // TestApiServiceGetAllAwsCosts uses get all func - which is generally bad idea with real

@@ -9,8 +9,9 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/ministryofjustice/opg-reports/report/config"
-	"github.com/ministryofjustice/opg-reports/report/internal/utils"
+	"opg-reports/report/config"
+	"opg-reports/report/internal/utils"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

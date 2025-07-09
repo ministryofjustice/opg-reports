@@ -3,8 +3,8 @@ package seed
 import (
 	"time"
 
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
-	"github.com/ministryofjustice/opg-reports/report/internal/utils"
+	"opg-reports/report/internal/repository/sqlr"
+	"opg-reports/report/internal/utils"
 )
 
 // stmtAwsCostSeed is used to insert records into the team table

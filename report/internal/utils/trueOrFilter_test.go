@@ -3,7 +3,7 @@ package utils_test
 import (
 	"testing"
 
-	"github.com/ministryofjustice/opg-reports/report/internal/utils"
+	"opg-reports/report/internal/utils"
 )
 
 func TestTrueOrFilter(t *testing.T) {

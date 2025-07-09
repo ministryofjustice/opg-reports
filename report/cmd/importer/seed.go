@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
-	"github.com/ministryofjustice/opg-reports/report/internal/service/seed"
+	"opg-reports/report/internal/repository/sqlr"
+	"opg-reports/report/internal/service/seed"
+
 	"github.com/spf13/cobra"
 )
 

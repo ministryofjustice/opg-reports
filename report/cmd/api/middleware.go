@@ -3,8 +3,9 @@ package main
 import (
 	"log/slog"
 
+	"opg-reports/report/config"
+
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/ministryofjustice/opg-reports/report/config"
 )
 
 // addMiddleware add all middleware into the reqquest; currently these are:

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/ministryofjustice/opg-reports/report/config"
+	"opg-reports/report/config"
 )
 
 const label string = "aws-repository"
