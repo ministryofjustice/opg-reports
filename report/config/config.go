@@ -123,7 +123,7 @@ type Versions struct {
 var defaultConfig = &Config{
 	Database: &Database{
 		Driver: "sqlite3",
-		Path:   "./__database/api.db",
+		Path:   "./api.db",
 		Params: "?_journal=WAL&_busy_timeout=5000&_vacuum=incremental&_synchronous=NORMAL&_cache_size=1000000000",
 	},
 	Github: &Github{
