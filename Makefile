@@ -1,3 +1,5 @@
+SERVICES ?= api
+
 
 tests:
 	@go clean -testcache
@@ -47,3 +49,38 @@ coverage:
 		go test -count=1 -covermode=count -coverprofile=code-coverage.out -cover ./...
 	@go tool cover -html=code-coverage.out
 .PHONY: coverage
+
+#========= DOCKER =========
+## Build local development version of the docker image
+docker/build:
+	@env DOCKER_BUILDKIT=0 \
+	docker compose \
+		--verbose \
+		-f docker-compose.yml \
+		-f docker-compose.dev.yml \
+		build ${SERVICES}
+.PHONY: docker/build
+
+## Build and run the local docker images
+docker/up: docker/build
+	@env DOCKER_BUILDKIT=0 \
+	docker compose \
+		--verbose \
+		-f docker-compose.yml \
+		-f docker-compose.dev.yml \
+		up \
+		-d ${SERVICES}
+.PHONY: docker/up
+
+## Clean any old docker images out
+docker/clean: docker/down
+	@docker image rm $(images) || echo "ok"
+	@docker compose rm ${SERVICES}
+	@docker container prune -f
+	@docker image prune -f --filter="dangling=true"
+.PHONY: docker/clean
+
+## run docker compose down, turning off all docker containers
+docker/down:
+	@docker compose down
+.PHONY: docker/down

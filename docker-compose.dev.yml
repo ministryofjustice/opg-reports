@@ -1,0 +1,27 @@
+services:
+  api:
+    platform: linux/arm64
+    build:
+      target: development
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./report:/app/report
+      - ./go.mod:/app/go.mod
+      - ./go.sum:/app/go.sum
+
+  # front:
+  #   platform: linux/arm64
+  #   build:
+  #     target: development
+  #   ports:
+  #     - "8080:8080"
+  #   volumes:
+  #     - ./info:/app/info
+  #     - ./internal:/app/internal
+  #     - ./models:/app/models
+  #     - ./seed:/app/seed
+  #     - ./servers:/app/servers
+  #     - ./Makefile:/src
+  #     - ./go.mod:/app/go.mod
+  #     - ./go.sum:/app/go.sum
