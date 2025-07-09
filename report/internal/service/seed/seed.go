@@ -6,6 +6,7 @@ import (
 	"log/slog"
 
 	"github.com/ministryofjustice/opg-reports/report/config"
+	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
 )
 
 const label string = "seed-service"
@@ -14,6 +15,30 @@ type Service struct {
 	ctx  context.Context
 	log  *slog.Logger
 	conf *config.Config
+}
+
+func (self *Service) All(sqlStore sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
+	var r []*sqlr.BoundStatement
+	// TEAMS
+	r, err = self.Teams(sqlStore)
+	if err != nil {
+		return
+	}
+	results = append(results, r...)
+	// AWS ACCOUNTS
+	r, err = self.AwsAccounts(sqlStore)
+	if err != nil {
+		return
+	}
+	results = append(results, r...)
+	// AWS COSTS
+	r, err = self.AwsCosts(sqlStore)
+	if err != nil {
+		return
+	}
+	results = append(results, r...)
+
+	return
 }
 
 // New tries to create a version of this service using the context, logger and config values

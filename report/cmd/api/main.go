@@ -58,8 +58,9 @@ func init() {
 	ctx = context.Background()
 
 	if !utils.FileExists(conf.Database.Path) {
-		seedDB(ctx, log, conf)
+		SeedDB(ctx, log, conf)
 	}
+	retryCounter = 0
 }
 
 func main() {

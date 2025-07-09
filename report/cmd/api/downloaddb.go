@@ -10,18 +10,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/ministryofjustice/opg-reports/report/config"
 	"github.com/ministryofjustice/opg-reports/report/internal/repository/awsr"
-	"github.com/ministryofjustice/opg-reports/report/internal/repository/sqlr"
-	"github.com/ministryofjustice/opg-reports/report/internal/service/seed"
 	"github.com/ministryofjustice/opg-reports/report/internal/utils"
 )
 
-// seedDB is called if the database doesnt exist on init, so creates a dummy one
-func seedDB(ctx context.Context, log *slog.Logger, conf *config.Config) (err error) {
-	var sqlStore sqlr.Writer = sqlr.Default(ctx, log, conf)
-	var seedService *seed.Service = seed.Default(ctx, log, conf)
-	_, err = seedService.All(sqlStore)
-	return
-}
+var (
+	retryCounter     int = 0
+	retryMaxAttempts int = 5
+)
 
 // downloadLatestDB uses the config settings to create a s3 client and service to then download
 // the latest database from the s3 bucket to local files and then updates the modified times.
@@ -39,14 +34,7 @@ func downloadLatestDB(ctx context.Context, log *slog.Logger, conf *config.Config
 		path         string           = conf.Database.Path
 		// maxAge time.Duration = 10 * time.Minute
 	)
-
-	defer func() {
-		os.RemoveAll(dir)
-		// always modifiy the timestamp on the database to reduce retries
-		if utils.FileExists(conf.Database.Path) {
-			os.Chtimes(conf.Database.Path, now, now)
-		}
-	}()
+	defer os.RemoveAll(dir)
 
 	stats, err = os.Stat(path)
 	if err != nil {
@@ -61,10 +49,17 @@ func downloadLatestDB(ctx context.Context, log *slog.Logger, conf *config.Config
 	if age <= maxDatabaseAge {
 		return
 	}
+
+	if retryCounter >= retryMaxAttempts {
+		log.Info("exceded rery limit for downloadind database ... skipping")
+		return
+	}
+
 	// try to fetch new databae from bucket
 	log.Info("trying to download updated database ... ")
 	local, err = store.DownloadItemFromBucket(client, conf.Aws.Buckets.DB.Name, conf.Aws.Buckets.DB.Path(), dir)
 	if err != nil {
+		retryCounter++
 		log.Error("failed to download database")
 		return
 	}
@@ -74,5 +69,10 @@ func downloadLatestDB(ctx context.Context, log *slog.Logger, conf *config.Config
 	if err != nil {
 		return
 	}
+	// modifiy the timestamp on the database to reduce retries
+	if utils.FileExists(conf.Database.Path) {
+		os.Chtimes(conf.Database.Path, now, now)
+	}
+	retryCounter = 0
 	return
 }
