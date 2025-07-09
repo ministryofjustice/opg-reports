@@ -15,11 +15,13 @@ import (
 	"github.com/maruel/natural"
 )
 
+// DownloadRepositoryReleaseAssetOptions is used for configured finding releases from the sdk
 type DownloadRepositoryReleaseAssetOptions struct {
 	UseRegex  bool   // UseRegex enables using `AssetName` as a regex pattern rather than an exact match
 	AssetName string // Comapred against `asset.Name` attribute
 }
 
+// Validate checks if the asset passed meets the requirements for this current setup
 func (self *DownloadRepositoryReleaseAssetOptions) Validate(asset *github.ReleaseAsset) (valid bool) {
 	var assetNameRegex *regexp.Regexp
 
@@ -35,6 +37,7 @@ func (self *DownloadRepositoryReleaseAssetOptions) Validate(asset *github.Releas
 	return
 }
 
+// GetRepositoryReleaseOptions used to configure what releases are returned from the github api
 type GetRepositoryReleaseOptions struct {
 	ExcludePrereleases bool   // Exclude releases marked as prereleases
 	ExcludeDraft       bool   // Exclude anything marked as a draft
@@ -44,6 +47,7 @@ type GetRepositoryReleaseOptions struct {
 	ReleaseTag         string // ReleaseTag is compared to `.TagName` attribute
 }
 
+// Validate checks if the release passed meets the requirements for this current setup
 func (self *GetRepositoryReleaseOptions) Validate(release *github.RepositoryRelease) (valid bool) {
 	var (
 		releaseNameRegex *regexp.Regexp
@@ -117,7 +121,8 @@ func (self *Repository) GetRepositoryReleases(
 		toSort []string                             = []string{}
 		rels   map[string]*github.RepositoryRelease = map[string]*github.RepositoryRelease{}
 	)
-	// loop around the pagination
+	// loop around with pagination to fetch all releases
+	// 	- filter the releases based on options set
 	for page > 0 {
 		var response *github.Response
 		var list []*github.RepositoryRelease
@@ -134,7 +139,7 @@ func (self *Repository) GetRepositoryReleases(
 		// if there items in the list, them merge into all
 		if len(list) > 0 {
 			for _, item := range list {
-				var include = options.Validate(item)
+				var include = options == nil || options.Validate(item)
 				log.With("include", include, "release", *item.Name).Debug("include release?")
 				if include {
 					rels[*item.TagName] = item
@@ -160,6 +165,7 @@ func (self *Repository) GetRepositoryReleases(
 
 // GetRepositoryRelease calls GetRepositoryReleases on itself and simply returns the first release found
 //
+//   - if `options` is nil, then no filtering is applied
 //   - ClientRepositoryReleaseListReleases is github.Client.Repositories.ListReleases
 func (self *Repository) GetRepositoryRelease(
 	client ClientRepositoryReleaseListReleases,
@@ -176,8 +182,12 @@ func (self *Repository) GetRepositoryRelease(
 	return
 }
 
-// DownloadRepositoryReleaseAsset
+// DownloadRepositoryReleaseAsset tries to download an asset that matches the oprions specified
+// thats attached to the release passed along. File will be downloaded to destinationDirectory
+// using the same name as is set on github.
 //
+//   - if `options` is nil, then no filtering is applied and first asset is used
+//   - if no assets are found to match (or are present) then an error is returned
 //   - ClientRepositoryReleaseDownloadReleaseAsset is github.Client.Repositories.DownloadReleaseAsset
 func (self *Repository) DownloadRepositoryReleaseAsset(
 	client ClientRepositoryReleaseDownloadReleaseAsset,
@@ -191,7 +201,7 @@ func (self *Repository) DownloadRepositoryReleaseAsset(
 	)
 	// when find the first match, break the loop
 	for _, a := range release.Assets {
-		var found = options.Validate(a)
+		var found = options == nil || options.Validate(a)
 		if found {
 			asset = a
 			break
