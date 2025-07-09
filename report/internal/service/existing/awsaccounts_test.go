@@ -21,7 +21,7 @@ func TestAwsAccountsInsert(t *testing.T) {
 	)
 	// set config values
 	conf.Database.Path = filepath.Join(dir, "./existing-awsaccounts.db")
-	conf.Github.Metadata.Asset = "test_accounts_v1.json"
+	conf.Metadata.Asset = "test_accounts_v1.json"
 
 	sqc := sqlr.Default(ctx, log, conf)
 	seeder := seed.Default(ctx, log, conf)

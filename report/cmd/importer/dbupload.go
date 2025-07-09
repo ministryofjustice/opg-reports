@@ -20,9 +20,9 @@ dbupload uploads a local database to the s3 bucket
 
 env variables used that can be adjusted:
 
-	AWS_BUCKETS_DB_NAME
+	EXISTING_DB_BUCKET
 		The name of the bucket to upload the database to
-	AWS_BUCKETS_DB_KEY
+	EXISTING_DB_KEY
 		The object key for the bucket (including folder path) where the sqlite db will be uploaded
 	DATABASE_PATH
 		The file path to the sqlite database on the local filesystem to upload to s3
@@ -45,8 +45,8 @@ func dbUploadCmdRunner(
 		dir, _       = os.MkdirTemp("./", "__upload-s3-*")
 		copyFrom     = conf.Database.Path
 		copyTo       = filepath.Join(dir, filepath.Base(conf.Database.Path))
-		targetBucket = conf.Aws.Buckets.DB.Name
-		targetKey    = conf.Aws.Buckets.DB.Path()
+		targetBucket = conf.Existing.DB.Bucket
+		targetKey    = conf.Existing.DB.Path()
 		src          *os.File
 	)
 	// open the existing db file & copy to the new location

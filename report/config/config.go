@@ -13,12 +13,14 @@ import (
 // Config contains all config the values required in the applications
 // grouped by type
 type Config struct {
-	Database *Database
-	Github   *Github
-	Aws      *Aws
-	Versions *Versions
-	Servers  *Servers
-	Log      *Log
+	Database *Database // Database configuration values, such as filesystem location and connection flags
+	Github   *Github   // Github configuration values used for accessing github data (such as releases and assets)
+	Aws      *Aws      // AWS values for capturing environment authentication values (session token etc)
+	Metadata *Metadata // Metadata contains details on where opg-metadata is stored for importing accounts & team records
+	Existing *Existing // Existing contains information about where existing data is stored for the import command
+	Servers  *Servers  // Servers contains details about front & api server configuration (address, name etc)
+	Versions *Versions // Versions contains semver and commit references and used for output
+	Log      *Log      // Log contains settings that can be overridden by env values for LOG_LEVEL (warn, info, debug etc) and LOG_TYPE (text / json)
 }
 
 // Database stores all the config values relating to the database connection
@@ -32,68 +34,6 @@ type Database struct {
 func (self *Database) Source() (src string) {
 	src = fmt.Sprintf("%s%s", self.Path, self.Params)
 	return
-}
-
-type metadata struct {
-	Repository string // env: GITHUB_METADATA_REPOSITORY
-	Asset      string // env: GITHUB_METADATA_ASSET
-}
-
-// Github provides connection details to access github org
-type Github struct {
-	Metadata     *metadata // used by existing imports
-	Organisation string    // env: GITHUB_ORGANISATION - defaults to ministryofjustice
-	Token        string    // env: GITHUB_TOKEN - needs a value, but doesnt always need to be real
-}
-
-// AWS related internal structs used to allow AWS_DEFAULT_REGION env vars to be
-// handled directly via viper
-
-// region
-type def struct {
-	Region string // env: AWS_DEFAULT_REGION
-}
-
-// session
-type session struct {
-	Token string // env: AWS_SESSION_TOKEN
-}
-
-// bucketInfo
-type bucketInfo struct {
-	Name   string // env: AWS_BUCKETS_$X_NAME
-	Prefix string // env: AWS_BUCKETS_$X_PREFIX
-	Key    string // env: AWS_BUCKETS_$X_KEY
-}
-
-func (self *bucketInfo) Path() string {
-	return fmt.Sprintf("%s%s", self.Prefix, self.Key)
-}
-
-// buckets
-type bucket struct {
-	Costs *bucketInfo // env: AWS_BUCKETS_COSTS - used to track location of the older reporting details
-	DB    *bucketInfo // env: AWS_BUCKETS_DB - used to track where the database is stored within ss3
-
-}
-
-type Aws struct {
-	Region  string // env: AWS_REGION
-	Default *def
-	Session *session
-	Buckets *bucket
-}
-
-func (self *Aws) GetRegion() string {
-	if self.Region != "" {
-		return self.Region
-	} else if self.Default.Region != "" {
-		return self.Default.Region
-	}
-	return ""
-}
-func (self *Aws) GetToken() string {
-	return self.Session.Token
 }
 
 // Log handles the slog setup used for the application
@@ -120,6 +60,64 @@ type Versions struct {
 	Commit string // env: VERSIONS_COMMIT
 }
 
+// Metadata provides details on where metadata information used
+// for generating team / account information is stored
+type Metadata struct {
+	Repository string // env: METADATA_REPOSITORY
+	Asset      string // env: METADATA_ASSET
+}
+
+// Github provides connection details to access github org
+type Github struct {
+	Organisation string // env: GITHUB_ORGANISATION - defaults to ministryofjustice
+	Token        string // env: GITHUB_TOKEN - needs a value, but doesnt always need to be real
+}
+
+type Existing struct {
+	Costs *bucketInfo // env: EXISTING_COSTS_${X}
+	DB    *bucketInfo // env: EXISTING_DB_${X}
+}
+
+// AWS tracks environment information and details on where
+type Aws struct {
+	Region  string // env: AWS_REGION
+	Default *def
+	Session *session
+}
+
+func (self *Aws) GetRegion() string {
+	if self.Region != "" {
+		return self.Region
+	} else if self.Default.Region != "" {
+		return self.Default.Region
+	}
+	return ""
+}
+func (self *Aws) GetToken() string {
+	return self.Session.Token
+}
+
+// region
+type def struct {
+	Region string // env: AWS_DEFAULT_REGION
+}
+
+// session
+type session struct {
+	Token string // env: AWS_SESSION_TOKEN
+}
+
+// bucketInfo
+type bucketInfo struct {
+	Bucket string // env: EXISTING_${X}_BUCKET
+	Prefix string // env: EXISTING_${X}_PREFIX
+	Key    string // env: EXISTING_${X}_KEY
+}
+
+func (self *bucketInfo) Path() string {
+	return fmt.Sprintf("%s%s", self.Prefix, self.Key)
+}
+
 // setup a default config item that we use as a baseline
 var defaultConfig = &Config{
 	Database: &Database{
@@ -130,19 +128,19 @@ var defaultConfig = &Config{
 	Github: &Github{
 		Organisation: "ministryofjustice", // default organisations
 		Token:        "",                  // needed for tests & data imports
-		Metadata: &metadata{
-			Repository: "opg-metadata", // repository name for where meta data info is
-			Asset:      "metadata.tar.gz",
-		},
 	},
 	Aws: &Aws{
 		Region:  "",
 		Default: &def{Region: ""},
 		Session: &session{Token: ""},
-		Buckets: &bucket{
-			Costs: &bucketInfo{Name: "report-data-development", Prefix: "aws_costs/"},
-			DB:    &bucketInfo{Name: "report-data-development", Prefix: "", Key: "database/api.db"},
-		},
+	},
+	Metadata: &Metadata{
+		Repository: "opg-metadata", // repository name for where meta data info is
+		Asset:      "metadata.tar.gz",
+	},
+	Existing: &Existing{
+		Costs: &bucketInfo{Bucket: "report-data-development", Prefix: "aws_costs/"},
+		DB:    &bucketInfo{Bucket: "report-data-development", Prefix: "", Key: "database/api.db"},
 	},
 	Log: &Log{
 		Level: "INFO",

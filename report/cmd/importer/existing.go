@@ -20,17 +20,17 @@ existing imports all known data files (generally json) from a mix of sources (gi
 
 env variables used that can be adjusted:
 
-	AWS_BUCKETS_COSTS_NAME
+	EXISTING_COSTS_BUCKET
 		The name of the bucket that current stores older aws cost data
-	AWS_BUCKETS_COSTS_PREFIX
+	EXISTING_COSTS_PREFIX
 		The bucket folder path (needs trailing /) with all cost data files within
 	DATABASE_PATH
 		The file path to the sqlite database that will be used
 	GITHUB_ORGANISATION
 		The name of the github organisation that owns the private repo
-	GITHUB_METADATA_REPOSITORY
+	METADATA_REPOSITORY
 		The name of the repository to fetch release asset from for team / aws account lists
-	GITHUB_METADATA_ASSET
+	METADATA_ASSET
 		The name of the asset to download from the latest release on the repository
 `,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {

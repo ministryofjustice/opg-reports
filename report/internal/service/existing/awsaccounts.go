@@ -115,8 +115,8 @@ func (self *Service) InsertAwsAccounts(client githubr.ReleaseClient, source gith
 
 	teams, err := self.getAwsAccountsFromMetadata(client, source, &accountDownloadOptions{
 		Owner:      self.conf.Github.Organisation,
-		Repository: self.conf.Github.Metadata.Repository,
-		AssetName:  self.conf.Github.Metadata.Asset,
+		Repository: self.conf.Metadata.Repository,
+		AssetName:  self.conf.Metadata.Asset,
 		UseRegex:   false,
 		Dir:        dir,
 	})

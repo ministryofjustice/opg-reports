@@ -30,9 +30,9 @@ api turns on the api and the docs - generated using huma.
 
 env values that can be adjusted:
 
-	AWS_BUCKETS_DB_NAME
+	EXISTING_DB_BUCKET
 		The name of the bucket where latest database is stored
-	AWS_BUCKETS_DB_KEY
+	EXISTING_DB_KEY
 		The object key in the bucket (including folder path) for the latest database
 	DATABASE_PATH
 		The local file system path to the database the API is using
@@ -45,7 +45,7 @@ env values that can be adjusted:
 	VERSIONS_COMMIT
 		The git commit hash that was used to build this version of the API
 
-Requires valid AWS session with permission to access AWS_BUCKETS_DB_NAME and AWS_BUCKETS_DB_KEY.
+Requires valid AWS session with permission to access EXISTING_DB_BUCKET and EXISTING_DB_KEY.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		runner(ctx, log, conf)

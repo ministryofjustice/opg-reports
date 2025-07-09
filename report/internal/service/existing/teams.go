@@ -93,8 +93,8 @@ func (self *Service) InsertTeams(client githubr.ReleaseClient, ghs githubr.Relea
 
 	teams, err := self.getTeamsFromMetadata(client, ghs, &teamDownloadOptions{
 		Owner:      self.conf.Github.Organisation,
-		Repository: self.conf.Github.Metadata.Repository,
-		AssetName:  self.conf.Github.Metadata.Asset,
+		Repository: self.conf.Metadata.Repository,
+		AssetName:  self.conf.Metadata.Asset,
 		UseRegex:   false,
 		Dir:        dir,
 	})

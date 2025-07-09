@@ -19,9 +19,9 @@ dbdownload downloads the database from an s3 bucket to local file system
 
 env variables used that can be adjusted:
 
-	AWS_BUCKETS_DB_NAME
+	EXISTING_DB_BUCKET
 		The name of the bucket that stores the sqlite database
-	AWS_BUCKETS_DB_KEY
+	EXISTING_DB_KEY
 		The object key in the bucket (include folder path) where the sqlite db is stored
 	DATABASE_PATH
 		The file path to the sqlite database on the local filesystem to copy the s3 version into
@@ -42,7 +42,7 @@ func dbDownloadCmdRunner(client awsr.ClientS3Getter, store awsr.RepositoryS3Buck
 		local  string
 	)
 	defer os.RemoveAll(dir)
-	local, err = store.DownloadItemFromBucket(client, conf.Aws.Buckets.DB.Name, conf.Aws.Buckets.DB.Path(), dir)
+	local, err = store.DownloadItemFromBucket(client, conf.Existing.DB.Bucket, conf.Existing.DB.Path(), dir)
 	if err != nil {
 		return
 	}

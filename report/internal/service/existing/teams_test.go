@@ -20,7 +20,7 @@ func TestTeamsInsert(t *testing.T) {
 	)
 	// set config values
 	conf.Database.Path = filepath.Join(dir, "./existing-teams.db")
-	conf.Github.Metadata.Asset = "test_accounts_v1.json"
+	conf.Metadata.Asset = "test_accounts_v1.json"
 
 	gh, _ := githubr.New(ctx, log, conf)
 	sq, _ := sqlr.New(ctx, log, conf)

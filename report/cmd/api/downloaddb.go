@@ -58,7 +58,7 @@ func downloadLatestDB(ctx context.Context, log *slog.Logger, conf *config.Config
 
 	// try to fetch new databae from bucket
 	log.Info("trying to download updated database ... ")
-	local, err = store.DownloadItemFromBucket(client, conf.Aws.Buckets.DB.Name, conf.Aws.Buckets.DB.Path(), dir)
+	local, err = store.DownloadItemFromBucket(client, conf.Existing.DB.Bucket, conf.Existing.DB.Path(), dir)
 	if err != nil {
 		retryCounter++
 		log.Error("failed to download database")
