@@ -4,68 +4,60 @@ import (
 	"context"
 	"io"
 	"net/http"
-	"os"
 
 	"github.com/google/go-github/v62/github"
 )
 
-// ReleaseRepository interface exposes the methods used to
-// get information about releases from the github api for
-// a particular repository.
+type RepositoryReleases interface {
+	RepositoryReleasesGetMany
+	RepositoryReleasesGetOne
+	RepositoryReleasesDownloadReleaseAsset
+}
+
+// RepositoryReleasesGetMany exposes an interface for how this repository
+// would return mutliple matching releases based on the options provided
 //
-// Uses a series fo client interfaces (`ClientRelease*`) to
-// require the appropriate functions for each method which
-// can then be mocked in testing easier to check capability
-// without calling an active api
-type ReleaseRepository interface {
-	ReleaseRepositoryGetter
-	ReleaseRepositoryDownloader
+// interface for github.Client.Repositories.ListReleases
+type RepositoryReleasesGetMany interface {
+	GetRepositoryReleases(client ClientRepositoryReleaseListReleases, owner string, repository string, options *GetRepositoryReleaseOptions) (releases []*github.RepositoryRelease, err error)
 }
 
-type ReleaseRepositoryGetter interface {
-	GetAllReleases(client ClientReleaseLister, organisation string, repositoryName string) (releases []*github.RepositoryRelease, err error)
-	GetReleases(client ClientReleaseLister, organisation string, repositoryName string, options *GetReleaseOptions) (releases []*github.RepositoryRelease, err error)
-	GetLatestReleaseAsset(client ClientReleaseGetter, organisation string, repositoryName string, assetName string, regex bool) (asset *github.ReleaseAsset, err error)
+// RepositoryReleasesGetOne exposes an interface for how this repository
+// would return a single matching release based on the options provided.
+//
+// interface for github.Client.Repositories.ListReleases
+type RepositoryReleasesGetOne interface {
+	GetRepositoryRelease(client ClientRepositoryReleaseListReleases, owner string, repository string, options *GetRepositoryReleaseOptions) (release *github.RepositoryRelease, err error)
 }
 
-type ReleaseRepositoryDownloader interface {
-	DownloadReleaseAsset(client ClientReleaseDownloader, organisation string, repositoryName string, asset *github.ReleaseAsset, destinationFilePath string) (destination *os.File, err error)
-	DownloadReleaseAssetByName(client ClientReleaseGetAndDownloader, organisation string, repositoryName string, assetName string, regex bool, directory string) (asset *github.ReleaseAsset, downloadedTo string, err error)
+// RepositoryReleasesDownloadReleaseAsset exposes an interface for how
+// this repositories used to download an asset from a known release
+// to the local filesystem
+//
+// interface for github.Client.Repositories.ListReleases
+type RepositoryReleasesDownloadReleaseAsset interface {
+	DownloadRepositoryReleaseAsset(client ClientRepositoryReleaseDownloadReleaseAsset, owner string, repository string, release *github.RepositoryRelease, destination string, options *DownloadRepositoryReleaseAssetOptions) (asset *github.ReleaseAsset, path string, err error)
 }
 
-// ClientReleaseLister represents the methods required for the
-// github client to list all releases.
-type ClientReleaseLister interface {
+type ClientRepositoryReleases interface {
+	ClientRepositoryReleaseListReleases
+	ClientRepositoryReleaseDownloadReleaseAsset
+}
+
+// ClientRepositoryReleaseListReleases
+//
+// interface for github.Client.Repositories.ListReleases
+type ClientRepositoryReleaseListReleases interface {
 	ListReleases(ctx context.Context, owner, repo string, opts *github.ListOptions) ([]*github.RepositoryRelease, *github.Response, error)
 }
 
-// ClientReleaseGetter represents the methods used for github
-// client to get the latest release.
-type ClientReleaseGetter interface {
-	GetLatestRelease(ctx context.Context, owner, repo string) (*github.RepositoryRelease, *github.Response, error)
-}
-
-// ClientReleaseDownloader represents the methods used for github
-// client to download a release.
-type ClientReleaseDownloader interface {
-	// DownloadReleaseAsset fetches the remote asset determined by <id> and returns a file pointer to its location
+// ClientRepositoryReleaseDownloadReleaseAsset
+//
+// interface for github.Client.Repositories.ListReleases
+type ClientRepositoryReleaseDownloadReleaseAsset interface {
+	// DownloadReleaseAsset fetches the remote asset determined by <id> and returns an io pointer to its content
 	// and any redirect string.
 	//
 	// Used to fetch a specifc asset from the a specific github release
 	DownloadReleaseAsset(ctx context.Context, owner, repo string, id int64, followRedirectsClient *http.Client) (rc io.ReadCloser, redirectURL string, err error)
-}
-
-// ClientReleaseGetAndDownloader represents the methods used for github
-// client to get and download a release
-type ClientReleaseGetAndDownloader interface {
-	ClientReleaseGetter
-	ClientReleaseDownloader
-}
-
-// ReleaseClient is the merged interface that represents all
-// the methods used for release related github clients
-type ReleaseClient interface {
-	ClientReleaseLister
-	ClientReleaseGetter
-	ClientReleaseDownloader
 }

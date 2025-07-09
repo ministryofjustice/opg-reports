@@ -13,15 +13,20 @@ import (
 
 func TestAwsAccountsInsert(t *testing.T) {
 	var (
-		err  error
-		dir  string = t.TempDir()
-		ctx         = t.Context()
-		conf        = config.NewConfig()
-		log         = utils.Logger("ERROR", "TEXT")
+		err    error
+		dir    string = t.TempDir()
+		ctx           = t.Context()
+		conf          = config.NewConfig()
+		log           = utils.Logger("WARN", "TEXT")
+		client        = &mockClientRepositoryReleaseListReleases{}
+		// client = githubr.DefaultClient(conf).Repositories
 	)
 	// set config values
 	conf.Database.Path = filepath.Join(dir, "./existing-awsaccounts.db")
-	conf.Metadata.Asset = "test_accounts_v1.json"
+	conf.Metadata.ReleaseTag = "v1(.*)"
+	conf.Metadata.AssetName = "asset.json"
+	conf.Metadata.UseRegex = true
+	// conf.Metadata.AssetName = "test_accounts_v1.json"
 
 	sqc := sqlr.Default(ctx, log, conf)
 	seeder := seed.Default(ctx, log, conf)
@@ -35,7 +40,7 @@ func TestAwsAccountsInsert(t *testing.T) {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
 
-	stmts, err := srv.InsertAwsAccounts(&mockedGitHubClient{}, gh, sq)
+	stmts, err := srv.InsertAwsAccounts(client, gh, sq)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}

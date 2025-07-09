@@ -18,6 +18,7 @@ type Config struct {
 	Aws      *Aws      // AWS values for capturing environment authentication values (session token etc)
 	Metadata *Metadata // Metadata contains details on where opg-metadata is stored for importing accounts & team records
 	Existing *Existing // Existing contains information about where existing data is stored for the import command
+	GovUK    *GovUK    // GovUK contains details about the gov uk front end assets and version to use
 	Servers  *Servers  // Servers contains details about front & api server configuration (address, name etc)
 	Versions *Versions // Versions contains semver and commit references and used for output
 	Log      *Log      // Log contains settings that can be overridden by env values for LOG_LEVEL (warn, info, debug etc) and LOG_TYPE (text / json)
@@ -60,17 +61,31 @@ type Versions struct {
 	Commit string // env: VERSIONS_COMMIT
 }
 
+type GovUK struct {
+	Front *frontEnd
+}
+type frontEnd struct {
+	Owner      string // env: GOVUK_FRONT_OWNER
+	Repository string // env: GOVUK_FRONT_REPOSITORY
+	ReleaseTag string // env: GOVUK_FRONT_RELEASETAG
+	AssetName  string // env: GOVUK_FRONT_ASSETNAME
+	UseRegex   bool
+}
+
 // Metadata provides details on where metadata information used
 // for generating team / account information is stored
 type Metadata struct {
+	Owner      string // env: METADATA_OWNER - defaults to ministryofjustice
 	Repository string // env: METADATA_REPOSITORY
-	Asset      string // env: METADATA_ASSET
+	ReleaseTag string // env: GOVUK_FRONT_RELEASETAG
+	AssetName  string // env: GOVUK_FRONT_ASSETNAME
+	UseRegex   bool
 }
 
 // Github provides connection details to access github org
 type Github struct {
 	Organisation string // env: GITHUB_ORGANISATION - defaults to ministryofjustice
-	Token        string // env: GITHUB_TOKEN - needs a value, but doesnt always need to be real
+	Token        string // env: GITHUB_TOKEN
 }
 
 type Existing struct {
@@ -93,6 +108,7 @@ func (self *Aws) GetRegion() string {
 	}
 	return ""
 }
+
 func (self *Aws) GetToken() string {
 	return self.Session.Token
 }
@@ -107,7 +123,7 @@ type session struct {
 	Token string // env: AWS_SESSION_TOKEN
 }
 
-// bucketInfo
+// bucketInfo used to store details of a bucket, a path in a bucket or an item in a bucket
 type bucketInfo struct {
 	Bucket string // env: EXISTING_${X}_BUCKET
 	Prefix string // env: EXISTING_${X}_PREFIX
@@ -135,8 +151,20 @@ var defaultConfig = &Config{
 		Session: &session{Token: ""},
 	},
 	Metadata: &Metadata{
+		Owner:      "ministryofjustice",
 		Repository: "opg-metadata", // repository name for where meta data info is
-		Asset:      "metadata.tar.gz",
+		AssetName:  "metadata(.*)gz",
+		ReleaseTag: "v(.*)",
+		UseRegex:   true,
+	},
+	GovUK: &GovUK{
+		Front: &frontEnd{
+			Owner:      "alphagov",
+			Repository: "govuk-frontend",
+			AssetName:  "release-v5.11.0.zip",
+			ReleaseTag: "v5.11.0",
+			UseRegex:   false,
+		},
 	},
 	Existing: &Existing{
 		Costs: &bucketInfo{Bucket: "report-data-development", Prefix: "aws_costs/"},

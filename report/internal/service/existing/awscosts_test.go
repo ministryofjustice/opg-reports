@@ -17,6 +17,8 @@ func TestAwsCostsInsert(t *testing.T) {
 		ctx         = t.Context()
 		conf        = config.NewConfig()
 		log         = utils.Logger("INFO", "TEXT")
+		//client        = &mockClientRepositoryReleaseListReleases{}
+		// client = githubr.DefaultClient(conf).Repositories
 	)
 
 	// set config values

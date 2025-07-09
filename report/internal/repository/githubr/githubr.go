@@ -18,13 +18,6 @@ type Repository struct {
 
 func (self *Repository) Close() {}
 
-// GetReleaseOptions used in release queries
-type GetReleaseOptions struct {
-	ExcludePrereleases bool // Exclude releases marked as prereleases
-	ExcludeDraft       bool // Exclude anything marked as a draft
-	ExcludeNoAssets    bool // Exclude anything that does not have assets
-}
-
 func New(ctx context.Context, log *slog.Logger, conf *config.Config) (rp *Repository, err error) {
 
 	if log == nil {

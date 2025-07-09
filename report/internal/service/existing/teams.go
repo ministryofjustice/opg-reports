@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"opg-reports/report/internal/repository/githubr"
 	"opg-reports/report/internal/repository/sqlr"
@@ -45,6 +44,7 @@ type teamDownloadOptions struct {
 	Owner      string
 	Repository string
 	AssetName  string
+	ReleaseTag string
 	Dir        string
 	UseRegex   bool
 }
@@ -65,7 +65,12 @@ type teamDownloadOptions struct {
 //	}
 //
 // We only want `billing_unit` field and are ignoring the others
-func (self *Service) InsertTeams(client githubr.ReleaseClient, ghs githubr.ReleaseRepositoryDownloader, sq sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
+func (self *Service) InsertTeams(
+	client githubr.ClientRepositoryReleases,
+	ghs githubr.RepositoryReleases,
+	sq sqlr.Writer,
+) (results []*sqlr.BoundStatement, err error) {
+
 	var dir string
 	var sw = utils.Stopwatch()
 
@@ -92,10 +97,10 @@ func (self *Service) InsertTeams(client githubr.ReleaseClient, ghs githubr.Relea
 	defer os.RemoveAll(dir)
 
 	teams, err := self.getTeamsFromMetadata(client, ghs, &teamDownloadOptions{
-		Owner:      self.conf.Github.Organisation,
+		Owner:      self.conf.Metadata.Owner,
 		Repository: self.conf.Metadata.Repository,
-		AssetName:  self.conf.Metadata.Asset,
-		UseRegex:   false,
+		AssetName:  self.conf.Metadata.AssetName,
+		UseRegex:   self.conf.Metadata.UseRegex,
 		Dir:        dir,
 	})
 
@@ -129,8 +134,13 @@ func (self *Service) insertTeamsToDB(sq sqlr.Writer, teams []*teamItem) (stateme
 // into []Team
 //
 // Removes directory and files on exit
-func (self *Service) getTeamsFromMetadata(client githubr.ClientReleaseGetAndDownloader, ghs githubr.ReleaseRepositoryDownloader, options *teamDownloadOptions) (teams []*teamItem, err error) {
+func (self *Service) getTeamsFromMetadata(
+	client githubr.ClientRepositoryReleases,
+	source githubr.RepositoryReleases,
+	options *teamDownloadOptions,
+) (teams []*teamItem, err error) {
 	var (
+		release      *github.RepositoryRelease
 		asset        *github.ReleaseAsset
 		fp           *os.File
 		downloadedTo string
@@ -139,20 +149,45 @@ func (self *Service) getTeamsFromMetadata(client githubr.ClientReleaseGetAndDown
 		extractDir   string = filepath.Join(options.Dir, "extract")
 	)
 	teams = []*teamItem{}
-	// Download the metadata asset
-	asset, downloadedTo, err = ghs.DownloadReleaseAssetByName(client,
+	ropts := &githubr.GetRepositoryReleaseOptions{
+		ExcludePrereleases: true,
+		ExcludeDraft:       true,
+		ExcludeNoAssets:    true,
+		ReleaseTag:         options.ReleaseTag,
+		UseRegex:           options.UseRegex,
+	}
+	// find the release
+	release, err = source.GetRepositoryRelease(
+		client,
 		options.Owner,
 		options.Repository,
-		options.AssetName,
-		options.UseRegex,
-		downloadDir)
-
+		ropts)
+	if err != nil {
+		self.log.Error("error finding repository release", "err", err.Error())
+		return
+	}
+	if release == nil {
+		err = fmt.Errorf("failed to find repository release")
+		self.log.Error("failed finding repository release", "err", err.Error())
+		return
+	}
+	// find the asset on the release
+	asset, downloadedTo, err = source.DownloadRepositoryReleaseAsset(
+		client,
+		options.Owner,
+		options.Repository,
+		release,
+		downloadDir,
+		&githubr.DownloadRepositoryReleaseAssetOptions{
+			AssetName: options.AssetName,
+			UseRegex:  options.UseRegex,
+		})
 	if err != nil {
 		self.log.Error("error downloading release by asset name", "err", err.Error())
 		return
 	}
 	if asset == nil {
-		err = fmt.Errorf("nil asset returned from DownloadReleaseAssetByName")
+		err = fmt.Errorf("nil asset returned from DownloadLatestReleaseAssetByName")
 		self.log.Error("error with asset name", "err", err.Error())
 		return
 	}
@@ -162,31 +197,7 @@ func (self *Service) getTeamsFromMetadata(client githubr.ClientReleaseGetAndDown
 		os.RemoveAll(extractDir)
 	}()
 
-	// deal with tar balls
-	if strings.HasSuffix(*asset.Name, "tar.gz") {
-		// extract the zip file
-		fp, err = os.Open(downloadedTo)
-		if err != nil {
-			self.log.Error("error opening release downloaded file", "err", err.Error())
-			return
-		}
-		err = utils.TarGzExtract(extractDir, fp)
-		if err != nil {
-			self.log.Error("error extracting downloaded release", "err", err.Error())
-			return
-		}
-		// check the accounts json file exists
-		accountFile = filepath.Join(extractDir, accountFile)
-		if !utils.DirExists(extractDir) || !utils.FileExists(accountFile) {
-			err = fmt.Errorf("directory or file not found")
-			return
-		}
-		// read the json file into local struct
-		err = utils.UnmarshalFile(accountFile, &teams)
-	} else if strings.HasSuffix(*asset.Name, ".json") || strings.HasSuffix(*asset.Name, ".txt") {
-		err = utils.UnmarshalFile(downloadedTo, &teams)
-	} else {
-		err = fmt.Errorf("unsupported file type [name: %s] [type: %s]", *asset.Name, *asset.ContentType)
-	}
+	teams, err = handleAsset[*teamItem](self.log, asset, fp, extractDir, downloadedTo, accountFile)
+
 	return
 }
