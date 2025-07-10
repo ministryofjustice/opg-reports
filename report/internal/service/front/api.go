@@ -7,9 +7,13 @@ import (
 	"path/filepath"
 )
 
-// GetFromAPI fetches the data from the endpoint and converts it to T
+// GetFromAPI fetches the data from the endpoint and converts it to T, and the result of this is then passed into each
+// postProcessor in turn.
 //
-//   - endpoint should have any substituions replaced and query strings added
+// The postProcessor allows reformatting / data changes to be handled; so the raw API result can be re-strucutured
+// into a suitable format for the front end display (list -> tablular etc)
+//
+//   - endpoint should have any substituions replaced and query strings added, the api host is added in this function via config values
 //   - postProcessers should handle nil checks on the response result passed in
 func (self *Service[T]) GetFromAPI(client restr.RepositoryRestGetter, endpoint string, postProcessors ...func(result T) (err error)) (result T, err error) {
 	var (

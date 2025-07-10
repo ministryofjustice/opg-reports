@@ -9,8 +9,6 @@ import (
 	"testing"
 )
 
-type tModel struct{}
-
 func TestFrontServiceDownloadGovUKFrontEnd(t *testing.T) {
 	var (
 		err    error
@@ -20,7 +18,7 @@ func TestFrontServiceDownloadGovUKFrontEnd(t *testing.T) {
 		conf   = config.NewConfig()
 		client = githubr.DefaultClient(conf).Repositories
 		store  = githubr.Default(ctx, log, conf)
-		serv   = Default[*tModel](ctx, log, conf)
+		serv   = Default[*struct{}](ctx, log, conf)
 	)
 
 	files, _, err := serv.DownloadGovUKFrontEnd(client, store, dir)

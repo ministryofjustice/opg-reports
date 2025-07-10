@@ -56,7 +56,6 @@ func (self *Repository) Get(client http.Client, uri string, result interface{}) 
 	// make the get call and check it worked
 	response, err = client.Do(request)
 	if err != nil {
-
 		self.log.Error("error running request", "err", err.Error())
 		return
 	}

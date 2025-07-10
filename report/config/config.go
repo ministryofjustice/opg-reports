@@ -72,6 +72,8 @@ type frontEnd struct {
 	ReleaseTag string // env: GOVUK_FRONT_RELEASETAG
 	AssetName  string // env: GOVUK_FRONT_ASSETNAME
 	UseRegex   bool
+
+	Directory string // env: GOVUK_FRONT_DIRECTORY - where downloaded gov uk assets are stored locally
 }
 
 // Metadata provides details on where metadata information used
@@ -166,6 +168,7 @@ var defaultConfig = &Config{
 			AssetName:  "release-v5.11.0.zip",
 			ReleaseTag: "v5.11.0",
 			UseRegex:   false,
+			Directory:  "govuk",
 		},
 	},
 	Existing: &Existing{
