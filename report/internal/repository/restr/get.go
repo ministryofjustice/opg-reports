@@ -4,58 +4,48 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"opg-reports/report/internal/utils"
 	"strings"
 )
 
 // parse and clean up the passsed along uri
 func parseURI(uri string) (parsed string, err error) {
+	var u *url.URL
 
-	var (
-		schema      string = "http"
-		host        string = "localhost"
-		path        string = ""
-		queryString string = ""
-		chunks      []string
-	)
+	u, err = url.Parse(uri)
 
-	// add trailing ?
-	if !strings.Contains(uri, "?") {
-		uri += "?"
+	if err != nil {
+		return
 	}
-	// grab the first schema
-	// 	"http://localhost:8080/test/v1?test=1"
-	// 		=> "http", "localhost:8080/test/v1?test=1"
-	chunks = strings.Split(uri, "://")
-	// shift if we have more than 1 item (as in schema + remainder)
-	if len(chunks) > 1 {
-		schema, uri = chunks[0], strings.Join(chunks[1:], "")
+	// if there is no path (so http://localhost), add one
+	// but if there is a path and the first character is
+	// not '/', then the hostname is likely in here.
+	//
+	// Typically this comes from a uri like
+	// `localhost/path-to-file.json` so we can fix
+	// the hostname and path
+	if u.Path == "" {
+		u.Path = "/"
+	} else if u.Path[0] != '/' {
+		chunks := strings.Split(u.Path, "/")
+		u.Host = chunks[0]
+		u.Path = strings.Join(chunks[1:], "/")
 	}
-
-	// so the first / should show end of the hostname
-	// "localhost:8080/test/v1?test=1"
-	// 		=> "localhost:8080", "test/v1?test=1"
-	chunks = strings.Split(uri, "/")
-	if len(chunks) > 1 && chunks[0] != "" {
-		host, uri = chunks[0], strings.Join(chunks[1:], "/")
+	if u.Host == "" {
+		u.Host = "localhost"
 	}
-
-	// "test/v1?test=1"
-	// 		=> "test/v1", "test=1"
-	chunks = strings.Split(uri, "?")
-	if len(chunks) > 1 {
-		path, queryString = chunks[0], strings.Join(chunks[1:], "")
+	if u.Scheme == "" {
+		u.Scheme = "http"
 	}
-
-	hostPath := fmt.Sprintf("%s/%s", host, path)
-	hostPath = strings.ReplaceAll(hostPath, "//", "/")
-	parsed = fmt.Sprintf("%s://%s?%s",
-		schema,
-		hostPath,
-		queryString,
-	)
-	parsed = strings.TrimSuffix(parsed, "?")
-
+	parsed = u.String()
+	// Sometimes when the scheme is not stated the
+	// String() may not add one, so look for the ://
+	// deliminator, if we cant find it, then add
+	// http:// as a default
+	if !strings.Contains(parsed, "://") {
+		parsed = "http://" + parsed
+	}
 	return
 }
 

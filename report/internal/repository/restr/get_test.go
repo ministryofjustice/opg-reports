@@ -51,6 +51,8 @@ func TestRestParseURI(t *testing.T) {
 	var tests = map[string]string{
 		"?test=1":                               "http://localhost/?test=1",
 		"/?test":                                "http://localhost/?test",
+		"https://www.gov.uk":                    "https://www.gov.uk/",
+		"https://www.gov.uk/":                   "https://www.gov.uk/",
 		"https://www.gov.uk/bank-holidays.json": "https://www.gov.uk/bank-holidays.json",
 		"www.gov.uk/bank-holidays.json?test=1":  "http://www.gov.uk/bank-holidays.json?test=1",
 		"localhost:80/test/?test=foo&bar=yes":   "http://localhost:80/test/?test=foo&bar=yes",
