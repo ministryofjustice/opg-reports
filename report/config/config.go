@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"time"
 
 	"opg-reports/report/internal/utils"
 
@@ -51,8 +52,9 @@ type Servers struct {
 
 // Server contains the address to use to contact the server
 type Server struct {
-	Name string // env: $X_NAME
-	Addr string // env: $X_ADDR
+	Name    string        // env: $X_NAME
+	Addr    string        // env: $X_ADDR
+	Timeout time.Duration // env: $X_TIMEOUT - used to set the http client timeout
 }
 
 // Versions contains version data about the build
@@ -180,7 +182,7 @@ var defaultConfig = &Config{
 	},
 	Servers: &Servers{
 		Api:   &Server{Name: "OPG", Addr: "localhost:8081"},
-		Front: &Server{Name: "OPG", Addr: "localhost:8080"},
+		Front: &Server{Name: "OPG", Addr: "localhost:8080", Timeout: (30 * time.Second)},
 	},
 }
 

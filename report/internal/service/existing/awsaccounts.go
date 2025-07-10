@@ -196,8 +196,6 @@ func (self *Service) getAwsAccountsFromMetadata(
 		return
 	}
 	if release == nil {
-		utils.Debug(options)
-		utils.Debug(ropts)
 		err = fmt.Errorf("failed to find repository release")
 		self.log.Error("failed finding repository release", "err", err.Error())
 		return

@@ -1,14 +1,13 @@
-package githubr
+package restr
 
 import (
 	"context"
 	"fmt"
 	"log/slog"
-
 	"opg-reports/report/config"
 )
 
-const label string = "github-repository"
+const label string = "rest-repository"
 
 type Repository struct {
 	ctx  context.Context

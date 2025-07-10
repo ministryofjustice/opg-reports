@@ -22,6 +22,11 @@ type RepositoryReleasesGetMany interface {
 	GetRepositoryReleases(client ClientRepositoryReleaseListReleases, owner string, repository string, options *GetRepositoryReleaseOptions) (releases []*github.RepositoryRelease, err error)
 }
 
+type RepositoryReleasesGetOneDownloader interface {
+	RepositoryReleasesGetOne
+	RepositoryReleasesDownloadReleaseAsset
+}
+
 // RepositoryReleasesGetOne exposes an interface for how this repository
 // would return a single matching release based on the options provided.
 //

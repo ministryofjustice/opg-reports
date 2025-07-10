@@ -54,6 +54,11 @@ type RepositoryCostExplorerGetter interface {
 	GetCostData(client ClientCostExplorerGetter, options *GetCostDataOptions) (values []map[string]string, err error)
 }
 
+// ClientSTS represents an overal sts client
+type ClientSTS interface {
+	ClientSTSCaller
+}
+
 // ClientSTSCaller represents the client (sts.Client) interface used by RepositorySTS
 // to access the SDK.
 //
