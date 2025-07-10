@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"opg-reports/report/config"
+	"opg-reports/report/endpoints"
 	"opg-reports/report/internal/repository/sqlr"
 	"opg-reports/report/internal/service/api"
 
@@ -28,7 +29,7 @@ func RegisterGetAwsCostsTop20[T api.Model](log *slog.Logger, conf *config.Config
 	var operation = huma.Operation{
 		OperationID:   "get-awscosts-top20",
 		Method:        http.MethodGet,
-		Path:          "/v1/awscosts/top20",
+		Path:          endpoints.AWSCOSTS_GET_TOP_20,
 		Summary:       "Top 20 most expensive AWS costs",
 		Description:   "Returns a list of most expensive AWS costs stored in the database (excluding tax).",
 		DefaultStatus: http.StatusOK,

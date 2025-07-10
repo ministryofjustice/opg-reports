@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"opg-reports/report/config"
+	"opg-reports/report/endpoints"
 	"opg-reports/report/internal/repository/sqlr"
 	"opg-reports/report/internal/service/api"
 	"opg-reports/report/internal/utils"
@@ -48,7 +49,7 @@ func RegisterGetAwsGroupedCosts[T api.Model](log *slog.Logger, conf *config.Conf
 	var operation = huma.Operation{
 		OperationID:   "get-awscosts-grouped",
 		Method:        http.MethodGet,
-		Path:          "/v1/awscosts/grouped/{granularity}/{start_date}/{end_date}",
+		Path:          endpoints.AWSCOSTS_GROUPED,
 		Summary:       "Grouped AWS cost data.",
 		Description:   "Returns AWS costs data (excluding tax) grouped by time period and other options.",
 		DefaultStatus: http.StatusOK,

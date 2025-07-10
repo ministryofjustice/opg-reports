@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"opg-reports/report/config"
+	"opg-reports/report/endpoints"
 	"opg-reports/report/internal/repository/sqlr"
 	"opg-reports/report/internal/service/api"
 
@@ -23,9 +24,10 @@ type GetTeamsAllResponse[T api.Model] struct {
 // RegisterAllTeams registers the `get-teams-all` endpoint
 func RegisterGetTeamsAll[T api.Model](log *slog.Logger, conf *config.Config, humaapi huma.API, service api.TeamGetter[T], store sqlr.Reader) {
 	var operation = huma.Operation{
-		OperationID:   "get-teams-all",
-		Method:        http.MethodGet,
-		Path:          "/v1/teams/all",
+		OperationID: "get-teams-all",
+		Method:      http.MethodGet,
+		Path:        endpoints.TEAMS_GET_ALL,
+		// Path:          "/v1/teams/all",
 		Summary:       "Return all teams",
 		Description:   "Returns a list of all teams known about.",
 		DefaultStatus: http.StatusOK,

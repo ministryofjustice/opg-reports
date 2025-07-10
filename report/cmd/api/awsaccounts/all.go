@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"opg-reports/report/config"
+	"opg-reports/report/endpoints"
 	"opg-reports/report/internal/repository/sqlr"
 	"opg-reports/report/internal/service/api"
 
@@ -28,7 +29,7 @@ func RegisterGetAwsAccountsAll[T api.Model](log *slog.Logger, conf *config.Confi
 	var operation = huma.Operation{
 		OperationID:   "get-awsaccounts-all",
 		Method:        http.MethodGet,
-		Path:          "/v1/awsaccounts/all",
+		Path:          endpoints.AWSACCOUNTS_GET_ALL,
 		Summary:       "All AWS accounts",
 		Description:   "Returns a list of all AWS accounts stored.",
 		DefaultStatus: http.StatusOK,

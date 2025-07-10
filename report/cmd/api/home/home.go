@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"opg-reports/report/config"
+	"opg-reports/report/endpoints"
 
 	"github.com/danielgtaylor/huma/v2"
 )
@@ -20,7 +21,7 @@ func RegisterGetHomepage(log *slog.Logger, conf *config.Config, api huma.API) {
 	var operation = huma.Operation{
 		OperationID:   "get-home",
 		Method:        http.MethodGet,
-		Path:          "/",
+		Path:          endpoints.HOME,
 		Summary:       "Home",
 		Description:   "Operates as the root of the API and a simple endpoint to test connectivity with, but returns no data.",
 		DefaultStatus: http.StatusOK,
