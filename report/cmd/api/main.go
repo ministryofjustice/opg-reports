@@ -44,8 +44,9 @@ env values that can be adjusted:
 
 Requires valid AWS session with permission to access EXISTING_DB_BUCKET and EXISTING_DB_KEY.
 `,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		runner(ctx, log, conf)
+		return
 	},
 }
 

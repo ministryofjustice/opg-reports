@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"path/filepath"
 
 	"opg-reports/report/config"
+	"opg-reports/report/internal/service/api"
 	"opg-reports/report/internal/utils"
 
 	"github.com/spf13/cobra"
@@ -18,14 +20,18 @@ var (
 	viperConf *viper.Viper
 	ctx       context.Context
 	log       *slog.Logger
+	Info      *FrontInfo
 )
 
-var (
-	assetRoot      string
-	govUKAssetDir  string
-	localAssetsDir string
-	templateDir    string
-)
+type FrontInfo struct {
+	AssetRoot      string
+	GovUKAssetDir  string
+	LocalAssetsDir string
+	TemplateDir    string
+	Teams          []*api.Team
+}
+
+var ()
 
 // root command
 var rootCmd = &cobra.Command{
@@ -44,33 +50,44 @@ env values that can be adjusted:
 		The directory path to place and read govuk assets from
 .
 `,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var (
 			addr   = conf.Servers.Front.Addr
 			mux    = http.NewServeMux()
 			server = &http.Server{Addr: addr, Handler: mux}
 		)
-		StartServer(ctx, log, conf, mux, server,
+		Info.Teams, err = GetAPITeams(ctx, log, conf)
+
+		StartServer(ctx, log, conf, Info, mux, server,
 			RegisterStaticHandlers,
 			RegisterHomepageHandlers,
 		)
+		return
 	},
 }
 
 // init called to setup conf / logger and to check and download
 // govuk front end
 func init() {
+	var govdir string
 	conf, viperConf = config.New()
 	log = utils.Logger(conf.Log.Level, conf.Log.Type)
 	ctx = context.Background()
+	govdir = filepath.Clean(conf.GovUK.Front.Directory)
 
-	govUKAssetDir = filepath.Clean(conf.GovUK.Front.Directory)
-	assetRoot = filepath.Dir(govUKAssetDir)
-	localAssetsDir = filepath.Join(assetRoot, "local-assets")
-	templateDir = filepath.Join(assetRoot, "templates")
+	Info = &FrontInfo{
+		GovUKAssetDir:  govdir,
+		AssetRoot:      filepath.Dir(govdir),
+		LocalAssetsDir: filepath.Join(filepath.Dir(govdir), "local-assets"),
+		TemplateDir:    filepath.Join(filepath.Dir(govdir), "templates"),
+	}
+	log.Info(fmt.Sprintf("ROOT ASSET DIR: [%s]", Info.AssetRoot))
+	log.Info(fmt.Sprintf("GOVUK ASSET DIR: [%s]", Info.GovUKAssetDir))
+	log.Info(fmt.Sprintf("LOCAL ASSET DIR: [%s]", Info.LocalAssetsDir))
+	log.Info(fmt.Sprintf("TEMPLATE DIR: [%s]", Info.TemplateDir))
 
 	if !utils.DirExists(conf.GovUK.Front.Directory) {
-		DownloadGovUKFrontEnd(ctx, log, conf)
+		DownloadGovUKFrontEnd(ctx, log, conf, Info)
 	}
 }
 

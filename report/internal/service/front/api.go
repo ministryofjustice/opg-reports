@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"opg-reports/report/internal/repository/restr"
-	"path/filepath"
 )
 
 // GetFromAPI fetches the data from the endpoint and converts it to T, and the result of this is then passed into each
@@ -18,7 +17,7 @@ import (
 func (self *Service[T]) GetFromAPI(client restr.RepositoryRestGetter, endpoint string, postProcessors ...func(result T) (err error)) (result T, err error) {
 	var (
 		code  int
-		uri   = filepath.Join(self.conf.Servers.Api.Addr, endpoint)
+		uri   = fmt.Sprintf("%s/%s", self.conf.Servers.Api.Addr, endpoint)
 		httpc = http.Client{Timeout: self.conf.Servers.Front.Timeout}
 		log   = self.log.With("operation", "GetFromAPI", "uri", uri)
 	)

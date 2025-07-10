@@ -4,31 +4,58 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"opg-reports/report/internal/utils"
 	"strings"
 )
 
 // parse and clean up the passsed along uri
 func parseURI(uri string) (parsed string, err error) {
-	var u *url.URL
 
-	if u, err = url.Parse(uri); err != nil {
-		return
-	}
-
-	if u.Host != "" {
-		u.Host += "/"
-	}
-	if u.RawQuery != "" {
-		u.RawQuery = "?" + u.RawQuery
-	}
-	parsed = fmt.Sprintf("%s://%s%s%s",
-		u.Scheme,
-		u.Host,
-		strings.TrimPrefix(u.Path, "/"),
-		u.RawQuery,
+	var (
+		schema      string = "http"
+		host        string = "localhost"
+		path        string = ""
+		queryString string = ""
+		chunks      []string
 	)
+
+	// add trailing ?
+	if !strings.Contains(uri, "?") {
+		uri += "?"
+	}
+	// grab the first schema
+	// 	"http://localhost:8080/test/v1?test=1"
+	// 		=> "http", "localhost:8080/test/v1?test=1"
+	chunks = strings.Split(uri, "://")
+	// shift if we have more than 1 item (as in schema + remainder)
+	if len(chunks) > 1 {
+		schema, uri = chunks[0], strings.Join(chunks[1:], "")
+	}
+
+	// so the first / should show end of the hostname
+	// "localhost:8080/test/v1?test=1"
+	// 		=> "localhost:8080", "test/v1?test=1"
+	chunks = strings.Split(uri, "/")
+	if len(chunks) > 1 && chunks[0] != "" {
+		host, uri = chunks[0], strings.Join(chunks[1:], "/")
+	}
+
+	// "test/v1?test=1"
+	// 		=> "test/v1", "test=1"
+	chunks = strings.Split(uri, "?")
+	if len(chunks) > 1 {
+		path, queryString = chunks[0], strings.Join(chunks[1:], "")
+	}
+
+	hostPath := fmt.Sprintf("%s/%s", host, path)
+	hostPath = strings.ReplaceAll(hostPath, "//", "/")
+	parsed = fmt.Sprintf("%s://%s?%s",
+		schema,
+		hostPath,
+		queryString,
+	)
+	parsed = strings.TrimSuffix(parsed, "?")
+
 	return
 }
 

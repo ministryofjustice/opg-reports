@@ -20,7 +20,7 @@ tests:
 test:
 	@go clean -testcache
 	@clear
-	@echo "=== tests"
+	@echo "=== test: $(name)"
 	@env CGO_ENABLED=1 \
 		LOG_LEVEL="WARN" \
 		GITHUB_TOKEN="${GITHUB_TOKEN}" \

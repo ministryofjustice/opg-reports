@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"opg-reports/report/config"
 	"opg-reports/report/internal/htmlpage"
+	"opg-reports/report/internal/utils"
 )
 
 type homepageData struct {
@@ -18,6 +19,7 @@ func RegisterHomepageHandlers(
 	ctx context.Context,
 	log *slog.Logger,
 	conf *config.Config,
+	info *FrontInfo,
 	mux *http.ServeMux,
 ) {
 	log.Info("registering homepage handlers ...")
@@ -27,11 +29,12 @@ func RegisterHomepageHandlers(
 		var (
 			byteBuffer   = new(bytes.Buffer)
 			buffer       = bufio.NewWriter(byteBuffer)
-			templates    = htmlpage.GetTemplateFiles(templateDir)
+			templates    = htmlpage.GetTemplateFiles(info.TemplateDir)
 			templateName = "index"
 			data         = htmlpage.DefaultContent(conf)
 			page         = htmlpage.New(templates, nil)
 		)
+		utils.Debug(info.Teams)
 		log.Info("processing page", "url", request.URL.String())
 		// call page WriteToBuffer to run the template stack and write to buffer
 		page.WriteToBuffer(buffer, templateName, data)

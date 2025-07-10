@@ -7,17 +7,17 @@ import (
 	"opg-reports/report/config"
 	"opg-reports/report/internal/repository/githubr"
 	"opg-reports/report/internal/service/front"
-	"path/filepath"
 )
 
 func DownloadGovUKFrontEnd(
 	ctx context.Context,
 	log *slog.Logger,
 	conf *config.Config,
+	info *FrontInfo,
 ) (err error) {
 
 	var (
-		assetDir   = filepath.Join(conf.GovUK.Front.Directory)
+		assetDir   = info.AssetRoot //filepath.Join(conf.GovUK.Front.Directory)
 		client     = githubr.DefaultClient(conf).Repositories
 		store      = githubr.Default(ctx, log, conf)
 		downloader = front.Default[*struct{}](ctx, log, conf)

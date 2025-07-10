@@ -45,3 +45,25 @@ func TestRestGet(t *testing.T) {
 	}
 
 }
+
+func TestRestParseURI(t *testing.T) {
+
+	var tests = map[string]string{
+		"?test=1":                               "http://localhost/?test=1",
+		"/?test":                                "http://localhost/?test",
+		"https://www.gov.uk/bank-holidays.json": "https://www.gov.uk/bank-holidays.json",
+		"www.gov.uk/bank-holidays.json?test=1":  "http://www.gov.uk/bank-holidays.json?test=1",
+		"localhost:80/test/?test=foo&bar=yes":   "http://localhost:80/test/?test=foo&bar=yes",
+	}
+
+	for test, expected := range tests {
+		actual, err := parseURI(test)
+		if err != nil {
+			t.Errorf("unexpected error for [%s]: %s", test, err.Error())
+		}
+		if expected != actual {
+			t.Errorf("mismatch, expected [%s], actual [%s]", expected, actual)
+		}
+	}
+
+}
