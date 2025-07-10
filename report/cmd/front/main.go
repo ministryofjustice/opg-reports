@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 
 	"opg-reports/report/config"
-	"opg-reports/report/internal/service/api"
 	"opg-reports/report/internal/utils"
 
 	"github.com/spf13/cobra"
@@ -28,7 +27,7 @@ type FrontInfo struct {
 	GovUKAssetDir  string
 	LocalAssetsDir string
 	TemplateDir    string
-	Teams          []*api.Team
+	Teams          []string
 }
 
 var ()
@@ -56,7 +55,16 @@ env values that can be adjusted:
 			mux    = http.NewServeMux()
 			server = &http.Server{Addr: addr, Handler: mux}
 		)
-		Info.Teams, err = GetAPITeams(ctx, log, conf)
+		// get all teams when starting and attach the names
+		teams, err := GetAPITeams(ctx, log, conf)
+		if err != nil {
+			return
+		}
+		for _, tm := range teams {
+			if tm.Name != "Legacy" && tm.Name != "ORG" {
+				Info.Teams = append(Info.Teams, tm.Name)
+			}
+		}
 
 		StartServer(ctx, log, conf, Info, mux, server,
 			RegisterStaticHandlers,
@@ -76,6 +84,7 @@ func init() {
 	govdir = filepath.Clean(conf.GovUK.Front.Directory)
 
 	Info = &FrontInfo{
+		Teams:          []string{},
 		GovUKAssetDir:  govdir,
 		AssetRoot:      filepath.Dir(govdir),
 		LocalAssetsDir: filepath.Join(filepath.Dir(govdir), "local-assets"),

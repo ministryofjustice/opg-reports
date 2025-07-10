@@ -31,10 +31,11 @@ func RegisterHomepageHandlers(
 			buffer       = bufio.NewWriter(byteBuffer)
 			templates    = htmlpage.GetTemplateFiles(info.TemplateDir)
 			templateName = "index"
-			data         = htmlpage.DefaultContent(conf)
-			page         = htmlpage.New(templates, nil)
+			data         = htmlpage.DefaultContent(conf, request)
+			page         = htmlpage.New(templates, utils.TemplateFunctions())
 		)
-		utils.Debug(info.Teams)
+		data.Teams = info.Teams
+		// utils.Debug(info.Teams)
 		log.Info("processing page", "url", request.URL.String())
 		// call page WriteToBuffer to run the template stack and write to buffer
 		page.WriteToBuffer(buffer, templateName, data)

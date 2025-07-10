@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"net/http"
 	"opg-reports/report/config"
 	"path/filepath"
 	"strings"
@@ -34,9 +35,12 @@ func (self *HtmlPage) WriteToBuffer(buffer io.Writer, templateName string, data 
 }
 
 type HtmlPageContent struct {
-	Name         string
-	GovUKVersion string
-	Signature    string
+	Name         string   // Name is the core name of the front end, used in page title
+	GovUKVersion string   // GovUKVersion is the version number (minus v) that we're using in this front end
+	Signature    string   // Signature is combination of the semver & git commit
+	RequestPaths []string // RequestPaths is Request.URL.String() split by /
+	RequestPath0 string   // First segment of Request.URL.String()
+	Teams        []string
 }
 
 func New(templateFiles []string, templateFunctions template.FuncMap) *HtmlPage {
@@ -46,12 +50,16 @@ func New(templateFiles []string, templateFunctions template.FuncMap) *HtmlPage {
 	}
 }
 
-func DefaultContent(conf *config.Config) HtmlPageContent {
-	return HtmlPageContent{
+func DefaultContent(conf *config.Config, request *http.Request) (pg HtmlPageContent) {
+	paths := strings.Split(request.URL.String(), "/")
+	pg = HtmlPageContent{
 		Name:         conf.Servers.Front.Name,
 		GovUKVersion: strings.TrimPrefix(conf.GovUK.Front.ReleaseTag, "v"),
 		Signature:    conf.Versions.Signature(),
+		RequestPaths: paths,
+		RequestPath0: paths[0],
 	}
+	return
 }
 
 func GetTemplateFiles(directory string) (files []string) {
