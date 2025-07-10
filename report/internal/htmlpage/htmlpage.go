@@ -55,7 +55,7 @@ func DefaultContent(conf *config.Config) HtmlPageContent {
 }
 
 func GetTemplateFiles(directory string) (files []string) {
-	pattern := filepath.Join(directory, "**/**")
+	pattern := filepath.Join(directory, "**/**.html")
 	files, err := filepath.Glob(pattern)
 	if err != nil {
 		fmt.Println("err:" + err.Error())

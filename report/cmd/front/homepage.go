@@ -32,6 +32,7 @@ func RegisterHomepageHandlers(
 			data         = htmlpage.DefaultContent(conf)
 			page         = htmlpage.New(templates, nil)
 		)
+		log.Info("processing page", "url", request.URL.String())
 		// call page WriteToBuffer to run the template stack and write to buffer
 		page.WriteToBuffer(buffer, templateName, data)
 		// write ok status & content type to response
