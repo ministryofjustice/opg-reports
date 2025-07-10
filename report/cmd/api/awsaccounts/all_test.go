@@ -42,7 +42,7 @@ func TestHandleGetAwsAccountsAll(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
-	utils.Debug(response)
+
 	// make sure all counts match
 	if len(inserted) != response.Body.Count {
 		t.Errorf("count doesnt match count of inserted records, expected [%d] actual [%d]", len(inserted), response.Body.Count)

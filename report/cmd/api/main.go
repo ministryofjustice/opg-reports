@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"log/slog"
-	"time"
 
 	"opg-reports/report/config"
 	"opg-reports/report/internal/utils"
@@ -18,8 +17,6 @@ var (
 	ctx       context.Context
 	log       *slog.Logger
 )
-
-var maxDatabaseAge time.Duration = (24 * time.Hour) * 3 // max age of the database before refetching - 3 days
 
 // root command
 var rootCmd = &cobra.Command{
