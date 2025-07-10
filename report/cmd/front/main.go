@@ -56,10 +56,9 @@ env values that can be adjusted:
 			server = &http.Server{Addr: addr, Handler: mux}
 		)
 		// get all teams when starting and attach the names
-		teams, err := GetAPITeams(ctx, log, conf)
-		if err != nil {
-			return
-		}
+		// - ignore the error in case the api is down
+		teams, _ := GetAPITeams(ctx, log, conf)
+
 		for _, tm := range teams {
 			if tm.Name != "Legacy" && tm.Name != "ORG" {
 				Info.Teams = append(Info.Teams, tm.Name)
