@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"opg-reports/report/config"
-	"opg-reports/report/endpoints"
+	"opg-reports/report/internal/endpoints"
 	"opg-reports/report/internal/repository/sqlr"
 	"opg-reports/report/internal/service/api"
 

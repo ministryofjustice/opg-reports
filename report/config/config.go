@@ -2,11 +2,10 @@ package config
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
-
-	"opg-reports/report/internal/utils"
 
 	"github.com/spf13/viper"
 )
@@ -61,6 +60,10 @@ type Server struct {
 type Versions struct {
 	Semver string // env: VERSIONS_SEMVER
 	Commit string // env: VERSIONS_COMMIT
+}
+
+func (self *Versions) Signature() string {
+	return fmt.Sprintf("%s (%s)", self.Semver, self.Commit)
 }
 
 type GovUK struct {
@@ -184,8 +187,8 @@ var defaultConfig = &Config{
 		Commit: "000000",
 	},
 	Servers: &Servers{
-		Api:   &Server{Name: "OPG", Addr: "localhost:8081"},
-		Front: &Server{Name: "OPG", Addr: "localhost:8080", Timeout: (30 * time.Second)},
+		Api:   &Server{Name: "OPG Reports API", Addr: "localhost:8081"},
+		Front: &Server{Name: "OPG Reports", Addr: "localhost:8080", Timeout: (30 * time.Second)},
 	},
 }
 
@@ -200,7 +203,7 @@ func NewViper() (conf *viper.Viper) {
 	conf = viper.New()
 
 	conf.SetConfigType("json")
-	conf.ReadConfig(bytes.NewBuffer(utils.MustMarshal(defaultConfig)))
+	conf.ReadConfig(bytes.NewBuffer(mustMarshal(defaultConfig)))
 	conf.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	conf.AutomaticEnv()
 
@@ -223,5 +226,14 @@ func New() (cfg *Config, vCfg *viper.Viper) {
 	cfg = &Config{}
 
 	vCfg.Unmarshal(cfg)
+	return
+}
+
+// mustMarshal does a generic marshal on item to convert to json bytes
+func mustMarshal[T any](item T) (bytes []byte) {
+	bytes = []byte{}
+	if b, err := json.MarshalIndent(item, "", "  "); err == nil {
+		bytes = b
+	}
 	return
 }

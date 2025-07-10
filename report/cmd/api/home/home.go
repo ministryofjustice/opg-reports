@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"opg-reports/report/config"
-	"opg-reports/report/endpoints"
+	"opg-reports/report/internal/endpoints"
 
 	"github.com/danielgtaylor/huma/v2"
 )
