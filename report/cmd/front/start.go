@@ -28,6 +28,7 @@ func StartServer(
 	log.Info(fmt.Sprintf("ROOT ASSET DIR: [%s]", assetRoot))
 	log.Info(fmt.Sprintf("GOVUK ASSET DIR: [%s]", govUKAssetDir))
 	log.Info(fmt.Sprintf("LOCAL ASSET DIR: [%s]", localAssetsDir))
+	log.Info(fmt.Sprintf("TEMPLATE DIR: [%s]", templateDir))
 	log.Info(fmt.Sprintf("FRONT: [http://%s/]", addr))
 
 	server.ListenAndServe()

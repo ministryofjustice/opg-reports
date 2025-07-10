@@ -7,6 +7,19 @@ import (
 	"opg-reports/report/config"
 )
 
+// RegisterStaticHandlers setups up how the server handles govuk
+// assets and local css / image files and manages mapping of the
+// urls to folders.
+//
+// Required as the govuk css / js contains references to resources
+// like fonts & images with fixed paths (generally /assets/) which
+// does not match our folder structure after zip extraction.
+//
+// Example url to filesytems mapping:
+//
+//	http://localhost:8080/assets/images/govuk-icon-180.png 		=> ./govuk/assets/images/govuk-icon-180.png
+//	http://localhost:8080/local-assets/css/local.css 		=> ./local-assets/css/local.css
+//	http://localhost:8080/govuk/govuk-frontend-5.11.0.min.css 	=> ./govuk/govuk-frontend-5.11.0.min.css
 func RegisterStaticHandlers(
 	ctx context.Context,
 	log *slog.Logger,

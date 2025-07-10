@@ -24,6 +24,7 @@ var (
 	assetRoot      string
 	govUKAssetDir  string
 	localAssetsDir string
+	templateDir    string
 )
 
 // root command
@@ -66,6 +67,7 @@ func init() {
 	govUKAssetDir = filepath.Clean(conf.GovUK.Front.Directory)
 	assetRoot = filepath.Dir(govUKAssetDir)
 	localAssetsDir = filepath.Join(assetRoot, "local-assets")
+	templateDir = filepath.Join(assetRoot, "templates")
 
 	if !utils.DirExists(conf.GovUK.Front.Directory) {
 		DownloadGovUKFrontEnd(ctx, log, conf)

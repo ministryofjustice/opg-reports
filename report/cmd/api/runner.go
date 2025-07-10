@@ -21,7 +21,7 @@ func runner(ctx context.Context, log *slog.Logger, conf *config.Config) {
 		server        http.Server
 		mux           *http.ServeMux = http.NewServeMux()
 		apiName       string         = conf.Servers.Api.Name
-		apiVersion    string         = fmt.Sprintf("%s [%s]", conf.Versions.Semver, conf.Versions.Commit)
+		apiVersion    string         = conf.Versions.Signature()
 		shutdownDelay time.Duration  = 5 * time.Second
 	)
 

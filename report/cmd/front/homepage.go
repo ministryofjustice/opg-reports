@@ -7,7 +7,12 @@ import (
 	"log/slog"
 	"net/http"
 	"opg-reports/report/config"
+	"opg-reports/report/internal/htmlpage"
 )
+
+type homepageData struct {
+	htmlpage.HtmlPage
+}
 
 func RegisterHomepageHandlers(
 	ctx context.Context,
@@ -20,16 +25,22 @@ func RegisterHomepageHandlers(
 	// Homepage
 	mux.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		var (
-			buf = new(bytes.Buffer)
-			wr  = bufio.NewWriter(buf)
+			byteBuffer   = new(bytes.Buffer)
+			buffer       = bufio.NewWriter(byteBuffer)
+			templates    = htmlpage.GetTemplateFiles(templateDir)
+			templateName = "index"
+			data         = htmlpage.DefaultContent(conf)
+			page         = htmlpage.New(templates, nil)
 		)
-		// write content to the buffer
-		wr.WriteString("<p>Hello</p>")
+		// call page WriteToBuffer to run the template stack and write to buffer
+		page.WriteToBuffer(buffer, templateName, data)
+		// write ok status & content type to response
 		writer.WriteHeader(http.StatusOK)
 		writer.Header().Set("Content-Type", "text/html")
-
-		wr.Flush()
-		writer.Write(buf.Bytes())
+		// force flush the underlying buffer to make sure all content is updated
+		buffer.Flush()
+		// write content to the response
+		writer.Write(byteBuffer.Bytes())
 
 	})
 
