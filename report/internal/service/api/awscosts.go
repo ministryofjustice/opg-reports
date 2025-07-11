@@ -130,7 +130,7 @@ LEFT JOIN aws_accounts ON aws_accounts.id = aws_costs.aws_account_id
 WHERE
 	{WHERE}
     date >= :start_date
-    AND date < :end_date
+    AND date <= :end_date
 	AND service != 'Tax'
 GROUP BY
 	{GROUP_BY}

@@ -102,9 +102,10 @@ type Existing struct {
 
 // AWS tracks environment information and details on where
 type Aws struct {
-	Region  string // env: AWS_REGION
-	Default *def
-	Session *session
+	BillingDate int    // env: AWS_BILLINGDATE - used to determin month data we can show
+	Region      string // env: AWS_REGION
+	Default     *def
+	Session     *session
 }
 
 func (self *Aws) GetRegion() string {
@@ -153,9 +154,10 @@ var defaultConfig = &Config{
 		Token:        "",                  // needed for tests & data imports
 	},
 	Aws: &Aws{
-		Region:  "",
-		Default: &def{Region: ""},
-		Session: &session{Token: ""},
+		BillingDate: 15,
+		Region:      "",
+		Default:     &def{Region: "eu-west-1"},
+		Session:     &session{Token: ""},
 	},
 	Metadata: &Metadata{
 		Owner:      "ministryofjustice",

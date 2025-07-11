@@ -18,10 +18,18 @@ var DATE_FORMATS = &dateFormats{
 	YMD:  "2006-01-02",
 }
 
+type Granularity string
+
+const (
+	GranularityYear  Granularity = "yearly"
+	GranularityMonth Granularity = "monthly"
+	GranularityDay   Granularity = "daily"
+)
+
 var GRANULARITY_TO_FORMAT = map[string]string{
-	"yearly":  "%Y",
-	"monthly": "%Y-%m",
-	"daily":   "%Y-%m-%d",
+	string(GranularityYear):  "%Y",
+	string(GranularityMonth): "%Y-%m",
+	string(GranularityDay):   "%Y-%m-%d",
 }
 
 // TimeInterval
@@ -105,9 +113,37 @@ func TimeReset(t time.Time, interval TimeInterval) (reset time.Time) {
 	return
 }
 
+// LastDayOfMonth provides the time for the last minute of the last day of the month
+//
+// If `t` is `2022-12-01T09:00:00` then should return `2022-12-31T23:59:59`
+func LastDayOfMonth(t time.Time) (lastDay time.Time) {
+	var nextMonth = t.UTC().AddDate(0, 1, 0)
+	var reset = TimeReset(nextMonth, TimeIntervalMonth)
+
+	// fmt.Printf("	month: [%s] reset [%s]\n", nextMonth.Format(DATE_FORMATS.Full), reset.Format(DATE_FORMATS.Full))
+
+	lastDay = reset.Add(-1 * time.Second)
+	return
+}
+
 // Month returns a YYYY-MM-DD formatted string of the first data of a month. The modifier adjusts
 // the month (plus or minus)
-func Month(modifier int) (m string) {
-	m = TimeReset(time.Now().UTC().AddDate(0, modifier, 0), TimeIntervalMonth).Format(DATE_FORMATS.YMD)
+func Month(monthModifier int) (m string) {
+	m = TimeReset(time.Now().UTC().AddDate(0, monthModifier, 0), TimeIntervalMonth).Format(DATE_FORMATS.YMD)
+	return
+}
+
+// Returns the last fully billed month that can be used for data.
+//
+// Example: Cost data for June will not be available until the 15th
+// July, so on the 14th this will give you May, but 15th will
+// be June
+func BillingMonth(t time.Time, billingDay int) (billing time.Time) {
+
+	if t.Day() < billingDay {
+		billing = time.Date(t.Year(), t.Month()-1, 1, 0, 0, 0, 0, time.UTC).Add(-1 * time.Second)
+	} else {
+		billing = time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, time.UTC).Add(-1 * time.Second)
+	}
 	return
 }

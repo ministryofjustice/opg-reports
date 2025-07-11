@@ -56,11 +56,15 @@ env values that can be adjusted:
 			mux    = http.NewServeMux()
 			server = &http.Server{Addr: addr, Handler: mux}
 		)
+		// Register handlers
+		RegisterStaticHandlers(ctx, log, conf, Info, mux)
+		RegisterHomepageHandlers(ctx, log, conf, Info, mux)
 
-		StartServer(ctx, log, conf, Info, mux, server,
-			RegisterStaticHandlers,
-			RegisterHomepageHandlers,
-		)
+		log.Info("Starting front server...")
+		log.Info(fmt.Sprintf("FRONT: [http://%s/]", addr))
+
+		server.ListenAndServe()
+
 		return
 	},
 }
