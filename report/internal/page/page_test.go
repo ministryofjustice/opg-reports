@@ -1,8 +1,9 @@
-package htmlpage
+package page
 
 import (
 	"bufio"
 	"bytes"
+	"opg-reports/report/internal/utils"
 	"testing"
 )
 
@@ -15,13 +16,13 @@ type testPageContent struct {
 func TestHTMLPage(t *testing.T) {
 	var (
 		err          error
-		templateDir  = "../../cmd/front/templates/"
+		templateDir  = "./testdata"
 		byteBuffer   = new(bytes.Buffer)
 		buffer       = bufio.NewWriter(byteBuffer)
 		templates    = GetTemplateFiles(templateDir)
 		templateName = "test"
 		data         = &testPageContent{Class: "foobar", Name: "TEST"}
-		page         = New(templates, nil)
+		page         = New(templates, utils.TemplateFunctions())
 		expected     = `<h1 class='foobar'>TEST</h1>`
 	)
 	err = page.WriteToBuffer(buffer, templateName, data)

@@ -1,4 +1,4 @@
-package htmlpage
+package page
 
 import (
 	"html/template"
@@ -7,13 +7,13 @@ import (
 	"strings"
 )
 
-// HtmlPage is used to deal with rendering the go html/template stack
+// Page is used to deal with rendering the go html/template stack
 // with local template files and combining data into the page.
 //
 // WriteToBuffer pushes the parsed template content into a buffer which
 // can then be used in http.ResponseWriter.Write to include in the front
 // end response
-type HtmlPage struct {
+type Page struct {
 	files []string
 	funcs template.FuncMap
 }
@@ -21,7 +21,7 @@ type HtmlPage struct {
 // GetTemplate loads all template files and function names into the template stack
 // and will generate a template.Template based on the name provided which should
 // be the base name and match the defined label
-func (self *HtmlPage) GetTemplate(name string) (tmpl *template.Template, err error) {
+func (self *Page) GetTemplate(name string) (tmpl *template.Template, err error) {
 	tmpl, err = template.New(name).
 		Funcs(self.funcs).
 		ParseFiles(self.files...)
@@ -35,7 +35,7 @@ func (self *HtmlPage) GetTemplate(name string) (tmpl *template.Template, err err
 // current request
 //
 // If an error occurs with finding the template, not template is generated
-func (self *HtmlPage) WriteToBuffer(buffer io.Writer, templateName string, data any) (err error) {
+func (self *Page) WriteToBuffer(buffer io.Writer, templateName string, data any) (err error) {
 	var templ *template.Template
 
 	templateName = pageName(templateName)
@@ -47,8 +47,8 @@ func (self *HtmlPage) WriteToBuffer(buffer io.Writer, templateName string, data 
 	return
 }
 
-func New(templateFiles []string, templateFunctions template.FuncMap) *HtmlPage {
-	return &HtmlPage{
+func New(templateFiles []string, templateFunctions template.FuncMap) *Page {
+	return &Page{
 		files: templateFiles,
 		funcs: templateFunctions,
 	}

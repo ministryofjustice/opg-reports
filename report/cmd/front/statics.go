@@ -34,7 +34,7 @@ func RegisterStaticHandlers(
 	mux.Handle("/assets/", http.FileServer(http.Dir(info.GovUKAssetDir)))
 	// /local-assets/ contain our css overwrites, extra images / js and so on
 	//		http://localhost:8080/local-assets/css/local.css
-	mux.Handle("/local-assets/", http.StripPrefix("/local-assets/", http.FileServer(http.Dir(info.LocalAssetsDir))))
+	mux.Handle("/local-assets/", http.StripPrefix("/local-assets/", http.FileServer(http.Dir(info.LocalAssetDir))))
 	// /govuk/ is path we use to include css / js, so capture and point to the gov uk directory
 	// 		http://localhost:8080/govuk/VERSION.TXT
 	// 		http://localhost:8080/govuk/govuk-frontend-5.11.0.min.css

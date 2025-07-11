@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"opg-reports/report/config"
+	"opg-reports/report/internal/repository/restr"
 	"opg-reports/report/internal/utils"
 
 	"github.com/spf13/cobra"
@@ -23,11 +24,12 @@ var (
 )
 
 type FrontInfo struct {
-	AssetRoot      string
-	GovUKAssetDir  string
-	LocalAssetsDir string
-	TemplateDir    string
-	Teams          []string
+	AssetRoot     string            // AssetRoot is the filesystem folder that all assets sit within
+	GovUKAssetDir string            // GovUKAssetDir sits under the AssetRoot nad contains downloaded items from gvuk-frontend
+	LocalAssetDir string            // LocalAssetDir stores overwrites and assets custom to this project
+	TemplateDir   string            // TemplateDir contains all of our templates (using .html files)
+	Teams         []string          // Teams is a list of team names that we use for navigation on every page
+	RestClient    *restr.Repository // RestClient is used to make calls to the api via a service
 }
 
 var ()
@@ -55,15 +57,6 @@ env values that can be adjusted:
 			mux    = http.NewServeMux()
 			server = &http.Server{Addr: addr, Handler: mux}
 		)
-		// get all teams when starting and attach the names
-		// - ignore the error in case the api is down
-		teams, _ := GetAPITeams(ctx, log, conf)
-
-		for _, tm := range teams {
-			if tm.Name != "Legacy" && tm.Name != "ORG" {
-				Info.Teams = append(Info.Teams, tm.Name)
-			}
-		}
 
 		StartServer(ctx, log, conf, Info, mux, server,
 			RegisterStaticHandlers,
@@ -83,15 +76,16 @@ func init() {
 	govdir = filepath.Clean(conf.GovUK.Front.Directory)
 
 	Info = &FrontInfo{
-		Teams:          []string{},
-		GovUKAssetDir:  govdir,
-		AssetRoot:      filepath.Dir(govdir),
-		LocalAssetsDir: filepath.Join(filepath.Dir(govdir), "local-assets"),
-		TemplateDir:    filepath.Join(filepath.Dir(govdir), "templates"),
+		Teams:         []string{},
+		GovUKAssetDir: govdir,
+		AssetRoot:     filepath.Dir(govdir),
+		LocalAssetDir: filepath.Join(filepath.Dir(govdir), "local-assets"),
+		TemplateDir:   filepath.Join(filepath.Dir(govdir), "templates"),
+		RestClient:    restr.Default(ctx, log, conf),
 	}
 	log.Info(fmt.Sprintf("ROOT ASSET DIR: [%s]", Info.AssetRoot))
 	log.Info(fmt.Sprintf("GOVUK ASSET DIR: [%s]", Info.GovUKAssetDir))
-	log.Info(fmt.Sprintf("LOCAL ASSET DIR: [%s]", Info.LocalAssetsDir))
+	log.Info(fmt.Sprintf("LOCAL ASSET DIR: [%s]", Info.LocalAssetDir))
 	log.Info(fmt.Sprintf("TEMPLATE DIR: [%s]", Info.TemplateDir))
 
 	if !utils.DirExists(conf.GovUK.Front.Directory) {

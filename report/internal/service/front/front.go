@@ -9,20 +9,21 @@ import (
 
 const label string = "front-service"
 
-type Model interface{}
+type Response interface{}
+type Result interface{}
 
 type Closer interface {
 	Close() (err error)
 }
 
-type Service[T Model] struct {
+type Service[T Response, R Result] struct {
 	ctx  context.Context
 	log  *slog.Logger
 	conf *config.Config
 }
 
 // Close function to do any clean up
-func (self *Service[T]) Close() (err error) {
+func (self *Service[T, R]) Close() (err error) {
 	return
 }
 
@@ -30,7 +31,7 @@ func (self *Service[T]) Close() (err error) {
 // passed along.
 //
 // If logger / config is not passed an error is returned
-func New[T Model](ctx context.Context, log *slog.Logger, conf *config.Config) (srv *Service[T], err error) {
+func New[T Response, R Result](ctx context.Context, log *slog.Logger, conf *config.Config) (srv *Service[T, R], err error) {
 	if log == nil {
 		return nil, fmt.Errorf("no logger passed for %s", label)
 	}
@@ -38,7 +39,7 @@ func New[T Model](ctx context.Context, log *slog.Logger, conf *config.Config) (s
 		return nil, fmt.Errorf("no config passed for %s", label)
 	}
 
-	srv = &Service[T]{
+	srv = &Service[T, R]{
 		ctx:  ctx,
 		log:  log.With("service", label),
 		conf: conf,
@@ -49,8 +50,8 @@ func New[T Model](ctx context.Context, log *slog.Logger, conf *config.Config) (s
 // Default creates a service by calling `New` and swallowing any errors.
 //
 // Errors are logged, but not shared
-func Default[T Model](ctx context.Context, log *slog.Logger, conf *config.Config) (srv *Service[T]) {
-	srv, err := New[T](ctx, log, conf)
+func Default[T Response, R Result](ctx context.Context, log *slog.Logger, conf *config.Config) (srv *Service[T, R]) {
+	srv, err := New[T, R](ctx, log, conf)
 	if err != nil {
 		log.Error("error with default", "err", err.Error())
 	}

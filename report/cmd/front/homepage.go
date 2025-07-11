@@ -1,18 +1,18 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
 	"context"
 	"log/slog"
 	"net/http"
 	"opg-reports/report/config"
-	"opg-reports/report/internal/htmlpage"
-	"opg-reports/report/internal/utils"
+	"opg-reports/report/internal/endpoints"
+	"opg-reports/report/internal/page"
 )
 
 type homepageData struct {
-	htmlpage.HtmlPage
+	page.PageContent
+
+	CostsByMonth []map[string]string
 }
 
 // handleHomepage
@@ -26,25 +26,17 @@ func handleHomepage(
 	request *http.Request,
 ) {
 	var (
-		byteBuffer   = new(bytes.Buffer)
-		buffer       = bufio.NewWriter(byteBuffer)
-		templates    = htmlpage.GetTemplateFiles(info.TemplateDir)
+		templates    = page.GetTemplateFiles(info.TemplateDir)
 		templateName = "index"
-		data         = htmlpage.DefaultContent(conf, request)
-		page         = htmlpage.New(templates, utils.TemplateFunctions())
+		data         = page.DefaultContent(conf, request)
+		endpoint     = endpoints.AWSCOSTS_GROUPED
 	)
 	data.Teams = info.Teams
-	log.Info("processing page", "url", request.URL.String())
-	// call page WriteToBuffer to run the template stack and write to buffer
-	page.WriteToBuffer(buffer, templateName, data)
-	// write ok status & content type to response
-	writer.WriteHeader(http.StatusOK)
-	writer.Header().Set("Content-Type", "text/html")
-	// force flush the underlying buffer to make sure all content is updated
-	buffer.Flush()
-	// write content to the response
-	writer.Write(byteBuffer.Bytes())
 
+	log.Info("processing page", "url", request.URL.String())
+	log.Info("getting data from", "endpoint", endpoint)
+
+	Respond(writer, request, templateName, templates, data)
 }
 
 func RegisterHomepageHandlers(

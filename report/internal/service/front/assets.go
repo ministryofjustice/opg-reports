@@ -13,7 +13,7 @@ import (
 // DownloadGovUKFrontEnd fetches the govuk front end generated release files
 // directly from github based on the configuration values (Config.GovUK) to
 // the local file system and extracts the zip into the directory stated
-func (self *Service[T]) DownloadGovUKFrontEnd(
+func (self *Service[T, R]) DownloadGovUKFrontEnd(
 	client githubr.ClientRepositoryReleases,
 	store githubr.RepositoryReleasesGetOneDownloader,
 	directory string,

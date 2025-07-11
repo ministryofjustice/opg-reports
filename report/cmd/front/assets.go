@@ -17,10 +17,10 @@ func DownloadGovUKFrontEnd(
 ) (err error) {
 
 	var (
-		assetDir   = info.AssetRoot //filepath.Join(conf.GovUK.Front.Directory)
+		assetDir   = info.AssetRoot
 		client     = githubr.DefaultClient(conf).Repositories
 		store      = githubr.Default(ctx, log, conf)
-		downloader = front.Default[*struct{}](ctx, log, conf)
+		downloader = front.Default[*struct{}, *struct{}](ctx, log, conf)
 	)
 
 	files, _, err := downloader.DownloadGovUKFrontEnd(client, store, assetDir)

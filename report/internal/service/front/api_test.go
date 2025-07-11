@@ -22,6 +22,15 @@ type bankHols struct {
 	NorthernIreland *holidays `json:"northern-ireland"`
 }
 
+func bhGet(resp *bankHols) (result *holidays, err error) {
+	if resp == nil {
+		return
+	}
+	result = resp.EnglandAndWales
+	result.Division = "TEST"
+	return
+}
+
 func TestFrontGetFromAPI(t *testing.T) {
 	var (
 		err    error
@@ -31,20 +40,14 @@ func TestFrontGetFromAPI(t *testing.T) {
 		log    = utils.Logger("ERROR", "TEXT")
 		conf   = config.NewConfig()
 		client = restr.Default(ctx, log, conf)
-		res    = &bankHols{}
+		res    = &holidays{}
 	)
 
 	conf.Servers.Api.Addr = addr
 	conf.Servers.Front.Timeout = (2 * time.Second)
 
-	srv := Default[*bankHols](ctx, log, conf)
-	res, err = srv.GetFromAPI(client, ep, func(res *bankHols) (e error) {
-		if res == nil {
-			return
-		}
-		res.EnglandAndWales.Division = "TEST"
-		return
-	})
+	srv := Default[*bankHols, *holidays](ctx, log, conf)
+	res, err = srv.GetFromAPI(client, ep, bhGet)
 
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
@@ -52,7 +55,7 @@ func TestFrontGetFromAPI(t *testing.T) {
 	if res == nil {
 		t.Error("unexpected empty result")
 	}
-	if res.EnglandAndWales.Division != "TEST" {
+	if res.Division != "TEST" {
 		t.Error("post processer failed to change values in resulting data")
 	}
 

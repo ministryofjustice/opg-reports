@@ -14,17 +14,18 @@ import (
 //
 //   - endpoint should have any substituions replaced and query strings added, the api host is added in this function via config values
 //   - postProcessers should handle nil checks on the response result passed in
-func (self *Service[T]) GetFromAPI(client restr.RepositoryRestGetter, endpoint string, postProcessors ...func(result T) (err error)) (result T, err error) {
+func (self *Service[T, R]) GetFromAPI(client restr.RepositoryRestGetter, endpoint string, postProcessor func(response T) (R, error)) (result R, err error) {
 	var (
 		code  int
 		uri   = fmt.Sprintf("%s/%s", self.conf.Servers.Api.Addr, endpoint)
 		httpc = http.Client{Timeout: self.conf.Servers.Front.Timeout}
 		log   = self.log.With("operation", "GetFromAPI", "uri", uri)
+		resp  T
 	)
 
 	log.Debug("calling api ... ")
 	// fetch the result from the api, and convert to T
-	code, err = client.Get(httpc, uri, &result)
+	code, err = client.Get(httpc, uri, &resp)
 	if err != nil {
 		log.Error("error calling endpoint", "err", err.Error())
 		return
@@ -33,10 +34,9 @@ func (self *Service[T]) GetFromAPI(client restr.RepositoryRestGetter, endpoint s
 		err = fmt.Errorf("status code error, expected [%v] actual [%v]", http.StatusOK, code)
 		return
 	}
-	// run all post processors against the result
-	for _, pf := range postProcessors {
+	if postProcessor != nil {
 		log.Debug("calling post processor ...")
-		err = pf(result)
+		result, err = postProcessor(resp)
 	}
 
 	return
