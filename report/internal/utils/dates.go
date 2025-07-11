@@ -19,9 +19,9 @@ var DATE_FORMATS = &dateFormats{
 }
 
 var GRANULARITY_TO_FORMAT = map[string]string{
-	"year":  "%Y",
-	"month": "%Y-%m",
-	"day":   "%Y-%m-%d",
+	"yearly":  "%Y",
+	"monthly": "%Y-%m",
+	"daily":   "%Y-%m-%d",
 }
 
 // TimeInterval
@@ -29,10 +29,10 @@ type TimeInterval string
 
 // Enum values for TimeInterval
 const (
-	TimeIntervalYear  TimeInterval = "year"
-	TimeIntervalMonth TimeInterval = "month"
-	TimeIntervalDay   TimeInterval = "day"
-	TimeIntervalHour  TimeInterval = "hour"
+	TimeIntervalYear  TimeInterval = "yearly"
+	TimeIntervalMonth TimeInterval = "monthly"
+	TimeIntervalDay   TimeInterval = "daily"
+	TimeIntervalHour  TimeInterval = "hourly"
 )
 
 func (TimeInterval) Values() []TimeInterval {

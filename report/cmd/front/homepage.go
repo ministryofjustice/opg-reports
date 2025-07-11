@@ -11,7 +11,6 @@ import (
 
 type homepageData struct {
 	page.PageContent
-
 	CostsByMonth []map[string]string
 }
 
@@ -26,15 +25,26 @@ func handleHomepage(
 	request *http.Request,
 ) {
 	var (
-		templates    = page.GetTemplateFiles(info.TemplateDir)
-		templateName = "index"
-		data         = page.DefaultContent(conf, request)
-		endpoint     = endpoints.AWSCOSTS_GROUPED
+		// allTeamsSrv    = front.Default[*apiAllTeams, []string](ctx, log, conf)
+		templates      = page.GetTemplateFiles(info.TemplateDir)
+		templateName   = "index"
+		defaultContent = page.DefaultContent(conf, request)
+		data           = &homepageData{PageContent: defaultContent}
 	)
-	data.Teams = info.Teams
 
 	log.Info("processing page", "url", request.URL.String())
-	log.Info("getting data from", "endpoint", endpoint)
+	// handle page components
+	data.Teams, _ = Components.TeamNavigation.Call(info.RestClient, endpoints.TEAMS_GET_ALL)
+	data.CostsByMonth, _ = Components.AwsCostsGroupedByMonth.Call(
+		info.RestClient,
+		endpoints.Parse(
+			endpoints.AWSCOSTS_GROUPED,
+			map[string]string{
+				"granularity": "monthly",
+				"start_date":  "2025-01-01",
+				"end_date":    "2025-02-01",
+			},
+		))
 
 	Respond(writer, request, templateName, templates, data)
 }

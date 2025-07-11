@@ -33,7 +33,7 @@ type GetAwsGroupedCostsResponse[T api.Model] struct {
 // This allows the handler to process a large range of AWS cost queries
 // via the same endpoint.
 type GroupedAwsCostsInput struct {
-	Granularity string `json:"granularity,omitempty" path:"granularity" default:"month" enum:"year,month,day" doc:"Determine if the data is grouped by year, month or day."`
+	Granularity string `json:"granularity,omitempty" path:"granularity" default:"monthly" enum:"yearly,monthly" doc:"Determine if the data is grouped by year, month or day."`
 	StartDate   string `json:"start_date,omitempty" path:"start_date" required:"true" doc:"Earliest date to return data from (uses >=). YYYY-MM-DD." example:"2024-03-01" pattern:"([0-9]{4}-[0-9]{2}-[0-9]{2})"`
 	EndDate     string `json:"end_date,omitempty" path:"end_date" required:"true" doc:"Latest date to capture the data for (uses <). YYYY-MM-DD."  example:"2024-04-01" pattern:"([0-9]{4}-[0-9]{2}-[0-9]{2})"`
 

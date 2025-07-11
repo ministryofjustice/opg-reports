@@ -55,7 +55,7 @@ func awscostsCmdRunner(
 	opts := &awsr.GetCostDataOptions{
 		StartDate:   start.Format(utils.DATE_FORMATS.YMD),
 		EndDate:     end.Format(utils.DATE_FORMATS.YMD),
-		Granularity: types.GranularityDaily,
+		Granularity: types.GranularityMonthly,
 	}
 	// get the raw data from the api
 	data, err := ceStore.GetCostData(ceClient, opts)

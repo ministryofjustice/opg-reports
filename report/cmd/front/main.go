@@ -28,7 +28,6 @@ type FrontInfo struct {
 	GovUKAssetDir string            // GovUKAssetDir sits under the AssetRoot nad contains downloaded items from gvuk-frontend
 	LocalAssetDir string            // LocalAssetDir stores overwrites and assets custom to this project
 	TemplateDir   string            // TemplateDir contains all of our templates (using .html files)
-	Teams         []string          // Teams is a list of team names that we use for navigation on every page
 	RestClient    *restr.Repository // RestClient is used to make calls to the api via a service
 }
 
@@ -76,7 +75,6 @@ func init() {
 	govdir = filepath.Clean(conf.GovUK.Front.Directory)
 
 	Info = &FrontInfo{
-		Teams:         []string{},
 		GovUKAssetDir: govdir,
 		AssetRoot:     filepath.Dir(govdir),
 		LocalAssetDir: filepath.Join(filepath.Dir(govdir), "local-assets"),
@@ -94,5 +92,6 @@ func init() {
 }
 
 func main() {
+	initComponents(ctx, log, conf)
 	rootCmd.Execute()
 }

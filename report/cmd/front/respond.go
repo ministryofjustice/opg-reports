@@ -8,6 +8,9 @@ import (
 	"opg-reports/report/internal/utils"
 )
 
+// Respond handles running the html/template stack with all
+// the functions and data and writes the result to the response
+// writers buffer for returning to user
 func Respond(
 	writer http.ResponseWriter,
 	request *http.Request,
