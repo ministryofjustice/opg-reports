@@ -946,7 +946,8 @@ func TestFrontparseAwsCostsGrouped(t *testing.T) {
 	utils.Unmarshal([]byte(exampleCostResponse), &resp)
 
 	dt, _ := parseAwsCostsGrouped(resp)
-	utils.Debug(dt)
+	if len(dt.DataHeaders) <= 0 {
+		t.Error("failed with data headers")
+	}
 
-	t.Fail()
 }

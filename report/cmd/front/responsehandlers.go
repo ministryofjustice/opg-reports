@@ -69,7 +69,5 @@ func parseAwsCostsGrouped(response *apiResponseAwsCostsGrouped) (dt *dataTable, 
 		Footer:       utils.ColumnTotals(body, sumCols, extratotals...),
 	}
 
-	utils.Debug(dt)
-
 	return
 }
