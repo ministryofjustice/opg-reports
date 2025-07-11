@@ -163,11 +163,11 @@ type AwsCostGrouped struct {
 	Date    string `json:"date,omitempty" db:"date" example:"2019-08-24"`                       // The data the cost was incurred - provided from the cost explorer result
 	Cost    string `json:"cost,omitempty" db:"cost" example:"-10.537"`                          // The actual cost value as a string - without an currency, but is USD by default
 	// Fields captured via joins in the sql
-	TeamName              string `json:"team_name,omitempty" db:"team_name"`
-	AwsAccountID          string `json:"aws_account_id,omitempty" db:"aws_account_id"`
-	AwsAccountName        string `json:"aws_account_name,omitempty" db:"account_name"`
-	AwsAccountLabel       string `json:"aws_account_label,omitempty" db:"account_label"`
-	AwsAccountEnvironment string `json:"aws_account_environment,omitempty" db:"environment"`
+	TeamName              string `json:"team,omitempty" db:"team_name"`
+	AwsAccountID          string `json:"account,omitempty" db:"aws_account_id"`
+	AwsAccountName        string `json:"account_name,omitempty" db:"account_name"`
+	AwsAccountLabel       string `json:"label,omitempty" db:"account_label"`
+	AwsAccountEnvironment string `json:"environment,omitempty" db:"environment"`
 }
 
 // awsAccount is used to capture sql join data
@@ -241,6 +241,32 @@ type GetGroupedCostsOptions struct {
 	Service     utils.TrueOrFilter
 	Account     utils.TrueOrFilter
 	Environment utils.TrueOrFilter
+}
+
+// Groups is used to show how the costs where grouped together. Typically
+// this is used by api recievers to generate table headers and so on
+//
+// Order does matter: Team, Environment, Account, Service, Region
+func (self *GetGroupedCostsOptions) Groups() (groups []string) {
+	groups = []string{}
+
+	if self.Team == "true" {
+		groups = append(groups, "team")
+	}
+	if self.Environment == "true" {
+		groups = append(groups, "environment")
+	}
+	if self.Account == "true" {
+		groups = append(groups, "account", "label")
+	}
+	if self.Service == "true" {
+		groups = append(groups, "service")
+	}
+	if self.Region == "true" {
+		groups = append(groups, "region")
+	}
+
+	return
 }
 
 // Statement converts the configured options to a bound statement and provides the

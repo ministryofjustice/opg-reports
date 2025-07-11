@@ -13,7 +13,7 @@ import (
 
 type homepageData struct {
 	page.PageContent
-	CostsByMonth []map[string]string
+	CostsByMonth *dataTable
 }
 
 // homepageParams provides the values for placeholders in the api endpoints we
@@ -25,7 +25,7 @@ func homepageParams(conf *config.Config) (defaults map[string]string) {
 	var (
 		now       = time.Now().UTC()
 		endDate   = utils.BillingMonth(now, conf.Aws.BillingDate)
-		startDate = endDate.AddDate(0, -4, 0)
+		startDate = endDate.AddDate(0, -6, 1)
 	)
 
 	defaults = map[string]string{
@@ -61,11 +61,11 @@ func handleHomepage(
 		params         = utils.MergeRequestWithDefaults(request, homepageParams(conf)) // merge the api parameters with one from the current request
 	)
 	log.Info("processing page", "url", request.URL.String())
+
 	// handle page components
 	data.Teams, _ = Components.TeamNavigation.Call(info.RestClient, endpoints.TEAMS_GET_ALL)
-	data.CostsByMonth, _ = Components.AwsCostsGroupedByMonth.Call(
-		info.RestClient,
-		endpoints.Parse(endpoints.AWSCOSTS_GROUPED, params))
+
+	data.CostsByMonth, _ = Components.AwsCostsGroupedByMonth.Call(info.RestClient, endpoints.Parse(endpoints.AWSCOSTS_GROUPED, params))
 
 	Respond(writer, request, templateName, templates, data)
 }

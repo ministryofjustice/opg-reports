@@ -19,6 +19,8 @@ type GetAwsGroupedCostsResponse[T api.Model] struct {
 	Body struct {
 		Count   int                   `json:"count,omityempty"`
 		Request *GroupedAwsCostsInput `json:"request,omitempty"`
+		Dates   []string              `json:"dates,omitempty"`
+		Groups  []string              `json:"groups,omitempty"`
 		Data    []T                   `json:"data"`
 	}
 }
@@ -64,17 +66,13 @@ func RegisterGetAwsGroupedCosts[T api.Model](log *slog.Logger, conf *config.Conf
 // underlying service to run against the database about how the cost data is grouped together
 // and what fields are used within the select / where etc.
 func handleGetAwsGroupedCosts[T api.Model](
-	ctx context.Context,
-	log *slog.Logger,
-	conf *config.Config,
-	service api.AwsCostsGroupedGetter[T],
-	store sqlr.Reader,
+	ctx context.Context, log *slog.Logger, conf *config.Config,
+	service api.AwsCostsGroupedGetter[T], store sqlr.Reader,
 	input *GroupedAwsCostsInput,
 ) (response *GetAwsGroupedCostsResponse[T], err error) {
 	var costs []T = []T{}
 
 	response = &GetAwsGroupedCostsResponse[T]{}
-	response.Body.Request = input
 
 	if service == nil {
 		err = huma.Error500InternalServerError("failed to connect to service", err)
@@ -99,7 +97,10 @@ func handleGetAwsGroupedCosts[T api.Model](
 		err = huma.Error500InternalServerError("failed find grouped costs", err)
 		return
 	}
-
+	// set the response data
+	response.Body.Request = input
+	response.Body.Dates = utils.Months(input.StartDate, input.EndDate)
+	response.Body.Groups = options.Groups()
 	response.Body.Data = costs
 	response.Body.Count = len(costs)
 

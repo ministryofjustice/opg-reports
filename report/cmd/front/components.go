@@ -9,7 +9,7 @@ import (
 
 type allComponents struct {
 	TeamNavigation         *component.Component[*apiResponseTeams, []string]
-	AwsCostsGroupedByMonth *component.Component[*apiResponseAwsCostsGrouped, []map[string]string]
+	AwsCostsGroupedByMonth *component.Component[*apiResponseAwsCostsGrouped, *dataTable]
 }
 
 // List of all components

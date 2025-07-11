@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"net/http"
 	"opg-reports/report/internal/page"
 	"opg-reports/report/internal/utils"
@@ -11,6 +12,8 @@ import (
 // Respond handles running the html/template stack with all
 // the functions and data and writes the result to the response
 // writers buffer for returning to user
+//
+// TODO - error handling
 func Respond(
 	writer http.ResponseWriter,
 	request *http.Request,
@@ -24,7 +27,10 @@ func Respond(
 		page       = page.New(templates, utils.TemplateFunctions())
 	)
 	// call page WriteToBuffer to run the template stack and write to buffer
-	page.WriteToBuffer(buffer, templateName, data)
+	err := page.WriteToBuffer(buffer, templateName, data)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 	// write ok status & content type to response
 	writer.WriteHeader(http.StatusOK)
 	writer.Header().Set("Content-Type", "text/html")

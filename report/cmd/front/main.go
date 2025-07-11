@@ -62,7 +62,6 @@ env values that can be adjusted:
 
 		log.Info("Starting front server...")
 		log.Info(fmt.Sprintf("FRONT: [http://%s/]", addr))
-
 		server.ListenAndServe()
 
 		return

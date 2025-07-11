@@ -147,3 +147,57 @@ func BillingMonth(t time.Time, billingDay int) (billing time.Time) {
 	}
 	return
 }
+
+// timeAdd calls `AddDate` on `date` param and increments year / month / day by the quantity
+// requested.
+//
+// Used to generate loop condition for incrementing between two dates
+func timeAdd(date time.Time, quantity int, interval TimeInterval) (t time.Time) {
+	switch interval {
+	case TimeIntervalYear:
+		t = date.AddDate(quantity, 0, 0)
+	case TimeIntervalMonth:
+		t = date.AddDate(0, quantity, 0)
+	case TimeIntervalDay:
+		t = date.AddDate(0, 0, quantity)
+	}
+	return
+}
+
+// Times generates all the time.Time values between the start and end times passed, incrementing by the
+// interval.
+func Times(start time.Time, end time.Time, interval TimeInterval, increment int) (times []time.Time) {
+	times = []time.Time{}
+	start = TimeReset(start, interval)
+	end = TimeReset(end, interval)
+
+	for d := start; d.After(end) == false; d = timeAdd(d, increment, interval) {
+		times = append(times, d)
+	}
+	return
+}
+
+// Months is an opinated wrapper around Times that fixes the interval to month and returns
+// string formatted values instead of time.Time
+//
+// Generally used for display headers etc
+func Months(start string, end string) (months []string) {
+	var err error
+	var startD, endD time.Time
+	var times []time.Time
+
+	startD, err = StringToTime(start)
+	if err != nil {
+		return
+	}
+	endD, err = StringToTime(end)
+	if err != nil {
+		return
+	}
+	times = Times(startD, endD, TimeIntervalMonth, 1)
+	for _, item := range times {
+		months = append(months, item.Format(DATE_FORMATS.YM))
+	}
+
+	return
+}

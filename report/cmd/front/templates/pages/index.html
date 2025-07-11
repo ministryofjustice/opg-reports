@@ -1,4 +1,7 @@
 {{- define "index" -}}
     {{- template "head" . -}}
+
+    {{ template "costs-table" .CostsByMonth }}
+
     {{- template "foot" . -}}
 {{- end -}}
