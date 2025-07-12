@@ -88,6 +88,7 @@ func init() {
 	log.Info(fmt.Sprintf("GOVUK ASSET DIR: [%s]", Info.GovUKAssetDir))
 	log.Info(fmt.Sprintf("LOCAL ASSET DIR: [%s]", Info.LocalAssetDir))
 	log.Info(fmt.Sprintf("TEMPLATE DIR: [%s]", Info.TemplateDir))
+	log.Info(fmt.Sprintf("API: [http://%s/]", conf.Servers.Api.Addr))
 
 	if !utils.DirExists(conf.GovUK.Front.Directory) {
 		DownloadGovUKFrontEnd(ctx, log, conf, Info)
@@ -95,6 +96,5 @@ func init() {
 }
 
 func main() {
-	initComponents(ctx, log, conf)
 	rootCmd.Execute()
 }

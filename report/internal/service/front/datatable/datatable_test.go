@@ -1,21 +1,9 @@
-package utils
+package datatable
 
 import (
-	"reflect"
+	"opg-reports/report/internal/utils"
 	"testing"
 )
-
-func TestTableHeaderRow(t *testing.T) {
-	var headers = []string{"team", "environment"}
-	var dates = []string{"2025-04", "2025-05"}
-	var expected = []string{"team", "environment", "2025-04", "2025-05"}
-
-	actual := TableHeaderRow(headers, dates)
-	if !reflect.DeepEqual(expected, actual) {
-		t.Errorf("header not as expected")
-	}
-
-}
 
 var rawData string = `
 [
@@ -940,21 +928,13 @@ func TestTableGeneration(t *testing.T) {
 	var dates = []string{"2025-03", "2025-04", "2025-05"}
 
 	// make a data source
-	err = Unmarshal([]byte(rawData), &data)
+	err = utils.Unmarshal([]byte(rawData), &data)
 	if err != nil {
 		t.Errorf("failed to unmarshal example data")
 		t.FailNow()
 	}
-	// force extra date rows for the combo generation to make sure all
-	// times are covered
-	extras := DummyRows(dates, "date")
-	if len(extras) != len(dates) {
-		t.Errorf("date rows failed: [%v] [%v]", len(extras), len(extras[0]))
-	}
 
-	// combine the extra data rows and the core data
-	allData := append(data, extras...)
-	possibles, u := PossibleCombinationsAsKeys(allData, identifiers)
+	possibles, u := PossibleCombinationsAsKeys(data, identifiers)
 
 	// the number of possible combinations should be based on the number
 	// of unique values per column
@@ -982,4 +962,18 @@ func TestTableGeneration(t *testing.T) {
 		t.Error("failed to parse totals")
 	}
 
+}
+
+func TestTransformersPermutations(t *testing.T) {
+
+	var checkN = []string{"1", "2", "3"}
+	var checkA = []string{"A", "B"}
+	var check = [][]string{checkN, checkA}
+	var expected = len(checkN) * len(checkA)
+
+	p := Permutations(check...)
+	actual := len(p)
+	if actual != expected {
+		t.Errorf("permutation length mismtach")
+	}
 }

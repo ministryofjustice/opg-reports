@@ -27,18 +27,24 @@ func RegisterStaticHandlers(
 	info *FrontInfo,
 	mux *http.ServeMux,
 ) {
-	log.Info("registering static handlers ...")
+	log.Info("registering handler [`/assets/`] ...")
 	// Static assets
 	// /assets/ is hardcorded in the govuk css and js for where fonts / images are, so map that to the filesystem (./govuk/assets/)
 	// 		http://localhost:8080/assets/images/govuk-icon-180.png
 	mux.Handle("/assets/", http.FileServer(http.Dir(info.GovUKAssetDir)))
+
+	log.Info("registering handler [`/local-assets/`] ...")
 	// /local-assets/ contain our css overwrites, extra images / js and so on
 	//		http://localhost:8080/local-assets/css/local.css
 	mux.Handle("/local-assets/", http.StripPrefix("/local-assets/", http.FileServer(http.Dir(info.LocalAssetDir))))
+
+	log.Info("registering handler [`/govuk/`] ...")
 	// /govuk/ is path we use to include css / js, so capture and point to the gov uk directory
 	// 		http://localhost:8080/govuk/VERSION.TXT
 	// 		http://localhost:8080/govuk/govuk-frontend-5.11.0.min.css
 	mux.Handle("/govuk/", http.StripPrefix("/govuk/", http.FileServer(http.Dir(info.GovUKAssetDir))))
+
+	log.Info("registering handler [`/favicon.ico`] ...")
 	// ignore favicons
 	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)

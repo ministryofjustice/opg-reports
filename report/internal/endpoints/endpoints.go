@@ -39,6 +39,8 @@ const (
 //
 // query string items are appending in alphabetical order based on their
 // key - so `/test?a=value&b=value`
+//
+// A value of "-" will skip a query string
 func Parse(endpoint string, values map[string]string) (ep string) {
 	var queryStrings = []string{}
 	ep = endpoint
@@ -57,7 +59,9 @@ func Parse(endpoint string, values map[string]string) (ep string) {
 		ep += "?"
 		for _, key := range queryStrings {
 			value := values[key]
-			ep += fmt.Sprintf("%s=%s&", key, value)
+			if value != "-" {
+				ep += fmt.Sprintf("%s=%s&", key, value)
+			}
 		}
 		ep = strings.TrimSuffix(ep, "&")
 	}

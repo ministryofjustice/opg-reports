@@ -5,37 +5,15 @@ import (
 	"log/slog"
 	"net/http"
 	"opg-reports/report/config"
-	"opg-reports/report/internal/endpoints"
 	"opg-reports/report/internal/page"
-	"opg-reports/report/internal/utils"
-	"time"
+	"opg-reports/report/internal/repository/restr"
+	"opg-reports/report/internal/service/front"
+	"opg-reports/report/internal/service/front/datatable"
 )
 
 type homepageData struct {
 	page.PageContent
-	CostsByMonth *dataTable
-}
-
-// homepageParams provides the values for placeholders in the api endpoints we
-// call on the homepage for costs and others
-//
-// This is then merged with http.Request.URL.Query() values so they can
-// be overwritten by front end (to view other months etc)
-func homepageParams(conf *config.Config) (defaults map[string]string) {
-	var (
-		now       = time.Now().UTC()
-		endDate   = utils.BillingMonth(now, conf.Aws.BillingDate)
-		startDate = endDate.AddDate(0, -6, 1)
-	)
-
-	defaults = map[string]string{
-		"start_date":  startDate.Format(utils.DATE_FORMATS.YMD),
-		"end_date":    endDate.Format(utils.DATE_FORMATS.YMD),
-		"granularity": string(utils.GranularityMonth),
-		"team":        "true",
-	}
-
-	return
+	CostsByMonth *datatable.DataTable
 }
 
 // handleHomepage renders the request for `/` which currently displays:
@@ -54,18 +32,18 @@ func handleHomepage(
 	writer http.ResponseWriter, request *http.Request,
 ) {
 	var (
-		templateName   = "index"                                                       // homepage uses the index template
-		templates      = page.GetTemplateFiles(info.TemplateDir)                       // all templates in the directory path
-		defaultContent = page.DefaultContent(conf, request)                            // fetch the baseline values to render the page
-		data           = &homepageData{PageContent: defaultContent}                    // create the data that will be used in rendering the template
-		params         = utils.MergeRequestWithDefaults(request, homepageParams(conf)) // merge the api parameters with one from the current request
+		templateName   string            = "index"                                    // homepage uses the index template
+		templates      []string          = page.GetTemplateFiles(info.TemplateDir)    // all templates in the directory path
+		defaultContent page.PageContent  = page.DefaultContent(conf, request)         // fetch the baseline values to render the page
+		data           *homepageData     = &homepageData{PageContent: defaultContent} // create the data that will be used in rendering the template
+		client         *restr.Repository = restr.Default(ctx, log, conf)
+		service        *front.Service    = front.Default(ctx, log, conf)
 	)
 	log.Info("processing page", "url", request.URL.String())
-
-	// handle page components
-	data.Teams, _ = Components.TeamNavigation.Call(info.RestClient, endpoints.TEAMS_GET_ALL)
-
-	data.CostsByMonth, _ = Components.AwsCostsGroupedByMonth.Call(info.RestClient, endpoints.Parse(endpoints.AWSCOSTS_GROUPED, params))
+	// get list of teams
+	data.Teams, _ = service.GetTeamNavigation(client, request)
+	// get costs grouped by month
+	data.CostsByMonth, _ = service.GetAwsCostsGrouped(client, request, map[string]string{"team": "true"})
 
 	Respond(writer, request, templateName, templates, data)
 }
@@ -79,7 +57,7 @@ func RegisterHomepageHandlers(
 	info *FrontInfo,
 	mux *http.ServeMux,
 ) {
-	log.Info("registering homepage handlers ...")
+	log.Info("registering handler [`/`] ...")
 	// Homepage
 	mux.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		handleHomepage(ctx, log, conf, info, writer, request)

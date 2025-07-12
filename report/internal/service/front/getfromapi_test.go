@@ -46,8 +46,7 @@ func TestFrontGetFromAPI(t *testing.T) {
 	conf.Servers.Api.Addr = addr
 	conf.Servers.Front.Timeout = (2 * time.Second)
 
-	srv := Default[*bankHols, *holidays](ctx, log, conf)
-	res, err = srv.GetFromAPI(client, ep, bhGet)
+	res, err = getFromAPI[*bankHols, *holidays](ctx, log, conf, client, ep, bhGet)
 
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())

@@ -1,4 +1,4 @@
-package utils
+package datatable
 
 import "bytes"
 

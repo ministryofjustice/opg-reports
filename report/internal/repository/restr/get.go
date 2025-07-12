@@ -38,6 +38,7 @@ func parseURI(uri string) (parsed string, err error) {
 	if u.Scheme == "" {
 		u.Scheme = "http"
 	}
+
 	parsed = u.String()
 	// Sometimes when the scheme is not stated the
 	// String() may not add one, so look for the ://

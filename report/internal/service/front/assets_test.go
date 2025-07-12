@@ -18,7 +18,7 @@ func TestFrontServiceDownloadGovUKFrontEnd(t *testing.T) {
 		conf   = config.NewConfig()
 		client = githubr.DefaultClient(conf).Repositories
 		store  = githubr.Default(ctx, log, conf)
-		serv   = Default[*struct{}, *struct{}](ctx, log, conf)
+		serv   = Default(ctx, log, conf)
 	)
 
 	files, _, err := serv.DownloadGovUKFrontEnd(client, store, dir)

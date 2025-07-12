@@ -42,7 +42,7 @@ func runner(ctx context.Context, log *slog.Logger, conf *config.Config) {
 		// startup
 		hooks.OnStart(func() {
 			log.Info("Starting api server...")
-			log.Info(fmt.Sprintf("DB: %s\n", conf.Database.Path))
+			log.Info(fmt.Sprintf("DB: %s", conf.Database.Path))
 			log.Info(fmt.Sprintf("API: [http://%s/]", addr))
 			log.Info(fmt.Sprintf("Docs: [http://%s/docs]", addr))
 
