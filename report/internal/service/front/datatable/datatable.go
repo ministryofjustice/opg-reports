@@ -1,5 +1,7 @@
 package datatable
 
+import "fmt"
+
 var emptyCell = "0.00"
 
 type ResponseBody interface {
@@ -27,21 +29,33 @@ type DataTable struct {
 	Footer       map[string]string
 }
 
-func New(response ResponseBody) (dt *DataTable) {
+func New(response ResponseBody) (dt *DataTable, err error) {
 	var (
-		totalCol     = response.HasRowTotals()
-		trendCol     = response.HasTrendColumn()
-		dataheaders  = response.DataHeaders()
-		identifiers  = response.Identifiers()
-		paddedData   = response.PaddedDataRows()
-		possibles, _ = PossibleCombinationsAsKeys(paddedData, identifiers)
-		skeleton     = SkeletonTable(possibles, response.Cells())
-		populated    = PopulateTable(response.DataRows(),
-			skeleton, identifiers, response.TransformColumn(), response.ValueColumn())
-		extraHeaders = []string{}
-		extratotals  = identifiers
-		sums         = response.SumColumns()
+		possibles    []string
+		skeleton     map[string]map[string]string
+		populated    map[string]map[string]string
+		dataRows     []map[string]string = response.DataRows()
+		totalCol     string              = response.HasRowTotals()
+		trendCol     string              = response.HasTrendColumn()
+		dataheaders  []string            = response.DataHeaders()
+		identifiers  []string            = response.Identifiers()
+		paddedData   []map[string]string = response.PaddedDataRows()
+		extraHeaders []string            = []string{}
+		extratotals  []string            = identifiers
+		sums         []string            = response.SumColumns()
+		transform    string              = response.TransformColumn()
+		value        string              = response.ValueColumn()
 	)
+	// if there are no idenfifiers, this fails!
+	if len(identifiers) <= 0 {
+		err = fmt.Errorf("no grouping data found in api result, so cannot create datatable")
+		return
+	}
+
+	possibles, _ = PossibleCombinationsAsKeys(paddedData, identifiers)
+	skeleton = SkeletonTable(possibles, response.Cells())
+	populated = PopulateTable(dataRows, skeleton, identifiers, transform, value)
+
 	// split logic as it matters where in the order trend and total are injected
 	if trendCol != "" {
 		extraHeaders = append(extraHeaders, trendCol)

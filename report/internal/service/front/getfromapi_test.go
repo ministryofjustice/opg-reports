@@ -35,7 +35,7 @@ func TestFrontGetFromAPI(t *testing.T) {
 	var (
 		err    error
 		addr   = `https://www.gov.uk`
-		ep     = "bank-holidays.json?month=10"
+		ep     = "/bank-holidays.json?month=10"
 		ctx    = context.TODO()
 		log    = utils.Logger("ERROR", "TEXT")
 		conf   = config.NewConfig()
@@ -46,7 +46,7 @@ func TestFrontGetFromAPI(t *testing.T) {
 	conf.Servers.Api.Addr = addr
 	conf.Servers.Front.Timeout = (2 * time.Second)
 
-	res, err = getFromAPI[*bankHols, *holidays](ctx, log, conf, client, ep, bhGet)
+	res, err = getFromAPI(ctx, log, conf, client, ep, bhGet)
 
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())

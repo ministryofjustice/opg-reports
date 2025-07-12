@@ -86,7 +86,7 @@ func (self *Service) GetAwsCostsGrouped(client restr.RepositoryRestGetter, reque
 //
 // The conversion is messy!
 func parseAwsCostsGroupedF(response *apiResponseAwsCostsGrouped) (dt *datatable.DataTable, err error) {
-	dt = datatable.New(response)
+	dt, err = datatable.New(response)
 	return
 }
 

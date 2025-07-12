@@ -1,0 +1,7 @@
+{{- define "team" -}}
+    {{- template "head" . -}}
+    <h1 class="govuk-heading-xl">{{ .TeamName | Title }} </h1>
+    {{ template "costs-table" .CostsByMonth }}
+
+    {{- template "foot" . -}}
+{{- end -}}

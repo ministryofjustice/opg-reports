@@ -16,20 +16,38 @@ type PageContent struct {
 	Signature    string // Signature is combination of the semver & git commit
 	RequestPath0 string // First segment of Request.URL.String()
 	RequestPath1 string // Second segment of Request.URL.String()
+	RequestPath2 string // Third segment of Request.URL.String()
+	RequestPath3 string // Fourth segment of Request.URL.String()
 
 	Teams []string
 }
 
 func DefaultContent(conf *config.Config, request *http.Request) (pg PageContent) {
-	paths := strings.Split(request.URL.String(), "/")
+	var (
+		uri   string   = strings.TrimPrefix(request.URL.String(), "/")
+		paths []string = strings.Split(uri, "/")
+	)
+
 	pg = PageContent{
 		Name:         conf.Servers.Front.Name,
 		GovUKVersion: strings.TrimPrefix(conf.GovUK.Front.ReleaseTag, "v"),
 		Signature:    conf.Versions.Signature(),
-		RequestPath0: paths[0],
 	}
-	if len(paths) > 0 {
+	if len(paths) == 0 {
+		pg.RequestPath0 = ""
+	}
+
+	if len(paths) >= 1 {
+		pg.RequestPath0 = paths[0]
+	}
+	if len(paths) >= 2 {
 		pg.RequestPath1 = paths[1]
+	}
+	if len(paths) >= 3 {
+		pg.RequestPath2 = paths[2]
+	}
+	if len(paths) >= 4 {
+		pg.RequestPath3 = paths[3]
 	}
 	return
 }

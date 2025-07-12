@@ -224,6 +224,7 @@ type sqlParams struct {
 	Service     string `json:"service,omitempty" db:"service"`
 	Team        string `json:"team_name,omitempty" db:"team_name"`
 	Account     string `json:"aws_account_id,omitempty" db:"aws_account_id"`
+	AccountName string `json:"aws_account_name,omitempty" db:"aws_account_name"`
 	Environment string `json:"environment,omitempty" db:"environment"`
 }
 
@@ -240,6 +241,7 @@ type GetGroupedCostsOptions struct {
 	Region      utils.TrueOrFilter
 	Service     utils.TrueOrFilter
 	Account     utils.TrueOrFilter
+	AccountName utils.TrueOrFilter
 	Environment utils.TrueOrFilter
 }
 
@@ -257,7 +259,10 @@ func (self *GetGroupedCostsOptions) Groups() (groups []string) {
 		groups = append(groups, "environment")
 	}
 	if self.Account == "true" {
-		groups = append(groups, "account", "label")
+		groups = append(groups, "account", "environment")
+	}
+	if self.AccountName == "true" {
+		groups = append(groups, "account_name")
 	}
 	if self.Service == "true" {
 		groups = append(groups, "service")
@@ -334,9 +339,10 @@ func (self *GetGroupedCostsOptions) Statement() (bound *sqlr.BoundStatement, par
 	if self.Service.Orderable() {
 		orderby += fmt.Sprintf("%s ASC,", "service")
 	}
+
 	// Account - tag name & label as well, the account id is unique
 	if self.Account.Selectable() {
-		selected += fmt.Sprintf("%s, %s, %s,", "aws_account_id", "aws_accounts.name as account_name", "aws_accounts.label as account_label")
+		selected += fmt.Sprintf("%s, %s, %s, %s,", "aws_account_id", "aws_accounts.name as account_name", "aws_accounts.label as account_label", "aws_accounts.environment as environment")
 	}
 	if self.Account.Whereable() {
 		params.Account = string(self.Account)
@@ -348,6 +354,22 @@ func (self *GetGroupedCostsOptions) Statement() (bound *sqlr.BoundStatement, par
 	if self.Account.Orderable() {
 		orderby += fmt.Sprintf("%s ASC,", "aws_account_id")
 	}
+
+	// AccountName
+	if self.AccountName.Selectable() {
+		selected += fmt.Sprintf("%s,", "aws_accounts.name as account_name")
+	}
+	if self.AccountName.Whereable() {
+		params.AccountName = string(self.AccountName)
+		where += fmt.Sprintf("%s AND ", "aws_accounts.name=:aws_account_name")
+	}
+	if self.AccountName.Groupable() {
+		groupby += fmt.Sprintf("%s,", "aws_accounts.name")
+	}
+	if self.AccountName.Orderable() {
+		orderby += fmt.Sprintf("%s ASC,", "aws_accounts.name")
+	}
+
 	// Environment
 	if self.Environment.Selectable() {
 		selected += fmt.Sprintf("%s,", "aws_accounts.environment as environment")
