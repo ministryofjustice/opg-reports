@@ -21,10 +21,10 @@
 
             {{- if eq $top $team -}}
             <li class="govuk-service-navigation__item govuk-service-navigation__item--active">
-                <a class="govuk-service-navigation__link" href="/{{ $team | ToLower }}"><strong class="govuk-service-navigation__active-fallback">{{ $team }}</strong></a>
+                <a class="govuk-service-navigation__link" href="/team/{{ $team | ToLower }}/"><strong class="govuk-service-navigation__active-fallback">{{ $team }}</strong></a>
             </li>
             {{- else -}}
-            <li class="govuk-service-navigation__item"><a class="govuk-service-navigation__link" href="/{{ $team | ToLower }}">{{ $team }}</a></li>
+            <li class="govuk-service-navigation__item"><a class="govuk-service-navigation__link" href="/team/{{ $team | ToLower }}/">{{ $team }}</a></li>
             {{- end -}}
         {{- end -}}
 
