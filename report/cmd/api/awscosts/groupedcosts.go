@@ -43,6 +43,7 @@ type GroupedAwsCostsInput struct {
 	Region      string `json:"region,omitempty" query:"region" doc:"Group and filter flag for AWS region. When _true_ adds AWS region to group and selection, when any other value it becomes an exact match filter." example:"true|eu-west-1"`
 	Service     string `json:"service,omitempty" query:"service" doc:"Group and filter flag for AWS service name. When _true_ adds service name to group and selection, when any other value it becomes an exact match filter." example:"true|ECS"`
 	Account     string `json:"account,omitempty" query:"account" doc:"Group and filter flag for AWS account ID. When _true_ adds AWS account ID to group and selection, when any other value it becomes an exact match filter." example:"true|1000000001"`
+	Label       string `json:"account_label,omitempty" query:"account_label" doc:"Group and filter flag for AWS account label. When _true_ adds AWS account label to group and selection, when any other value it becomes an exact match filter." example:"true|service-name"`
 	AccountName string `json:"account_name,omitempty" query:"account_name" doc:"Group and filter flag for AWS account name. When _true_ adds AWS account name to group and selection, when any other value it becomes an exact match filter." example:"true|Account Name"`
 	Environment string `json:"environment,omitempty" query:"environment" enum:"development,preproduciton,production,backup,true" doc:"Group and filter flag for account environment type. When _true_ adds environment to group and selection, when any other value it becomes an exact match filter."`
 }
@@ -102,6 +103,7 @@ func handleGetAwsGroupedCosts[T api.Model](
 		Account:     utils.TrueOrFilter(input.Account),
 		AccountName: utils.TrueOrFilter(input.AccountName),
 		Environment: utils.TrueOrFilter(input.Environment),
+		Label:       utils.TrueOrFilter(input.Label),
 	}
 
 	costs, err = service.GetGroupedAwsCosts(store, options)

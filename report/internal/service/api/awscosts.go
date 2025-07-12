@@ -142,6 +142,19 @@ ORDER BY
 ;
 `
 
+type AwsCostGrouped struct {
+	Region  string `json:"region,omitempty" db:"region" example:"eu-west-1|eu-west-2|NoRegion"` // The AWS region
+	Service string `json:"service,omitempty" db:"service" example:"AWS service name"`           // The AWS service name
+	Date    string `json:"date,omitempty" db:"date" example:"2019-08-24"`                       // The data the cost was incurred - provided from the cost explorer result
+	Cost    string `json:"cost,omitempty" db:"cost" example:"-10.537"`                          // The actual cost value as a string - without an currency, but is USD by default
+	// Fields captured via joins in the sql
+	TeamName              string `json:"team,omitempty" db:"team_name"`
+	AwsAccountID          string `json:"account,omitempty" db:"aws_account_id"`
+	AwsAccountName        string `json:"account_name,omitempty" db:"aws_account_name"`
+	AwsAccountLabel       string `json:"account_label,omitempty" db:"aws_account_label"`
+	AwsAccountEnvironment string `json:"environment,omitempty" db:"aws_account_environment"`
+}
+
 // AwsCost
 type AwsCost struct {
 	Region  string `json:"region,omitempty" db:"region" example:"eu-west-1|eu-west-2|NoRegion"` // The AWS region
@@ -155,19 +168,6 @@ type AwsCost struct {
 	AwsAccount   *hasOneAwsAccount `json:"aws_account,omitempty" db:"aws_account"`
 	// Team joins
 	Team *costHasOneTeam `json:"team,omitempty" db:"team"`
-}
-
-type AwsCostGrouped struct {
-	Region  string `json:"region,omitempty" db:"region" example:"eu-west-1|eu-west-2|NoRegion"` // The AWS region
-	Service string `json:"service,omitempty" db:"service" example:"AWS service name"`           // The AWS service name
-	Date    string `json:"date,omitempty" db:"date" example:"2019-08-24"`                       // The data the cost was incurred - provided from the cost explorer result
-	Cost    string `json:"cost,omitempty" db:"cost" example:"-10.537"`                          // The actual cost value as a string - without an currency, but is USD by default
-	// Fields captured via joins in the sql
-	TeamName              string `json:"team,omitempty" db:"team_name"`
-	AwsAccountID          string `json:"account,omitempty" db:"aws_account_id"`
-	AwsAccountName        string `json:"account_name,omitempty" db:"account_name"`
-	AwsAccountLabel       string `json:"label,omitempty" db:"account_label"`
-	AwsAccountEnvironment string `json:"environment,omitempty" db:"environment"`
 }
 
 // awsAccount is used to capture sql join data
@@ -225,7 +225,8 @@ type sqlParams struct {
 	Team        string `json:"team_name,omitempty" db:"team_name"`
 	Account     string `json:"aws_account_id,omitempty" db:"aws_account_id"`
 	AccountName string `json:"aws_account_name,omitempty" db:"aws_account_name"`
-	Environment string `json:"environment,omitempty" db:"environment"`
+	Label       string `json:"aws_account_label,omitempty" db:"aws_account_label"`
+	Environment string `json:"aws_account_environment,omitempty" db:"aws_account_environment"`
 }
 
 // GetGroupedCostsOptions contains a series of values that determines
@@ -233,16 +234,17 @@ type sqlParams struct {
 // handling of multiple, similar sql queries that differ by which
 // columns are grouped or filtered
 type GetGroupedCostsOptions struct {
-	StartDate  string
-	EndDate    string
-	DateFormat string
+	StartDate  string `json:"-"`
+	EndDate    string `json:"-"`
+	DateFormat string `json:"-"`
 
-	Team        utils.TrueOrFilter
-	Region      utils.TrueOrFilter
-	Service     utils.TrueOrFilter
-	Account     utils.TrueOrFilter
-	AccountName utils.TrueOrFilter
-	Environment utils.TrueOrFilter
+	Team        utils.TrueOrFilter `json:"team"`
+	Region      utils.TrueOrFilter `json:"region"`
+	Service     utils.TrueOrFilter `json:"service"`
+	Account     utils.TrueOrFilter `json:"account"`
+	AccountName utils.TrueOrFilter `json:"account_name"`
+	Label       utils.TrueOrFilter `json:"account_label"`
+	Environment utils.TrueOrFilter `json:"environment"`
 }
 
 // Groups is used to show how the costs where grouped together. Typically
@@ -252,26 +254,21 @@ type GetGroupedCostsOptions struct {
 func (self *GetGroupedCostsOptions) Groups() (groups []string) {
 	groups = []string{}
 
-	if self.Team == "true" {
-		groups = append(groups, "team")
-	}
-	if self.Environment == "true" {
-		groups = append(groups, "environment")
-	}
-	if self.Account == "true" {
-		groups = append(groups, "account", "environment")
-	}
-	if self.AccountName == "true" {
-		groups = append(groups, "account_name")
-	}
-	if self.Service == "true" {
-		groups = append(groups, "service")
-	}
-	if self.Region == "true" {
-		groups = append(groups, "region")
+	mapped := map[string]string{}
+	utils.Convert(self, &mapped)
+
+	for k, v := range mapped {
+		if v == "true" {
+			groups = append(groups, k)
+		}
 	}
 
 	return
+}
+
+type whereableInfo struct {
+	Param  func()
+	Option utils.TrueOrFilter
 }
 
 // Statement converts the configured options to a bound statement and provides the
@@ -280,11 +277,15 @@ func (self *GetGroupedCostsOptions) Groups() (groups []string) {
 // It returns the bound statement and generated data object
 func (self *GetGroupedCostsOptions) Statement() (bound *sqlr.BoundStatement, params *sqlParams) {
 	var (
-		stmt            = stmtAwsCostsGrouped
-		selected string = ""
-		where    string = ""
-		orderby  string = ""
-		groupby  string = ""
+		stmt     string                        = stmtAwsCostsGrouped
+		selected string                        = ""
+		where    string                        = ""
+		orderby  string                        = ""
+		groupby  string                        = ""
+		selects  map[string]utils.TrueOrFilter = map[string]utils.TrueOrFilter{}
+		groups   map[string]utils.TrueOrFilter = map[string]utils.TrueOrFilter{}
+		orders   map[string]utils.TrueOrFilter = map[string]utils.TrueOrFilter{}
+		wheres   map[string]*whereableInfo     = map[string]*whereableInfo{}
 	)
 	// setup the default data values
 	params = &sqlParams{
@@ -293,96 +294,70 @@ func (self *GetGroupedCostsOptions) Statement() (bound *sqlr.BoundStatement, par
 		DateFormat: self.DateFormat,
 	}
 
-	// check the team, account, env, region and service values and update the
-	// sql
-
-	// Team
-	if self.Team.Selectable() {
-		selected += fmt.Sprintf("%s,", "aws_accounts.team_name as team_name")
+	// generate the map between select alias and the option item
+	selects = map[string]utils.TrueOrFilter{
+		"region":                                self.Region,
+		"service":                               self.Service,
+		"aws_account_id":                        self.Account,
+		"aws_accounts.team_name as team_name":   self.Team,
+		"aws_accounts.name as aws_account_name": self.AccountName,
+		"aws_accounts.environment as aws_account_environment": self.Environment,
+		"aws_accounts.label as aws_account_label":             self.Label,
 	}
-	if self.Team.Whereable() {
-		params.Team = string(self.Team)
-		where += fmt.Sprintf("%s AND ", "lower(aws_accounts.team_name)=lower(:team_name)")
-	}
-	if self.Team.Groupable() {
-		groupby += fmt.Sprintf("%s,", "aws_accounts.team_name")
-	}
-	if self.Team.Orderable() {
-		orderby += fmt.Sprintf("%s ASC,", "aws_accounts.team_name")
-	}
-
-	// Region
-	if self.Region.Selectable() {
-		selected += fmt.Sprintf("%s,", "region")
-	}
-	if self.Region.Whereable() {
-		params.Region = string(self.Region)
-		where += fmt.Sprintf("%s AND ", "region=:region")
-	}
-	if self.Region.Groupable() {
-		groupby += fmt.Sprintf("%s,", "region")
-	}
-	if self.Region.Orderable() {
-		orderby += fmt.Sprintf("%s ASC,", "region")
-	}
-	// Service
-	if self.Service.Selectable() {
-		selected += fmt.Sprintf("%s,", "service")
-	}
-	if self.Service.Whereable() {
-		params.Service = string(self.Service)
-		where += fmt.Sprintf("%s AND ", "service=:service")
-	}
-	if self.Service.Groupable() {
-		groupby += fmt.Sprintf("%s,", "service")
-	}
-	if self.Service.Orderable() {
-		orderby += fmt.Sprintf("%s ASC,", "service")
+	// add them to the select if they are marked as selectable
+	for selectAs, tf := range selects {
+		if tf.Selectable() {
+			selected += fmt.Sprintf("%s, ", selectAs)
+		}
 	}
 
-	// Account - tag name & label as well, the account id is unique
-	if self.Account.Selectable() {
-		selected += fmt.Sprintf("%s, %s, %s, %s,", "aws_account_id", "aws_accounts.name as account_name", "aws_accounts.label as account_label", "aws_accounts.environment as environment")
+	groups = map[string]utils.TrueOrFilter{
+		"region":                   self.Region,
+		"service":                  self.Service,
+		"aws_account_id":           self.Account,
+		"aws_accounts.team_name":   self.Team,
+		"aws_accounts.name":        self.AccountName,
+		"aws_accounts.environment": self.Environment,
+		"aws_accounts.label":       self.Label,
 	}
-	if self.Account.Whereable() {
-		params.Account = string(self.Account)
-		where += fmt.Sprintf("%s AND ", "aws_account_id=:aws_account_id")
-	}
-	if self.Account.Groupable() {
-		groupby += fmt.Sprintf("%s,", "aws_account_id")
-	}
-	if self.Account.Orderable() {
-		orderby += fmt.Sprintf("%s ASC,", "aws_account_id")
-	}
-
-	// AccountName
-	if self.AccountName.Selectable() {
-		selected += fmt.Sprintf("%s,", "aws_accounts.name as account_name")
-	}
-	if self.AccountName.Whereable() {
-		params.AccountName = string(self.AccountName)
-		where += fmt.Sprintf("%s AND ", "aws_accounts.name=:aws_account_name")
-	}
-	if self.AccountName.Groupable() {
-		groupby += fmt.Sprintf("%s,", "aws_accounts.name")
-	}
-	if self.AccountName.Orderable() {
-		orderby += fmt.Sprintf("%s ASC,", "aws_accounts.name")
+	// add them to the select if they are marked as selectable
+	for groupAs, tf := range groups {
+		if tf.Groupable() {
+			groupby += fmt.Sprintf("%s, ", groupAs)
+		}
 	}
 
-	// Environment
-	if self.Environment.Selectable() {
-		selected += fmt.Sprintf("%s,", "aws_accounts.environment as environment")
+	orders = map[string]utils.TrueOrFilter{
+		"region":                   self.Region,
+		"service":                  self.Service,
+		"aws_account_id":           self.Account,
+		"aws_accounts.team_name":   self.Team,
+		"aws_accounts.name":        self.AccountName,
+		"aws_accounts.environment": self.Environment,
+		"aws_accounts.label":       self.Label,
 	}
-	if self.Environment.Whereable() {
-		params.Environment = string(self.Environment)
-		where += fmt.Sprintf("%s AND ", "aws_accounts.environment=:environment")
+	// add them to the select if they are marked as selectable
+	for orderAs, tf := range orders {
+		if tf.Orderable() {
+			orderby += fmt.Sprintf("%s ASC,", orderAs)
+		}
 	}
-	if self.Environment.Groupable() {
-		groupby += fmt.Sprintf("%s,", "aws_accounts.environment")
+	// filtering / where
+	wheres = map[string]*whereableInfo{
+		"region=:region":                                    {Param: func() { params.Region = string(self.Region) }, Option: self.Region},
+		"service=:service":                                  {Param: func() { params.Service = string(self.Service) }, Option: self.Service},
+		"aws_account_id=:aws_account_id":                    {Param: func() { params.Account = string(self.Account) }, Option: self.Account},
+		"aws_accounts.name=:aws_account_name":               {Param: func() { params.AccountName = string(self.AccountName) }, Option: self.AccountName},
+		"aws_accounts.environment=:aws_account_environment": {Param: func() { params.Environment = string(self.Environment) }, Option: self.Environment},
+		"aws_accounts.label=:aws_account_label":             {Param: func() { params.Label = string(self.Label) }, Option: self.Label},
+		"lower(aws_accounts.team_name)=lower(:team_name)":   {Param: func() { params.Team = string(self.Team) }, Option: self.Team},
 	}
-	if self.Environment.Orderable() {
-		orderby += fmt.Sprintf("%s ASC,", "aws_accounts.environment")
+
+	for whereAs, wi := range wheres {
+		if wi.Option.Whereable() {
+			wi.Param()
+			where += fmt.Sprintf("%s AND ", whereAs)
+		}
 	}
 
 	// Replace the placeholders with the real values
