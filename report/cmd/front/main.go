@@ -59,6 +59,7 @@ env values that can be adjusted:
 		// Register handlers
 		RegisterStaticHandlers(ctx, log, conf, Info, mux)
 		RegisterHomepageHandlers(ctx, log, conf, Info, mux)
+		RegisterTeampageHandlers(ctx, log, conf, Info, mux)
 
 		log.Info("Starting front server...")
 		log.Info(fmt.Sprintf("FRONT: [http://%s/]", addr))

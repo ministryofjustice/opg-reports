@@ -297,7 +297,7 @@ func (self *GetGroupedCostsOptions) Statement() (bound *sqlr.BoundStatement, par
 	}
 	if self.Team.Whereable() {
 		params.Team = string(self.Team)
-		where += fmt.Sprintf("%s AND ", "aws_accounts.team_name=:team_name")
+		where += fmt.Sprintf("%s AND ", "lower(aws_accounts.team_name)=lower(:team_name)")
 	}
 	if self.Team.Groupable() {
 		groupby += fmt.Sprintf("%s,", "aws_accounts.team_name")

@@ -17,10 +17,10 @@ import (
 // GetAwsGroupedCostsResponse
 type GetAwsGroupedCostsResponse[T api.Model] struct {
 	Body struct {
-		Count   int                   `json:"count,omityempty"`
-		Request *GroupedAwsCostsInput `json:"request,omitempty"`
-		Dates   []string              `json:"dates,omitempty"`
-		Groups  []string              `json:"groups,omitempty"`
+		Count   int                   `json:"count"`
+		Request *GroupedAwsCostsInput `json:"request"`
+		Dates   []string              `json:"dates"`
+		Groups  []string              `json:"groups"`
 		Data    []T                   `json:"data"`
 	}
 }
@@ -36,8 +36,8 @@ type GetAwsGroupedCostsResponse[T api.Model] struct {
 // via the same endpoint.
 type GroupedAwsCostsInput struct {
 	Granularity string `json:"granularity,omitempty" path:"granularity" default:"monthly" enum:"yearly,monthly" doc:"Determine if the data is grouped by year, month or day."`
-	StartDate   string `json:"start_date,omitempty" path:"start_date" required:"true" doc:"Earliest date to return data from (uses >=). YYYY-MM-DD." example:"2024-03-01" pattern:"([0-9]{4}-[0-9]{2}-[0-9]{2})"`
-	EndDate     string `json:"end_date,omitempty" path:"end_date" required:"true" doc:"Latest date to capture the data for (uses <). YYYY-MM-DD."  example:"2024-04-01" pattern:"([0-9]{4}-[0-9]{2}-[0-9]{2})"`
+	StartDate   string `json:"start_date,omitempty" path:"start_date" required:"true" doc:"Earliest date to return data from (uses >=). YYYY-MM-DD." example:"2024-03-01" pattern:"([0-9]{4}-[0-9]{2}[\\-0-9]{0,2})"`
+	EndDate     string `json:"end_date,omitempty" path:"end_date" required:"true" doc:"Latest date to capture the data for (uses <). YYYY-MM-DD."  example:"2024-04-01" pattern:"([0-9]{4}-[0-9]{2}[\\-0-9]{0,2})"`
 
 	Team        string `json:"team,omitempty" query:"team" doc:"Group and filter flag for team. When _true_ adds team.Name to group and selection, when any other value it becomes an exact match filter." example:"true|TeamName"`
 	Region      string `json:"region,omitempty" query:"region" doc:"Group and filter flag for AWS region. When _true_ adds AWS region to group and selection, when any other value it becomes an exact match filter." example:"true|eu-west-1"`
@@ -79,6 +79,16 @@ func handleGetAwsGroupedCosts[T api.Model](
 		return
 	}
 	defer service.Close()
+
+	// if using monthly, set the start & end dates to first and last of month
+	if input.Granularity == string(utils.GranularityMonth) {
+		if sd, e := utils.StringToTime(input.StartDate); e == nil {
+			input.StartDate = utils.FirstDayOfMonth(sd).Format(utils.DATE_FORMATS.YMD)
+		}
+		if ed, e := utils.StringToTime(input.EndDate); e == nil {
+			input.EndDate = utils.LastDayOfMonth(ed).Format(utils.DATE_FORMATS.YMD)
+		}
+	}
 
 	// create the options
 	options := &api.GetGroupedCostsOptions{

@@ -96,11 +96,11 @@ func awsCostsParams(billingDate int) map[string]string {
 	var (
 		now   = time.Now().UTC()
 		end   = utils.BillingMonth(now, billingDate)
-		start = end.AddDate(0, -6, 1)
+		start = time.Date(end.Year(), end.Month()-5, 1, 0, 0, 0, 0, time.UTC)
 	)
 	return map[string]string{
-		"start_date":  start.Format(utils.DATE_FORMATS.YMD),
-		"end_date":    end.Format(utils.DATE_FORMATS.YMD),
+		"start_date":  start.Format(utils.DATE_FORMATS.YM),
+		"end_date":    end.Format(utils.DATE_FORMATS.YM),
 		"granularity": string(utils.GranularityMonth),
 		"team":        "true",
 		"region":      "-",
