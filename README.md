@@ -1,72 +1,33 @@
-# opg-reports
-
-This repository acts as a central hub to generate, combine and display series of key data that we report on frequently to both internal and external parties.
-
-## Quick startup
-
-As the codebase will auto-generate databases if they are not present, you can get a local version up and running in docker by:
-
-```bash
-make clean && make docker
-```
-
-You can then view the site at:
-
-- [front](http://localhost:8080)
-- [api](http://localhost:8081)
 
 
-## Comments used in scripts
+## Structure
 
-To help with the automated forking script the code contains blocks marked for removal / changes using the following:
+Primary commands are with `./report/cmd/` and are the following:
 
-```bash
-#--fork-remove-start
-#--fork-remove-end
-#--fork-replacement
-```
+- `./api/`: this command runs the api server side of the application
+- `./front`: this runs the front end server for this application
+- `./inmporter`: which runs commands to import data in various ways
 
-Please make sure to leave those as they are.
+## Design patterns
 
-## Forking
+The structure of the code base revoles around service & repository pattern where the repository is responsbile for manipulation of the raw data structures and service contains the business logic.
 
-This repository comes with a bash script to update values, so afte ryou ahve forked please run:
+### Repositories
 
-```bash
-./scripts/fork.sh
-```
+The repositories are packaged based on their data source, so they each focus on a single origin, whether that's an API like GitHub or a sqlite database. They are named as `${source}r`, so `awsr` and `githubr` - where the `r` is append to avoid any naming conflicts with imported / common libraries (such as `sql`).
 
-The script will ask for following details:
+For reuse and mocking purposes the repositories expose and utilise a series of interfaces, which use the naming patterns of `Repository${name}` and `Client${name}`. Interfaces starting with `Repository` utilise a version of `Client` within its methods to access and manipulate the data being requested. This seperation allows either to be mocked and tested without having to make real API calls or connections to databases within the test suites.
 
-- Name of business unit (`--business-unit`)
-- Name of the DEVELOPMENT S3 bucket used for data storage (`--development-bucket-name`)
-- The DEVELOPMENT aws profile for local S3 download (`--aws-profile`)
-- The DEVELOPMENT role ARN to use for DOWNLOADING from the S3 bucket in workflow (`--development-bucket-download-arn`)
-- The DEVELOPMENT OIDC role ARN to use for UPLOADING to the S3 bucket in workflows (`--development-bucket-upload-arn`)
-- The AWS ECR registry id (`--ecr-registry-id`)
-- The DEVELOPMENT OIDC role ARN to use for pushing to ECR (`--ecr-login-push-arn`)
-- The github organisation slug (`--gh-org`)
-- The github team slug (`--gh-team`)
+Currently, the `sqlr` package differs and doesn't utilise `Client` interfaces, the sql connection and database are handled internally via internal functions - `connection` and `init`.
 
-You can also pass these values as cli arguments and the script will use the passed value instead of asking, like:
+### Services
 
-```bash
-./scripts/fork.sh \
-  --business-unit OPG \
-  --gh-team opg \
-  --aws-profile operator
-```
+The services are packaged based on their domain area they are being used within (so `api` is used by the api commands, `front` by the front end server command) and provide functions aligned to those commands. Each service can use multiple different repository data sources within itself depending on wher ethe data needs to come from; for example the `existing` service uses both `awsr` and `githubr` to generate database entries.
 
-After this completes, you can re-run the app and see the updates ([see here](#quick-startup)).
-
-Please then commit any changes made into your fork.
-
-If you want to make changes manually, there is a more [detailed guide available here](./docs/usage/manual-forking-guide.md).
-
-*Note:* Assumes infrastructure will be handled external to this repository.
+The service functions exposed are aimed at solving a single, direct ask of the application ("get total cost for last month") and use both a Client and Repository to fetch that data, and then apply business logic and structural transformations within.
 
 
-## Docs
+## Additional capabilities
 
+There are various functional needs that are repeated within our code base that are used in multiple places; most of this code is handled under the `utils` package - this covers things like string to transformations, marshaling of structures and more.
 
-- [Development enviroment](./docs/usage/development-environment.md)
