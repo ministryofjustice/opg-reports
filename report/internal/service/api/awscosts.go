@@ -11,15 +11,15 @@ import (
 
 type AwsCostsGetter[T Model] interface {
 	Closer
-	GetAllAwsCosts(store sqlr.Reader) (data []T, err error)
+	GetAllAwsCosts(store sqlr.RepositoryReader) (data []T, err error)
 }
 type AwsCostsTop20Getter[T Model] interface {
 	Closer
-	GetTop20AwsCosts(store sqlr.Reader) (data []T, err error)
+	GetTop20AwsCosts(store sqlr.RepositoryReader) (data []T, err error)
 }
 type AwsCostsGroupedGetter[T Model] interface {
 	Closer
-	GetGroupedAwsCosts(store sqlr.Reader, options *GetGroupedCostsOptions) (data []T, err error)
+	GetGroupedAwsCosts(store sqlr.RepositoryReader, options *GetGroupedCostsOptions) (data []T, err error)
 }
 
 // stmtAwsCostsInsert used to insert records into the database the PutX functions
@@ -376,7 +376,7 @@ func (self *GetGroupedCostsOptions) Statement() (bound *sqlr.BoundStatement, par
 // GetAllCosts will return all records
 //
 // Using this is generally a bad idea as this table will contain millions of rows
-func (self *Service[T]) GetAllAwsCosts(store sqlr.Reader) (data []T, err error) {
+func (self *Service[T]) GetAllAwsCosts(store sqlr.RepositoryReader) (data []T, err error) {
 	var selectStmt = &sqlr.BoundStatement{Statement: stmtAwsCostsSelectAll}
 	var log = self.log.With("operation", "GetAllCosts")
 
@@ -392,7 +392,7 @@ func (self *Service[T]) GetAllAwsCosts(store sqlr.Reader) (data []T, err error) 
 }
 
 // GetTop20Costs returns top 20 most expensive costs store in the database
-func (self *Service[T]) GetTop20AwsCosts(store sqlr.Reader) (data []T, err error) {
+func (self *Service[T]) GetTop20AwsCosts(store sqlr.RepositoryReader) (data []T, err error) {
 	var selectStmt = &sqlr.BoundStatement{Statement: stmtAwsCostsSelectTop20}
 	var log = self.log.With("operation", "GetTop20Costs")
 
@@ -408,7 +408,7 @@ func (self *Service[T]) GetTop20AwsCosts(store sqlr.Reader) (data []T, err error
 
 // GetGroupedCosts uses a set of options to generate the sql statement that will select, filter,
 // group and order by the data set between provided dates.
-func (self *Service[T]) GetGroupedAwsCosts(store sqlr.Reader, options *GetGroupedCostsOptions) (data []T, err error) {
+func (self *Service[T]) GetGroupedAwsCosts(store sqlr.RepositoryReader, options *GetGroupedCostsOptions) (data []T, err error) {
 	var selectStmt, _ = options.Statement()
 	var log = self.log.With("operation", "GetGroupedCosts")
 
@@ -435,7 +435,7 @@ func (self *Service[T]) GetGroupedAwsCosts(store sqlr.Reader, options *GetGroupe
 //	}]
 //
 // Note: Dont expose to the api endpoints
-func (self *Service[T]) PutAwsCosts(store sqlr.Writer, data []T) (results []*sqlr.BoundStatement, err error) {
+func (self *Service[T]) PutAwsCosts(store sqlr.RepositoryWriter, data []T) (results []*sqlr.BoundStatement, err error) {
 	var (
 		inserts []*sqlr.BoundStatement = []*sqlr.BoundStatement{}
 		log     *slog.Logger           = self.log.With("operation", "PutAwsCosts")

@@ -17,7 +17,7 @@ type Service struct {
 	conf *config.Config
 }
 
-func (self *Service) All(sqlStore sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
+func (self *Service) All(sqlStore sqlr.RepositoryWriter) (results []*sqlr.BoundStatement, err error) {
 	var r []*sqlr.BoundStatement
 	// TEAMS
 	r, err = self.Teams(sqlStore)

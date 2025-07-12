@@ -22,7 +22,7 @@ type GetTeamsAllResponse[T api.Model] struct {
 }
 
 // RegisterAllTeams registers the `get-teams-all` endpoint
-func RegisterGetTeamsAll[T api.Model](log *slog.Logger, conf *config.Config, humaapi huma.API, service api.TeamGetter[T], store sqlr.Reader) {
+func RegisterGetTeamsAll[T api.Model](log *slog.Logger, conf *config.Config, humaapi huma.API, service api.TeamGetter[T], store sqlr.RepositoryReader) {
 	var operation = huma.Operation{
 		OperationID: "get-teams-all",
 		Method:      http.MethodGet,
@@ -40,7 +40,7 @@ func RegisterGetTeamsAll[T api.Model](log *slog.Logger, conf *config.Config, hum
 
 // handleAllTeams deals with each request and fetches
 func handleGetTeamsAll[T api.Model](ctx context.Context, log *slog.Logger, conf *config.Config,
-	service api.TeamGetter[T], store sqlr.Reader, input *struct{}) (response *GetTeamsAllResponse[T], err error) {
+	service api.TeamGetter[T], store sqlr.RepositoryReader, input *struct{}) (response *GetTeamsAllResponse[T], err error) {
 	var teams []T
 	response = &GetTeamsAllResponse[T]{}
 

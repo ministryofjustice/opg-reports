@@ -94,7 +94,7 @@ type accountDownloadOptions struct {
 func (self *Service) InsertAwsAccounts(
 	client githubr.ClientRepositoryReleases,
 	source githubr.RepositoryReleases,
-	sq sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
+	sq sqlr.RepositoryWriter) (results []*sqlr.BoundStatement, err error) {
 	var dir string
 	var sw = utils.Stopwatch()
 
@@ -142,7 +142,7 @@ func (self *Service) InsertAwsAccounts(
 }
 
 // insertTeams handles writing the records to the table
-func (self *Service) insertAwsAccountsToDB(sq sqlr.Writer, accounts []*awsAccount) (statements []*sqlr.BoundStatement, err error) {
+func (self *Service) insertAwsAccountsToDB(sq sqlr.RepositoryWriter, accounts []*awsAccount) (statements []*sqlr.BoundStatement, err error) {
 	statements = []*sqlr.BoundStatement{}
 
 	for _, acc := range accounts {

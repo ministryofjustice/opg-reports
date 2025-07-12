@@ -43,7 +43,7 @@ func awscostsCmdRunner(
 	stsStore awsr.RepositorySTS,
 	ceClient awsr.ClientCostExplorerGetter,
 	ceStore awsr.RepositoryCostExplorerGetter,
-	sqClient sqlr.Writer,
+	sqClient sqlr.RepositoryWriter,
 	apiService *api.Service[*api.AwsCost],
 ) (err error) {
 	var (

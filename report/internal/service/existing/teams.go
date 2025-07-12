@@ -68,7 +68,7 @@ type teamDownloadOptions struct {
 func (self *Service) InsertTeams(
 	client githubr.ClientRepositoryReleases,
 	ghs githubr.RepositoryReleases,
-	sq sqlr.Writer,
+	sq sqlr.RepositoryWriter,
 ) (results []*sqlr.BoundStatement, err error) {
 
 	var dir string
@@ -120,7 +120,7 @@ func (self *Service) InsertTeams(
 }
 
 // insertTeams handles writing the records to the table
-func (self *Service) insertTeamsToDB(sq sqlr.Writer, teams []*teamItem) (statements []*sqlr.BoundStatement, err error) {
+func (self *Service) insertTeamsToDB(sq sqlr.RepositoryWriter, teams []*teamItem) (statements []*sqlr.BoundStatement, err error) {
 	statements = []*sqlr.BoundStatement{}
 
 	for _, team := range teams {

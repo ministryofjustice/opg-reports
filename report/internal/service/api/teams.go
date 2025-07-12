@@ -10,7 +10,7 @@ import (
 // TeamGetter interface is used for GetAllTeams calls
 type TeamGetter[T Model] interface {
 	Closer
-	GetAllTeams(store sqlr.Reader) (teams []T, err error)
+	GetAllTeams(store sqlr.RepositoryReader) (teams []T, err error)
 }
 
 // stmtTeamsSelectAll is sql used to fetch all teams and the join to aws accounts
@@ -72,7 +72,7 @@ func (self *hasManyAwsAccounts) Scan(src interface{}) (err error) {
 }
 
 // GetAllTeams returns all teams and joins aws accounts as well
-func (self *Service[T]) GetAllTeams(store sqlr.Reader) (teams []T, err error) {
+func (self *Service[T]) GetAllTeams(store sqlr.RepositoryReader) (teams []T, err error) {
 	var statement = &sqlr.BoundStatement{Statement: stmtTeamsSelectAll}
 	var log = self.log.With("operation", "GetAllTeams")
 

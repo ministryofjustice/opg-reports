@@ -31,7 +31,7 @@ var teamSeeds = []*sqlr.BoundStatement{
 
 // Teams populates the database (via the sqc var) with standard known enteries
 // that can be used for testing and development databases
-func (self *Service) Teams(sqc sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
+func (self *Service) Teams(sqc sqlr.RepositoryWriter) (results []*sqlr.BoundStatement, err error) {
 	var sw = utils.Stopwatch()
 
 	defer func() {

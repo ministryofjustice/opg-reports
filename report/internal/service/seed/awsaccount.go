@@ -48,7 +48,7 @@ var awsAccountSeeds = []*sqlr.BoundStatement{
 
 // AwsAccounts populates the database (via the sqc var) with standard known enteries
 // that can be used for testing and development databases
-func (self *Service) AwsAccounts(sqc sqlr.Writer) (results []*sqlr.BoundStatement, err error) {
+func (self *Service) AwsAccounts(sqc sqlr.RepositoryWriter) (results []*sqlr.BoundStatement, err error) {
 	var sw = utils.Stopwatch()
 
 	defer func() {

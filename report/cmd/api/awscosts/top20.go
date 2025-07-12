@@ -25,7 +25,7 @@ type GetAwsCostsTop20Response[T api.Model] struct {
 // costs from the data.
 //
 // Registers the helper function to handle the request as well as the details for api spec
-func RegisterGetAwsCostsTop20[T api.Model](log *slog.Logger, conf *config.Config, humaapi huma.API, service api.AwsCostsTop20Getter[T], store sqlr.Reader) {
+func RegisterGetAwsCostsTop20[T api.Model](log *slog.Logger, conf *config.Config, humaapi huma.API, service api.AwsCostsTop20Getter[T], store sqlr.RepositoryReader) {
 	var operation = huma.Operation{
 		OperationID:   "get-awscosts-top20",
 		Method:        http.MethodGet,
@@ -45,7 +45,7 @@ func RegisterGetAwsCostsTop20[T api.Model](log *slog.Logger, conf *config.Config
 // Tax is excluded, as tax entry is a month's worth of tax in a single entry so will always
 // be one of highest line items costs
 func handleGetAwsCostsTop20[T api.Model](ctx context.Context, log *slog.Logger, conf *config.Config,
-	service api.AwsCostsTop20Getter[T], store sqlr.Reader, input *struct{}) (response *GetAwsCostsTop20Response[T], err error) {
+	service api.AwsCostsTop20Getter[T], store sqlr.RepositoryReader, input *struct{}) (response *GetAwsCostsTop20Response[T], err error) {
 	var costs []T
 	response = &GetAwsCostsTop20Response[T]{}
 
