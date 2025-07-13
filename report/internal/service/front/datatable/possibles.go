@@ -31,14 +31,12 @@ func uniqueValuesForEachIdentifier(data []map[string]string, identifiers ...stri
 	return
 }
 
-// PossibleCombinationsAsKeys takes slice of maps as raw data and a series of keys (`identifiers`)
-// and finds
+// PossibleCombinationsAsKeys used in converting an api response data set into a tabluar data
+// structure. It find all the unique values for each identifier (think map key / column name)
+// and generates a list of all possible combinations based on their values within `data`.
+// These keys are then used to create table rows.
 //
-//   - All unique values of each identifier within `data` (returned `uniques`)
-//   - A flat list of possible combinations of these unique values (returned as `keys`)
-//
-// Think of the `identifiers` as column headers, where even if a row is missing a value the
-// combination will still be included.
+// The passed `data` map should be the value of the apiResponse.Data.
 //
 // Example:
 //

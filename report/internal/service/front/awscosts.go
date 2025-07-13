@@ -21,6 +21,10 @@ type apiResponseAwsCostsGrouped struct {
 	Data   []map[string]string `json:"data"`
 }
 
+// check interface
+var _ datatable.ResponseBody = &apiResponseAwsCostsGrouped{}
+
+// DataHeaders returns the column headings used for the core data - generally Dates
 func (self *apiResponseAwsCostsGrouped) DataHeaders() (dh []string) {
 	return self.Dates
 }
@@ -44,15 +48,15 @@ func (self *apiResponseAwsCostsGrouped) TransformColumn() string {
 func (self *apiResponseAwsCostsGrouped) ValueColumn() string {
 	return "cost"
 }
-func (self *apiResponseAwsCostsGrouped) HasRowTotals() string {
+func (self *apiResponseAwsCostsGrouped) RowTotalKeyName() string {
 	return "total"
 }
-func (self *apiResponseAwsCostsGrouped) HasTrendColumn() string {
+func (self *apiResponseAwsCostsGrouped) TrendKeyName() string {
 	return "trend"
 }
 func (self *apiResponseAwsCostsGrouped) SumColumns() (cols []string) {
 	cols = self.Dates
-	if c := self.HasRowTotals(); c != "" {
+	if c := self.RowTotalKeyName(); c != "" {
 		cols = append(cols, c)
 	}
 	return
@@ -77,7 +81,7 @@ func (self *Service) GetAwsCostsGrouped(client restr.RepositoryRestGetter, reque
 		enpoint,
 		parseAwsCostsGroupedF,
 	)
-	log.With("table", utils.MarshalStr(table)).Debug("returning data table ... ")
+	log.Debug("returning data table ... ")
 	return
 }
 

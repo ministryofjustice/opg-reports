@@ -5,16 +5,57 @@ import "fmt"
 var emptyCell = "0.00"
 
 type ResponseBody interface {
+	// DataHeaders returns the column headings used for the core data - generally Dates
 	DataHeaders() (dh []string)
+	// DataRows returns the data from within the api response (.Data from the API)
+	//
+	// This is used as a base to find all possible combination values and then populate
+	// the final table
 	DataRows() (data []map[string]string)
+	// PaddedRows is used to inject fake rows into the data set to ensure all values
+	// of used fields are present.
+	// Typically used to add months / dates that might not exist in the data set by default
 	PaddedDataRows() (all []map[string]string)
+	// Idenfiers returns set of fields that were used to group this data together on the
+	// api - these also form the first columns (RowHeaders).
+	// These are the non numeric table columns, like Account Name, that we want to be
+	// present at the start of the table row, but are not used in calculations.
 	Identifiers() (identifiers []string)
+	// Cells returns a list of column names that should be added to each row, this is
+	// generally used to insert date keys into each row of the table
 	Cells() (cells []string)
+	// TransformColumn with ValueColumn are used to insert a value from a different field
+	// name into a new column - so fetching the value of .Date, using that as the column
+	// to then insert .Cost into:
+	//
+	// 	col := r.TransformColumn()
+	//  val := t.ValueColumn()
+	// 	row[col] =  row[val]
 	TransformColumn() string
+	// TransformColumn with ValueColumn are used to insert a value from a different field
+	// name into a new column - so fetching the value of .Date, using that as the column
+	// to then insert .Cost into:
+	//
+	// 	col := r.TransformColumn()
+	//  val := t.ValueColumn()
+	// 	row[col] =  row[val]
 	ValueColumn() string
+	// RowTotalKeyName returns the name of a key that should be used to
+	// store the total value of each row.
+	//
+	// If it returns "" a row total should not be added
+	RowTotalKeyName() string
+	// TrendKeyName is like RowTotalKeyName, it returns the name of the
+	// field/key to add to a row that will be rendered for displaying
+	// trends.
+	// If empty / "", then no trend should be added
+	TrendKeyName() string
+	// SumColumns returns a list of columns/key values that should be used
+	// to generate a sum for each column in the table - effectively the
+	// overall table total within the tfoot.
+	//
+	// If empty, dont generate a table footer totals row
 	SumColumns() (cols []string)
-	HasRowTotals() string
-	HasTrendColumn() string
 }
 
 // DataTable is the end result of transforming a list into a set of rows
@@ -25,7 +66,6 @@ type DataTable struct {
 	RowHeaders   []string
 	DataHeaders  []string
 	ExtraHeaders []string
-	Header       []string
 	Footer       map[string]string
 }
 
@@ -35,8 +75,8 @@ func New(response ResponseBody) (dt *DataTable, err error) {
 		skeleton     map[string]map[string]string
 		populated    map[string]map[string]string
 		dataRows     []map[string]string = response.DataRows()
-		totalCol     string              = response.HasRowTotals()
-		trendCol     string              = response.HasTrendColumn()
+		totalCol     string              = response.RowTotalKeyName()
+		trendCol     string              = response.TrendKeyName()
 		dataheaders  []string            = response.DataHeaders()
 		identifiers  []string            = response.Identifiers()
 		paddedData   []map[string]string = response.PaddedDataRows()
