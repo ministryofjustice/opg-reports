@@ -1,7 +1,12 @@
 {{- define "index" -}}
     {{- template "head" . -}}
 
-    {{ template "costs-table" .CostsByMonth }}
+    <main id="main-content" class="app-content" role="main">
+        <h1 class="govuk-heading-xl">Infrastructure costs</h1>
+        <div class="app-content reports-font-m">
+        {{ template "costs-table" .CostsByMonth }}
+        </div>
+    </main>
 
     {{- template "foot" . -}}
 {{- end -}}

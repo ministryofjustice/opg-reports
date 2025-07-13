@@ -6,7 +6,7 @@
     {{ $extraHeaders := .ExtraHeaders }}
     {{ $rows := .Body }}
 
-<table class="govuk-table govuk-table--small-text-until-tablet">
+<table class="govuk-table reports-table">
     <thead class="govuk-table__head">
       <tr class="govuk-table__row">
       {{- range $x, $col := $rowHeaders -}}

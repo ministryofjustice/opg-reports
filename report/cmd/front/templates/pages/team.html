@@ -1,7 +1,17 @@
 {{- define "team" -}}
     {{- template "head" . -}}
-    <h1 class="govuk-heading-xl">{{ .TeamName | Title }} </h1>
-    {{ template "costs-table" .CostsByMonth }}
+    <main id="main-content" class="app-content" role="main">
 
+        <h1 class="govuk-heading-xl">{{ .TeamName | Title }}</h1>
+        <div class="app-content reports-font-s">
+            <h2 class="govuk-heading-m">Infrastructure costs per account</h2>
+            {{ template "costs-table" .CostsByMonthPerAccount }}
+        </div>
+        <div class="app-content reports-font-s">
+            <h2 class="govuk-heading-m">Detailed infrastructure costs</h2>
+            {{ template "costs-table" .CostsByMonthDetailed }}
+        </div>
+
+    </main>
     {{- template "foot" . -}}
 {{- end -}}

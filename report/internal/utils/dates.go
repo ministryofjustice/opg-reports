@@ -141,6 +141,15 @@ func Month(monthModifier int) (m string) {
 	return
 }
 
+func DateStringAddMonths(date string, layout string, increment int) (d string) {
+	t, err := StringToTime(date)
+	if err != nil {
+		return
+	}
+	d = t.AddDate(0, increment, 0).Format(layout)
+	return
+}
+
 // Returns the last fully billed month that can be used for data.
 //
 // Example: Cost data for June will not be available until the 15th

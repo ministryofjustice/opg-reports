@@ -62,23 +62,34 @@ func (self *apiResponseAwsCostsGrouped) SumColumns() (cols []string) {
 	return
 }
 
+type preCallF func(params map[string]string)
+
 // GetAwsCostsGrouped call the api (based on config values), convert that data into tabluar
 // form for rendering, ensuring there are no empty / missing columns.
 //
 // The request object is used to merge the query string parameters from the front end with the default ones
 // used to call the api, therefore allowing the front end to directly change start_dates, team names etc
-func (self *Service) GetAwsCostsGrouped(client restr.RepositoryRestGetter, request *http.Request, apiParameters map[string]string) (table *datatable.DataTable, err error) {
+//
+// the options set of `adjusters` functions allows a different way to overwrite parameters, by
+// running a function against the parameters before the end point is generated - this allows user
+// to adjust a value with out knowing its original value
+func (self *Service) GetAwsCostsGrouped(client restr.RepositoryRestGetter, request *http.Request, apiParameters map[string]string, adjusters ...preCallF) (table *datatable.DataTable, err error) {
 	var (
 		log      = self.log.With("operation", "GetAwsCostsGrouped")
 		defaults = awsCostsParams(self.conf.Aws.BillingDate)
 		params   = mergeRequestWithMaps(request, defaults, apiParameters)
-		enpoint  = endpoints.Parse(endpoints.AWSCOSTS_GROUPED, params)
+		endpoint string
 	)
+	// allow function to overwrite parameters
+	for _, adjustF := range adjusters {
+		adjustF(params)
+	}
+	endpoint = endpoints.Parse(endpoints.AWSCOSTS_GROUPED, params)
 
 	log.With("defaults", defaults, "api", apiParameters, "merged", params).Debug("calling api for grouped cost data")
 	table, err = getFromAPI(self.ctx, self.log, self.conf,
 		client,
-		enpoint,
+		endpoint,
 		parseAwsCostsGroupedF,
 	)
 	log.Debug("returning data table ... ")

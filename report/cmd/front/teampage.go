@@ -9,13 +9,17 @@ import (
 	"opg-reports/report/internal/repository/restr"
 	"opg-reports/report/internal/service/front"
 	"opg-reports/report/internal/service/front/datatable"
+	"sync"
 )
 
 type teampageData struct {
 	page.PageContent
-	TeamName     string
-	CostsByMonth *datatable.DataTable
+	TeamName               string
+	CostsByMonthPerAccount *datatable.DataTable
+	CostsByMonthDetailed   *datatable.DataTable
 }
+
+type conF func(i ...any)
 
 // handleTeampage renders the request for `/{team}` which currently displays:
 //
@@ -30,19 +34,58 @@ func handleTeampage(
 	writer http.ResponseWriter, request *http.Request,
 ) {
 	var (
+		data           *teampageData
 		templateName   string            = "team"                                  // teampage uses the index template
 		templates      []string          = page.GetTemplateFiles(info.TemplateDir) // all templates in the directory path
 		defaultContent page.PageContent  = page.DefaultContent(conf, request)      // fetch the baseline values to render the page
 		client         *restr.Repository = restr.Default(ctx, log, conf)
 		service        *front.Service    = front.Default(ctx, log, conf)
-		data           *teampageData     = &teampageData{PageContent: defaultContent, TeamName: request.PathValue("team")} // create the data that will be used in rendering the template
-		costOptions    map[string]string = map[string]string{"team": data.TeamName, "account_name": "true"}
+
+		// mutex      *sync.Mutex    = &sync.Mutex{}
+		wg         sync.WaitGroup = sync.WaitGroup{}
+		pageBlocks []conF
 	)
+	// create the data that will be used in rendering the template
+	data = &teampageData{
+		PageContent: defaultContent,
+		TeamName:    request.PathValue("team")}
+
 	log.Info("processing page", "url", request.URL.String())
-	// get list of teams
-	data.Teams, _ = service.GetTeamNavigation(client, request)
-	// get costs grouped by month
-	data.CostsByMonth, _ = service.GetAwsCostsGrouped(client, request, costOptions)
+
+	pageBlocks = []conF{
+		// get list of all teams
+		func(i ...any) {
+			data.Teams, _ = service.GetTeamNavigation(client, request)
+			wg.Done()
+		},
+		// get tabular costs grouped by the account name & filtered by the team
+		func(i ...any) {
+			options := map[string]string{"team": data.TeamName, "account_name": "true"}
+			data.CostsByMonthPerAccount, _ = service.GetAwsCostsGrouped(client, request, options)
+			wg.Done()
+		},
+		// get the table of costs broken down in detail
+		func(i ...any) {
+			options := map[string]string{
+				"team":         data.TeamName,
+				"account_name": "true",
+				"environment":  "true",
+				"service":      "true",
+				// "region":       "true",
+			}
+			// adjust := func(p map[string]string) {
+			// 	p["start_date"] = utils.DateStringAddMonths(p["start_date"], utils.DATE_FORMATS.YM, 3)
+			// }
+			data.CostsByMonthDetailed, _ = service.GetAwsCostsGrouped(client, request, options /*, adjust*/)
+			wg.Done()
+		},
+	}
+
+	for _, block := range pageBlocks {
+		wg.Add(1)
+		block()
+	}
+	wg.Wait()
 
 	Respond(writer, request, templateName, templates, data)
 }
