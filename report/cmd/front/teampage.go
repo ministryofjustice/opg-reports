@@ -38,12 +38,10 @@ func handleTeampage(
 		templateName   string            = "team"                                  // teampage uses the index template
 		templates      []string          = page.GetTemplateFiles(info.TemplateDir) // all templates in the directory path
 		defaultContent page.PageContent  = page.DefaultContent(conf, request)      // fetch the baseline values to render the page
-		client         *restr.Repository = restr.Default(ctx, log, conf)
-		service        *front.Service    = front.Default(ctx, log, conf)
-
-		// mutex      *sync.Mutex    = &sync.Mutex{}
-		wg         sync.WaitGroup = sync.WaitGroup{}
-		pageBlocks []conF
+		client         *restr.Repository = restr.Default(ctx, log, conf)           // default rest client to call the api with
+		service        *front.Service    = front.Default(ctx, log, conf)           // the service to use to fetch data from the api etc
+		wg             sync.WaitGroup    = sync.WaitGroup{}                        // used for concurrency
+		pageBlocks     []conF                                                      // slice to wrap how we get data from the api via concurrency
 	)
 	// create the data that will be used in rendering the template
 	data = &teampageData{
@@ -83,7 +81,7 @@ func handleTeampage(
 
 	for _, block := range pageBlocks {
 		wg.Add(1)
-		block()
+		go block()
 	}
 	wg.Wait()
 
