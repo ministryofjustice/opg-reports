@@ -35,7 +35,7 @@ func handleTeampage(
 ) {
 	var (
 		data           *teampageData
-		templateName   string            = "team"                                  // teampage uses the index template
+		templateName   string            = "team"                                  // teampage uses the team template
 		templates      []string          = page.GetTemplateFiles(info.TemplateDir) // all templates in the directory path
 		defaultContent page.PageContent  = page.DefaultContent(conf, request)      // fetch the baseline values to render the page
 		client         *restr.Repository = restr.Default(ctx, log, conf)           // default rest client to call the api with
