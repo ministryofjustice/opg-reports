@@ -99,7 +99,7 @@ func RegisterTeampageHandlers(
 ) {
 	log.Info("registering handler [`/team/{team}`] ...")
 	// Homepage
-	mux.HandleFunc("/team/{team}/", func(writer http.ResponseWriter, request *http.Request) {
+	mux.HandleFunc("/team/{team}/{$}", func(writer http.ResponseWriter, request *http.Request) {
 		handleTeampage(ctx, log, conf, info, writer, request)
 	})
 }
