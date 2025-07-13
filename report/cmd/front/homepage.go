@@ -9,6 +9,7 @@ import (
 	"opg-reports/report/internal/repository/restr"
 	"opg-reports/report/internal/service/front"
 	"opg-reports/report/internal/service/front/datatable"
+	"sync"
 )
 
 type homepageData struct {
@@ -38,13 +39,29 @@ func handleHomepage(
 		data           *homepageData     = &homepageData{PageContent: defaultContent} // create the data that will be used in rendering the template
 		client         *restr.Repository = restr.Default(ctx, log, conf)
 		service        *front.Service    = front.Default(ctx, log, conf)
+		wg             sync.WaitGroup    = sync.WaitGroup{} // used for concurrency
+		blocks         []conF
 	)
 	log.Info("processing page", "url", request.URL.String())
-	// get list of teams
-	data.Teams, _ = service.GetTeamNavigation(client, request)
-	// get costs grouped by month
-	data.CostsByMonth, _ = service.GetAwsCostsGrouped(client, request, map[string]string{"team": "true"})
 
+	blocks = []conF{
+		func(i ...any) {
+			// get list of teams
+			data.Teams, _ = service.GetTeamNavigation(client, request)
+			wg.Done()
+		},
+		func(i ...any) {
+			// get costs grouped by month
+			opts := map[string]string{"team": "true"}
+			data.CostsByMonth, _ = service.GetAwsCostsGrouped(client, request, opts)
+			wg.Done()
+		},
+	}
+	for _, block := range blocks {
+		wg.Add(1)
+		go block()
+	}
+	wg.Wait()
 	Respond(writer, request, templateName, templates, data)
 }
 
