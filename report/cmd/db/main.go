@@ -1,7 +1,5 @@
 /*
-Import data into a database
-
-	import [COMMAND]
+download database
 */
 package main
 
@@ -31,9 +29,9 @@ var (
 
 // root command
 var rootCmd = &cobra.Command{
-	Use:               "import",
-	Short:             "Import",
-	Long:              `import can populate database with fixture data ("fixtures"), fetch data from pre-existing json ("existing") or new data via specific external api's.`,
+	Use:               "db",
+	Short:             "db",
+	Long:              `db downloads or uploads sqlite database from s3`,
 	CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
 }
 
@@ -43,16 +41,10 @@ func init() {
 	ctx = context.Background()
 	log = utils.Logger(conf.Log.Level, conf.Log.Type)
 
-	// extra options that aren't handled via config env values
-	// awscosts - month to get data for
-	awscostsCmd.Flags().StringVar(&month, "month", utils.Month(-2), "The month to get cost data for. (YYYY-MM-DD)")
 }
 
 func main() {
-	rootCmd.AddCommand(
-		existingCmd,
-		seedCmd,
-		awscostsCmd)
+	rootCmd.AddCommand(downloadCmd, uploadCmd)
 	rootCmd.Execute()
 
 }

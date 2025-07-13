@@ -9,13 +9,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// dbDownloadCmd downloads the database from the s3 bucket to a temp file
+// downloadCmd downloads the database from the s3 bucket to a temp file
 // and then overwrites (using os.Rename) the configured database file.
-var dbDownloadCmd = &cobra.Command{
-	Use:   "dbdownload",
-	Short: "dbdownload downloads the database from an s3 bucket to local file system",
+var downloadCmd = &cobra.Command{
+	Use:   "download",
+	Short: "download downloads the database from an s3 bucket to local file system",
 	Long: `
-dbdownload downloads the database from an s3 bucket to local file system
+download downloads the database from an s3 bucket to local file system
 
 env variables used that can be adjusted:
 
@@ -31,12 +31,12 @@ env variables used that can be adjusted:
 			s3Client = awsr.DefaultClient[*s3.Client](ctx, "eu-west-1")
 			awsStore = awsr.Default(ctx, log, conf)
 		)
-		err = dbDownloadCmdRunner(s3Client, awsStore)
+		err = downloadCmdRunner(s3Client, awsStore)
 		return
 	},
 }
 
-func dbDownloadCmdRunner(client awsr.ClientS3Getter, store awsr.RepositoryS3BucketItemDownloader) (err error) {
+func downloadCmdRunner(client awsr.ClientS3Getter, store awsr.RepositoryS3BucketItemDownloader) (err error) {
 	var (
 		dir, _ = os.MkdirTemp("./", "__download-s3-*")
 		local  string

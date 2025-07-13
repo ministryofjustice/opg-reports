@@ -11,12 +11,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// dbUploadCmd uploads the local database to the configured s3 bucket
-var dbUploadCmd = &cobra.Command{
-	Use:   "dbupload",
-	Short: "dbupload uploads a local database to the s3 bucket",
+// uploadCmd uploads the local database to the configured s3 bucket
+var uploadCmd = &cobra.Command{
+	Use:   "upload",
+	Short: "upload uploads a local database to the s3 bucket",
 	Long: `
-dbupload uploads a local database to the s3 bucket
+upload uploads a local database to the s3 bucket
 
 env variables used that can be adjusted:
 
@@ -32,12 +32,12 @@ env variables used that can be adjusted:
 			s3Client = awsr.DefaultClient[*s3.Client](ctx, "eu-west-1")
 			awsStore = awsr.Default(ctx, log, conf)
 		)
-		err = dbUploadCmdRunner(s3Client, awsStore)
+		err = uploadCmdRunner(s3Client, awsStore)
 		return
 	},
 }
 
-func dbUploadCmdRunner(
+func uploadCmdRunner(
 	client awsr.ClientS3Putter,
 	store awsr.RepositoryS3BucketItemUploader,
 ) (err error) {
