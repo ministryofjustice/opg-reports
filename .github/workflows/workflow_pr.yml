@@ -18,7 +18,7 @@ env:
 
 
 jobs:
-  vars:
+  setup:
     name: "Set variables"
     runs-on: ubuntu-latest
     outputs:
@@ -51,7 +51,7 @@ jobs:
   # tests:
   #   name: "Tests"
   #     needs:
-  #       - vars
+  #       - setup
   #   runs-on: ubuntu-latest
   #   steps:
   #     # checkout self
@@ -110,7 +110,7 @@ jobs:
   build_docker:
     name: "[Docker] build"
     needs:
-      - vars
+      - setup
       # - tests
       # - build_go
     runs-on: ubuntu-latest
@@ -140,13 +140,13 @@ jobs:
         with:
           aws-region: "eu-west-1"
           role-duration-seconds: 900
-          role-to-assume: ${{ needs.vars.outputs.s3_role }}
+          role-to-assume: ${{ needs.setup.outputs.s3_role }}
           role-session-name: reports-download-db-from-s3
       # Download the database from the bucket
-      - name: "Download [${{ needs.vars.outputs.s3_bucket }}]"
+      - name: "Download [${{ needs.setup.outputs.s3_bucket }}]"
         env:
           DATABASE_PATH: ${{ env.BUILD_DIR_API }}/databases/api.db
-          EXISTING_DB_BUCKET: ${{ needs.vars.outputs.s3_bucket }}
+          EXISTING_DB_BUCKET: ${{ needs.setup.outputs.s3_bucket }}
           cmd: ${{ env.BUILD_DIR_BINARIES }}/db
         run: |
           ${{ env.cmd }} download
@@ -158,14 +158,14 @@ jobs:
         with:
           aws-region: "eu-west-1"
           role-duration-seconds: 900
-          role-to-assume: ${{ needs.vars.outputs.ecr_role }}
+          role-to-assume: ${{ needs.setup.outputs.ecr_role }}
           role-session-name: reports-ecr-access
       # build the docker image
       - name: "Build [api]"
         id: build_api
         uses: ./.github/actions/docker-build-scan-push
         with:
-          ecr_registry_id: ${{ needs.vars.outputs.ecr_registry_id}}
+          ecr_registry_id: ${{ needs.setup.outputs.ecr_registry_id}}
           ecr_repository: ${{ needs.setup.outputs.ecr_repository_api}}
           branch_name: ${{ needs.setup.outputs.branch_name }}
           tag: ${{ needs.setup.outputs.semver_tag }}
