@@ -14,10 +14,10 @@ import (
 
 // frontCmd
 var frontCmd = &cobra.Command{
-	Use:   "front",
-	Short: "front downloads the gov uk front end assets",
+	Use:   "frontend",
+	Short: "frontend downloads the gov uk front end assets",
 	Long: `
-upload uploads a local database to the s3 bucket
+frontend downloads the gov uk front end assets
 
 env variables used that can be adjusted:
 
@@ -38,7 +38,7 @@ func DownloadGovUKFrontEnd(
 ) (err error) {
 
 	var (
-		assetDir   = filepath.Clean(conf.Servers.Front.Directory)
+		assetDir   = filepath.Join(filepath.Clean(conf.Servers.Front.Directory), conf.GovUK.Front.Directory)
 		client     = githubr.DefaultClient(conf).Repositories
 		store      = githubr.Default(ctx, log, conf)
 		downloader = front.Default(ctx, log, conf)
