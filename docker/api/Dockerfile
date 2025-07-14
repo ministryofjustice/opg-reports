@@ -9,7 +9,8 @@ RUN update-ca-certificates
 RUN apk --update --no-cache add build-base
 RUN apk --update --no-cache add "sqlite=>=3.47"
 RUN env CGO_ENABLED=1 go mod tidy
-RUN env CGO_ENABLED=1 go build -o /gobin/api ./report/cmd/api/ && echo "OK"
+RUN env CGO_ENABLED=1 go build -o /gobin/api ./report/cmd/api/
+RUN addgroup -S user && adduser -S -g user user
 
 # setup the development image
 FROM build AS development
@@ -17,17 +18,19 @@ EXPOSE 8081
 ENV CGO_ENABLED=1 GOOS=linux
 RUN mkdir -p /gobin
 WORKDIR /gobin
-COPY --from=build /gobin/api /gobin
+COPY --from=build /gobin/ /gobin
 RUN rm -Rf /app
 RUN apk --update --no-cache add "sqlite=>=3.47"
 ENTRYPOINT ["./api"]
 
 # setup production image
 FROM alpine:3.22.0@sha256:8a1f59ffb675680d47db6337b49d22281a139e9d709335b492be023728e11715 AS production
+# FROM scratch AS production
 EXPOSE 8081
-ENV CGO_ENABLED=1 GOOS=linux
-RUN mkdir -p /gobin
+USER user
 WORKDIR /gobin
-COPY --from=build /gobin/api /gobin
-RUN apk --update --no-cache add "sqlite=>=3.47"
-ENTRYPOINT ["./api"]
+ENV CGO_ENABLED=1 GOOS=linux
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=build /etc/passwd /etc/passwd
+COPY --from=build /gobin/ /gobin
+ENTRYPOINT ["/gobin/api"]

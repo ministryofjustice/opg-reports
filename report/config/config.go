@@ -189,8 +189,8 @@ var defaultConfig = &Config{
 		Commit: "000000",
 	},
 	Servers: &Servers{
-		Api:   &Server{Name: "OPG Reports API", Addr: "localhost:8081"},
-		Front: &Server{Name: "OPG Reports", Addr: "localhost:8080", Timeout: (30 * time.Second)},
+		Api:   &Server{Name: "OPG Reports API", Addr: ":8081"},
+		Front: &Server{Name: "OPG Reports", Addr: ":8080", Timeout: (30 * time.Second)},
 	},
 }
 

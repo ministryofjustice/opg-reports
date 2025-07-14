@@ -85,7 +85,7 @@ func handleTeampage(
 	}
 	wg.Wait()
 
-	Respond(writer, request, templateName, templates, data)
+	Respond(log, writer, request, templateName, templates, data)
 }
 
 // RegisterTeampageHandlers is called from rootCmd.RunE for endpoint

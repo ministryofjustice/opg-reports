@@ -1,46 +1,39 @@
-# base requires gcc, sqlite
-# install sqlc
-FROM golang:1.22-alpine AS base
-WORKDIR /app
-ENV CGO_ENABLED=1 GOOS=linux
-RUN apk --update --no-cache add build-base
+# setup base docker image building the application
+FROM golang:1.24.4-alpine@sha256:68932fa6d4d4059845c8f40ad7e654e626f3ebd3706eef7846f319293ab5cb7a AS build
+COPY --link go.sum go.mod /app/
+COPY --link ./report/ /app/report/
+COPY --link ./report/cmd/front/templates/ /gobin/app/templates/
+COPY --link ./report/cmd/front/local-assets/ /gobin/app/local-assets/
 RUN update-ca-certificates
-
-FROM base AS build
+RUN apk --update --no-cache add build-base
+RUN mkdir -p /gobin/app
+RUN addgroup -S user && adduser -S -g user user
 WORKDIR /app
-ENV CGO_ENABLED=1 GOOS=linux
-COPY . .
-RUN mkdir -p /go/bin/front
-RUN go build -o /go/bin/front/front_server ./servers/front/main.go
-RUN pwd
-RUN ls -lh /go/bin/
-RUN ls -lh /go/bin/front
+ENV CGO_ENABLED=1 GOOS=linux GOBIN=/gobin/app/ PATH=/gobin:$PATH
+RUN env CGO_ENABLED=1 go mod tidy
+RUN env CGO_ENABLED=1 go build -o /gobin/app/front ./report/cmd/front/
+RUN chown -Rf user:user /gobin/
+RUN chmod -Rf 0777 /gobin/
 
-
-FROM build AS dev
+# setup the development image
+FROM build AS development
 EXPOSE 8080
-WORKDIR /go/bin/front
+COPY --from=build /gobin/ /gobin
+WORKDIR /gobin/app
 ENV CGO_ENABLED=1 GOOS=linux
-RUN mkdir -p ./static/
-RUN mkdir -p ./templates/
-COPY --from=build /app/servers/front/templates/* ./templates/
-COPY --from=build /app/servers/front/static/* ./static/
-COPY --from=build /app/servers/front/config.json ./
-COPY --from=build /go/bin/front* ./
-RUN pwd
-RUN ls -lh ./
-ENTRYPOINT ["./front_server"]
+RUN chown -Rf user:user /gobin/
+RUN chmod -Rf 0777 /gobin/
+ENTRYPOINT ["/gobin/app/front"]
 
-# PRODUCTION
-FROM alpine:3.20.2
-WORKDIR /go/bin
+# setup production image
+FROM alpine:3.22.0@sha256:8a1f59ffb675680d47db6337b49d22281a139e9d709335b492be023728e11715 AS production
+# FROM scratch AS production
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=build /etc/passwd /etc/passwd
+COPY --from=build /etc/group /etc/group
+COPY --from=build /gobin/ /gobin
+WORKDIR /gobin/app
 ENV CGO_ENABLED=1 GOOS=linux
-RUN mkdir -p ./static/
-RUN mkdir -p ./templates/
-COPY --from=build /app/servers/front/templates/* ./templates/
-COPY --from=build /app/servers/front/static/* ./static/
-COPY --from=build /app/servers/front/config.json ./
-COPY --from=build /go/bin/front* ./
-RUN pwd
-RUN ls -lh ./
-ENTRYPOINT ["./front_server"]
+USER user
+EXPOSE 8080
+ENTRYPOINT ["/gobin/app/front"]

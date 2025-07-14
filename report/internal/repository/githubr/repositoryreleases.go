@@ -228,9 +228,10 @@ func (self *Repository) DownloadRepositoryReleaseAsset(
 	defer buff.Close()
 	// set the destination name
 	destination = filepath.Join(destinationDirectory, *asset.Name)
+	// make sure parent
 
 	if err = utils.FileCopy(buff, destination); err != nil {
-		log.Error("failed to copy asset to destination")
+		log.Error("failed to copy asset to destination", "destination", destination, "err", err)
 		return
 	}
 

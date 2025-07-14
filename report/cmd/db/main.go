@@ -1,6 +1,3 @@
-/*
-download database
-*/
 package main
 
 import (

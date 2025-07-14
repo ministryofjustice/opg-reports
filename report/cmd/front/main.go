@@ -46,8 +46,6 @@ env values that can be adjusted:
 		The address of this front end server (eg: localhost:8080)
 	SERVERS_API_ADDR
 		The address of the API server to connect to (eg: localhost:8081)
-	GOVUK_FRONT_DIRECTORY
-		The directory path to place and read govuk assets from
 .
 `,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -91,9 +89,6 @@ func init() {
 	log.Info(fmt.Sprintf("TEMPLATE DIR: [%s]", Info.TemplateDir))
 	log.Info(fmt.Sprintf("API: [http://%s/]", conf.Servers.Api.Addr))
 
-	if !utils.DirExists(conf.GovUK.Front.Directory) {
-		DownloadGovUKFrontEnd(ctx, log, conf, Info)
-	}
 }
 
 func main() {

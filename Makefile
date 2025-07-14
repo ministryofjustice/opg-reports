@@ -1,4 +1,4 @@
-SERVICES ?= api
+SERVICES ?= api front
 
 
 tests:
@@ -62,7 +62,7 @@ docker/build:
 .PHONY: docker/build
 
 ## Build and run the local docker images
-docker/up: docker/build
+docker/up: docker/clean docker/build
 	@env DOCKER_BUILDKIT=1 \
 	docker compose \
 		-f docker-compose.yml \

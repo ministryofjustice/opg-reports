@@ -62,7 +62,8 @@ func handleHomepage(
 		go block()
 	}
 	wg.Wait()
-	Respond(writer, request, templateName, templates, data)
+	log.Info("procesed page", "url", request.URL.String())
+	Respond(log, writer, request, templateName, templates, data)
 }
 
 // RegisterHomepageHandlers is called from rootCmd.RunE for endpoint

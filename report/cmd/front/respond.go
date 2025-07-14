@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"log/slog"
 	"net/http"
 	"opg-reports/report/internal/page"
 	"opg-reports/report/internal/utils"
@@ -20,6 +21,7 @@ func pgSetup(templates []string) (byteBuffer *bytes.Buffer, buffer *bufio.Writer
 // the functions and data and writes the result to the response
 // writers buffer for returning to user
 func Respond(
+	log *slog.Logger,
 	writer http.ResponseWriter,
 	request *http.Request,
 	templateName string,
@@ -29,6 +31,8 @@ func Respond(
 	var byteBuffer, buffer, pg = pgSetup(templates)
 	// call page WriteToBuffer to run the template stack and write to buffer
 	err := pg.WriteToBuffer(buffer, templateName, data)
+	log.Info("response writtern to buffer", "url", request.URL.String(), "err", err)
+
 	// If there are no errors rendering the template name and data stack, then
 	//   - write the header status as ok
 	//   - set the header type
