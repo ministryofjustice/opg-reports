@@ -12,6 +12,7 @@ permissions:
 
 env:
   BUILD_DIR_API: ./builds/api
+  BUILD_DIR_FRONT: ./builds/front
   BUILD_DIR_BINARIES: ./builds/bin
   prerelease: "true"
   path_to_live: "false"
@@ -68,51 +69,12 @@ jobs:
   #       with:
   #         github_token: ${{ secrets.GITHUB_TOKEN }}
 
-  # build all of the commands
-  #   this is only to make sure nothing fails, as the matrix triggers the
-  #   steps into their own agents and not visible to each other
-  # build_go:
-  #   name: "Build Go"
-  #   needs:
-  #     - tests
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     fail-fast: true
-  #     matrix:
-  #       include:
-  #         - name: "api"
-  #           src: "./report/cmd/api/"
-  #         - name: "db"
-  #           src: "./report/cmd/db/"
-  #         - name: "front"
-  #           src: "./report/cmd/front/"
-  #         - name: "govuk"
-  #           src: "./report/cmd/govuk/"
-  #         - name: "importer"
-  #           src: "./report/cmd/importer/"
-  #   steps:
-  #     # checkout self
-  #     - name: "Checkout [${{ matrix.name }}]"
-  #       id: checkout
-  #       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-  #       with:
-  #         fetch-depth: 0
-  #         fetch-tags: true
-  #     - name: "Build [${{ matrix.name }}] command"
-  #       uses: ./.github/actions/build-command
-  #       with:
-  #         name: ${{ matrix.name }}
-  #         source: ${{ matrix.src }}
-  #         destination: ${{ env.BUILD_DIR_BINARIES }}
-  #         cache: true
-
   # build_docker runs the required steps before building docker images (downloading assets)
   build_docker:
     name: "[Docker] build"
     needs:
       - setup
       # - tests
-      # - build_go
     runs-on: ubuntu-latest
     steps:
       # checkout self
@@ -130,10 +92,29 @@ jobs:
           source: ./report/cmd/db/
           destination: ${{ env.BUILD_DIR_BINARIES }}
           cache: true
+      # build the `govuk` command to download front end assets
+      - name: "Build `govuk`"
+        uses: ./.github/actions/build-command
+        with:
+          name: "govuk"
+          source: ./report/cmd/govuk/
+          destination: ${{ env.BUILD_DIR_BINARIES }}
+          cache: true
+      ## FRONT END BUILD
+      - name: "Download GOV UK Front End assets"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SERVERS_FRONT_DIRECTORY: ${{ env.BUILD_DIR_FRONT }}
+          cmd: ${{ env.BUILD_DIR_BINARIES }}/govuk
+        run: |
+          ${{ env.cmd }} frontend
+          cp -r ./report/cmd/front/templates ${{ env.BUILD_DIR_FRONT }}/
+          cp -r ./report/cmd/front/local-assets ${{ env.BUILD_DIR_FRONT }}/
+          ls -lh ${{ env.BUILD_DIR_FRONT }}
+      ## API BUILD
       # now we fetch the database ..
       #   - configure aws permissions
       #   - download the existing database
-      #   - switch to oidc role for ECR push
       - name: "Configure AWS credentials for S3 download"
         id: configure_aws_creds_s3_download
         uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
@@ -151,6 +132,7 @@ jobs:
         run: |
           ${{ env.cmd }} download
           ls -lh ${{ env.DATABASE_PATH }}
+      ## DOCKER BUILD AND PUSH
       # Swap AWS creds for ECR usage
       - name: "Configure AWS credentials for S3 download"
         id: configure_aws_creds_ecr_push
@@ -160,20 +142,28 @@ jobs:
           role-duration-seconds: 900
           role-to-assume: ${{ needs.setup.outputs.ecr_role }}
           role-session-name: reports-ecr-access
-      # build the docker image
+      # build the API image
       - name: "Build [api]"
         id: build_api
         uses: ./.github/actions/docker-build-scan-push
         with:
-          ecr_registry_id: ${{ needs.setup.outputs.ecr_registry_id}}
-          ecr_repository: ${{ needs.setup.outputs.ecr_repository_api}}
+          ecr_registry_id: ${{ needs.setup.outputs.ecr_registry_id }}
+          ecr_repository: ${{ needs.setup.outputs.ecr_repository_api }}
           branch_name: ${{ needs.setup.outputs.branch_name }}
           tag: ${{ needs.setup.outputs.semver_tag }}
           dockerfile: './docker/api/Dockerfile'
           path_to_live: ${{ env.path_to_live }}
-          docker_build_args: LDFLAGS=${{ needs.setup.outputs.ld_flags }}
-
-
+      # build the API image
+      - name: "Build [front]"
+        id: build_api
+        uses: ./.github/actions/docker-build-scan-push
+        with:
+          ecr_registry_id: ${{ needs.setup.outputs.ecr_registry_id }}
+          ecr_repository: ${{ needs.setup.outputs.ecr_repository_front }}
+          branch_name: ${{ needs.setup.outputs.branch_name }}
+          tag: ${{ needs.setup.outputs.semver_tag }}
+          dockerfile: './docker/api/Dockerfile'
+          path_to_live: ${{ env.path_to_live }}
 
   # final step
   end:
