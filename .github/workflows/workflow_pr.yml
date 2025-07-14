@@ -11,8 +11,8 @@ permissions:
   id-token: write
 
 env:
-  BUILD_DIR_API: ./dl-assets/api
-  BUILD_DIR_FRONT: ./dl-assets/front
+  BUILD_DIR_API: ./builds/api
+  BUILD_DIR_FRONT: ./builds/front
   BUILD_BINARIES: ./builds/bin
   prerelease: "true"
   path_to_live: "false"
@@ -98,50 +98,38 @@ jobs:
           name: "db"
           source: ./report/cmd/db/
           destination: ${{ env.BUILD_BINARIES }}
-      - name: "Listing"
-        run: ls -laRh ./builds/
+      ## FRONT END BUILD
+      - name: "Download GOV UK Front End assets [${{ env.BUILD_DIR_FRONT }}]"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SERVERS_FRONT_DIRECTORY: ${{ env.BUILD_DIR_FRONT }}
+          cmd: ${{ env.BUILD_BINARIES }}/govuk
+        run: |
+          ${{ env.cmd }} frontend
+          cp -r ./report/cmd/front/templates ${{ env.BUILD_DIR_FRONT }}/
+          cp -r ./report/cmd/front/local-assets ${{ env.BUILD_DIR_FRONT }}/
+      ## API BUILD
+      # now we fetch the database ..
+      #   - configure aws permissions
+      #   - download the existing database
+      - name: "Configure AWS credentials for S3 download"
+        id: configure_aws_creds_s3_download
+        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
+        with:
+          aws-region: "eu-west-1"
+          role-duration-seconds: 900
+          role-to-assume: ${{ needs.setup.outputs.s3_role }}
+          role-session-name: reports-download-db-from-s3
+      # Download the database from the bucket
+      - name: "Download [${{ needs.setup.outputs.s3_bucket }}]"
+        env:
+          DATABASE_PATH: ${{ env.BUILD_DIR_API }}/databases/api.db
+          EXISTING_DB_BUCKET: ${{ needs.setup.outputs.s3_bucket }}
+          cmd: ${{ env.BUILD_BINARIES }}/db
+        run: |
+          ${{ env.cmd }} download
+          ls -lh ${{ env.DATABASE_PATH }}
 
-      # ## FRONT END BUILD
-      # - name: "Download GOV UK Front End assets [${{ env.BUILD_DIR_FRONT }}]"
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #     SERVERS_FRONT_DIRECTORY: ${{ env.BUILD_DIR_FRONT }}
-      #     cmd: ${{ env.BUILD_BINARIES }}/govuk
-      #   run: |
-      #     ${{ env.cmd }} frontend
-      #     cp -r ./report/cmd/front/templates ${{ env.BUILD_DIR_FRONT }}/
-      #     cp -r ./report/cmd/front/local-assets ${{ env.BUILD_DIR_FRONT }}/
-      #     ls -lh ${{ env.BUILD_DIR_FRONT }}
-      # # build the `db` command so we can fetch the database for the api
-      # - name: "Build `db` [${{ env.BUILD_BINARIES }}]"
-      #   uses: ./.github/actions/build-command
-      #   with:
-      #     name: "db"
-      #     source: ./report/cmd/db/
-      #     destination: ${{ env.BUILD_BINARIES }}
-      # - name: "Listing"
-      #   run: ls -laRh ./builds/
-      # ## API BUILD
-      # # now we fetch the database ..
-      # #   - configure aws permissions
-      # #   - download the existing database
-      # - name: "Configure AWS credentials for S3 download"
-      #   id: configure_aws_creds_s3_download
-      #   uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
-      #   with:
-      #     aws-region: "eu-west-1"
-      #     role-duration-seconds: 900
-      #     role-to-assume: ${{ needs.setup.outputs.s3_role }}
-      #     role-session-name: reports-download-db-from-s3
-      # # Download the database from the bucket
-      # - name: "Download [${{ needs.setup.outputs.s3_bucket }}]"
-      #   env:
-      #     DATABASE_PATH: ${{ env.BUILD_DIR_API }}/databases/api.db
-      #     EXISTING_DB_BUCKET: ${{ needs.setup.outputs.s3_bucket }}
-      #     cmd: ${{ env.BUILD_BINARIES }}/db
-      #   run: |
-      #     ${{ env.cmd }} download
-      #     ls -lh ${{ env.DATABASE_PATH }}
       # ## DOCKER BUILD AND PUSH
       # # Swap AWS creds for ECR usage
       # - name: "Configure AWS credentials for S3 download"
@@ -176,7 +164,7 @@ jobs:
       #     path_to_live: ${{ env.path_to_live }}
       #
       - name: "Listing"
-        run: ls -larh ./builds/
+        run: ls -laRh ./builds/
   # final step
   end:
     name: 'End of workflow'
