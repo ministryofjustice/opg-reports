@@ -48,8 +48,9 @@ jobs:
         uses: ministryofjustice/opg-github-actions/.github/actions/semver-tag@4202ec51fd9d613351e4c062606d857982ad70eb #v3.0.6
         with:
           prerelease: ${{ env.prerelease }}
-          releases_enabled: false  # run all the go tests
+          releases_enabled: false
 
+  # run all the tests
   tests:
     name: "Tests"
     needs:
