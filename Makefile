@@ -1,5 +1,8 @@
 SERVICES ?= api front
 
+API_BUILD = ./builds/api
+DBP = ${API_BUILD}/databases/api.db
+FRONT_BUILD =./builds/front
 
 tests:
 	@go clean -testcache
@@ -50,6 +53,32 @@ coverage:
 	@go tool cover -html=code-coverage.out
 .PHONY: coverage
 
+#========= LOCAL =========
+.PHONY: local/build/api
+local/build/api:
+	@rm -Rf ${API_BUILD}
+	@mkdir -p ${API_BUILD} ${API_BUILD}/databases ${API_BUILD}/bin
+	@go build -o ${API_BUILD}/bin/db ./report/cmd/db/
+	@aws-vault exec shared-development-operator -- \
+   		env DATABASE_PATH=${DBP} \
+   		${API_BUILD}/bin/db download
+	@go build -o ${API_BUILD}/bin/api ./report/cmd/api
+
+.PHONY: local/build/front
+local/build/front:
+	@rm -Rf ${FRONT_BUILD}
+	@mkdir -p ${FRONT_BUILD} ${FRONT_BUILD}/bin
+	@go build -o ${FRONT_BUILD}/bin/govuk ./report/cmd/govuk/
+	@env SERVERS_FRONT_DIRECTORY=${FRONT_BUILD} \
+  		env GITHUB_TOKEN=${GITHUB_TOKEN} \
+  		${FRONT_BUILD}/bin/govuk frontend
+	@go build -o ${FRONT_BUILD}/bin/front ./report/cmd/front/
+	@cp -r ./report/cmd/front/templates ${FRONT_BUILD}/
+	@cp -r ./report/cmd/front/local-assets ${FRONT_BUILD}/
+
+.PHONY: local/build
+local/build: local/build/api local/build/front
+
 #========= DOCKER =========
 ## Build local development version of the docker image
 docker/build:
@@ -62,7 +91,7 @@ docker/build:
 .PHONY: docker/build
 
 ## Build and run the local docker images
-docker/up: docker/clean docker/build
+docker/up: local/build docker/clean docker/build
 	@env DOCKER_BUILDKIT=1 \
 	docker compose \
 		-f docker-compose.yml \
