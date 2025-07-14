@@ -31,6 +31,11 @@ jobs:
       ecr_role: "arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
       ecr_repository_api: "opg-reports/api"
       ecr_repository_front: "opg-reports/front"
+      # TERRAFORM
+      terraform_workspace_production: "production"
+      terraform_workspace_development: "development"
+      terraform_version_account: ${{ steps.terraform_account_version.outputs.version }}
+      terraform_version_environment: ${{ steps.terraform_environment_version.outputs.version }}
       # SEMVER & BRANCH NAMES
       branch_name: ${{ steps.semver_tag.outputs.branch_safe }}
       semver_tag: ${{ steps.semver_tag.outputs.created_tag }}
@@ -42,6 +47,17 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
+       # Find the terraform version details for account & env
+      - name: "Parse terraform account version"
+        id: terraform_account_version
+        uses: ministryofjustice/opg-github-actions/.github/actions/terraform-version@4202ec51fd9d613351e4c062606d857982ad70eb #v3.0.6
+        with:
+          terraform_directory: ./terraform/account
+      - name: "Parse terraform environment version"
+        id: terraform_environment_version
+        uses: ministryofjustice/opg-github-actions/.github/actions/terraform-version@4202ec51fd9d613351e4c062606d857982ad70eb #v3.0.6
+        with:
+          terraform_directory: ./terraform/environment
       # Generate a semver tag for this workflow
       - name: "Generate semver tag"
         id: semver_tag
@@ -165,12 +181,56 @@ jobs:
           path_to_live: ${{ env.path_to_live }}
       - name: "List build directory"
         run: ls -laRh ./builds/
+
+  # Run the terraform for development workspace
+  terraform_development:
+    name: "[Terraform] Development"
+    runs-on: ubuntu-latest
+    needs:
+      - setup
+      - build_docker
+    steps:
+      - name: "Checkout"
+        id: checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+      # setup ssh keys
+      - uses: webfactory/ssh-agent@a6f90b1f127823b31d4d4a8d96047790581349bd #v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_EXTERNAL_MODULES }}
+      # configure the aws role
+      - name: "Configure AWS credentials for terraform"
+        id: configure_aws_creds
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
+          aws-region: "eu-west-1"
+          role-session-name: GitHubActionsOpgReportsTerraform
+      - name: "Account level terraform"
+        uses: ./.github/actions/terraform
+        with:
+          apply: false
+          directory: ./terraform/account
+          workspace: ${{ needs.setup.outputs.terraform_workspace_development }}
+          version: ${{ needs.setup.outputs.terraform_version_account }}
+      - name: "Environment level terraform"
+        uses: ./.github/actions/terraform
+        env:
+          TF_VAR_api_image_tag: development-${{ needs.setup.outputs.semver_tag }}
+          TF_VAR_front_image_tag: development-${{ needs.setup.outputs.semver_tag }}
+        with:
+          apply: false
+          directory: ./terraform/environment
+          workspace: ${{ needs.setup.outputs.terraform_workspace_development }}
+          version: ${{ needs.setup.outputs.terraform_version_environment }}
+
   # final step
   end:
     name: 'End'
     runs-on: 'ubuntu-latest'
     needs:
       - build_docker
+      - terraform_development
     steps:
       - id: end
         name: End
