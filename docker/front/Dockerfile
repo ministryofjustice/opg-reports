@@ -4,6 +4,7 @@ COPY --link go.sum go.mod /app/
 COPY --link ./report/ /app/report/
 COPY --link ./report/cmd/front/templates/ /gobin/app/templates/
 COPY --link ./report/cmd/front/local-assets/ /gobin/app/local-assets/
+COPY --link builds/front/govuk /gobin/app/govuk
 RUN update-ca-certificates
 RUN apk --update --no-cache add build-base
 RUN mkdir -p /gobin/app
@@ -13,7 +14,7 @@ ENV CGO_ENABLED=1 GOOS=linux GOBIN=/gobin/app/ PATH=/gobin:$PATH
 RUN env CGO_ENABLED=1 go mod tidy
 RUN env CGO_ENABLED=1 go build -o /gobin/app/front ./report/cmd/front/
 RUN chown -Rf user:user /gobin/
-RUN chmod -Rf 0777 /gobin/
+RUN chmod -Rf 0755 /gobin/
 
 # setup the development image
 FROM build AS development
@@ -22,12 +23,13 @@ COPY --from=build /gobin/ /gobin
 WORKDIR /gobin/app
 ENV CGO_ENABLED=1 GOOS=linux
 RUN chown -Rf user:user /gobin/
-RUN chmod -Rf 0777 /gobin/
+RUN chmod -Rf 0755 /gobin/
 ENTRYPOINT ["/gobin/app/front"]
 
 # setup production image
 FROM alpine:3.22.0@sha256:8a1f59ffb675680d47db6337b49d22281a139e9d709335b492be023728e11715 AS production
 # FROM scratch AS production
+EXPOSE 8080
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /etc/passwd /etc/passwd
 COPY --from=build /etc/group /etc/group
@@ -35,5 +37,4 @@ COPY --from=build /gobin/ /gobin
 WORKDIR /gobin/app
 ENV CGO_ENABLED=1 GOOS=linux
 USER user
-EXPOSE 8080
 ENTRYPOINT ["/gobin/app/front"]
