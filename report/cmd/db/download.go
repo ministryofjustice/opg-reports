@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"path/filepath"
 
 	"opg-reports/report/internal/repository/awsr"
 
@@ -39,6 +40,7 @@ env variables used that can be adjusted:
 func downloadCmdRunner(client awsr.ClientS3Getter, store awsr.RepositoryS3BucketItemDownloader) (err error) {
 	var (
 		dir, _ = os.MkdirTemp("./", "__download-s3-*")
+		parent = filepath.Dir(conf.Database.Path)
 		local  string
 	)
 	defer os.RemoveAll(dir)
@@ -46,6 +48,7 @@ func downloadCmdRunner(client awsr.ClientS3Getter, store awsr.RepositoryS3Bucket
 	if err != nil {
 		return
 	}
+	os.MkdirAll(parent, os.ModePerm)
 	err = os.Rename(local, conf.Database.Path)
 	return
 }
