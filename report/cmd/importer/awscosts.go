@@ -57,6 +57,7 @@ func awscostsCmdRunner(
 		EndDate:     end.Format(utils.DATE_FORMATS.YMD),
 		Granularity: types.GranularityMonthly,
 	}
+	log.With("start", start, "end", end).Info("Getting costs between dates ... ")
 	// get the raw data from the api
 	data, err := ceStore.GetCostData(ceClient, opts)
 	if err != nil {

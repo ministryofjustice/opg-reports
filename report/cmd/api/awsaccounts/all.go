@@ -25,7 +25,13 @@ type GetAwsAccountsAllResponse[T api.Model] struct {
 // in the data.
 //
 // Attaches both the handler (`handleGetAwsAccountsAll`) and the spec details to the huma api
-func RegisterGetAwsAccountsAll[T api.Model](log *slog.Logger, conf *config.Config, humaapi huma.API, service api.AwsAccountsGetter[T], store sqlr.RepositoryReader) {
+func RegisterGetAwsAccountsAll[T api.Model](
+	log *slog.Logger,
+	conf *config.Config,
+	humaapi huma.API,
+	service api.AwsAccountsGetter[T],
+	store sqlr.RepositoryReader,
+) {
 	var operation = huma.Operation{
 		OperationID:   "get-awsaccounts-all",
 		Method:        http.MethodGet,
@@ -41,10 +47,14 @@ func RegisterGetAwsAccountsAll[T api.Model](log *slog.Logger, conf *config.Confi
 }
 
 // handleGetAwsAccountsAll deals with each request and fetches
-func handleGetAwsAccountsAll[T api.Model](ctx context.Context, log *slog.Logger, conf *config.Config,
-	service api.AwsAccountsGetter[T], store sqlr.RepositoryReader, input *struct{}) (response *GetAwsAccountsAllResponse[T], err error) {
+func handleGetAwsAccountsAll[T api.Model](
+	ctx context.Context, log *slog.Logger, conf *config.Config,
+	service api.AwsAccountsGetter[T], store sqlr.RepositoryReader,
+	input *struct{},
+) (response *GetAwsAccountsAllResponse[T], err error) {
 	var accounts []T
 	response = &GetAwsAccountsAllResponse[T]{}
+	log.Info("handling get-awsaccounts-all")
 
 	if service == nil {
 		err = huma.Error500InternalServerError("failed to connect to service", err)

@@ -29,6 +29,7 @@ func RegisterGetHomepage(log *slog.Logger, conf *config.Config, api huma.API) {
 	}
 
 	huma.Register(api, operation, func(ctx context.Context, input *struct{}) (homepage *HomepageResponse, err error) {
+		log.Info("handling get-home")
 		homepage = &HomepageResponse{}
 		homepage.Body.Message = "Successful connection"
 		return

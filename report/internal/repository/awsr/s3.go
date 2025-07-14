@@ -49,8 +49,6 @@ func (self *Repository) ListBucket(client s3.ListObjectsV2APIClient, bucket stri
 
 // DownloadBucket finds and fetches all files under the <prefix> path and saves them to local file underneath <directory>
 // and maintains the path used by the bucket. Returns a list of all the files with their local file paths.
-//
-// TODO - add concurrency?
 func (self *Repository) DownloadBucket(client ClientS3ListAndGetter, bucket string, prefix string, directory string) (downloaded []string, err error) {
 	var (
 		log   *slog.Logger = self.log.With("operation", "DownloadBucket", "bucket", bucket, "prefix", prefix)

@@ -48,7 +48,7 @@ func handleGetAwsCostsTop20[T api.Model](ctx context.Context, log *slog.Logger, 
 	service api.AwsCostsTop20Getter[T], store sqlr.RepositoryReader, input *struct{}) (response *GetAwsCostsTop20Response[T], err error) {
 	var costs []T
 	response = &GetAwsCostsTop20Response[T]{}
-
+	log.Info("handling get-awscosts-top20")
 	if service == nil {
 		err = huma.Error500InternalServerError("failed to connect to service", err)
 		return

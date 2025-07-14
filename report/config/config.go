@@ -182,7 +182,7 @@ var defaultConfig = &Config{
 	},
 	Log: &Log{
 		Level: "INFO",
-		Type:  "TEXT",
+		Type:  "JSON",
 	},
 	Versions: &Versions{
 		Semver: "0.0.0",

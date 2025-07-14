@@ -49,7 +49,13 @@ type GroupedAwsCostsInput struct {
 }
 
 // RegisterGetAwsGroupedCosts handles all AWS Cost request that are grouped by date + other fields.
-func RegisterGetAwsGroupedCosts[T api.Model](log *slog.Logger, conf *config.Config, humaapi huma.API, service api.AwsCostsGroupedGetter[T], store sqlr.RepositoryReader) {
+func RegisterGetAwsGroupedCosts[T api.Model](
+	log *slog.Logger,
+	conf *config.Config,
+	humaapi huma.API,
+	service api.AwsCostsGroupedGetter[T],
+	store sqlr.RepositoryReader,
+) {
 	var operation = huma.Operation{
 		OperationID:   "get-awscosts-grouped",
 		Method:        http.MethodGet,
@@ -73,8 +79,8 @@ func handleGetAwsGroupedCosts[T api.Model](
 	input *GroupedAwsCostsInput,
 ) (response *GetAwsGroupedCostsResponse[T], err error) {
 	var costs []T = []T{}
-
 	response = &GetAwsGroupedCostsResponse[T]{}
+	log.Info("handling get-awscosts-grouped")
 
 	if service == nil {
 		err = huma.Error500InternalServerError("failed to connect to service", err)
