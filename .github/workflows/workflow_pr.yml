@@ -155,16 +155,18 @@ jobs:
           path_to_live: ${{ env.path_to_live }}
       # build the API image
       - name: "Build [front]"
-        id: build_api
+        id: build_front
         uses: ./.github/actions/docker-build-scan-push
         with:
           ecr_registry_id: ${{ needs.setup.outputs.ecr_registry_id }}
           ecr_repository: ${{ needs.setup.outputs.ecr_repository_front }}
           branch_name: ${{ needs.setup.outputs.branch_name }}
           tag: ${{ needs.setup.outputs.semver_tag }}
-          dockerfile: './docker/api/Dockerfile'
+          dockerfile: './docker/front/Dockerfile'
           path_to_live: ${{ env.path_to_live }}
-
+      #
+      - name: "Listing"
+        run: ls -larh ./builds/
   # final step
   end:
     name: 'End of workflow'
