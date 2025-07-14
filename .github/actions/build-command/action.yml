@@ -48,12 +48,15 @@ runs:
         SRC: "${{ inputs.source }}"
         OUT: "${{ inputs.destination }}"
         OS_ARCH: "${{ env.OS_ARCH_NAME }}"
-        BINARY: "${{ inputs.name }}_${{ env.OS_ARCH_NAME }}"
+        ARCH_BINARY: "${{ inputs.name }}_${{ env.OS_ARCH_NAME }}"
+        BINARY: "${{ inputs.name }}"
       run: |
         echo "Building"
         mkdir -p ${{ env.OUT }}
         go mod tidy
         go build -o ${{ env.OUT }}/${{ env.BINARY }} ${{ env.SRC }}
+        go build -o ${{ env.OUT }}/${{ env.ARCH_BINARY }} ${{ env.SRC }}
+        ls -l ${{ env.OUT }}
 
 
 
