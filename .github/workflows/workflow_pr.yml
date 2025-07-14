@@ -60,13 +60,13 @@ jobs:
             src: "./report/cmd/importer/"
     steps:
       # checkout self
-      - name: "Checkout"
+      - name: "Checkout [${{ matrix.name }}]"
         id: checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
           fetch-tags: true
-      - name: "Build command"
+      - name: "Build [${{ matrix.name }}] command"
         uses: ./.github/actions/build-command
         with:
           name: ${{ matrix.name }}
