@@ -5,6 +5,9 @@ inputs:
     github_token:
       description: "A valid github token"
       required: true
+    cache:
+      description: "cache go.mod"
+      default: "true"
 
 
 runs:
@@ -22,7 +25,7 @@ runs:
       id: setup_go
       uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
       with:
-        cache: false
+        cache: ${{ inputs.cache }}
         go-version-file: './go.mod'
     # run tests
     - name: "Run tests"
