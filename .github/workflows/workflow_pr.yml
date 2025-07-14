@@ -129,41 +129,39 @@ jobs:
         run: |
           ${{ env.cmd }} download
           ls -lh ${{ env.DATABASE_PATH }}
-
-      # ## DOCKER BUILD AND PUSH
-      # # Swap AWS creds for ECR usage
-      # - name: "Configure AWS credentials for S3 download"
-      #   id: configure_aws_creds_ecr_push
-      #   uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
-      #   with:
-      #     aws-region: "eu-west-1"
-      #     role-duration-seconds: 900
-      #     role-to-assume: ${{ needs.setup.outputs.ecr_role }}
-      #     role-session-name: reports-ecr-access
-      # # build the API image
-      # - name: "Build [api]"
-      #   id: build_api
-      #   uses: ./.github/actions/docker-build-scan-push
-      #   with:
-      #     ecr_registry_id: ${{ needs.setup.outputs.ecr_registry_id }}
-      #     ecr_repository: ${{ needs.setup.outputs.ecr_repository_api }}
-      #     branch_name: ${{ needs.setup.outputs.branch_name }}
-      #     tag: ${{ needs.setup.outputs.semver_tag }}
-      #     dockerfile: './docker/api/Dockerfile'
-      #     path_to_live: ${{ env.path_to_live }}
-      # # build the API image
-      # - name: "Build [front]"
-      #   id: build_front
-      #   uses: ./.github/actions/docker-build-scan-push
-      #   with:
-      #     ecr_registry_id: ${{ needs.setup.outputs.ecr_registry_id }}
-      #     ecr_repository: ${{ needs.setup.outputs.ecr_repository_front }}
-      #     branch_name: ${{ needs.setup.outputs.branch_name }}
-      #     tag: ${{ needs.setup.outputs.semver_tag }}
-      #     dockerfile: './docker/front/Dockerfile'
-      #     path_to_live: ${{ env.path_to_live }}
-      #
-      - name: "Listing"
+      ## DOCKER BUILD AND PUSH
+      # Swap AWS creds for ECR usage
+      - name: "Configure AWS credentials for S3 download"
+        id: configure_aws_creds_ecr_push
+        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
+        with:
+          aws-region: "eu-west-1"
+          role-duration-seconds: 900
+          role-to-assume: ${{ needs.setup.outputs.ecr_role }}
+          role-session-name: reports-ecr-access
+      # build the API image
+      - name: "Build [api]"
+        id: build_api
+        uses: ./.github/actions/docker-build-scan-push
+        with:
+          ecr_registry_id: ${{ needs.setup.outputs.ecr_registry_id }}
+          ecr_repository: ${{ needs.setup.outputs.ecr_repository_api }}
+          branch_name: ${{ needs.setup.outputs.branch_name }}
+          tag: ${{ needs.setup.outputs.semver_tag }}
+          dockerfile: './docker/api/Dockerfile'
+          path_to_live: ${{ env.path_to_live }}
+      # build the API image
+      - name: "Build [front]"
+        id: build_front
+        uses: ./.github/actions/docker-build-scan-push
+        with:
+          ecr_registry_id: ${{ needs.setup.outputs.ecr_registry_id }}
+          ecr_repository: ${{ needs.setup.outputs.ecr_repository_front }}
+          branch_name: ${{ needs.setup.outputs.branch_name }}
+          tag: ${{ needs.setup.outputs.semver_tag }}
+          dockerfile: './docker/front/Dockerfile'
+          path_to_live: ${{ env.path_to_live }}
+      - name: "List build directory"
         run: ls -laRh ./builds/
   # final step
   end:
