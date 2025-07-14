@@ -46,14 +46,19 @@ type Log struct {
 // Servers contains api & front end config
 type Servers struct {
 	Api   *Server
-	Front *Server
+	Front *FrontServer
 }
 
 // Server contains the address to use to contact the server
 type Server struct {
-	Name    string        // env: $X_NAME
-	Addr    string        // env: $X_ADDR
-	Timeout time.Duration // env: $X_TIMEOUT - used to set the http client timeout
+	Name string // env: $X_NAME
+	Addr string // env: $X_ADDR
+}
+type FrontServer struct {
+	Name      string        // env: $X_NAME
+	Addr      string        // env: $X_ADDR
+	Timeout   time.Duration // env: $X_TIMEOUT - used to set the http client timeout
+	Directory string        // env: SERVERS_FRONT_DIRECTORY
 }
 
 // Versions contains version data about the build
@@ -173,7 +178,7 @@ var defaultConfig = &Config{
 			AssetName:  "release-v5.11.0.zip",
 			ReleaseTag: "v5.11.0",
 			UseRegex:   false,
-			Directory:  "govuk",
+			Directory:  "govuk", // sub directory underneath the server directory
 		},
 	},
 	Existing: &Existing{
@@ -190,7 +195,7 @@ var defaultConfig = &Config{
 	},
 	Servers: &Servers{
 		Api:   &Server{Name: "OPG Reports API", Addr: ":8081"},
-		Front: &Server{Name: "OPG Reports", Addr: ":8080", Timeout: (30 * time.Second)},
+		Front: &FrontServer{Name: "OPG Reports", Addr: ":8080", Timeout: (30 * time.Second), Directory: "./"},
 	},
 }
 

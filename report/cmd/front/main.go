@@ -70,20 +70,20 @@ env values that can be adjusted:
 // init called to setup conf / logger and to check and download
 // govuk front end
 func init() {
-	var govdir string
 	conf, viperConf = config.New()
 	log = utils.Logger(conf.Log.Level, conf.Log.Type)
 	ctx = context.Background()
-	govdir = filepath.Clean(conf.GovUK.Front.Directory)
+
+	serverDir := filepath.Clean(conf.Servers.Front.Directory)
 
 	Info = &FrontInfo{
-		GovUKAssetDir: govdir,
-		AssetRoot:     filepath.Dir(govdir),
-		LocalAssetDir: filepath.Join(filepath.Dir(govdir), "local-assets"),
-		TemplateDir:   filepath.Join(filepath.Dir(govdir), "templates"),
+		AssetRoot:     serverDir,
+		GovUKAssetDir: filepath.Join(serverDir, filepath.Clean(conf.GovUK.Front.Directory)),
+		LocalAssetDir: filepath.Join(serverDir, "local-assets"),
+		TemplateDir:   filepath.Join(serverDir, "templates"),
 		RestClient:    restr.Default(ctx, log, conf),
 	}
-	log.Info(fmt.Sprintf("ROOT ASSET DIR: [%s]", Info.AssetRoot))
+	log.Info(fmt.Sprintf("SERVERS FRONT DIR: [%s]", Info.AssetRoot))
 	log.Info(fmt.Sprintf("GOVUK ASSET DIR: [%s]", Info.GovUKAssetDir))
 	log.Info(fmt.Sprintf("LOCAL ASSET DIR: [%s]", Info.LocalAssetDir))
 	log.Info(fmt.Sprintf("TEMPLATE DIR: [%s]", Info.TemplateDir))

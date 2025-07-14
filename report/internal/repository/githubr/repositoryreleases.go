@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"opg-reports/report/internal/utils"
+	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -226,6 +227,8 @@ func (self *Repository) DownloadRepositoryReleaseAsset(
 	}
 	// close file
 	defer buff.Close()
+	// make the directory
+	os.MkdirAll(destinationDirectory, os.ModePerm)
 	// set the destination name
 	destination = filepath.Join(destinationDirectory, *asset.Name)
 	// make sure parent
