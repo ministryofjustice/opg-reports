@@ -85,14 +85,14 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
       # build the `govuk` command to download front end assets
-      - name: "Build `govuk`"
+      - name: "Build `govuk` [${{ env.BUILD_DIR_BINARIES }}]"
         uses: ./.github/actions/build-command
         with:
           name: "govuk"
           source: ./report/cmd/govuk/
           destination: ${{ env.BUILD_DIR_BINARIES }}
       ## FRONT END BUILD
-      - name: "Download GOV UK Front End assets"
+      - name: "Download GOV UK Front End assets [${{ env.BUILD_DIR_FRONT }}]"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SERVERS_FRONT_DIRECTORY: ${{ env.BUILD_DIR_FRONT }}
@@ -103,14 +103,14 @@ jobs:
           cp -r ./report/cmd/front/local-assets ${{ env.BUILD_DIR_FRONT }}/
           ls -lh ${{ env.BUILD_DIR_FRONT }}
       # build the `db` command so we can fetch the database for the api
-      - name: "Build `db`"
+      - name: "Build `db` [${{ env.BUILD_DIR_BINARIES }}]"
         uses: ./.github/actions/build-command
         with:
           name: "db"
           source: ./report/cmd/db/
           destination: ${{ env.BUILD_DIR_BINARIES }}
       - name: "Listing"
-        run: ls -larh ./builds/
+        run: ls -laRh ./builds/
       ## API BUILD
       # now we fetch the database ..
       #   - configure aws permissions
