@@ -16,7 +16,7 @@ env:
   prerelease: "true"
   path_to_live: "false"
 
-
+# jobs
 jobs:
   setup:
     name: "Set variables"
