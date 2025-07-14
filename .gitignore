@@ -7,8 +7,6 @@
 **/__downloads/*
 **/__download-*/*
 **/__database/*
-# Ignore the govuk assets folder
-**/govuk/*
 # Ignore database and sql files
 *.db
 *.db-*
@@ -19,6 +17,7 @@ code-coverage.out
 openapi.yaml
 # Ignore build folders
 builds/**
+report/cmd/front/govuk/**
 # Ignore todo / temp files
 todo.txt
 scratch.txt
