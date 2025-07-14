@@ -14,7 +14,6 @@ import (
 func addMiddleware(hapi huma.API, log *slog.Logger, conf *config.Config) {
 	// check database age
 	hapi.UseMiddleware(func(ctx huma.Context, next func(huma.Context)) {
-		downloadLatestDB(ctx.Context(), log, conf)
 		next(ctx)
 	})
 

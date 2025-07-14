@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log/slog"
+	"os"
 
 	"opg-reports/report/config"
 	"opg-reports/report/internal/utils"
@@ -27,10 +28,6 @@ api turns on the api and the docs - generated using huma.
 
 env values that can be adjusted:
 
-	EXISTING_DB_BUCKET
-		The name of the bucket where latest database is stored
-	EXISTING_DB_KEY
-		The object key in the bucket (including folder path) for the latest database
 	DATABASE_PATH
 		The local file system path to the database the API is using
 	SERVERS_API_NAME
@@ -57,9 +54,9 @@ func init() {
 	ctx = context.Background()
 
 	if !utils.FileExists(conf.Database.Path) {
-		SeedDB(ctx, log, conf)
+		log.Error("database not found")
+		os.Exit(1)
 	}
-	retryCounter = 0
 }
 
 func main() {
