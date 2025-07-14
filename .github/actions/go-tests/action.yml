@@ -1,6 +1,11 @@
 name: "[Tests] Test Go"
 description: "Run go test suite"
 
+inputs:
+    github_token:
+      description: "A valid github token"
+      required: true
+
 
 runs:
   using: composite
@@ -23,6 +28,8 @@ runs:
     - name: "Run tests"
       id: run_tests
       shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
       run: |
         go mod tidy
         go test -count=1 -cover -covermode=atomic ./...

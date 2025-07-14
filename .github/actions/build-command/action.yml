@@ -42,7 +42,6 @@ runs:
       id: build_cmd
       shell: bash
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SRC: "${{ inputs.source }}"
         OUT: "${{ inputs.destination }}"
         OS_ARCH: "${{ env.OS_ARCH_NAME }}"

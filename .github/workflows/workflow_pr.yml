@@ -35,6 +35,8 @@ jobs:
       - id: "test_go"
         name: "Go"
         uses: ./.github/actions/go-tests
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
   # build database downloader command
   build_commands:
     name: "Setup"
