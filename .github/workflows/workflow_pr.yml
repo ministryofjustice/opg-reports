@@ -89,7 +89,7 @@ jobs:
 
   # build_docker runs the required steps before building docker images (downloading assets)
   build_docker:
-    name: "[Docker] build"
+    name: "[Docker] Build"
     needs:
       - setup
       - tests
@@ -209,7 +209,7 @@ jobs:
       - name: "Account level terraform"
         uses: ./.github/actions/terraform
         with:
-          apply: false
+          apply: true
           directory: ./terraform/account
           workspace: ${{ needs.setup.outputs.terraform_workspace_development }}
           version: ${{ needs.setup.outputs.terraform_version_account }}
@@ -219,7 +219,7 @@ jobs:
           TF_VAR_api_image_tag: development-${{ needs.setup.outputs.semver_tag }}
           TF_VAR_front_image_tag: development-${{ needs.setup.outputs.semver_tag }}
         with:
-          apply: false
+          apply: true
           directory: ./terraform/environment
           workspace: ${{ needs.setup.outputs.terraform_workspace_development }}
           version: ${{ needs.setup.outputs.terraform_version_environment }}
