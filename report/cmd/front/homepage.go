@@ -74,7 +74,7 @@ func RegisterHomepageHandlers(
 	info *FrontInfo,
 	mux *http.ServeMux,
 ) {
-	log.Info("registering handler [`/`] ...")
+	log.Info("registering handler [`/{$}`] ...")
 	// Homepage
 	mux.HandleFunc("/{$}", func(writer http.ResponseWriter, request *http.Request) {
 		handleHomepage(ctx, log, conf, info, writer, request)
