@@ -19,11 +19,6 @@ permissions:
   statuses: none
 
 
-env:
-  DB_DOWNLOADER_DIR: ./builds/db
-  API_BUILD_DIR: ./builds/api
-
-
 jobs:
   # run the go tests
   run_pre_build_tests:
