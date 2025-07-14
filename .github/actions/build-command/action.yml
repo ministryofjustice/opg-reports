@@ -13,7 +13,7 @@ inputs:
     required: true
   cache:
     description: "cache go.mod"
-    default: "true"
+    default: "false"
 
 runs:
   using: composite

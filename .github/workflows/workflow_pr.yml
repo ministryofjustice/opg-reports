@@ -91,7 +91,6 @@ jobs:
           name: "db"
           source: ./report/cmd/db/
           destination: ${{ env.BUILD_DIR_BINARIES }}
-          cache: true
       # build the `govuk` command to download front end assets
       - name: "Build `govuk`"
         uses: ./.github/actions/build-command
@@ -99,7 +98,6 @@ jobs:
           name: "govuk"
           source: ./report/cmd/govuk/
           destination: ${{ env.BUILD_DIR_BINARIES }}
-          cache: true
       ## FRONT END BUILD
       - name: "Download GOV UK Front End assets"
         env:
