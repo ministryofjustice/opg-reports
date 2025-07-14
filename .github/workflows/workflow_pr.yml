@@ -20,8 +20,8 @@ permissions:
 
 
 jobs:
-  # run the go tests
-  run_pre_build_tests:
+  # run all the go tests
+  tests:
     name: "Tests"
     runs-on: ubuntu-latest
     steps:
@@ -32,16 +32,32 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
+      # run tests
       - id: "test_go"
         name: "Go"
         uses: ./.github/actions/go-tests
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-  # build database downloader command
-  build_commands:
-    name: "Setup"
-    needs: ["run_pre_build_tests"]
+
+  # build all of the commands - jsut to make sure nothing fails
+  builds:
+    name: "Builds"
+    needs: [tests]
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - name: "api"
+            src: "./report/cmd/api/"
+          - name: "db"
+            src: "./report/cmd/db/"
+          - name: "front"
+            src: "./report/cmd/front/"
+          - name: "govuk"
+            src: "./report/cmd/govuk/"
+          - name: "importer"
+            src: "./report/cmd/importer/"
     steps:
       # checkout self
       - name: "Checkout"
@@ -50,19 +66,24 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
-      - id: "database_cmd"
-        name: "Database command"
+      - name: "Build command"
         uses: ./.github/actions/build-command
         with:
-          name: "db"
-          source: "./report/cmd/db/"
+          name: ${{ matrix.name }}
+          source: ${{ matrix.src }}
           destination: "./builds/bin/"
+      - name: "list"
+        run: ls -l ./builds/bin/
+
+
+
+
 
   # final step
   end:
     name: 'End of workflow'
     runs-on: 'ubuntu-latest'
-    needs: [build_commands]
+    needs: [builds]
     steps:
       - id: end
         name: End
