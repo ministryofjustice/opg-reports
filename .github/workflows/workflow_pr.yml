@@ -258,8 +258,9 @@ jobs:
           name: importer
           source: ./report/cmd/importer/
           destination: ${{ env.BUILD_BINARIES }}
-      - name: "Create release [${{ env.tag }}]"
+      - name: "Create release [${{ needs.setup.outputs.semver_tag }}]"
         env:
+          GH_TOKEN: ${{ github.token }}
           tag: ${{ needs.setup.outputs.semver_tag }}
         run: |
           gh release create ${{ env.tag }} ${{ env.BUILD_BINARIES }}/* \
