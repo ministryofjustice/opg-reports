@@ -263,15 +263,13 @@ jobs:
       - name: "Create release [${{ needs.setup.outputs.semver_tag }}]"
         env:
           GH_TOKEN: ${{ github.token }}
+          pre: ${{ env.prerelease == 'true' && '--prerelease' || '' }}
+          latest:  ${{ env.path_to_live == 'true' && '--latest=true' || '--latest=false' }}
           tag: ${{ needs.setup.outputs.semver_tag }}
         run: |
           gh release create ${{ env.tag }} ${{ env.BUILD_BINARIES }}/* \
-            --verify-tag \
-            --notes-from-tag \
-            --latest=false \
-            --prerelease
-
-
+            ${{ env.pre }} ${{ env.latest }} --verify-tag \
+            --notes-from-tag
   # final step
   end:
     name: 'End'
