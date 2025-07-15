@@ -258,6 +258,17 @@ jobs:
           name: importer
           source: ./report/cmd/importer/
           destination: ${{ env.BUILD_BINARIES }}
+      - name: "Create release [${{ env.tag }}]"
+        env:
+          tag: ${{ needs.setup.outputs.semver_tag }}
+        run: |
+          gh release create ${{ env.tag }} ${{ env.BUILD_BINARIES }}/* \
+            --verify-tag \
+            --generate-notes \
+            --latest=false \
+            --prerelease
+
+
   # final step
   end:
     name: 'End'
