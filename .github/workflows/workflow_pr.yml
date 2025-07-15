@@ -232,16 +232,6 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - tests
-    strategy:
-      fail-fast: true
-      matrix:
-        include:
-          - name: "db"
-            path: "./report/cmd/db"
-          - name: "govuk"
-            path: "./report/cmd/govuk"
-          - name: "importer"
-            path: "./report/cmd/importer"
     steps:
       # checkout self
       - name: "Checkout [${{ matrix.name }}]"
@@ -250,13 +240,24 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
-      - name: "Build command [${{ matrix.name }}]"
+      - name: "Build command [db]"
         uses: ./.github/actions/build-command
         with:
-          name: ${{ matrix.name }}
-          source: ./report/cmd/${{ matrix.name }}/
+          name: db
+          source: ./report/cmd/db/
           destination: ${{ env.BUILD_BINARIES }}
-
+      - name: "Build command [govuk]"
+        uses: ./.github/actions/build-command
+        with:
+          name: govuk
+          source: ./report/cmd/govuk/
+          destination: ${{ env.BUILD_BINARIES }}
+      - name: "Build command [importer]"
+        uses: ./.github/actions/build-command
+        with:
+          name: importer
+          source: ./report/cmd/importer/
+          destination: ${{ env.BUILD_BINARIES }}
   # final step
   end:
     name: 'End'
