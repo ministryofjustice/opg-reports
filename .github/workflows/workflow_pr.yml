@@ -231,6 +231,7 @@ jobs:
     name: "Build & attach binaries"
     runs-on: ubuntu-latest
     needs:
+      - setup
       - tests
     steps:
       # checkout self
