@@ -228,11 +228,12 @@ jobs:
   #   - dont need all the api & front binaries, just the
   #     ones we'd used within reporting jobs etc
   binaries_for_release:
-    name: "Build & attach binaries"
+    name: "Build & Create release"
     runs-on: ubuntu-latest
     needs:
       - setup
       - tests
+      - terraform_development
     steps:
       # checkout self
       - name: "Checkout"
