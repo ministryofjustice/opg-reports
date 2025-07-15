@@ -266,6 +266,7 @@ jobs:
         run: |
           gh release create ${{ env.tag }} ${{ env.BUILD_BINARIES }}/* \
             --verify-tag \
+            --notes-from-tag \
             --generate-notes \
             --latest=false \
             --prerelease
