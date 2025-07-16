@@ -9,7 +9,7 @@ inputs:
   directory:
     description: "Directory path to download data into"
     required: true
-    default: "./builds/"
+    default: "./releases/"
 
   release:
     description: "version of the account data to fetch, when 'latest' uses latest"

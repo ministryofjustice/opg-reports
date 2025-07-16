@@ -30,7 +30,6 @@ jobs:
     name: "Set variables"
     runs-on: ubuntu-latest
     outputs:
-
       # AWS S3 bucket & role info - used to downlo
       s3_bucket_development: "report-data-development"
       s3_role_development: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
@@ -61,6 +60,8 @@ jobs:
       fail-fast: true
       matrix: ${{ fromJson(needs.setup.outputs.matrix) }}
     steps:
+      - name: "Create dir"
+        run: mkdir -p ./releases/
       - name: "Download release"
         uses: ./.github/actions/download-release
         with:
