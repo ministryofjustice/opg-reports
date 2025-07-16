@@ -101,6 +101,15 @@ func (self *mockClientRepositoryReleaseListReleases) DownloadReleaseAsset(ctx co
     "type": "aws",
     "uptime_tracking": true
 	},
+{
+    "id": "500000060890",
+    "name": "My production",
+    "billing_unit": "Team B",
+    "label": "prod",
+    "environment": "production",
+    "type": "aws",
+    "uptime_tracking": true
+	},
 	{
     "id": "500000067891",
     "name": "My dev",
@@ -108,7 +117,7 @@ func (self *mockClientRepositoryReleaseListReleases) DownloadReleaseAsset(ctx co
     "label": "dev",
     "environment": "development",
     "type": "aws",
-    "uptime_tracking": true
+    "uptime_tracking": false
 }]
 `
 	for _, rel := range simpleReleases {

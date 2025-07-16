@@ -21,19 +21,22 @@ INSERT INTO aws_accounts (
 	name,
 	label,
 	environment,
+	uptime_tracking,
 	team_name
 ) VALUES (
 	:id,
 	:name,
 	:label,
 	:environment,
+	:uptime_tracking,
 	:team_name
 )
 ON CONFLICT (id)
  	DO UPDATE SET
 		name=excluded.name,
 		label=excluded.label,
-		environment=excluded.environment
+		environment=excluded.environment,
+		uptime_tracking=excluded.uptime_tracking
 RETURNING id;`
 
 const stmtAwsAccountUpdateEmptyEnvironments string = `
@@ -60,11 +63,12 @@ WHERE
 //		"uptime_tracking": true
 //	}
 type awsAccount struct {
-	ID          string `json:"id,omitempty" db:"id" example:"012345678910"` // This is the AWS Account ID as a string
-	Name        string `json:"name,omitempty" db:"name" example:"Public API"`
-	Label       string `json:"label,omitempty" db:"label" example:"aurora-cluster"`
-	Environment string `json:"environment,omitempty" db:"environment" example:"development|preproduction|production"`
-	TeamName    string `json:"billing_unit,omitempty" db:"team_name"`
+	ID             string `json:"id,omitempty" db:"id" example:"012345678910"` // This is the AWS Account ID as a string
+	Name           string `json:"name,omitempty" db:"name" example:"Public API"`
+	Label          string `json:"label,omitempty" db:"label" example:"aurora-cluster"`
+	Environment    string `json:"environment,omitempty" db:"environment" example:"development|preproduction|production"`
+	UptimeTracking bool   `json:"uptime_tracking" db:"uptime_tracking" example:"1|0"`
+	TeamName       string `json:"billing_unit,omitempty" db:"team_name"`
 }
 
 // accountDownloadOptions used as just shorthand for passing lots of options around
@@ -200,6 +204,7 @@ func (self *Service) getAwsAccountsFromMetadata(
 		self.log.Error("failed finding repository release", "err", err.Error())
 		return
 	}
+
 	// find the asset on the release
 	asset, downloadedTo, err = source.DownloadRepositoryReleaseAsset(
 		client,

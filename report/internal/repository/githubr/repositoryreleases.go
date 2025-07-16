@@ -140,10 +140,10 @@ func (self *Repository) GetRepositoryReleases(
 		// if there items in the list, them merge into all
 		if len(list) > 0 {
 			for _, item := range list {
-				var include = options == nil || options.Validate(item)
-				log.With("include", include, "release", *item.Name).Debug("include release?")
-				if include {
-					rels[*item.TagName] = item
+				var include = options.Validate(item)
+				log.With("include", include, "release", item.GetTagName()).Debug("include release?")
+				if include && item.GetTagName() != "" {
+					rels[item.GetTagName()] = item
 				}
 			}
 		}

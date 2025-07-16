@@ -19,6 +19,7 @@ SELECT
 	aws_accounts.name,
 	aws_accounts.label,
 	aws_accounts.environment,
+	aws_accounts.uptime_tracking,
 	json_object(
 		'name', aws_accounts.team_name
 	) as team
@@ -28,10 +29,11 @@ ORDER BY aws_accounts.team_name ASC, aws_accounts.name ASC, aws_accounts.environ
 
 // AwsAccount is api response model
 type AwsAccount struct {
-	ID          string `json:"id,omitempty" db:"id" example:"012345678910"` // This is the AWS Account ID as a string
-	Name        string `json:"name,omitempty" db:"name" example:"Public API"`
-	Label       string `json:"label,omitempty" db:"label" example:"aurora-cluster"`
-	Environment string `json:"environment,omitempty" db:"environment" example:"development|preproduction|production"`
+	ID             string `json:"id,omitempty" db:"id" example:"012345678910"` // This is the AWS Account ID as a string
+	Name           string `json:"name,omitempty" db:"name" example:"Public API"`
+	Label          string `json:"label,omitempty" db:"label" example:"aurora-cluster"`
+	Environment    string `json:"environment,omitempty" db:"environment" example:"development|preproduction|production"`
+	UptimeTracking bool   `json:"uptime_tracking" db:"uptime_tracking"`
 	// Joins to team
 	Team *hasOneTeam `json:"team,omitempty" db:"team"`
 }
