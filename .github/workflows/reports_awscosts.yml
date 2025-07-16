@@ -115,7 +115,7 @@ jobs:
       - name: "[${{ matrix.name }}] Run cost report"
         env:
           DATABASE_PATH: ${{ env.DB_DIR }}/api.db
-          cmd: ${{ env.BUILD_BINARIES }}/importer
+          cmd: ${{ env.RELEASE_DIR }}/importer
           monthArg: ${{ inputs.month != '' && '--month=' || '' }}
         run: |
           chmod -Rf 0777 ${{ env.RELEASE_DIR }}
