@@ -27,7 +27,8 @@ var (
 
 // optional arguments
 var (
-	month string = ""
+	flagMonth        string = ""
+	flagIncludeCosts bool   = false
 )
 
 // root command
@@ -46,7 +47,9 @@ func init() {
 
 	// extra options that aren't handled via config env values
 	// awscosts - month to get data for
-	awscostsCmd.Flags().StringVar(&month, "month", utils.LastBillingMonth(conf.Aws.BillingDate).Format(utils.DATE_FORMATS.YMD), "The month to get cost data for. (YYYY-MM-DD)")
+	awscostsCmd.Flags().StringVar(&flagMonth, "month", utils.LastBillingMonth(conf.Aws.BillingDate).Format(utils.DATE_FORMATS.YMD), "The month to get cost data for. (YYYY-MM-DD)")
+	// existing - see if we want to add in costs
+	existingCmd.Flags().BoolVar(&flagIncludeCosts, "include-costs", false, "When true, will impost cost data as well.")
 }
 
 func main() {

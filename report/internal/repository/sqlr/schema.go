@@ -12,10 +12,11 @@ CREATE TABLE IF NOT EXISTS aws_accounts (
 	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
 	name TEXT NOT NULL,
 	label TEXT NOT NULL,
-	uptime_tracking TEXT NOT NULL DEFAULT "false",
 	environment TEXT NOT NULL DEFAULT "production",
 	team_name TEXT NOT NULL DEFAULT "ORG"
 ) WITHOUT ROWID;
+
+ALTER TABLE aws_accounts ADD uptime_tracking TEXT NOT NULL DEFAULT "false"
 
 CREATE INDEX IF NOT EXISTS aws_accounts_id_idx ON aws_accounts(id);
 

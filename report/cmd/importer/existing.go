@@ -36,8 +36,8 @@ env variables used that can be adjusted:
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		var (
 			githubClient                     = githubr.DefaultClient(conf)
-			s3Client                         = awsr.DefaultClient[*s3.Client](ctx, "eu-west-1")
 			githubStore  *githubr.Repository = githubr.Default(ctx, log, conf)
+			s3Client                         = awsr.DefaultClient[*s3.Client](ctx, "eu-west-1")
 			s3Store      *awsr.Repository    = awsr.Default(ctx, log, conf)
 			sqlStore     *sqlr.Repository    = sqlr.Default(ctx, log, conf)
 			existService *existing.Service   = existing.Default(ctx, log, conf)
@@ -51,9 +51,11 @@ env variables used that can be adjusted:
 		if _, err = existService.InsertAwsAccounts(githubClient.Repositories, githubStore, sqlStore); err != nil {
 			return
 		}
-		// COSTS
-		if _, err = existService.InsertAwsCosts(s3Client, s3Store, sqlStore); err != nil {
-			return
+		// COSTS, only ig set
+		if flagIncludeCosts {
+			if _, err = existService.InsertAwsCosts(s3Client, s3Store, sqlStore); err != nil {
+				return
+			}
 		}
 
 		return

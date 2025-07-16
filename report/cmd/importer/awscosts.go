@@ -33,7 +33,7 @@ env variables used that can be adjusted:
 			sqClient   = sqlr.DefaultWithSelect[*api.AwsCost](ctx, log, conf)
 			apiService = api.Default[*api.AwsCost](ctx, log, conf)
 		)
-		err = awscostsCmdRunner(stsClient, awsStore, ceClient, awsStore, sqClient, apiService)
+		err = awscostsCmdRunner(stsClient, awsStore, ceClient, awsStore, sqClient, apiService, flagMonth)
 		return
 	},
 }
@@ -45,6 +45,7 @@ func awscostsCmdRunner(
 	ceStore awsr.RepositoryCostExplorerGetter,
 	sqClient sqlr.RepositoryWriter,
 	apiService *api.Service[*api.AwsCost],
+	month string,
 ) (err error) {
 	var (
 		costs     = []*api.AwsCost{}
