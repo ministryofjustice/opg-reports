@@ -44,13 +44,12 @@ runs:
     - name: "Download release [tag:${{ steps.tag.outputs.tag }}]"
       id: download
       shell: bash
-      working-directory: ./opg-metadata-release
+      working-directory: ${{ inputs.directory }}
       env:
         GH_TOKEN: ${{ inputs.github_token }}
         repo: ${{ inputs.repository }}
         tag: ${{ steps.tag.outputs.tag }}
-        dir: ${{ inputs.directory }}
       run: |
         mkdir -p ${{ end.dir }}
-        gh release download ${{ env.tag }} --clobber --repo ${{ env.repo }} --dir ${{ end.dir }}
+        gh release download ${{ env.tag }} --clobber --repo ${{ env.repo }}
         ls -lth
