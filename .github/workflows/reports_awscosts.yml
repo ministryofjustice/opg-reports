@@ -36,8 +36,6 @@ jobs:
       # s3_bucket_production: "report-data-production"
       # s3_role_production: "arn:aws:iam::997462338508:role/opg-reports-github-actions-s3"
 
-      # billing role
-      report_role: "arn:aws:iam::${{ matrix.id }}:role/gh-actions-cost-metrics"
       # Account matrix
       account_matrix: ${{ steps.account_matrix.outputs.matrix }}
     steps:
@@ -62,6 +60,8 @@ jobs:
       - setup
     runs-on: ubuntu-latest
     strategy:
+      # one at a time! avoid db clashing
+      max-parallel: 1
       fail-fast: true
       matrix: ${{ fromJson(needs.setup.outputs.account_matrix) }}
     steps:
@@ -97,25 +97,31 @@ jobs:
           EXISTING_DB_BUCKET: ${{ needs.setup.outputs.s3_bucket_development }}
           cmd: ${{ env.RELEASE_DIR }}/db
         run: |
+          chmod -Rf 0777 ${{ env.RELEASE_DIR }}
           ${{ env.cmd }} download
           ls -lh ${{ env.DB_DIR }}
-      # # Change AWS creds to run the report
-      # - name: "[${{ matrix.name }}] Configure AWS credentials for running the report"
-      #   uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
-      #   with:
-      #     aws-region: "eu-west-1"
-      #     role-duration-seconds: 900
-      #     role-to-assume: "${{ needs.setup.outputs.report_role }}"
-      #     role-session-name: opg-reports-get-costs
-      # # Run the report
-      # - name: "[${{ matrix.name }}] Run cost report"
-      #   env:
-      #     DATABASE_PATH: ${{ env.DB_DIR }}/api.db
-      #     cmd: ${{ env.BUILD_BINARIES }}/importer
-      #     monthArg: ${{ inputs.month != '' && '--month=' || '' }}
-      #   run: |
-      #     ${{ env.cmd }} awscosts ${{ env.monthArg }}${{ inputs.month }}
-      #     ls -lh ${{ env.DB_DIR }}
+      # Change AWS creds to run the report
+      - name: "[${{ matrix.name }}] Configure AWS credentials for running the report"
+        # set the billing role
+        env:
+          report_role: "arn:aws:iam::${{ matrix.id }}:role/gh-actions-cost-metrics"
+        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
+        with:
+          aws-region: "eu-west-1"
+          role-duration-seconds: 900
+          role-to-assume: "${{ needs.setup.outputs.report_role }}"
+          role-session-name: opg-reports-get-costs
+      # Run the report
+      - name: "[${{ matrix.name }}] Run cost report"
+        env:
+          DATABASE_PATH: ${{ env.DB_DIR }}/api.db
+          cmd: ${{ env.BUILD_BINARIES }}/importer
+          monthArg: ${{ inputs.month != '' && '--month=' || '' }}
+        run: |
+          chmod -Rf 0777 ${{ env.RELEASE_DIR }}
+          ${{ env.cmd }} awscosts ${{ env.monthArg }}${{ inputs.month }}
+          ls -lh ${{ env.DB_DIR }}
+
       # # configure the aws creds to upload the existing database
       # - name: "[${{ matrix.name }}] Configure AWS credentials for S3 upload"
       #   uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1

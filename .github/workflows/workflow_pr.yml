@@ -273,6 +273,7 @@ jobs:
         run: |
           gh release create ${{ env.tag }} ${{ env.BUILD_BINARIES }}/* \
             ${{ env.pre }} ${{ env.latest }} --verify-tag \
+            -t ${{ env.tag }} \
             --notes-from-tag
   # final step
   end:
