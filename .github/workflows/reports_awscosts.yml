@@ -23,24 +23,26 @@ permissions:
   contents: write
   id-token: write
 
-
+# general env vars for where downloading db / binary
 env:
   RELEASE_DIR: ./releases
   DB_DIR: ./databases
+
 # jobs
 jobs:
   setup:
     name: "Set variables"
     runs-on: ubuntu-latest
     outputs:
+      # Account matrix
+      account_matrix: ${{ steps.account_matrix.outputs.matrix }}
+
       # AWS S3 bucket & role info - used to downlo
       s3_bucket_development: "report-data-development"
       s3_role_development: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
       # s3_bucket_production: "report-data-production"
       # s3_role_production: "arn:aws:iam::997462338508:role/opg-reports-github-actions-s3"
 
-      # Account matrix
-      account_matrix: ${{ steps.account_matrix.outputs.matrix }}
     steps:
       # Check the code base
       - name: "Checkout"
@@ -143,6 +145,10 @@ jobs:
         run: |
           chmod -Rf 0777 ${{ env.RELEASE_DIR }}
           ${{ env.cmd }} upload
+      # remove the files
+      - name: "[${{ matrix.name }}] Clean up"
+        run: |
+          rm -Rf ${{ env.RELEASE_DIR }} ${{ env.DB_DIR }}
 
   # final step
   end:
