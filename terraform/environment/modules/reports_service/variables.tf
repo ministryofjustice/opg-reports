@@ -34,6 +34,19 @@ variable "tags" {
   type = map(string)
 }
 
+variable "semver_tag" {
+  type        = string
+  default     = "v0.0.0"
+  description = "passed along for display and version tracking"
+}
+
+variable "commit_sha" {
+  type        = string
+  default     = "0000"
+  description = "passed along to track versions"
+}
+
+
 locals {
   name_prefix = "${var.tags.application}-${var.tags.environment-name}"
 }

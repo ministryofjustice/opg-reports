@@ -75,6 +75,14 @@ locals {
       {
         name  = "DATABASE_PATH",
         value = "./databases/api.db"
+      },
+      {
+        name  = "VERSIONS_SEMVER",
+        value = var.semver_tag
+      },
+      {
+        name  = "VERSIONS_COMMIT",
+        value = var.commit_sha
       }
     ],
     "mountPoints" = [],

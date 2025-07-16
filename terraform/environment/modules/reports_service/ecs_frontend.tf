@@ -81,6 +81,14 @@ locals {
       {
         name  = "SERVERS_FRONT_DIRECTORY",
         value = "./"
+      },
+      {
+        name  = "VERSIONS_SEMVER",
+        value = var.semver_tag
+      },
+      {
+        name  = "VERSIONS_COMMIT",
+        value = var.commit_sha
       }
     ],
     logConfiguration = {

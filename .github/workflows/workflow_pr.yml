@@ -57,6 +57,7 @@ jobs:
       # SEMVER & BRANCH NAMES
       branch_name: ${{ needs.create_tag.outputs.branch }}
       semver_tag: ${{ needs.create_tag.outputs.tag }}
+      gitsha: ${{ steps.revhead.outputs.gitsha}}
     steps:
       # Check the code base
       - name: "Checkout"
@@ -76,6 +77,11 @@ jobs:
         uses: ministryofjustice/opg-github-actions/.github/actions/terraform-version@4202ec51fd9d613351e4c062606d857982ad70eb #v3.0.6
         with:
           terraform_directory: ./terraform/environment
+      - name: "Get git sha"
+        id: revhead
+        run: |
+          sha=$(git rev-parse HEAD)
+          echo "gitsha=${sha}" >> $GITHUB_OUTPUT
 
 
   # run all the tests
@@ -230,11 +236,14 @@ jobs:
         env:
           TF_VAR_api_image_tag: development-${{ needs.setup.outputs.semver_tag }}
           TF_VAR_front_image_tag: development-${{ needs.setup.outputs.semver_tag }}
+          TF_VAR_semver_tag: ${{ needs.setup.outputs.semver_tag }}
+          TF_VAR_commit_sha: ${{ needs.setup.outputs.gitsha }}
         with:
           apply: true
           directory: ./terraform/environment
           workspace: ${{ needs.setup.outputs.terraform_workspace_development }}
           version: ${{ needs.setup.outputs.terraform_version_environment }}
+
 
   # Build all binaries and attach to this release tag
   #   - dont need all the api & front binaries, just the
