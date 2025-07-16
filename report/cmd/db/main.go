@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log/slog"
+	"os"
 
 	"opg-reports/report/config"
 	"opg-reports/report/internal/utils"
@@ -42,6 +43,10 @@ func init() {
 
 func main() {
 	rootCmd.AddCommand(downloadCmd, uploadCmd)
-	rootCmd.Execute()
+	err := rootCmd.Execute()
+	// fail on errir
+	if err != nil {
+		os.Exit(1)
+	}
 
 }

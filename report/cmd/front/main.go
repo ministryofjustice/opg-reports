@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 	"path/filepath"
 
 	"opg-reports/report/config"
@@ -92,5 +93,10 @@ func init() {
 }
 
 func main() {
-	rootCmd.Execute()
+
+	err := rootCmd.Execute()
+	// fail on errir
+	if err != nil {
+		os.Exit(1)
+	}
 }
