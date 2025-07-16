@@ -6,13 +6,12 @@ on:
   # run on 7am on the 15th of every month - after billing
   schedule:
     - cron: '0 7 15 * *'
-  # when anything is pushed to main
-  push:
-    branches:
-      - main
-  # pull_request:
+  # push:
   #   branches:
   #     - main
+  pull_request:
+    branches:
+      - main
 
 permissions:
   actions: read
