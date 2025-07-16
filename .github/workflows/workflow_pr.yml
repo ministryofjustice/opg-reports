@@ -30,7 +30,7 @@ jobs:
   # generate semver tag or get the latest tag
   create_tag:
     name: Create Tags
-    uses: ./.github/workflows/_create_tags.yml
+    uses: ./.github/workflows/_create_tag.yml
     with:
       prerelease: ${{ env.prerelease }}
 
