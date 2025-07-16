@@ -50,6 +50,5 @@ runs:
         repo: ${{ inputs.repository }}
         tag: ${{ steps.tag.outputs.tag }}
       run: |
-        mkdir -p ${{ end.dir }}
         gh release download ${{ env.tag }} --clobber --repo ${{ env.repo }}
         ls -lth
