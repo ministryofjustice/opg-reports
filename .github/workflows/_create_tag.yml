@@ -25,9 +25,9 @@ jobs:
         with:
           fetch-depth: "0"
       # get branch name
-      - name: "Generate semver tag and release"
+      - name: "Generate safe branch name"
         id: branch
-        uses: ministryofjustice/opg-github-actions/.github/actions/semver-tag@c9c5dfb290b8f614df0884928c521165ba83d630 # v3.1.4
+        uses: ministryofjustice/opg-github-actions/.github/actions/branch-name@c9c5dfb290b8f614df0884928c521165ba83d630 # v3.1.4
       # get a new tag
       - name: "Generate semver tag and release"
         id: semver_tag
