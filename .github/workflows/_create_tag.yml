@@ -50,7 +50,7 @@ jobs:
         id: post_tag
         shell: bash
         run: |
-          echo "branch=${{ steps.branch.safe }}" >> $GITHUB_OUTPUT
+          echo "branch=${{ steps.branch.outputs.safe }}" >> $GITHUB_OUTPUT
           if [ ${{ github.event_name }} == "workflow_dispatch" ]
           then
             tag=${{ steps.latest_tag.outputs.last_release }}
