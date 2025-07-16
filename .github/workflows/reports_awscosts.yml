@@ -11,7 +11,7 @@ on:
         description: "YYYY-MM-DD formatted month to get cost data for."
         type: string
         default: "-"
-  # temp - run on pr so can test this workflow
+  # # temp - run on pr so can test this workflow
   pull_request:
     branches:
       - main
@@ -23,7 +23,8 @@ permissions:
 
 env:
   PRERELEASE: true
-
+  RELEASE_DIR: ./releases
+  DB_DIR: ./databases
 # jobs
 jobs:
   setup:
@@ -33,6 +34,11 @@ jobs:
       # AWS S3 bucket & role info - used to downlo
       s3_bucket_development: "report-data-development"
       s3_role_development: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
+      # s3_bucket_production: "report-data-production"
+      # s3_role_production: "arn:aws:iam::997462338508:role/opg-reports-github-actions-s3"
+
+      # billing role
+      report_role: "arn:aws:iam::${{ matrix.id }}:role/gh-actions-cost-metrics"
       # Account matrix
       account_matrix: ${{ steps.account_matrix.outputs.matrix }}
     steps:
@@ -60,24 +66,73 @@ jobs:
       fail-fast: true
       matrix: ${{ fromJson(needs.setup.outputs.account_matrix) }}
     steps:
-      - name: "Checkout"
+      - name: "[${{ matrix.name }}] Checkout"
         id: checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
         with:
           fetch-depth: 0
           fetch-tags: true
-      - name: "Create dir"
-        run: mkdir -p ./releases/
+      - name: "[${{ matrix.name }}] Create dir"
+        env:
+          dbs: ${{ env.DB_DIR }}
+          rels: ${{ env.RELEASE_DIR }}
+        run: mkdir -p ${{ env.dbs }} ${{ env.rels }}
       - name: "Download release"
         uses: ./.github/actions/download-release
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          directory: ${{ env.RELEASE_DIR }}
           prereleases: ${{ env.PRERELEASE }}
-      - name: "List build directory"
-        run: ls -laRh ./releases/
-      # download database
-      # run import
-      # upload database
+      # configure the aws creds to download the existing database
+      - name: "[${{ matrix.name }}] Configure AWS credentials for S3 download"
+        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
+        with:
+          aws-region: "eu-west-1"
+          role-duration-seconds: 900
+          role-to-assume: ${{ needs.setup.outputs.s3_role_development }}
+          role-session-name: reports-download-db-from-s3
+      # download DEVELOPMENT database
+      - name: "[${{ matrix.name }}] Download database"
+        env:
+          DATABASE_PATH: ${{ env.DB_DIR }}/api.db
+          EXISTING_DB_BUCKET: ${{ needs.setup.outputs.s3_bucket_development }}
+          cmd: ${{ env.BUILD_BINARIES }}/db
+        run: |
+          ${{ env.cmd }} download
+          ls -lh ${{ env.DB_DIR }}
+      # # Change AWS creds to run the report
+      # - name: "[${{ matrix.name }}] Configure AWS credentials for running the report"
+      #   uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
+      #   with:
+      #     aws-region: "eu-west-1"
+      #     role-duration-seconds: 900
+      #     role-to-assume: "${{ needs.setup.outputs.report_role }}"
+      #     role-session-name: opg-reports-get-costs
+      # # Run the report
+      # - name: "[${{ matrix.name }}] Run cost report"
+      #   env:
+      #     DATABASE_PATH: ${{ env.DB_DIR }}/api.db
+      #     cmd: ${{ env.BUILD_BINARIES }}/importer
+      #     monthArg: ${{ inputs.month != '' && '--month=' || '' }}
+      #   run: |
+      #     ${{ env.cmd }} awscosts ${{ env.monthArg }}${{ inputs.month }}
+      #     ls -lh ${{ env.DB_DIR }}
+      # # configure the aws creds to upload the existing database
+      # - name: "[${{ matrix.name }}] Configure AWS credentials for S3 upload"
+      #   uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
+      #   with:
+      #     aws-region: "eu-west-1"
+      #     role-duration-seconds: 900
+      #     role-to-assume: ${{ needs.setup.outputs.s3_role_development }}
+      #     role-session-name: reports-upload-db-to-s3
+      # # upload DEVELOPMENT database
+      # - name: "[${{ matrix.name }}] Upload database"
+      #   env:
+      #     DATABASE_PATH: ${{ env.DB_DIR }}/api.db
+      #     EXISTING_DB_BUCKET: ${{ needs.setup.outputs.s3_bucket_development }}
+      #     cmd: ${{ env.BUILD_BINARIES }}/db
+      #   run: |
+      #     ${{ env.cmd }} upload
 
   # final step
   end:

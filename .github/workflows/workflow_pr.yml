@@ -27,6 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       # AWS S3 bucket & role info
+        # TODO: change these to production values once this is deployed to prod
       s3_bucket: "report-data-development"
       s3_role: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
       # AWS ECR
