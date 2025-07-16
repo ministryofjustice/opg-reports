@@ -11,11 +11,12 @@ RUN mkdir -p /gobin/app
 RUN addgroup -S user && adduser -S -g user user
 WORKDIR /app
 ENV GOBIN=/gobin PATH=/gobin:$PATH
+ENV CGO_ENABLED=1 GOOS=${TARGETOS} GOARCH=${TARGETARCH}
 RUN go mod download
-RUN env CGO_ENABLED=1 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags="-w -s" -o /gobin/app/api ./report/cmd/api/
-WORKDIR /gobin/app
-# deal with linked binaries - sqlite package needs cgo..
-RUN ldd api | tr -s [:blank:] '\n' | grep ^/ | xargs -I % install -D % /gobin/app/%
+RUN go build -ldflags="-w -s" -o /gobin/app/api ./report/cmd/api/
+# WORKDIR /gobin/app
+# deal with linked binaries - sqlite package needs cgo.. grab the requirements and install them to ./lib/
+# RUN ldd api | tr -s [:blank:] '\n' | grep ^/ | xargs -I % install -D % /gobin/app/%
 RUN chown -Rf user:user /gobin/
 RUN chmod -Rf 0755 /gobin/
 
@@ -24,14 +25,13 @@ FROM build AS development
 EXPOSE 8081
 COPY --from=build /gobin/ /gobin
 WORKDIR /gobin/app
-ENV CGO_ENABLED=1 GOOS=${TARGETOS} GOARCH=${TARGETARCH}
 RUN chown -Rf user:user /gobin/
 RUN chmod -Rf 0755 /gobin/
 ENTRYPOINT ["/gobin/app/api"]
 
 # setup production image
-# FROM alpine:3.22.0@sha256:8a1f59ffb675680d47db6337b49d22281a139e9d709335b492be023728e11715 AS production
-FROM scratch AS production
+FROM alpine:3.22.0@sha256:8a1f59ffb675680d47db6337b49d22281a139e9d709335b492be023728e11715 AS production
+# FROM scratch AS production
 EXPOSE 8081
 # ssl certs
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
@@ -40,8 +40,8 @@ COPY --from=build /etc/passwd /etc/passwd
 COPY --from=build /etc/group /etc/group
 # app
 COPY --from=build /gobin/ /gobin
-# needs the linked files, can check using ldd
-COPY --from=build /gobin/app/lib /
-ENV CGO_ENABLED=1 CGO_ENABLED=1 GOOS=${TARGETOS} GOARCH=${TARGETARCH}
+# needs the linked files, can check using ldd (see the process above)
+# COPY --from=build /gobin/app/lib/* /gobin/app/
+WORKDIR /gobin/app
 USER user
 ENTRYPOINT ["/gobin/app/api"]
