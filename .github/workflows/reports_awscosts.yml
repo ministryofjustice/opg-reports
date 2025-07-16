@@ -60,7 +60,7 @@ jobs:
 
   # runner
   runner:
-    name: "Run Report"
+    name: "Run Report (SYNCHRONUS)"
     needs:
       - setup
     runs-on: ubuntu-latest
