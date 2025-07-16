@@ -120,8 +120,6 @@ func LastDayOfMonth(t time.Time) (lastDay time.Time) {
 	var nextMonth = t.UTC().AddDate(0, 1, 0)
 	var reset = TimeReset(nextMonth, TimeIntervalMonth)
 
-	// fmt.Printf("	month: [%s] reset [%s]\n", nextMonth.Format(DATE_FORMATS.Full), reset.Format(DATE_FORMATS.Full))
-
 	lastDay = reset.Add(-1 * time.Second)
 	return
 }
@@ -163,6 +161,10 @@ func BillingMonth(t time.Time, billingDay int) (billing time.Time) {
 		billing = time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, time.UTC).Add(-1 * time.Second)
 	}
 	return
+}
+
+func LastBillingMonth(billingDay int) (billing time.Time) {
+	return BillingMonth(time.Now().UTC(), billingDay)
 }
 
 // timeAdd calls `AddDate` on `date` param and increments year / month / day by the quantity

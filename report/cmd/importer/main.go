@@ -45,7 +45,7 @@ func init() {
 
 	// extra options that aren't handled via config env values
 	// awscosts - month to get data for
-	awscostsCmd.Flags().StringVar(&month, "month", utils.Month(-2), "The month to get cost data for. (YYYY-MM-DD)")
+	awscostsCmd.Flags().StringVar(&month, "month", utils.LastBillingMonth(conf.Aws.BillingDate).Format(utils.DATE_FORMATS.YMD), "The month to get cost data for. (YYYY-MM-DD)")
 }
 
 func main() {
