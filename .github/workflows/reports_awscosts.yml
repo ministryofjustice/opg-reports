@@ -1,3 +1,5 @@
+# TODO:
+#   change this to download from production bucket, upload to both production and development
 name: "[Reports] AWS Costs"
 
 on:
@@ -20,6 +22,7 @@ permissions:
   actions: read
   contents: write
   id-token: write
+
 
 env:
   RELEASE_DIR: ./releases
@@ -123,23 +126,23 @@ jobs:
           chmod -Rf 0777 ${{ env.RELEASE_DIR }}
           ${{ env.cmd }} awscosts ${{ env.monthArg }}${{ inputs.month }}
           ls -lh ${{ env.DB_DIR }}
-
-      # # configure the aws creds to upload the existing database
-      # - name: "[${{ matrix.name }}] Configure AWS credentials for S3 upload"
-      #   uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
-      #   with:
-      #     aws-region: "eu-west-1"
-      #     role-duration-seconds: 900
-      #     role-to-assume: ${{ needs.setup.outputs.s3_role_development }}
-      #     role-session-name: reports-upload-db-to-s3
-      # # upload DEVELOPMENT database
-      # - name: "[${{ matrix.name }}] Upload database"
-      #   env:
-      #     DATABASE_PATH: ${{ env.DB_DIR }}/api.db
-      #     EXISTING_DB_BUCKET: ${{ needs.setup.outputs.s3_bucket_development }}
-      #     cmd: ${{ env.BUILD_BINARIES }}/db
-      #   run: |
-      #     ${{ env.cmd }} upload
+      # configure the aws creds to upload the existing database
+      - name: "[${{ matrix.name }}] Configure AWS credentials for S3 upload"
+        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
+        with:
+          aws-region: "eu-west-1"
+          role-duration-seconds: 900
+          role-to-assume: ${{ needs.setup.outputs.s3_role_development }}
+          role-session-name: reports-upload-db-to-s3
+      # upload DEVELOPMENT database
+      - name: "[${{ matrix.name }}] Upload database"
+        env:
+          DATABASE_PATH: ${{ env.DB_DIR }}/api.db
+          EXISTING_DB_BUCKET: ${{ needs.setup.outputs.s3_bucket_development }}
+          cmd: ${{ env.RELEASE_DIR }}/db
+        run: |
+          chmod -Rf 0777 ${{ env.RELEASE_DIR }}
+          ${{ env.cmd }} upload
 
   # final step
   end:
