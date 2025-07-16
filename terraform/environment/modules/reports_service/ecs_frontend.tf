@@ -62,13 +62,13 @@ locals {
       hostPort      = 8080,
       protocol      = "tcp"
     }],
-    healthCheck = {
-      command     = ["CMD-SHELL", "wget -O /dev/null -S http://localhost:8080/ 2>&1 || exit 1    "],
-      startPeriod = 30,
-      interval    = 15,
-      timeout     = 10,
-      retries     = 3
-    },
+    # healthCheck = {
+    #   command     = ["CMD-SHELL", "wget -O /dev/null -S http://localhost:8080/ 2>&1 || exit 1    "],
+    #   startPeriod = 30,
+    #   interval    = 15,
+    #   timeout     = 10,
+    #   retries     = 3
+    # },
     environment = [
       {
         name  = "SERVERS_API_ADDR",
