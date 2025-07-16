@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
-      matrix: ${{ fromJson(needs.setup.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.setup.outputs.account_matrix) }}
     steps:
       - name: "Create dir"
         run: mkdir -p ./releases/
