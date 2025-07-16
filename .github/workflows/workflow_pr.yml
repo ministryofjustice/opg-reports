@@ -56,7 +56,7 @@ jobs:
       terraform_version_environment: ${{ steps.terraform_environment_version.outputs.version }}
       # SEMVER & BRANCH NAMES
       branch_name: ${{ needs.create_tag.outputs.branch }}
-      semver_tag: ${{ steps.create_tag.outputs.tag }}
+      semver_tag: ${{ needs.create_tag.outputs.tag }}
     steps:
       # Check the code base
       - name: "Checkout"
