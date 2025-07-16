@@ -3,6 +3,7 @@ SERVICES ?= api front
 API_BUILD = ./builds/api
 DBP = ${API_BUILD}/databases/api.db
 FRONT_BUILD =./builds/front
+VERBOSE ?= # --verbose
 
 tests:
 	@go clean -testcache
@@ -83,8 +84,7 @@ local/build: local/build/api local/build/front
 ## Build local development version of the docker image
 docker/build:
 	@env DOCKER_BUILDKIT=1 \
-	docker compose \
-		--verbose \
+	docker compose ${VERBOSE} \
 		-f docker-compose.yml \
 		-f docker-compose.dev.yml \
 		build ${SERVICES}
@@ -93,7 +93,7 @@ docker/build:
 ## Build and run the local docker images
 docker/up: local/build docker/clean docker/build
 	@env DOCKER_BUILDKIT=1 \
-	docker compose \
+	docker compose ${VERBOSE} \
 		-f docker-compose.yml \
 		-f docker-compose.dev.yml \
 		up \
@@ -102,9 +102,9 @@ docker/up: local/build docker/clean docker/build
 
 ## Clean any old docker images out
 docker/clean: docker/down
-	@docker image rm $(images) || echo "ok"
+	@docker image rm $(shell docker images -a | grep 'opg-reports/*' | awk '{print $$1":"$$2}') || echo "ok"
 	@env DOCKER_BUILDKIT=1 \
-	docker compose \
+	docker compose ${VERBOSE} \
 		-f docker-compose.yml \
 		-f docker-compose.dev.yml \
 		rm ${SERVICES}
@@ -115,8 +115,7 @@ docker/clean: docker/down
 ## run docker compose down, turning off all docker containers
 docker/down:
 	@env DOCKER_BUILDKIT=1 \
-	docker compose \
-		--verbose \
+	docker compose ${VERBOSE} \
 		-f docker-compose.yml \
 		-f docker-compose.dev.yml \
 		down
