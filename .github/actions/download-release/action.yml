@@ -9,7 +9,7 @@ inputs:
   directory:
     description: "Directory path to download data into"
     required: true
-    default: "./account-download/"
+    default: "./releases/"
 
   release:
     description: "version of the account data to fetch, when 'latest' uses latest"
@@ -29,7 +29,7 @@ runs:
   steps:
     - name: "Create directory"
       shell: bash
-      run: mkdir -p account-download
+      run: mkdir -p ${{ inputs.directory }}
     - name: "Get release tag"
       id: tag
       shell: bash

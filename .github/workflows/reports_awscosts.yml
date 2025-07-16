@@ -72,9 +72,9 @@ jobs:
         uses: ./.github/actions/download-release
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          prerelease: ${{ env.PRERELEASE }}
+          prereleases: ${{ env.PRERELEASE }}
       - name: "List build directory"
-        run: ls -laRh ./builds/
+        run: ls -laRh ./releases/
       # download database
       # run import
       # upload database
