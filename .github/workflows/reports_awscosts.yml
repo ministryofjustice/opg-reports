@@ -14,10 +14,6 @@ on:
         description: "YYYY-MM-DD formatted month to get cost data for."
         type: string
         default: "-"
-  # # temp - run on pr so can test this workflow
-  pull_request:
-    branches:
-      - main
 
 permissions:
   actions: read
