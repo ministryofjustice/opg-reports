@@ -22,7 +22,6 @@ permissions:
   id-token: write
 
 env:
-  PRERELEASE: true
   RELEASE_DIR: ./releases
   DB_DIR: ./databases
 # jobs
@@ -77,12 +76,12 @@ jobs:
           dbs: ${{ env.DB_DIR }}
           rels: ${{ env.RELEASE_DIR }}
         run: mkdir -p ${{ env.dbs }} ${{ env.rels }}
-      - name: "Download release"
+      - name: "[${{ matrix.name }}]  Download release"
         uses: ./.github/actions/download-release
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           directory: ${{ env.RELEASE_DIR }}
-          prereleases: ${{ env.PRERELEASE }}
+          prereleases: true
       # configure the aws creds to download the existing database
       - name: "[${{ matrix.name }}] Configure AWS credentials for S3 download"
         uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
@@ -96,7 +95,7 @@ jobs:
         env:
           DATABASE_PATH: ${{ env.DB_DIR }}/api.db
           EXISTING_DB_BUCKET: ${{ needs.setup.outputs.s3_bucket_development }}
-          cmd: ${{ env.BUILD_BINARIES }}/db
+          cmd: ${{ env.RELEASE_DIR }}/db
         run: |
           ${{ env.cmd }} download
           ls -lh ${{ env.DB_DIR }}
