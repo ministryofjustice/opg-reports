@@ -1,0 +1,56 @@
+name: "Get Release"
+description: "Fetch the latest release from this repo of the report binary."
+
+inputs:
+  github_token:
+    description: "Token with permissions to read all releases from opg-metadata"
+    required: true
+
+  directory:
+    description: "Directory path to download data into"
+    required: true
+    default: "./builds/"
+
+  release:
+    description: "version of the account data to fetch, when 'latest' uses latest"
+    default: "latest"
+
+  prereleases:
+    description: "When true, will include prereleases"
+    default: "false"
+
+  repository:
+    description: "repository. default: opg-metadata"
+    default: "ministryofjustice/opg-reports"
+
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Get release tag"
+      id: tag
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        release: ${{ inputs.release }}
+        repo: ${{ inputs.repository }}
+        exclude: ${{ inputs.prereleases == 'false' && '--exclude-pre-releases' || '' }}
+      run: |
+        tag=${{ env.release }}
+        if [[ "${{ env.release }}" == "latest" ]]; then
+          tag=$(gh release list --repo ${{ env.repo }} --order "desc" ${{ env.exclude }} --limit 1 --json tagName --jq '.[].tagName')
+        fi
+        echo "tag=${tag}" >> $GITHUB_OUTPUT
+    - name: "Download release [tag:${{ steps.tag.outputs.tag }}]"
+      id: download
+      shell: bash
+      working-directory: ./opg-metadata-release
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        repo: ${{ inputs.repository }}
+        tag: ${{ steps.tag.outputs.tag }}
+        dir: ${{ inputs.directory }}
+      run: |
+        mkdir -p ${{ end.dir }}
+        gh release download ${{ env.tag }} --clobber --repo ${{ env.repo }} --dir ${{ end.dir }}
+        ls -lth
