@@ -60,7 +60,9 @@ jobs:
       - setup
     runs-on: ubuntu-latest
     strategy:
-      # one at a time! avoid db clashing
+      # MAX-PARALLEL IS 1 TO MAKE THE CALLS SYNCHRONUS AND AVOID DB SYNCING ISSUES
+      #   if this was concurrent, the download and upload of the db has potention to
+      #   overwrite with older versions depending how long things take to execute
       max-parallel: 1
       fail-fast: true
       matrix: ${{ fromJson(needs.setup.outputs.account_matrix) }}
@@ -109,7 +111,7 @@ jobs:
         with:
           aws-region: "eu-west-1"
           role-duration-seconds: 900
-          role-to-assume: "${{ needs.setup.outputs.report_role }}"
+          role-to-assume: "${{ env.report_role }}"
           role-session-name: opg-reports-get-costs
       # Run the report
       - name: "[${{ matrix.name }}] Run cost report"
