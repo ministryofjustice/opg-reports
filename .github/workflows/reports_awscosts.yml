@@ -36,12 +36,12 @@ jobs:
       account_matrix: ${{ steps.account_matrix.outputs.matrix }}
 
       # AWS S3 bucket & role info
-      s3_bucket_development: "report-data-development"
+      # dev
+      s3_bucket_development: "opg-reports-development"
       s3_role_development: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
-      s3_bucket_production: "report-data-development"
-      s3_role_production: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
-      # s3_bucket_production: "report-data-production"
-      # s3_role_production: "arn:aws:iam::997462338508:role/opg-reports-github-actions-s3"
+      # prod
+      s3_bucket_production: "opg-reports-production"
+      s3_role_production: "arn:aws:iam::997462338508:role/opg-reports-github-actions-s3"
 
     steps:
       # Check the code base
@@ -101,7 +101,7 @@ jobs:
       - name: "[${{ matrix.name }}] Download database from PROD"
         env:
           DATABASE_PATH: ${{ env.DB_DIR }}/api.db
-          EXISTING_DB_BUCKET: ${{ needs.setup.outputs.s3_bucket_production }}
+          DATABASE_BUCKET_NAME: ${{ needs.setup.outputs.s3_bucket_production }}
           cmd: ${{ env.RELEASE_DIR }}/db
         run: |
           chmod -Rf 0777 ${{ env.RELEASE_DIR }}
@@ -119,7 +119,7 @@ jobs:
           role-to-assume: "${{ env.report_role }}"
           role-session-name: opg-reports-get-costs
       # Run the report
-      - name: "[${{ matrix.name }}] Run cost report"
+      - name: "[${{ matrix.name }}] Run AWS Cost report"
         env:
           DATABASE_PATH: ${{ env.DB_DIR }}/api.db
           cmd: ${{ env.RELEASE_DIR }}/importer
@@ -140,7 +140,7 @@ jobs:
       - name: "[${{ matrix.name }}] Upload database - PROD"
         env:
           DATABASE_PATH: ${{ env.DB_DIR }}/api.db
-          EXISTING_DB_BUCKET: ${{ needs.setup.outputs.s3_bucket_production }}
+          DATABASE_BUCKET_NAME: ${{ needs.setup.outputs.s3_bucket_production }}
           cmd: ${{ env.RELEASE_DIR }}/db
         run: |
           chmod -Rf 0777 ${{ env.RELEASE_DIR }}
@@ -157,7 +157,7 @@ jobs:
       - name: "[${{ matrix.name }}] Upload database - DEV"
         env:
           DATABASE_PATH: ${{ env.DB_DIR }}/api.db
-          EXISTING_DB_BUCKET: ${{ needs.setup.outputs.s3_bucket_development }}
+          DATABASE_BUCKET_NAME: ${{ needs.setup.outputs.s3_bucket_development }}
           cmd: ${{ env.RELEASE_DIR }}/db
         run: |
           chmod -Rf 0777 ${{ env.RELEASE_DIR }}
