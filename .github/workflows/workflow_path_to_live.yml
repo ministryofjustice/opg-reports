@@ -1,5 +1,3 @@
-# TODO:
-#   change this to download from production bucket
 name: "[Workflow] Path to Live"
 
 on:
@@ -11,9 +9,9 @@ on:
     branches:
       - main
 
-  pull_request:
-    branches:
-      - main
+  # pull_request:
+  #   branches:
+  #     - main
 
 permissions:
   actions: read
