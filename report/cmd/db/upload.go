@@ -20,9 +20,9 @@ upload uploads a local database to the s3 bucket
 
 env variables used that can be adjusted:
 
-	EXISTING_DB_BUCKET
+	DATABASE_BUCKET_NAME
 		The name of the bucket to upload the database to
-	EXISTING_DB_KEY
+	DATABASE_BUCKET_KEY
 		The object key for the bucket (including folder path) where the sqlite db will be uploaded
 	DATABASE_PATH
 		The file path to the sqlite database on the local filesystem to upload to s3
@@ -45,8 +45,8 @@ func uploadCmdRunner(
 		dir, _       = os.MkdirTemp("./", "__upload-s3-*")
 		copyFrom     = conf.Database.Path
 		copyTo       = filepath.Join(dir, filepath.Base(conf.Database.Path))
-		targetBucket = conf.Existing.DB.Bucket
-		targetKey    = conf.Existing.DB.Path()
+		targetBucket = conf.Database.Bucket.Name
+		targetKey    = conf.Database.Bucket.Path()
 		src          *os.File
 	)
 	// open the existing db file & copy to the new location

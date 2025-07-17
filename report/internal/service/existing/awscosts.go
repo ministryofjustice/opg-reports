@@ -107,7 +107,7 @@ func (self *Service) InsertAwsCosts(client awsr.ClientS3ListAndGetter, source aw
 
 	// download all the files
 	downloaded, err = source.DownloadBucket(client,
-		self.conf.Existing.Costs.Bucket,
+		self.conf.Existing.Costs.Name,
 		self.conf.Existing.Costs.Prefix,
 		dir,
 	)

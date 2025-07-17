@@ -26,9 +26,10 @@ type Config struct {
 
 // Database stores all the config values relating to the database connection
 type Database struct {
-	Driver string // env: DATABASE_DRIVER
-	Path   string // env: DATABASE_PATH
-	Params string // env: DATABASE_PARAMS
+	Driver string      // env: DATABASE_DRIVER
+	Path   string      // env: DATABASE_PATH
+	Params string      // env: DATABASE_PARAMS
+	Bucket *bucketInfo // env: DATABASE_BUCKET_$X
 }
 
 // Source returns the full connection string to use with the database drivers
@@ -102,7 +103,6 @@ type Github struct {
 
 type Existing struct {
 	Costs *bucketInfo // env: EXISTING_COSTS_${X}
-	DB    *bucketInfo // env: EXISTING_DB_${X}
 }
 
 // AWS tracks environment information and details on where
@@ -138,7 +138,7 @@ type session struct {
 
 // bucketInfo used to store details of a bucket, a path in a bucket or an item in a bucket
 type bucketInfo struct {
-	Bucket string // env: EXISTING_${X}_BUCKET
+	Name   string // env: EXISTING_${X}_NAME
 	Prefix string // env: EXISTING_${X}_PREFIX
 	Key    string // env: EXISTING_${X}_KEY
 }
@@ -148,11 +148,16 @@ func (self *bucketInfo) Path() string {
 }
 
 // setup a default config item that we use as a baseline
+// DATABASE_BUCKET_BUCKET
 var defaultConfig = &Config{
 	Database: &Database{
 		Driver: "sqlite3",
 		Path:   "./api.db",
 		Params: "?_journal=WAL&_busy_timeout=5000&_vacuum=incremental&_synchronous=NORMAL&_cache_size=1000000000",
+		Bucket: &bucketInfo{
+			Name: "opg-reports-production",
+			Key:  "database/api.db",
+		},
 	},
 	Github: &Github{
 		Organisation: "ministryofjustice", // default organisations
@@ -182,8 +187,7 @@ var defaultConfig = &Config{
 		},
 	},
 	Existing: &Existing{
-		Costs: &bucketInfo{Bucket: "report-data-development", Prefix: "aws_costs/"},
-		DB:    &bucketInfo{Bucket: "report-data-development", Prefix: "", Key: "database/api.db"},
+		Costs: &bucketInfo{Name: "report-data-development", Prefix: "aws_costs/"},
 	},
 	Log: &Log{
 		Level: "INFO",

@@ -1,5 +1,3 @@
-# TODO:
-#   change this to download from production bucket
 name: "[Workflow] PR"
 
 on:
@@ -39,11 +37,11 @@ jobs:
     needs:
       - create_tag
     outputs:
-      # AWS S3 bucket & role info
-      s3_bucket: "report-data-development"
-      s3_role: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
-      # s3_bucket: "report-data-production"
-      # s3_role: "arn:aws:iam::997462338508:role/opg-reports-github-actions-s3"
+      # AWS S3 bucket & role info - download from production versions
+      s3_bucket: "opg-reports-production"
+      s3_role: "arn:aws:iam::997462338508:role/opg-reports-github-actions-s3"
+      # s3_bucket: "opg-reports-development"
+      # s3_role: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
 
       # AWS ECR
       ecr_registry: "311462405659"
@@ -161,7 +159,7 @@ jobs:
       - name: "Download [${{ needs.setup.outputs.s3_bucket }}]"
         env:
           DATABASE_PATH: ${{ env.BUILD_DIR_API }}/databases/api.db
-          EXISTING_DB_BUCKET: ${{ needs.setup.outputs.s3_bucket }}
+          DATABASE_BUCKET_NAME: ${{ needs.setup.outputs.s3_bucket }}
           cmd: ${{ env.BUILD_BINARIES }}/db
         run: |
           ${{ env.cmd }} download

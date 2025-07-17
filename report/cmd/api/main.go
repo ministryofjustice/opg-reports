@@ -39,7 +39,7 @@ env values that can be adjusted:
 	VERSIONS_COMMIT
 		The git commit hash that was used to build this version of the API
 
-Requires valid AWS session with permission to access EXISTING_DB_BUCKET and EXISTING_DB_KEY.
+Requires valid AWS session with permission to access DATABASE_BUCKET_NAME and DATABASE_BUCKET_KEY.
 `,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		runner(ctx, log, conf)

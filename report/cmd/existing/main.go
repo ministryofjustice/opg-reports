@@ -1,3 +1,8 @@
+/*
+Import data into a database
+
+	import [COMMAND]
+*/
 package main
 
 import (
@@ -28,9 +33,9 @@ var (
 
 // root command
 var rootCmd = &cobra.Command{
-	Use:               "import",
-	Short:             "Import",
-	Long:              `import can populate database with fixture data ("fixtures"), fetch data from pre-existing json ("existing") or new data via specific external api's.`,
+	Use:               "existing",
+	Short:             "existing",
+	Long:              `existing`,
 	CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
 }
 
@@ -42,13 +47,12 @@ func init() {
 
 	// extra options that aren't handled via config env values
 	// awscosts - month to get data for
-	awscostsCmd.Flags().StringVar(&flagMonth, "month", utils.LastBillingMonth(conf.Aws.BillingDate).Format(utils.DATE_FORMATS.YMD), "The month to get cost data for. (YYYY-MM-DD)")
+	// existing - see if we want to add in costs
+	existingCmd.Flags().BoolVar(&flagIncludeCosts, "include-costs", false, "When true, will impost cost data as well.")
 }
 
 func main() {
-	rootCmd.AddCommand(
-		seedCmd,
-		awscostsCmd)
+	rootCmd.AddCommand(existingCmd)
 	err := rootCmd.Execute()
 	// fail on errir
 	if err != nil {

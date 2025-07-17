@@ -20,9 +20,9 @@ download downloads the database from an s3 bucket to local file system
 
 env variables used that can be adjusted:
 
-	EXISTING_DB_BUCKET
+	DATABASE_BUCKET_NAME
 		The name of the bucket that stores the sqlite database
-	EXISTING_DB_KEY
+	DATABASE_BUCKET_KEY
 		The object key in the bucket (include folder path) where the sqlite db is stored
 	DATABASE_PATH
 		The file path to the sqlite database on the local filesystem to copy the s3 version into
@@ -44,7 +44,7 @@ func downloadCmdRunner(client awsr.ClientS3Getter, store awsr.RepositoryS3Bucket
 		local  string
 	)
 	defer os.RemoveAll(dir)
-	local, err = store.DownloadItemFromBucket(client, conf.Existing.DB.Bucket, conf.Existing.DB.Path(), dir)
+	local, err = store.DownloadItemFromBucket(client, conf.Database.Bucket.Name, conf.Database.Bucket.Path(), dir)
 	if err != nil {
 		return
 	}
