@@ -28,6 +28,18 @@ locals {
 
   default_tags = merge(local.mandatory_moj_tags, local.optional_tags)
 
+  reports_api_tag      = var.api_image_tag != "" ? var.api_image_tag : local.environment.api_tag
+  reports_frontend_tag = var.front_image_tag != "" ? var.front_image_tag : local.environment.front_tag
+
+}
+
+variable "api_image_tag" {
+  type    = string
+  default = ""
+}
+variable "front_image_tag" {
+  type    = string
+  default = ""
 }
 
 variable "default_role" {
@@ -41,11 +53,25 @@ variable "management_role" {
   default = "docs-and-metadata-ci"
 }
 
+variable "semver_tag" {
+  type        = string
+  default     = "v0.0.0"
+  description = "passed along for display and version tracking"
+}
+
+variable "commit_sha" {
+  type        = string
+  default     = "0000"
+  description = "passed along to track versions"
+}
+
 variable "environments" {
   type = map(
     object({
       account_id   = string
       account_name = string
+      api_tag      = string
+      front_tag    = string
     })
   )
 }

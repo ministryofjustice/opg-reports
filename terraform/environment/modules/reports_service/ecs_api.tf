@@ -17,6 +17,11 @@ resource "aws_ecs_service" "reports_api" {
     type = "ECS"
   }
 
+  deployment_circuit_breaker {
+    enable   = true
+    rollback = false
+  }
+
   network_configuration {
     security_groups  = [aws_security_group.reports_api.id]
     subnets          = data.aws_subnets.private.ids
@@ -64,8 +69,20 @@ locals {
     },
     environment = [
       {
-        name  = "API_ADDR",
+        name  = "SERVERS_API_ADDR",
         value = ":8081"
+      },
+      {
+        name  = "DATABASE_PATH",
+        value = "./databases/api.db"
+      },
+      {
+        name  = "VERSIONS_SEMVER",
+        value = var.semver_tag
+      },
+      {
+        name  = "VERSIONS_COMMIT",
+        value = var.commit_sha
       }
     ],
     "mountPoints" = [],

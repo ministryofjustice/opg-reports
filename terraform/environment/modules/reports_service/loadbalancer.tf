@@ -26,7 +26,7 @@ resource "aws_alb_target_group" "reports_frontend" {
 
   health_check {
     protocol            = "HTTP"
-    path                = "/overview/"
+    path                = "/"
     interval            = 15
     timeout             = 10
     healthy_threshold   = 2

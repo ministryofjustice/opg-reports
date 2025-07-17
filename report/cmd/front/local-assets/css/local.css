@@ -1,0 +1,49 @@
+/******************************************************************************************
+* APP CSS
+* Styles relating to custom /new css for this application only
+* See GOVUK block below for overwrites to the govuk css
+*******************************************************************************************/
+
+/*
+Adding padding to the top of the main content area for spacing
+*/
+#main-content{
+    padding-top:30px;
+}
+
+
+/******************************************************************************************
+* GOVUK Overrides
+* Styles relating overwrites to the govuk css
+*******************************************************************************************/
+/*
+    Increase the width of the main container class so we can use more of the space,
+    especially for data tables
+*/
+@media (min-width: 1280px) {
+    .reports .govuk-width-container {
+        max-width: 1200px;
+    }
+}
+
+@media (min-width: 1536px) {
+    .reports .govuk-width-container {
+        max-width: 1400px;
+    }
+}
+/*
+    Size overwrites classes to adjust font-sizes of content Used to shrink size of fonts /
+    data within large tables
+*/
+.reports-font-m .govuk-table{
+    font-size:1rem;
+}
+
+.reports-font-s .govuk-table{
+    font-size:0.9rem;
+}
+.reports-font-s .govuk-table__cell,
+.reports-font-s .govuk-table__header{
+    padding:5px 8px 5px 0;
+}
+

@@ -1,27 +1,27 @@
-version: "3.6"
-
 services:
   api:
-    image: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/opg-reports/api:latest
+    # image: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/opg-reports/api:latest
+    image: opg-reports/api:latest
+    container_name: opg-reports-api
     platform: linux/amd64
     build:
       context: .
-      dockerfile: docker/api/Dockerfile
+      dockerfile: ./docker/api/Dockerfile
     environment:
-      API_ADDR: ":8081"
+      DATABASE_PATH: "./databases/api.db"
+      SERVERS_API_ADDR: ":8081"
     ports:
       - "8081:8081"
-
   front:
-    image: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/opg-reports/front:latest
+    #image: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/opg-reports/front:latest #development-v2.0.0-v3.10
+    image: opg-reports/front:latest
+    container_name: opg-reports-front
     platform: linux/amd64
     build:
       context: .
-      dockerfile: docker/front/Dockerfile
+      dockerfile: ./docker/front/Dockerfile
     environment:
-      API_ADDR: api:8081
-      API_SCHEME: http
-      FRONT_ADDR: :8080
-      CONFIG_FILE: ./config.json
+      SERVERS_FRONT_DIRECTORY: "./"
+      SERVERS_API_ADDR: api:8081
     ports:
       - "8080:8080"

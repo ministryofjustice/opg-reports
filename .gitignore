@@ -1,24 +1,28 @@
-# data files and directories
-**/data/*.csv
-**/data*/**/*.csv
-*.csv
-**/data/*.json
-**/data*/**/*.json
-*.db*
-# build dir
-*builds/**
-*bin/**
-build.log
-# code coverage and test output files
+# Ignore zip etc
+*.zip
+*.tar.gz
+# Ignore data folders
+**/__data/*
+**/__download_*/*
+**/__downloads/*
+**/__download-*/*
+**/__database/*
+# Ignore database and sql files
+*.db
+*.db-*
+*.sql
+# Ignore code coverage files
 code-coverage.out
-report.xml
-test-results.json
-# assets pulled over from govuk via make
-**/govuk**
-# terraform folders and files
+# Ignore openapi generated spec
+openapi.yaml
+# Ignore build folders
+builds/**
+report/cmd/front/govuk/**
+# Ignore todo / temp files
+todo.txt
+scratch.txt
+# Ignore terraform state folders and files
 **/.terraform/*
 *.tfstate
 *.tfstate.*
 *.tfvars
-# generated go docs
-docs/go/**

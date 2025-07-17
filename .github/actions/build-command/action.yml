@@ -1,0 +1,52 @@
+name: "[Build] Command"
+description: "Build command"
+
+inputs:
+  name:
+    description: "Name of the command - will be used in the binary name"
+    required: true
+  source:
+    description: "Source directory to build the command from."
+    required: true
+  destination:
+    description: "Location to build the binary into"
+    required: true
+  cache:
+    description: "cache go.mod"
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    # setup the go version and pull from cache etc
+    - name: "Setup go"
+      id: setup_go
+      uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+      with:
+        cache: ${{ inputs.cache }}
+        go-version-file: './go.mod'
+    # get os info
+    - name: "OS info"
+      id: os_info
+      shell: bash
+      run: |
+        os="$(uname | tr '[:upper:]' '[:lower:]')"
+        arch="$(uname -m | sed 's/x86_64/amd64/')"
+        echo "OS_ARCH_NAME=${os}_${arch}" >> $GITHUB_ENV
+    # run the build
+    - name: "Build [${{ env.OS_ARCH_NAME }}]"
+      id: build_cmd
+      shell: bash
+      env:
+        SRC: "${{ inputs.source }}"
+        OUT: "${{ inputs.destination }}"
+        BINARY: "${{ inputs.name }}"
+      run: |
+        echo "Building"
+        mkdir -p ${{ env.OUT }}
+        go mod tidy
+        go build -o ${{ env.OUT }}/${{ env.BINARY }} ${{ env.SRC }}
+        ls -l ${{ env.OUT }}
+
+
+

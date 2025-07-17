@@ -1,10 +1,10 @@
 
 module "data_bucket" {
   source                = "./modules/s3"
-  bucket_name           = "report-data-${local.environment_name}"
+  bucket_name           = "opg-reports-${local.environment_name}"
   kms_key_id            = null
   custom_bucket_policy  = data.aws_iam_policy_document.allow_data_role_access
-  access_logging_bucket = "s3-access-logs-opg-shared-development-eu-west-1"
+  access_logging_bucket = "s3-access-logs-opg-shared-${local.environment_name}-eu-west-1"
   force_destroy         = true
   enable_lifecycle      = false
 }

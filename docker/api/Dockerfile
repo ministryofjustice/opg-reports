@@ -1,123 +1,47 @@
-# base requires gcc, sqlite
-# install sqlc
-FROM golang:1.22-alpine AS base
-WORKDIR /app
-RUN mkdir -p /gobin
-ENV CGO_ENABLED=1 GOOS=linux GOBIN=/gobin PATH=/gobin:$PATH
+ARG TARGETOS TARGETARCH
+# setup base docker image building the application
+FROM golang:1.24.4-alpine@sha256:68932fa6d4d4059845c8f40ad7e654e626f3ebd3706eef7846f319293ab5cb7a AS build
+COPY --link go.sum go.mod /app/
+COPY --link report /app/report
+COPY --link builds/api/databases /gobin/app/databases
 RUN update-ca-certificates
 RUN apk --update --no-cache add build-base
-RUN apk --update --no-cache add "sqlite=~3.45"
-RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.27.0
-### create folders
-RUN mkdir -p /go/bin/api/
-RUN mkdir -p /app/builds/api/github_standards/data/
-RUN mkdir -p /go/bin/api/github_standards/data/
-#--fork-remove-start
-# aws_costs
-RUN mkdir -p /app/builds/api/aws_costs/data/
-RUN mkdir -p /go/bin/api/aws_costs/data/
-# aws_uptime
-RUN mkdir -p /app/builds/api/aws_uptime/data/
-RUN mkdir -p /go/bin/api/aws_uptime/data/
-#--fork-remove-end
-
-# build stage - runs seeders
-FROM base AS build
+RUN apk --update --no-cache add "sqlite=>=3.47"
+RUN mkdir -p /gobin/app
+RUN addgroup -S user && adduser -S -g user user
 WORKDIR /app
-RUN mkdir -p /gobin
-# setup path vars - make sure gobin is included
-ENV CGO_ENABLED=1 GOOS=linux GOBIN=/gobin PATH=/gobin:$PATH
-COPY . .
-###
-# - update sqlc generators
-# - copy schema
-# - copy data
-WORKDIR /app/datastore/github_standards/
-RUN sqlc generate
-WORKDIR /app/datastore/github_standards/
-RUN cp -p github_standards*.sql /go/bin/api/github_standards/
-WORKDIR /app/builds/api/github_standards/data/
-RUN cp -p *.json /go/bin/api/github_standards/data/
-#--fork-remove-start
-# aws_costs
-WORKDIR /app/datastore/aws_costs/
-RUN sqlc generate
-WORKDIR /app/datastore/aws_costs/
-RUN cp -p aws_costs*.sql /go/bin/api/aws_costs/
-WORKDIR /app/builds/api/aws_costs/data/
-RUN cp -p *.json /go/bin/api/aws_costs/data/
-# aws_uptime
-WORKDIR /app/datastore/aws_uptime/
-RUN sqlc generate
-WORKDIR /app/datastore/aws_uptime/
-RUN cp -p aws_uptime*.sql /go/bin/api/aws_uptime/
-WORKDIR /app/builds/api/aws_uptime/data/
-RUN cp -p *.json /go/bin/api/aws_uptime/data/
-#--fork-remove-end
-### build binaries
-WORKDIR /app
-RUN go build -o /go/bin/api/seed_cmd ./commands/seed/main.go
-RUN go build -o /go/bin/api/api_server ./servers/api/main.go
-### SEEDERS
-# github standards
-RUN /go/bin/api/seed_cmd \
-    -table github_standards \
-    -schema /go/bin/api/github_standards/github_standards.sql \
-    -db /go/bin/api/github_standards.db \
-    -data "/go/bin/api/github_standards/data/*.json"
-#--fork-remove-start
-# aws_costs
-RUN /go/bin/api/seed_cmd \
-    -table aws_costs \
-    -schema /go/bin/api/aws_costs/aws_costs.sql \
-    -db /go/bin/api/aws_costs.db \
-    -data "/go/bin/api/aws_costs/data/*.json"
-RUN sqlite3 /go/bin/api/aws_costs.db "select count(*) from aws_costs;"
-# aws_uptime
-RUN /go/bin/api/seed_cmd \
-    -table aws_uptime \
-    -schema /go/bin/api/aws_uptime/aws_uptime.sql \
-    -db /go/bin/api/aws_uptime.db \
-    -data "/go/bin/api/aws_uptime/data/*.json"
-RUN sqlite3 /go/bin/api/aws_uptime.db "select count(*) from aws_uptime;"
-#--fork-remove-end
-# test the import worked by getting the count
-RUN sqlite3 /go/bin/api/github_standards.db "select count(*) from github_standards;"
+ENV GOBIN=/gobin PATH=/gobin:$PATH
+ENV CGO_ENABLED=1 GOOS=${TARGETOS} GOARCH=${TARGETARCH}
+RUN go mod download
+RUN go build -ldflags="-w -s" -o /gobin/app/api ./report/cmd/api/
+# WORKDIR /gobin/app
+# deal with linked binaries - sqlite package needs cgo.. grab the requirements and install them to ./lib/
+# RUN ldd api | tr -s [:blank:] '\n' | grep ^/ | xargs -I % install -D % /gobin/app/%
+RUN chown -Rf user:user /gobin/
+RUN chmod -Rf 0755 /gobin/
 
-
-
-FROM build AS dev
+# setup the development image
+FROM build AS development
 EXPOSE 8081
-WORKDIR /go/bin/api
-ENV CGO_ENABLED=1 GOOS=linux
-RUN apk --update --no-cache add "sqlite=~3.45"
-COPY --from=build /go/bin/api/api_server ./
-COPY --from=build /go/bin/api/github_standards.db ./
-RUN rm -f /go/bin/api/github_standards/data/*.json
-#--fork-remove-start
-# aws_costs
-COPY --from=build /go/bin/api/aws_costs.db ./
-RUN rm -f /go/bin/api/aws_costs/data/*.json
-# aws_uptime
-COPY --from=build /go/bin/api/aws_uptime.db ./
-RUN rm -f /go/bin/api/aws_uptime/data/*.json
-#--fork-remove-end
-ENTRYPOINT ["./api_server"]
+COPY --from=build /gobin/ /gobin
+WORKDIR /gobin/app
+RUN chown -Rf user:user /gobin/
+RUN chmod -Rf 0755 /gobin/
+ENTRYPOINT ["/gobin/app/api"]
 
-# PRODUCTION
-FROM alpine:3.20.2
-WORKDIR /go/bin/
-ENV CGO_ENABLED=1 GOOS=linux
-RUN apk --update --no-cache add "sqlite=~3.45"
-COPY --from=build /go/bin/api/api_server ./
-COPY --from=build /go/bin/api/github_standards.db ./
-RUN rm -f /go/bin/api/github_standards/data/*.json
-#--fork-remove-start
-# aws_costs
-COPY --from=build /go/bin/api/aws_costs.db ./
-RUN rm -f /go/bin/api/aws_costs/data/*.json
-# aws_uptime
-COPY --from=build /go/bin/api/aws_uptime.db ./
-RUN rm -f /go/bin/api/aws_uptime/data/*.json
-#--fork-remove-end
-ENTRYPOINT ["./api_server"]
+# setup production image
+FROM alpine:3.22.0@sha256:8a1f59ffb675680d47db6337b49d22281a139e9d709335b492be023728e11715 AS production
+# FROM scratch AS production
+EXPOSE 8081
+# ssl certs
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+# users & groups
+COPY --from=build /etc/passwd /etc/passwd
+COPY --from=build /etc/group /etc/group
+# app
+COPY --from=build /gobin/ /gobin
+# needs the linked files, can check using ldd (see the process above)
+# COPY --from=build /gobin/app/lib/* /gobin/app/
+WORKDIR /gobin/app
+USER user
+ENTRYPOINT ["/gobin/app/api"]

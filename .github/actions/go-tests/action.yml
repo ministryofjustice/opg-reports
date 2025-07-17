@@ -1,0 +1,42 @@
+name: "[Tests] Test Go"
+description: "Run go test suite"
+
+inputs:
+    github_token:
+      description: "A valid github token"
+      required: true
+    cache:
+      description: "cache go.mod"
+      default: "true"
+
+
+runs:
+  using: composite
+  steps:
+    # checkout self
+    - name: "Checkout"
+      id: checkout
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    # setup the go version and pull from cache etc
+    - name: "Setup go"
+      id: setup_go
+      uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+      with:
+        cache: ${{ inputs.cache }}
+        go-version-file: './go.mod'
+    # run tests
+    - name: "Run tests"
+      id: run_tests
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+      run: |
+        go mod tidy
+        go test -count=1 -cover -covermode=atomic ./...
+
+
+
+

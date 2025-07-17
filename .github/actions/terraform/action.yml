@@ -23,15 +23,9 @@ inputs:
 runs:
   using: "composite"
   steps:
-    # check the repository with all branches and tags
-    - name: "Checkout"
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        fetch-tags: true
     # setup the terraform version
     - name: "Setup terraform [version: ${{ inputs.version }}]"
-      uses: hashicorp/setup-terraform@v3
+      uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd #v3.1.2
       with:
         terraform_version: ${{ inputs.version }}
     # run linting against the terraform (if requested)

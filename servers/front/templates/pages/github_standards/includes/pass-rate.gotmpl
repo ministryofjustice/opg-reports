@@ -1,9 +1,0 @@
-{{ define "github-standards-pass-rate" }}
-
-{{ $passedBase := .Counters.This.CompliantBaseline }}
-{{ $count := .Counters.This.Count }}
-{{ $perc := percent $passedBase $count }}
-
-<p class="govuk-body">There are <strong>{{ $passedBase }}</strong> out of <strong>{{ $count }}</strong> <strong>({{ $perc }}%)</strong> repositories passing the baseline standards.</p>
-
-{{ end }}

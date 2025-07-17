@@ -18,6 +18,11 @@ resource "aws_ecs_service" "reports_frontend" {
     type = "ECS"
   }
 
+  deployment_circuit_breaker {
+    enable   = true
+    rollback = false
+  }
+
   network_configuration {
     security_groups  = [aws_security_group.reports_frontend.id]
     subnets          = data.aws_subnets.private.ids
@@ -57,29 +62,33 @@ locals {
       hostPort      = 8080,
       protocol      = "tcp"
     }],
-    healthCheck = {
-      command     = ["CMD-SHELL", "wget -O /dev/null -S http://localhost:8080/overview/ 2>&1 || exit 1    "],
-      startPeriod = 30,
-      interval    = 15,
-      timeout     = 10,
-      retries     = 3
-    },
+    # healthCheck = {
+    #   command     = ["CMD-SHELL", "wget -O /dev/null -S http://localhost:8080/ 2>&1 || exit 1    "],
+    #   startPeriod = 30,
+    #   interval    = 15,
+    #   timeout     = 10,
+    #   retries     = 3
+    # },
     environment = [
       {
-        name  = "API_ADDR",
-        value = "http://${aws_service_discovery_service.reports_api.name}.${aws_service_discovery_private_dns_namespace.reports.name}:8081"
+        name  = "SERVERS_API_ADDR",
+        value = "${aws_service_discovery_service.reports_api.name}.${aws_service_discovery_private_dns_namespace.reports.name}:8081"
       },
       {
-        name  = "API_SCHEME",
-        value = "http"
-      },
-      {
-        name  = "FRONT_ADDR",
+        name  = "SERVERS_FRONT_ADDR",
         value = ":8080"
       },
       {
-        name  = "CONFIG_FILE",
-        value = "./config.json"
+        name  = "SERVERS_FRONT_DIRECTORY",
+        value = "./"
+      },
+      {
+        name  = "VERSIONS_SEMVER",
+        value = var.semver_tag
+      },
+      {
+        name  = "VERSIONS_COMMIT",
+        value = var.commit_sha
       }
     ],
     logConfiguration = {

@@ -1,0 +1,32 @@
+package awsr
+
+import (
+	"testing"
+
+	"opg-reports/report/config"
+	"opg-reports/report/internal/utils"
+)
+
+func TestSTSCallerIdentity(t *testing.T) {
+	var (
+		err        error
+		repository *Repository
+		ctx        = t.Context()
+		conf       = config.NewConfig()
+		log        = utils.Logger("ERROR", "TEXT")
+	)
+
+	repository, err = New(ctx, log, conf)
+	if err != nil {
+		t.Errorf("unexpected error: %s", err.Error())
+		t.FailNow()
+	}
+	caller, err := repository.GetCallerIdentity(&mockSTSCaller{})
+	if err != nil {
+		t.Errorf("unexpected error: %s", err.Error())
+	}
+	if caller.Account == nil || *(caller.Account) == "" {
+		t.Errorf("no caller found")
+	}
+
+}

@@ -1,0 +1,42 @@
+{{- define "service-navigation" -}}
+{{ $top := .RequestPath0 }}
+{{ $rp1 := .RequestPath1 }}
+{{ $rp2 := .RequestPath2 }}
+<div class="govuk-service-navigation"
+  data-module="govuk-service-navigation"
+  data-lv0="{{ $top }}"
+  data-lv1="{{ $rp1 }}"
+  data-lv2="{{ $rp2 }}"
+  >
+  <div class="govuk-width-container">
+    <div class="govuk-service-navigation__container">
+      <nav aria-label="Menu" class="govuk-service-navigation__wrapper">
+        <button type="button" class="govuk-service-navigation__toggle govuk-js-service-navigation-toggle" aria-controls="navigation" hidden>
+          Menu
+        </button>
+        <ul class="govuk-service-navigation__list" id="navigation">
+        {{- if eq $top "" -}}
+            <li class="govuk-service-navigation__item govuk-service-navigation__item--active">
+                <a class="govuk-service-navigation__link" href="/"><strong class="govuk-service-navigation__active-fallback">Overview</strong></a>
+            </li>
+        {{- else -}}
+            <li class="govuk-service-navigation__item"><a class="govuk-service-navigation__link" href="/">Overview</a></li>
+        {{- end -}}
+
+        {{- range $team := .Teams -}}
+            {{ $slug := $team | ToLower }}
+            {{- if eq $rp1 $slug -}}
+            <li class="govuk-service-navigation__item govuk-service-navigation__item--active">
+                <a class="govuk-service-navigation__link" href="/team/{{ $slug }}/"><strong class="govuk-service-navigation__active-fallback">{{ $team }}</strong></a>
+            </li>
+            {{- else -}}
+            <li class="govuk-service-navigation__item"><a class="govuk-service-navigation__link" href="/team/{{ $slug }}/">{{ $team }}</a></li>
+            {{- end -}}
+        {{- end -}}
+
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+{{- end -}}
