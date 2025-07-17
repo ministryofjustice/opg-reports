@@ -156,7 +156,7 @@ jobs:
           role-to-assume: ${{ needs.setup.outputs.s3_role }}
           role-session-name: reports-download-db-from-s3
       # Download the database from the bucket
-      - name: "Download [${{ needs.setup.outputs.s3_bucket }}]"
+      - name: "Download database [${{ needs.setup.outputs.s3_bucket }}]"
         env:
           DATABASE_PATH: ${{ env.BUILD_DIR_API }}/databases/api.db
           DATABASE_BUCKET_NAME: ${{ needs.setup.outputs.s3_bucket }}
