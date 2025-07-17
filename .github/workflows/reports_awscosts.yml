@@ -1,12 +1,12 @@
 # TODO:
-#   change this to download from production bucket, upload to both production and development
+#   change the value of production bucket
 #   change releases to not use prereleases
 name: "[Reports] AWS Costs"
 
 on:
-  # run on 3am on the 15th of every month
+  # run on 3am on the 14th of every month
   schedule:
-    - cron: '0 3 15 * *'
+    - cron: '0 3 14 * *'
   # run when triggered manually
   workflow_dispatch:
     inputs:
