@@ -22,8 +22,8 @@ env:
   BUILD_DIR_API: ./builds/api
   BUILD_DIR_FRONT: ./builds/front
   BUILD_BINARIES: ./builds/bin
-  prerelease: "true"
-  path_to_live: "false"
+  PRERELEASE: "true"
+  PATH_TO_LIVE: "false"
 
 # jobs
 jobs:
@@ -44,6 +44,9 @@ jobs:
       # AWS S3 bucket & role info
       s3_bucket: "report-data-development"
       s3_role: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
+      # s3_bucket: "report-data-production"
+      # s3_role: "arn:aws:iam::997462338508:role/opg-reports-github-actions-s3"
+
       # AWS ECR
       ecr_registry: "311462405659"
       ecr_role: "arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
@@ -185,7 +188,7 @@ jobs:
           branch_name: ${{ needs.setup.outputs.branch_name }}
           tag: ${{ needs.setup.outputs.semver_tag }}
           dockerfile: './docker/api/Dockerfile'
-          path_to_live: ${{ env.path_to_live }}
+          path_to_live: ${{ env.PATH_TO_LIVE }}
       # build the API image
       - name: "Build [front]"
         id: build_front
@@ -196,7 +199,7 @@ jobs:
           branch_name: ${{ needs.setup.outputs.branch_name }}
           tag: ${{ needs.setup.outputs.semver_tag }}
           dockerfile: './docker/front/Dockerfile'
-          path_to_live: ${{ env.path_to_live }}
+          path_to_live: ${{ env.PATH_TO_LIVE }}
       - name: "List build directory"
         run: ls -laRh ./builds/
 
@@ -284,8 +287,8 @@ jobs:
       - name: "Create release [${{ needs.setup.outputs.semver_tag }}]"
         env:
           GH_TOKEN: ${{ github.token }}
-          pre: ${{ env.prerelease == 'true' && '--prerelease' || '' }}
-          latest:  ${{ env.path_to_live == 'true' && '--latest=true' || '--latest=false' }}
+          pre: ${{ env.PRERELEASE == 'true' && '--prerelease' || '' }}
+          latest:  ${{ env.PATH_TO_LIVE == 'true' && '--latest=true' || '--latest=false' }}
           tag: ${{ needs.setup.outputs.semver_tag }}
         run: |
           gh release create ${{ env.tag }} ${{ env.BUILD_BINARIES }}/* \
