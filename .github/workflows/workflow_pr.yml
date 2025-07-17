@@ -3,9 +3,9 @@
 name: "[Workflow] PR"
 
 on:
-  # run on 7am on the 15th of every month - after billing
+  # run on 4am on the 15th of every month - after billing
   schedule:
-    - cron: '0 8 15 * *'
+    - cron: '0 4 15 * *'
   # push:
   #   branches:
   #     - main
@@ -170,7 +170,7 @@ jobs:
           ls -lh ${{ env.DATABASE_PATH }}
       ## DOCKER BUILD AND PUSH
       # Swap AWS creds for ECR usage
-      - name: "Configure AWS credentials for S3 download"
+      - name: "Configure AWS credentials for ECR"
         id: configure_aws_creds_ecr_push
         uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
         with:
