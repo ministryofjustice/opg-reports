@@ -23,6 +23,6 @@ jobs:
       # pull in remote action by the exact sha
       - id: "pinned_remote_action"
         name: "Pinned"
-        uses: ministryofjustice/opg-github-actions/.github/actions/test-action@@56dc197f27b49f50f5807e97d6b79e9c39536dab
+        uses: ministryofjustice/opg-github-actions/.github/actions/test-action@56dc197f27b49f50f5807e97d6b79e9c39536dab
 
 
