@@ -19,10 +19,10 @@ jobs:
       # pull in remote action by just the version number
       - id: "versioned_remote_action"
         name: "Versioned"
-        uses: ministryofjustice/opg-github-actions/.github/actions/test-action@v-restructured-test
+        uses: ministryofjustice/opg-github-actions/test-action@v-restructured-test
       # pull in remote action by the exact sha
       - id: "pinned_remote_action"
         name: "Pinned"
-        uses: ministryofjustice/opg-github-actions/.github/actions/test-action@2f131964f2fa2c7d18bcad4238596c1bd3454e71
+        uses: ministryofjustice/opg-github-actions/test-action@d6147198c1f4bff6ef5b660404b445f0f5bab696
 
 
