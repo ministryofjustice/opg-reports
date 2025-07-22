@@ -1,0 +1,28 @@
+name: "[Workflow] TEST GITHUB ACTION"
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  actions: read
+  contents: write
+  id-token: write
+
+
+jobs:
+  test_uses:
+    name: "TEST GitHub Action"
+    runs-on: ubuntu-latest
+    steps:
+      # pull in remote action by just the version number
+      - id: "versioned_remote_action"
+        name: "Versioned"
+        uses: ministryofjustice/opg-github-actions/.github/actions/test-action@v-restructured-test
+      # pull in remote action by the exact sha
+      - id: "pinned_remote_action"
+        name: "Pinned"
+        uses: ministryofjustice/opg-github-actions/.github/actions/test-action@f8ae430991962a2e08b2cd2c5cc8b75edac23217
+
+
