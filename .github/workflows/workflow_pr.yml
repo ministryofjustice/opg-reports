@@ -1,4 +1,4 @@
-name: "[Workflow] PR"
+name: "[Workflow] Pull Request"
 
 on:
   # run on 4am on the 15th of every month - after billing
