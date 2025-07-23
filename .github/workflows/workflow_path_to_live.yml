@@ -65,19 +65,19 @@ jobs:
       # Check the code base
       - name: "Checkout"
         id: checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
           fetch-tags: true
        # Find the terraform version details for account & env
       - name: "Parse terraform account version"
         id: terraform_account_version
-        uses: ministryofjustice/opg-github-actions/.github/actions/terraform-version@4202ec51fd9d613351e4c062606d857982ad70eb #v3.0.6
+        uses: ministryofjustice/opg-github-actions/.github/actions/terraform-version@4202ec51fd9d613351e4c062606d857982ad70eb # v3.0.6
         with:
           terraform_directory: ./terraform/account
       - name: "Parse terraform environment version"
         id: terraform_environment_version
-        uses: ministryofjustice/opg-github-actions/.github/actions/terraform-version@4202ec51fd9d613351e4c062606d857982ad70eb #v3.0.6
+        uses: ministryofjustice/opg-github-actions/.github/actions/terraform-version@4202ec51fd9d613351e4c062606d857982ad70eb # v3.0.6
         with:
           terraform_directory: ./terraform/environment
       - name: "Get git sha"
@@ -97,7 +97,7 @@ jobs:
       # checkout self
       - name: "Checkout"
         id: checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -153,7 +153,7 @@ jobs:
       #   - download the existing database
       - name: "Configure AWS credentials for S3 download"
         id: configure_aws_creds_s3_download
-        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
+        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.2.1
         with:
           aws-region: "eu-west-1"
           role-duration-seconds: 900
@@ -172,7 +172,7 @@ jobs:
       # Swap AWS creds for ECR usage
       - name: "Configure AWS credentials for ECR"
         id: configure_aws_creds_ecr_push
-        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
+        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.2.1
         with:
           aws-region: "eu-west-1"
           role-duration-seconds: 900
@@ -213,15 +213,15 @@ jobs:
     steps:
       - name: "Checkout"
         id: checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       # setup ssh keys
-      - uses: webfactory/ssh-agent@a6f90b1f127823b31d4d4a8d96047790581349bd #v0.9.0
+      - uses: webfactory/ssh-agent@a6f90b1f127823b31d4d4a8d96047790581349bd # v0.9.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_EXTERNAL_MODULES }}
       # configure the aws role
       - name: "Configure AWS credentials for terraform"
         id: configure_aws_creds
-        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
+        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.2.1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
@@ -262,7 +262,7 @@ jobs:
       # checkout self
       - name: "Checkout"
         id: checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
           fetch-tags: true

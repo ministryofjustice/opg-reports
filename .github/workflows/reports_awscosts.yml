@@ -47,7 +47,7 @@ jobs:
       # Check the code base
       - name: "Checkout"
         id: checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -74,7 +74,7 @@ jobs:
     steps:
       - name: "[${{ matrix.name }}] Checkout"
         id: checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -91,7 +91,7 @@ jobs:
           prereleases: ${{ env.prereleases }}
       # configure the aws creds to download the existing database
       - name: "[${{ matrix.name }}] Configure AWS credentials for S3 download from prod"
-        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
+        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.2.1
         with:
           aws-region: "eu-west-1"
           role-duration-seconds: 900
@@ -112,7 +112,7 @@ jobs:
         # set the billing role
         env:
           report_role: "arn:aws:iam::${{ matrix.id }}:role/gh-actions-cost-metrics"
-        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
+        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.2.1
         with:
           aws-region: "eu-west-1"
           role-duration-seconds: 900
@@ -130,7 +130,7 @@ jobs:
           ls -lh ${{ env.DB_DIR }}
       # configure the aws creds to upload the existing database - PRODUCTION
       - name: "[${{ matrix.name }}] Configure AWS credentials for S3 upload to prod"
-        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
+        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.2.1
         with:
           aws-region: "eu-west-1"
           role-duration-seconds: 900
@@ -147,7 +147,7 @@ jobs:
           ${{ env.cmd }} upload
       # configure the aws creds to upload the existing database - DEVELOPMENT
       - name: "[${{ matrix.name }}] Configure AWS credentials for S3 upload to dev"
-        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
+        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.2.1
         with:
           aws-region: "eu-west-1"
           role-duration-seconds: 900

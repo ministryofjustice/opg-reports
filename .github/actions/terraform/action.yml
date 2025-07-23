@@ -25,7 +25,7 @@ runs:
   steps:
     # setup the terraform version
     - name: "Setup terraform [version: ${{ inputs.version }}]"
-      uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd #v3.1.2
+      uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
       with:
         terraform_version: ${{ inputs.version }}
     # run linting against the terraform (if requested)
