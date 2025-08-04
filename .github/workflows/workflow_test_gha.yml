@@ -16,11 +16,18 @@ jobs:
     name: "TEST GitHub Action"
     runs-on: ubuntu-latest
     steps:
-      # pull in remote action by just the version number
-      - id: "versioned_remote_action"
-        name: "Versioned"
-        uses: ministryofjustice/opg-github-actions/actions/test-env@v4.1.2-semveraction.5
-      # # pull in remote action by the exact sha
+      # run action to test github properties
+      - name: "semver"
+        id: "semver"
+        uses: ministryofjustice/opg-github-actions/actions/semver@v4.1.2-semveraction.5
+        with:
+          prerelease: true
+
+      # # pull in remote action by just the version number
+      # - id: "versioned_remote_action"
+      #   name: "Versioned"
+      #   uses: ministryofjustice/opg-github-actions/actions/test-env@v4.1.2-semveraction.5
+      # # # pull in remote action by the exact sha
       # - id: "pinned_remote_action"
       #   name: "Pinned"
       #   uses: ministryofjustice/opg-github-actions/actions/test-gha@3c942e078d2b3d48dab3ff9e293a435c27115d22
