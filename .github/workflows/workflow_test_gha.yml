@@ -16,13 +16,20 @@ jobs:
     name: "TEST GitHub Action"
     runs-on: ubuntu-latest
     steps:
+      - name: "Checkout"
+        id: checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
       - name: "branchname"
         id: "branchname"
-        uses: ministryofjustice/opg-github-actions/actions/branch-name@v4.1.2-semveraction.7
+        uses: ministryofjustice/opg-github-actions/actions/branch-name@v4.1.2-semveraction.8
 
       - name: "semver"
         id: "semver"
-        uses: ministryofjustice/opg-github-actions/actions/semver@v4.1.2-semveraction.7
+        uses: ministryofjustice/opg-github-actions/actions/semver@v4.1.2-semveraction.8
         with:
           prerelease: true
 
