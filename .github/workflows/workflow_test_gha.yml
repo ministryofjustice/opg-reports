@@ -32,15 +32,17 @@ jobs:
         uses: ministryofjustice/opg-github-actions/actions/semver@v4.2.0-semveraction.4
         with:
           test: true
+          create_release: false
           prerelease: false
           default_bump: "none"
 
-      - name: "semver - should return last release"
+      - name: "semver - should return a prerelease string"
         id: "semver"
         uses: ministryofjustice/opg-github-actions/actions/semver@v4.2.0-semveraction.4
         with:
           test: true
-          prerelease: false
+          create_release: false
+          prerelease: true
           default_bump: "none"
 
       # # pull in remote action by just the version number
