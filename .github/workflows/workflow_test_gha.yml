@@ -25,7 +25,7 @@ jobs:
 
       - name: "branchname"
         id: "branchname"
-        uses: ministryofjustice/opg-github-actions/actions/branch-name@v4.1.2-semveraction.1
+        uses: ministryofjustice/opg-github-actions/actions/branch-name@v4.1.2-semveraction.13
 
       - name: "semver"
         id: "semver"
