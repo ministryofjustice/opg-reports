@@ -27,15 +27,6 @@ jobs:
         id: "branchname"
         uses: ministryofjustice/opg-github-actions/actions/branch-name@v4.2.0-semveraction.4
 
-      - name: "semver - should return last release"
-        id: "semver_last_release"
-        uses: ministryofjustice/opg-github-actions/actions/semver@v4.2.0-semveraction.4
-        with:
-          test: true
-          create_release: false
-          prerelease: false
-          default_bump: "none"
-
       - name: "semver - should return a prerelease string"
         id: "semver_prelease"
         uses: ministryofjustice/opg-github-actions/actions/semver@v4.2.0-semveraction.4
@@ -43,7 +34,6 @@ jobs:
           test: true
           create_release: false
           prerelease: true
-          default_bump: "none"
 
       # # pull in remote action by just the version number
       # - id: "versioned_remote_action"
