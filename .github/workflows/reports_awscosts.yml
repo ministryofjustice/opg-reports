@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       month:
-        description: "YYYY-MM-DD formatted month to get cost data for."
+        description: "YYYY-MM formatted month to get cost data for (example: 2025-08)."
         type: string
         default: ""
 
