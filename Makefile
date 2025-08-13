@@ -1,7 +1,9 @@
 SERVICES ?= api front
 
+CMD_BUILD = ./builds/cmd
 API_BUILD = ./builds/api
-DBP = ${API_BUILD}/databases/api.db
+DB_BUILD = ./builds/databases
+DBP = ${DB_BUILD}/api.db
 FRONT_BUILD =./builds/front
 VERBOSE ?= # --verbose
 
@@ -55,15 +57,30 @@ coverage:
 .PHONY: coverage
 
 #========= LOCAL =========
+
+.PHONY: local/download-database
+local/download-database:
+	@rm -Rf ${DB_BUILD}
+	@mkdir -p ${DB_BUILD}
+	@go build -o ${CMD_BUILD}/bin/db ./report/cmd/db/
+	@aws-vault exec shared-production-operator -- \
+   		env DATABASE_PATH=${DBP} \
+   		${CMD_BUILD}/bin/db download
+
 .PHONY: local/build/api
+# download the latest production database to local folder and
+# build the api binary
 local/build/api:
 	@rm -Rf ${API_BUILD}
-	@mkdir -p ${API_BUILD} ${API_BUILD}/databases ${API_BUILD}/bin
-	@go build -o ${API_BUILD}/bin/db ./report/cmd/db/
-	@aws-vault exec shared-development-operator -- \
-   		env DATABASE_PATH=${DBP} \
-   		${API_BUILD}/bin/db download
+	@mkdir -p ${API_BUILD} ${API_BUILD}/bin
 	@go build -o ${API_BUILD}/bin/api ./report/cmd/api
+
+.PHONY: local/api
+local/api: local/build/api
+	@env DATABASE_PATH=${DBP} \
+		SERVERS_API_ADDR="localhost:8081" \
+		SERVERS_FRONT_ADDR="localhost:8080" \
+		${API_BUILD}/bin/api
 
 .PHONY: local/build/front
 local/build/front:
@@ -77,8 +94,19 @@ local/build/front:
 	@cp -r ./report/cmd/front/templates ${FRONT_BUILD}/
 	@cp -r ./report/cmd/front/local-assets ${FRONT_BUILD}/
 
-.PHONY: local/build
-local/build: local/build/api local/build/front
+
+.PHONY: local/front
+local/front: local/build/front
+	@env SERVERS_API_ADDR="localhost:8081" \
+		SERVERS_FRONT_ADDR="localhost:8080" \
+		SERVERS_FRONT_DIRECTORY=${FRONT_BUILD} \
+		${FRONT_BUILD}/bin/front
+
+.PHONY: local/build/importer
+local/build/importer:
+	@rm -Rf ${CMD_BUILD}
+	@mkdir -p ${CMD_BUILD} ${CMD_BUILD}/bin
+	@go build -o ${CMD_BUILD}/bin/importer ./report/cmd/importer/
 
 #========= DOCKER =========
 ## Build local development version of the docker image
