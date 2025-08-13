@@ -13,7 +13,7 @@ permissions:
 env:
   BUILD_DIR_API: ./builds/api
   BUILD_DIR_FRONT: ./builds/front
-  BUILD_BINARIES: ./builds/bin
+  BUILD_DIR_BINARIES: ./builds/bin
   PRERELEASE: "true"
   PATH_TO_LIVE: "false"
 
@@ -115,25 +115,25 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
       # build the `govuk` command to download front end assets
-      - name: "Build `govuk` [${{ env.BUILD_BINARIES }}]"
+      - name: "Build `govuk` [${{ env.BUILD_DIR_BINARIES }}]"
         uses: ./.github/actions/build-command
         with:
           name: "govuk"
           source: ./report/cmd/govuk/
-          destination: ${{ env.BUILD_BINARIES }}
+          destination: ${{ env.BUILD_DIR_BINARIES }}
       # build the `db` command so we can fetch the database for the api
-      - name: "Build `db` [${{ env.BUILD_BINARIES }}]"
+      - name: "Build `db` [${{ env.BUILD_DIR_BINARIES }}]"
         uses: ./.github/actions/build-command
         with:
           name: "db"
           source: ./report/cmd/db/
-          destination: ${{ env.BUILD_BINARIES }}
+          destination: ${{ env.BUILD_DIR_BINARIES }}
       ## FRONT END BUILD
       - name: "Download GOV UK Front End assets [${{ env.BUILD_DIR_FRONT }}]"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SERVERS_FRONT_DIRECTORY: ${{ env.BUILD_DIR_FRONT }}
-          cmd: ${{ env.BUILD_BINARIES }}/govuk
+          cmd: ${{ env.BUILD_DIR_BINARIES }}/govuk
         run: |
           ${{ env.cmd }} frontend
           cp -r ./report/cmd/front/templates ${{ env.BUILD_DIR_FRONT }}/
@@ -155,7 +155,7 @@ jobs:
         env:
           DATABASE_PATH: ${{ env.BUILD_DIR_API }}/databases/api.db
           DATABASE_BUCKET_NAME: ${{ needs.setup.outputs.s3_bucket }}
-          cmd: ${{ env.BUILD_BINARIES }}/db
+          cmd: ${{ env.BUILD_DIR_BINARIES }}/db
         run: |
           ${{ env.cmd }} download
           ls -lh ${{ env.DATABASE_PATH }}
@@ -262,19 +262,19 @@ jobs:
         with:
           name: db
           source: ./report/cmd/db/
-          destination: ${{ env.BUILD_BINARIES }}
+          destination: ${{ env.BUILD_DIR_BINARIES }}
       - name: "Build command [govuk]"
         uses: ./.github/actions/build-command
         with:
           name: govuk
           source: ./report/cmd/govuk/
-          destination: ${{ env.BUILD_BINARIES }}
+          destination: ${{ env.BUILD_DIR_BINARIES }}
       - name: "Build command [importer]"
         uses: ./.github/actions/build-command
         with:
           name: importer
           source: ./report/cmd/importer/
-          destination: ${{ env.BUILD_BINARIES }}
+          destination: ${{ env.BUILD_DIR_BINARIES }}
       - name: "Create release [${{ needs.setup.outputs.semver_tag }}]"
         env:
           GH_TOKEN: ${{ github.token }}
@@ -282,7 +282,7 @@ jobs:
           latest:  ${{ env.PATH_TO_LIVE == 'true' && '--latest=true' || '--latest=false' }}
           tag: ${{ needs.setup.outputs.semver_tag }}
         run: |
-          gh release create ${{ env.tag }} ${{ env.BUILD_BINARIES }}/* \
+          gh release create ${{ env.tag }} ${{ env.BUILD_DIR_BINARIES }}/* \
             ${{ env.pre }} ${{ env.latest }} --verify-tag \
             -t ${{ env.tag }} \
             --notes-from-tag
