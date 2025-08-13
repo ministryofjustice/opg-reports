@@ -47,6 +47,8 @@ env values that can be adjusted:
 		The address of this front end server (eg: localhost:8080)
 	SERVERS_API_ADDR
 		The address of the API server to connect to (eg: localhost:8081)
+	SERVERS_FRONT_DIRECTORY
+		The location of template and asset files
 .
 `,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {

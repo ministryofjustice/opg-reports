@@ -76,7 +76,7 @@ type preCallF func(params map[string]string)
 func (self *Service) GetAwsCostsGrouped(client restr.RepositoryRestGetter, request *http.Request, apiParameters map[string]string, adjusters ...preCallF) (table *datatable.DataTable, err error) {
 	var (
 		log      = self.log.With("operation", "GetAwsCostsGrouped")
-		defaults = awsCostsParams(self.conf.Aws.BillingDate)
+		defaults = awsCostsParams()
 		params   = mergeRequestWithMaps(request, defaults, apiParameters)
 		endpoint string
 	)
@@ -107,10 +107,10 @@ func parseAwsCostsGroupedF(response *apiResponseAwsCostsGrouped) (dt *datatable.
 
 // awsCostsParams returns a map of the values that aws costs endpoints can accept.
 // See `awscosts.GroupedAwsCostsInput` for the input struct.
-func awsCostsParams(billingDate int) map[string]string {
+func awsCostsParams() map[string]string {
 	var (
 		now   = time.Now().UTC()
-		end   = utils.BillingMonth(now, billingDate)
+		end   = utils.TimeReset(now, utils.TimeIntervalMonth) // the start of next month
 		start = time.Date(end.Year(), end.Month()-5, 1, 0, 0, 0, 0, time.UTC)
 	)
 	return map[string]string{
