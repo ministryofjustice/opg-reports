@@ -1,10 +1,6 @@
 name: "[Workflow] PR"
 
 on:
-  # run on 4am on the 15th of every month - after billing
-  schedule:
-    - cron: '0 4 15 * *'
-
   pull_request:
     branches:
       - main
