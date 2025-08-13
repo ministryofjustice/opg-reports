@@ -73,6 +73,8 @@ type preCallF func(params map[string]string)
 // the options set of `adjusters` functions allows a different way to overwrite parameters, by
 // running a function against the parameters before the end point is generated - this allows user
 // to adjust a value with out knowing its original value
+//
+// Always adds billing date to the Others property
 func (self *Service) GetAwsCostsGrouped(client restr.RepositoryRestGetter, request *http.Request, apiParameters map[string]string, adjusters ...preCallF) (table *datatable.DataTable, err error) {
 	var (
 		log      = self.log.With("operation", "GetAwsCostsGrouped")
@@ -92,6 +94,10 @@ func (self *Service) GetAwsCostsGrouped(client restr.RepositoryRestGetter, reque
 		endpoint,
 		parseAwsCostsGroupedF,
 	)
+	if err == nil {
+		table.Others["BillingDay"] = self.conf.Aws.BillingDate
+	}
+
 	log.Debug("returning data table ... ")
 	return
 }

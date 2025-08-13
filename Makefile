@@ -102,10 +102,11 @@ local/front: local/build/front
 		SERVERS_FRONT_DIRECTORY=${FRONT_BUILD} \
 		${FRONT_BUILD}/bin/front
 
-.PHONY: local/build/importer
-local/build/importer:
+.PHONY: local/build/others
+local/build/others:
 	@rm -Rf ${CMD_BUILD}
 	@mkdir -p ${CMD_BUILD} ${CMD_BUILD}/bin
+	@go build -o ${CMD_BUILD}/bin/db ./report/cmd/db/
 	@go build -o ${CMD_BUILD}/bin/importer ./report/cmd/importer/
 
 #========= DOCKER =========

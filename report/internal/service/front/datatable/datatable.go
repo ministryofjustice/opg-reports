@@ -67,6 +67,7 @@ type DataTable struct {
 	DataHeaders  []string
 	ExtraHeaders []string
 	Footer       map[string]string
+	Others       map[string]interface{} // extra information that handles can add to
 }
 
 func New(response ResponseBody) (dt *DataTable, err error) {
@@ -114,6 +115,7 @@ func New(response ResponseBody) (dt *DataTable, err error) {
 		RowHeaders:   identifiers,
 		DataHeaders:  dataheaders,
 		ExtraHeaders: extraHeaders,
+		Others:       map[string]interface{}{},
 	}
 	if len(sums) >= 0 {
 		dt.Footer = ColumnTotals(populated, sums, extratotals...)
