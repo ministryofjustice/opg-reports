@@ -167,6 +167,12 @@ func LastBillingMonth(billingDay int) (billing time.Time) {
 	return BillingMonth(time.Now().UTC(), billingDay)
 }
 
+// StartOfMonth returns the first day of the current month
+func StartOfMonth() (month time.Time) {
+	var now time.Time = time.Now().UTC()
+	return TimeReset(now, TimeIntervalMonth)
+}
+
 // timeAdd calls `AddDate` on `date` param and increments year / month / day by the quantity
 // requested.
 //

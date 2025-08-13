@@ -1,3 +1,21 @@
+/*
+importer handles adding data to the database for use by the API. Can either import test data via `seed` or real data with other commands.
+
+Seeding generates a small database for use in testing / development.
+
+Usage:
+
+	importer [command]
+
+Available commands:
+
+	awscosts
+	seed
+
+# Examples
+
+`aws-vault exec <profile> -- importer awscosts --month="2025-08-01"`
+*/
 package main
 
 import (
@@ -28,9 +46,9 @@ var (
 
 // root command
 var rootCmd = &cobra.Command{
-	Use:               "import",
-	Short:             "Import",
-	Long:              `import can populate database with fixture data ("fixtures"), fetch data from pre-existing json ("existing") or new data via specific external api's.`,
+	Use:               "importer",
+	Short:             "Importer",
+	Long:              `importer can populate database with seeded data ("seed") or new data via specific external api's.`,
 	CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
 }
 
@@ -42,7 +60,7 @@ func init() {
 
 	// extra options that aren't handled via config env values
 	// awscosts - month to get data for
-	awscostsCmd.Flags().StringVar(&flagMonth, "month", utils.LastBillingMonth(conf.Aws.BillingDate).Format(utils.DATE_FORMATS.YMD), "The month to get cost data for. (YYYY-MM-DD)")
+	awscostsCmd.Flags().StringVar(&flagMonth, "month", utils.StartOfMonth().Format(utils.DATE_FORMATS.YMD), "The month to get cost data for. (YYYY-MM-DD)")
 }
 
 func main() {

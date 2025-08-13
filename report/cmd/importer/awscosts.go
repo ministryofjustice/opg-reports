@@ -17,7 +17,7 @@ var awscostsCmd = &cobra.Command{
 	Use:   "awscosts",
 	Short: "awscosts fetches data from the cost explorer api",
 	Long: `
-awscosts will call the aws costexplorer api to retrieve data for period specific.
+awscosts will call the aws costexplorer api to retrieve data for specified period.
 
 env variables used that can be adjusted:
 
@@ -49,9 +49,9 @@ func awscostsCmdRunner(
 ) (err error) {
 	var (
 		costs     = []*api.AwsCost{}
-		caller, _ = stsStore.GetCallerIdentity(stsClient)
-		start     = utils.StringToTimeReset(month, utils.TimeIntervalMonth)
-		end       = start.AddDate(0, 1, 0)
+		caller, _ = stsStore.GetCallerIdentity(stsClient)                   // caller id will get us the account id for the database entry
+		start     = utils.StringToTimeReset(month, utils.TimeIntervalMonth) // first day of the month
+		end       = start.AddDate(0, 1, 0)                                  // first day of the month after
 	)
 	opts := &awsr.GetCostDataOptions{
 		StartDate:   start.Format(utils.DATE_FORMATS.YMD),
@@ -64,6 +64,7 @@ func awscostsCmdRunner(
 	if err != nil {
 		return
 	}
+
 	// convert to AwsCosts struct
 	err = utils.Convert(data, &costs)
 	if err != nil {

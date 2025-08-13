@@ -4,16 +4,16 @@
 name: "[Reports] AWS Costs"
 
 on:
-  # run on 3am on the 14th of every month
+  # run at 1am every day
   schedule:
-    - cron: '0 3 14 * *'
+    - cron: '0 1 * * *'
   # run when triggered manually
   workflow_dispatch:
     inputs:
       month:
         description: "YYYY-MM-DD formatted month to get cost data for."
         type: string
-        default: "-"
+        default: ""
 
 permissions:
   actions: read
@@ -22,9 +22,10 @@ permissions:
 
 # general env vars for where downloading db / binary
 env:
+  # dont want to use test versions on main
+  prereleases: "false"
   RELEASE_DIR: ./releases
   DB_DIR: ./databases
-  prereleases: "true" # change to false when live
 
 # jobs
 jobs:
@@ -34,7 +35,6 @@ jobs:
     outputs:
       # Account matrix
       account_matrix: ${{ steps.account_matrix.outputs.matrix }}
-
       # AWS S3 bucket & role info
       # dev
       s3_bucket_development: "opg-reports-development"
@@ -65,24 +65,29 @@ jobs:
       - setup
     runs-on: ubuntu-latest
     strategy:
-      # MAX-PARALLEL IS 1 TO MAKE THE CALLS SYNCHRONUS AND AVOID DB SYNCING ISSUES
-      #   if this was concurrent, the download and upload of the db has potention to
-      #   overwrite with older versions depending how long things take to execute
+      #########
+      # MAX-PARALLEL IS 1 TO MAKE THE CALLS SYNCHRONUS AND AVOID DB SYNCING ISSUES.
+      # If this was concurrent, the download and upload of the db has potention to
+      # overwrite with older versions depending how long things take to execute
+      #########
       max-parallel: 1
       fail-fast: true
       matrix: ${{ fromJson(needs.setup.outputs.account_matrix) }}
     steps:
+      # checkout self
       - name: "[${{ matrix.name }}] Checkout"
         id: checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
         with:
           fetch-depth: 0
           fetch-tags: true
-      - name: "[${{ matrix.name }}] Create dir"
+      #
+      - name: "[${{ matrix.name }}] Create directories"
         env:
           dbs: ${{ env.DB_DIR }}
           rels: ${{ env.RELEASE_DIR }}
         run: mkdir -p ${{ env.dbs }} ${{ env.rels }}
+      # download the last release
       - name: "[${{ matrix.name }}]  Download release"
         uses: ./.github/actions/download-release
         with:
@@ -97,7 +102,7 @@ jobs:
           role-duration-seconds: 900
           role-to-assume: ${{ needs.setup.outputs.s3_role_production }}
           role-session-name: reports-download-db-from-s3
-      # download DEVELOPMENT database
+      # download PRODUCTION database as the base to use to insert into
       - name: "[${{ matrix.name }}] Download database from PROD"
         env:
           DATABASE_PATH: ${{ env.DB_DIR }}/api.db
@@ -108,8 +113,8 @@ jobs:
           ${{ env.cmd }} download
           ls -lh ${{ env.DB_DIR }}
       # Change AWS creds to run the report
+      #   setup the role to use
       - name: "[${{ matrix.name }}] Configure AWS credentials for running the report"
-        # set the billing role
         env:
           report_role: "arn:aws:iam::${{ matrix.id }}:role/gh-actions-cost-metrics"
         uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
@@ -136,7 +141,7 @@ jobs:
           role-duration-seconds: 900
           role-to-assume: ${{ needs.setup.outputs.s3_role_production }}
           role-session-name: reports-upload-db-to-s3
-      # upload PROD database
+      # upload PRODUCTION database
       - name: "[${{ matrix.name }}] Upload database - PROD"
         env:
           DATABASE_PATH: ${{ env.DB_DIR }}/api.db
