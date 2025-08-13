@@ -48,6 +48,49 @@ func ValueFromMap(name string, data map[string]string) (value string) {
 	return
 }
 
+// ValueFromMapI uses the `name` as the key in the map `data` and returns
+// its value as interface
+// if name is not a key on the map, it returns empty string
+func ValueFromMapI(name string, data map[string]interface{}) (value interface{}) {
+	value = ""
+	if v, ok := data[name]; ok {
+		value = v
+	}
+	return
+}
+
+const (
+	billingStable   string = "stable"
+	billingUnstable string = "unstable"
+)
+
+// BillingStabilityClass decides in the month has passed its billing date period
+//
+// Will return either "billing-stable" or "billing-unstable". Returns empty on error
+func BillingStabilityClass(billingDay int, yymm string) (className string) {
+
+	month, err := StringToTime(yymm)
+	if err != nil {
+		return
+	}
+
+	billingMonth := LastBillingMonth(billingDay)
+	if month.After(billingMonth) {
+		className = billingUnstable
+	} else {
+		className = billingStable
+	}
+
+	return
+}
+
+func BillingStabilitySuffix(className string) string {
+	if className == billingUnstable {
+		return "*"
+	}
+	return ""
+}
+
 func TemplateFunctions() (funcs template.FuncMap) {
 	funcs = map[string]interface{}{
 		// simple strings
@@ -57,8 +100,11 @@ func TemplateFunctions() (funcs template.FuncMap) {
 		// strinng -> numbers
 		"Currency": Currency,
 		// accessing maps
-		"ValueFromMap": ValueFromMap,
+		"ValueFromMap":  ValueFromMap,
+		"ValueFromMapI": ValueFromMapI,
 		//
+		"BillingStabilityClass":  BillingStabilityClass,
+		"BillingStabilitySuffix": BillingStabilitySuffix,
 	}
 
 	return

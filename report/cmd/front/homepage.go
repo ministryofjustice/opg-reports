@@ -54,6 +54,7 @@ func handleHomepage(
 			// get costs grouped by month
 			opts := map[string]string{"team": "true"}
 			data.CostsByMonth, _ = service.GetAwsCostsGrouped(client, request, opts)
+
 			wg.Done()
 		},
 	}

@@ -22,8 +22,6 @@ env variables used that can be adjusted:
 
 	DATABASE_BUCKET_NAME
 		The name of the bucket to upload the database to
-	DATABASE_BUCKET_KEY
-		The object key for the bucket (including folder path) where the sqlite db will be uploaded
 	DATABASE_PATH
 		The file path to the sqlite database on the local filesystem to upload to s3
 `,

@@ -73,10 +73,12 @@ type preCallF func(params map[string]string)
 // the options set of `adjusters` functions allows a different way to overwrite parameters, by
 // running a function against the parameters before the end point is generated - this allows user
 // to adjust a value with out knowing its original value
+//
+// Always adds billing date to the Others property
 func (self *Service) GetAwsCostsGrouped(client restr.RepositoryRestGetter, request *http.Request, apiParameters map[string]string, adjusters ...preCallF) (table *datatable.DataTable, err error) {
 	var (
 		log      = self.log.With("operation", "GetAwsCostsGrouped")
-		defaults = awsCostsParams(self.conf.Aws.BillingDate)
+		defaults = awsCostsParams()
 		params   = mergeRequestWithMaps(request, defaults, apiParameters)
 		endpoint string
 	)
@@ -92,6 +94,10 @@ func (self *Service) GetAwsCostsGrouped(client restr.RepositoryRestGetter, reque
 		endpoint,
 		parseAwsCostsGroupedF,
 	)
+	if err == nil {
+		table.Others["BillingDay"] = self.conf.Aws.BillingDate
+	}
+
 	log.Debug("returning data table ... ")
 	return
 }
@@ -107,10 +113,10 @@ func parseAwsCostsGroupedF(response *apiResponseAwsCostsGrouped) (dt *datatable.
 
 // awsCostsParams returns a map of the values that aws costs endpoints can accept.
 // See `awscosts.GroupedAwsCostsInput` for the input struct.
-func awsCostsParams(billingDate int) map[string]string {
+func awsCostsParams() map[string]string {
 	var (
 		now   = time.Now().UTC()
-		end   = utils.BillingMonth(now, billingDate)
+		end   = utils.TimeReset(now, utils.TimeIntervalMonth) // the start of next month
 		start = time.Date(end.Year(), end.Month()-5, 1, 0, 0, 0, 0, time.UTC)
 	)
 	return map[string]string{
