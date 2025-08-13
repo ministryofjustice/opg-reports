@@ -1,3 +1,23 @@
+/*
+db used to download / upload database to configured locations.
+
+Used by the reporting workflows to fetch the database from s3.
+
+# Configure the location of datbase via environment varaibles
+
+Usage:
+
+	db [commands]
+
+Available commands:
+
+	download
+	upload
+
+# Example
+
+`aws-vault exec <profile> -- env DATABASE_PATH="./data/api.db" db download`
+*/
 package main
 
 import (
