@@ -25,8 +25,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       # AWS S3 bucket & role info - download from production versions
-      s3_bucket: "opg-reports-production"
-      s3_role: "arn:aws:iam::997462338508:role/opg-reports-github-actions-s3"
+      s3_bucket: "opg-reports-development"
+      s3_role: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
       # AWS ECR
       ecr_registry: "311462405659"
       ecr_role: "arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
