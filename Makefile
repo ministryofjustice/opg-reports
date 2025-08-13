@@ -59,17 +59,18 @@ coverage:
 #========= LOCAL =========
 
 .PHONY: local/download-database
+# download the development db
 local/download-database:
 	@rm -Rf ${DB_BUILD}
 	@mkdir -p ${DB_BUILD}
 	@go build -o ${CMD_BUILD}/bin/db ./report/cmd/db/
-	@aws-vault exec shared-production-operator -- \
+	@aws-vault exec shared-development-operator -- \
    		env DATABASE_PATH=${DBP} \
+		DATABASE_BUCKET_NAME="opg-reports-development" \
    		${CMD_BUILD}/bin/db download
 
 .PHONY: local/build/api
-# download the latest production database to local folder and
-# build the api binary
+
 local/build/api:
 	@rm -Rf ${API_BUILD}
 	@mkdir -p ${API_BUILD} ${API_BUILD}/bin
