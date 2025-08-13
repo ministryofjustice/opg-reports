@@ -4,7 +4,8 @@
     <main id="main-content" class="app-content" role="main">
 
         {{- if .CostsByMonth -}}
-        <h1 class="govuk-heading-xl">Infrastructure costs</h1>
+        <h1 class="govuk-heading-xl compact-header">Infrastructure costs</h1>
+        <p class="govuk-body">Our costs are subject to change, impacted months are shown as such: <strong class="example-unstable">2025-01*</strong></p>
         <div class="app-content reports-font-m">
         {{ template "costs-table" .CostsByMonth }}
         </div>

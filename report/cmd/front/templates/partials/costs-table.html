@@ -1,10 +1,11 @@
 {{- define "costs-table" -}}
 
-    {{ $footer := .Footer }}
-    {{ $rowHeaders := .RowHeaders }}
-    {{ $dataHeaders := .DataHeaders }}
-    {{ $extraHeaders := .ExtraHeaders }}
-    {{ $rows := .Body }}
+  {{ $footer := .Footer }}
+  {{ $rowHeaders := .RowHeaders }}
+  {{ $dataHeaders := .DataHeaders }}
+  {{ $extraHeaders := .ExtraHeaders }}
+  {{ $rows := .Body }}
+  {{ $billingDay := ValueFromMapI "BillingDay" .Others }}
 
 
 <table class="govuk-table reports-table">
@@ -14,7 +15,9 @@
         <th scope="col" class="govuk-table__header reports-table-heading">{{ Title $col }}</th>
       {{- end -}}
       {{- range $x, $col := $dataHeaders -}}
-        <th scope="col" class="govuk-table__header govuk-table__cell--numeric reports-table-value">{{ Title $col }}</th>
+        {{- $billingClass := BillingStabilityClass $billingDay $col -}}
+        {{- $billingSuffix := BillingStabilitySuffix $billingClass -}}
+        <th scope="col" class="govuk-table__header govuk-table__cell--numeric reports-table-value {{ $billingClass }}">{{ Title $col }}{{ $billingSuffix }}</th>
       {{- end -}}
       {{- range $x, $col := $extraHeaders -}}
         <th scope="col" class="govuk-table__header govuk-table__cell--numeric">{{ Title $col }}</th>
