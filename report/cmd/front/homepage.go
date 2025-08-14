@@ -14,7 +14,8 @@ import (
 
 type homepageData struct {
 	page.PageContent
-	CostsByMonth *datatable.DataTable
+	CostsByMonth           *datatable.DataTable
+	CostsByMonthAndAccount *datatable.DataTable
 }
 
 // handleHomepage renders the request for `/` which currently displays:
@@ -45,16 +46,22 @@ func handleHomepage(
 	log.Info("processing page", "url", request.URL.String())
 
 	blocks = []conF{
+		// get list of teams for the site navigation
 		func(i ...any) {
-			// get list of teams
 			data.Teams, _ = service.GetTeamNavigation(client, request)
 			wg.Done()
 		},
+		// get costs grouped team & month
 		func(i ...any) {
-			// get costs grouped by month
 			opts := map[string]string{"team": "true"}
 			data.CostsByMonth, _ = service.GetAwsCostsGrouped(client, request, opts)
 
+			wg.Done()
+		},
+		// costs grouped by account & month
+		func(i ...any) {
+			opts := map[string]string{"account": "true"}
+			data.CostsByMonthAndAccount, _ = service.GetAwsCostsGrouped(client, request, opts)
 			wg.Done()
 		},
 	}

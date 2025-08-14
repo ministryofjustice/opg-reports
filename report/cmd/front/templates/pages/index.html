@@ -10,6 +10,13 @@
         {{ template "costs-table" .CostsByMonth }}
         </div>
         {{- end -}}
+
+        {{- if .CostsByMonthAndAccount -}}
+        <h1 class="govuk-heading-m compact-header">By Account</h1>
+        <div class="app-content reports-font-m">
+        {{ template "costs-table" .CostsByMonthAndAccount }}
+        </div>
+        {{- end -}}
     </main>
 
     {{- template "foot" . -}}

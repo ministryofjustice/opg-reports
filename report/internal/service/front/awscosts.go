@@ -123,7 +123,7 @@ func awsCostsParams() map[string]string {
 		"start_date":  start.Format(utils.DATE_FORMATS.YM),
 		"end_date":    end.Format(utils.DATE_FORMATS.YM),
 		"granularity": string(utils.GranularityMonth),
-		"team":        "true",
+		"team":        "-",
 		"region":      "-",
 		"service":     "-",
 		"account":     "-",
