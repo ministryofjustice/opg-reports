@@ -14,7 +14,7 @@ updates:
     directory: './docker'
     schedule:
       interval: 'weekly'
-  # docker
+  # terraform
   - package-ecosystem: 'terraform'
     pull-request-branch-name:
       separator: "-"
