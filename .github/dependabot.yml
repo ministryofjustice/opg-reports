@@ -1,0 +1,30 @@
+version: 2
+updates:
+  # go
+  - package-ecosystem: 'gomod'
+    pull-request-branch-name:
+      separator: "-"
+    directory: './report'
+    schedule:
+      interval: 'weekly'
+  # docker
+  - package-ecosystem: 'docker'
+    pull-request-branch-name:
+      separator: "-"
+    directory: './docker'
+    schedule:
+      interval: 'weekly'
+  # docker
+  - package-ecosystem: 'terraform'
+    pull-request-branch-name:
+      separator: "-"
+    directory: './terraform'
+    schedule:
+      interval: 'weekly'
+  # github actions
+  - package-ecosystem: 'github-actions'
+    pull-request-branch-name:
+      separator: "-"
+    directory: './.github'
+    schedule:
+      interval: 'weekly'
