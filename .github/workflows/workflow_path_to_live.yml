@@ -49,25 +49,25 @@ jobs:
       # Check the code base
       - name: "Checkout"
         id: checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
         with:
           fetch-depth: 0
           fetch-tags: true
        # Find the terraform version details for account & env
       - name: "Parse terraform account version"
         id: terraform_account_version
-        uses: ministryofjustice/opg-github-actions/actions/terraform-version@2a5ea87e8b9c24684fd77ae48942c170791bbdb3 #v4.2.1
+        uses: ministryofjustice/opg-github-actions/actions/terraform-version@9c80e2dfa5701930bcd444f26081c1183d951409 # v4.3.2
         with:
           terraform_directory: ./terraform/account
       - name: "Parse terraform environment version"
         id: terraform_environment_version
-        uses: ministryofjustice/opg-github-actions/actions/terraform-version@2a5ea87e8b9c24684fd77ae48942c170791bbdb3 #v4.2.1
+        uses: ministryofjustice/opg-github-actions/actions/terraform-version@9c80e2dfa5701930bcd444f26081c1183d951409 # v4.3.2
         with:
           terraform_directory: ./terraform/environment
       # semver tag
       - name: "Semver tag"
         id: "semver"
-        uses: ministryofjustice/opg-github-actions/actions/semver@2a5ea87e8b9c24684fd77ae48942c170791bbdb3 #v4.2.1
+        uses: ministryofjustice/opg-github-actions/actions/semver@9c80e2dfa5701930bcd444f26081c1183d951409 # v4.3.2
         with:
           create_release: "false" # dont create the release at the moment
           prerelease: ${{ env.PRERELEASE }}
@@ -89,7 +89,7 @@ jobs:
       # checkout self
       - name: "Checkout"
         id: checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
       # run tests
       - id: "test_go"
         name: "Go"
@@ -108,7 +108,7 @@ jobs:
       # checkout self
       - name: "Checkout "
         id: checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -142,7 +142,7 @@ jobs:
       #   - download the existing database
       - name: "Configure AWS credentials for S3 download"
         id: configure_aws_creds_s3_download
-        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
         with:
           aws-region: "eu-west-1"
           role-duration-seconds: 900
@@ -161,7 +161,7 @@ jobs:
       # Swap AWS creds for ECR usage
       - name: "Configure AWS credentials for ECR"
         id: configure_aws_creds_ecr_push
-        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
         with:
           aws-region: "eu-west-1"
           role-duration-seconds: 900
@@ -202,15 +202,15 @@ jobs:
     steps:
       - name: "Checkout"
         id: checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
       # setup ssh keys
-      - uses: webfactory/ssh-agent@a6f90b1f127823b31d4d4a8d96047790581349bd #v0.9.0
+      - uses: webfactory/ssh-agent@a6f90b1f127823b31d4d4a8d96047790581349bd # v0.9.1
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_EXTERNAL_MODULES }}
       # configure the aws role
       - name: "Configure AWS credentials for terraform"
         id: configure_aws_creds
-        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df #v4.2.1
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
@@ -250,7 +250,7 @@ jobs:
     steps:
       # checkout self
       - name: "Checkout"
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -273,7 +273,7 @@ jobs:
           source: ./report/cmd/importer/
           destination: ${{ env.BUILD_DIR_BINARIES }}
       - name: "Create release [${{ needs.setup.outputs.semver_tag }}]"
-        uses: ministryofjustice/opg-github-actions/actions/release@2a5ea87e8b9c24684fd77ae48942c170791bbdb3 #v4.2.1
+        uses: ministryofjustice/opg-github-actions/actions/release@9c80e2dfa5701930bcd444f26081c1183d951409 # v4.3.2
         with:
           tag: ${{ needs.setup.outputs.semver_tag }}
           prerelease: ${{ env.PRERELEASE }}
