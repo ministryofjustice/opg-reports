@@ -51,17 +51,17 @@ runs:
     - name: "Force checkout repository"
       if: ${{ inputs.checkout_repo == 'true' }}
       id: checkout
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+      uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
       with:
         fetch-depth: 0
         fetch-tags: true
     # QEMU for multi platforms
     - name: Set up QEMU
       id: setup_qemu
-      uses: docker/setup-qemu-action@5927c834f5b4fdf503fca6f4c7eccda82949e1ee # v3.1.0
+      uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
     # Setup docker buildx
     - name: "Set up Docker Buildx"
-      uses: docker/setup-buildx-action@4fd812986e6c8c2a69e18311145f9371337f27d4 # v3.4.0
+      uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
       id: docker_buildx_setup
       with:
         version: ${{ inputs.buildx_version }}
@@ -75,7 +75,7 @@ runs:
         registries: ${{ inputs.ecr_registry_id }}
     # Build image
     - name: "Build image [image: ${{ inputs.ecr_repository }} ]"
-      uses: docker/build-push-action@1a162644f9a7e87d8f4b053101d1d9a712edc18c # v6.3.0
+      uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
       env:
         SOURCE_DATE_EPOCH: 0
         BUILD_TAG: ${{ inputs.tag }}
@@ -97,7 +97,7 @@ runs:
     # for a PR
     - name: "Push image to ECR [PR]"
       if: ${{ inputs.path_to_live != 'true' }}
-      uses: docker/build-push-action@1a162644f9a7e87d8f4b053101d1d9a712edc18c # v6.3.0
+      uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
       env:
         SOURCE_DATE_EPOCH: 0
         BUILD_TAG: ${{ inputs.tag }}
@@ -129,7 +129,7 @@ runs:
     # For live
     - name: "Push image to ECR [Path to live]"
       if: ${{ inputs.path_to_live == 'true' }}
-      uses: docker/build-push-action@1a162644f9a7e87d8f4b053101d1d9a712edc18c # v6.3.0
+      uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
       env:
         SOURCE_DATE_EPOCH: 0
         BUILD_TAG: ${{ inputs.tag }}
