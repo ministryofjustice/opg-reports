@@ -25,7 +25,6 @@
     },
     "packageRules": [
         {
-            "automerge": true,
             "groupName": "Patch & Minor Updates",
             "groupSlug": "minor-patch-updates",
             "ignorePaths": [
@@ -47,7 +46,6 @@
             ]
         },
         {
-            "automerge": true,
             "groupName": "Terraform Patch & Minor Updates",
             "groupSlug": "terraform-minor-patch-updates",
             "labels": [
