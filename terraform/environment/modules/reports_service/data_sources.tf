@@ -45,7 +45,7 @@ data "aws_subnets" "public" {
 
 data "aws_vpc" "reports" {
   filter {
-    name   = "tag:name"
+    name   = "tag:Name"
     values = ["${local.name_prefix}-vpc"]
   }
 }

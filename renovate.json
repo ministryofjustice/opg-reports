@@ -25,9 +25,11 @@
     },
     "packageRules": [
         {
-            "automerge": true,
             "groupName": "Patch & Minor Updates",
-            "groupSlug": "all-minor-patch-updates",
+            "groupSlug": "minor-patch-updates",
+            "ignorePaths": [
+                "terraform/**"
+            ],
             "labels": [
                 "Dependencies",
                 "Renovate"
@@ -38,9 +40,28 @@
             ],
             "prCreation": "immediate",
             "prPriority": 4,
-            "minimumReleaseAge": "3 days",
+            "minimumReleaseAge": "5 days",
             "matchPackageNames": [
                 "*"
+            ]
+        },
+        {
+            "groupName": "Terraform Patch & Minor Updates",
+            "groupSlug": "terraform-minor-patch-updates",
+            "labels": [
+                "Dependencies",
+                "Renovate",
+                "Terraform"
+            ],
+            "matchUpdateTypes": [
+                "minor",
+                "patch"
+            ],
+            "prCreation": "immediate",
+            "prPriority": 4,
+            "minimumReleaseAge": "5 days",
+            "matchManagers": [
+                "terraform"
             ]
         }
     ],
