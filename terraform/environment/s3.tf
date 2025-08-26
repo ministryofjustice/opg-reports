@@ -39,7 +39,7 @@ data "aws_iam_policy_document" "allow_data_role_access" {
 
 # OIDC access to the s3 bucket
 module "reports_oidc_role_gha_ecr_push" {
-  source      = "git@github.com:ministryofjustice/opg-terraform-aws-account//modules/github_oidc_roles?ref=v7.4.4"
+  source      = "git@github.com:ministryofjustice/opg-terraform-aws-account//modules/github_oidc_roles?ref=v10.0.1"
   name        = "opg-reports-github-actions-s3"
   description = "A role for S3 permissions for GitHub Actions"
 
