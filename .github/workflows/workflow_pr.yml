@@ -233,11 +233,11 @@ jobs:
           version: ${{ needs.setup.outputs.terraform_version_environment }}
 
 
-  # Build all binaries and attach to this release tag
+  # Build binaries and attach to this release tag
   #   - dont need all the api & front binaries, just the
   #     ones we'd used within reporting jobs etc
   build_binaries_and_release:
-    name: "Build & Create release"
+    name: "Create release"
     runs-on: ubuntu-latest
     needs:
       - setup
