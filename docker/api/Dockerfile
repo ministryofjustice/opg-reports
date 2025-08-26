@@ -1,6 +1,6 @@
 ARG TARGETOS TARGETARCH
 # setup base docker image building the application
-FROM golang:1.24.4-alpine@sha256:68932fa6d4d4059845c8f40ad7e654e626f3ebd3706eef7846f319293ab5cb7a AS build
+FROM golang:1.25.0-alpine@sha256:f18a072054848d87a8077455f0ac8a25886f2397f88bfdd222d6fafbb5bba440 AS build
 COPY --link go.sum go.mod /app/
 COPY --link report /app/report
 COPY --link builds/api/databases /gobin/app/databases
@@ -30,7 +30,7 @@ RUN chmod -Rf 0755 /gobin/
 ENTRYPOINT ["/gobin/app/api"]
 
 # setup production image
-FROM alpine:3.22.0@sha256:8a1f59ffb675680d47db6337b49d22281a139e9d709335b492be023728e11715 AS production
+FROM alpine:3.22.1@sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1 AS production
 # FROM scratch AS production
 EXPOSE 8081
 # ssl certs
