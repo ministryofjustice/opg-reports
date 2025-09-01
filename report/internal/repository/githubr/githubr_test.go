@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"opg-reports/report/internal/utils"
 
-	"github.com/google/go-github/v62/github"
+	"github.com/google/go-github/v74/github"
 )
 
 // check interfaces are correct

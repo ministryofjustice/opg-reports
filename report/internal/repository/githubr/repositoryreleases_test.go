@@ -7,7 +7,7 @@ import (
 	"opg-reports/report/config"
 	"opg-reports/report/internal/utils"
 
-	"github.com/google/go-github/v62/github"
+	"github.com/google/go-github/v74/github"
 )
 
 func TestGithubrDownloadRepositoryReleaseAsset(t *testing.T) {

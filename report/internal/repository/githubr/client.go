@@ -6,7 +6,7 @@ import (
 	"opg-reports/report/config"
 
 	"github.com/gofri/go-github-ratelimit/github_ratelimit"
-	"github.com/google/go-github/v62/github"
+	"github.com/google/go-github/v74/github"
 )
 
 // GetClient is an internal helper to handle creating the client
