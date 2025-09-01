@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/google/go-github/v62/github"
+	"github.com/google/go-github/v74/github"
 )
 
 type RepositoryReleases interface {

@@ -10,7 +10,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/google/go-github/v62/github"
+	"github.com/google/go-github/v74/github"
 )
 
 var simpleRelID = utils.Ptr[int64](900000)

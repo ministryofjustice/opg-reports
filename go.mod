@@ -10,8 +10,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.37.1
 	github.com/danielgtaylor/huma/v2 v2.34.1
 	github.com/gofri/go-github-ratelimit v1.1.1
-	github.com/gofri/go-github-ratelimit/v2 v2.0.2
-	github.com/google/go-github/v62 v62.0.0
 	github.com/google/go-github/v74 v74.0.0
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/maruel/natural v1.1.1
@@ -36,7 +34,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sso v1.28.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.33.1 // indirect
 	github.com/aws/smithy-go v1.22.5 // indirect
-	github.com/djherbis/times v1.6.0 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
