@@ -3,28 +3,19 @@ package awsr
 import (
 	"fmt"
 	"log/slog"
-	"opg-reports/report/internal/utils"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
 )
 
-const (
-	uptimeNamespace string             = "AWS/Route53"
-	uptimeMetric    string             = "HealthCheckPercentageHealthy"
-	uptimeUnit      types.StandardUnit = types.StandardUnitPercent
-	uptimeStat      types.Statistic    = types.StatisticAverage
-)
-
-// getUptimePeriod works out what period to use based on the api contraints and the dates being requested.
+// GetSuitableUptimePeriod works out what period to use based on the api contraints and the dates being requested.
 // Based on the below details:
 //   - Data points with a period of less than 60 seconds are available for 3 hours. These data points are high-resolution metrics and are available only for custom metrics that have been defined with a StorageResolution of 1.
 //   - Data points with a period of 60 seconds (1-minute) are available for 15 days.
 //   - Data points with a period of 300 seconds (5-minute) are available for 63 days.
 //   - Data points with a period of 3600 seconds (1 hour) are available for 455 days (15 months).
-func getUptimePeriod(start time.Time) (period int32, err error) {
+func GetSuitableUptimePeriod(start time.Time) (period int32, err error) {
 	var (
 		now       time.Time     = time.Now().UTC()
 		day       time.Duration = (time.Hour * 24)
@@ -47,39 +38,49 @@ func getUptimePeriod(start time.Time) (period int32, err error) {
 
 }
 
+type GetUptimeStatsOptions struct {
+	Namespace  string             // "AWS/Route53"
+	MetricName string             // "HealthCheckPercentageHealthy"
+	Unit       types.StandardUnit // types.StandardUnitPercent
+	Statistic  types.Statistic    // types.StatisticAverage
+	Period     int32              // generated from GetSuitableUptimePeriod
+	Start      time.Time
+	End        time.Time
+}
+
 // GetUptimeStats uses the list of metrics provided to find and return the accumlated average uptime percentage between the start & end date
-func (self *Repository) GetUptimeStats(client ClientCloudWatchMetricStats, metrics []types.Metric, start time.Time, end time.Time) (datapoints []types.Datapoint, err error) {
+func (self *Repository) GetUptimeStats(client ClientCloudWatchMetricStats, metrics []types.Metric, options *GetUptimeStatsOptions) (datapoints []types.Datapoint, err error) {
 	var (
 		input      *cloudwatch.GetMetricStatisticsInput
 		output     *cloudwatch.GetMetricStatisticsOutput
-		period     int32
 		dimensions []types.Dimension = []types.Dimension{}
 		log        *slog.Logger      = self.log.With("operation", "GetUptimeStats")
 	)
 
-	log.Debug("getting route53 uptime stats for metrics ... ")
+	log.With("options", options).Debug("getting route53 uptime stats for metrics ... ")
 
-	if start.String() == "" || end.String() == "" {
-		err = fmt.Errorf("start or end date missing: [start:%v, end:%v]", start, end)
-	}
-	// try to work out a suitable time period
-	period, err = getUptimePeriod(start)
-	if err != nil {
+	if options.Start.String() == "" || options.End.String() == "" {
+		err = fmt.Errorf("start or end date missing: [start:%v, end:%v]", options.Start, options.End)
 		return
 	}
+	if options.Period <= 0 {
+		err = fmt.Errorf("time period value missing")
+		return
+	}
+
 	// merge all metric dimenstions together
 	for _, metric := range metrics {
 		dimensions = append(dimensions, metric.Dimensions...)
 	}
 
 	input = &cloudwatch.GetMetricStatisticsInput{
-		Namespace:  aws.String(uptimeNamespace),
-		MetricName: aws.String(uptimeMetric),
-		Period:     utils.Ptr(period),
-		StartTime:  &start,
-		EndTime:    &end,
-		Statistics: []types.Statistic{uptimeStat},
-		Unit:       uptimeUnit,
+		Namespace:  &options.Namespace,
+		MetricName: &options.MetricName,
+		Period:     &options.Period,
+		StartTime:  &options.Start,
+		EndTime:    &options.End,
+		Statistics: []types.Statistic{options.Statistic},
+		Unit:       options.Unit,
 		Dimensions: dimensions,
 	}
 	log.With("input", input).Debug("getting metrics stats ... ")
@@ -94,24 +95,29 @@ func (self *Repository) GetUptimeStats(client ClientCloudWatchMetricStats, metri
 	return
 }
 
+type GetUptimeMetricsOptions struct {
+	Namespace  string // "AWS/Route53"
+	MetricName string // "HealthCheckPercentageHealthy"
+}
+
 // GetUptimeMetrics returns metric details from cloudwatch for the route53 health check
 // that can then be used to determine uptime information in other calls
-func (self *Repository) GetUptimeMetrics(client ClientCloudWatchMetricsLister) (metrics []types.Metric, err error) {
+func (self *Repository) GetUptimeMetrics(client ClientCloudWatchMetricsLister, options *GetUptimeMetricsOptions) (metrics []types.Metric, err error) {
 	var (
-		output          *cloudwatch.ListMetricsOutput
-		log             *slog.Logger                 = self.log.With("operation", "GetUptimeMetricsList")
-		metricListInput *cloudwatch.ListMetricsInput = &cloudwatch.ListMetricsInput{
-			Namespace:  aws.String(uptimeNamespace),
-			MetricName: aws.String(uptimeMetric),
-		}
+		output *cloudwatch.ListMetricsOutput
+		log    *slog.Logger = self.log.With("operation", "GetUptimeMetricsList")
 	)
 
-	log.Debug("getting route53 uptime metrics ... ")
+	log.With("options", options).Debug("getting route53 uptime metrics ... ")
 
-	output, err = client.ListMetrics(self.ctx, metricListInput)
+	output, err = client.ListMetrics(self.ctx, &cloudwatch.ListMetricsInput{
+		Namespace:  &options.Namespace,
+		MetricName: &options.MetricName,
+	})
 	if err != nil {
 		return
 	}
 	metrics = output.Metrics
+
 	return
 }

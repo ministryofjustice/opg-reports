@@ -4,11 +4,19 @@ import (
 	"context"
 	"opg-reports/report/config"
 	"opg-reports/report/internal/utils"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
+)
+
+const (
+	uptimeNamespace string             = "AWS/Route53"
+	uptimeMetric    string             = "HealthCheckPercentageHealthy"
+	uptimeUnit      types.StandardUnit = types.StandardUnitPercent
+	uptimeStat      types.Statistic    = types.StatisticAverage
 )
 
 type mockClientCloudwatchMetrics struct{}
@@ -46,7 +54,7 @@ func (self *mockClientCloudwatchMetrics) ListMetrics(ctx context.Context, params
 func (self *mockClientCloudwatchMetrics) GetMetricStatistics(ctx context.Context, params *cloudwatch.GetMetricStatisticsInput, optFns ...func(*cloudwatch.Options)) (out *cloudwatch.GetMetricStatisticsOutput, err error) {
 	var now = time.Now().UTC()
 	out = &cloudwatch.GetMetricStatisticsOutput{
-		Label: utils.Ptr("HealthCheckPercentageHealthy"),
+		Label: utils.Ptr(uptimeMetric),
 		Datapoints: []types.Datapoint{
 			{Average: utils.Ptr(99.978), Unit: types.StandardUnitPercent, Timestamp: utils.Ptr(now)},
 			{Average: utils.Ptr(98.999), Unit: types.StandardUnitPercent, Timestamp: utils.Ptr(now)},
@@ -80,7 +88,8 @@ func TestCWGetUptimeMetrics(t *testing.T) {
 	// 	client = DefaultClient[*cloudwatch.Client](ctx, "us-east-1")
 	// }
 
-	metrics, err = r.GetUptimeMetrics(client)
+	opts := &GetUptimeMetricsOptions{Namespace: "AWS/Route53", MetricName: "HealthCheckPercentageHealthy"}
+	metrics, err = r.GetUptimeMetrics(client, opts)
 	if err != nil {
 		t.Errorf("unexpected error fetching metrics list: %s", err.Error())
 		t.FailNow()
@@ -100,7 +109,7 @@ func TestCWGetUptimeMetricStats(t *testing.T) {
 		metrics []types.Metric
 		ctx     = t.Context()
 		conf    = config.NewConfig()
-		log     = utils.Logger("ERROR", "TEXT")
+		log     = utils.Logger("DEBUG", "JSON")
 		now     = time.Now().UTC()
 		end     = utils.TimeReset(now, utils.TimeIntervalDay)
 		start   = end.AddDate(0, 0, -1)
@@ -109,16 +118,26 @@ func TestCWGetUptimeMetricStats(t *testing.T) {
 	r = Default(ctx, log, conf)
 	client = &mockClientCloudwatchMetrics{}
 
-	// if os.Getenv("AWS_SESSION_TOKEN") != "" {
-	// 	client = DefaultClient[*cloudwatch.Client](ctx, "us-east-1")
-	// }
+	if os.Getenv("AWS_SESSION_TOKEN") != "" {
+		client = DefaultClient[*cloudwatch.Client](ctx, "us-east-1")
+	}
 
-	metrics, err = r.GetUptimeMetrics(client)
+	opts := &GetUptimeMetricsOptions{Namespace: "AWS/Route53", MetricName: "HealthCheckPercentageHealthy"}
+	metrics, err = r.GetUptimeMetrics(client, opts)
 	if err != nil || len(metrics) <= 0 {
 		t.Errorf("unexpected error fetching metrics: [err:%v]", err)
 	}
+	statopts := &GetUptimeStatsOptions{
+		Namespace:  uptimeNamespace,
+		MetricName: uptimeMetric,
+		Unit:       uptimeUnit,
+		Statistic:  uptimeStat,
+		Period:     60,
+		Start:      start,
+		End:        end,
+	}
 
-	res, err := r.GetUptimeStats(client, metrics, start, end)
+	res, err := r.GetUptimeStats(client, metrics, statopts)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err.Error())
 	}
@@ -151,7 +170,7 @@ func TestCWGetUptimePeriod(t *testing.T) {
 
 	for i, test := range tests {
 
-		res, err := getUptimePeriod(test.Start)
+		res, err := GetSuitableUptimePeriod(test.Start)
 		if !test.Err && err != nil {
 			t.Errorf("unexpected error: %s", err.Error())
 		}

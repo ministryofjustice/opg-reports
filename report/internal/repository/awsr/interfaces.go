@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
+	cwtypes "github.com/aws/aws-sdk-go-v2/service/cloudwatch/types" // aliased to avoid collisions with other packages
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
@@ -53,6 +54,20 @@ type RepositoryCostExplorer interface {
 // RepositoryCostExplorerGetter provides all method to get cost and usage data from the aws sdk
 type RepositoryCostExplorerGetter interface {
 	GetCostData(client ClientCostExplorerGetter, options *GetCostDataOptions) (values []map[string]string, err error)
+}
+
+// RespositoryCloudwatch is main interface for handling cloudwatch uptime metrics from the route53 health checks
+type RespositoryCloudwatch interface {
+	RepositoryCloudwatchMetricsList
+	RepositoryCloudwatchMetricsStats
+}
+
+// RepositoryCloudwatchMetricsList contains the methods to return all the uptime metric endpoints for an account
+type RepositoryCloudwatchMetricsList interface {
+	GetUptimeMetrics(client ClientCloudWatchMetricsLister, options *GetUptimeMetricsOptions) (metrics []cwtypes.Metric, err error)
+}
+type RepositoryCloudwatchMetricsStats interface {
+	GetUptimeStats(client ClientCloudWatchMetricStats, metrics []cwtypes.Metric, options *GetUptimeStatsOptions) (datapoints []cwtypes.Datapoint, err error)
 }
 
 // ClientSTS represents an overal sts client
