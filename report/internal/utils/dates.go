@@ -173,11 +173,12 @@ func StartOfMonth() (month time.Time) {
 	return TimeReset(now, TimeIntervalMonth)
 }
 
-// timeAdd calls `AddDate` on `date` param and increments year / month / day by the quantity
+// TimeAdd calls `AddDate` on `date` param and increments year / month / day by the quantity
 // requested.
 //
 // Used to generate loop condition for incrementing between two dates
-func timeAdd(date time.Time, quantity int, interval TimeInterval) (t time.Time) {
+func TimeAdd(date time.Time, quantity int, interval TimeInterval) (t time.Time) {
+
 	switch interval {
 	case TimeIntervalYear:
 		t = date.AddDate(quantity, 0, 0)
@@ -185,6 +186,10 @@ func timeAdd(date time.Time, quantity int, interval TimeInterval) (t time.Time) 
 		t = date.AddDate(0, quantity, 0)
 	case TimeIntervalDay:
 		t = date.AddDate(0, 0, quantity)
+	case TimeIntervalHour:
+		dur := time.Hour * time.Duration(quantity)
+		t = date.Add(-dur)
+
 	}
 	return
 }
@@ -196,7 +201,7 @@ func Times(start time.Time, end time.Time, interval TimeInterval, increment int)
 	start = TimeReset(start, interval)
 	end = TimeReset(end, interval)
 
-	for d := start; d.After(end) == false; d = timeAdd(d, increment, interval) {
+	for d := start; d.After(end) == false; d = TimeAdd(d, increment, interval) {
 		times = append(times, d)
 	}
 	return
