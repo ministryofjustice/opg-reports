@@ -3,6 +3,7 @@ package awsr
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
@@ -97,4 +98,30 @@ type ClientCostExplorer interface {
 // the aws sdk
 type ClientCostExplorerGetter interface {
 	GetCostAndUsage(ctx context.Context, params *costexplorer.GetCostAndUsageInput, optFns ...func(*costexplorer.Options)) (*costexplorer.GetCostAndUsageOutput, error)
+}
+
+type ClientCloudWatch interface {
+	ClientCloudWatchUptime
+}
+
+type ClientCloudWatchUptime interface {
+	ClientCloudWatchMetricsLister
+	ClientCloudWatchMetricStats
+}
+
+// ClientCloudWatchMetricsLister represents the method used by a client to return the known
+// route53 uptime metrics endpoints
+type ClientCloudWatchMetricsLister interface {
+	ListMetrics(ctx context.Context, params *cloudwatch.ListMetricsInput, optFns ...func(*cloudwatch.Options)) (*cloudwatch.ListMetricsOutput, error)
+}
+
+// ClientCloudWatchMetricStats represents the cloudwatch client method used to fetch details
+// about each route53 health check we want
+type ClientCloudWatchMetricStats interface {
+	// GetMetricStatics - time period information
+	// 	 - Data points with a period of less than 60 seconds are available for 3 hours. These data points are high-resolution metrics and are available only for custom metrics that have been defined with a StorageResolution of 1.
+	// 	 - Data points with a period of 60 seconds (1-minute) are available for 15 days.
+	// 	 - Data points with a period of 300 seconds (5-minute) are available for 63 days.
+	// 	 - Data points with a period of 3600 seconds (1 hour) are available for 455 days (15 months).
+	GetMetricStatistics(ctx context.Context, params *cloudwatch.GetMetricStatisticsInput, optFns ...func(*cloudwatch.Options)) (out *cloudwatch.GetMetricStatisticsOutput, err error)
 }
