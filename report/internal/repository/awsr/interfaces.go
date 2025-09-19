@@ -53,7 +53,7 @@ type RepositoryCostExplorer interface {
 
 // RepositoryCostExplorerGetter provides all method to get cost and usage data from the aws sdk
 type RepositoryCostExplorerGetter interface {
-	GetCostData(client ClientCostExplorerGetter, options *GetCostDataOptions) (values []map[string]string, err error)
+	GetCostData(client ClientCostExplorerGetter, options *costexplorer.GetCostAndUsageInput) (values []map[string]string, err error)
 }
 
 // RespositoryCloudwatch is main interface for handling cloudwatch uptime metrics from the route53 health checks

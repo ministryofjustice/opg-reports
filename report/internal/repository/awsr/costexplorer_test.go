@@ -71,18 +71,39 @@ func (self *mockClientCostExplorerGetter) GetCostAndUsage(ctx context.Context, p
 
 func TestCEGetCosts(t *testing.T) {
 	var (
-		err  error
-		ctx  = t.Context()
-		conf = config.NewConfig()
-		log  = utils.Logger("ERROR", "TEXT")
+		err          error
+		client       ClientCostExplorer
+		ctx          = t.Context()
+		conf         = config.NewConfig()
+		log          = utils.Logger("ERROR", "TEXT")
+		now          = time.Now().UTC()
+		start        = utils.TimeReset(now.AddDate(0, -4, 0), utils.TimeIntervalMonth).Format(utils.DATE_FORMATS.YMD)
+		end          = utils.TimeReset(now.AddDate(0, -3, 0), utils.TimeIntervalMonth).Format(utils.DATE_FORMATS.YMD)
+		groupService = "SERVICE"
+		groupRegion  = "REGION"
 	)
-	client := &mockClientCostExplorerGetter{}
+	client = &mockClientCostExplorerGetter{}
+	// // use a real account if token in the env
+	// if os.Getenv("AWS_SESSION_TOKEN") != "" {
+	// 	client = DefaultClient[*costexplorer.Client](ctx, "eu-west-1")
+	// }
 	sv := Default(ctx, log, conf)
-	data, err := sv.GetCostData(client, &GetCostDataOptions{
-		StartDate:   utils.TimeReset(time.Now().UTC().AddDate(0, -4, 0), "month").Format(utils.DATE_FORMATS.YMD),
-		EndDate:     utils.TimeReset(time.Now().UTC().AddDate(0, -3, 0), "month").Format(utils.DATE_FORMATS.YMD),
+
+	options := &costexplorer.GetCostAndUsageInput{
 		Granularity: types.GranularityMonthly,
-	})
+		TimePeriod: &types.DateInterval{
+			Start: &start,
+			End:   &end,
+		},
+		Metrics: []string{"UnblendedCost"},
+		GroupBy: []types.GroupDefinition{
+			{Type: types.GroupDefinitionTypeDimension, Key: &groupService},
+			{Type: types.GroupDefinitionTypeDimension, Key: &groupRegion},
+		},
+	}
+
+	data, err := sv.GetCostData(client, options)
+
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 		t.FailNow()

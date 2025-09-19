@@ -5,28 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
-	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
 )
-
-var (
-	keyService string                             = "SERVICE"
-	keyRegion  string                             = "REGION"
-	input      *costexplorer.GetCostAndUsageInput = &costexplorer.GetCostAndUsageInput{
-		Metrics: []string{
-			"UnblendedCost",
-		},
-		GroupBy: []types.GroupDefinition{
-			{Type: types.GroupDefinitionTypeDimension, Key: &keyService},
-			{Type: types.GroupDefinitionTypeDimension, Key: &keyRegion},
-		},
-	}
-)
-
-type GetCostDataOptions struct {
-	StartDate   string
-	EndDate     string
-	Granularity types.Granularity
-}
 
 // GetCostData calls the cost explorer api and returns cost and usage data in the bellow format:
 //
@@ -52,24 +31,31 @@ type GetCostDataOptions struct {
 //		--group-by Type=DIMENSION,Key=SERVICE Type=DIMENSION,Key=REGION
 //
 // Note: API limits grouping to 2, so we cant get linked account details at the same time
-func (self *Repository) GetCostData(client ClientCostExplorerGetter, options *GetCostDataOptions) (values []map[string]string, err error) {
+func (self *Repository) GetCostData(client ClientCostExplorerGetter, options *costexplorer.GetCostAndUsageInput) (values []map[string]string, err error) {
 	var log *slog.Logger = self.log.With("operation", "GetCostData", "options", options)
 	log.Debug("getting cost data ... ")
 	values = []map[string]string{}
 
-	if options.StartDate == "" || options.EndDate == "" || options.Granularity == "" {
-		err = fmt.Errorf("options not configured correctly:\n %v", options)
+	// validate the options passed along for correct settings
+	if options.TimePeriod == nil || options.TimePeriod.Start == nil || options.TimePeriod.End == nil {
+		err = fmt.Errorf("time period is not set correctly:\n %v", options.TimePeriod)
 		return
 	}
-	// overwrite input values with options passed
-	input.TimePeriod = &types.DateInterval{
-		Start: &options.StartDate,
-		End:   &options.EndDate,
+	if options.Granularity == "" {
+		err = fmt.Errorf("granularity is not set")
+		return
 	}
-	input.Granularity = options.Granularity
+	if len(options.Metrics) <= 0 {
+		err = fmt.Errorf("metrics are not set")
+		return
+	}
+	if len(options.GroupBy) <= 0 {
+		err = fmt.Errorf("grouping is not set")
+		return
+	}
 
 	// call the api
-	out, err := client.GetCostAndUsage(self.ctx, input)
+	out, err := client.GetCostAndUsage(self.ctx, options)
 	if err != nil {
 		return
 	}

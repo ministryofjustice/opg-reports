@@ -48,19 +48,32 @@ func awscostsCmdRunner(
 	month string,
 ) (err error) {
 	var (
-		costs     = []*api.AwsCost{}
-		caller, _ = stsStore.GetCallerIdentity(stsClient)                   // caller id will get us the account id for the database entry
-		start     = utils.StringToTimeReset(month, utils.TimeIntervalMonth) // first day of the month
-		end       = start.AddDate(0, 1, 0)                                  // first day of the month after
+		costs        = []*api.AwsCost{}
+		caller, _    = stsStore.GetCallerIdentity(stsClient)                   // caller id will get us the account id for the database entry
+		start        = utils.StringToTimeReset(month, utils.TimeIntervalMonth) // first day of the month
+		end          = start.AddDate(0, 1, 0)                                  // first day of the month after
+		startStr     = start.Format(utils.DATE_FORMATS.YMD)
+		endStr       = end.Format(utils.DATE_FORMATS.YMD)
+		groupService = "SERVICE"
+		groupRegion  = "REGION"
 	)
-	opts := &awsr.GetCostDataOptions{
-		StartDate:   start.Format(utils.DATE_FORMATS.YMD),
-		EndDate:     end.Format(utils.DATE_FORMATS.YMD),
+
+	options := &costexplorer.GetCostAndUsageInput{
 		Granularity: types.GranularityMonthly,
+		TimePeriod: &types.DateInterval{
+			Start: &startStr,
+			End:   &endStr,
+		},
+		Metrics: []string{"UnblendedCost"},
+		GroupBy: []types.GroupDefinition{
+			{Type: types.GroupDefinitionTypeDimension, Key: &groupService},
+			{Type: types.GroupDefinitionTypeDimension, Key: &groupRegion},
+		},
 	}
+
 	log.With("start", start, "end", end).Info("Getting costs between dates ... ")
 	// get the raw data from the api
-	data, err := ceStore.GetCostData(ceClient, opts)
+	data, err := ceStore.GetCostData(ceClient, options)
 	if err != nil {
 		return
 	}
