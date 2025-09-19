@@ -5,10 +5,30 @@
 *******************************************************************************************/
 
 /*
+As we want a secondary nav on the left, we are not using the `.govuk-width-container` class
+as an outer wrapper, instead we use custom class to add left/right padding
+*/
+.app-container {
+    padding-left: 4%;
+    padding-right: 4%;
+    display: flex;
+    position: relative;
+    flex: 1 1 100%;
+}
+
+
+/*
 Adding padding to the top of the main content area for spacing
 */
 #main-content{
     padding-top:30px;
+    flex: 1 1 100%
+}
+
+#side-navigation{
+    padding-top:30px;
+    flex: 0 0 auto;
+    width: 200px;
 }
 
 /*
