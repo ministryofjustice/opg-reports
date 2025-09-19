@@ -1,3 +1,9 @@
+/*
+awsr package provides configured wrappers around calls to the aws api via its sdk.
+
+Various interfaces are exposed for different capability to allow mocking when used with a
+suitable service.
+*/
 package awsr
 
 import (
