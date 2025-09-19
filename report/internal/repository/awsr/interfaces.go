@@ -89,6 +89,10 @@ type ClientS3ListAndGetter interface {
 	ClientS3Getter
 }
 
+type ClientCostExplorer interface {
+	ClientCostExplorerGetter
+}
+
 // ClientCostExplorerGetter represents the method needed by a client (costexplorer.Client) to call
 // the aws sdk
 type ClientCostExplorerGetter interface {
