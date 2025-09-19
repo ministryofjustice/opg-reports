@@ -58,7 +58,7 @@ func (self *Repository) GetCostData(client ClientCostExplorerGetter, options *Ge
 	values = []map[string]string{}
 
 	if options.StartDate == "" || options.EndDate == "" || options.Granularity == "" {
-		err = fmt.Errorf("options not configured:\n %v", options)
+		err = fmt.Errorf("options not configured correctly:\n %v", options)
 		return
 	}
 	// overwrite input values with options passed
