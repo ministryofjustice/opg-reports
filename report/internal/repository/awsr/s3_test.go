@@ -112,7 +112,7 @@ func TestS3BucketUpload(t *testing.T) {
 		dir        = t.TempDir()
 		sampleFile = filepath.Join(dir, "test.json")
 	)
-	if os.Getenv("AWS_SESSION_TOKEN") == "" {
+	if os.Getenv("AWS_SESSION_TOKEN") == "" || os.Getenv("AWS_VAULT") != "shared-development-operator" {
 		t.SkipNow()
 	} else {
 
