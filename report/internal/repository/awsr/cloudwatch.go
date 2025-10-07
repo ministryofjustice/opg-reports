@@ -49,9 +49,18 @@ type GetUptimeStatsOptions struct {
 }
 
 // GetUptimeStats uses the list of metrics provided to find and return the accumlated average uptime percentage between the start & end date
-func (self *Repository) GetUptimeStats(client ClientCloudWatchMetricStats, metrics []types.Metric, options *GetUptimeStatsOptions) (datapoints []types.Datapoint, err error) {
+//
+//	options = &cloudwatch.GetMetricStatisticsInput{
+//		Namespace:  &Namespace,
+//		MetricName: &MetricName,
+//		Period:     &Period,
+//		StartTime:  &Start,
+//		EndTime:    &End,
+//		Statistics: []types.Statistic{options.Statistic},
+//		Unit:       options.Unit,
+//	}
+func (self *Repository) GetUptimeStats(client ClientCloudWatchMetricStats, metrics []types.Metric, options *cloudwatch.GetMetricStatisticsInput) (datapoints []types.Datapoint, err error) {
 	var (
-		input      *cloudwatch.GetMetricStatisticsInput
 		output     *cloudwatch.GetMetricStatisticsOutput
 		dimensions []types.Dimension = []types.Dimension{}
 		log        *slog.Logger      = self.log.With("operation", "GetUptimeStats")
@@ -59,11 +68,11 @@ func (self *Repository) GetUptimeStats(client ClientCloudWatchMetricStats, metri
 
 	log.With("options", options).Debug("getting route53 uptime stats for metrics ... ")
 
-	if options.Start.String() == "" || options.End.String() == "" {
-		err = fmt.Errorf("start or end date missing: [start:%v, end:%v]", options.Start, options.End)
+	if options.StartTime == nil || options.EndTime == nil {
+		err = fmt.Errorf("start or end date missing: \n%v\n", *options)
 		return
 	}
-	if options.Period <= 0 {
+	if options.Period == nil || *options.Period <= 0 {
 		err = fmt.Errorf("time period value missing")
 		return
 	}
@@ -72,20 +81,11 @@ func (self *Repository) GetUptimeStats(client ClientCloudWatchMetricStats, metri
 	for _, metric := range metrics {
 		dimensions = append(dimensions, metric.Dimensions...)
 	}
+	options.Dimensions = dimensions
 
-	input = &cloudwatch.GetMetricStatisticsInput{
-		Namespace:  &options.Namespace,
-		MetricName: &options.MetricName,
-		Period:     &options.Period,
-		StartTime:  &options.Start,
-		EndTime:    &options.End,
-		Statistics: []types.Statistic{options.Statistic},
-		Unit:       options.Unit,
-		Dimensions: dimensions,
-	}
-	log.With("input", input).Debug("getting metrics stats ... ")
+	log.With("input", options).Debug("getting metrics stats ... ")
 
-	output, err = client.GetMetricStatistics(self.ctx, input)
+	output, err = client.GetMetricStatistics(self.ctx, options)
 	if err != nil {
 		return
 	}

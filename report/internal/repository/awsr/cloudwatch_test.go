@@ -4,7 +4,6 @@ import (
 	"context"
 	"opg-reports/report/config"
 	"opg-reports/report/internal/utils"
-	"os"
 	"testing"
 	"time"
 
@@ -107,34 +106,35 @@ func TestCWGetUptimeMetricStats(t *testing.T) {
 		r       *Repository
 		client  ClientCloudWatchUptime
 		metrics []types.Metric
-		ctx     = t.Context()
-		conf    = config.NewConfig()
-		log     = utils.Logger("DEBUG", "JSON")
-		now     = time.Now().UTC()
-		end     = utils.TimeReset(now, utils.TimeIntervalDay)
-		start   = end.AddDate(0, 0, -1)
+		p       int32 = 60
+		ctx           = t.Context()
+		conf          = config.NewConfig()
+		log           = utils.Logger("DEBUG", "JSON")
+		now           = time.Now().UTC()
+		end           = utils.TimeReset(now, utils.TimeIntervalDay)
+		start         = end.AddDate(0, 0, -1)
 	)
 
 	r = Default(ctx, log, conf)
 	client = &mockClientCloudwatchMetrics{}
 
-	if os.Getenv("AWS_SESSION_TOKEN") != "" {
-		client = DefaultClient[*cloudwatch.Client](ctx, "us-east-1")
-	}
+	// if os.Getenv("AWS_SESSION_TOKEN") != "" {
+	// 	client = DefaultClient[*cloudwatch.Client](ctx, "us-east-1")
+	// }
 
 	opts := &GetUptimeMetricsOptions{Namespace: "AWS/Route53", MetricName: "HealthCheckPercentageHealthy"}
 	metrics, err = r.GetUptimeMetrics(client, opts)
 	if err != nil || len(metrics) <= 0 {
 		t.Errorf("unexpected error fetching metrics: [err:%v]", err)
 	}
-	statopts := &GetUptimeStatsOptions{
-		Namespace:  uptimeNamespace,
-		MetricName: uptimeMetric,
+	statopts := &cloudwatch.GetMetricStatisticsInput{
+		Namespace:  utils.Ptr(uptimeNamespace),
+		MetricName: utils.Ptr(uptimeMetric),
 		Unit:       uptimeUnit,
-		Statistic:  uptimeStat,
-		Period:     60,
-		Start:      start,
-		End:        end,
+		Statistics: []types.Statistic{uptimeStat},
+		Period:     &p,
+		StartTime:  utils.Ptr(start),
+		EndTime:    utils.Ptr(end),
 	}
 
 	res, err := r.GetUptimeStats(client, metrics, statopts)
@@ -145,6 +145,8 @@ func TestCWGetUptimeMetricStats(t *testing.T) {
 	if len(res) <= 0 {
 		t.Errorf("no results returned")
 	}
+	utils.Dump(res)
+	t.FailNow()
 
 }
 

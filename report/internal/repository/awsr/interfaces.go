@@ -67,7 +67,7 @@ type RepositoryCloudwatchMetricsList interface {
 	GetUptimeMetrics(client ClientCloudWatchMetricsLister, options *GetUptimeMetricsOptions) (metrics []cwtypes.Metric, err error)
 }
 type RepositoryCloudwatchMetricsStats interface {
-	GetUptimeStats(client ClientCloudWatchMetricStats, metrics []cwtypes.Metric, options *GetUptimeStatsOptions) (datapoints []cwtypes.Datapoint, err error)
+	GetUptimeStats(client ClientCloudWatchMetricStats, metrics []cwtypes.Metric, options *cloudwatch.GetMetricStatisticsInput) (datapoints []cwtypes.Datapoint, err error)
 }
 
 // ClientSTS represents an overal sts client

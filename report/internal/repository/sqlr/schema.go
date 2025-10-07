@@ -33,6 +33,16 @@ CREATE TABLE IF NOT EXISTS aws_costs (
 CREATE INDEX IF NOT EXISTS aws_costs_date_idx ON aws_costs(date);
 CREATE INDEX IF NOT EXISTS aws_costs_date_account_idx ON aws_costs(date, aws_account_id);
 CREATE INDEX IF NOT EXISTS aws_costs_unique_idx ON aws_costs(aws_account_id,date,region,service);
-`
 
-// 2006-01-02T15:04:05Z07:00
+CREATE TABLE IF NOT EXISTS aws_uptime (
+	id INTEGER PRIMARY KEY,
+	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
+	date TEXT NOT NULL,
+	aws_account_id TEXT,
+	average TEXT NOT NULL,
+	UNIQUE (aws_account_id,date)
+) STRICT;
+
+CREATE INDEX IF NOT EXISTS aws_uptime_date_idx ON aws_uptime(date);
+CREATE INDEX IF NOT EXISTS aws_uptime_account_date_idx ON aws_uptime(aws_account_id,date);
+`
