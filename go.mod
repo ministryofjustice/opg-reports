@@ -9,7 +9,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.88.3
 	github.com/aws/aws-sdk-go-v2/service/sts v1.38.6
 	github.com/danielgtaylor/huma/v2 v2.34.1
-	github.com/gofri/go-github-ratelimit v1.1.1
 	github.com/gofri/go-github-ratelimit/v2 v2.0.2
 	github.com/google/go-github/v74 v74.0.0
 	github.com/jmoiron/sqlx v1.4.0
@@ -46,9 +45,6 @@ require (
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
-	go.uber.org/atomic v1.9.0 // indirect
-	go.uber.org/multierr v1.9.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/sys v0.33.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
