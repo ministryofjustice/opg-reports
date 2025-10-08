@@ -52,18 +52,18 @@ jobs:
       # Find the terraform version details for account & env
       - name: "Parse terraform account version"
         id: terraform_account_version
-        uses: ministryofjustice/opg-github-actions/actions/terraform-version@9c80e2dfa5701930bcd444f26081c1183d951409 # v4.3.2
+        uses: ministryofjustice/opg-github-actions/actions/terraform-version@4f345be3f706950d1fdc05bc86383967a149bd99 # v4.3.4
         with:
           terraform_directory: ./terraform/account
       - name: "Parse terraform environment version"
         id: terraform_environment_version
-        uses: ministryofjustice/opg-github-actions/actions/terraform-version@9c80e2dfa5701930bcd444f26081c1183d951409 # v4.3.2
+        uses: ministryofjustice/opg-github-actions/actions/terraform-version@4f345be3f706950d1fdc05bc86383967a149bd99 # v4.3.4
         with:
           terraform_directory: ./terraform/environment
       # semver tag
       - name: "Semver tag"
         id: "semver"
-        uses: ministryofjustice/opg-github-actions/actions/semver@9c80e2dfa5701930bcd444f26081c1183d951409 # v4.3.2
+        uses: ministryofjustice/opg-github-actions/actions/semver@4f345be3f706950d1fdc05bc86383967a149bd99 # v4.3.4
         with:
           create_release: "false" # dont create the release at the moment
           prerelease: ${{ env.PRERELEASE }}
@@ -138,7 +138,7 @@ jobs:
       #   - download the existing database
       - name: "Configure AWS credentials for S3 download"
         id: configure_aws_creds_s3_download
-        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
+        uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
         with:
           aws-region: "eu-west-1"
           role-duration-seconds: 900
@@ -157,7 +157,7 @@ jobs:
       # Swap AWS creds for ECR usage
       - name: "Configure AWS credentials for ECR"
         id: configure_aws_creds_ecr_push
-        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
+        uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
         with:
           aws-region: "eu-west-1"
           role-duration-seconds: 900
@@ -206,7 +206,7 @@ jobs:
       # configure the aws role
       - name: "Configure AWS credentials for terraform"
         id: configure_aws_creds
-        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
+        uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
@@ -269,7 +269,7 @@ jobs:
           source: ./report/cmd/importer/
           destination: ${{ env.BUILD_DIR_BINARIES }}
       - name: "Create release [${{ needs.setup.outputs.semver_tag }}]"
-        uses: ministryofjustice/opg-github-actions/actions/release@9c80e2dfa5701930bcd444f26081c1183d951409 # v4.3.2
+        uses: ministryofjustice/opg-github-actions/actions/release@4f345be3f706950d1fdc05bc86383967a149bd99 # v4.3.4
         with:
           tag: ${{ needs.setup.outputs.semver_tag }}
           prerelease: ${{ env.PRERELEASE }}
