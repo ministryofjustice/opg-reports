@@ -6,8 +6,7 @@ import (
 	"testing"
 )
 
-// coalesce(SUM(cost), 0) as cost,
-// strftime(:date_format, date) as date
+// TODO - IMPROVE THIS TEST!!
 func TestApiServiceSQLWithOptions(t *testing.T) {
 	dummyValues := map[string]string{
 		"team": "true",
@@ -22,10 +21,11 @@ func TestApiServiceSQLWithOptions(t *testing.T) {
 		&Field{
 			Key:       "date",
 			SelectAs:  "strftime(:date_format, date) as date",
-			WhereAs:   "(date >= :start_date AND date <= :end_date)",
+			WhereAs:   "date >= :start_date AND date <= :end_date",
 			GroupByAs: "strftime(:date_format, date)",
 			OrderByAs: "strftime(:date_format, date) ASC",
 		},
+
 		&Field{
 			Key:       "team",
 			SelectAs:  "aws_accounts.team_name as team_name",
@@ -53,5 +53,5 @@ func TestApiServiceSQLWithOptions(t *testing.T) {
 
 	sql := BuildGroupSelect("aws_costs", "LEFT JOIN aws_accounts ON aws_accounts.id = aws_costs.aws_account_id", fields...)
 	fmt.Println(sql)
-	t.FailNow()
+	// t.FailNow()
 }

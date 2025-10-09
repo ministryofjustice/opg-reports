@@ -102,28 +102,6 @@ ORDER BY
 LIMIT 20;
 `
 
-const stmtAwsCostsGrouped string = `
-SELECT
-	{SELECT}
-    coalesce(SUM(cost), 0) as cost,
-    strftime(:date_format, date) as date
-FROM aws_costs
-LEFT JOIN aws_accounts ON aws_accounts.id = aws_costs.aws_account_id
-WHERE
-	{WHERE}
-    date >= :start_date
-    AND date <= :end_date
-	AND service != 'Tax'
-GROUP BY
-	{GROUP_BY}
-	strftime(:date_format, date)
-ORDER BY
-	CAST(aws_costs.cost as REAL) DESC,
-	{ORDER_BY}
-	strftime(:date_format, date) ASC
-;
-`
-
 type AwsCostGrouped struct {
 	Region  string `json:"region,omitempty" db:"region" example:"eu-west-1|eu-west-2|NoRegion"` // The AWS region
 	Service string `json:"service,omitempty" db:"service" example:"AWS service name"`           // The AWS service name
@@ -196,6 +174,11 @@ type GetGroupedCostsOptions struct {
 // relate to the `db` attribute on `awsCostsSqlParams`
 func (self *GetGroupedCostsOptions) Fields() []*Field {
 	return []*Field{
+		// exclude tax
+		&Field{
+			Key:     "tax",
+			WhereAs: "service != 'Tax'",
+		},
 		&Field{
 			Key:       "cost",
 			SelectAs:  "coalesce(SUM(cost), 0) as cost",
