@@ -29,6 +29,7 @@ const (
 	AWSCOSTS_GROUPED    string = awscosts + "grouped/{granularity}/{start_date}/{end_date}"
 )
 
+// All `awsuptime` related endpoints
 const (
 	awsuptime     string = "/" + API_VERSION + "/awsuptime/"
 	AWSUPTIME_ALL string = awsuptime + "all"
