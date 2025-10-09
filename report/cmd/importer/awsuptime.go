@@ -15,10 +15,9 @@ const (
 	uptimeNamespace string             = "AWS/Route53"
 	uptimeMetric    string             = "HealthCheckPercentageHealthy"
 	uptimeUnit      types.StandardUnit = types.StandardUnitPercent
-	uptimeStat      types.Statistic    = types.StatisticAverage
+	uptimeStatistic types.Statistic    = types.StatisticAverage
+	uptimeRegion    string             = "us-east-1"
 )
-
-const fixedRegion string = "us-east-1"
 
 // awsuptimeCmd imports data from the cost explorer api directly
 var awsuptimeCmd = &cobra.Command{
@@ -41,7 +40,7 @@ env variables used that can be adjusted:
 			// clients et al
 			stsClient        = awsr.DefaultClient[*sts.Client](ctx, conf.Aws.GetRegion()) // identity client
 			awsStore         = awsr.Default(ctx, log, conf)                               // generic aws store
-			cloudwatchClient = awsr.DefaultClient[*cloudwatch.Client](ctx, fixedRegion)   // client, have to fix region to get the correct data
+			cloudwatchClient = awsr.DefaultClient[*cloudwatch.Client](ctx, uptimeRegion)  // client, have to fix region to get the correct data
 		)
 
 		accountID, err = awsCostsGetAccountID(stsClient, awsStore)
@@ -73,10 +72,11 @@ func awsUptimeGetData(
 			MetricName: utils.Ptr(uptimeMetric),
 			StartTime:  utils.Ptr(start),
 			EndTime:    utils.Ptr(end),
-			Statistics: []types.Statistic{types.StatisticAverage},
-			Unit:       types.StandardUnitPercent,
+			Statistics: []types.Statistic{uptimeStatistic},
+			Unit:       uptimeUnit,
 		}
 	)
+	utils.Dump(options)
 
 	uptime, err = store.GetUptimeData(client, options)
 

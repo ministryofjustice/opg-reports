@@ -57,6 +57,9 @@ coverage:
 
 #========= LOCAL =========
 
+.PHONY: local
+local: local/build/api local/build/front local/build/others local/download-database
+
 .PHONY: local/download-database
 # download the development db
 local/download-database:
@@ -69,7 +72,6 @@ local/download-database:
    		${CMD_BUILD}/bin/db download
 
 .PHONY: local/build/api
-
 local/build/api:
 	@rm -Rf ${API_BUILD}
 	@mkdir -p ${API_BUILD} ${API_BUILD}/bin

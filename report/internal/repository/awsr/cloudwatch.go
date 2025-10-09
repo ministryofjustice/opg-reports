@@ -114,14 +114,15 @@ func (self *Repository) GetUptimeDatapoints(client ClientCloudWatchMetricStats, 
 	}
 	// work out period if there isnt one set
 	if options.Period == nil {
-		period, err := GetSuitableUptimePeriod(*options.StartTime)
-		if err != nil {
+		period, e := GetSuitableUptimePeriod(*options.StartTime)
+		if e == nil {
 			options.Period = &period
 		}
+		log.With("period", options.Period).Debug("no period set, determining one based on start date ... ")
 	}
 
 	if options.Period == nil || *options.Period <= 0 {
-		err = fmt.Errorf("time period value missing")
+		err = fmt.Errorf("time period value missing [%v]", options.Period)
 		return
 	}
 

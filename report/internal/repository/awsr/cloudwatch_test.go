@@ -137,7 +137,7 @@ func TestCWGetUptimeMetricStats(t *testing.T) {
 		EndTime:    utils.Ptr(end),
 	}
 
-	res, err := r.GetUptimeStats(client, metrics, statopts)
+	res, err := r.GetUptimeDatapoints(client, metrics, statopts)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err.Error())
 	}
@@ -145,8 +145,8 @@ func TestCWGetUptimeMetricStats(t *testing.T) {
 	if len(res) <= 0 {
 		t.Errorf("no results returned")
 	}
-	// utils.Dump(res)
-	// t.FailNow()
+	utils.Dump(res)
+	t.FailNow()
 
 }
 

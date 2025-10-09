@@ -8,6 +8,7 @@ Usage:
 Available commands:
 
 	awscosts
+	awsuptime
 
 # Examples
 
@@ -58,11 +59,15 @@ func init() {
 	// extra options that aren't handled via config env values
 	// awscosts - month to get data for
 	awscostsCmd.Flags().StringVar(&flagMonth, "month", utils.StartOfMonth().Format(utils.DATE_FORMATS.YMD), "The month to get cost data for. (YYYY-MM-DD)")
+	// awsuptime - month to get data for
+	awsuptimeCmd.Flags().StringVar(&flagMonth, "month", utils.StartOfMonth().Format(utils.DATE_FORMATS.YMD), "The month to get cost data for. (YYYY-MM-DD)")
 }
 
 func main() {
 	rootCmd.AddCommand(
-		awscostsCmd)
+		awscostsCmd,
+		awsuptimeCmd,
+	)
 	err := rootCmd.Execute()
 	// fail on errir
 	if err != nil {
