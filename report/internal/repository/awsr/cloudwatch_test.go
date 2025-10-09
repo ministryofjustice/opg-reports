@@ -145,8 +145,6 @@ func TestCWGetUptimeMetricStats(t *testing.T) {
 	if len(res) <= 0 {
 		t.Errorf("no results returned")
 	}
-	utils.Dump(res)
-	t.FailNow()
 
 }
 

@@ -67,9 +67,6 @@ func awsUptimeRunner(cmd *cobra.Command, args []string) (err error) {
 		return
 	}
 
-	utils.Dump(uptime)
-	utils.Dump(accountID)
-
 	err = awsUptimeInsert(sqClient, apiService, accountID, uptime)
 
 	return
