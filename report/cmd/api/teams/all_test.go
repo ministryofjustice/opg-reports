@@ -60,6 +60,6 @@ func TestHandleGetTeamsAll(t *testing.T) {
 		}
 	}
 	if found != len(inserted) {
-		t.Errorf("dit not find all inserted records from in the response [%d] [%d]", len(inserted), found)
+		t.Errorf("did not find all inserted records from in the response [%d] [%d]", len(inserted), found)
 	}
 }
