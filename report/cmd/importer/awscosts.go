@@ -13,11 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// awscostsCmd imports data from the cost explorer api directly
-var awscostsCmd = &cobra.Command{
-	Use:   "awscosts",
-	Short: "awscosts fetches data from the cost explorer api",
-	Long: `
+const costsLongDesc string = `
 awscosts will call the aws costexplorer api to retrieve data for specified period.
 
 env variables used that can be adjusted:
@@ -25,32 +21,44 @@ env variables used that can be adjusted:
 	DATABASE_PATH
 		The file path to the sqlite database that will be used
 
-`,
-	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		var (
-			costs     []map[string]string                                           // api costs converted to map
-			accountID string                                                        // account if from the caller identity
-			start     = utils.StringToTimeReset(flagMonth, utils.TimeIntervalMonth) // start of the month
-			// clients
-			stsClient          = awsr.DefaultClient[*sts.Client](ctx, conf.Aws.GetRegion())
-			costexplorerClient = awsr.DefaultClient[*costexplorer.Client](ctx, conf.Aws.GetRegion())
-			awsStore           = awsr.Default(ctx, log, conf)
-			sqClient           = sqlr.DefaultWithSelect[*api.AwsCost](ctx, log, conf)
-			apiService         = api.Default[*api.AwsCost](ctx, log, conf)
-		)
-		accountID, err = awsCostsGetAccountID(stsClient, awsStore)
-		if err != nil {
-			return
-		}
+`
 
-		costs, err = awsCostsGetData(costexplorerClient, awsStore, start)
-		if err != nil {
-			return
-		}
+var (
+	costsMonthFlag string         = "" // represents --month="YYYY-MM-DD"
+	awscostsCmd    *cobra.Command = &cobra.Command{
+		Use:   "awscosts",
+		Short: "awscosts fetches data from the cost explorer api",
+		Long:  costsLongDesc,
+		RunE:  awsCostsRunner,
+	} // awscostsCmd imports data from the cost explorer api directly
+)
 
-		err = awsCostsInsert(sqClient, apiService, accountID, costs)
+// awsCostsRunner used by the cobra command (awscostsCmd) to process the cli request to fetch data from
+// the aws api and import to local database
+func awsCostsRunner(cmd *cobra.Command, args []string) (err error) {
+	var (
+		costs     []map[string]string                                                // api costs converted to map
+		accountID string                                                             // account if from the caller identity
+		start     = utils.StringToTimeReset(costsMonthFlag, utils.TimeIntervalMonth) // start of the month
+		// clients
+		stsClient          = awsr.DefaultClient[*sts.Client](ctx, conf.Aws.GetRegion())
+		costexplorerClient = awsr.DefaultClient[*costexplorer.Client](ctx, conf.Aws.GetRegion())
+		awsStore           = awsr.Default(ctx, log, conf)
+		sqClient           = sqlr.DefaultWithSelect[*api.AwsCost](ctx, log, conf)
+		apiService         = api.Default[*api.AwsCost](ctx, log, conf)
+	)
+	accountID, err = awsAccountID(stsClient, awsStore)
+	if err != nil {
 		return
-	},
+	}
+
+	costs, err = awsCostsGetData(costexplorerClient, awsStore, start)
+	if err != nil {
+		return
+	}
+
+	err = awsCostsInsert(sqClient, apiService, accountID, costs)
+	return
 }
 
 // awsCostsGetData gets the raw cost data
@@ -84,20 +92,7 @@ func awsCostsGetData(
 	return
 }
 
-// awsCostsGetAccountID returns the account id
-func awsCostsGetAccountID(
-	client awsr.ClientSTSCaller,
-	store awsr.RepositorySTS,
-) (accountID string, err error) {
-
-	caller, err := store.GetCallerIdentity(client)
-	if caller != nil {
-		accountID = *caller.Account
-	}
-	return
-}
-
-// awsCostsInsert
+// awsCostsInsert adds new data into the existing database for aws costs
 func awsCostsInsert(
 	client sqlr.RepositoryWriter,
 	service *api.Service[*api.AwsCost],
@@ -127,4 +122,8 @@ func awsCostsInsert(
 	}
 
 	return
+}
+
+func init() {
+	awscostsCmd.Flags().StringVar(&costsMonthFlag, "month", utils.StartOfMonth().Format(utils.DATE_FORMATS.YMD), "The month to get cost data for. (YYYY-MM-DD)")
 }
