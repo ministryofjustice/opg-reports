@@ -4,8 +4,7 @@ CMD_BUILD = ./builds/cmd
 API_BUILD = ./builds/api
 DB_BUILD = ./builds/databases
 DBP = ${DB_BUILD}/api.db
-FRONT_BUILD =./builds/front
-VERBOSE ?= # --verbose
+FRONT_BUILD = ./builds/front
 
 tests:
 	@go clean -testcache
