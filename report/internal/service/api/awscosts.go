@@ -167,56 +167,12 @@ type AwsCost struct {
 	AwsAccountID string            `json:"aws_account_id,omitempty" db:"aws_account_id"`
 	AwsAccount   *hasOneAwsAccount `json:"aws_account,omitempty" db:"aws_account"`
 	// Team joins
-	Team *costHasOneTeam `json:"team,omitempty" db:"team"`
+	Team *hasOneTeam `json:"team,omitempty" db:"team"`
 }
 
-// awsAccount is used to capture sql join data
-type awsAccount struct {
-	ID          string `json:"id,omitempty" db:"id" example:"012345678910"` // This is the AWS Account ID as a string
-	Name        string `json:"name,omitempty" db:"name" example:"Public API"`
-	Label       string `json:"label,omitempty" db:"label" example:"aurora-cluster"`
-	Environment string `json:"environment,omitempty" db:"environment" example:"development|preproduction|production"`
-}
-
-// hasOneAwsAccount used for the join to awsAccount to handle the scaning into a struct
-type hasOneAwsAccount awsAccount
-
-// Scan handles the processing of the join data
-func (self *hasOneAwsAccount) Scan(src interface{}) (err error) {
-	switch src.(type) {
-	case []byte:
-		err = utils.Unmarshal(src.([]byte), self)
-	case string:
-		err = utils.Unmarshal([]byte(src.(string)), self)
-	default:
-		err = fmt.Errorf("unsupported scan src type")
-	}
-	return
-}
-
-// costTeam maps to the team model
-type costTeam struct {
-	Name string `json:"name,omitempty" db:"name" example:"SRE"`
-}
-
-type costHasOneTeam costTeam
-
-// Scan handles the processing of the join data
-func (self *costHasOneTeam) Scan(src interface{}) (err error) {
-	switch src.(type) {
-	case []byte:
-		err = utils.Unmarshal(src.([]byte), self)
-	case string:
-		err = utils.Unmarshal([]byte(src.(string)), self)
-	default:
-		err = fmt.Errorf("unsupported scan src type")
-	}
-	return
-}
-
-// sqlParams is used in the GetGroupedCostsOptions.Statement method
+// sqlParamsAwsCosts is used in the GetGroupedCostsOptions.Statement method
 // to generate the parameters to bind to the sql
-type sqlParams struct {
+type sqlParamsAwsCosts struct {
 	StartDate   string `json:"start_date,omitempty" db:"start_date"`
 	EndDate     string `json:"end_date,omitempty" db:"end_date"`
 	DateFormat  string `json:"date_format,omitempty" db:"date_format"`
@@ -275,7 +231,7 @@ type whereableInfo struct {
 // values and :params for `stmGroupedCosts`.
 //
 // It returns the bound statement and generated data object
-func (self *GetGroupedCostsOptions) Statement() (bound *sqlr.BoundStatement, params *sqlParams) {
+func (self *GetGroupedCostsOptions) Statement() (bound *sqlr.BoundStatement, params *sqlParamsAwsCosts) {
 	var (
 		stmt     string                        = stmtAwsCostsGrouped
 		selected string                        = ""
@@ -288,7 +244,7 @@ func (self *GetGroupedCostsOptions) Statement() (bound *sqlr.BoundStatement, par
 		wheres   map[string]*whereableInfo     = map[string]*whereableInfo{}
 	)
 	// setup the default data values
-	params = &sqlParams{
+	params = &sqlParamsAwsCosts{
 		StartDate:  self.StartDate,
 		EndDate:    self.EndDate,
 		DateFormat: self.DateFormat,
@@ -375,7 +331,7 @@ func (self *GetGroupedCostsOptions) Statement() (bound *sqlr.BoundStatement, par
 // Using this is generally a bad idea as this table will contain millions of rows
 func (self *Service[T]) GetAllAwsCosts(store sqlr.RepositoryReader) (data []T, err error) {
 	var selectStmt = &sqlr.BoundStatement{Statement: stmtAwsCostsSelectAll}
-	var log = self.log.With("operation", "GetAllCosts")
+	var log = self.log.With("operation", "GetAllAwsCosts")
 
 	data = []T{}
 	log.Debug("getting all awscosts from database ... ")
