@@ -1,9 +1,6 @@
 package api
 
 import (
-	"fmt"
-	"strings"
-
 	"opg-reports/report/internal/repository/sqlr"
 	"opg-reports/report/internal/utils"
 )
@@ -105,20 +102,6 @@ ORDER BY
 LIMIT 20;
 `
 
-// stmtAwsCostsGrouped is the base sql statements used for most cost database calls
-// that filters out Tax and groups values by at least the date column.
-//
-// It contains extra :params to allow extension of the query and typically
-// generated from an api input dataset
-//
-// :date_format = used for date time grouping via strftime on the date column
-// :start_date	= lower bound on the date where
-// :end_date 	= upper bound on the date where
-//
-// {SELECT} 	= generated extra columns
-// {WHERE} 		= generated where clauses
-// {GROUP_BY}	= generated group by
-// {ORDER_BY}	= generated order by
 const stmtAwsCostsGrouped string = `
 SELECT
 	{SELECT}
@@ -169,9 +152,9 @@ type AwsCost struct {
 	Team *hasOneTeam `json:"team,omitempty" db:"team"`
 }
 
-// sqlParamsAwsCosts is used in the GetGroupedCostsOptions.Statement method
+// awsCostsSqlParams is used in the GetGroupedCostsOptions.Statement method
 // to generate the parameters to bind to the sql
-type sqlParamsAwsCosts struct {
+type awsCostsSqlParams struct {
 	StartDate   string `json:"start_date,omitempty" db:"start_date"`
 	EndDate     string `json:"end_date,omitempty" db:"end_date"`
 	DateFormat  string `json:"date_format,omitempty" db:"date_format"`
@@ -189,17 +172,106 @@ type sqlParamsAwsCosts struct {
 // handling of multiple, similar sql queries that differ by which
 // columns are grouped or filtered
 type GetGroupedCostsOptions struct {
-	StartDate  string `json:"-"`
-	EndDate    string `json:"-"`
-	DateFormat string `json:"-"`
+	StartDate   string `json:"start_date"`
+	EndDate     string `json:"end_date"`
+	DateFormat  string `json:"date_format"`
+	Team        string `json:"team"`
+	Region      string `json:"region"`
+	Service     string `json:"service"`
+	Account     string `json:"account"`
+	AccountName string `json:"account_name"`
+	Label       string `json:"account_label"`
+	Environment string `json:"environment"`
+}
 
-	Team        utils.TrueOrFilter `json:"team"`
-	Region      utils.TrueOrFilter `json:"region"`
-	Service     utils.TrueOrFilter `json:"service"`
-	Account     utils.TrueOrFilter `json:"account"`
-	AccountName utils.TrueOrFilter `json:"account_name"`
-	Label       utils.TrueOrFilter `json:"account_label"`
-	Environment utils.TrueOrFilter `json:"environment"`
+// Fields is used to generate sql statement from the dynamic input values
+//
+// Base sql statements used for most cost database calls
+// that filters out Tax and groups values by at least the date column.
+//
+// Each Field contains the information required for each part of the select
+// statement
+//
+// Uses `:value` placeholders that are mapped out by the statement and
+// relate to the `db` attribute on `awsCostsSqlParams`
+func (self *GetGroupedCostsOptions) Fields() []*Field {
+	return []*Field{
+		&Field{
+			Key:       "cost",
+			SelectAs:  "coalesce(SUM(cost), 0) as cost",
+			OrderByAs: "CAST(aws_costs.cost as REAL) DESC",
+		},
+		&Field{
+			Key:       "date",
+			SelectAs:  "strftime(:date_format, date) as date",
+			WhereAs:   "(date >= :start_date AND date <= :end_date)",
+			GroupByAs: "strftime(:date_format, date)",
+			OrderByAs: "strftime(:date_format, date) ASC",
+		},
+		// Region
+		&Field{
+			Key:       "region",
+			SelectAs:  "region",
+			WhereAs:   "region=:region",
+			GroupByAs: "region",
+			OrderByAs: "region ASC",
+			Value:     utils.Ptr(self.Region),
+		},
+		// Service
+		&Field{
+			Key:       "service",
+			SelectAs:  "service",
+			WhereAs:   "service=:service",
+			GroupByAs: "service",
+			OrderByAs: "service ASC",
+			Value:     utils.Ptr(self.Service),
+		},
+		// AWS account id
+		&Field{
+			Key:       "aws_account_id",
+			SelectAs:  "aws_account_id",
+			WhereAs:   "aws_account_id=:aws_account_id",
+			GroupByAs: "aws_account_id",
+			OrderByAs: "aws_account_id ASC",
+			Value:     utils.Ptr(self.Account),
+		},
+		// AWS account name
+		&Field{
+			Key:       "name",
+			SelectAs:  "aws_accounts.name as aws_account_name",
+			WhereAs:   "aws_accounts.name=:aws_account_name",
+			GroupByAs: "aws_accounts.name",
+			OrderByAs: "aws_accounts.name ASC",
+			Value:     utils.Ptr(self.AccountName),
+		},
+		// AWS team name
+		&Field{
+			Key:       "team",
+			SelectAs:  "aws_accounts.team_name as team_name",
+			WhereAs:   "lower(aws_accounts.team_name)=lower(:team_name)",
+			GroupByAs: "aws_accounts.team_name",
+			OrderByAs: "aws_accounts.team_name ASC",
+			Value:     utils.Ptr(self.Team),
+		},
+		// AWS environment
+		&Field{
+			Key:       "environment",
+			SelectAs:  "aws_accounts.environment as aws_account_environment",
+			WhereAs:   "aws_accounts.environment=:aws_account_environment",
+			GroupByAs: "aws_accounts.environment",
+			OrderByAs: "aws_accounts.environment ASC",
+			Value:     utils.Ptr(self.Environment),
+		},
+		// AWS label
+		&Field{
+			Key:       "label",
+			SelectAs:  "aws_accounts.label as aws_account_label",
+			WhereAs:   "aws_accounts.label=:aws_account_label",
+			GroupByAs: "aws_accounts.label",
+			OrderByAs: "aws_accounts.label ASC",
+			Value:     utils.Ptr(self.Label),
+		},
+	}
 }
 
 // Groups is used to show how the costs where grouped together. Typically
@@ -221,106 +293,28 @@ func (self *GetGroupedCostsOptions) Groups() (groups []string) {
 	return
 }
 
-type whereableInfo struct {
-	Param  func()
-	Option utils.TrueOrFilter
-}
-
 // Statement converts the configured options to a bound statement and provides the
 // values and :params for `stmGroupedCosts`.
 //
 // It returns the bound statement and generated data object
-func (self *GetGroupedCostsOptions) Statement() (bound *sqlr.BoundStatement, params *sqlParamsAwsCosts) {
+func (self *GetGroupedCostsOptions) Statement() (bound *sqlr.BoundStatement, params *awsCostsSqlParams) {
 	var (
-		stmt     string                        = stmtAwsCostsGrouped
-		selected string                        = ""
-		where    string                        = ""
-		orderby  string                        = ""
-		groupby  string                        = ""
-		selects  map[string]utils.TrueOrFilter = map[string]utils.TrueOrFilter{}
-		groups   map[string]utils.TrueOrFilter = map[string]utils.TrueOrFilter{}
-		orders   map[string]utils.TrueOrFilter = map[string]utils.TrueOrFilter{}
-		wheres   map[string]*whereableInfo     = map[string]*whereableInfo{}
+		fields []*Field = self.Fields()
+		join   string   = `LEFT JOIN aws_accounts ON aws_accounts.id = aws_costs.aws_account_id`
+		stmt   string   = BuildGroupSelect("aws_costs", join, fields...)
 	)
-	// setup the default data values
-	params = &sqlParamsAwsCosts{
-		StartDate:  self.StartDate,
-		EndDate:    self.EndDate,
-		DateFormat: self.DateFormat,
+	params = &awsCostsSqlParams{
+		StartDate:   self.StartDate,
+		EndDate:     self.EndDate,
+		DateFormat:  self.DateFormat,
+		Team:        self.Team,
+		Region:      self.Region,
+		Service:     self.Service,
+		Account:     self.Account,
+		AccountName: self.AccountName,
+		Label:       self.Label,
+		Environment: self.Environment,
 	}
-
-	// generate the map between select alias and the option item
-	selects = map[string]utils.TrueOrFilter{
-		"region":                                self.Region,
-		"service":                               self.Service,
-		"aws_account_id":                        self.Account,
-		"aws_accounts.team_name as team_name":   self.Team,
-		"aws_accounts.name as aws_account_name": self.AccountName,
-		"aws_accounts.environment as aws_account_environment": self.Environment,
-		"aws_accounts.label as aws_account_label":             self.Label,
-	}
-	// add them to the select if they are marked as selectable
-	for selectAs, tf := range selects {
-		if tf.Selectable() {
-			selected += fmt.Sprintf("%s, ", selectAs)
-		}
-	}
-
-	groups = map[string]utils.TrueOrFilter{
-		"region":                   self.Region,
-		"service":                  self.Service,
-		"aws_account_id":           self.Account,
-		"aws_accounts.team_name":   self.Team,
-		"aws_accounts.name":        self.AccountName,
-		"aws_accounts.environment": self.Environment,
-		"aws_accounts.label":       self.Label,
-	}
-	// add them to the select if they are marked as selectable
-	for groupAs, tf := range groups {
-		if tf.Groupable() {
-			groupby += fmt.Sprintf("%s, ", groupAs)
-		}
-	}
-
-	orders = map[string]utils.TrueOrFilter{
-		"region":                   self.Region,
-		"service":                  self.Service,
-		"aws_account_id":           self.Account,
-		"aws_accounts.team_name":   self.Team,
-		"aws_accounts.name":        self.AccountName,
-		"aws_accounts.environment": self.Environment,
-		"aws_accounts.label":       self.Label,
-	}
-	// add them to the select if they are marked as selectable
-	for orderAs, tf := range orders {
-		if tf.Orderable() {
-			orderby += fmt.Sprintf("%s ASC,", orderAs)
-		}
-	}
-	// filtering / where
-	wheres = map[string]*whereableInfo{
-		"region=:region":                                    {Param: func() { params.Region = string(self.Region) }, Option: self.Region},
-		"service=:service":                                  {Param: func() { params.Service = string(self.Service) }, Option: self.Service},
-		"aws_account_id=:aws_account_id":                    {Param: func() { params.Account = string(self.Account) }, Option: self.Account},
-		"aws_accounts.name=:aws_account_name":               {Param: func() { params.AccountName = string(self.AccountName) }, Option: self.AccountName},
-		"aws_accounts.environment=:aws_account_environment": {Param: func() { params.Environment = string(self.Environment) }, Option: self.Environment},
-		"aws_accounts.label=:aws_account_label":             {Param: func() { params.Label = string(self.Label) }, Option: self.Label},
-		"lower(aws_accounts.team_name)=lower(:team_name)":   {Param: func() { params.Team = string(self.Team) }, Option: self.Team},
-	}
-
-	for whereAs, wi := range wheres {
-		if wi.Option.Whereable() {
-			wi.Param()
-			where += fmt.Sprintf("%s AND ", whereAs)
-		}
-	}
-
-	// Replace the placeholders with the real values
-	stmt = strings.ReplaceAll(stmt, "{SELECT}", selected)
-	stmt = strings.ReplaceAll(stmt, "{WHERE}", where)
-	stmt = strings.ReplaceAll(stmt, "{GROUP_BY}", groupby)
-	stmt = strings.ReplaceAll(stmt, "{ORDER_BY}", orderby)
-
 	bound = &sqlr.BoundStatement{Data: params, Statement: stmt}
 	return
 }

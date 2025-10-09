@@ -100,7 +100,6 @@ func TestApiServiceGetGroupedAwsCosts(t *testing.T) {
 	if len(data) != 1 {
 		t.Errorf("expected 1, actual: %d", len(data))
 	}
-
 	// grouping by account & team
 	opts.Team = "true"
 	data, err = service.GetGroupedAwsCosts(store, opts)
@@ -121,7 +120,6 @@ func TestApiServiceGetGroupedAwsCosts(t *testing.T) {
 	if len(data) != 5 {
 		t.Errorf("expected 5 result, actual: %d", len(data))
 	}
-
 	// grouping by account & team should be 5
 	opts.Account = "true"
 	opts.Team = "true"
@@ -132,7 +130,6 @@ func TestApiServiceGetGroupedAwsCosts(t *testing.T) {
 	if len(data) != 5 {
 		t.Errorf("expected 5 result, actual: %d", len(data))
 	}
-
 	// check filtering by a team - should only return 1 team data
 	opts.Account = ""
 	opts.Team = "TEAM-A"

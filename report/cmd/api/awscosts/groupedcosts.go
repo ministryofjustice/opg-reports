@@ -100,16 +100,16 @@ func handleGetAwsGroupedCosts[T api.Model](
 
 	// create the options
 	options := &api.GetGroupedCostsOptions{
+		DateFormat:  utils.GRANULARITY_TO_FORMAT[input.Granularity],
 		StartDate:   input.StartDate,
 		EndDate:     input.EndDate,
-		DateFormat:  utils.GRANULARITY_TO_FORMAT[input.Granularity],
-		Team:        utils.TrueOrFilter(input.Team),
-		Region:      utils.TrueOrFilter(input.Region),
-		Service:     utils.TrueOrFilter(input.Service),
-		Account:     utils.TrueOrFilter(input.Account),
-		AccountName: utils.TrueOrFilter(input.AccountName),
-		Environment: utils.TrueOrFilter(input.Environment),
-		Label:       utils.TrueOrFilter(input.Label),
+		Team:        input.Team,
+		Region:      input.Region,
+		Service:     input.Service,
+		Account:     input.Account,
+		AccountName: input.AccountName,
+		Environment: input.Environment,
+		Label:       input.Label,
 	}
 
 	costs, err = service.GetGroupedAwsCosts(store, options)
