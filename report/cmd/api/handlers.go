@@ -6,6 +6,7 @@ import (
 
 	"opg-reports/report/cmd/api/awsaccounts"
 	"opg-reports/report/cmd/api/awscosts"
+	"opg-reports/report/cmd/api/awsuptime"
 	"opg-reports/report/cmd/api/home"
 	"opg-reports/report/cmd/api/teams"
 	"opg-reports/report/config"
@@ -20,14 +21,20 @@ import (
 // To allow for service injection, each is called directly, so need to be manually added
 func RegisterHandlers(ctx context.Context, log *slog.Logger, conf *config.Config, humaapi huma.API) {
 	var (
-		teamStore          = sqlr.DefaultWithSelect[*api.Team](ctx, log, conf)
-		teamService        = api.Default[*api.Team](ctx, log, conf)
-		awsAccountsStore   = sqlr.DefaultWithSelect[*api.AwsAccount](ctx, log, conf)
-		awsAccountService  = api.Default[*api.AwsAccount](ctx, log, conf)
-		awsCostsStore      = sqlr.DefaultWithSelect[*api.AwsCost](ctx, log, conf)
-		awsCostsService    = api.Default[*api.AwsCost](ctx, log, conf)
-		awsCostsStoreGroup = sqlr.DefaultWithSelect[*api.AwsCostGrouped](ctx, log, conf)
-		awsCostsSrvGroup   = api.Default[*api.AwsCostGrouped](ctx, log, conf)
+		// TEAMS
+		teamStore   = sqlr.DefaultWithSelect[*api.Team](ctx, log, conf)
+		teamService = api.Default[*api.Team](ctx, log, conf)
+		// ACCOUNTS
+		awsAccountsStore  = sqlr.DefaultWithSelect[*api.AwsAccount](ctx, log, conf)
+		awsAccountService = api.Default[*api.AwsAccount](ctx, log, conf)
+		// COSTS
+		awsCostsStore          = sqlr.DefaultWithSelect[*api.AwsCost](ctx, log, conf)
+		awsCostsService        = api.Default[*api.AwsCost](ctx, log, conf)
+		awsCostsGroupedStore   = sqlr.DefaultWithSelect[*api.AwsCostGrouped](ctx, log, conf)
+		awsCostsGroupedService = api.Default[*api.AwsCostGrouped](ctx, log, conf)
+		// UPTIME
+		awsUptimeStore   = sqlr.DefaultWithSelect[*api.AwsUptime](ctx, log, conf)
+		awsUptimeService = api.Default[*api.AwsUptime](ctx, log, conf)
 	)
 	// HOME
 	home.RegisterGetHomepage(log, conf, humaapi)
@@ -37,5 +44,8 @@ func RegisterHandlers(ctx context.Context, log *slog.Logger, conf *config.Config
 	awsaccounts.RegisterGetAwsAccountsAll(log, conf, humaapi, awsAccountService, awsAccountsStore)
 	// AWS COSTS
 	awscosts.RegisterGetAwsCostsTop20(log, conf, humaapi, awsCostsService, awsCostsStore)
-	awscosts.RegisterGetAwsGroupedCosts(log, conf, humaapi, awsCostsSrvGroup, awsCostsStoreGroup)
+	awscosts.RegisterGetAwsGroupedCosts(log, conf, humaapi, awsCostsGroupedService, awsCostsGroupedStore)
+	// AWS UPTIME
+	awsuptime.RegisterGetAwsUptimeAll(log, conf, humaapi, awsUptimeService, awsUptimeStore)
+
 }
