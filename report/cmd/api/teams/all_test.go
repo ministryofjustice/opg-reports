@@ -13,10 +13,10 @@ import (
 	"opg-reports/report/internal/utils"
 )
 
-func seedDB(ctx context.Context, log *slog.Logger, conf *config.Config) (inserted []*sqlr.BoundStatement) {
+func seedDB(ctx context.Context, log *slog.Logger, conf *config.Config) (inserted *seed.SeedAllResults, err error) {
 	sqc := sqlr.Default(ctx, log, conf)
 	seeder := seed.Default(ctx, log, conf)
-	inserted, _ = seeder.Teams(sqc)
+	inserted, err = seeder.All(sqc)
 	return
 }
 
@@ -32,7 +32,7 @@ func TestHandleGetTeamsAll(t *testing.T) {
 	// overwrite the database location
 	cfg.Database.Path = fmt.Sprintf("%s/%s", dir, "test-teams-all.db")
 	// capture the inserted data
-	inserted := seedDB(ctx, lg, cfg)
+	inserted, err := seedDB(ctx, lg, cfg)
 	// generate a repository and service
 	repository, _ := sqlr.NewWithSelect[*api.Team](ctx, lg, cfg)
 	service, _ := api.New[*api.Team](ctx, lg, cfg)
@@ -42,24 +42,24 @@ func TestHandleGetTeamsAll(t *testing.T) {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
 	// make sure all counts match
-	if len(inserted) != response.Body.Count {
-		t.Errorf("count doesnt match count of inserted records, expected [%d] actual [%d]", len(inserted), response.Body.Count)
+	if len(inserted.Teams) != response.Body.Count {
+		t.Errorf("count doesnt match count of inserted records, expected [%d] actual [%d]", len(inserted.Teams), response.Body.Count)
 	}
-	if len(inserted) != len(response.Body.Data) {
-		t.Errorf("data length doesnt match count of inserted records, expected [%d] actual [%d]", len(inserted), len(response.Body.Data))
+	if len(inserted.Teams) != len(response.Body.Data) {
+		t.Errorf("data length doesnt match count of inserted records, expected [%d] actual [%d]", len(inserted.Teams), len(response.Body.Data))
 	}
 
 	// now test that the data returned has the correct account ids
 	//  - casting to int64 to compare
 	found := 0
 	for _, item := range response.Body.Data {
-		for _, insert := range inserted {
+		for _, insert := range inserted.Teams {
 			if insert.Returned.(string) == (string)(item.Name) {
 				found++
 			}
 		}
 	}
-	if found != len(inserted) {
-		t.Errorf("did not find all inserted records from in the response [%d] [%d]", len(inserted), found)
+	if found != len(inserted.Teams) {
+		t.Errorf("did not find all inserted records from in the response [%d] [%d]", len(inserted.Teams), found)
 	}
 }
