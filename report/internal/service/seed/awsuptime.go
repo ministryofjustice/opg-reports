@@ -52,6 +52,6 @@ func (self *Service) AwsUptime(sqc sqlr.RepositoryWriter) (results []*sqlr.Bound
 		return
 	}
 	self.log.Info("[seed:AwsUptime] seeding successful")
-	results = awsAccountSeeds
+	results = awsUptimeSeeds
 	return
 }

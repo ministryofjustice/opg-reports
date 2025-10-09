@@ -11,6 +11,14 @@ import (
 
 const label string = "seed-service"
 
+// SeedAllResults contains all the results from each step of the all function
+type SeedAllResults struct {
+	Teams       []*sqlr.BoundStatement
+	AwsAccounts []*sqlr.BoundStatement
+	AwsCosts    []*sqlr.BoundStatement
+	AwsUptime   []*sqlr.BoundStatement
+}
+
 type Service struct {
 	ctx  context.Context
 	log  *slog.Logger
@@ -18,32 +26,29 @@ type Service struct {
 }
 
 // All runs all seed commands in sequence
-func (self *Service) All(sqlStore sqlr.RepositoryWriter) (results []*sqlr.BoundStatement, err error) {
-	var r []*sqlr.BoundStatement
+func (self *Service) All(sqlStore sqlr.RepositoryWriter) (results *SeedAllResults, err error) {
+	// setup the results
+	results = &SeedAllResults{}
 	// TEAMS
-	r, err = self.Teams(sqlStore)
+	results.Teams, err = self.Teams(sqlStore)
 	if err != nil {
 		return
 	}
-	results = append(results, r...)
 	// AWS ACCOUNTS
-	r, err = self.AwsAccounts(sqlStore)
+	results.AwsAccounts, err = self.AwsAccounts(sqlStore)
 	if err != nil {
 		return
 	}
-	results = append(results, r...)
 	// AWS COSTS
-	r, err = self.AwsCosts(sqlStore)
+	results.AwsCosts, err = self.AwsCosts(sqlStore)
 	if err != nil {
 		return
 	}
-	results = append(results, r...)
 	// AWS UPTIME
-	r, err = self.AwsUptime(sqlStore)
+	results.AwsUptime, err = self.AwsUptime(sqlStore)
 	if err != nil {
 		return
 	}
-	results = append(results, r...)
 
 	return
 }

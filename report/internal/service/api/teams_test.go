@@ -20,7 +20,7 @@ func TestApiServiceGetAllTeams(t *testing.T) {
 	)
 	// set config values
 	conf.Database.Path = filepath.Join(dir, "./api-get-all-teams.db")
-	inserted, _, _ := seedDB(ctx, log, conf)
+	inserted, _ := seedDB(ctx, log, conf)
 
 	store := sqlr.DefaultWithSelect[*Team](ctx, log, conf)
 	service := Default[*Team](ctx, log, conf)
@@ -30,8 +30,8 @@ func TestApiServiceGetAllTeams(t *testing.T) {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
 
-	if len(inserted) != len(teams) {
-		t.Errorf("mismatching number of records: expected [%d] actual [%v]", len(inserted), len(teams))
+	if len(inserted.Teams) != len(teams) {
+		t.Errorf("mismatching number of records: expected [%d] actual [%v]", len(inserted.Teams), len(teams))
 	}
 
 }
