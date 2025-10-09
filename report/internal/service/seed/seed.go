@@ -17,6 +17,7 @@ type Service struct {
 	conf *config.Config
 }
 
+// All runs all seed commands in sequence
 func (self *Service) All(sqlStore sqlr.RepositoryWriter) (results []*sqlr.BoundStatement, err error) {
 	var r []*sqlr.BoundStatement
 	// TEAMS
@@ -33,6 +34,12 @@ func (self *Service) All(sqlStore sqlr.RepositoryWriter) (results []*sqlr.BoundS
 	results = append(results, r...)
 	// AWS COSTS
 	r, err = self.AwsCosts(sqlStore)
+	if err != nil {
+		return
+	}
+	results = append(results, r...)
+	// AWS UPTIME
+	r, err = self.AwsUptime(sqlStore)
 	if err != nil {
 		return
 	}

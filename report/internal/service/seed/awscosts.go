@@ -1,8 +1,6 @@
 package seed
 
 import (
-	"time"
-
 	"opg-reports/report/internal/repository/sqlr"
 	"opg-reports/report/internal/utils"
 )
@@ -36,7 +34,7 @@ type awsCostSeed struct {
 	AccountID string `json:"account_id" db:"aws_account_id"`
 }
 
-var costDate = time.Now().AddDate(0, -1, 0).UTC().Format(utils.DATE_FORMATS.YMD)
+var costDate = utils.Month(-1)
 var awsCostSeeds = []*sqlr.BoundStatement{
 	{Statement: stmtAwsCostSeed, Data: &awsCostSeed{Region: "eu-west-1", Service: "ECS", Date: costDate, Cost: "-0.01", AccountID: "001A"}},
 	{Statement: stmtAwsCostSeed, Data: &awsCostSeed{Region: "eu-west-1", Service: "S3", Date: costDate, Cost: "10.10", AccountID: "001A"}},

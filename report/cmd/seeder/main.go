@@ -3,15 +3,11 @@ seeder handles adding data fixture data to the database for use by the API.
 
 Usage:
 
-	seeder [command]
-
-Available commands:
-
-	all
+	seeder
 
 # Examples
 
-`seeder all`
+`seeder`
 */
 package main
 
@@ -22,6 +18,9 @@ import (
 
 	"opg-reports/report/config"
 	"opg-reports/report/internal/utils"
+
+	"opg-reports/report/internal/repository/sqlr"
+	"opg-reports/report/internal/service/seed"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -53,7 +52,14 @@ env variables used that can be adjusted:
 	DATABASE_PATH
 		The file path to the sqlite database that will be used
 `,
-	CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		var (
+			sqlStore    *sqlr.Repository = sqlr.Default(ctx, log, conf)
+			seedService *seed.Service    = seed.Default(ctx, log, conf)
+		)
+		_, err = seedService.All(sqlStore)
+		return
+	},
 }
 
 // init
@@ -65,9 +71,6 @@ func init() {
 }
 
 func main() {
-	rootCmd.AddCommand(
-		allCmd,
-	)
 	err := rootCmd.Execute()
 	// fail on errir
 	if err != nil {

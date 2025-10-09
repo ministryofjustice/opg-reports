@@ -124,7 +124,7 @@ func LastDayOfMonth(t time.Time) (lastDay time.Time) {
 	return
 }
 
-// LastDayOfMonth provides the time for the last minute of the last day of the month
+// FirstDayOfMonth provides the time for the first minute of the first day of the month
 //
 // If `t` is `2022-12-10T09:00:00` then should return `2022-12-01T00:00:00`
 func FirstDayOfMonth(t time.Time) (firstDay time.Time) {
@@ -132,19 +132,10 @@ func FirstDayOfMonth(t time.Time) (firstDay time.Time) {
 	return
 }
 
-// Month returns a YYYY-MM-DD formatted string of the first data of a month. The modifier adjusts
+// Month returns a YYYY-MM-DD formatted string of the first day of a month. The modifier adjusts
 // the month (plus or minus)
 func Month(monthModifier int) (m string) {
 	m = TimeReset(time.Now().UTC().AddDate(0, monthModifier, 0), TimeIntervalMonth).Format(DATE_FORMATS.YMD)
-	return
-}
-
-func DateStringAddMonths(date string, layout string, increment int) (d string) {
-	t, err := StringToTime(date)
-	if err != nil {
-		return
-	}
-	d = t.AddDate(0, increment, 0).Format(layout)
 	return
 }
 
