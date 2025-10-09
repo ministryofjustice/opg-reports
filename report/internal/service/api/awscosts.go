@@ -2,7 +2,6 @@ package api
 
 import (
 	"fmt"
-	"log/slog"
 	"strings"
 
 	"opg-reports/report/internal/repository/sqlr"
@@ -389,35 +388,6 @@ func (self *Service[T]) GetGroupedAwsCosts(store sqlr.RepositoryReader, options 
 //
 // Note: Dont expose to the api endpoints
 func (self *Service[T]) PutAwsCosts(store sqlr.RepositoryWriter, data []T) (results []*sqlr.BoundStatement, err error) {
-	var (
-		inserts []*sqlr.BoundStatement = []*sqlr.BoundStatement{}
-		log     *slog.Logger           = self.log.With("operation", "PutAwsCosts")
-	)
-	results = []*sqlr.BoundStatement{}
 
-	log.Debug("generating insert statements for aws costs")
-	// for each cost item generate the insert
-	for _, row := range data {
-		inserts = append(inserts, &sqlr.BoundStatement{Data: row, Statement: stmtAwsCostsInsert})
-	}
-	log.With("count", len(inserts)).Debug("inserting records from file ...")
-
-	// run inserts
-	if err = store.Insert(inserts...); err != nil {
-		log.Error("error inserting", "err", err.Error())
-		return
-	}
-	// only merge in the items with return values
-	for _, in := range inserts {
-		if in.Returned != nil {
-			results = append(results, in)
-		}
-	}
-	if len(results) != len(data) {
-		err = fmt.Errorf("not all costs were inserted; expected [%d] actual [%d]", len(data), len(results))
-		return
-	}
-
-	log.With("inserted", len(results)).Info("inserting records successful")
-	return
+	return self.Put(store, stmtAwsCostsInsert, data)
 }

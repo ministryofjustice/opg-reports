@@ -40,7 +40,8 @@ func GetSuitableUptimePeriod(start time.Time) (period int32, err error) {
 }
 
 // GetUptimeData fetches both the metrics and the stats for those metrics, effectively
-// doing both `GetUptimeMetrics` & `GetUptimeDatapoints`
+// doing both `GetUptimeMetrics` & `GetUptimeDatapoints` and the converts that data into
+// YMD keyed average to be stored in the database
 //
 //	options = &cloudwatch.GetMetricStatisticsInput{
 //		Namespace:  &Namespace,
@@ -59,6 +60,8 @@ func (self *Repository) GetUptimeData(
 		metrics        []types.Metric
 		datapoints     []types.Datapoint
 		log            *slog.Logger             = self.log.With("operation", "GetUptimeData")
+		grouped        map[string]float64       = map[string]float64{}
+		counter        map[string]int           = map[string]int{}
 		metricsOptions *GetUptimeMetricsOptions = &GetUptimeMetricsOptions{
 			MetricName: *options.MetricName,
 			Namespace:  *options.Namespace,
@@ -75,12 +78,30 @@ func (self *Repository) GetUptimeData(
 	if err != nil {
 		return
 	}
-	log.Debug("converting datapoints to slice map ... ")
+	log.Debug("converting datapoints to slice map based on day of the month ... ")
 
+	// the reporting returns small chunks of data, we want to merge this by day
 	for _, point := range datapoints {
+		var month = utils.TimeReset(*point.Timestamp, utils.TimeIntervalDay)
+		var key = month.Format(utils.DATE_FORMATS.YMD)
+		// find or update the value in
+		if _, ok := grouped[key]; !ok {
+			grouped[key] = 0.0
+			counter[key] = 0
+		}
+
+		grouped[key] += *point.Average
+		counter[key]++
+
+	}
+	// now generate the average values
+	for key, sum := range grouped {
+		var count int = counter[key]
+		var average float64 = (sum / float64(count))
 		stats = append(stats, map[string]string{
-			"average": fmt.Sprintf("%g", *point.Average),
-			"date":    point.Timestamp.Format(utils.DATE_FORMATS.Full),
+			"average":     fmt.Sprintf("%g", average),
+			"date":        key,
+			"granularity": fmt.Sprintf("%d", *options.Period),
 		})
 	}
 

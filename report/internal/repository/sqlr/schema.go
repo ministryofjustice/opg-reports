@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS aws_uptime (
 	date TEXT NOT NULL,
 	aws_account_id TEXT,
 	average TEXT NOT NULL,
+	granularity TEXT NOT NULL,
 	UNIQUE (aws_account_id,date)
 ) STRICT;
 

@@ -11,30 +11,33 @@ const stmtAwsUptimeSeed string = `
 INSERT INTO aws_uptime (
 	date,
 	average,
+	granularity,
 	aws_account_id
 ) VALUES (
 	:date,
 	:average,
+	:granularity,
 	:aws_account_id
 ) ON CONFLICT (aws_account_id,date)
- 	DO UPDATE SET average=excluded.average
+ 	DO UPDATE SET average=excluded.average, granularity=excluded.granularity
 RETURNING id;`
 
 type awsUptimeSeed struct {
-	ID        string `json:"id,omitempty" db:"id"`            // This is the AWS Account ID as a string
-	Date      string `json:"date,omitempty" db:"date" `       // The data the uptime value was for
-	Average   string `json:"average,omitempty" db:"average" ` // uptime average as a percentage
-	AccountID string `json:"account_id" db:"aws_account_id"`
+	ID          string `json:"id,omitempty" db:"id"`                   // This is the AWS Account ID as a string
+	Date        string `json:"date,omitempty" db:"date" `              // The data the uptime value was for
+	Average     string `json:"average,omitempty" db:"average" `        // uptime average as a percentage
+	Granularity string `json:"granularity,omitempty" db:"granularity"` // the time period in seconds used for this metric
+	AccountID   string `json:"account_id" db:"aws_account_id"`
 }
 
 var uptimeDate = utils.Month(-1)
 
 var awsUptimeSeeds = []*sqlr.BoundStatement{
-	{Statement: stmtAwsUptimeSeed, Data: &awsUptimeSeed{Date: uptimeDate, Average: "99.97", AccountID: "001A"}},
-	{Statement: stmtAwsUptimeSeed, Data: &awsUptimeSeed{Date: uptimeDate, Average: "99.96", AccountID: "001B"}},
-	{Statement: stmtAwsUptimeSeed, Data: &awsUptimeSeed{Date: uptimeDate, Average: "99.0", AccountID: "002A"}},
-	{Statement: stmtAwsUptimeSeed, Data: &awsUptimeSeed{Date: uptimeDate, Average: "90.7", AccountID: "003A"}},
-	{Statement: stmtAwsUptimeSeed, Data: &awsUptimeSeed{Date: uptimeDate, Average: "98.99", AccountID: "004A"}},
+	{Statement: stmtAwsUptimeSeed, Data: &awsUptimeSeed{Granularity: "60", Date: uptimeDate, Average: "99.97", AccountID: "001A"}},
+	{Statement: stmtAwsUptimeSeed, Data: &awsUptimeSeed{Granularity: "60", Date: uptimeDate, Average: "99.96", AccountID: "001B"}},
+	{Statement: stmtAwsUptimeSeed, Data: &awsUptimeSeed{Granularity: "60", Date: uptimeDate, Average: "99.0", AccountID: "002A"}},
+	{Statement: stmtAwsUptimeSeed, Data: &awsUptimeSeed{Granularity: "60", Date: uptimeDate, Average: "90.7", AccountID: "003A"}},
+	{Statement: stmtAwsUptimeSeed, Data: &awsUptimeSeed{Granularity: "60", Date: uptimeDate, Average: "98.99", AccountID: "004A"}},
 }
 
 // AwsUptime populates the database (via the sqc var) with standard known enteries

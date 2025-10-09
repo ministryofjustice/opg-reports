@@ -86,6 +86,7 @@ func StringToTimeResetAsString(s string, interval TimeInterval) (t string) {
 	return
 }
 
+// StringToTimeReset
 func StringToTimeReset(s string, interval TimeInterval) (t time.Time) {
 	if dt, err := StringToTime(s); err == nil {
 		t = TimeReset(dt, interval)
@@ -111,6 +112,11 @@ func TimeReset(t time.Time, interval TimeInterval) (reset time.Time) {
 		reset = time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), 0, 0, 0, time.UTC)
 	}
 	return
+}
+
+// Yesterday returns start of yesterday
+func Yesterday() (t time.Time) {
+	return TimeReset(time.Now().UTC(), TimeIntervalDay).AddDate(0, 0, -1)
 }
 
 // LastDayOfMonth provides the time for the last minute of the last day of the month
