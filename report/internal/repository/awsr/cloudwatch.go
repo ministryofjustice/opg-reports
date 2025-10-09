@@ -3,6 +3,7 @@ package awsr
 import (
 	"fmt"
 	"log/slog"
+	"opg-reports/report/internal/utils"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
@@ -38,17 +39,8 @@ func GetSuitableUptimePeriod(start time.Time) (period int32, err error) {
 
 }
 
-type GetUptimeStatsOptions struct {
-	Namespace  string             // "AWS/Route53"
-	MetricName string             // "HealthCheckPercentageHealthy"
-	Unit       types.StandardUnit // types.StandardUnitPercent
-	Statistic  types.Statistic    // types.StatisticAverage
-	Period     int32              // generated from GetSuitableUptimePeriod
-	Start      time.Time
-	End        time.Time
-}
-
-// GetUptimeStats uses the list of metrics provided to find and return the accumlated average uptime percentage between the start & end date
+// GetUptimeData fetches both the metrics and the stats for those metrics, effectively
+// doing both `GetUptimeMetrics` & `GetUptimeDatapoints`
 //
 //	options = &cloudwatch.GetMetricStatisticsInput{
 //		Namespace:  &Namespace,
@@ -59,11 +51,59 @@ type GetUptimeStatsOptions struct {
 //		Statistics: []types.Statistic{options.Statistic},
 //		Unit:       options.Unit,
 //	}
-func (self *Repository) GetUptimeStats(client ClientCloudWatchMetricStats, metrics []types.Metric, options *cloudwatch.GetMetricStatisticsInput) (datapoints []types.Datapoint, err error) {
+func (self *Repository) GetUptimeData(
+	client ClientCloudWatchUptime,
+	options *cloudwatch.GetMetricStatisticsInput,
+) (stats []map[string]string, err error) {
+	var (
+		metrics        []types.Metric
+		datapoints     []types.Datapoint
+		log            *slog.Logger             = self.log.With("operation", "GetUptimeData")
+		metricsOptions *GetUptimeMetricsOptions = &GetUptimeMetricsOptions{
+			MetricName: *options.MetricName,
+			Namespace:  *options.Namespace,
+		}
+	)
+	stats = []map[string]string{}
+	// get the metrics
+	metrics, err = self.GetUptimeMetrics(client, metricsOptions)
+	if err != nil {
+		return
+	}
+	// get the stats for those metrics
+	datapoints, err = self.GetUptimeDatapoints(client, metrics, options)
+	if err != nil {
+		return
+	}
+	log.Debug("converting datapoints to slice map ... ")
+
+	for _, point := range datapoints {
+		stats = append(stats, map[string]string{
+			"average": fmt.Sprintf("%g", *point.Average),
+			"date":    point.Timestamp.Format(utils.DATE_FORMATS.Full),
+		})
+	}
+
+	return
+
+}
+
+// GetUptimeDatapoints uses the list of metrics provided to find and return the accumlated average uptime percentage between the start & end date
+//
+//	options = &cloudwatch.GetMetricStatisticsInput{
+//		Namespace:  &Namespace,
+//		MetricName: &MetricName,
+//		Period:     &Period,
+//		StartTime:  &Start,
+//		EndTime:    &End,
+//		Statistics: []types.Statistic{options.Statistic},
+//		Unit:       options.Unit,
+//	}
+func (self *Repository) GetUptimeDatapoints(client ClientCloudWatchMetricStats, metrics []types.Metric, options *cloudwatch.GetMetricStatisticsInput) (datapoints []types.Datapoint, err error) {
 	var (
 		output     *cloudwatch.GetMetricStatisticsOutput
 		dimensions []types.Dimension = []types.Dimension{}
-		log        *slog.Logger      = self.log.With("operation", "GetUptimeStats")
+		log        *slog.Logger      = self.log.With("operation", "GetUptimeDatapoints")
 	)
 
 	log.With("options", options).Debug("getting route53 uptime stats for metrics ... ")
@@ -72,6 +112,14 @@ func (self *Repository) GetUptimeStats(client ClientCloudWatchMetricStats, metri
 		err = fmt.Errorf("start or end date missing: \n%v\n", *options)
 		return
 	}
+	// work out period if there isnt one set
+	if options.Period == nil {
+		period, err := GetSuitableUptimePeriod(*options.StartTime)
+		if err != nil {
+			options.Period = &period
+		}
+	}
+
 	if options.Period == nil || *options.Period <= 0 {
 		err = fmt.Errorf("time period value missing")
 		return
@@ -89,8 +137,9 @@ func (self *Repository) GetUptimeStats(client ClientCloudWatchMetricStats, metri
 	if err != nil {
 		return
 	}
+	log.With("count", len(output.Datapoints)).Debug("found metric datapoints ... ")
+
 	datapoints = output.Datapoints
-	log.With("count", len(datapoints)).Debug("found metric datapoints ... ")
 
 	return
 }

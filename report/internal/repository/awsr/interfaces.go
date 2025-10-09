@@ -58,16 +58,26 @@ type RepositoryCostExplorerGetter interface {
 
 // RespositoryCloudwatch is main interface for handling cloudwatch uptime metrics from the route53 health checks
 type RespositoryCloudwatch interface {
+	RepositoryCloudwatchUptime
+}
+
+// RepositoryCloudwatchUptime contains all those required for handling uptime data
+type RepositoryCloudwatchUptime interface {
+	RepositoryCloudwatchUptimeData
 	RepositoryCloudwatchMetricsList
-	RepositoryCloudwatchMetricsStats
+	RepositoryCloudwatchUptimeDatapoints
+}
+
+type RepositoryCloudwatchUptimeData interface {
+	GetUptimeData(client ClientCloudWatchUptime, options *cloudwatch.GetMetricStatisticsInput) (stats []map[string]string, err error)
 }
 
 // RepositoryCloudwatchMetricsList contains the methods to return all the uptime metric endpoints for an account
 type RepositoryCloudwatchMetricsList interface {
 	GetUptimeMetrics(client ClientCloudWatchMetricsLister, options *GetUptimeMetricsOptions) (metrics []cwtypes.Metric, err error)
 }
-type RepositoryCloudwatchMetricsStats interface {
-	GetUptimeStats(client ClientCloudWatchMetricStats, metrics []cwtypes.Metric, options *cloudwatch.GetMetricStatisticsInput) (datapoints []cwtypes.Datapoint, err error)
+type RepositoryCloudwatchUptimeDatapoints interface {
+	GetUptimeDatapoints(client ClientCloudWatchMetricStats, metrics []cwtypes.Metric, options *cloudwatch.GetMetricStatisticsInput) (datapoints []cwtypes.Datapoint, err error)
 }
 
 // ClientSTS represents an overal sts client
