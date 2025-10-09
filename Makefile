@@ -109,6 +109,7 @@ local/build/others:
 	@mkdir -p ${CMD_BUILD} ${CMD_BUILD}/bin
 	@go build -o ${CMD_BUILD}/bin/db ./report/cmd/db/
 	@go build -o ${CMD_BUILD}/bin/importer ./report/cmd/importer/
+	@go build -o ${CMD_BUILD}/bin/seeder ./report/cmd/seeder/
 
 #========= DOCKER =========
 ## Build local development version of the docker image
