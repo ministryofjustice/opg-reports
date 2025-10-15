@@ -5,6 +5,14 @@ import (
 	"strings"
 )
 
+// various end of line strings for different part of the statements
+const (
+	selectEOL  string = ",\n"
+	whereEOL   string = " AND \n"
+	groupByEOL string = ",\n"
+	orderByEOL string = ",\n"
+)
+
 // Field is used represent an item with in the SQL statement that we want to generate.
 //
 // It is used to handle more dynamic SQL generation that handles both fixed values
@@ -99,7 +107,7 @@ func isQueryParameterOrderable(value *string) bool {
 // always be used within the select - and is typically a expression such as
 // `COUNT(*) as cnt` that is always required.
 func generateSelect(fields ...*Field) (str string) {
-	var eol string = ",\n"
+	var eol string = selectEOL
 	for _, field := range fields {
 		var set = (field.Value == nil || isQueryParameterSelectable(field.Value))
 		if stmt := field.Select; stmt != "" && set {
@@ -121,7 +129,7 @@ func generateSelect(fields ...*Field) (str string) {
 //
 // When a Field as `nil` Value, then this field should always be included.
 func generateWhere(fields ...*Field) (str string) {
-	var eol string = " AND \n"
+	var eol string = whereEOL
 	for _, field := range fields {
 		var set = (field.Value == nil || isQueryParameterWhereable(field.Value))
 		if stmt := field.Where; stmt != "" && set {
@@ -144,7 +152,7 @@ func generateWhere(fields ...*Field) (str string) {
 //
 // When a Field.Value is `nil`, then this field should always be included.
 func generateGroupBy(fields ...*Field) (str string) {
-	var eol string = ",\n"
+	var eol string = groupByEOL
 	for _, field := range fields {
 		var set = (field.Value == nil || isQueryParameterGroupable(field.Value))
 		if stmt := field.GroupBy; stmt != "" && set {
@@ -167,7 +175,7 @@ func generateGroupBy(fields ...*Field) (str string) {
 //
 // When a Field.Value is `nil`, then this field should always be included.
 func generateOrderBy(fields ...*Field) (str string) {
-	var eol string = ",\n"
+	var eol string = orderByEOL
 	for _, field := range fields {
 		var set = (field.Value == nil || isQueryParameterOrderable(field.Value))
 		if stmt := field.OrderBy; stmt != "" && set {
