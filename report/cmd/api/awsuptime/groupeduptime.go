@@ -27,13 +27,11 @@ type GetAwsUptimeGroupedResponse[T api.Model] struct {
 
 // AwsUptimeGroupedInput is the input object for fetching grouped aws costs.
 //
-// The `Team`, `Region`, `Service`, `Account` & `Environment` properties are
-// used as a filter. When they are set to _true_ they are used in the select,
-// group and order by areas of the sql statement. When they have any other
-// value they are used as a filter.
+// The `Team`  properties are used as a filter. When they are set to _true_
+// they are used in the select, group and order by areas of the sql statement.
+// When they have any other value they are used as a filter.
 //
-// This allows the handler to process a large range of AWS cost queries
-// via the same endpoint.
+// This allows the handler to process a range of queries via the same endpoint.
 type AwsUptimeGroupedInput struct {
 	Granularity string `json:"granularity,omitempty" path:"granularity" default:"monthly" enum:"yearly,monthly" doc:"Determine if the data is grouped by year or month."`
 	StartDate   string `json:"start_date,omitempty" path:"start_date" required:"true" doc:"Earliest date to return data from (uses >=). YYYY-MM-DD." example:"2024-03-01" pattern:"([0-9]{4}-[0-9]{2}[\\-0-9]{0,2})"`

@@ -1,14 +1,14 @@
-name: "[Reports] AWS Costs"
+name: "[Reports] AWS Uptime"
 
 on:
   # run at 1am every day
   schedule:
-    - cron: '0 1 * * *'
+    - cron: '0 2 * * *'
   # run when triggered manually
   workflow_dispatch:
     inputs:
-      month:
-        description: "YYYY-MM formatted month to get cost data for (example: 2025-08)."
+      day:
+        description: "YYYY-MM-DD formatted day to get uptime data for (example: 2025-08-11)."
         type: string
         default: ""
 
@@ -21,7 +21,7 @@ permissions:
 env:
   RELEASE_DIR: ./releases
   DB_DIR: ./databases
-  REPORT: "awscosts"
+  REPORT: "awsuptime"
 
 # jobs
 jobs:
@@ -48,6 +48,7 @@ jobs:
         id: account_matrix
         uses: ./.github/actions/get-aws-accounts-matrix
         with:
+          file: "accounts.aws.uptime.json"
           github_token: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
 
   # runner
@@ -75,7 +76,7 @@ jobs:
           rels: ${{ env.RELEASE_DIR }}
         run: mkdir -p ${{ env.dbs }} ${{ env.rels }}
       # download the last release
-      - name: "[${{ matrix.name }}]  Download release"
+      - name: "[${{ matrix.name }}] Download release"
         uses: ./.github/actions/download-release
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -102,7 +103,7 @@ jobs:
       #   setup the role to use
       - name: "[${{ matrix.name }}] Configure AWS credentials for running the report"
         env:
-          report_role: "arn:aws:iam::${{ matrix.id }}:role/gh-actions-cost-metrics"
+          report_role: "arn:aws:iam::${{ matrix.id }}:role/gh-actions-uptime-metrics"
         uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
         with:
           aws-region: "eu-west-1"
@@ -114,10 +115,10 @@ jobs:
         env:
           DATABASE_PATH: ${{ env.DB_DIR }}/api.db
           cmd: ${{ env.RELEASE_DIR }}/importer ${{ env.REPORT }}
-          monthArg: ${{ inputs.month != '' && '--month=' || '' }}
+          dayArg: ${{ inputs.day != '' && '--day=' || '' }}
         run: |
           chmod -Rf 0777 ${{ env.RELEASE_DIR }}
-          ${{ env.cmd }} ${{ env.monthArg }}${{ inputs.month }}
+          ${{ env.cmd }} ${{ env.dayArg }}${{ inputs.day }}
           ls -lh ${{ env.DB_DIR }}
       # configure the aws creds to upload the existing database - PRODUCTION
       - name: "[${{ matrix.name }}] Configure AWS credentials for S3 upload to prod"
