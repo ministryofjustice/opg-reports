@@ -42,7 +42,6 @@ func (self *Repository) init() (err error) {
 // connection internal helper to handle connecting to the db
 func (self *Repository) connection() (db *sqlx.DB, err error) {
 	var dbSource string
-
 	if self.conf == nil {
 		err = fmt.Errorf("error with connection, no configration values set.")
 		return
@@ -59,6 +58,16 @@ func (self *Repository) connection() (db *sqlx.DB, err error) {
 		self.log.Error("connection failed", "error", err.Error(), "dbSource", dbSource)
 	}
 
+	return
+}
+
+// ID returns a unique id for the connection string that can be used to track
+func (self *Repository) ID() (s string, err error) {
+	if self.conf == nil {
+		err = fmt.Errorf("error with connection, no configration values set.")
+		return
+	}
+	s = self.conf.Database.Path
 	return
 }
 
@@ -86,9 +95,9 @@ func New(ctx context.Context, log *slog.Logger, conf *config.Config) (rp *Reposi
 	}
 
 	if !utils.FileExists(rp.conf.Database.Path) {
-		log.With("database.path", rp.conf.Database.Path).Warn("Database not found, so creating")
-		err = rp.init()
+		log.With("database.path", rp.conf.Database.Path).Warn("Database not found was not found, will be created during migration")
 	}
+	err = rp.init()
 
 	return
 }
@@ -117,9 +126,9 @@ func NewWithSelect[T Model](ctx context.Context, log *slog.Logger, conf *config.
 	}
 
 	if !utils.FileExists(rps.conf.Database.Path) {
-		log.With("database.path", rps.conf.Database.Path).Warn("Database not found, so creating")
-		err = rps.init()
+		log.With("database.path", rps.conf.Database.Path).Warn("Database not found was not found, will be created during migration")
 	}
+	err = rps.init()
 
 	return
 }
