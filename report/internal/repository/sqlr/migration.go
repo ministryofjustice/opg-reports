@@ -7,8 +7,8 @@ var migrated_up map[string]bool = map[string]bool{}
 // the database as required and can be run at any time
 func MigrateUp(r RepositoryWriter) (err error) {
 	var key string
-	key, err = r.ID()
 
+	key, err = r.ID()
 	if err != nil {
 		return
 	}

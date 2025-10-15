@@ -103,8 +103,8 @@ func awsUptimeGroupedSqlFields(options *GetAwsUptimeGroupedOptions) []*Field {
 func awsUptimeGroupedSqlStatement(options *GetAwsUptimeGroupedOptions) (bound *sqlr.BoundStatement, params *awsCostsSqlParams) {
 	var (
 		fields []*Field = awsUptimeGroupedSqlFields(options)
-		table  string   = "aws_costs"
-		join   string   = `LEFT JOIN aws_accounts ON aws_accounts.id = aws_costs.aws_account_id`
+		table  string   = "aws_uptime"
+		join   string   = `LEFT JOIN aws_accounts ON aws_accounts.id = aws_uptime.aws_account_id`
 		stmt   string   = BuildSelectFromFields(table, join, fields...)
 	)
 	params = &awsCostsSqlParams{
@@ -114,5 +114,6 @@ func awsUptimeGroupedSqlStatement(options *GetAwsUptimeGroupedOptions) (bound *s
 		Team:       options.Team,
 	}
 	bound = &sqlr.BoundStatement{Data: params, Statement: stmt}
+	utils.Dump(bound.Statement)
 	return
 }
