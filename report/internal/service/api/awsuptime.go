@@ -114,6 +114,5 @@ func awsUptimeGroupedSqlStatement(options *GetAwsUptimeGroupedOptions) (bound *s
 		Team:       options.Team,
 	}
 	bound = &sqlr.BoundStatement{Data: params, Statement: stmt}
-	utils.Dump(bound.Statement)
 	return
 }
