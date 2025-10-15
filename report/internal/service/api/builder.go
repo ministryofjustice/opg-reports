@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"opg-reports/report/internal/utils"
 	"strings"
 )
 
@@ -24,6 +25,26 @@ GROUP BY
 ORDER BY
 %s
 ;`
+
+type GroupableApiOptions interface{}
+
+// GetGroupedByColumns is used to show how the uptime was grouped
+// together. Typically this is used by api recievers to generate
+// table headers and so on
+//
+// Order does matter
+func GetGroupedByColumns(groupable GroupableApiOptions) (groups []string) {
+	groups = []string{}
+	mapped := map[string]string{}
+	utils.Convert(groupable, &mapped)
+
+	for k, v := range mapped {
+		if v == "true" {
+			groups = append(groups, k)
+		}
+	}
+	return
+}
 
 // Field is used represent an item with in the SQL statement that we want to generate.
 //

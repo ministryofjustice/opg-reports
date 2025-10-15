@@ -70,7 +70,7 @@ type awsUptimeSqlParams struct {
 //
 // Uses `:value` placeholders that are mapped out by the statement and
 // relate to the `db` attribute on `awsUptimeSqlParams`
-func awsUptimeGroupedSqlFields(options *GetAwsUptineGroupedOptions) []*Field {
+func awsUptimeGroupedSqlFields(options *GetAwsUptimeGroupedOptions) []*Field {
 	return []*Field{
 		&Field{
 			Key:     "average",
@@ -100,7 +100,7 @@ func awsUptimeGroupedSqlFields(options *GetAwsUptineGroupedOptions) []*Field {
 // values and :params for `stmGroupedCosts`.
 //
 // It returns the bound statement and generated data object
-func awsUptimeGroupedSqlStatement(options *GetAwsUptineGroupedOptions) (bound *sqlr.BoundStatement, params *awsCostsSqlParams) {
+func awsUptimeGroupedSqlStatement(options *GetAwsUptimeGroupedOptions) (bound *sqlr.BoundStatement, params *awsCostsSqlParams) {
 	var (
 		fields []*Field = awsUptimeGroupedSqlFields(options)
 		table  string   = "aws_costs"

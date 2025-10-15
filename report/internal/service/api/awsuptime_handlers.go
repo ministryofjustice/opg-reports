@@ -9,17 +9,17 @@ type AwsUptimeGetter[T Model] interface {
 
 type AwsUptimeGroupedGetter[T Model] interface {
 	Closer
-	GetAllAwsUptime(store sqlr.RepositoryReader) (data []T, err error)
+	GetGroupedAwsUptime(store sqlr.RepositoryReader, options *GetAwsUptimeGroupedOptions) (data []T, err error)
 }
 
-// GetAwsUptineGroupedOptions contains a series of values that determines
+// GetAwsUptimeGroupedOptions contains a series of values that determines
 // what fields are used within the sql statement to allow for easier
 // handling of multiple, similar sql queries that differ by which
 // columns are grouped or filtered via the incoming api request.
 //
 // Should be very similar to `awsUptimeSqlParams` which are the bound
 // versions of this data
-type GetAwsUptineGroupedOptions struct {
+type GetAwsUptimeGroupedOptions struct {
 	StartDate  string `json:"start_date"`
 	EndDate    string `json:"end_date"`
 	DateFormat string `json:"date_format"`
@@ -31,11 +31,7 @@ type AwsUptimeGrouped struct {
 	Average     string `json:"average,omitempty" db:"average" example:"99.9501"`    // The average uptime percentage
 	Granularity string `json:"granularity,omitempty" db:"granularity" example:"60"` // The time period accuracy in seconds
 	// Fields captured via joins in the sql
-	TeamName              string `json:"team,omitempty" db:"team_name"`
-	AwsAccountID          string `json:"account,omitempty" db:"aws_account_id"`
-	AwsAccountName        string `json:"account_name,omitempty" db:"aws_account_name"`
-	AwsAccountLabel       string `json:"account_label,omitempty" db:"aws_account_label"`
-	AwsAccountEnvironment string `json:"environment,omitempty" db:"aws_account_environment"`
+	TeamName string `json:"team,omitempty" db:"team_name"`
 }
 
 // AwsUptime
@@ -67,7 +63,7 @@ func (self *Service[T]) GetAllAwsUptime(store sqlr.RepositoryReader) (data []T, 
 
 // GetGroupedAwsUptime uses a set of options to generate the sql statement that will select, filter,
 // group and order by the data set between provided dates.
-func (self *Service[T]) GetGroupedAwsUptime(store sqlr.RepositoryReader, options *GetAwsUptineGroupedOptions) (data []T, err error) {
+func (self *Service[T]) GetGroupedAwsUptime(store sqlr.RepositoryReader, options *GetAwsUptimeGroupedOptions) (data []T, err error) {
 	var selectStmt, _ = awsUptimeGroupedSqlStatement(options)
 	var log = self.log.With("operation", "GetGroupedAwsUptime")
 
