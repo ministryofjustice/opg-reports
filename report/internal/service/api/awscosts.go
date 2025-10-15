@@ -176,83 +176,83 @@ func (self *GetGroupedCostsOptions) Fields() []*Field {
 	return []*Field{
 		// exclude tax
 		&Field{
-			Key:     "tax",
-			WhereAs: "service != 'Tax'",
+			Key:   "tax",
+			Where: "service != 'Tax'",
 		},
 		&Field{
-			Key:       "cost",
-			SelectAs:  "coalesce(SUM(cost), 0) as cost",
-			OrderByAs: "CAST(aws_costs.cost as REAL) DESC",
+			Key:     "cost",
+			Select:  "coalesce(SUM(cost), 0) as cost",
+			OrderBy: "CAST(aws_costs.cost as REAL) DESC",
 		},
 		&Field{
-			Key:       "date",
-			SelectAs:  "strftime(:date_format, date) as date",
-			WhereAs:   "(date >= :start_date AND date <= :end_date)",
-			GroupByAs: "strftime(:date_format, date)",
-			OrderByAs: "strftime(:date_format, date) ASC",
+			Key:     "date",
+			Select:  "strftime(:date_format, date) as date",
+			Where:   "(date >= :start_date AND date <= :end_date)",
+			GroupBy: "strftime(:date_format, date)",
+			OrderBy: "strftime(:date_format, date) ASC",
 		},
 		// Region
 		&Field{
-			Key:       "region",
-			SelectAs:  "region",
-			WhereAs:   "region=:region",
-			GroupByAs: "region",
-			OrderByAs: "region ASC",
-			Value:     utils.Ptr(self.Region),
+			Key:     "region",
+			Select:  "region",
+			Where:   "region=:region",
+			GroupBy: "region",
+			OrderBy: "region ASC",
+			Value:   utils.Ptr(self.Region),
 		},
 		// Service
 		&Field{
-			Key:       "service",
-			SelectAs:  "service",
-			WhereAs:   "service=:service",
-			GroupByAs: "service",
-			OrderByAs: "service ASC",
-			Value:     utils.Ptr(self.Service),
+			Key:     "service",
+			Select:  "service",
+			Where:   "service=:service",
+			GroupBy: "service",
+			OrderBy: "service ASC",
+			Value:   utils.Ptr(self.Service),
 		},
 		// AWS account id
 		&Field{
-			Key:       "aws_account_id",
-			SelectAs:  "aws_account_id",
-			WhereAs:   "aws_account_id=:aws_account_id",
-			GroupByAs: "aws_account_id",
-			OrderByAs: "aws_account_id ASC",
-			Value:     utils.Ptr(self.Account),
+			Key:     "aws_account_id",
+			Select:  "aws_account_id",
+			Where:   "aws_account_id=:aws_account_id",
+			GroupBy: "aws_account_id",
+			OrderBy: "aws_account_id ASC",
+			Value:   utils.Ptr(self.Account),
 		},
 		// AWS account name
 		&Field{
-			Key:       "name",
-			SelectAs:  "aws_accounts.name as aws_account_name",
-			WhereAs:   "aws_accounts.name=:aws_account_name",
-			GroupByAs: "aws_accounts.name",
-			OrderByAs: "aws_accounts.name ASC",
-			Value:     utils.Ptr(self.AccountName),
+			Key:     "name",
+			Select:  "aws_accounts.name as aws_account_name",
+			Where:   "aws_accounts.name=:aws_account_name",
+			GroupBy: "aws_accounts.name",
+			OrderBy: "aws_accounts.name ASC",
+			Value:   utils.Ptr(self.AccountName),
 		},
 		// AWS team name
 		&Field{
-			Key:       "team",
-			SelectAs:  "aws_accounts.team_name as team_name",
-			WhereAs:   "lower(aws_accounts.team_name)=lower(:team_name)",
-			GroupByAs: "aws_accounts.team_name",
-			OrderByAs: "aws_accounts.team_name ASC",
-			Value:     utils.Ptr(self.Team),
+			Key:     "team",
+			Select:  "aws_accounts.team_name as team_name",
+			Where:   "lower(aws_accounts.team_name)=lower(:team_name)",
+			GroupBy: "aws_accounts.team_name",
+			OrderBy: "aws_accounts.team_name ASC",
+			Value:   utils.Ptr(self.Team),
 		},
 		// AWS environment
 		&Field{
-			Key:       "environment",
-			SelectAs:  "aws_accounts.environment as aws_account_environment",
-			WhereAs:   "aws_accounts.environment=:aws_account_environment",
-			GroupByAs: "aws_accounts.environment",
-			OrderByAs: "aws_accounts.environment ASC",
-			Value:     utils.Ptr(self.Environment),
+			Key:     "environment",
+			Select:  "aws_accounts.environment as aws_account_environment",
+			Where:   "aws_accounts.environment=:aws_account_environment",
+			GroupBy: "aws_accounts.environment",
+			OrderBy: "aws_accounts.environment ASC",
+			Value:   utils.Ptr(self.Environment),
 		},
 		// AWS label
 		&Field{
-			Key:       "label",
-			SelectAs:  "aws_accounts.label as aws_account_label",
-			WhereAs:   "aws_accounts.label=:aws_account_label",
-			GroupByAs: "aws_accounts.label",
-			OrderByAs: "aws_accounts.label ASC",
-			Value:     utils.Ptr(self.Label),
+			Key:     "label",
+			Select:  "aws_accounts.label as aws_account_label",
+			Where:   "aws_accounts.label=:aws_account_label",
+			GroupBy: "aws_accounts.label",
+			OrderBy: "aws_accounts.label ASC",
+			Value:   utils.Ptr(self.Label),
 		},
 	}
 }
@@ -284,7 +284,7 @@ func (self *GetGroupedCostsOptions) Statement() (bound *sqlr.BoundStatement, par
 	var (
 		fields []*Field = self.Fields()
 		join   string   = `LEFT JOIN aws_accounts ON aws_accounts.id = aws_costs.aws_account_id`
-		stmt   string   = BuildGroupSelect("aws_costs", join, fields...)
+		stmt   string   = BuildSelectFromFields("aws_costs", join, fields...)
 	)
 	params = &awsCostsSqlParams{
 		StartDate:   self.StartDate,

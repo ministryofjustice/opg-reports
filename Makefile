@@ -57,8 +57,8 @@ coverage:
 
 #========= LOCAL =========
 
-.PHONY: local
-local: local/build/api local/build/front local/build/others local/download-database
+.PHONY: local/build
+local/build: local/build/api local/build/front local/build/others local/download-database
 
 .PHONY: local/download-database
 # download the development db

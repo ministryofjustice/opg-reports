@@ -7,6 +7,8 @@ import (
 )
 
 // TODO - IMPROVE THIS TEST!!
+// - TEST COST IMPORT
+// - ADD GROUPED API FOR UPTIME (ONLY HAS TEAM FILTER)
 func TestApiServiceSQLWithOptions(t *testing.T) {
 	dummyValues := map[string]string{
 		"team": "true",
@@ -14,32 +16,32 @@ func TestApiServiceSQLWithOptions(t *testing.T) {
 
 	fields := []*Field{
 		&Field{
-			Key:       "cost",
-			SelectAs:  "coalesce(SUM(cost), 0) as cost",
-			OrderByAs: "CAST(aws_costs.cost as REAL) DESC",
+			Key:     "cost",
+			Select:  "coalesce(SUM(cost), 0) as cost",
+			OrderBy: "CAST(aws_costs.cost as REAL) DESC",
 		},
 		&Field{
-			Key:       "date",
-			SelectAs:  "strftime(:date_format, date) as date",
-			WhereAs:   "date >= :start_date AND date <= :end_date",
-			GroupByAs: "strftime(:date_format, date)",
-			OrderByAs: "strftime(:date_format, date) ASC",
+			Key:     "date",
+			Select:  "strftime(:date_format, date) as date",
+			Where:   "date >= :start_date AND date <= :end_date",
+			GroupBy: "strftime(:date_format, date)",
+			OrderBy: "strftime(:date_format, date) ASC",
 		},
 
 		&Field{
-			Key:       "team",
-			SelectAs:  "aws_accounts.team_name as team_name",
-			WhereAs:   "lower(aws_accounts.team_name)=lower(:team_name)",
-			GroupByAs: "aws_accounts.name",
-			OrderByAs: "aws_accounts.name ASC",
-			Value:     utils.Ptr(dummyValues["team"]),
+			Key:     "team",
+			Select:  "aws_accounts.team_name as team_name",
+			Where:   "lower(aws_accounts.team_name)=lower(:team_name)",
+			GroupBy: "aws_accounts.name",
+			OrderBy: "aws_accounts.name ASC",
+			Value:   utils.Ptr(dummyValues["team"]),
 		},
 	}
 
-	s := Selects(fields...)
-	w := Wheres(fields...)
-	g := Groups(fields...)
-	o := Orders(fields...)
+	s := generateSelect(fields...)
+	w := generateWhere(fields...)
+	g := generateGroupBy(fields...)
+	o := generateOrderBy(fields...)
 
 	fmt.Println("selects --")
 	fmt.Println(s)
@@ -51,7 +53,7 @@ func TestApiServiceSQLWithOptions(t *testing.T) {
 	fmt.Println(o)
 	fmt.Println("==")
 
-	sql := BuildGroupSelect("aws_costs", "LEFT JOIN aws_accounts ON aws_accounts.id = aws_costs.aws_account_id", fields...)
+	sql := BuildSelectFromFields("aws_costs", "LEFT JOIN aws_accounts ON aws_accounts.id = aws_costs.aws_account_id", fields...)
 	fmt.Println(sql)
-	// t.FailNow()
+	t.FailNow()
 }
