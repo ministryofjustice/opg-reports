@@ -1,9 +1,9 @@
 name: "[Reports] AWS Uptime"
 
 on:
-  # run at 1am every day
+  # run at 3am every day
   schedule:
-    - cron: '0 2 * * *'
+    - cron: '0 3 * * *'
   # run when triggered manually
   workflow_dispatch:
     inputs:
