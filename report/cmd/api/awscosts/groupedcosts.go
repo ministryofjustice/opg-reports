@@ -99,7 +99,7 @@ func handleGetAwsGroupedCosts[T api.Model](
 	}
 
 	// create the options
-	options := &api.GetGroupedCostsOptions{
+	options := &api.GetAwsCostsGroupedOptions{
 		DateFormat:  utils.GRANULARITY_TO_FORMAT[input.Granularity],
 		StartDate:   input.StartDate,
 		EndDate:     input.EndDate,
@@ -120,7 +120,7 @@ func handleGetAwsGroupedCosts[T api.Model](
 	// set the response data
 	response.Body.Request = input
 	response.Body.Dates = utils.Months(input.StartDate, input.EndDate)
-	response.Body.Groups = options.Groups()
+	response.Body.Groups = api.GetGroupedByColumns(options)
 	response.Body.Data = costs
 	response.Body.Count = len(costs)
 

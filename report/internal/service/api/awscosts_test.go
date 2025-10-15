@@ -87,7 +87,7 @@ func TestApiServiceGetGroupedAwsCosts(t *testing.T) {
 	store := sqlr.DefaultWithSelect[*AwsCostGrouped](ctx, log, conf)
 	service := Default[*AwsCostGrouped](ctx, log, conf)
 
-	opts := &GetGroupedCostsOptions{
+	opts := &GetAwsCostsGroupedOptions{
 		StartDate:  start.Format(utils.DATE_FORMATS.YMD),
 		EndDate:    end.Format(utils.DATE_FORMATS.YMD),
 		DateFormat: utils.GRANULARITY_TO_FORMAT["month"],
