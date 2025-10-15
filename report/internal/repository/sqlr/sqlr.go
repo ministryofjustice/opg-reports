@@ -35,14 +35,20 @@ type empty struct{}
 // Init is called via New and it creates database using the
 // full SCHEMA
 func (self *Repository) init() (err error) {
-	_, err = self.Exec(SCHEMA)
+	err = MigrateUp(self)
 	return
 }
 
 // connection internal helper to handle connecting to the db
 func (self *Repository) connection() (db *sqlx.DB, err error) {
-	var dbSource string = self.conf.Database.Source()
+	var dbSource string
 
+	if self.conf == nil {
+		err = fmt.Errorf("error with connection, no configration values set.")
+		return
+	}
+
+	dbSource = self.conf.Database.Source()
 	// create the file path
 	dir := filepath.Dir(self.conf.Database.Path)
 	os.MkdirAll(dir, os.ModePerm)
@@ -53,6 +59,11 @@ func (self *Repository) connection() (db *sqlx.DB, err error) {
 		self.log.Error("connection failed", "error", err.Error(), "dbSource", dbSource)
 	}
 
+	return
+}
+
+func (self *Repository) Ping() (err error) {
+	_, err = self.connection()
 	return
 }
 
