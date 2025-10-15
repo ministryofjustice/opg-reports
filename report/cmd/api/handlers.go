@@ -33,8 +33,10 @@ func RegisterHandlers(ctx context.Context, log *slog.Logger, conf *config.Config
 		awsCostsGroupedStore   = sqlr.DefaultWithSelect[*api.AwsCostGrouped](ctx, log, conf)
 		awsCostsGroupedService = api.Default[*api.AwsCostGrouped](ctx, log, conf)
 		// UPTIME
-		awsUptimeStore   = sqlr.DefaultWithSelect[*api.AwsUptime](ctx, log, conf)
-		awsUptimeService = api.Default[*api.AwsUptime](ctx, log, conf)
+		awsUptimeStore          = sqlr.DefaultWithSelect[*api.AwsUptime](ctx, log, conf)
+		awsUptimeService        = api.Default[*api.AwsUptime](ctx, log, conf)
+		awsUptimeGroupedStore   = sqlr.DefaultWithSelect[*api.AwsUptimeGrouped](ctx, log, conf)
+		awsUptimeGroupedService = api.Default[*api.AwsUptimeGrouped](ctx, log, conf)
 	)
 	// HOME
 	home.RegisterGetHomepage(log, conf, humaapi)
@@ -47,5 +49,5 @@ func RegisterHandlers(ctx context.Context, log *slog.Logger, conf *config.Config
 	awscosts.RegisterGetAwsCostsGrouped(log, conf, humaapi, awsCostsGroupedService, awsCostsGroupedStore)
 	// AWS UPTIME
 	awsuptime.RegisterGetAwsUptimeAll(log, conf, humaapi, awsUptimeService, awsUptimeStore)
-
+	awsuptime.RegisterGetAwsUptimeGrouped(log, conf, humaapi, awsUptimeGroupedService, awsUptimeGroupedStore)
 }

@@ -90,12 +90,7 @@ func handleGetAwsCostsGrouped[T api.Model](
 
 	// if using monthly, set the start & end dates to first and last of month
 	if input.Granularity == string(utils.GranularityMonth) {
-		if sd, e := utils.StringToTime(input.StartDate); e == nil {
-			input.StartDate = utils.FirstDayOfMonth(sd).Format(utils.DATE_FORMATS.YMD)
-		}
-		if ed, e := utils.StringToTime(input.EndDate); e == nil {
-			input.EndDate = utils.LastDayOfMonth(ed).Format(utils.DATE_FORMATS.YMD)
-		}
+		input.StartDate, input.EndDate = utils.FirstAndLastOfMonth(input.StartDate, input.EndDate)
 	}
 
 	// create the options

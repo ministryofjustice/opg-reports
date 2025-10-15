@@ -138,6 +138,18 @@ func FirstDayOfMonth(t time.Time) (firstDay time.Time) {
 	return
 }
 
+// FirstAndLastOfMonth works out the first and last of the date strings
+func FirstAndLastOfMonth(start string, end string) (first string, last string) {
+
+	if sd, e := StringToTime(start); e == nil {
+		first = FirstDayOfMonth(sd).Format(DATE_FORMATS.YMD)
+	}
+	if ed, e := StringToTime(end); e == nil {
+		last = LastDayOfMonth(ed).Format(DATE_FORMATS.YMD)
+	}
+	return
+}
+
 // Month returns a YYYY-MM-DD formatted string of the first day of a month. The modifier adjusts
 // the month (plus or minus)
 func Month(monthModifier int) (m string) {
