@@ -13,6 +13,18 @@ const (
 	orderByEOL string = ",\n"
 )
 
+const buildStmtTemplate string = `
+SELECT
+%s
+FROM %s%s
+WHERE
+%s
+GROUP BY
+%s
+ORDER BY
+%s
+;`
+
 // Field is used represent an item with in the SQL statement that we want to generate.
 //
 // It is used to handle more dynamic SQL generation that handles both fixed values
@@ -201,19 +213,13 @@ func generateOrderBy(fields ...*Field) (str string) {
 // This allows the SQL to flex to include only the fields and clauses required
 // based on the configured Fields
 func BuildSelectFromFields(table string, joins string, fields ...*Field) (sql string) {
-	var stmt string = `
-SELECT
-%s
-FROM %s
-%s
-WHERE
-%s
-GROUP BY
-%s
-ORDER BY
-%s
-;`
-	sql = fmt.Sprintf(stmt,
+
+	// add a new line on the joins if its set
+	if joins != "" {
+		joins = " \n" + joins
+	}
+
+	sql = fmt.Sprintf(buildStmtTemplate,
 		generateSelect(fields...),
 		table,
 		joins,

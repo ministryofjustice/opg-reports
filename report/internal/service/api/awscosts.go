@@ -182,7 +182,7 @@ func (self *GetGroupedCostsOptions) Fields() []*Field {
 		&Field{
 			Key:     "cost",
 			Select:  "coalesce(SUM(cost), 0) as cost",
-			OrderBy: "CAST(aws_costs.cost as REAL) DESC",
+			OrderBy: "CAST(coalesce(SUM(cost), 0) as REAL) DESC",
 		},
 		&Field{
 			Key:     "date",

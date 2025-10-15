@@ -12,6 +12,84 @@ type tStmtGen struct {
 	Expected string
 }
 
+// TestApiServiceBuildSelectFromFields test an entire built part of sql
+func TestApiServiceBuildSelectFromFields(t *testing.T) {
+	var tests = []*tStmtGen{
+		// sinmple one to generate statement with a few fields and groups always there
+		{
+			Expected: "SELECT SUM(cost) as cost, strftime(:date_format, date) as date, region, service FROM test_table WHERE (date >= :start_date AND date <= :end_date) AND service=:service GROUP BY strftime(:date_format, date), region, service ORDER BY SUM(cost) DESC, strftime(:date_format, date) ASC ;",
+			Fields: []*Field{
+				{
+					Key:     "cost",
+					Select:  "SUM(cost) as cost",
+					OrderBy: "SUM(cost) DESC",
+				},
+				{
+					Key:     "date",
+					Select:  "strftime(:date_format, date) as date",
+					Where:   "(date >= :start_date AND date <= :end_date)",
+					GroupBy: "strftime(:date_format, date)",
+					OrderBy: "strftime(:date_format, date) ASC",
+				},
+				{
+					Key:     "region",
+					Select:  "region",
+					Where:   "region=:region",
+					GroupBy: "region",
+					Value:   utils.Ptr("true"),
+				},
+				{
+					Key:     "service",
+					Select:  "service",
+					Where:   "service=:service",
+					GroupBy: "service",
+				},
+			},
+		},
+		// generate with a filter
+		{
+			Expected: "SELECT SUM(cost) as cost, strftime(:date_format, date) as date, region, service FROM test_table WHERE (date >= :start_date AND date <= :end_date) AND service=:service GROUP BY strftime(:date_format, date), region ORDER BY SUM(cost) DESC, strftime(:date_format, date) ASC ;",
+			Fields: []*Field{
+				{
+					Key:     "cost",
+					Select:  "SUM(cost) as cost",
+					OrderBy: "SUM(cost) DESC",
+				},
+				{
+					Key:     "date",
+					Select:  "strftime(:date_format, date) as date",
+					Where:   "(date >= :start_date AND date <= :end_date)",
+					GroupBy: "strftime(:date_format, date)",
+					OrderBy: "strftime(:date_format, date) ASC",
+				},
+				{
+					Key:     "region",
+					Select:  "region",
+					Where:   "region=:region",
+					GroupBy: "region",
+					Value:   utils.Ptr("true"),
+				},
+				{
+					Key:     "service",
+					Select:  "service",
+					Where:   "service=:service",
+					GroupBy: "service",
+					Value:   utils.Ptr("ECS"),
+				},
+			},
+		},
+	}
+	for i, test := range tests {
+		var actual = BuildSelectFromFields("test_table", "", test.Fields...)
+		actual = strings.ReplaceAll(actual, "\n", " ")
+		actual = strings.ReplaceAll(actual, "  ", " ")
+		actual = strings.Trim(actual, " ")
+		if test.Expected != actual {
+			t.Errorf("[%d] BuildSelectFromFields generation error, actual does not match expected:\nactual:[%s]\nexpected:[%s]\n", i, actual, test.Expected)
+		}
+	}
+}
+
 // TestApiServiceGenerateOrder tests various combinations fields for order bys
 func TestApiServiceGenerateOrder(t *testing.T) {
 
