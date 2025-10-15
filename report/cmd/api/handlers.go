@@ -44,7 +44,7 @@ func RegisterHandlers(ctx context.Context, log *slog.Logger, conf *config.Config
 	awsaccounts.RegisterGetAwsAccountsAll(log, conf, humaapi, awsAccountService, awsAccountsStore)
 	// AWS COSTS
 	awscosts.RegisterGetAwsCostsTop20(log, conf, humaapi, awsCostsService, awsCostsStore)
-	awscosts.RegisterGetAwsGroupedCosts(log, conf, humaapi, awsCostsGroupedService, awsCostsGroupedStore)
+	awscosts.RegisterGetAwsCostsGrouped(log, conf, humaapi, awsCostsGroupedService, awsCostsGroupedStore)
 	// AWS UPTIME
 	awsuptime.RegisterGetAwsUptimeAll(log, conf, humaapi, awsUptimeService, awsUptimeStore)
 

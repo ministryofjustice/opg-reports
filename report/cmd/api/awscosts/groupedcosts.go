@@ -14,18 +14,18 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 )
 
-// GetAwsGroupedCostsResponse
-type GetAwsGroupedCostsResponse[T api.Model] struct {
+// GetAwsCostsGroupedResponse
+type GetAwsCostsGroupedResponse[T api.Model] struct {
 	Body struct {
 		Count   int                   `json:"count"`
-		Request *GroupedAwsCostsInput `json:"request"`
+		Request *AwsCostsGroupedInput `json:"request"`
 		Dates   []string              `json:"dates"`
 		Groups  []string              `json:"groups"`
 		Data    []T                   `json:"data"`
 	}
 }
 
-// GroupedAwsCostsInput is the input object for fetching grouped aws costs.
+// AwsCostsGroupedInput is the input object for fetching grouped aws costs.
 //
 // The `Team`, `Region`, `Service`, `Account` & `Environment` properties are
 // used as a filter. When they are set to _true_ they are used in the select,
@@ -34,7 +34,7 @@ type GetAwsGroupedCostsResponse[T api.Model] struct {
 //
 // This allows the handler to process a large range of AWS cost queries
 // via the same endpoint.
-type GroupedAwsCostsInput struct {
+type AwsCostsGroupedInput struct {
 	Granularity string `json:"granularity,omitempty" path:"granularity" default:"monthly" enum:"yearly,monthly" doc:"Determine if the data is grouped by year or month."`
 	StartDate   string `json:"start_date,omitempty" path:"start_date" required:"true" doc:"Earliest date to return data from (uses >=). YYYY-MM-DD." example:"2024-03-01" pattern:"([0-9]{4}-[0-9]{2}[\\-0-9]{0,2})"`
 	EndDate     string `json:"end_date,omitempty" path:"end_date" required:"true" doc:"Latest date to capture the data for (uses <). YYYY-MM-DD."  example:"2024-04-01" pattern:"([0-9]{4}-[0-9]{2}[\\-0-9]{0,2})"`
@@ -48,8 +48,8 @@ type GroupedAwsCostsInput struct {
 	Environment string `json:"environment,omitempty" query:"environment" enum:"development,preproduciton,production,backup,true" doc:"Group and filter flag for account environment type. When _true_ adds environment to group and selection, when any other value it becomes an exact match filter."`
 }
 
-// RegisterGetAwsGroupedCosts handles all AWS Cost request that are grouped by date + other fields.
-func RegisterGetAwsGroupedCosts[T api.Model](
+// RegisterGetAwsCostsGrouped handles all AWS Cost request that are grouped by date + other fields.
+func RegisterGetAwsCostsGrouped[T api.Model](
 	log *slog.Logger,
 	conf *config.Config,
 	humaapi huma.API,
@@ -65,21 +65,21 @@ func RegisterGetAwsGroupedCosts[T api.Model](
 		DefaultStatus: http.StatusOK,
 		Tags:          []string{"AWS Costs"},
 	}
-	huma.Register(humaapi, operation, func(ctx context.Context, input *GroupedAwsCostsInput) (*GetAwsGroupedCostsResponse[T], error) {
-		return handleGetAwsGroupedCosts(ctx, log, conf, service, store, input)
+	huma.Register(humaapi, operation, func(ctx context.Context, input *AwsCostsGroupedInput) (*GetAwsCostsGroupedResponse[T], error) {
+		return handleGetAwsCostsGrouped(ctx, log, conf, service, store, input)
 	})
 }
 
-// handleGetAwsGroupedCosts uses the input parameters to work out a series of options for the
+// handleGetAwsCostsGrouped uses the input parameters to work out a series of options for the
 // underlying service to run against the database about how the cost data is grouped together
 // and what fields are used within the select / where etc.
-func handleGetAwsGroupedCosts[T api.Model](
+func handleGetAwsCostsGrouped[T api.Model](
 	ctx context.Context, log *slog.Logger, conf *config.Config,
 	service api.AwsCostsGroupedGetter[T], store sqlr.RepositoryReader,
-	input *GroupedAwsCostsInput,
-) (response *GetAwsGroupedCostsResponse[T], err error) {
+	input *AwsCostsGroupedInput,
+) (response *GetAwsCostsGroupedResponse[T], err error) {
 	var costs []T = []T{}
-	response = &GetAwsGroupedCostsResponse[T]{}
+	response = &GetAwsCostsGroupedResponse[T]{}
 	log.Info("handling get-awscosts-grouped")
 
 	if service == nil {

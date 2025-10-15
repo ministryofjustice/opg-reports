@@ -112,7 +112,7 @@ func parseAwsCostsGroupedF(response *apiResponseAwsCostsGrouped) (dt *datatable.
 }
 
 // awsCostsParams returns a map of the values that aws costs endpoints can accept.
-// See `awscosts.GroupedAwsCostsInput` for the input struct.
+// See `awscosts.AwsCostsGroupedInput` for the input struct.
 func awsCostsParams() map[string]string {
 	var (
 		now   = time.Now().UTC()
