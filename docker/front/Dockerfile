@@ -1,6 +1,6 @@
 ARG TARGETOS TARGETARCH
 # setup base docker image building the application
-FROM golang:1.25.0-alpine@sha256:f18a072054848d87a8077455f0ac8a25886f2397f88bfdd222d6fafbb5bba440 AS build
+FROM golang:1.25.2-alpine@sha256:06cdd34bd531b810650e47762c01e025eb9b1c7eadd191553b91c9f2d549fae8 AS build
 COPY --link go.sum go.mod /app/
 COPY --link ./report/ /app/report/
 COPY --link ./report/cmd/front/templates/ /gobin/app/templates/

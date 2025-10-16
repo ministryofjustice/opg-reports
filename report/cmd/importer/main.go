@@ -1,7 +1,5 @@
 /*
-importer handles adding data to the database for use by the API. Can either import test data via `seed` or real data with other commands.
-
-Seeding generates a small database for use in testing / development.
+importer handles adding data to the database for use by the API from real data with other commands.
 
 Usage:
 
@@ -10,7 +8,7 @@ Usage:
 Available commands:
 
 	awscosts
-	seed
+	awsuptime
 
 # Examples
 
@@ -24,6 +22,7 @@ import (
 	"os"
 
 	"opg-reports/report/config"
+	"opg-reports/report/internal/repository/awsr"
 	"opg-reports/report/internal/utils"
 
 	"github.com/spf13/cobra"
@@ -38,18 +37,21 @@ var (
 	log       *slog.Logger
 )
 
-// optional arguments
-var (
-	flagMonth        string = ""
-	flagIncludeCosts bool   = false
-)
-
 // root command
 var rootCmd = &cobra.Command{
 	Use:               "importer",
 	Short:             "Importer",
 	Long:              `importer can populate database with seeded data ("seed") or new data via specific external api's.`,
 	CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
+}
+
+// awsAccountID returns the account id
+func awsAccountID(client awsr.ClientSTSCaller, store awsr.RepositorySTS) (accountID string, err error) {
+	caller, err := store.GetCallerIdentity(client)
+	if caller != nil {
+		accountID = *caller.Account
+	}
+	return
 }
 
 // init
@@ -60,13 +62,14 @@ func init() {
 
 	// extra options that aren't handled via config env values
 	// awscosts - month to get data for
-	awscostsCmd.Flags().StringVar(&flagMonth, "month", utils.StartOfMonth().Format(utils.DATE_FORMATS.YMD), "The month to get cost data for. (YYYY-MM-DD)")
+
 }
 
 func main() {
 	rootCmd.AddCommand(
-		seedCmd,
-		awscostsCmd)
+		awscostsCmd,
+		awsuptimeCmd,
+	)
 	err := rootCmd.Execute()
 	// fail on errir
 	if err != nil {

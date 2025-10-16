@@ -1,0 +1,171 @@
+name: "[Reports] AWS Uptime"
+
+on:
+  # run at 3am every day
+  schedule:
+    - cron: '0 3 * * *'
+  # run when triggered manually
+  workflow_dispatch:
+    inputs:
+      day:
+        description: "YYYY-MM-DD formatted day to get uptime data for (example: 2025-08-11)."
+        type: string
+        default: ""
+
+permissions:
+  actions: read
+  contents: write
+  id-token: write
+
+# general env vars for where downloading db / binary
+env:
+  RELEASE_DIR: ./releases
+  DB_DIR: ./databases
+  REPORT: "awsuptime"
+
+# jobs
+jobs:
+  setup:
+    name: "Set variables"
+    runs-on: ubuntu-latest
+    outputs:
+      # Account matrix
+      account_matrix: ${{ steps.account_matrix.outputs.matrix }}
+      # AWS S3 bucket & role info
+      # dev
+      s3_bucket_development: "opg-reports-development"
+      s3_role_development: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
+      # prod
+      s3_bucket_production: "opg-reports-production"
+      s3_role_production: "arn:aws:iam::997462338508:role/opg-reports-github-actions-s3"
+
+    steps:
+      # Check the code base
+      - name: "Checkout"
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      # Get AWS account list
+      - name: "Get account matrix"
+        id: account_matrix
+        uses: ./.github/actions/get-aws-accounts-matrix
+        with:
+          file: "accounts.aws.uptime.json"
+          github_token: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
+
+  # runner
+  runner:
+    name: "Run Report (SYNCHRONUS)"
+    needs:
+      - setup
+    runs-on: ubuntu-latest
+    strategy:
+      #########
+      # MAX-PARALLEL IS 1 TO MAKE THE CALLS SYNCHRONUS AND AVOID DB SYNCING ISSUES.
+      # If this was concurrent, the download and upload of the db has potention to
+      # overwrite with older versions depending how long things take to execute
+      #########
+      max-parallel: 1
+      fail-fast: true
+      matrix: ${{ fromJson(needs.setup.outputs.account_matrix) }}
+    steps:
+      # checkout self
+      - name: "[${{ matrix.name }}] Checkout"
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: "[${{ matrix.name }}] Create directories"
+        env:
+          dbs: ${{ env.DB_DIR }}
+          rels: ${{ env.RELEASE_DIR }}
+        run: mkdir -p ${{ env.dbs }} ${{ env.rels }}
+      # download the last release
+      - name: "[${{ matrix.name }}] Download release"
+        uses: ./.github/actions/download-release
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          directory: ${{ env.RELEASE_DIR }}
+      # configure the aws creds to download the existing database
+      - name: "[${{ matrix.name }}] Configure AWS credentials for S3 download from prod"
+        uses: aws-actions/configure-aws-credentials@00943011d9042930efac3dcd3a170e4273319bc8 # v5.1.0
+        with:
+          aws-region: "eu-west-1"
+          role-duration-seconds: 900
+          role-to-assume: ${{ needs.setup.outputs.s3_role_production }}
+          role-session-name: reports-download-db-from-s3
+      # download PRODUCTION database as the base to use to insert into
+      - name: "[${{ matrix.name }}] Download database from PROD"
+        env:
+          DATABASE_PATH: ${{ env.DB_DIR }}/api.db
+          DATABASE_BUCKET_NAME: ${{ needs.setup.outputs.s3_bucket_production }}
+          cmd: ${{ env.RELEASE_DIR }}/db
+        run: |
+          chmod -Rf 0777 ${{ env.RELEASE_DIR }}
+          ${{ env.cmd }} download
+          ls -lh ${{ env.DB_DIR }}
+      # Change AWS creds to run the report
+      #   setup the role to use
+      - name: "[${{ matrix.name }}] Configure AWS credentials for running the report"
+        env:
+          report_role: "arn:aws:iam::${{ matrix.id }}:role/gh-actions-uptime-metrics"
+        uses: aws-actions/configure-aws-credentials@00943011d9042930efac3dcd3a170e4273319bc8 # v5.1.0
+        with:
+          aws-region: "eu-west-1"
+          role-duration-seconds: 900
+          role-to-assume: "${{ env.report_role }}"
+          role-session-name: "opg-reports-get-${{ env.REPORT }}"
+      # Run the report
+      - name: "[${{ matrix.name }}] Run ${{ env.REPORT }} report"
+        env:
+          DATABASE_PATH: ${{ env.DB_DIR }}/api.db
+          cmd: ${{ env.RELEASE_DIR }}/importer ${{ env.REPORT }}
+          dayArg: ${{ inputs.day != '' && '--day=' || '' }}
+        run: |
+          chmod -Rf 0777 ${{ env.RELEASE_DIR }}
+          ${{ env.cmd }} ${{ env.dayArg }}${{ inputs.day }}
+          ls -lh ${{ env.DB_DIR }}
+      # configure the aws creds to upload the existing database - PRODUCTION
+      - name: "[${{ matrix.name }}] Configure AWS credentials for S3 upload to prod"
+        uses: aws-actions/configure-aws-credentials@00943011d9042930efac3dcd3a170e4273319bc8 # v5.1.0
+        with:
+          aws-region: "eu-west-1"
+          role-duration-seconds: 900
+          role-to-assume: ${{ needs.setup.outputs.s3_role_production }}
+          role-session-name: reports-upload-db-to-s3
+      # upload PRODUCTION database
+      - name: "[${{ matrix.name }}] Upload database - PROD"
+        env:
+          DATABASE_PATH: ${{ env.DB_DIR }}/api.db
+          DATABASE_BUCKET_NAME: ${{ needs.setup.outputs.s3_bucket_production }}
+          cmd: ${{ env.RELEASE_DIR }}/db
+        run: |
+          chmod -Rf 0777 ${{ env.RELEASE_DIR }}
+          ${{ env.cmd }} upload
+      # configure the aws creds to upload the existing database - DEVELOPMENT
+      - name: "[${{ matrix.name }}] Configure AWS credentials for S3 upload to dev"
+        uses: aws-actions/configure-aws-credentials@00943011d9042930efac3dcd3a170e4273319bc8 # v5.1.0
+        with:
+          aws-region: "eu-west-1"
+          role-duration-seconds: 900
+          role-to-assume: ${{ needs.setup.outputs.s3_role_development }}
+          role-session-name: reports-upload-db-to-s3
+      # upload DEVELOPMENT database
+      - name: "[${{ matrix.name }}] Upload database - DEV"
+        env:
+          DATABASE_PATH: ${{ env.DB_DIR }}/api.db
+          DATABASE_BUCKET_NAME: ${{ needs.setup.outputs.s3_bucket_development }}
+          cmd: ${{ env.RELEASE_DIR }}/db
+        run: |
+          chmod -Rf 0777 ${{ env.RELEASE_DIR }}
+          ${{ env.cmd }} upload
+      # remove the files
+      - name: "[${{ matrix.name }}] Clean up"
+        run: |
+          rm -Rf ${{ env.RELEASE_DIR }} ${{ env.DB_DIR }}
+
+  # final step
+  end:
+    name: 'End'
+    runs-on: 'ubuntu-latest'
+    needs:
+      - runner
+    steps:
+      - id: end
+        name: End
+        run: echo "End"

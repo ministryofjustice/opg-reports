@@ -3,9 +3,8 @@ SERVICES ?= api front
 CMD_BUILD = ./builds/cmd
 API_BUILD = ./builds/api
 DB_BUILD = ./builds/databases
-DBP = ${DB_BUILD}/api.db
-FRONT_BUILD =./builds/front
-VERBOSE ?= # --verbose
+DBP ?= ${DB_BUILD}/api.db
+FRONT_BUILD = ./builds/front
 
 tests:
 	@go clean -testcache
@@ -58,6 +57,9 @@ coverage:
 
 #========= LOCAL =========
 
+.PHONY: local/build
+local/build: local/build/api local/build/front local/build/others local/download-database
+
 .PHONY: local/download-database
 # download the development db
 local/download-database:
@@ -70,7 +72,6 @@ local/download-database:
    		${CMD_BUILD}/bin/db download
 
 .PHONY: local/build/api
-
 local/build/api:
 	@rm -Rf ${API_BUILD}
 	@mkdir -p ${API_BUILD} ${API_BUILD}/bin
@@ -109,6 +110,8 @@ local/build/others:
 	@mkdir -p ${CMD_BUILD} ${CMD_BUILD}/bin
 	@go build -o ${CMD_BUILD}/bin/db ./report/cmd/db/
 	@go build -o ${CMD_BUILD}/bin/importer ./report/cmd/importer/
+	@go build -o ${CMD_BUILD}/bin/seeder ./report/cmd/seeder/
+	@go build -o ${CMD_BUILD}/bin/migrate ./report/cmd/migrate/
 
 #========= DOCKER =========
 ## Build local development version of the docker image

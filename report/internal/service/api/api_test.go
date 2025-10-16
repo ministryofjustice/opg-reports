@@ -9,13 +9,9 @@ import (
 	"opg-reports/report/internal/service/seed"
 )
 
-func seedDB(ctx context.Context, log *slog.Logger, conf *config.Config) (teams []*sqlr.BoundStatement, awsaccounts []*sqlr.BoundStatement, awscosts []*sqlr.BoundStatement) {
-
+func seedDB(ctx context.Context, log *slog.Logger, conf *config.Config) (results *seed.SeedAllResults, err error) {
 	sqc := sqlr.Default(ctx, log, conf)
 	seeder := seed.Default(ctx, log, conf)
-	teams, _ = seeder.Teams(sqc)
-	awsaccounts, _ = seeder.AwsAccounts(sqc)
-	awscosts, _ = seeder.AwsCosts(sqc)
-
+	results, err = seeder.All(sqc)
 	return
 }

@@ -9,7 +9,7 @@ import (
 	"opg-reports/report/internal/repository/sqlr"
 	"opg-reports/report/internal/utils"
 
-	"github.com/google/go-github/v74/github"
+	"github.com/google/go-github/v75/github"
 )
 
 // stmtTeamImport

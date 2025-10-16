@@ -13,14 +13,10 @@ import (
 	"opg-reports/report/internal/utils"
 )
 
-func seedDB(ctx context.Context, log *slog.Logger, conf *config.Config) (inserted []*sqlr.BoundStatement) {
-
+func seedDB(ctx context.Context, log *slog.Logger, conf *config.Config) (inserted *seed.SeedAllResults, err error) {
 	sqc := sqlr.Default(ctx, log, conf)
 	seeder := seed.Default(ctx, log, conf)
-	seeder.Teams(sqc)
-	seeder.AwsAccounts(sqc)
-	inserted, _ = seeder.AwsCosts(sqc)
-
+	inserted, err = seeder.All(sqc)
 	return
 }
 
@@ -36,7 +32,7 @@ func TestHandleGetAwsCostsTop20(t *testing.T) {
 	// overwrite the database location
 	conf.Database.Path = fmt.Sprintf("%s/%s", dir, "test-costs-top20.db")
 	// capture the inserted data
-	inserted := seedDB(ctx, log, conf)
+	inserted, err := seedDB(ctx, log, conf)
 	// generate a repository and service
 	repository, _ := sqlr.NewWithSelect[*api.AwsCost](ctx, log, conf)
 	service, _ := api.New[*api.AwsCost](ctx, log, conf)
@@ -49,7 +45,7 @@ func TestHandleGetAwsCostsTop20(t *testing.T) {
 		t.Errorf("expected 20 results to be returned :%v", response.Body.Count)
 	}
 	// make sure all counts match
-	if len(inserted) <= response.Body.Count {
+	if len(inserted.AwsCosts) <= response.Body.Count {
 		t.Errorf("count mismatch")
 	}
 

@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/google/go-github/v74/github"
+	"github.com/google/go-github/v75/github"
 )
 
 // DownloadGovUKFrontEnd fetches the govuk front end generated release files
@@ -40,7 +40,7 @@ func (self *Service) DownloadGovUKFrontEnd(
 	// get the release
 	release, err = store.GetRepositoryRelease(client, owner, repository, relOpts)
 	if err != nil {
-		log.Error("failed to find a matching repository release")
+		log.Error("failed to find a matching repository release", "err", err.Error())
 		return
 	}
 	log.With("release", *release.Name, "tag", *release.TagName).Debug("found release")

@@ -58,7 +58,6 @@ func init() {
 	conf, viperConf = config.New()
 	ctx = context.Background()
 	log = utils.Logger(conf.Log.Level, conf.Log.Type)
-
 }
 
 func main() {
