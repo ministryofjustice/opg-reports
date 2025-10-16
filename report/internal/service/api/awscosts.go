@@ -122,16 +122,16 @@ func awsCostsGroupedSqlFields(options *GetAwsCostsGroupedOptions) []*Field {
 			Where: "service != 'Tax'",
 		},
 		&Field{
-			Key:     "cost",
-			Select:  "coalesce(SUM(cost), 0) as cost",
-			OrderBy: "CAST(coalesce(SUM(cost), 0) as REAL) DESC",
-		},
-		&Field{
 			Key:     "date",
 			Select:  "strftime(:date_format, date) as date",
 			Where:   "(date >= :start_date AND date <= :end_date)",
 			GroupBy: "strftime(:date_format, date)",
-			OrderBy: "strftime(:date_format, date) ASC",
+			OrderBy: "strftime(:date_format, date) DESC",
+		},
+		&Field{
+			Key:     "cost",
+			Select:  "coalesce(SUM(cost), 0) as cost",
+			OrderBy: "CAST(coalesce(SUM(cost), 0) as REAL) DESC",
 		},
 		// Region
 		&Field{
@@ -223,5 +223,6 @@ func awsCostsGroupedSqlStatement(options *GetAwsCostsGroupedOptions) (bound *sql
 		Environment: options.Environment,
 	}
 	bound = &sqlr.BoundStatement{Data: params, Statement: stmt}
+	utils.Dump(stmt)
 	return
 }

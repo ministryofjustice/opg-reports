@@ -73,16 +73,16 @@ type awsUptimeSqlParams struct {
 func awsUptimeGroupedSqlFields(options *GetAwsUptimeGroupedOptions) []*Field {
 	return []*Field{
 		&Field{
-			Key:     "average",
-			Select:  "AVG(average) as average",
-			OrderBy: "CAST(AVG(average) as REAL) DESC",
-		},
-		&Field{
 			Key:     "date",
 			Select:  "strftime(:date_format, date) as date",
 			Where:   "(date >= :start_date AND date <= :end_date)",
 			GroupBy: "strftime(:date_format, date)",
-			OrderBy: "strftime(:date_format, date) ASC",
+			OrderBy: "strftime(:date_format, date) DESC",
+		},
+		&Field{
+			Key:     "average",
+			Select:  "AVG(average) as average",
+			OrderBy: "CAST(AVG(average) as REAL) DESC",
 		},
 		// AWS team name
 		&Field{
