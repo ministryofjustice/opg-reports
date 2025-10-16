@@ -31,3 +31,46 @@ The service functions exposed are aimed at solving a single, direct ask of the a
 
 There are various functional needs that are repeated within our code base that are used in multiple places; most of this code is handled under the `utils` package - this covers things like string to transformations, marshaling of structures and more.
 
+## Adding new data
+
+Steps
+- Add new capabilities to fetch required data in the relevant `repository` package
+    - maybe a new repository package is required
+    - create a file for the datatype within the repository
+    - for AWS extend the allowed list of sdk clients via the `SupportedClients` interface
+    - Add interfaces for new `RepositoryX` & `ClientX` values
+- Add migration for new data type into `DB_MIGRATIONS_UP` slice in `sqlr/schema.go`
+- Add new function in the `service/seed` package for the new datatype
+    - create a file for datatype
+    - create a private model struct & create private insert statement
+    - create sample / test data slice to insert
+    - create function on the `Service` struct
+    - add new func into the `All` function & return data type
+- Add new, basic capabilities to the `service/api` package
+    - Create a new file in the api package for this data type & `${DataType}_handlers` file as well
+    - in `${DataType}` file...
+        - define an insert sql statement (copy from seed)
+        - define a select all sql statement
+    - in `${DataType}_handlers`
+        - define a `${DataType}` struct with fields to handle the results of the `all` call
+        - create a `GetAll${DataType}` func on the `Service[T]` struct (see others for how)
+        - create an interface `${DataType}Getter` with the `GetAll${DataType}All` func & `Closer`
+        - add a `Put${DataType}` func on the `Service[T]`
+- Add handlers for the basic endpoints in the `cmd/api` package
+    - create new folder & package for the data type
+    - create a `all` file in the new package
+    - create a response struct like `Get${DataType}AllResponse`
+    - create a `handleGet${DataType}All[T]` func similar to others but using the correct interfaces
+    - create a `RegisterGet${DataType}All[T]` func
+    - add the `RegisterGet${DataType}All[T]` func to the `RegisterHandlers` func in `cmd/api/handlers.go`
+- Add new importer capabilities in `cmd/importer`
+    - Will use the sevice package above for inserting
+    - New file for the data type
+    - Create a new cobra command to handle the data type
+        - have a couple of sub funcs to get the data (via repository) and then insert it (via service)
+    - add a github workflow to run the command named `reports_${datatype}`
+        - run daily via cron, avoid other time slots where can to reduce db clashes
+- Revist and add capabilities to the `service/api` package for extended functionality
+    - Add new handlers and register them for the `cmd/api` package for any new features
+
+
