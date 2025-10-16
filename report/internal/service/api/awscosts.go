@@ -223,6 +223,5 @@ func awsCostsGroupedSqlStatement(options *GetAwsCostsGroupedOptions) (bound *sql
 		Environment: options.Environment,
 	}
 	bound = &sqlr.BoundStatement{Data: params, Statement: stmt}
-	utils.Dump(stmt)
 	return
 }
