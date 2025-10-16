@@ -72,5 +72,6 @@ Steps
         - run daily via cron, avoid other time slots where can to reduce db clashes
 - Revist and add capabilities to the `service/api` package for extended functionality
     - Add new handlers and register them for the `cmd/api` package for any new features
+- Adding the new data to the front end...
 
 
