@@ -3,6 +3,8 @@ package awsr
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
+	cwtypes "github.com/aws/aws-sdk-go-v2/service/cloudwatch/types" // aliased to avoid collisions with other packages
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
@@ -51,7 +53,31 @@ type RepositoryCostExplorer interface {
 
 // RepositoryCostExplorerGetter provides all method to get cost and usage data from the aws sdk
 type RepositoryCostExplorerGetter interface {
-	GetCostData(client ClientCostExplorerGetter, options *GetCostDataOptions) (values []map[string]string, err error)
+	GetCostData(client ClientCostExplorerGetter, options *costexplorer.GetCostAndUsageInput) (values []map[string]string, err error)
+}
+
+// RespositoryCloudwatch is main interface for handling cloudwatch uptime metrics from the route53 health checks
+type RespositoryCloudwatch interface {
+	RepositoryCloudwatchUptime
+}
+
+// RepositoryCloudwatchUptime contains all those required for handling uptime data
+type RepositoryCloudwatchUptime interface {
+	RepositoryCloudwatchUptimeData
+	RepositoryCloudwatchMetricsList
+	RepositoryCloudwatchUptimeDatapoints
+}
+
+type RepositoryCloudwatchUptimeData interface {
+	GetUptimeData(client ClientCloudWatchUptime, options *cloudwatch.GetMetricStatisticsInput) (stats []map[string]string, err error)
+}
+
+// RepositoryCloudwatchMetricsList contains the methods to return all the uptime metric endpoints for an account
+type RepositoryCloudwatchMetricsList interface {
+	GetUptimeMetrics(client ClientCloudWatchMetricsLister, options *GetUptimeMetricsOptions) (metrics []cwtypes.Metric, err error)
+}
+type RepositoryCloudwatchUptimeDatapoints interface {
+	GetUptimeDatapoints(client ClientCloudWatchMetricStats, metrics []cwtypes.Metric, options *cloudwatch.GetMetricStatisticsInput) (datapoints []cwtypes.Datapoint, err error)
 }
 
 // ClientSTS represents an overal sts client
@@ -89,8 +115,38 @@ type ClientS3ListAndGetter interface {
 	ClientS3Getter
 }
 
+type ClientCostExplorer interface {
+	ClientCostExplorerGetter
+}
+
 // ClientCostExplorerGetter represents the method needed by a client (costexplorer.Client) to call
 // the aws sdk
 type ClientCostExplorerGetter interface {
 	GetCostAndUsage(ctx context.Context, params *costexplorer.GetCostAndUsageInput, optFns ...func(*costexplorer.Options)) (*costexplorer.GetCostAndUsageOutput, error)
+}
+
+type ClientCloudWatch interface {
+	ClientCloudWatchUptime
+}
+
+type ClientCloudWatchUptime interface {
+	ClientCloudWatchMetricsLister
+	ClientCloudWatchMetricStats
+}
+
+// ClientCloudWatchMetricsLister represents the method used by a client to return the known
+// route53 uptime metrics endpoints
+type ClientCloudWatchMetricsLister interface {
+	ListMetrics(ctx context.Context, params *cloudwatch.ListMetricsInput, optFns ...func(*cloudwatch.Options)) (*cloudwatch.ListMetricsOutput, error)
+}
+
+// ClientCloudWatchMetricStats represents the cloudwatch client method used to fetch details
+// about each route53 health check we want
+type ClientCloudWatchMetricStats interface {
+	// GetMetricStatics - time period information
+	// 	 - Data points with a period of less than 60 seconds are available for 3 hours. These data points are high-resolution metrics and are available only for custom metrics that have been defined with a StorageResolution of 1.
+	// 	 - Data points with a period of 60 seconds (1-minute) are available for 15 days.
+	// 	 - Data points with a period of 300 seconds (5-minute) are available for 63 days.
+	// 	 - Data points with a period of 3600 seconds (1 hour) are available for 455 days (15 months).
+	GetMetricStatistics(ctx context.Context, params *cloudwatch.GetMetricStatisticsInput, optFns ...func(*cloudwatch.Options)) (out *cloudwatch.GetMetricStatisticsOutput, err error)
 }

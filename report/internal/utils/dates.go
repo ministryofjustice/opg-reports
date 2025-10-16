@@ -86,6 +86,7 @@ func StringToTimeResetAsString(s string, interval TimeInterval) (t string) {
 	return
 }
 
+// StringToTimeReset
 func StringToTimeReset(s string, interval TimeInterval) (t time.Time) {
 	if dt, err := StringToTime(s); err == nil {
 		t = TimeReset(dt, interval)
@@ -113,6 +114,11 @@ func TimeReset(t time.Time, interval TimeInterval) (reset time.Time) {
 	return
 }
 
+// Yesterday returns start of yesterday
+func Yesterday() (t time.Time) {
+	return TimeReset(time.Now().UTC(), TimeIntervalDay).AddDate(0, 0, -1)
+}
+
 // LastDayOfMonth provides the time for the last minute of the last day of the month
 //
 // If `t` is `2022-12-01T09:00:00` then should return `2022-12-31T23:59:59`
@@ -124,7 +130,7 @@ func LastDayOfMonth(t time.Time) (lastDay time.Time) {
 	return
 }
 
-// LastDayOfMonth provides the time for the last minute of the last day of the month
+// FirstDayOfMonth provides the time for the first minute of the first day of the month
 //
 // If `t` is `2022-12-10T09:00:00` then should return `2022-12-01T00:00:00`
 func FirstDayOfMonth(t time.Time) (firstDay time.Time) {
@@ -132,19 +138,22 @@ func FirstDayOfMonth(t time.Time) (firstDay time.Time) {
 	return
 }
 
-// Month returns a YYYY-MM-DD formatted string of the first data of a month. The modifier adjusts
-// the month (plus or minus)
-func Month(monthModifier int) (m string) {
-	m = TimeReset(time.Now().UTC().AddDate(0, monthModifier, 0), TimeIntervalMonth).Format(DATE_FORMATS.YMD)
+// FirstAndLastOfMonth works out the first and last of the date strings
+func FirstAndLastOfMonth(start string, end string) (first string, last string) {
+
+	if sd, e := StringToTime(start); e == nil {
+		first = FirstDayOfMonth(sd).Format(DATE_FORMATS.YMD)
+	}
+	if ed, e := StringToTime(end); e == nil {
+		last = LastDayOfMonth(ed).Format(DATE_FORMATS.YMD)
+	}
 	return
 }
 
-func DateStringAddMonths(date string, layout string, increment int) (d string) {
-	t, err := StringToTime(date)
-	if err != nil {
-		return
-	}
-	d = t.AddDate(0, increment, 0).Format(layout)
+// Month returns a YYYY-MM-DD formatted string of the first day of a month. The modifier adjusts
+// the month (plus or minus)
+func Month(monthModifier int) (m string) {
+	m = TimeReset(time.Now().UTC().AddDate(0, monthModifier, 0), TimeIntervalMonth).Format(DATE_FORMATS.YMD)
 	return
 }
 
@@ -173,11 +182,12 @@ func StartOfMonth() (month time.Time) {
 	return TimeReset(now, TimeIntervalMonth)
 }
 
-// timeAdd calls `AddDate` on `date` param and increments year / month / day by the quantity
+// TimeAdd calls `AddDate` on `date` param and increments year / month / day by the quantity
 // requested.
 //
 // Used to generate loop condition for incrementing between two dates
-func timeAdd(date time.Time, quantity int, interval TimeInterval) (t time.Time) {
+func TimeAdd(date time.Time, quantity int, interval TimeInterval) (t time.Time) {
+
 	switch interval {
 	case TimeIntervalYear:
 		t = date.AddDate(quantity, 0, 0)
@@ -185,6 +195,10 @@ func timeAdd(date time.Time, quantity int, interval TimeInterval) (t time.Time) 
 		t = date.AddDate(0, quantity, 0)
 	case TimeIntervalDay:
 		t = date.AddDate(0, 0, quantity)
+	case TimeIntervalHour:
+		dur := time.Hour * time.Duration(quantity)
+		t = date.Add(-dur)
+
 	}
 	return
 }
@@ -196,7 +210,7 @@ func Times(start time.Time, end time.Time, interval TimeInterval, increment int)
 	start = TimeReset(start, interval)
 	end = TimeReset(end, interval)
 
-	for d := start; d.After(end) == false; d = timeAdd(d, increment, interval) {
+	for d := start; d.After(end) == false; d = TimeAdd(d, increment, interval) {
 		times = append(times, d)
 	}
 	return

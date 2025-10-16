@@ -23,7 +23,7 @@ func TestApiServiceGetAllAwsCosts(t *testing.T) {
 	)
 	// set config values
 	conf.Database.Path = filepath.Join(dir, "./api-get-all-awscosts.db")
-	_, _, inserted := seedDB(ctx, log, conf)
+	inserted, err := seedDB(ctx, log, conf)
 
 	store := sqlr.DefaultWithSelect[*AwsCost](ctx, log, conf)
 	service := Default[*AwsCost](ctx, log, conf)
@@ -33,8 +33,8 @@ func TestApiServiceGetAllAwsCosts(t *testing.T) {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
 
-	if len(inserted) != len(data) {
-		t.Errorf("mismatching number of records: expected [%d] actual [%v]", len(inserted), len(data))
+	if len(inserted.AwsCosts) != len(data) {
+		t.Errorf("mismatching number of records: expected [%d] actual [%v]", len(inserted.AwsCosts), len(data))
 	}
 
 }
@@ -87,7 +87,7 @@ func TestApiServiceGetGroupedAwsCosts(t *testing.T) {
 	store := sqlr.DefaultWithSelect[*AwsCostGrouped](ctx, log, conf)
 	service := Default[*AwsCostGrouped](ctx, log, conf)
 
-	opts := &GetGroupedCostsOptions{
+	opts := &GetAwsCostsGroupedOptions{
 		StartDate:  start.Format(utils.DATE_FORMATS.YMD),
 		EndDate:    end.Format(utils.DATE_FORMATS.YMD),
 		DateFormat: utils.GRANULARITY_TO_FORMAT["month"],
@@ -100,7 +100,6 @@ func TestApiServiceGetGroupedAwsCosts(t *testing.T) {
 	if len(data) != 1 {
 		t.Errorf("expected 1, actual: %d", len(data))
 	}
-
 	// grouping by account & team
 	opts.Team = "true"
 	data, err = service.GetGroupedAwsCosts(store, opts)
@@ -121,7 +120,6 @@ func TestApiServiceGetGroupedAwsCosts(t *testing.T) {
 	if len(data) != 5 {
 		t.Errorf("expected 5 result, actual: %d", len(data))
 	}
-
 	// grouping by account & team should be 5
 	opts.Account = "true"
 	opts.Team = "true"
@@ -132,7 +130,6 @@ func TestApiServiceGetGroupedAwsCosts(t *testing.T) {
 	if len(data) != 5 {
 		t.Errorf("expected 5 result, actual: %d", len(data))
 	}
-
 	// check filtering by a team - should only return 1 team data
 	opts.Account = ""
 	opts.Team = "TEAM-A"

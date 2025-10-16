@@ -23,6 +23,7 @@ func TestFrontServiceDownloadGovUKFrontEnd(t *testing.T) {
 
 	files, _, err := serv.DownloadGovUKFrontEnd(client, store, dir)
 	if err != nil {
+
 		t.Errorf("unexpected error: %s", err.Error())
 	}
 	if len(files) <= 0 {

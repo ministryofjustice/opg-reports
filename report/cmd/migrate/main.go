@@ -1,22 +1,9 @@
 /*
-db used to download / upload database to configured locations.
-
-Used by the reporting workflows to fetch the database from s3.
-
-# Configure the location of datbase via environment varaibles
-
-Usage:
-
-	db [commands]
-
-Available commands:
-
-	download
-	upload
+migrate used to run the schema to migrate db
 
 # Example
 
-`aws-vault exec <profile> -- env DATABASE_PATH="./data/api.db" db download`
+`env DATABASE_PATH="./data/api.db" migrate up`
 */
 package main
 
@@ -40,16 +27,11 @@ var (
 	log       *slog.Logger
 )
 
-// optional arguments
-var (
-	month string = ""
-)
-
 // root command
 var rootCmd = &cobra.Command{
-	Use:               "db",
-	Short:             "db",
-	Long:              `db downloads or uploads sqlite database from s3`,
+	Use:               "migrate",
+	Short:             "migrate",
+	Long:              `migrate the database`,
 	CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
 }
 
@@ -61,7 +43,7 @@ func init() {
 }
 
 func main() {
-	rootCmd.AddCommand(downloadCmd, uploadCmd)
+	rootCmd.AddCommand(upCmd)
 	err := rootCmd.Execute()
 	// fail on errir
 	if err != nil {

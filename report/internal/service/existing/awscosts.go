@@ -21,7 +21,7 @@ INSERT INTO aws_costs (
 	:service,
 	:date,
 	:cost,
-	:account_id
+	:aws_account_id
 ) ON CONFLICT (aws_account_id,date,region,service)
  	DO UPDATE SET cost=excluded.cost
 RETURNING id;
@@ -53,7 +53,7 @@ type awsCost struct {
 	Service   string `json:"service,omitempty" db:"service"` // The AWS service name
 	Date      string `json:"date,omitempty" db:"date" `      // The data the cost was incurred - provided from the cost explorer result
 	Cost      string `json:"cost,omitempty" db:"cost" `      // The actual cost value as a string - without an currency, but is USD by default
-	AccountID string `json:"account_id" db:"account_id"`
+	AccountID string `json:"account_id" db:"aws_account_id"`
 }
 
 // InsertAwsCosts handles the inserting of existing cost data from files

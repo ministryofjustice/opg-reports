@@ -62,7 +62,7 @@ func (self *apiResponseAwsCostsGrouped) SumColumns() (cols []string) {
 	return
 }
 
-type preCallF func(params map[string]string)
+type awsCostsPreCallF func(params map[string]string)
 
 // GetAwsCostsGrouped call the api (based on config values), convert that data into tabluar
 // form for rendering, ensuring there are no empty / missing columns.
@@ -70,12 +70,22 @@ type preCallF func(params map[string]string)
 // The request object is used to merge the query string parameters from the front end with the default ones
 // used to call the api, therefore allowing the front end to directly change start_dates, team names etc
 //
-// the options set of `adjusters` functions allows a different way to overwrite parameters, by
+// the optional set of `adjusters` functions allows a different way to overwrite parameters, by
 // running a function against the parameters before the end point is generated - this allows user
-// to adjust a value with out knowing its original value
+// to adjust a value with out knowing its original value.
 //
-// Always adds billing date to the Others property
-func (self *Service) GetAwsCostsGrouped(client restr.RepositoryRestGetter, request *http.Request, apiParameters map[string]string, adjusters ...preCallF) (table *datatable.DataTable, err error) {
+// # Examples
+//
+// Grouping by team:
+//
+//	service.GetAwsCostsGrouped(client, request, map[string]string{"team":"true"} )
+//
+// Filtering costs by team & then grouping by account (and month by default):
+//
+//	service.GetAwsCostsGrouped(client, request, map[string]string{"team": teamName, "account_name": "true"} )
+//
+// Note: Always adds billing date to the Others property for use in front end returned data
+func (self *Service) GetAwsCostsGrouped(client restr.RepositoryRestGetter, request *http.Request, apiParameters map[string]string, adjusters ...awsCostsPreCallF) (table *datatable.DataTable, err error) {
 	var (
 		log      = self.log.With("operation", "GetAwsCostsGrouped")
 		defaults = awsCostsParams()
@@ -105,14 +115,14 @@ func (self *Service) GetAwsCostsGrouped(client restr.RepositoryRestGetter, reque
 // parseAwsCostsGroupedF calls the datatable.New which handles all of the conversion from a response
 // into a datatable
 //
-// The conversion is messy!
+// The conversion done by datatable.New is messy as it groups into table rows
 func parseAwsCostsGroupedF(response *apiResponseAwsCostsGrouped) (dt *datatable.DataTable, err error) {
 	dt, err = datatable.New(response)
 	return
 }
 
 // awsCostsParams returns a map of the values that aws costs endpoints can accept.
-// See `awscosts.GroupedAwsCostsInput` for the input struct.
+// See `awscosts.AwsCostsGroupedInput` for the input struct.
 func awsCostsParams() map[string]string {
 	var (
 		now   = time.Now().UTC()

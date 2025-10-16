@@ -1,10 +1,7 @@
 package api
 
 import (
-	"fmt"
-
 	"opg-reports/report/internal/repository/sqlr"
-	"opg-reports/report/internal/utils"
 )
 
 // AwsAccountsGetter interface is used for GetAllAccounts calls
@@ -36,26 +33,6 @@ type AwsAccount struct {
 	UptimeTracking bool   `json:"uptime_tracking" db:"uptime_tracking"`
 	// Joins to team
 	Team *hasOneTeam `json:"team,omitempty" db:"team"`
-}
-
-// team is internal and used for handling the account->team join
-type accountTeam struct {
-	Name string `json:"name,omitempty" db:"name" example:"SRE"`
-}
-
-type hasOneTeam accountTeam
-
-// Scan handles the processing of the join data
-func (self *hasOneTeam) Scan(src interface{}) (err error) {
-	switch src.(type) {
-	case []byte:
-		err = utils.Unmarshal(src.([]byte), self)
-	case string:
-		err = utils.Unmarshal([]byte(src.(string)), self)
-	default:
-		err = fmt.Errorf("unsupported scan src type")
-	}
-	return
 }
 
 // GetAllAccounts returns all accounts as a slice from the database
