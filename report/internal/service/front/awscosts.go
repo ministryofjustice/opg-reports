@@ -62,6 +62,10 @@ func (self *apiResponseAwsCostsGrouped) SumColumns() (cols []string) {
 	return
 }
 
+func (self *apiResponseAwsCostsGrouped) RowTotalCleanup() datatable.RowTotalCleaner {
+	return datatable.RowTotalsSummed
+}
+
 type awsCostsPreCallF func(params map[string]string)
 
 // GetAwsCostsGrouped call the api (based on config values), convert that data into tabluar

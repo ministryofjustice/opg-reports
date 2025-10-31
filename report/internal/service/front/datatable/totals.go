@@ -6,6 +6,42 @@ import (
 	"strconv"
 )
 
+// RowTotalsSummed does nothing, data remains the same as the raw data is assumed to data totals
+func RowTotalsSummed(table map[string]map[string]string, identifiers []string, columnName string) {}
+
+// RowTotalsAveraged converts the total current in each row to be an average, based on count of how many
+// data columns are presents
+func RowTotalsAveraged(table map[string]map[string]string, identifiers []string, columnName string) {
+
+	for _, row := range table {
+		var columnCount float64 = float64(rowDataColumnCount(row, identifiers, columnName))
+		var currentTotal string = row[columnName]
+		// if its a float, and greater than 0, work out its average
+		if total, e := strconv.ParseFloat(currentTotal, 64); e == nil && total > 0.0 {
+			total = total / columnCount
+			row[columnName] = fmt.Sprintf("%g", total)
+		}
+	}
+}
+
+// rowDataColumnCount worke out how many data columns are in the row
+func rowDataColumnCount(row map[string]string, identifiers []string, totalCol string) (count int) {
+	count = 0
+	// find only the number of non 0 row values
+	for col, v := range row {
+		if !slices.Contains(identifiers, col) && col != totalCol {
+			if value, e := strconv.ParseFloat(v, 64); e == nil && value > 0.0 {
+				count++
+			}
+		}
+	}
+	return
+}
+
+// AddColumnsToRows injects a every `column` into every row contains in table.
+//
+// Used to ensure every table row has every column contains, avoiding errors /
+// missing keys durning rendering
 func AddColumnsToRows(table map[string]map[string]string, columns ...string) {
 	for _, row := range table {
 		for _, col := range columns {
