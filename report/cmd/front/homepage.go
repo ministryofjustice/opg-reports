@@ -14,7 +14,8 @@ import (
 
 type homepageData struct {
 	page.PageContent
-	CostsByMonth *datatable.DataTable
+	CostsByTeamAndMonth  *datatable.DataTable // infrastrcture costs grouped by month
+	UptimeByTeamAndMonth *datatable.DataTable // service uptime grouped by months
 }
 
 // handleHomepage renders the request for `/` which currently displays:
@@ -43,24 +44,29 @@ func handleHomepage(
 		blocks         []conF
 	)
 	log.Info("processing page", "url", request.URL.String())
-
+	// all the dynamic content to fetch
 	blocks = []conF{
+		// get list of teams
 		func(i ...any) {
-			// get list of teams
 			data.Teams, _ = service.GetTeamNavigation(client, request)
 			wg.Done()
 		},
+		// get costs grouped by month & team
 		func(i ...any) {
-			// get costs grouped by month
 			opts := map[string]string{"team": "true"}
-			data.CostsByMonth, _ = service.GetAwsCostsGrouped(client, request, opts)
-
+			data.CostsByTeamAndMonth, _ = service.GetAwsCostsGrouped(client, request, opts)
+			wg.Done()
+		},
+		// get uptime grouped by month & team
+		func(i ...any) {
+			opts := map[string]string{"team": "true"}
+			data.UptimeByTeamAndMonth, _ = service.GetAwsUptimeGrouped(client, request, opts)
 			wg.Done()
 		},
 	}
-	for _, block := range blocks {
+	for _, blockFunc := range blocks {
 		wg.Add(1)
-		go block()
+		go blockFunc()
 	}
 	wg.Wait()
 	log.Info("procesed page", "url", request.URL.String())

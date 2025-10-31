@@ -1,0 +1,63 @@
+{{- define "uptime-table" -}}
+
+  {{ $footer := .Footer }}
+  {{ $rowHeaders := .RowHeaders }}
+  {{ $dataHeaders := .DataHeaders }}
+  {{ $extraHeaders := .ExtraHeaders }}
+  {{ $rows := .Body }}
+
+
+<table class="govuk-table reports-table">
+    <thead class="govuk-table__head">
+      <tr class="govuk-table__row">
+      {{- range $x, $col := $rowHeaders -}}
+        <th scope="col" class="govuk-table__header reports-table-heading">{{ Title $col }}</th>
+      {{- end -}}
+      {{- range $x, $col := $dataHeaders -}}
+        <th scope="col" class="govuk-table__header govuk-table__cell--numeric reports-table-value">{{ Title $col }}</th>
+      {{- end -}}
+      {{- range $x, $col := $extraHeaders -}}
+        <th scope="col" class="govuk-table__header govuk-table__cell--numeric">{{ Title $col }}</th>
+      {{- end -}}
+      </tr>
+    </thead>
+    <tbody class="govuk-table__body">
+
+      {{- range $i, $row := $rows -}}
+      <tr class="govuk-table__row">
+
+      {{- range $x, $col := $rowHeaders -}}
+        {{- $val := ValueFromMap $col $row -}}
+        <th scope="row" class="govuk-table__header reports-table-heading">{{ $val }}</th>
+      {{- end -}}
+
+      {{- range $x, $col := $dataHeaders -}}
+        {{- $val := ValueFromMap $col $row -}}
+        <td class="govuk-table__cell govuk-table__cell--numeric reports-table-value">{{ $val }}</td>
+      {{- end -}}
+
+      {{- range $x, $col := $extraHeaders -}}
+        {{- $val := ValueFromMap $col $row -}}
+        <td class="govuk-table__cell govuk-table__cell--numeric">{{ $val }}</td>
+      {{- end -}}
+
+      </tr>
+    {{- end -}}
+
+    </tbody>
+    <tfoot class="govuk-table__foot">
+      <tr class="govuk-table__row">
+        <th scope="col" class="govuk-table__header" colspan="{{ len $rowHeaders }}">Total</th>
+        {{- range $x, $col := $dataHeaders -}}
+          {{- $val := ValueFromMap $col $footer -}}
+        <th scope="col" class="govuk-table__header govuk-table__cell--numeric">{{ $val }}</th>
+        {{- end -}}
+        {{- range $x, $col := $extraHeaders -}}
+          {{- $val := ValueFromMap $col $footer -}}
+        <th scope="col" class="govuk-table__header govuk-table__cell--numeric">{{ $val }}</th>
+        {{- end -}}
+      </tr>
+    </tbody>
+  </table>
+
+{{- end -}}
