@@ -73,5 +73,20 @@ Steps
 - Revist and add capabilities to the `service/api` package for extended functionality
     - Add new handlers and register them for the `cmd/api` package for any new features
 - Adding the new data to the front end...
+    - started via `report/cmd/front`
+    - front service additions
+        - add a new file in `report/internal/service/front/` called `${datatype}.go` (copy an existing verison thats similar)
+        - create a `parseXXXF` function - handles the response conversion
+        - create a `xxxParams` function - handles the api param generation
+        - create a `GetXXXGrouped` function - this handles fetching the data
+        - adjust / create a new struct that works with `ResponseBody` interface
+    - adding handlers / api parsers
+        - front server command changes (`report/cmd/front/`)
+            - home page url handler already exists (`report/cmd/front/homepage.go`)
+                - add a new public field for new data to the `homepageData` struct
+                - add a new lambda function to the the `blocks` variable in `handleHomepage`
+
+
+
 
 

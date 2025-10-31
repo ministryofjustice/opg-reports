@@ -153,7 +153,15 @@ func FirstAndLastOfMonth(start string, end string) (first string, last string) {
 // Month returns a YYYY-MM-DD formatted string of the first day of a month. The modifier adjusts
 // the month (plus or minus)
 func Month(monthModifier int) (m string) {
-	m = TimeReset(time.Now().UTC().AddDate(0, monthModifier, 0), TimeIntervalMonth).Format(DATE_FORMATS.YMD)
+	m = MonthsAgo(monthModifier).Format(DATE_FORMATS.YMD)
+	return
+}
+
+// Month returns a YYYY-MM-DD formatted string of the first day of a month. The modifier adjusts
+// the month (plus or minus)
+func MonthsAgo(monthModifier int) (m time.Time) {
+	var t = time.Now().UTC().AddDate(0, monthModifier, 0)
+	m = TimeReset(t, TimeIntervalMonth)
 	return
 }
 
