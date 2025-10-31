@@ -16,6 +16,11 @@ func AddColumnsToRows(table map[string]map[string]string, columns ...string) {
 	}
 }
 
+// AddRowTotals works our the total values of the numeric entries in each row, assigning the
+// value to the `columnName` key.
+//
+// It knows which keys to use in its calculation by ignoring the `identifiers` slice values, which
+// will be the textual data used to group the results on the api.
 func AddRowTotals(table map[string]map[string]string, identifiers []string, columnName string) {
 
 	for _, row := range table {
@@ -33,6 +38,8 @@ func AddRowTotals(table map[string]map[string]string, identifiers []string, colu
 
 }
 
+// ColumnTotals is similar to `AddRowTables`, but operated on each column rather than row of the table. It
+// loops over every row of the table and creates a total value for each column.
 func ColumnTotals(table map[string]map[string]string, sumColumns []string, extraCols ...string) (totals map[string]string) {
 	totals = map[string]string{}
 
