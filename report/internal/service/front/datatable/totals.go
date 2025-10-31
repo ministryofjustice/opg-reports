@@ -6,6 +6,52 @@ import (
 	"strconv"
 )
 
+// ColumnTotalsAveraged assumes the totals are summed values so uses the table values to determine the number of rows present for each column
+// and generates the average from that
+func ColumnTotalsAveraged(table map[string]map[string]string, identifiers []string, extraCols []string, totals map[string]string, totalCol string) {
+	var allCols = []string{}
+	var totalCols = []string{}
+	var columnCounters = map[string]int{}
+
+	allCols = append(identifiers, extraCols...)
+	allCols = append(allCols, totalCol)
+
+	// find all the column keys that could have values used in total
+	for key, _ := range totals {
+		if !slices.Contains(allCols, key) {
+			totalCols = append(totalCols, key)
+			columnCounters[key] = 0
+		}
+	}
+	// now loop over the table and work count how many valid entries for each colum total there are
+	for _, row := range table {
+		for _, key := range totalCols {
+			if _, ok := row[key]; ok {
+				if val, e := strconv.ParseFloat(row[key], 64); e == nil && val > 0.0 {
+					columnCounters[key]++
+				}
+			}
+		}
+	}
+
+	// now adjust the totals to represent the averages
+	for key, count := range columnCounters {
+		if count > 0 {
+			floatCount := float64(count)
+			if current, e := strconv.ParseFloat(totals[key], 64); e == nil {
+				newTotal := current / floatCount
+				totals[key] = fmt.Sprintf("%g", newTotal)
+			}
+		}
+
+	}
+
+}
+
+// ColumnTotalsSummed is empty, as data is assumed to be sum of totals already
+func ColumnTotalsSummed(table map[string]map[string]string, identifiers []string, extraCols []string, totals map[string]string, totalCol string) {
+}
+
 // RowTotalsSummed does nothing, data remains the same as the raw data is assumed to data totals
 func RowTotalsSummed(table map[string]map[string]string, identifiers []string, columnName string) {}
 

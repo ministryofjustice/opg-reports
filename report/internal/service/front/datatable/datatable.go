@@ -5,6 +5,7 @@ import "fmt"
 var emptyCell = "0.00"
 
 type RowTotalCleaner func(table map[string]map[string]string, identifiers []string, columnName string)
+type ColumnTotalCleaner func(table map[string]map[string]string, identifiers []string, extraCols []string, totals map[string]string, totalCol string)
 
 type ResponseBody interface {
 	// DataHeaders returns the column headings used for the core data - generally Dates
@@ -61,6 +62,9 @@ type ResponseBody interface {
 	// RowTotalCleanup is called to allow data to be modified afterwards; typically
 	// used to convert a sum to an average for things like uptime / success rates
 	RowTotalCleanup() RowTotalCleaner
+	// ColumnTotalCleanup is called to allow data to be modified afterwards; typically
+	// used to convert a sum to an average for things like uptime / success rates
+	ColumnTotalCleanup() ColumnTotalCleaner
 }
 
 // DataTable is the end result of transforming a list into a set of rows
@@ -92,6 +96,7 @@ func New(response ResponseBody) (dt *DataTable, err error) {
 		transform    string              = response.TransformColumn()
 		value        string              = response.ValueColumn()
 		rowTotalF    RowTotalCleaner     = response.RowTotalCleanup()
+		colTotalF    ColumnTotalCleaner  = response.ColumnTotalCleanup()
 	)
 	// if there are no idenfifiers, this fails!
 	if len(identifiers) <= 0 {
@@ -125,8 +130,10 @@ func New(response ResponseBody) (dt *DataTable, err error) {
 		ExtraHeaders: extraHeaders,
 		Others:       map[string]interface{}{},
 	}
-	if len(sums) >= 0 {
-		dt.Footer = ColumnTotals(populated, sums, extratotals...)
+	if len(sums) >= 0 && totalCol != "" {
+		footerTotals := ColumnTotals(populated, sums, extratotals...)
+		colTotalF(populated, identifiers, extratotals, footerTotals, totalCol)
+		dt.Footer = footerTotals
 	}
 
 	return

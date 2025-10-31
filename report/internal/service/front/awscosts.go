@@ -65,6 +65,9 @@ func (self *apiResponseAwsCostsGrouped) SumColumns() (cols []string) {
 func (self *apiResponseAwsCostsGrouped) RowTotalCleanup() datatable.RowTotalCleaner {
 	return datatable.RowTotalsSummed
 }
+func (self *apiResponseAwsCostsGrouped) ColumnTotalCleanup() datatable.ColumnTotalCleaner {
+	return datatable.ColumnTotalsSummed
+}
 
 type awsCostsPreCallF func(params map[string]string)
 

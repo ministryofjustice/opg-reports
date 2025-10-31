@@ -988,6 +988,9 @@ func (self *testResponse) SumColumns() (cols []string) {
 func (self *testResponse) RowTotalCleanup() RowTotalCleaner {
 	return RowTotalsSummed
 }
+func (self *testResponse) ColumnTotalCleanup() ColumnTotalCleaner {
+	return ColumnTotalsSummed
+}
 
 var _ ResponseBody = &testResponse{}
 
