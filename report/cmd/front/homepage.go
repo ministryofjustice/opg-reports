@@ -14,20 +14,21 @@ import (
 
 type homepageData struct {
 	page.PageContent
-	CostsByTeamAndMonth  *datatable.DataTable // infrastrcture costs grouped by month
-	UptimeByTeamAndMonth *datatable.DataTable // service uptime grouped by months
+	CostsByTeamAndMonth  *datatable.DataTable // infrastrcture costs grouped by month & team
+	UptimeByTeamAndMonth *datatable.DataTable // service uptime grouped by month & team
 }
 
 // handleHomepage renders the request for `/` which currently displays:
 //
 //   - Team navigtaion
-//   - Last 4 months of costs (considering billing date)
+//   - Uptime of all services
+//   - Last 6 months of costs
 //
 // Merge front end query strings with api request values so the front end
 // can replace things like start_date
 //
-// Uses multiple `Components` to generate all the data displayed on this
-// page
+// Uses multiple blocks (concurrent api calls) to generate all the data
+// displayed on this page
 func handleHomepage(
 	ctx context.Context, log *slog.Logger, conf *config.Config,
 	info *FrontInfo,

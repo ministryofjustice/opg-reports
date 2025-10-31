@@ -14,8 +14,6 @@ func ColumnTotalsAveraged(table map[string]map[string]string, identifiers []stri
 	var columnCounters = map[string]int{}
 
 	allCols = append(identifiers, extraCols...)
-	allCols = append(allCols, totalCol)
-
 	// find all the column keys that could have values used in total
 	for key, _ := range totals {
 		if !slices.Contains(allCols, key) {
