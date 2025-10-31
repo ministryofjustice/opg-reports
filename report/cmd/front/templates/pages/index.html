@@ -5,7 +5,7 @@
 
         {{- if .UptimeByTeamAndMonth -}}
         <h1 class="govuk-heading-xl compact-header">Service uptime</h1>
-        <p class="govuk-body">Our uptime is tracked for each service via Route53 health checks and updated daily.</p>
+        <p class="govuk-body">Our production uptime is tracked for each service via Route53 health checks and updated daily.</p>
         <div class="app-content reports-font-m">
         {{ template "uptime-table" .UptimeByTeamAndMonth }}
         </div>
