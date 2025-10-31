@@ -11,13 +11,13 @@
     <thead class="govuk-table__head">
       <tr class="govuk-table__row">
       {{- range $x, $col := $rowHeaders -}}
-        <th scope="col" class="govuk-table__header reports-table-heading">{{ Title $col }}</th>
+        <th scope="col" class="govuk-table__header reports-cell-{{ $col }} reports-table-heading">{{ Title $col }}</th>
       {{- end -}}
       {{- range $x, $col := $dataHeaders -}}
-        <th scope="col" class="govuk-table__header govuk-table__cell--numeric reports-table-value">{{ Title $col }}</th>
+        <th scope="col" class="govuk-table__header govuk-table__cell--numeric reports-cell-{{ $col }} reports-table-value ">{{ Title $col }}</th>
       {{- end -}}
       {{- range $x, $col := $extraHeaders -}}
-        <th scope="col" class="govuk-table__header govuk-table__cell--numeric">{{ Title $col }}</th>
+        <th scope="col" class="govuk-table__header govuk-table__cell--numeric reports-cell-{{ $col }}">{{ Title $col }}</th>
       {{- end -}}
       </tr>
     </thead>
@@ -28,17 +28,17 @@
 
       {{- range $x, $col := $rowHeaders -}}
         {{- $val := ValueFromMap $col $row -}}
-        <th scope="row" class="govuk-table__header reports-table-heading">{{ $val }}</th>
+        <th scope="row" class="govuk-table__header reports-cell-{{ $col }} reports-table-heading">{{ $val }}</th>
       {{- end -}}
 
       {{- range $x, $col := $dataHeaders -}}
         {{- $val := ValueFromMap $col $row -}}
-        <td class="govuk-table__cell govuk-table__cell--numeric reports-table-value">{{ $val }}</td>
+        <td class="govuk-table__cell govuk-table__cell--numeric reports-cell-{{ $col }} reports-table-value">{{ Percentage $val 4 }}</td>
       {{- end -}}
 
       {{- range $x, $col := $extraHeaders -}}
         {{- $val := ValueFromMap $col $row -}}
-        <td class="govuk-table__cell govuk-table__cell--numeric">{{ $val }}</td>
+        <td class="govuk-table__cell reports-cell-{{ $col }} govuk-table__cell--numeric">{{ Percentage $val 4 }}</td>
       {{- end -}}
 
       </tr>
@@ -50,11 +50,11 @@
         <th scope="col" class="govuk-table__header" colspan="{{ len $rowHeaders }}">Total</th>
         {{- range $x, $col := $dataHeaders -}}
           {{- $val := ValueFromMap $col $footer -}}
-        <th scope="col" class="govuk-table__header govuk-table__cell--numeric">{{ $val }}</th>
+        <th scope="col" class="govuk-table__header govuk-table__cell--numeric reports-cell-{{ $col }} ">{{ Percentage $val 4 }}</th>
         {{- end -}}
         {{- range $x, $col := $extraHeaders -}}
           {{- $val := ValueFromMap $col $footer -}}
-        <th scope="col" class="govuk-table__header govuk-table__cell--numeric">{{ $val }}</th>
+        <th scope="col" class="govuk-table__header govuk-table__cell--numeric reports-cell-{{ $col }} ">{{ Percentage $val 4 }}</th>
         {{- end -}}
       </tr>
     </tbody>
