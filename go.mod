@@ -6,8 +6,8 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.39.4
 	github.com/aws/aws-sdk-go-v2/config v1.31.15
 	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.51.4
-	github.com/aws/aws-sdk-go-v2/service/costexplorer v1.58.1
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.88.7
+	github.com/aws/aws-sdk-go-v2/service/costexplorer v1.59.0
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.89.0
 	github.com/aws/aws-sdk-go-v2/service/sts v1.38.9
 	github.com/danielgtaylor/huma/v2 v2.34.1
 	github.com/gofri/go-github-ratelimit/v2 v2.0.2
