@@ -62,6 +62,13 @@ func (self *apiResponseAwsCostsGrouped) SumColumns() (cols []string) {
 	return
 }
 
+func (self *apiResponseAwsCostsGrouped) RowTotalCleanup() datatable.RowTotalCleaner {
+	return datatable.RowTotalsSummed
+}
+func (self *apiResponseAwsCostsGrouped) ColumnTotalCleanup() datatable.ColumnTotalCleaner {
+	return datatable.ColumnTotalsSummed
+}
+
 type awsCostsPreCallF func(params map[string]string)
 
 // GetAwsCostsGrouped call the api (based on config values), convert that data into tabluar
@@ -126,8 +133,8 @@ func parseAwsCostsGroupedF(response *apiResponseAwsCostsGrouped) (dt *datatable.
 func awsCostsParams() map[string]string {
 	var (
 		now   = time.Now().UTC()
-		end   = utils.TimeReset(now, utils.TimeIntervalMonth) // the start of next month
-		start = time.Date(end.Year(), end.Month()-5, 1, 0, 0, 0, 0, time.UTC)
+		end   = utils.TimeReset(now, utils.TimeIntervalMonth)
+		start = utils.MonthsAgo(-5) // time.Date(end.Year(), end.Month()-5, 1, 0, 0, 0, 0, time.UTC)
 	)
 	return map[string]string{
 		"start_date":  start.Format(utils.DATE_FORMATS.YM),

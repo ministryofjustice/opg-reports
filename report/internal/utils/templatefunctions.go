@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"html/template"
 	"strconv"
 	"strings"
@@ -25,6 +26,14 @@ func Currency(s string, symbol string) string {
 		return ""
 	}
 	return symbol + FloatString(s, "%.2f")
+}
+
+func Percentage(s string, places int) string {
+	var layout = "%." + strconv.Itoa(places) + "f"
+	if f, e := strconv.ParseFloat(s, 64); e == nil {
+		return fmt.Sprintf(layout, f) + `%`
+	}
+	return ""
 }
 
 // FloatString treats s as a float (if its a string, it converts, other types are ignored) and
@@ -98,7 +107,8 @@ func TemplateFunctions() (funcs template.FuncMap) {
 		"ToLower": strings.ToLower,
 		"ToUpper": strings.ToUpper,
 		// strinng -> numbers
-		"Currency": Currency,
+		"Currency":   Currency,
+		"Percentage": Percentage,
 		// accessing maps
 		"ValueFromMap":  ValueFromMap,
 		"ValueFromMapI": ValueFromMapI,

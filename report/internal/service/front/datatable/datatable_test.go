@@ -985,6 +985,13 @@ func (self *testResponse) SumColumns() (cols []string) {
 	return
 }
 
+func (self *testResponse) RowTotalCleanup() RowTotalCleaner {
+	return RowTotalsSummed
+}
+func (self *testResponse) ColumnTotalCleanup() ColumnTotalCleaner {
+	return ColumnTotalsSummed
+}
+
 var _ ResponseBody = &testResponse{}
 
 // TestDataTableNew the table generated is quite large, but we can check the totals
