@@ -22,6 +22,8 @@ github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.51.4 h1:/XGR3fYTRE1zQiepHO1NI
 github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.51.4/go.mod h1:Gt6Vp7huej9kFI8bmZd0ZkPeFn29GrQPkJoFN2b7h3A=
 github.com/aws/aws-sdk-go-v2/service/costexplorer v1.58.1 h1:49QOXledwKUXk5eeIgSW8Co/aoeIW5DA8xX+Nkh0Mjw=
 github.com/aws/aws-sdk-go-v2/service/costexplorer v1.58.1/go.mod h1:lztpwJzFHVpn5pcUzSh4bvHwvOz9Tya+MzN84KluABA=
+github.com/aws/aws-sdk-go-v2/service/costexplorer v1.59.0 h1:yQ/svgYI6tBCp8tK6Z1CCBcyVAAN+VV1uOdtqUaCLP8=
+github.com/aws/aws-sdk-go-v2/service/costexplorer v1.59.0/go.mod h1:lztpwJzFHVpn5pcUzSh4bvHwvOz9Tya+MzN84KluABA=
 github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.2 h1:xtuxji5CS0JknaXoACOunXOYOQzgfTvGAc9s2QdCJA4=
 github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.2/go.mod h1:zxwi0DIR0rcRcgdbl7E2MSOvxDyyXGBlScvBkARFaLQ=
 github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.9.2 h1:DGFpGybmutVsCuF6vSuLZ25Vh55E3VmsnJmFfjeBx4M=
@@ -32,6 +34,8 @@ github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.11 h1:weapBOuuFIBEQ
 github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.11/go.mod h1:3C1gN4FmIVLwYSh8etngUS+f1viY6nLCDVtZmrFbDy0=
 github.com/aws/aws-sdk-go-v2/service/s3 v1.88.7 h1:Wer3W0GuaedWT7dv/PiWNZGSQFSTcBY2rZpbiUp5xcA=
 github.com/aws/aws-sdk-go-v2/service/s3 v1.88.7/go.mod h1:UHKgcRSx8PVtvsc1Poxb/Co3PD3wL7P+f49P0+cWtuY=
+github.com/aws/aws-sdk-go-v2/service/s3 v1.89.0 h1:JbCUlVDEjmhpvpIgXP9QN+/jW61WWWj99cGmxMC49hM=
+github.com/aws/aws-sdk-go-v2/service/s3 v1.89.0/go.mod h1:UHKgcRSx8PVtvsc1Poxb/Co3PD3wL7P+f49P0+cWtuY=
 github.com/aws/aws-sdk-go-v2/service/sso v1.29.8 h1:M5nimZmugcZUO9wG7iVtROxPhiqyZX6ejS1lxlDPbTU=
 github.com/aws/aws-sdk-go-v2/service/sso v1.29.8/go.mod h1:mbef/pgKhtKRwrigPPs7SSSKZgytzP8PQ6P6JAAdqyM=
 github.com/aws/aws-sdk-go-v2/service/ssooidc v1.35.3 h1:S5GuJZpYxE0lKeMHKn+BRTz6PTFpgThyJ+5mYfux7BM=
