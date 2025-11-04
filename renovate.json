@@ -18,6 +18,9 @@
         "github.com/ministryofjustice/opg-terraform-aws-moj-ip-allow-list"
     ],
     "prConcurrentLimit": 0,
+    "postUpdateOptions": [
+        "gomodTidy"
+    ],
     "branchConcurrentLimit": 0,
     "separateMultipleMajor": true,
     "lockFileMaintenance": {
