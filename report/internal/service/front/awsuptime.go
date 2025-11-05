@@ -107,5 +107,6 @@ func awsUptimeParams() map[string]string {
 		"end_date":    end.Format(utils.DATE_FORMATS.YM),
 		"granularity": string(utils.GranularityMonth),
 		"team":        "true",
+		"tabular":     "",
 	}
 }

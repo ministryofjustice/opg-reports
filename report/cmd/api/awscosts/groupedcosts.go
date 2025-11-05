@@ -14,16 +14,16 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 )
 
-// TabularHeaders used for the headings on the teables
-type TabularHeaders struct {
+// CostTableHeaders used for the headings on the tables
+type CostTableHeaders struct {
 	Columns []string `json:"columns"` // the row headings - used in the table body and table header & footer at the start
 	Data    []string `json:"data"`    // the data headings - should be the date ranges in order
 	Extras  []string `json:"extras"`  // extra headers at the end of the table (trend & total)
 }
 
-// TabularCosts contains the cost data, but formatted as a table for easier front end handling (less work per request)
-type TabularCosts struct {
-	Headers TabularHeaders      `json:"headers"`
+// CostTable contains the cost data, but formatted as a table for easier front end handling (less work per request)
+type CostTable struct {
+	Headers CostTableHeaders    `json:"headers"`
 	Rows    []map[string]string `json:"rows"`
 	Footer  map[string]string   `json:"footer"`
 }
@@ -35,7 +35,7 @@ type GetAwsCostsGroupedResponseBody[T api.Model] struct {
 	Dates   []string              `json:"dates"`   // the date range the request is for
 	Groups  []string              `json:"groups"`  // the data grouping that the request generated
 	Data    []T                   `json:"data"`    // the data records
-	Tabular *TabularCosts         `json:"tabular"` // the data records covnerted to a table structure
+	Tabular *CostTable            `json:"tabular"` // the data records covnerted to a table structure
 }
 
 // GetAwsCostsGroupedResponse - this is the main struct returned by the handlers
@@ -151,8 +151,8 @@ func handleGetAwsCostsGrouped[T api.Model](
 		// always add the date column in
 		bdy, foot, e := TabulateGroupedCosts(log, groups, response.Body.Dates, costs)
 		if e == nil {
-			response.Body.Tabular = &TabularCosts{
-				Headers: TabularHeaders{
+			response.Body.Tabular = &CostTable{
+				Headers: CostTableHeaders{
 					Columns: response.Body.Groups,
 					Data:    response.Body.Dates,
 					Extras:  []string{"trend", "total"},
