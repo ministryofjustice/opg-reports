@@ -9,64 +9,31 @@ import (
 	"time"
 )
 
+// awsCostHeaders used for the headings on the teables
+type awsCostHeaders struct {
+	Columns []string `json:"columns"` // the row headings - used in the table body and table header & footer at the start
+	Data    []string `json:"data"`    // the data headings - should be the date ranges in order
+	Extras  []string `json:"extras"`  // extra headers at the end of the table (trend & total)
+}
+
+// awsCostsTable contains the cost data, but formatted as a table for easier front end handling (less work per request)
+type awsCostsTable struct {
+	Headers *awsCostHeaders     `json:"headers"`
+	Rows    []map[string]string `json:"rows"`
+	Footer  map[string]string   `json:"footer"`
+}
+
 // apiResponseAwsCostsGrouped represents the api data structure returned
 // by the aws costs grouped end points
 //
 // endpoint: `/v1/awscosts/grouped/{granularity}/{start_date}/{end_date}`
 // interface: datatable.ResponseBody
 type apiResponseAwsCostsGrouped struct {
-	Count  int                 `json:"count,omityempty"`
-	Dates  []string            `json:"dates,omitempty"`
-	Groups []string            `json:"groups,omitempty"`
-	Data   []map[string]string `json:"data"`
-}
-
-// check interface
-var _ datatable.ResponseBody = &apiResponseAwsCostsGrouped{}
-
-// DataHeaders returns the column headings used for the core data - generally Dates
-func (self *apiResponseAwsCostsGrouped) DataHeaders() (dh []string) {
-	return self.Dates
-}
-func (self *apiResponseAwsCostsGrouped) DataRows() (data []map[string]string) {
-	return self.Data
-}
-func (self *apiResponseAwsCostsGrouped) PaddedDataRows() (all []map[string]string) {
-	padding := utils.DummyRows(self.Dates, "date")
-	all = append(self.Data, padding...)
-	return
-}
-func (self *apiResponseAwsCostsGrouped) Identifiers() (identifiers []string) {
-	return self.Groups
-}
-func (self *apiResponseAwsCostsGrouped) Cells() (cells []string) {
-	return self.Dates
-}
-func (self *apiResponseAwsCostsGrouped) TransformColumn() string {
-	return "date"
-}
-func (self *apiResponseAwsCostsGrouped) ValueColumn() string {
-	return "cost"
-}
-func (self *apiResponseAwsCostsGrouped) RowTotalKeyName() string {
-	return "total"
-}
-func (self *apiResponseAwsCostsGrouped) TrendKeyName() string {
-	return "trend"
-}
-func (self *apiResponseAwsCostsGrouped) SumColumns() (cols []string) {
-	cols = self.Dates
-	if c := self.RowTotalKeyName(); c != "" {
-		cols = append(cols, c)
-	}
-	return
-}
-
-func (self *apiResponseAwsCostsGrouped) RowTotalCleanup() datatable.RowTotalCleaner {
-	return datatable.RowTotalsSummed
-}
-func (self *apiResponseAwsCostsGrouped) ColumnTotalCleanup() datatable.ColumnTotalCleaner {
-	return datatable.ColumnTotalsSummed
+	Count   int                 `json:"count,omityempty"`
+	Dates   []string            `json:"dates,omitempty"`
+	Groups  []string            `json:"groups,omitempty"`
+	Data    []map[string]string `json:"data"`
+	Tabular *awsCostsTable      `json:"tabular"`
 }
 
 type awsCostsPreCallF func(params map[string]string)
@@ -119,12 +86,23 @@ func (self *Service) GetAwsCostsGrouped(client restr.RepositoryRestGetter, reque
 	return
 }
 
-// parseAwsCostsGroupedF calls the datatable.New which handles all of the conversion from a response
-// into a datatable
+// parseAwsCostsGroupedF
 //
 // The conversion done by datatable.New is messy as it groups into table rows
 func parseAwsCostsGroupedF(response *apiResponseAwsCostsGrouped) (dt *datatable.DataTable, err error) {
-	dt, err = datatable.New(response)
+	dt = &datatable.DataTable{}
+
+	if response.Tabular != nil {
+		dt = &datatable.DataTable{
+			Body:         response.Tabular.Rows,
+			RowHeaders:   response.Tabular.Headers.Columns,
+			DataHeaders:  response.Tabular.Headers.Data,
+			ExtraHeaders: response.Tabular.Headers.Extras,
+			Footer:       response.Tabular.Footer,
+		}
+	}
+
+	dt.Others = map[string]interface{}{}
 	return
 }
 
@@ -145,5 +123,6 @@ func awsCostsParams() map[string]string {
 		"service":     "-",
 		"account":     "-",
 		"environment": "-",
+		"tabular":     "",
 	}
 }
