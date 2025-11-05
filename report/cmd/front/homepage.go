@@ -60,7 +60,7 @@ func handleHomepage(
 		},
 		// get uptime grouped by month & team
 		func(i ...any) {
-			opts := map[string]string{"team": "true"}
+			opts := map[string]string{"team": "true", "tabular": "true"}
 			data.UptimeByTeamAndMonth, _ = service.GetAwsUptimeGrouped(client, request, opts)
 			wg.Done()
 		},

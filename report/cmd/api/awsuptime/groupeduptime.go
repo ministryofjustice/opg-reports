@@ -14,15 +14,34 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 )
 
+// UptimeTableHeaders used for the headings on the tables
+type UptimeTableHeaders struct {
+	Columns []string `json:"columns"` // the row headings - used in the table body and table header & footer at the start
+	Data    []string `json:"data"`    // the data headings - should be the date ranges in order
+	Extras  []string `json:"extras"`  // extra headers at the end of the table (trend & total)
+}
+
+// UptimeTable contains the uptime data, but formatted as a table for easier front end
+// handling (less work per request)
+type UptimeTable struct {
+	Headers UptimeTableHeaders  `json:"headers"`
+	Rows    []map[string]string `json:"rows"`
+	Footer  map[string]string   `json:"footer"`
+}
+
+// GetAwsUptimeGroupedResponseBody is the response body
+type GetAwsUptimeGroupedResponseBody[T api.Model] struct {
+	Count   int                    `json:"count"`
+	Request *AwsUptimeGroupedInput `json:"request"`
+	Dates   []string               `json:"dates"`
+	Groups  []string               `json:"groups"`
+	Data    []T                    `json:"data"`
+	Tabular *UptimeTable           `json:"tabular"` // the data records covnerted to a table structure
+}
+
 // GetAwsUptimeGroupedResponse
 type GetAwsUptimeGroupedResponse[T api.Model] struct {
-	Body struct {
-		Count   int                    `json:"count"`
-		Request *AwsUptimeGroupedInput `json:"request"`
-		Dates   []string               `json:"dates"`
-		Groups  []string               `json:"groups"`
-		Data    []T                    `json:"data"`
-	}
+	Body GetAwsUptimeGroupedResponseBody[T]
 }
 
 // AwsUptimeGroupedInput is the input object for fetching grouped aws costs.
@@ -37,6 +56,7 @@ type AwsUptimeGroupedInput struct {
 	StartDate   string `json:"start_date,omitempty" path:"start_date" required:"true" doc:"Earliest date to return data from (uses >=). YYYY-MM-DD." example:"2024-03-01" pattern:"([0-9]{4}-[0-9]{2}[\\-0-9]{0,2})"`
 	EndDate     string `json:"end_date,omitempty" path:"end_date" required:"true" doc:"Latest date to capture the data for (uses <). YYYY-MM-DD."  example:"2024-04-01" pattern:"([0-9]{4}-[0-9]{2}[\\-0-9]{0,2})"`
 	Team        string `json:"team,omitempty" query:"team" doc:"Group and filter flag for team. When _true_ adds team.Name to group and selection, when any other value it becomes an exact match filter." example:"true|TeamName"`
+	Tabular     bool   `json:"tabular,omitempty" query:"tabular" doc:"When true, tabular version of the data is also included in the response"`
 }
 
 // RegisterGetAwsUptimeGrouped handles all AWS uptime request that are grouped by date + other fields.
@@ -97,12 +117,36 @@ func handleGetAwsUptimeGrouped[T api.Model](
 		err = huma.Error500InternalServerError("failed find grouped costs", err)
 		return
 	}
-	// set the response data
-	response.Body.Request = input
-	response.Body.Dates = utils.Months(input.StartDate, input.EndDate)
-	response.Body.Groups = api.GetGroupedByColumns(options)
-	response.Body.Data = data
-	response.Body.Count = len(data)
+
+	response.Body = GetAwsUptimeGroupedResponseBody[T]{
+		Count:   len(data),
+		Request: input,
+		Dates:   utils.Months(input.StartDate, input.EndDate),
+		Groups:  api.GetGroupedByColumns(options),
+		Data:    data,
+	}
+
+	// If tabular is enabled, convert and configure
+	if input.Tabular {
+		// handle if no columns are setup
+		groups := []string{"date"}
+		if len(response.Body.Groups) > 0 {
+			groups = response.Body.Groups
+		}
+		// always add the date column in
+		bdy, foot, e := TabulateGroupedUptime(log, groups, response.Body.Dates, data)
+		if e == nil {
+			response.Body.Tabular = &UptimeTable{
+				Headers: UptimeTableHeaders{
+					Columns: response.Body.Groups,
+					Data:    response.Body.Dates,
+					Extras:  []string{"trend", "total"},
+				},
+				Rows:   bdy,
+				Footer: foot,
+			}
+		}
+	}
 
 	return
 }
