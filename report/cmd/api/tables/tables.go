@@ -3,9 +3,76 @@ package tables
 import (
 	"bytes"
 	"fmt"
+	"log/slog"
+	"opg-reports/report/internal/service/api"
+	"opg-reports/report/internal/utils"
 	"slices"
+	"sort"
 	"strings"
 )
+
+type ListToTableConfig struct {
+	TextColumns     []string // these are the text / non-data fields are the start of the table, used for row headers etc
+	DataColumns     []string // the columns that will be added to each row as data items, generally values for each date interval
+	ValueField      string   // the field from each list record to use for the sorce of data
+	DataSourceField string   // the field used to compare to the DataColumn items - generallt `date`
+	DefaultValue    string   // default value used for a blank cell
+}
+
+func ListToTable[T api.Model](
+	log *slog.Logger,
+	cfg *ListToTableConfig,
+	dbRecords []T,
+
+) (table map[string]map[string]string, err error) {
+	var (
+		records []map[string]string = []map[string]string{} // converted version of records into a generic slice map
+		rowKeys []string            = []string{}            // contains all the possible row keys based on the values of the group columns
+	)
+	// init
+	log = log.With("operation", "ListToTable", "cfg", cfg)
+	table = map[string]map[string]string{}
+	// sort dates
+	sort.Strings(cfg.DataColumns)
+
+	// convert to slice map from the records
+	log.Debug("converting []T to slice of maps")
+	err = utils.Convert(dbRecords, &records)
+	if err != nil {
+		log.Error("error converting T[] to slice of maps")
+		return
+	}
+	// generate row keys
+	if len(cfg.TextColumns) <= 0 {
+		err = fmt.Errorf("require at least 1 column to generate a table in ListToTable")
+		return
+	}
+	log.Debug("generating row keys from data and columns")
+	rowKeys, _ = PossibleCombinationsAsKeys(records, cfg.TextColumns)
+	// now create a skeleton table from the rowKeys & date values
+	log.Debug("generating skeleton table structure")
+	table = Skeleton(rowKeys, cfg.DataColumns, cfg.DefaultValue)
+
+	// now populate the table
+	log.Debug("populating table skeleton with real data")
+	table = Populate(&PopulateConfig{
+		Skeleton:        table,
+		TextColumns:     cfg.TextColumns,
+		ValueField:      cfg.ValueField,
+		DataSourceField: cfg.DataSourceField,
+		DefaultValue:    cfg.DefaultValue,
+	}, records)
+
+	return
+}
+
+type PopulateConfig struct {
+	Skeleton        map[string]map[string]string
+	TextColumns     []string // these are the text / non-data fields are the start of the table, used for row headers etc
+	ValueField      string   // the field from each list record to use for the sorce of data
+	DataSourceField string   // the field used to compare to the DataColumn items
+	DefaultValue    string   // default value used for a blank cell
+}
 
 // Populate loops over each data item and inject its value (from valueColumn)
 // into the transformed tables colum (transformColumn) based on the items unique
@@ -14,18 +81,18 @@ import (
 // This generates a full table, with values in every column merged from the raw
 // dataset
 func Populate(
-	data []map[string]string, table map[string]map[string]string,
-	identifiers []string,
-	transformColumn string, valueColumn string,
-	emptyCell string,
-) map[string]map[string]string {
+	cfg *PopulateConfig,
+	data []map[string]string,
+) (table map[string]map[string]string) {
+	// assign to self
+	table = cfg.Skeleton
 
 	for _, item := range data {
-		key := combinationKey(item, identifiers...)
-		column := item[transformColumn]
+		key := combinationKey(item, cfg.TextColumns...)
+		column := item[cfg.DataSourceField]
 
 		if row, ok := table[key]; ok {
-			row[column] = item[valueColumn]
+			row[column] = item[cfg.ValueField]
 		}
 	}
 
@@ -33,7 +100,7 @@ func Populate(
 	for id, row := range table {
 		var empty = true
 		for k, v := range row {
-			if !slices.Contains(identifiers, k) && v != emptyCell {
+			if !slices.Contains(cfg.TextColumns, k) && v != cfg.DefaultValue {
 				empty = false
 			}
 		}
@@ -155,6 +222,13 @@ func PossibleCombinationsAsKeys(data []map[string]string, identifiers []string) 
 
 }
 
+// AddColumnToEachRow injects column in every row in the table as empty
+func AddColumnToEachRow(table map[string]map[string]string, col string) {
+	for _, row := range table {
+		row[col] = ""
+	}
+}
+
 // permutations merges the values of parts together to find all the
 // possible combinations
 //
@@ -235,6 +309,7 @@ func uniqueValuesForEachIdentifier(data []map[string]string, identifiers ...stri
 	return
 }
 
+// combinationKey generates a key from the item and config
 func combinationKey(item map[string]string, identifiers ...string) (key string) {
 	slices.Sort(identifiers)
 	identifiers = slices.Compact(identifiers)

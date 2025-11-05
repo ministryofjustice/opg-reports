@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"opg-reports/report/cmd/api/tables"
 	"opg-reports/report/internal/service/api"
-	"opg-reports/report/internal/utils"
 	"sort"
 	"strconv"
 )
@@ -23,54 +22,47 @@ func TabulateGroupedCosts[T api.Model](
 	dates []string,
 	dbRecords []T,
 ) (sortedTable []map[string]string, footer map[string]string, err error) {
+
 	var (
-		trendCol     string                       = "trend"                        // append to each row for front end rendering
-		totalsCol    string                       = "total"                        // name of column to add row totals into
-		transformCol string                       = "date"                         // the column name in each row to generate headers and merge data on
-		valueCol     string                       = "cost"                         // the value column used to merge rows with
-		emptyVal     string                       = "0.00"                         // empty / place holder string
-		records      []map[string]string          = []map[string]string{}          // converted version of records into a generic slice map
-		rowKeys      []string                     = []string{}                     // contains all the possible row keys based on the values of the group columns
-		table        map[string]map[string]string = map[string]map[string]string{} // all of the data converted into a table format, firstly via skeleton, then via populated
-		lastDate     string                                                        // last date, used for sorting
+		lastDate    string
+		table       map[string]map[string]string
+		trendColumn string                    = "trend"
+		totalColumn string                    = "total"
+		tableCfg    *tables.ListToTableConfig = &tables.ListToTableConfig{
+			TextColumns:     columns,
+			DataColumns:     dates,
+			ValueField:      "cost",
+			DataSourceField: "date",
+			DefaultValue:    "0.00",
+		}
 	)
-	log = log.With("operation", "TabulateGroupedCosts")
-	// init
+	// inits
 	sortedTable = []map[string]string{}
-	table = map[string]map[string]string{}
 	footer = map[string]string{}
-	// tidy dates
 	sort.Strings(dates)
 	lastDate = dates[len(dates)-1]
 
-	log.Debug("converting []T to slice of maps")
-	// convert to slice map from the records
-	err = utils.Convert(dbRecords, &records)
+	log = log.With("tableCfg", tableCfg).With("operation", "TabulateGroupedCosts")
+
+	// convert the raw database records into table structure
+	log.Debug("converting db records to table")
+	table, err = tables.ListToTable(log, tableCfg, dbRecords)
 	if err != nil {
-		log.Error("error converting T[] to slice of maps")
 		return
 	}
 
-	log.With("columns", columns).Debug("generating row keys from data and columns")
-	// generate a set of possible key combinations to identify each row grouping
-	if len(columns) > 0 {
-		rowKeys, _ = tables.PossibleCombinationsAsKeys(records, columns)
-	}
-	log.Debug("generating skeleton table structure")
-	// now create a skeleton table from the rowKeys & date values
-	table = tables.Skeleton(rowKeys, dates, emptyVal)
-	log.Debug("populating table structure")
-	// now populate the table
-	table = tables.Populate(records, table, columns, transformCol, valueCol, emptyVal)
-	// inject trend column
-	log.Debug("adding trend column")
-	addTrendCol(table, trendCol)
-	// now inject rowTotals
-	log.Debug("adding row totals")
-	rowTotals(table, dates, totalsCol)
-	// now create the footer
+	// add in trend
+	log.Debug("add the trend column into each row on the table")
+	tables.AddColumnToEachRow(table, trendColumn)
+	// add in row totals
+	log.Debug("add in row totals")
+	rowTotals(table, dates, totalColumn)
+	// now create the footer with totals
 	log.Debug("creating column totals for the footer")
-	footer = columnTotals(table, append(columns, trendCol), append(dates, totalsCol))
+	footer = columnTotals(table,
+		append(columns, trendColumn),
+		append(dates, totalColumn))
+
 	// now copy over the map to a slice for sorting
 	for _, v := range table {
 		sortedTable = append(sortedTable, v)
@@ -123,12 +115,6 @@ func columnTotals(table map[string]map[string]string, cols []string, colsToSum [
 		totals[k] = fmt.Sprintf("%g", v)
 	}
 	return
-}
-
-func addTrendCol(table map[string]map[string]string, col string) {
-	for _, row := range table {
-		row[col] = ""
-	}
 }
 
 func rowTotals(table map[string]map[string]string, dates []string, totalCol string) {
