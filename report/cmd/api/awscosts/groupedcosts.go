@@ -14,15 +14,33 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 )
 
-// GetAwsCostsGroupedResponse
+// TabularHeaders used for the headings on the teables
+type TabularHeaders struct {
+	Columns []string `json:"columns"` // the row headings - used in the table body and table header & footer at the start
+	Data    []string `json:"data"`    // the data headings - should be the date ranges in order
+	Extras  []string `json:"extras"`  // extra headers at the end of the table (trend & total)
+}
+
+// TabularCosts contains the cost data, but formatted as a table for easier front end handling (less work per request)
+type TabularCosts struct {
+	Headers TabularHeaders      `json:"headers"`
+	Rows    []map[string]string `json:"rows"`
+	Footer  map[string]string   `json:"footer"`
+}
+
+// GetAwsCostsGroupedResponseBody is the body of the response returned
+type GetAwsCostsGroupedResponseBody[T api.Model] struct {
+	Count   int                   `json:"count"`   // number of db results from the query
+	Request *AwsCostsGroupedInput `json:"request"` // the original request for comparison
+	Dates   []string              `json:"dates"`   // the date range the request is for
+	Groups  []string              `json:"groups"`  // the data grouping that the request generated
+	Data    []T                   `json:"data"`    // the data records
+	Tabular *TabularCosts         `json:"tabular"` // the data records covnerted to a table structure
+}
+
+// GetAwsCostsGroupedResponse - this is the main struct returned by the handlers
 type GetAwsCostsGroupedResponse[T api.Model] struct {
-	Body struct {
-		Count   int                   `json:"count"`
-		Request *AwsCostsGroupedInput `json:"request"`
-		Dates   []string              `json:"dates"`
-		Groups  []string              `json:"groups"`
-		Data    []T                   `json:"data"`
-	}
+	Body GetAwsCostsGroupedResponseBody[T]
 }
 
 // AwsCostsGroupedInput is the input object for fetching grouped aws costs.
@@ -46,6 +64,8 @@ type AwsCostsGroupedInput struct {
 	Label       string `json:"account_label,omitempty" query:"account_label" doc:"Group and filter flag for AWS account label. When _true_ adds AWS account label to group and selection, when any other value it becomes an exact match filter." example:"true|service-name"`
 	AccountName string `json:"account_name,omitempty" query:"account_name" doc:"Group and filter flag for AWS account name. When _true_ adds AWS account name to group and selection, when any other value it becomes an exact match filter." example:"true|Account Name"`
 	Environment string `json:"environment,omitempty" query:"environment" enum:"development,preproduciton,production,backup,true" doc:"Group and filter flag for account environment type. When _true_ adds environment to group and selection, when any other value it becomes an exact match filter."`
+
+	Tabular bool `json:"tabular,omitempty" query:"tabular" doc:"When true, tabular version of the data is also included in the response"`
 }
 
 // RegisterGetAwsCostsGrouped handles all AWS Cost request that are grouped by date + other fields.
@@ -79,8 +99,10 @@ func handleGetAwsCostsGrouped[T api.Model](
 	input *AwsCostsGroupedInput,
 ) (response *GetAwsCostsGroupedResponse[T], err error) {
 	var costs []T = []T{}
+
+	log = log.With("operation", "handleGetAwsCostsGrouped")
+	log.With("input", input).Info("handling get-awscosts-grouped")
 	response = &GetAwsCostsGroupedResponse[T]{}
-	log.Info("handling get-awscosts-grouped")
 
 	if service == nil {
 		err = huma.Error500InternalServerError("failed to connect to service", err)
@@ -112,12 +134,34 @@ func handleGetAwsCostsGrouped[T api.Model](
 		err = huma.Error500InternalServerError("failed find grouped costs", err)
 		return
 	}
-	// set the response data
-	response.Body.Request = input
-	response.Body.Dates = utils.Months(input.StartDate, input.EndDate)
-	response.Body.Groups = api.GetGroupedByColumns(options)
-	response.Body.Data = costs
-	response.Body.Count = len(costs)
+	response.Body = GetAwsCostsGroupedResponseBody[T]{
+		Count:   len(costs),
+		Request: input,
+		Dates:   utils.Months(input.StartDate, input.EndDate),
+		Groups:  api.GetGroupedByColumns(options),
+		Data:    costs,
+	}
+	// If tabular is enabled, convert and configure
+	if input.Tabular {
+		// handle if no columns are setup
+		groups := []string{"date"}
+		if len(response.Body.Groups) > 0 {
+			groups = response.Body.Groups
+		}
+		// always add the date column in
+		bdy, foot, e := TabulateGroupedCosts(log, groups, response.Body.Dates, costs)
+		if e == nil {
+			response.Body.Tabular = &TabularCosts{
+				Headers: TabularHeaders{
+					Columns: response.Body.Groups,
+					Data:    response.Body.Dates,
+					Extras:  []string{"trend", "total"},
+				},
+				Rows:   bdy,
+				Footer: foot,
+			}
+		}
+	}
 
 	return
 }
