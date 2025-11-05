@@ -19,6 +19,10 @@ type ListToTableConfig struct {
 	DefaultValue    string   // default value used for a blank cell
 }
 
+// ListToTable uses the config and the []T records to convert from a slice into a table like structured
+// map
+//
+// The table should have ordering / totals etc added afterwards
 func ListToTable[T api.Model](
 	log *slog.Logger,
 	cfg *ListToTableConfig,
@@ -67,11 +71,11 @@ func ListToTable[T api.Model](
 }
 
 type PopulateConfig struct {
-	Skeleton        map[string]map[string]string
-	TextColumns     []string // these are the text / non-data fields are the start of the table, used for row headers etc
-	ValueField      string   // the field from each list record to use for the sorce of data
-	DataSourceField string   // the field used to compare to the DataColumn items
-	DefaultValue    string   // default value used for a blank cell
+	Skeleton        map[string]map[string]string // the skeleton table to populate
+	TextColumns     []string                     // these are the text / non-data fields are the start of the table, used for row headers etc
+	ValueField      string                       // the field from each list record to use for the sorce of data
+	DataSourceField string                       // the field used to compare to the DataColumn items
+	DefaultValue    string                       // default value used for a blank cell
 }
 
 // Populate loops over each data item and inject its value (from valueColumn)
