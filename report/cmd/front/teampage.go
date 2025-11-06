@@ -58,7 +58,7 @@ func handleTeampage(
 		},
 		// get tabular costs grouped by the account name & filtered by the team
 		func(i ...any) {
-			options := map[string]string{"team": data.TeamName, "account_name": "true"}
+			options := map[string]string{"team": data.TeamName, "account_name": "true", "tabular": "true"}
 			data.CostsByMonthPerAccount, _ = service.GetAwsCostsGrouped(client, request, options)
 			wg.Done()
 		},
@@ -66,6 +66,7 @@ func handleTeampage(
 		func(i ...any) {
 			options := map[string]string{
 				"team":         data.TeamName,
+				"tabular":      "true",
 				"account_name": "true",
 				"environment":  "true",
 				"service":      "true",
