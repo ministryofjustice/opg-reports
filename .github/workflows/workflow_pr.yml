@@ -45,25 +45,25 @@ jobs:
       # Check the code base
       - name: "Checkout"
         id: checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
           fetch-depth: 0
           fetch-tags: true
       # Find the terraform version details for account & env
       - name: "Parse terraform account version"
         id: terraform_account_version
-        uses: ministryofjustice/opg-github-actions/actions/terraform-version@4f345be3f706950d1fdc05bc86383967a149bd99 # v4.3.4
+        uses: ministryofjustice/opg-github-actions/actions/terraform-version@e3177e63e9f2951dd3f1f7c7aa093918a5a0794a # v4.3.6
         with:
           terraform_directory: ./terraform/account
       - name: "Parse terraform environment version"
         id: terraform_environment_version
-        uses: ministryofjustice/opg-github-actions/actions/terraform-version@4f345be3f706950d1fdc05bc86383967a149bd99 # v4.3.4
+        uses: ministryofjustice/opg-github-actions/actions/terraform-version@e3177e63e9f2951dd3f1f7c7aa093918a5a0794a # v4.3.6
         with:
           terraform_directory: ./terraform/environment
       # semver tag
       - name: "Semver tag"
         id: "semver"
-        uses: ministryofjustice/opg-github-actions/actions/semver@4f345be3f706950d1fdc05bc86383967a149bd99 # v4.3.4
+        uses: ministryofjustice/opg-github-actions/actions/semver@e3177e63e9f2951dd3f1f7c7aa093918a5a0794a # v4.3.6
         with:
           create_release: "false" # dont create the release at the moment
           prerelease: ${{ env.PRERELEASE }}
@@ -85,7 +85,7 @@ jobs:
       # checkout self
       - name: "Checkout"
         id: checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
       # run tests
       - id: "test_go"
         name: "Go"
@@ -104,7 +104,7 @@ jobs:
       # checkout self
       - name: "Checkout "
         id: checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -198,7 +198,7 @@ jobs:
     steps:
       - name: "Checkout"
         id: checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
       # setup ssh keys
       - uses: webfactory/ssh-agent@a6f90b1f127823b31d4d4a8d96047790581349bd # v0.9.1
         with:
@@ -246,7 +246,7 @@ jobs:
     steps:
       # checkout self
       - name: "Checkout"
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -269,7 +269,7 @@ jobs:
           source: ./report/cmd/importer/
           destination: ${{ env.BUILD_DIR_BINARIES }}
       - name: "Create release [${{ needs.setup.outputs.semver_tag }}]"
-        uses: ministryofjustice/opg-github-actions/actions/release@4f345be3f706950d1fdc05bc86383967a149bd99 # v4.3.4
+        uses: ministryofjustice/opg-github-actions/actions/release@e3177e63e9f2951dd3f1f7c7aa093918a5a0794a # v4.3.6
         with:
           tag: ${{ needs.setup.outputs.semver_tag }}
           prerelease: ${{ env.PRERELEASE }}
