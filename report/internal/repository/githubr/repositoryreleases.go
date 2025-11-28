@@ -22,22 +22,6 @@ type DownloadRepositoryReleaseAssetOptions struct {
 	AssetName string // Comapred against `asset.Name` attribute
 }
 
-// Validate checks if the asset passed meets the requirements for this current setup
-func (self *DownloadRepositoryReleaseAssetOptions) Validate(asset *github.ReleaseAsset) (valid bool) {
-	var assetNameRegex *regexp.Regexp
-
-	valid = false
-	if self.AssetName != "" {
-		assetNameRegex = regexp.MustCompile(self.AssetName)
-		if self.UseRegex && len(assetNameRegex.FindStringIndex(*asset.Name)) > 0 {
-			valid = true
-		} else if !self.UseRegex && self.AssetName != "" && self.AssetName == *asset.Name {
-			valid = true
-		}
-	}
-	return
-}
-
 // GetRepositoryReleaseOptions used to configure what releases are returned from the github api
 type GetRepositoryReleaseOptions struct {
 	ExcludePrereleases bool   // Exclude releases marked as prereleases
@@ -202,7 +186,7 @@ func (self *Repository) DownloadRepositoryReleaseAsset(
 	)
 	// when find the first match, break the loop
 	for _, a := range release.Assets {
-		var found = options == nil || options.Validate(a)
+		var found = options == nil || releaseAssetMeetsCriteria(a, options)
 		if found {
 			asset = a
 			break
@@ -238,5 +222,21 @@ func (self *Repository) DownloadRepositoryReleaseAsset(
 		return
 	}
 
+	return
+}
+
+// releaseAssetMeetsCriteria checks if the asset passed meets the requirements for this current setup
+func releaseAssetMeetsCriteria(asset *github.ReleaseAsset, criteria *DownloadRepositoryReleaseAssetOptions) (pass bool) {
+	var assetNameRegex *regexp.Regexp
+
+	pass = false
+	if criteria.AssetName != "" {
+		assetNameRegex = regexp.MustCompile(criteria.AssetName)
+		if criteria.UseRegex && len(assetNameRegex.FindStringIndex(*asset.Name)) > 0 {
+			pass = true
+		} else if !criteria.UseRegex && criteria.AssetName != "" && criteria.AssetName == *asset.Name {
+			pass = true
+		}
+	}
 	return
 }
