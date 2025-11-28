@@ -8,6 +8,28 @@ import (
 	"github.com/google/go-github/v75/github"
 )
 
+//---- REPOSITORY LISTS
+
+// RepositoryListByTeam exposes an interface for how
+// we fetch list of repositories based on the org and team
+type RepositoryListByTeam interface {
+	GetRepositoriesForTeam(client ClientTeamListRepositories, owner string, team string, options *GetRepositoriesForTeamOptions) (repositories []*github.Repository, err error)
+}
+
+// ClientTeamListRepositories
+//
+// note: func from *github.TeamsService
+// interface for github.Team.ListTeamReposBySlug
+type ClientTeamListRepositories interface {
+	// ListTeamReposBySlug returns a list of all repositories the team within the org pass can see and match the options
+	// passed.
+	//
+	// Currently filters by Archived only
+	ListTeamReposBySlug(ctx context.Context, org string, team string, opts *github.ListOptions) ([]*github.Repository, *github.Response, error)
+}
+
+//---- REPOSITORY RELEASES
+
 type RepositoryReleases interface {
 	RepositoryReleasesGetMany
 	RepositoryReleasesGetOne
@@ -39,7 +61,7 @@ type RepositoryReleasesGetOne interface {
 // this repositories used to download an asset from a known release
 // to the local filesystem
 //
-// interface for github.Client.Repositories.ListReleases
+// client is interface for github.Client.Repositories.ListReleases
 type RepositoryReleasesDownloadReleaseAsset interface {
 	DownloadRepositoryReleaseAsset(client ClientRepositoryReleaseDownloadReleaseAsset, owner string, repository string, release *github.RepositoryRelease, destination string, options *DownloadRepositoryReleaseAssetOptions) (asset *github.ReleaseAsset, path string, err error)
 }
@@ -65,16 +87,4 @@ type ClientRepositoryReleaseDownloadReleaseAsset interface {
 	//
 	// Used to fetch a specifc asset from the a specific github release
 	DownloadReleaseAsset(ctx context.Context, owner string, repo string, id int64, followRedirectsClient *http.Client) (rc io.ReadCloser, redirectURL string, err error)
-}
-
-// ClientTeamListRepositories
-//
-// note: func from *github.TeamsService
-// interface for github.Team.ListTeamReposBySlug
-type ClientTeamListRepositories interface {
-	// ListTeamReposBySlug returns a list of all repositories the team within the org pass can see and match the options
-	// passed.
-	//
-	// Currently filters by Archived only
-	ListTeamReposBySlug(ctx context.Context, org string, team string, opts *github.ListOptions) ([]*github.Repository, *github.Response, error)
 }
