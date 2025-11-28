@@ -1,7 +1,10 @@
 package githubr
 
 import (
+	"bytes"
 	"context"
+	"io"
+	"net/http"
 	"testing"
 
 	"opg-reports/report/config"
@@ -9,6 +12,35 @@ import (
 
 	"github.com/google/go-github/v75/github"
 )
+
+type mockClientRepositoryReleaseListReleases struct{}
+
+func (self *mockClientRepositoryReleaseListReleases) ListReleases(ctx context.Context, owner, repo string, opts *github.ListOptions) (releases []*github.RepositoryRelease, resp *github.Response, err error) {
+	releases = simpleReleases
+	resp = &github.Response{NextPage: 0}
+	return
+}
+
+func (self *mockClientRepositoryReleaseListReleases) DownloadReleaseAsset(ctx context.Context, owner, repo string, id int64, followRedirectsClient *http.Client) (rc io.ReadCloser, redirectURL string, err error) {
+	var asset *github.ReleaseAsset
+
+	for _, rel := range simpleReleases {
+		for _, a := range rel.Assets {
+			if *a.ID == id {
+				asset = a
+				break
+			}
+		}
+	}
+
+	if asset == nil {
+		return
+	}
+	// content is name of the asset
+	rc = io.NopCloser(bytes.NewBuffer([]byte(*asset.Name)))
+
+	return
+}
 
 func TestGithubrDownloadRepositoryReleaseAsset(t *testing.T) {
 
