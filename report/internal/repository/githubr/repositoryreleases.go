@@ -16,12 +16,6 @@ import (
 	"github.com/maruel/natural"
 )
 
-// DownloadRepositoryReleaseAssetOptions is used for configured finding releases from the sdk
-type DownloadRepositoryReleaseAssetOptions struct {
-	UseRegex  bool   // UseRegex enables using `AssetName` as a regex pattern rather than an exact match
-	AssetName string // Comapred against `asset.Name` attribute
-}
-
 // GetRepositoryReleaseOptions used to configure what releases are returned from the github api
 type GetRepositoryReleaseOptions struct {
 	ExcludePrereleases bool   // Exclude releases marked as prereleases
@@ -30,62 +24,6 @@ type GetRepositoryReleaseOptions struct {
 	UseRegex           bool   // UseRegex enables using `ReleaseName` and `ReleaseTag` as a regex pattern rather than an exact match
 	ReleaseName        string // ReleaseName is compared to the `.Name` attribute of the release
 	ReleaseTag         string // ReleaseTag is compared to `.TagName` attribute
-}
-
-// Validate checks if the release passed meets the requirements for this current setup
-func (self *GetRepositoryReleaseOptions) Validate(release *github.RepositoryRelease) (valid bool) {
-	var (
-		releaseNameRegex *regexp.Regexp
-		releaseTagRegex  *regexp.Regexp
-	)
-	valid = true
-	// no self to check, so true
-	if self == nil {
-		return
-	}
-	// skip draft when set
-	if self.ExcludeDraft && *release.Draft == true {
-		valid = false
-	}
-	// skip prereleases
-	if self.ExcludePrereleases && *release.Prerelease == true {
-		valid = false
-	}
-	// skipping releses without assets
-	if self.ExcludeNoAssets && len(release.Assets) <= 0 {
-		valid = false
-	}
-	// if the simple comparisions have determined false, then return to
-	// avoid some of the more complex checks
-	if !valid {
-		return
-	}
-	// name filtering by either regex if enabled or exact match if not
-	if self.ReleaseName != "" {
-		releaseNameRegex = regexp.MustCompile(self.ReleaseName)
-		releaseNameMatch := false
-		if self.UseRegex && len(releaseNameRegex.FindStringIndex(*release.Name)) > 0 {
-			releaseNameMatch = true
-		} else if !self.UseRegex && self.ReleaseName == *release.Name {
-			releaseNameMatch = true
-		}
-		valid = (valid && releaseNameMatch)
-	}
-
-	// filter by the release tag, similar to the name filtering
-	if self.ReleaseTag != "" {
-		releaseTagRegex = regexp.MustCompile(self.ReleaseTag)
-		releaseTagMatch := false
-
-		if self.UseRegex && len(releaseTagRegex.FindStringIndex(*release.TagName)) > 0 {
-			releaseTagMatch = true
-		} else if !self.UseRegex && self.ReleaseTag == *release.TagName {
-			releaseTagMatch = true
-		}
-		valid = (valid && releaseTagMatch)
-	}
-
-	return
 }
 
 // GetRepositoryReleases returns fetches all releases from the client (by calling `ListReleases`) and in turn filters
@@ -124,7 +62,7 @@ func (self *Repository) GetRepositoryReleases(
 		// if there items in the list, them merge into all
 		if len(list) > 0 {
 			for _, item := range list {
-				var include = options.Validate(item)
+				var include = repositoryReleaseMeetsCriteria(item, options)
 				log.With("include", include, "release", item.GetTagName()).Debug("include release?")
 				if include && item.GetTagName() != "" {
 					rels[item.GetTagName()] = item
@@ -165,6 +103,12 @@ func (self *Repository) GetRepositoryRelease(
 		release = releases[0]
 	}
 	return
+}
+
+// DownloadRepositoryReleaseAssetOptions is used for configured finding releases from the sdk
+type DownloadRepositoryReleaseAssetOptions struct {
+	UseRegex  bool   // UseRegex enables using `AssetName` as a regex pattern rather than an exact match
+	AssetName string // Comapred against `asset.Name` attribute
 }
 
 // DownloadRepositoryReleaseAsset tries to download an asset that matches the oprions specified
@@ -238,5 +182,61 @@ func releaseAssetMeetsCriteria(asset *github.ReleaseAsset, criteria *DownloadRep
 			pass = true
 		}
 	}
+	return
+}
+
+// repositoryReleaseMeetsCriteria checks if the release passed meets the requirements for this current setup
+func repositoryReleaseMeetsCriteria(release *github.RepositoryRelease, criteria *GetRepositoryReleaseOptions) (pass bool) {
+	var (
+		releaseNameRegex *regexp.Regexp
+		releaseTagRegex  *regexp.Regexp
+	)
+	pass = true
+	// no criteria to check, so true
+	if criteria == nil {
+		return
+	}
+	// skip draft when set
+	if criteria.ExcludeDraft && *release.Draft == true {
+		pass = false
+	}
+	// skip prereleases
+	if criteria.ExcludePrereleases && *release.Prerelease == true {
+		pass = false
+	}
+	// skipping releses without assets
+	if criteria.ExcludeNoAssets && len(release.Assets) <= 0 {
+		pass = false
+	}
+	// if the simple comparisions have determined false, then return to
+	// avoid some of the more complex checks
+	if !pass {
+		return
+	}
+	// name filtering by either regex if enabled or exact match if not
+	if criteria.ReleaseName != "" {
+		releaseNameRegex = regexp.MustCompile(criteria.ReleaseName)
+		releaseNameMatch := false
+		if criteria.UseRegex && len(releaseNameRegex.FindStringIndex(*release.Name)) > 0 {
+			releaseNameMatch = true
+		} else if !criteria.UseRegex && criteria.ReleaseName == *release.Name {
+			releaseNameMatch = true
+		}
+		pass = (pass && releaseNameMatch)
+	}
+
+	// filter by the release tag, similar to the name filtering
+	if criteria.ReleaseTag != "" {
+		releaseTagRegex = regexp.MustCompile(criteria.ReleaseTag)
+		releaseTagMatch := false
+
+		if criteria.UseRegex && len(releaseTagRegex.FindStringIndex(*release.TagName)) > 0 {
+			releaseTagMatch = true
+		} else if !criteria.UseRegex && criteria.ReleaseTag == *release.TagName {
+			releaseTagMatch = true
+		}
+		pass = (pass && releaseTagMatch)
+	}
+
 	return
 }

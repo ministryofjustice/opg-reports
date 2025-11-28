@@ -166,7 +166,7 @@ func TestGithubrGetRepositoryReleaseOptionsValidation(t *testing.T) {
 	}
 	// is draft, should be skipped
 	for _, test := range tests {
-		inc = test.Options.Validate(test.Release)
+		inc = repositoryReleaseMeetsCriteria(test.Release, test.Options)
 		if inc != test.ExpectedResult {
 			t.Errorf("expected [%v], actual [%v] see test [%v]", test.ExpectedResult, inc, *test.Release.Name)
 		}
