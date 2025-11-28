@@ -53,7 +53,7 @@ type ClientRepositoryReleases interface {
 //
 // interface for github.Client.Repositories.ListReleases
 type ClientRepositoryReleaseListReleases interface {
-	ListReleases(ctx context.Context, owner, repo string, opts *github.ListOptions) ([]*github.RepositoryRelease, *github.Response, error)
+	ListReleases(ctx context.Context, owner string, repo string, opts *github.ListOptions) ([]*github.RepositoryRelease, *github.Response, error)
 }
 
 // ClientRepositoryReleaseDownloadReleaseAsset
@@ -64,5 +64,17 @@ type ClientRepositoryReleaseDownloadReleaseAsset interface {
 	// and any redirect string.
 	//
 	// Used to fetch a specifc asset from the a specific github release
-	DownloadReleaseAsset(ctx context.Context, owner, repo string, id int64, followRedirectsClient *http.Client) (rc io.ReadCloser, redirectURL string, err error)
+	DownloadReleaseAsset(ctx context.Context, owner string, repo string, id int64, followRedirectsClient *http.Client) (rc io.ReadCloser, redirectURL string, err error)
+}
+
+// ClientTeamListRepositories
+//
+// note: func from *github.TeamsService
+// interface for github.Team.ListTeamReposBySlug
+type ClientTeamListRepositories interface {
+	// ListTeamReposBySlug returns a list of all repositories the team within the org pass can see and match the options
+	// passed.
+	//
+	// Currently filters by Archived only
+	ListTeamReposBySlug(ctx context.Context, org string, team string, opts *github.ListOptions) ([]*github.Repository, *github.Response, error)
 }
