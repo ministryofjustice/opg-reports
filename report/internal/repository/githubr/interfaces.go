@@ -22,19 +22,19 @@ type RepositoryOwnership interface {
 // RepositoryOwnerGetter interface exposes the func that will fetch and merge teams and the
 // contents of codeowners as the overall oweners
 type RepositoryOwnerGetter interface {
-	GetRepositoryOwners(client ClientRepositoryOwnership, repo *github.Repository, options *GetTeamsForRepositoryOptions) (owners []string, err error)
+	GetRepositoryOwners(client ClientRepositoryOwnership, repo *github.Repository, options *GetRepositoryOwnerOptions) (owners []string, err error)
 }
 
 // RepositoryTeamList interface exposes functions to get list of teams
 // that are atttached to the repository and then filter them in required
 type RepositoryTeamList interface {
-	GetTeamsForRepository(client ClientRepositoryTeamList, repo *github.Repository, options *GetTeamsForRepositoryOptions) (teams []*github.Team, err error)
+	GetTeamsForRepository(client ClientRepositoryTeamList, repo *github.Repository, options *GetRepositoryOwnerOptions) (teams []*github.Team, err error)
 }
 
 // RepositoryCodeOwnerFiles interface for repo that provides method
 // to fetch codeowner file content as a set of strings
 type RepositoryCodeOwnerFiles interface {
-	GetCodeOwnersForRepository(client ClientRepositoryCodeOwnerDownload, repo *github.Repository) (owners []string, err error)
+	GetCodeOwnersForRepository(client ClientRepositoryCodeOwnerDownload, repo *github.Repository, options *GetRepositoryOwnerOptions) (owners []string, err error)
 }
 
 // ClientRepositoryOwnership is used to fetch ownership via both team and

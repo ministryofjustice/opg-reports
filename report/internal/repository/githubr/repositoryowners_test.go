@@ -32,21 +32,34 @@ func (self *mockClientOwnership) ListTeams(ctx context.Context, owner, repo stri
 			Name: utils.Ptr("A"),
 			Slug: utils.Ptr("a"),
 			Parent: &github.Team{
-				Name: utils.Ptr("Root"),
-				Slug: utils.Ptr("ministryofjustice"),
+				Name: utils.Ptr("opg"),
+				Slug: utils.Ptr("opg"),
+			},
+			Organization: &github.Organization{
+				Login: utils.Ptr("ministryofjustice"),
 			},
 		},
 		{
 			Name: utils.Ptr("B"),
 			Slug: utils.Ptr("b"),
 			Parent: &github.Team{
-				Name: utils.Ptr("Root"),
-				Slug: utils.Ptr("ministryofjustice"),
+				Name: utils.Ptr("opg"),
+				Slug: utils.Ptr("opg"),
+			},
+			Organization: &github.Organization{
+				Login: utils.Ptr("ministryofjustice"),
 			},
 		},
 		{
 			Name: utils.Ptr("C"),
 			Slug: utils.Ptr("c"),
+			Organization: &github.Organization{
+				Login: utils.Ptr("ministryofjustice"),
+			},
+			Parent: &github.Team{
+				Name: utils.Ptr("laa"),
+				Slug: utils.Ptr("laa"),
+			},
 		},
 	}
 	return
@@ -70,20 +83,38 @@ func TestGithubrGetRepositoryOwners(t *testing.T) {
 			},
 		}
 	)
-	res, err = rp.GetRepositoryOwners(client, repo, &GetTeamsForRepositoryOptions{})
+	res, err = rp.GetRepositoryOwners(client, repo, &GetRepositoryOwnerOptions{})
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
 	if len(res) != 3 {
 		t.Errorf("not all owners returned")
 	}
-	// check filter
-	res, err = rp.GetRepositoryOwners(client, repo, &GetTeamsForRepositoryOptions{FilterByParent: "ministryofjustice"})
+	// test the exclusion logic
+	res, err = rp.GetRepositoryOwners(client, repo, &GetRepositoryOwnerOptions{Exclude: []string{"ministryofjustice/a"}})
+	if err != nil {
+		t.Errorf("unexpected error: %s", err.Error())
+	}
+	if len(res) != 2 {
+		t.Errorf("incorrect owners returned, exclusion failed")
+	}
+
+	// check filter only returns opg parents and not `c` dummy
+	res, err = rp.GetRepositoryOwners(client, repo, &GetRepositoryOwnerOptions{FilterByParent: "opg"})
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
 	if len(res) != 2 {
 		t.Errorf("filtering of owners failed")
+	}
+
+	// check filter and the exclusion
+	res, err = rp.GetRepositoryOwners(client, repo, &GetRepositoryOwnerOptions{FilterByParent: "opg", Exclude: []string{"ministryofjustice/a"}})
+	if err != nil {
+		t.Errorf("unexpected error: %s", err.Error())
+	}
+	if len(res) != 1 {
+		t.Errorf("filtering of owners with exclusions failed")
 	}
 
 }
@@ -116,8 +147,17 @@ func TestGithubrGetTeamsForRepository(t *testing.T) {
 		t.Errorf("unexpected length returned, filter issue")
 	}
 
-	// check filter works
-	res, err = rp.GetTeamsForRepository(client, repo, &GetTeamsForRepositoryOptions{FilterByParent: "ministryofjustice"})
+	// check filter by parent works
+	res, err = rp.GetTeamsForRepository(client, repo, &GetRepositoryOwnerOptions{FilterByParent: "opg"})
+	if err != nil {
+		t.Errorf("unexpected error: %s", err.Error())
+	}
+	if len(res) != 2 {
+		t.Errorf("unexpected length returned, filter failed")
+	}
+
+	// check exclusion works
+	res, err = rp.GetTeamsForRepository(client, repo, &GetRepositoryOwnerOptions{Exclude: []string{"ministryofjustice/a"}})
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
@@ -146,7 +186,7 @@ func TestGithubrGetCodeOwnersForRepository(t *testing.T) {
 		}
 	)
 
-	res, err = rp.GetCodeOwnersForRepository(client, repo)
+	res, err = rp.GetCodeOwnersForRepository(client, repo, nil)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
@@ -154,6 +194,13 @@ func TestGithubrGetCodeOwnersForRepository(t *testing.T) {
 		t.Errorf("incorrect length from codeowners")
 	}
 
+	res, err = rp.GetCodeOwnersForRepository(client, repo, &GetRepositoryOwnerOptions{Exclude: []string{"ministryofjustice/b"}})
+	if err != nil {
+		t.Errorf("unexpected error: %s", err.Error())
+	}
+	if len(res) != 1 {
+		t.Errorf("incorrect length from codeowners, exclude failed")
+	}
 }
 
 type testCodeOwnerLines struct {

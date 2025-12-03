@@ -12,9 +12,10 @@ import (
 	"github.com/google/go-github/v75/github"
 )
 
-// GetTeamsForRepositoryOptions allow to filter team data
-type GetTeamsForRepositoryOptions struct {
-	FilterByParent string // only return repositories whose parent.slug is present
+// GetRepositoryOwnerOptions allow to filter team data
+type GetRepositoryOwnerOptions struct {
+	FilterByParent string   // only return repositories whose parent.slug is present - this is ignored for CODEOWNER files
+	Exclude        []string // list of teams to ignore - in particular used to skip default teams that are added to everything
 }
 
 // GetRepositoryOwners returns a combined list of teams from the repository and the
@@ -27,7 +28,7 @@ type GetTeamsForRepositoryOptions struct {
 func (self *Repository) GetRepositoryOwners(
 	client ClientRepositoryOwnership, // client *github.RepositoriesService,
 	repo *github.Repository,
-	options *GetTeamsForRepositoryOptions) (owners []string, err error) {
+	options *GetRepositoryOwnerOptions) (owners []string, err error) {
 
 	var (
 		org      string       = *repo.Owner.Login
@@ -39,11 +40,11 @@ func (self *Repository) GetRepositoryOwners(
 	log.Debug("getting teams ... ")
 	teams, _ := self.GetTeamsForRepository(client, repo, options)
 	for _, team := range teams {
-		owners = append(owners, fmt.Sprintf("%s/%s", org, *team.Slug))
+		owners = append(owners, teamSlug(team))
 	}
 	// now add in code owners
 	log.Debug("getting CODEOWNERS ... ")
-	codeowners, _ := self.GetCodeOwnersForRepository(client, repo)
+	codeowners, _ := self.GetCodeOwnersForRepository(client, repo, options)
 	owners = append(owners, codeowners...)
 	// remove duplicates
 	slices.Sort(owners)
@@ -58,7 +59,7 @@ func (self *Repository) GetRepositoryOwners(
 func (self *Repository) GetTeamsForRepository(
 	client ClientRepositoryTeamList, // client *github.RepositoriesService,
 	repo *github.Repository,
-	options *GetTeamsForRepositoryOptions,
+	options *GetRepositoryOwnerOptions,
 ) (teams []*github.Team, err error) {
 	var (
 		ctx      context.Context     = self.ctx
@@ -108,6 +109,7 @@ func (self *Repository) GetTeamsForRepository(
 func (self *Repository) GetCodeOwnersForRepository(
 	client ClientRepositoryCodeOwnerDownload, // client *github.RepositoriesService,
 	repo *github.Repository,
+	options *GetRepositoryOwnerOptions,
 ) (owners []string, err error) {
 	var (
 		ctx            context.Context = self.ctx
@@ -124,7 +126,16 @@ func (self *Repository) GetCodeOwnersForRepository(
 
 		lines, err = getFileContent(client.DownloadContents(ctx, org, repoName, codeOwnerFile, nil))
 		if err == nil && len(lines) > 0 {
-			owners = append(owners, codeOwnersFromLines(lines)...)
+			codeowners := codeOwnersFromLines(lines)
+			// owners = append(owners, ...)
+			for _, co := range codeowners {
+				var include = repositoryCodeOwnerMeetsCriteria(co, options)
+				log.With("include", include, "codeowner", co).Info("codeowner checked ... ")
+				if include {
+					owners = append(owners, co)
+				}
+			}
+
 		}
 	}
 	if err != nil {
@@ -138,7 +149,7 @@ func (self *Repository) GetCodeOwnersForRepository(
 
 // repositoryTeamMeetsCriteria checks if the team settings meeting the asked for values.
 // Normally used to do filtering that isnt supported at the api for the end point
-func repositoryTeamMeetsCriteria(team *github.Team, criteria *GetTeamsForRepositoryOptions) (pass bool) {
+func repositoryTeamMeetsCriteria(team *github.Team, criteria *GetRepositoryOwnerOptions) (pass bool) {
 	pass = true
 	if criteria == nil {
 		return
@@ -150,6 +161,40 @@ func repositoryTeamMeetsCriteria(team *github.Team, criteria *GetTeamsForReposit
 		// if there is a parent, and its within the list, it passes
 		if team.Parent != nil && criteria.FilterByParent == *team.Parent.Slug {
 			pass = true
+		}
+	}
+	// if the team is within the ignore list it doesnt pass
+	if len(criteria.Exclude) > 0 {
+		for _, skip := range criteria.Exclude {
+			var slug = teamSlug(team)
+			if skip == slug {
+				pass = false
+			}
+		}
+	}
+
+	return
+}
+
+func teamSlug(team *github.Team) string {
+	var teamSlug = *team.Slug
+	if o := team.GetOrganization(); o != nil && o.Login != nil {
+		teamSlug = fmt.Sprintf("%s/%s", *o.Login, *team.Slug)
+	}
+	return teamSlug
+}
+
+func repositoryCodeOwnerMeetsCriteria(owner string, criteria *GetRepositoryOwnerOptions) (pass bool) {
+	pass = true
+	if criteria == nil {
+		return
+	}
+	// if the team is within the ignore list it doesnt pass
+	if len(criteria.Exclude) > 0 {
+		for _, skip := range criteria.Exclude {
+			if skip == owner {
+				pass = false
+			}
 		}
 	}
 
