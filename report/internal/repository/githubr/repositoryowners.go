@@ -130,6 +130,9 @@ func (self *Repository) GetCodeOwnersForRepository(
 	if err != nil {
 		return
 	}
+	// remove duplicates
+	slices.Sort(owners)
+	owners = slices.Compact(owners)
 	return
 }
 
