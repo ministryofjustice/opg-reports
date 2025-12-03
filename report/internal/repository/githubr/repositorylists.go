@@ -15,7 +15,7 @@ type GetRepositoriesForTeamOptions struct {
 // GetRepositoriesForTeam returns all repositories for a team within the organisation passed along
 // and can filter those results afterwards via the `options`
 //
-// Note: client *github.TeamsService
+// Note: client is interface for a *github.TeamsService
 func (self *Repository) GetRepositoriesForTeam(
 	client ClientTeamListRepositories, // *github.TeamsService,
 	organisation string,
@@ -26,7 +26,7 @@ func (self *Repository) GetRepositoriesForTeam(
 	var (
 		page int                 = 1
 		opts *github.ListOptions = &github.ListOptions{PerPage: 200}
-		log  *slog.Logger        = self.log.With("organistion", organisation, "team", team, "operation", "ListRepositoriesForTeam")
+		log  *slog.Logger        = self.log.With("organistion", organisation, "team", team, "operation", "GetRepositoriesForTeam")
 	)
 	repositories = []*github.Repository{}
 	// loop over all results and handle the pagination on the data set
@@ -43,12 +43,12 @@ func (self *Repository) GetRepositoriesForTeam(
 			return
 		}
 
-		log.With("page", page, "count", len(list)).Debug("found repositories ...")
+		log.With("page", page, "count", len(list)).Debug("found repositories ... ")
 		// process returned items
 		if len(list) > 0 {
 			for _, item := range list {
 				var include = repositoryMeetsCriteria(item, options)
-				log.With("include", include, "repo", item.FullName).Debug("include repo?")
+				log.With("include", include, "repo", *item.FullName).Info("repo checked ... ")
 				if include {
 					repositories = append(repositories, item)
 				}
