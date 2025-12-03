@@ -8,6 +8,56 @@ import (
 	"github.com/google/go-github/v75/github"
 )
 
+//---- REPOSITORY OWNERSHIP
+
+// RepositoryOwnership interface exposes all the functions needed to fetch
+// list of owners for a repository based on both the CODEOWNER files and
+// the attached team data
+type RepositoryOwnership interface {
+	RepositoryTeamList
+	RepositoryCodeOwnerFiles
+	RepositoryOwnerGetter
+}
+
+// RepositoryOwnerGetter interface exposes the func that will fetch and merge teams and the
+// contents of codeowners as the overall oweners
+type RepositoryOwnerGetter interface {
+	GetRepositoryOwners(client ClientRepositoryOwnership, repo *github.Repository, options *GetTeamsForRepositoryOptions) (owners []string, err error)
+}
+
+// RepositoryTeamList interface exposes functions to get list of teams
+// that are atttached to the repository and then filter them in required
+type RepositoryTeamList interface {
+	GetTeamsForRepository(client ClientRepositoryTeamList, repo *github.Repository, options *GetTeamsForRepositoryOptions) (teams []*github.Team, err error)
+}
+
+// RepositoryCodeOwnerFiles interface for repo that provides method
+// to fetch codeowner file content as a set of strings
+type RepositoryCodeOwnerFiles interface {
+	GetCodeOwnersForRepository(client ClientRepositoryCodeOwnerDownload, repo *github.Repository) (owners []string, err error)
+}
+
+// ClientRepositoryOwnership is used to fetch ownership via both team and
+// codeowner files
+// Note: wrapper of github.RepositoriesService
+type ClientRepositoryOwnership interface {
+	ClientRepositoryTeamList
+	ClientRepositoryCodeOwnerDownload
+}
+
+// ClientRepositoryTeamList is used to fetch list of teams for the repository
+// Note: wrapper of github.RepositoriesService.ListTeams
+type ClientRepositoryTeamList interface {
+	ListTeams(ctx context.Context, owner, repo string, opts *github.ListOptions) ([]*github.Team, *github.Response, error)
+}
+
+// ClientRepositoryCodeOwnerDownload is used to fetch content of the CODEOWNER files
+// for the repository
+// Note: wrapper of github.RepositoriesService.DownloadContents
+type ClientRepositoryCodeOwnerDownload interface {
+	DownloadContents(ctx context.Context, owner, repo, filepath string, opts *github.RepositoryContentGetOptions) (io.ReadCloser, *github.Response, error)
+}
+
 //---- REPOSITORY LISTS
 
 // RepositoryListByTeam exposes an interface for how

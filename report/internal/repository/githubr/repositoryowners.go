@@ -25,7 +25,7 @@ type GetTeamsForRepositoryOptions struct {
 //
 // Does not check if the team or CODEOWNERS are valid, just parses the data
 func (self *Repository) GetRepositoryOwners(
-	client *github.RepositoriesService,
+	client ClientRepositoryOwnership, // client *github.RepositoriesService,
 	repo *github.Repository,
 	options *GetTeamsForRepositoryOptions) (owners []string, err error) {
 
@@ -56,7 +56,7 @@ func (self *Repository) GetRepositoryOwners(
 //
 // Note: client is interface for wrapper for *github.RepositoriesService
 func (self *Repository) GetTeamsForRepository(
-	client *github.RepositoriesService,
+	client ClientRepositoryTeamList, // client *github.RepositoriesService,
 	repo *github.Repository,
 	options *GetTeamsForRepositoryOptions,
 ) (teams []*github.Team, err error) {
@@ -103,8 +103,10 @@ func (self *Repository) GetTeamsForRepository(
 
 // GetCodeOwnersForRepository returns all the CODEOWNERS found from within repo
 // which can then be used along with teams to determine ownersip
+//
+// Note: client is interface wrapper for client *github.RepositoriesService
 func (self *Repository) GetCodeOwnersForRepository(
-	client *github.RepositoriesService,
+	client ClientRepositoryCodeOwnerDownload, // client *github.RepositoriesService,
 	repo *github.Repository,
 ) (owners []string, err error) {
 	var (
