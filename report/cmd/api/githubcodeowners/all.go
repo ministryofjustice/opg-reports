@@ -32,11 +32,11 @@ func RegisterGetGithubCodeOwnersAll[T api.Model](
 	var operation = huma.Operation{
 		OperationID:   "get-githubcodeowners-all",
 		Method:        http.MethodGet,
-		Path:          endpoints.TEAMS_GET_ALL,
+		Path:          endpoints.GITHUBCODEOWNERS_GET_ALL,
 		Summary:       "Return all github codeowners",
 		Description:   "Returns a list of all codeowners known about.",
 		DefaultStatus: http.StatusOK,
-		Tags:          []string{"GithubCodeOwners"},
+		Tags:          []string{"Github Code Owners"},
 	}
 	huma.Register(humaapi, operation, func(ctx context.Context, input *struct{}) (*GetGithubCodeOwnersAllResponse[T], error) {
 		return handleGetGithubCodeOwnersAll[T](ctx, log, conf, service, store, input)
