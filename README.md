@@ -61,6 +61,7 @@ Steps
         - create a `GetAll${DataType}` func on the `Service[T]` struct (see others for how)
         - create an interface `${DataType}Getter` with the `GetAll${DataType}All` func & `Closer`
         - add a `Put${DataType}` func on the `Service[T]`
+    - add suitable testing for the get all func
 - Add handlers for the basic endpoints in the `report/cmd/api` package
     - create new folder (`${datatype}`) & package for the data type
     - create a `all` file in the new package

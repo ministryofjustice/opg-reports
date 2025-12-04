@@ -7,6 +7,7 @@ import (
 	"opg-reports/report/cmd/api/awsaccounts"
 	"opg-reports/report/cmd/api/awscosts"
 	"opg-reports/report/cmd/api/awsuptime"
+	"opg-reports/report/cmd/api/githubcodeowners"
 	"opg-reports/report/cmd/api/home"
 	"opg-reports/report/cmd/api/teams"
 	"opg-reports/report/config"
@@ -37,6 +38,9 @@ func RegisterHandlers(ctx context.Context, log *slog.Logger, conf *config.Config
 		awsUptimeService        = api.Default[*api.AwsUptime](ctx, log, conf)
 		awsUptimeGroupedStore   = sqlr.DefaultWithSelect[*api.AwsUptimeGrouped](ctx, log, conf)
 		awsUptimeGroupedService = api.Default[*api.AwsUptimeGrouped](ctx, log, conf)
+		// GITHUB CODEOWNERS
+		githubCodeOwnerStore   = sqlr.DefaultWithSelect[*api.GithubCodeOwner](ctx, log, conf)
+		githubCodeOwnerService = api.Default[*api.GithubCodeOwner](ctx, log, conf)
 	)
 	// HOME
 	home.RegisterGetHomepage(log, conf, humaapi)
@@ -50,4 +54,7 @@ func RegisterHandlers(ctx context.Context, log *slog.Logger, conf *config.Config
 	// AWS UPTIME
 	awsuptime.RegisterGetAwsUptimeAll(log, conf, humaapi, awsUptimeService, awsUptimeStore)
 	awsuptime.RegisterGetAwsUptimeGrouped(log, conf, humaapi, awsUptimeGroupedService, awsUptimeGroupedStore)
+	// GITHUB CODEOWNERS
+	githubcodeowners.RegisterGetGithubCodeOwnersAll(log, conf, humaapi, githubCodeOwnerService, githubCodeOwnerStore)
+
 }

@@ -38,6 +38,8 @@ var githubCodeOwnerSeeds = []*sqlr.BoundStatement{
 	{Statement: stmtGithubCodeOwnerSeed, Data: &githubCodeOwnerSeed{Team: "TEAM-B", Repository: "moj/repo-b", CodeOwner: "opg/gh-team-b3"}},
 	// repo-c has 1 codeowner and 1 team
 	{Statement: stmtGithubCodeOwnerSeed, Data: &githubCodeOwnerSeed{Team: "TEAM-D", Repository: "moj/repo-c", CodeOwner: "opg/gh-team-c"}},
+	// repo-d has a codeowner, but no team
+	{Statement: stmtGithubCodeOwnerSeed, Data: &githubCodeOwnerSeed{Team: "NONE", Repository: "moj/repo-d", CodeOwner: "opg/gh-team-d"}},
 }
 
 // GithubCodeOwners populates the database (via the sqc var) with standard known enteries

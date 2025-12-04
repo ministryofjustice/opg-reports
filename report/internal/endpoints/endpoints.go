@@ -36,6 +36,12 @@ const (
 	AWSUPTIME_GROUPED string = awsuptime + "grouped/{granularity}/{start_date}/{end_date}"
 )
 
+// All `githubcodeowners` related endpoints
+const (
+	githubcodeowners         string = "/" + API_VERSION + "/githubcodeowners/"
+	GITHUBCODEOWNERS_GET_ALL string = githubcodeowners + "all"
+)
+
 // Parse takes the map and inserts them into the url and subsitutes
 // any `{key}` parts with the matching value in the map. Any items in
 // the map that dont match a `{key}` will be appended as query string
