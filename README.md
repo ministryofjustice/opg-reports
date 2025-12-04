@@ -46,6 +46,11 @@ Steps
     - create sample / test data slice to insert
     - create function on the `Service` struct
     - add new func into the `Service.All` (`report/internal/services/seed/seed.go`) function & return data type
+    - test seeding by running...
+        - `make local/download-database` to fetch latest DB
+        - `make local/build` to build all commands locally
+        - seed the database running `env DATABASE_PATH=./builds/databases/api.db ./builds/cmd/bin/seeder`
+        - then you can check content of the db (`sqlite3 -header -column ./builds/databases/api.db`)
 - Add new, basic capabilities to the `report/internal/service/api` package
     - Create a new file in the api package for this data type & `${DataType}_handlers` file as well
     - in `${DataType}` file...
