@@ -23,5 +23,4 @@ SELECT
 	) as team
 FROM github_codeownership
 LEFT JOIN teams ON github_codeownership.team = teams.name
-GROUP BY codeowner
 ORDER BY codeowner ASC;`
