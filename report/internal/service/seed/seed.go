@@ -13,10 +13,11 @@ const label string = "seed-service"
 
 // SeedAllResults contains all the results from each step of the all function
 type SeedAllResults struct {
-	Teams       []*sqlr.BoundStatement
-	AwsAccounts []*sqlr.BoundStatement
-	AwsCosts    []*sqlr.BoundStatement
-	AwsUptime   []*sqlr.BoundStatement
+	Teams            []*sqlr.BoundStatement
+	AwsAccounts      []*sqlr.BoundStatement
+	AwsCosts         []*sqlr.BoundStatement
+	AwsUptime        []*sqlr.BoundStatement
+	GithubCodeOwners []*sqlr.BoundStatement
 }
 
 type Service struct {
@@ -46,6 +47,11 @@ func (self *Service) All(sqlStore sqlr.RepositoryWriter) (results *SeedAllResult
 	}
 	// AWS UPTIME
 	results.AwsUptime, err = self.AwsUptime(sqlStore)
+	if err != nil {
+		return
+	}
+	// GITHUB CODE OWNERS
+	results.GithubCodeOwners, err = self.GithubCodeOwners(sqlStore)
 	if err != nil {
 		return
 	}
