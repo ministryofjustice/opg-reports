@@ -9,7 +9,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/google/go-github/v75/github"
+	"github.com/google/go-github/v77/github"
 )
 
 // GetRepositoryOwnerOptions allow to filter team data

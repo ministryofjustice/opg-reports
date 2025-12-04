@@ -10,7 +10,7 @@ import (
 	"opg-reports/report/config"
 	"opg-reports/report/internal/utils"
 
-	"github.com/google/go-github/v75/github"
+	"github.com/google/go-github/v77/github"
 )
 
 // simple test release list

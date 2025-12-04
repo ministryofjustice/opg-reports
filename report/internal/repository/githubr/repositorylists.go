@@ -3,7 +3,7 @@ package githubr
 import (
 	"log/slog"
 
-	"github.com/google/go-github/v75/github"
+	"github.com/google/go-github/v77/github"
 )
 
 // GetRepositoriesForTeamOptions used to decide what repositories
