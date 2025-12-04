@@ -48,7 +48,7 @@ func (self *Repository) GetRepositoriesForTeam(
 		if len(list) > 0 {
 			for _, item := range list {
 				var include = repositoryMeetsCriteria(item, options)
-				log.With("include", include, "repo", *item.FullName).Info("repo checked ... ")
+				log.With("include", include, "repo", *item.FullName).Debug("repo checked ... ")
 				if include {
 					repositories = append(repositories, item)
 				}

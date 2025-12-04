@@ -89,7 +89,7 @@ func (self *Repository) GetTeamsForRepository(
 		if len(list) > 0 {
 			for _, item := range list {
 				var include = repositoryTeamMeetsCriteria(item, options)
-				log.With("include", include, "team", *item.Name).Info("team checked ... ")
+				log.With("include", include, "team", *item.Name).Debug("team checked ... ")
 				if include {
 					teams = append(teams, item)
 				}
@@ -130,7 +130,7 @@ func (self *Repository) GetCodeOwnersForRepository(
 			// owners = append(owners, ...)
 			for _, co := range codeowners {
 				var include = repositoryCodeOwnerMeetsCriteria(co, options)
-				log.With("include", include, "codeowner", co).Info("codeowner checked ... ")
+				log.With("include", include, "codeowner", co).Debug("codeowner checked ... ")
 				if include {
 					owners = append(owners, co)
 				}
