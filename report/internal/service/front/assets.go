@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/google/go-github/v75/github"
+	"github.com/google/go-github/v77/github"
 )
 
 // DownloadGovUKFrontEnd fetches the govuk front end generated release files

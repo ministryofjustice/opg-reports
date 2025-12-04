@@ -6,7 +6,7 @@ import (
 	"opg-reports/report/internal/utils"
 	"testing"
 
-	"github.com/google/go-github/v75/github"
+	"github.com/google/go-github/v77/github"
 )
 
 var mockRepos = []*github.Repository{
