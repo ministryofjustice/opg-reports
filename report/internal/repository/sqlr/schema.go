@@ -62,8 +62,8 @@ CREATE TABLE IF NOT EXISTS github_codeownership (
 ) STRICT;` // repository & team will be a link to other tables as text primary keys
 const migration_github_codeowner_all_idx string = `CREATE INDEX IF NOT EXISTS gh_codeownership_all_idx ON github_codeownership(codeowner,repository,team);`
 const migration_github_codeowner_idx string = `CREATE INDEX IF NOT EXISTS gh_codeownership_codeowner_idx ON github_codeownership(codeowner);`
-const migration_github_repo_idx string = `CREATE INDEX IF NOT EXISTS gh_codeownership_repository ON github_codeownership(repository);`
-const migration_github_team_idx string = `CREATE INDEX IF NOT EXISTS gh_codeownership_team ON github_codeownership(team);`
+const migration_github_repo_idx string = `CREATE INDEX IF NOT EXISTS gh_codeownership_repo_idx ON github_codeownership(repository);`
+const migration_github_team_idx string = `CREATE INDEX IF NOT EXISTS gh_codeownership_team_idx ON github_codeownership(team);`
 
 var DB_MIGRATIONS_UP []string = []string{
 	// base teams
