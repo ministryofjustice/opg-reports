@@ -45,7 +45,7 @@ Steps
     - create a private model struct & create private insert statement
     - create sample / test data slice to insert
     - create function on the `Service` struct
-    - add new func into the `All` function & return data type
+    - add new func into the `Service.All` (`report/internal/services/seed/seed.go`) function & return data type
 - Add new, basic capabilities to the `report/internal/service/api` package
     - Create a new file in the api package for this data type & `${DataType}_handlers` file as well
     - in `${DataType}` file...
