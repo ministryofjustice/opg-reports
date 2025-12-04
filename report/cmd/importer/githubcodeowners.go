@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"opg-reports/report/internal/repository/githubr"
+	"opg-reports/report/internal/repository/sqlr"
+	"opg-reports/report/internal/service/api"
 
 	"github.com/google/go-github/v77/github"
 	"github.com/spf13/cobra"
@@ -35,11 +36,10 @@ func githubCodeOwnerRunner(cmd *cobra.Command, args []string) (err error) {
 		org          = "ministryofjustice"
 		parentTeam   = "opg"
 		// clients
-		ghClient = githubr.DefaultClient(conf)
-		ghStore  = githubr.Default(ctx, log, conf)
-		// sqClient   = sqlr.DefaultWithSelect[*api.GithubCodeOwner](ctx, log, conf)
-		// apiService = api.Default[*api.GithubCodeOwner](ctx, log, conf)
-
+		ghClient   = githubr.DefaultClient(conf)
+		ghStore    = githubr.Default(ctx, log, conf)
+		sqClient   = sqlr.DefaultWithSelect[*api.GithubCodeOwner](ctx, log, conf)
+		apiService = api.Default[*api.GithubCodeOwner](ctx, log, conf)
 	)
 
 	// get all the repos
@@ -47,9 +47,32 @@ func githubCodeOwnerRunner(cmd *cobra.Command, args []string) (err error) {
 	if err != nil {
 		return
 	}
-	// get code owners from all of the repos
-	githubCodeOwnersFromRepos(ghClient.Repositories, ghStore, org, parentTeam, repositories)
 
+	// get code owners from all of the repos
+	opts := &githubr.GetRepositoryOwnerOptions{
+		FilterByParent: parentTeam, Exclude: []string{"ministryofjustice/opg-webops"},
+	}
+	owners, err := githubCodeOwnersFromRepos(ghClient.Repositories, ghStore, repositories, opts)
+	if err != nil {
+		return
+	}
+	// TODO - manually map github code owner to a team
+
+	err = githubCodeOwnersInsert(sqClient, apiService, owners)
+	if err != nil {
+		log.Error("error inserting", "err", err.Error())
+		return
+	}
+
+	return
+}
+
+func githubCodeOwnersInsert(
+	client sqlr.RepositoryWriter, //*sqlr.RepositoryWithSelect[*api.GithubCodeOwner],
+	service *api.Service[*api.GithubCodeOwner],
+	owners []*api.GithubCodeOwner,
+) (err error) {
+	_, err = service.TruncateAndPutGithubCodeOwners(client, owners)
 	return
 }
 
@@ -66,26 +89,29 @@ func githubCodeOwnerGetRepos(
 func githubCodeOwnersFromRepos(
 	client githubr.ClientRepositoryOwnership,
 	store githubr.RepositoryOwnerGetter,
-	org string, parentTeam string,
 	repositories []*github.Repository,
-) (allOwners []string, err error) {
+	coOptions *githubr.GetRepositoryOwnerOptions,
+) (allOwners []*api.GithubCodeOwner, err error) {
+	var defaultOwner string = "NONE"
 
-	var coOptions = &githubr.GetRepositoryOwnerOptions{FilterByParent: parentTeam}
-
+	allOwners = []*api.GithubCodeOwner{}
 	for _, repo := range repositories {
 		var owners []string
-		fmt.Println(*repo.FullName)
-
 		// get all the
 		owners, err = store.GetRepositoryOwners(client, repo, coOptions)
 		if err != nil {
 			return
 		}
-
-		for _, ow := range owners {
-			fmt.Println(" --> " + ow)
+		// add adefault owner
+		if len(owners) == 0 {
+			owners = append(owners, defaultOwner)
 		}
-		fmt.Println("--")
+		for _, ow := range owners {
+			var co = &api.GithubCodeOwner{Repository: *repo.FullName, CodeOwner: ow}
+			allOwners = append(allOwners, co)
+		}
 	}
+
+	return
 
 }

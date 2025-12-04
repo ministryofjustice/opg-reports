@@ -42,10 +42,12 @@ func (self *Repository) GetRepositoryOwners(
 	for _, team := range teams {
 		owners = append(owners, teamSlug(team))
 	}
+
 	// now add in code owners
 	log.Debug("getting CODEOWNERS ... ")
 	codeowners, _ := self.GetCodeOwnersForRepository(client, repo, options)
 	owners = append(owners, codeowners...)
+
 	// remove duplicates
 	slices.Sort(owners)
 	owners = slices.Compact(owners)
@@ -178,7 +180,13 @@ func repositoryTeamMeetsCriteria(team *github.Team, criteria *GetRepositoryOwner
 
 func teamSlug(team *github.Team) string {
 	var teamSlug = *team.Slug
-	if o := team.GetOrganization(); o != nil && o.Login != nil {
+	// check the url structure for an org as sometimes the team.GetOrganization comes back nil...
+	if team.HTMLURL != nil && strings.Contains(*team.HTMLURL, "/orgs/") {
+		var url = *team.HTMLURL
+		stripped := strings.ReplaceAll(url, "https://github.com/orgs/", "")
+		org := strings.Split(stripped, "/")[0]
+		teamSlug = fmt.Sprintf("%s/%s", org, *team.Slug)
+	} else if o := team.GetOrganization(); o != nil && o.Login != nil {
 		teamSlug = fmt.Sprintf("%s/%s", *o.Login, *team.Slug)
 	}
 	return teamSlug

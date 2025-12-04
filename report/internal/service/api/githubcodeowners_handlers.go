@@ -1,6 +1,8 @@
 package api
 
-import "opg-reports/report/internal/repository/sqlr"
+import (
+	"opg-reports/report/internal/repository/sqlr"
+)
 
 // GithubCodeOwnerGetter interface is used for GetAllTeams calls
 type GithubCodeOwnersGetter[T Model] interface {
@@ -33,10 +35,15 @@ func (self *Service[T]) GetAllGithubCodeOwners(store sqlr.RepositoryReader) (tea
 	return
 }
 
-// PutGithubCodeOwners inserts new records into the table.
+// TruncateAndPutGithubCodeOwners inserts new records into the table.
 //
+// WARNING: This will truncate the DB table
 // Note: Dont expose to the api endpoints
-func (self *Service[T]) PutGithubCodeOwners(store sqlr.RepositoryWriter, data []T) (results []*sqlr.BoundStatement, err error) {
+func (self *Service[T]) TruncateAndPutGithubCodeOwners(store sqlr.RepositoryWriter, data []T) (results []*sqlr.BoundStatement, err error) {
 
+	_, err = store.Exec(stmtGithubCodeOwnerTruncate)
+	if err != nil {
+		return
+	}
 	return self.Put(store, stmtGithubCodeOwnerInsert, data)
 }

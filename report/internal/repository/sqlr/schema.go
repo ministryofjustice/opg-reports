@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS github_codeownership (
 	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
 	codeowner TEXT NOT NULL,
 	repository TEXT NOT NULL,
-	team TEXT NOT NULL DEFAULT 'NONE',
+	team TEXT,
 	UNIQUE (codeowner,repository,team)
 ) STRICT;` // repository & team will be a link to other tables as text primary keys
 const migration_github_codeowner_all_idx string = `CREATE INDEX IF NOT EXISTS gh_codeownership_all_idx ON github_codeownership(codeowner,repository,team);`
