@@ -69,6 +69,7 @@ func main() {
 	rootCmd.AddCommand(
 		awscostsCmd,
 		awsuptimeCmd,
+		githubcodeownersCmd,
 	)
 	err := rootCmd.Execute()
 	// fail on errir

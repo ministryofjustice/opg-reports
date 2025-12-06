@@ -1,0 +1,137 @@
+name: "[Reports] GitHub Code Owners"
+
+on:
+  # run at gam every day
+  schedule:
+    - cron: '0 4 * * *'
+  # run when triggered manually
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+  id-token: write
+
+# general env vars for where downloading db / binary
+env:
+  RELEASE_DIR: ./releases
+  DB_DIR: ./databases
+  REPORT: "githubcodeowners"
+
+# jobs
+jobs:
+  setup:
+    name: "Set variables"
+    runs-on: ubuntu-latest
+    outputs:
+      # AWS S3 bucket & role info
+      # dev
+      s3_bucket_development: "opg-reports-development"
+      s3_role_development: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
+      # prod
+      s3_bucket_production: "opg-reports-production"
+      s3_role_production: "arn:aws:iam::997462338508:role/opg-reports-github-actions-s3"
+
+    steps:
+      # Check the code base
+      - name: "Checkout"
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+
+  # runner
+  runner:
+    name: "Run Report"
+    needs:
+      - setup
+    runs-on: ubuntu-latest
+    steps:
+      # checkout self
+      - name: "Checkout"
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - name: "Create directories"
+        env:
+          dbs: ${{ env.DB_DIR }}
+          rels: ${{ env.RELEASE_DIR }}
+        run: mkdir -p ${{ env.dbs }} ${{ env.rels }}
+      # download the last release
+      - name: "Download release"
+        uses: ./.github/actions/download-release
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          directory: ${{ env.RELEASE_DIR }}
+      # configure the aws creds to download the existing database
+      - name: "Configure AWS credentials for S3 download from prod"
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+        with:
+          aws-region: "eu-west-1"
+          role-duration-seconds: 900
+          role-to-assume: ${{ needs.setup.outputs.s3_role_production }}
+          role-session-name: reports-download-db-from-s3
+      # download PRODUCTION database as the base to use to insert into
+      - name: "Download database from PROD"
+        env:
+          DATABASE_PATH: ${{ env.DB_DIR }}/api.db
+          DATABASE_BUCKET_NAME: ${{ needs.setup.outputs.s3_bucket_production }}
+          cmd: ${{ env.RELEASE_DIR }}/db
+        run: |
+          chmod -Rf 0777 ${{ env.RELEASE_DIR }}
+          ${{ env.cmd }} download
+          ls -lh ${{ env.DB_DIR }}
+      # Run the report
+      - name: "Run ${{ env.REPORT }} report"
+        env:
+          DATABASE_PATH: ${{ env.DB_DIR }}/api.db
+          GITHUB_TOKEN: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
+          cmd: ${{ env.RELEASE_DIR }}/importer ${{ env.REPORT }}
+        run: |
+          chmod -Rf 0777 ${{ env.RELEASE_DIR }}
+          ${{ env.cmd }}
+          ls -lh ${{ env.DB_DIR }}
+      # configure the aws creds to upload the existing database - PRODUCTION
+      - name: "Configure AWS credentials for S3 upload to prod"
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+        with:
+          aws-region: "eu-west-1"
+          role-duration-seconds: 900
+          role-to-assume: ${{ needs.setup.outputs.s3_role_production }}
+          role-session-name: reports-upload-db-to-s3
+      # upload PRODUCTION database
+      - name: "Upload database - PROD"
+        env:
+          DATABASE_PATH: ${{ env.DB_DIR }}/api.db
+          DATABASE_BUCKET_NAME: ${{ needs.setup.outputs.s3_bucket_production }}
+          cmd: ${{ env.RELEASE_DIR }}/db
+        run: |
+          chmod -Rf 0777 ${{ env.RELEASE_DIR }}
+          ${{ env.cmd }} upload
+      # configure the aws creds to upload the existing database - DEVELOPMENT
+      - name: "Configure AWS credentials for S3 upload to dev"
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+        with:
+          aws-region: "eu-west-1"
+          role-duration-seconds: 900
+          role-to-assume: ${{ needs.setup.outputs.s3_role_development }}
+          role-session-name: reports-upload-db-to-s3
+      # upload DEVELOPMENT database
+      - name: "Upload database - DEV"
+        env:
+          DATABASE_PATH: ${{ env.DB_DIR }}/api.db
+          DATABASE_BUCKET_NAME: ${{ needs.setup.outputs.s3_bucket_development }}
+          cmd: ${{ env.RELEASE_DIR }}/db
+        run: |
+          chmod -Rf 0777 ${{ env.RELEASE_DIR }}
+          ${{ env.cmd }} upload
+      # remove the files
+      - name: "Clean up"
+        run: |
+          rm -Rf ${{ env.RELEASE_DIR }} ${{ env.DB_DIR }}
+
+  # final step
+  end:
+    name: 'End'
+    runs-on: 'ubuntu-latest'
+    needs:
+      - runner
+    steps:
+      - id: end
+        name: End
+        run: echo "End"
