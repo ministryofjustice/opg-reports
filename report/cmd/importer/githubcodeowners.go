@@ -28,6 +28,17 @@ var (
 	} // githubcodeownersCmd imports data from the github api
 )
 
+var codeOwnerToTeamName map[string]string = map[string]string{
+	"ministryofjustice/digideps":                 "Digideps",
+	"ministryofjustice/opg-lpa-team":             "Make",
+	"ministryofjustice/opg-modernising-lpa-team": "Modernise",
+	"ministryofjustice/opg-sirius-poas":          "Sirius",
+	"ministryofjustice/opg-sirius-supervision":   "Sirius",
+	"ministryofjustice/opg-use-a-lpa-team":       "Use",
+	"ministryofjustice/serve-opg":                "Serve",
+	"ministryofjustice/sirius":                   "Sirius",
+}
+
 // used by the cobra command (awscostsCmd) to process the cli request to fetch data from
 // the aws api and import to local database
 func githubCodeOwnerRunner(cmd *cobra.Command, args []string) (err error) {
@@ -43,6 +54,7 @@ func githubCodeOwnerRunner(cmd *cobra.Command, args []string) (err error) {
 	)
 
 	// get all the repos
+	log.Info("getting non-archived repositories ... ")
 	repositories, err = githubCodeOwnerGetRepos(ghClient.Teams, ghStore, org, parentTeam)
 	if err != nil {
 		return
@@ -52,12 +64,16 @@ func githubCodeOwnerRunner(cmd *cobra.Command, args []string) (err error) {
 	opts := &githubr.GetRepositoryOwnerOptions{
 		FilterByParent: parentTeam, Exclude: []string{"ministryofjustice/opg-webops"},
 	}
+	log.With("repository_count", len(repositories)).Info("getting codeowners for repositories ... ")
 	owners, err := githubCodeOwnersFromRepos(ghClient.Repositories, ghStore, repositories, opts)
 	if err != nil {
 		return
 	}
-	// TODO - manually map github code owner to a team
 
+	log.Info("assigning teams ... ")
+	owners = codeownerToTeam(owners)
+
+	log.Info("inserting records ... ")
 	err = githubCodeOwnersInsert(sqClient, apiService, owners)
 	if err != nil {
 		log.Error("error inserting", "err", err.Error())
@@ -65,6 +81,16 @@ func githubCodeOwnerRunner(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	return
+}
+
+// handle the mapping from codeowner to team
+func codeownerToTeam(owners []*api.GithubCodeOwner) []*api.GithubCodeOwner {
+	for _, owner := range owners {
+		if team, ok := codeOwnerToTeamName[owner.CodeOwner]; ok {
+			owner.Team = team
+		}
+	}
+	return owners
 }
 
 func githubCodeOwnersInsert(

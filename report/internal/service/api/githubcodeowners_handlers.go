@@ -14,9 +14,7 @@ type GithubCodeOwnersGetter[T Model] interface {
 type GithubCodeOwner struct {
 	CodeOwner  string `json:"codeowner,omitempty" db:"codeowner"`
 	Repository string `json:"repository" db:"repository"`
-	// Joins
-	// Link to the team db record
-	Team *hasOneTeam `json:"team,omitempty" db:"team"`
+	Team       string `json:"team,omitempty" db:"team"`
 }
 
 // GetAllGithubCodeOwners returns all teams and joins aws accounts as well
