@@ -52,7 +52,7 @@ func handleGetGithubCodeOwnersAll[T api.Model](
 	input *struct{},
 ) (response *GetGithubCodeOwnersAllResponse[T], err error) {
 	var data []T
-	response = &GetGithubCodeOwnersAllResponse[T]{}
+	var body *GetGithubCodeOwnersAllResponseBody[T]
 
 	log.Info("handling get-githubcodeowners-all")
 
@@ -67,8 +67,12 @@ func handleGetGithubCodeOwnersAll[T api.Model](
 		err = huma.Error500InternalServerError("failed find all github code owners", err)
 		return
 	}
-	response.Body.Data = data
-	response.Body.Count = len(data)
-
+	body = &GetGithubCodeOwnersAllResponseBody[T]{
+		Data:  data,
+		Count: len(data),
+	}
+	response = &GetGithubCodeOwnersAllResponse[T]{
+		Body: body,
+	}
 	return
 }
