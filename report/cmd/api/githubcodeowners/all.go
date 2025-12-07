@@ -13,12 +13,14 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 )
 
+type GetGithubCodeOwnersAllResponseBody[T api.Model] struct {
+	Count int `json:"count,omityempty"`
+	Data  []T `json:"data"`
+}
+
 // GetGithubCodeOwnersAllResponse is response object used by the handler
 type GetGithubCodeOwnersAllResponse[T api.Model] struct {
-	Body struct {
-		Count int `json:"count,omityempty"`
-		Data  []T `json:"data"`
-	}
+	Body *GetGithubCodeOwnersAllResponseBody[T]
 }
 
 // RegisterGetGithubCodeOwnersAll registers the `get-githubcodeowners-all` endpoint
@@ -50,7 +52,7 @@ func handleGetGithubCodeOwnersAll[T api.Model](
 	input *struct{},
 ) (response *GetGithubCodeOwnersAllResponse[T], err error) {
 	var data []T
-	response = &GetGithubCodeOwnersAllResponse[T]{}
+	var body *GetGithubCodeOwnersAllResponseBody[T]
 
 	log.Info("handling get-githubcodeowners-all")
 
@@ -65,8 +67,12 @@ func handleGetGithubCodeOwnersAll[T api.Model](
 		err = huma.Error500InternalServerError("failed find all github code owners", err)
 		return
 	}
-	response.Body.Data = data
-	response.Body.Count = len(data)
-
+	body = &GetGithubCodeOwnersAllResponseBody[T]{
+		Data:  data,
+		Count: len(data),
+	}
+	response = &GetGithubCodeOwnersAllResponse[T]{
+		Body: body,
+	}
 	return
 }

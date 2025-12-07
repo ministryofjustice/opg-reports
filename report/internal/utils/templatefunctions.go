@@ -11,6 +11,26 @@ import (
 	"golang.org/x/text/message"
 )
 
+func LengthClass(i int) string {
+	if i >= 35 {
+		return "xl"
+	} else if i >= 25 {
+		return "l"
+	} else if i >= 15 {
+		return "m"
+	}
+	return "s"
+}
+
+// StripOrgansiation is used to remove github org from repository names
+// to make them shorter to display
+func StripOrgansiation(s string) string {
+	if pos := strings.Index(s, "/"); pos >= 0 {
+		s = s[pos+1:]
+	}
+	return s
+}
+
 func Title(s string) string {
 	s = strings.ReplaceAll(s, "/", " ")
 	s = strings.ReplaceAll(s, "_", " ")
@@ -103,10 +123,12 @@ func BillingStabilitySuffix(className string) string {
 func TemplateFunctions() (funcs template.FuncMap) {
 	funcs = map[string]interface{}{
 		// simple strings
-		"Title":   Title,
-		"ToLower": strings.ToLower,
-		"ToUpper": strings.ToUpper,
-		// strinng -> numbers
+		"Title":             Title,
+		"ToLower":           strings.ToLower,
+		"ToUpper":           strings.ToUpper,
+		"StripOrgansiation": StripOrgansiation,
+		"LengthClass":       LengthClass,
+		// string -> numbers
 		"Currency":   Currency,
 		"Percentage": Percentage,
 		// accessing maps
