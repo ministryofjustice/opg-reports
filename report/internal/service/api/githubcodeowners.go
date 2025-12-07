@@ -18,9 +18,8 @@ const stmtGithubCodeOwnerSelectAll string = `
 SELECT
 	codeowner,
 	repository,
-	json_object(
-		'name', github_codeownership.team
-	) as team
+	team
 FROM github_codeownership
-LEFT JOIN teams ON github_codeownership.team = teams.name
 ORDER BY codeowner ASC;`
+
+const stmtGithubCodeOwnerTruncate string = `DELETE FROM github_codeownership;`
