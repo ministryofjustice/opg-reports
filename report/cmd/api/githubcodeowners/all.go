@@ -13,12 +13,14 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 )
 
+type GetGithubCodeOwnersAllResponseBody[T api.Model] struct {
+	Count int `json:"count,omityempty"`
+	Data  []T `json:"data"`
+}
+
 // GetGithubCodeOwnersAllResponse is response object used by the handler
 type GetGithubCodeOwnersAllResponse[T api.Model] struct {
-	Body struct {
-		Count int `json:"count,omityempty"`
-		Data  []T `json:"data"`
-	}
+	Body *GetGithubCodeOwnersAllResponseBody[T]
 }
 
 // RegisterGetGithubCodeOwnersAll registers the `get-githubcodeowners-all` endpoint

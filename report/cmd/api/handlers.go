@@ -56,5 +56,6 @@ func RegisterHandlers(ctx context.Context, log *slog.Logger, conf *config.Config
 	awsuptime.RegisterGetAwsUptimeGrouped(log, conf, humaapi, awsUptimeGroupedService, awsUptimeGroupedStore)
 	// GITHUB CODEOWNERS
 	githubcodeowners.RegisterGetGithubCodeOwnersAll(log, conf, humaapi, githubCodeOwnerService, githubCodeOwnerStore)
+	githubcodeowners.RegisterGetGithubCodeOwnersForTeam(log, conf, humaapi, githubCodeOwnerService, githubCodeOwnerStore)
 
 }

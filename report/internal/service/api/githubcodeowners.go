@@ -22,4 +22,14 @@ SELECT
 FROM github_codeownership
 ORDER BY codeowner ASC;`
 
+const stmtGithubCodeOwnerSelectForTeam string = `
+SELECT
+	codeowner,
+	repository,
+	team
+FROM github_codeownership
+WHERE
+	lower(team)=lower(:team)
+ORDER BY codeowner ASC;`
+
 const stmtGithubCodeOwnerTruncate string = `DELETE FROM github_codeownership;`

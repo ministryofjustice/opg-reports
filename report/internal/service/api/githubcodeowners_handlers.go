@@ -4,10 +4,16 @@ import (
 	"opg-reports/report/internal/repository/sqlr"
 )
 
-// GithubCodeOwnerGetter interface is used for GetAllTeams calls
+// GithubCodeOwnerGetter interface
 type GithubCodeOwnersGetter[T Model] interface {
 	Closer
-	GetAllGithubCodeOwners(store sqlr.RepositoryReader) (teams []T, err error)
+	GetAllGithubCodeOwners(store sqlr.RepositoryReader) (data []T, err error)
+}
+
+// GithubCodeOwnersForTeamGetter interface
+type GithubCodeOwnersForTeamGetter[T Model] interface {
+	Closer
+	GetAllGithubCodeOwnersForTeam(store sqlr.RepositoryReader, options *GetAllGithubCodeOwnersForTeamOptions) (data []T, err error)
 }
 
 // GithubCodeOwner
@@ -17,17 +23,37 @@ type GithubCodeOwner struct {
 	Team       string `json:"team,omitempty" db:"team"`
 }
 
+type GetAllGithubCodeOwnersForTeamOptions struct {
+	Team string `json:"team" db:"team"`
+}
+
+// GetAllGithubCodeOwnersForTeam
+func (self *Service[T]) GetAllGithubCodeOwnersForTeam(store sqlr.RepositoryReader, options *GetAllGithubCodeOwnersForTeamOptions) (data []T, err error) {
+	var statement = &sqlr.BoundStatement{Statement: stmtGithubCodeOwnerSelectForTeam, Data: options}
+	var log = self.log.With("operation", "GetAllGithubCodeOwnersForTeam")
+
+	data = []T{}
+	log.Debug("getting all github codeowners from database for team ...")
+
+	if err = store.Select(statement); err == nil {
+		// cast the data back to struct
+		data = statement.Returned.([]T)
+	}
+
+	return
+}
+
 // GetAllGithubCodeOwners returns all teams and joins aws accounts as well
-func (self *Service[T]) GetAllGithubCodeOwners(store sqlr.RepositoryReader) (teams []T, err error) {
+func (self *Service[T]) GetAllGithubCodeOwners(store sqlr.RepositoryReader) (data []T, err error) {
 	var statement = &sqlr.BoundStatement{Statement: stmtGithubCodeOwnerSelectAll}
 	var log = self.log.With("operation", "GetAllGithubCodeOwners")
 
-	teams = []T{}
+	data = []T{}
 	log.Debug("getting all github codeowners from database ...")
 
 	if err = store.Select(statement); err == nil {
 		// cast the data back to struct
-		teams = statement.Returned.([]T)
+		data = statement.Returned.([]T)
 	}
 
 	return
