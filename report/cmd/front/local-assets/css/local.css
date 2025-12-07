@@ -40,6 +40,23 @@ Highlight billing instability on cost tables
     color: #d53880;
 }
 
+/*
+Additional styling code ownership listing on the team pages
+*/
+.codeownership-list-container .codeownership-list > li{
+    display:inline-block;
+    margin-right:5px;
+    margin-bottom:10px;
+    vertical-align:top;
+}
+.codeownership-list-container .codeownership-list .codeownership-tag{
+    max-width: none;
+}
+.codeownership-list-container .codeownership-list-size-l .codeownership-tag,
+.codeownership-list-container .codeownership-list-size-xl .codeownership-tag{
+    font-size:12pt
+}
+
 /******************************************************************************************
 * GOVUK Overrides
 * Styles relating overwrites to the govuk css

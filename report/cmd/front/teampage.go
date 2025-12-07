@@ -12,11 +12,16 @@ import (
 	"sync"
 )
 
+type teamCodeOwnership struct {
+	DirectOwnership []*front.GithubCodeOwner
+}
+
 type teampageData struct {
 	page.PageContent
 	TeamName               string
 	CostsByMonthPerAccount *datatable.DataTable
 	CostsByMonthDetailed   *datatable.DataTable
+	CodeOwnerData          *teamCodeOwnership
 }
 
 type conF func(i ...any)
@@ -45,8 +50,10 @@ func handleTeampage(
 	)
 	// create the data that will be used in rendering the template
 	data = &teampageData{
-		PageContent: defaultContent,
-		TeamName:    request.PathValue("team")}
+		PageContent:   defaultContent,
+		TeamName:      request.PathValue("team"),
+		CodeOwnerData: &teamCodeOwnership{},
+	}
 
 	log.Info("processing page", "url", request.URL.String())
 
@@ -54,6 +61,12 @@ func handleTeampage(
 		// get list of all teams
 		func(i ...any) {
 			data.Teams, _ = service.GetTeamNavigation(client, request)
+			wg.Done()
+		},
+		// get list of code owner data for this team
+		func(i ...any) {
+			options := map[string]string{"team": data.TeamName}
+			data.CodeOwnerData.DirectOwnership, _ = service.GetGithubCodeOwnersForTeam(client, request, options)
 			wg.Done()
 		},
 		// get tabular costs grouped by the account name & filtered by the team

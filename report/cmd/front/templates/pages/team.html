@@ -5,18 +5,26 @@
 
     <main id="main-content" class="app-content" role="main">
         <h1 class="govuk-heading-xl compact-header">{{ .TeamName | Title }}</h1>
-        <p class="govuk-body">Our costs are subject to change, impacted months are shown as such: <strong class="example-unstable">2025-01*</strong></p>
 
         {{- if .CostsByMonthPerAccount -}}
         <div class="app-content reports-font-s">
             <h2 class="govuk-heading-m">Infrastructure costs per account</h2>
+            <p class="govuk-body">Our costs are subject to change, impacted months are shown as such: <strong class="example-unstable">2025-01*</strong></p>
             {{ template "costs-table" .CostsByMonthPerAccount }}
+        </div>
+        {{- end -}}
+
+        {{- if .CodeOwnerData -}}
+        <div class="app-content reports-font-s">
+            <h2 class="govuk-heading-m">Code ownership</h2>
+            {{ template "team-codeowner-list" .CodeOwnerData }}
         </div>
         {{- end -}}
 
         {{- if .CostsByMonthDetailed -}}
         <div class="app-content reports-font-s">
             <h2 class="govuk-heading-m">Detailed infrastructure costs</h2>
+            <p class="govuk-body">Our costs are subject to change, impacted months are shown as such: <strong class="example-unstable">2025-01*</strong></p>
             {{ template "costs-table" .CostsByMonthDetailed }}
         </div>
         {{- end -}}

@@ -25,7 +25,7 @@ type GetGithubCodeOwnersForTeamResponse[T api.Model] struct {
 }
 
 type GithubCodeOwnersForTeamInput struct {
-	Team string `json:"team,omitempty" query:"team" doc:"Filter by this team." example:"TeamName"`
+	Team string `json:"team,omitempty" path:"team" doc:"Filter by this team." example:"TeamName"`
 }
 
 // RegisterGetGithubCodeOwnersForTeam registers the `get-githubcodeowners-for-team` endpoint
