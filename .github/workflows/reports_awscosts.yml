@@ -42,7 +42,7 @@ jobs:
     steps:
       # Check the code base
       - name: "Checkout"
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       # Get AWS account list
       - name: "Get account matrix"
         id: account_matrix
@@ -68,7 +68,7 @@ jobs:
     steps:
       # checkout self
       - name: "[${{ matrix.name }}] Checkout"
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: "[${{ matrix.name }}] Create directories"
         env:
           dbs: ${{ env.DB_DIR }}
