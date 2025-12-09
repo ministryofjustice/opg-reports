@@ -38,9 +38,10 @@ const (
 
 // All `githubcodeowners` related endpoints
 const (
-	githubcodeowners          string = "/" + API_VERSION + "/githubcodeowners/"
-	GITHUBCODEOWNERS_GET_ALL  string = githubcodeowners + "all"
-	GITHUBCODEOWNERS_FOR_TEAM string = githubcodeowners + "team/{team}"
+	githubcodeowners               string = "/" + API_VERSION + "/githubcodeowners/"
+	GITHUBCODEOWNERS_GET_ALL       string = githubcodeowners + "all"
+	GITHUBCODEOWNERS_FOR_TEAM      string = githubcodeowners + "team/{team}"
+	GITHUBCODEOWNERS_FOR_CODEOWNER string = githubcodeowners + "codeowner/{codeowner}"
 )
 
 // Parse takes the map and inserts them into the url and subsitutes

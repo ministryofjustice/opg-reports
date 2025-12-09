@@ -16,6 +16,12 @@ type GithubCodeOwnersForTeamGetter[T Model] interface {
 	GetAllGithubCodeOwnersForTeam(store sqlr.RepositoryReader, options *GetAllGithubCodeOwnersForTeamOptions) (data []T, err error)
 }
 
+// GithubCodeOwnersForCodeOwnerGetter interface
+type GithubCodeOwnersForCodeOwnerGetter[T Model] interface {
+	Closer
+	GetAllGithubCodeOwnersForCodeOwner(store sqlr.RepositoryReader, options *GetAllGithubCodeOwnersForCodeOwnerOptions) (data []T, err error)
+}
+
 // GithubCodeOwner
 type GithubCodeOwner struct {
 	CodeOwner  string `json:"codeowner,omitempty" db:"codeowner"`
@@ -26,6 +32,9 @@ type GithubCodeOwner struct {
 type GetAllGithubCodeOwnersForTeamOptions struct {
 	Team string `json:"team" db:"team"`
 }
+type GetAllGithubCodeOwnersForCodeOwnerOptions struct {
+	CodeOwner string `json:"codeowner" db:"codeowner"`
+}
 
 // GetAllGithubCodeOwnersForTeam
 func (self *Service[T]) GetAllGithubCodeOwnersForTeam(store sqlr.RepositoryReader, options *GetAllGithubCodeOwnersForTeamOptions) (data []T, err error) {
@@ -34,6 +43,22 @@ func (self *Service[T]) GetAllGithubCodeOwnersForTeam(store sqlr.RepositoryReade
 
 	data = []T{}
 	log.Debug("getting all github codeowners from database for team ...")
+
+	if err = store.Select(statement); err == nil {
+		// cast the data back to struct
+		data = statement.Returned.([]T)
+	}
+
+	return
+}
+
+// GetAllGithubCodeOwnersForCodeOwner
+func (self *Service[T]) GetAllGithubCodeOwnersForCodeOwner(store sqlr.RepositoryReader, options *GetAllGithubCodeOwnersForCodeOwnerOptions) (data []T, err error) {
+	var statement = &sqlr.BoundStatement{Statement: stmtGithubCodeOwnerSelectForCodeOwner, Data: options}
+	var log = self.log.With("operation", "GetAllGithubCodeOwnersForCodeOwner")
+
+	data = []T{}
+	log.Debug("getting all github codeowners from database for codeowner ...")
 
 	if err = store.Select(statement); err == nil {
 		// cast the data back to struct
