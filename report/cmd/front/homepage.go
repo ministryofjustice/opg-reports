@@ -12,10 +12,15 @@ import (
 	"sync"
 )
 
+type unownedCodeOwnership struct {
+	DirectOwnership []*front.GithubCodeOwner
+}
+
 type homepageData struct {
 	page.PageContent
-	CostsByTeamAndMonth  *datatable.DataTable // infrastrcture costs grouped by month & team
-	UptimeByTeamAndMonth *datatable.DataTable // service uptime grouped by month & team
+	CostsByTeamAndMonth  *datatable.DataTable  // infrastrcture costs grouped by month & team
+	UptimeByTeamAndMonth *datatable.DataTable  // service uptime grouped by month & team
+	UnownedCode          *unownedCodeOwnership // codebases without dedicated team owners
 }
 
 // handleHomepage renders the request for `/` which currently displays:
@@ -35,14 +40,14 @@ func handleHomepage(
 	writer http.ResponseWriter, request *http.Request,
 ) {
 	var (
-		templateName   string            = "index"                                    // homepage uses the index template
-		templates      []string          = page.GetTemplateFiles(info.TemplateDir)    // all templates in the directory path
-		defaultContent page.PageContent  = page.DefaultContent(conf, request)         // fetch the baseline values to render the page
-		data           *homepageData     = &homepageData{PageContent: defaultContent} // create the data that will be used in rendering the template
+		blocks         []conF
+		templateName   string            = "index" // homepage uses the index template
 		client         *restr.Repository = restr.Default(ctx, log, conf)
 		service        *front.Service    = front.Default(ctx, log, conf)
-		wg             sync.WaitGroup    = sync.WaitGroup{} // used for concurrency
-		blocks         []conF
+		wg             sync.WaitGroup    = sync.WaitGroup{}                                                                 // used for concurrency
+		templates      []string          = page.GetTemplateFiles(info.TemplateDir)                                          // all templates in the directory path
+		defaultContent page.PageContent  = page.DefaultContent(conf, request)                                               // fetch the baseline values to render the page
+		data           *homepageData     = &homepageData{PageContent: defaultContent, UnownedCode: &unownedCodeOwnership{}} // create the data that will be used in rendering the template
 	)
 	log.Info("processing page", "url", request.URL.String())
 	// all the dynamic content to fetch
@@ -50,6 +55,12 @@ func handleHomepage(
 		// get list of teams
 		func(i ...any) {
 			data.Teams, _ = service.GetTeamNavigation(client, request)
+			wg.Done()
+		},
+		// get codeownership data
+		func(i ...any) {
+			options := map[string]string{"codeowner": "none"}
+			data.UnownedCode.DirectOwnership, _ = service.GetGithubCodeOwnersForCodeOwners(client, request, options)
 			wg.Done()
 		},
 		// get costs grouped by month & team

@@ -22,8 +22,46 @@ type apiResponseGithubCodeOwnersForTeam struct {
 	Data  []*GithubCodeOwner `json:"data"`
 }
 
+// apiResponseGithubCodeOwnersForCodeOwners represents the api data structure returned
+//
+// endpoint: `/v1/githubcodeowners/codeowners/{codeowner}`
+type apiResponseGithubCodeOwnersForCodeOwners struct {
+	Count int                `json:"count,omityempty"`
+	Data  []*GithubCodeOwner `json:"data"`
+}
+
 type githubCodeOwnersPreCallF func(params map[string]string)
 
+// GetGithubCodeOwnersForCodeOwners
+func (self *Service) GetGithubCodeOwnersForCodeOwners(
+	client restr.RepositoryRestGetter,
+	request *http.Request,
+	apiParameters map[string]string,
+	adjusters ...githubCodeOwnersPreCallF) (owners []*GithubCodeOwner, err error) {
+	var (
+		log      = self.log.With("operation", "GetGithubCodeOwnersForCodeOwners")
+		defaults = githubCodeOwnerParams()
+		params   = mergeRequestWithMaps(request, defaults, apiParameters)
+		endpoint string
+	)
+	// allow function to overwrite parameters
+	for _, adjustF := range adjusters {
+		adjustF(params)
+	}
+	endpoint = endpoints.Parse(endpoints.GITHUBCODEOWNERS_FOR_CODEOWNER, params)
+
+	log.With("defaults", defaults, "api", apiParameters, "merged", params).Debug("calling api for github codeowner codeowners")
+	owners, err = getFromAPI(self.ctx, self.log, self.conf,
+		client,
+		endpoint,
+		parseGithubCodeOwnersForCodeOwnersF,
+	)
+
+	log.Debug("returning api data ... ")
+	return
+}
+
+// GetGithubCodeOwnersForTeam
 func (self *Service) GetGithubCodeOwnersForTeam(
 	client restr.RepositoryRestGetter,
 	request *http.Request,
@@ -53,6 +91,11 @@ func (self *Service) GetGithubCodeOwnersForTeam(
 }
 
 func parseGithubCodeOwnersForTeamF(response *apiResponseGithubCodeOwnersForTeam) (data []*GithubCodeOwner, err error) {
+	data = response.Data
+	return
+}
+
+func parseGithubCodeOwnersForCodeOwnersF(response *apiResponseGithubCodeOwnersForCodeOwners) (data []*GithubCodeOwner, err error) {
 	data = response.Data
 	return
 }
