@@ -1,0 +1,12 @@
+{{- define "uncodeowner-list" -}}
+<div class="codeownership-list-container unowned-list">
+{{- if .DirectOwnership -}}
+    <p class="govuk-body">List of active repositories that whose CODEOWNERS or GitHub team doesn't directly link to a team.</p>
+    <ul class="govuk-list codeownership-list codeownership-list-size-{{ LengthClass ( len .DirectOwnership ) }}">
+    {{- range $i, $row := .DirectOwnership -}}
+    <li><a href="https://github.com/{{- $row.Repository -}}" class="govuk-tag govuk-tag--grey govuk-link codeownership-tag">{{- StripOrgansiation $row.Repository -}}</a></li>
+    {{- end -}}
+    </ul>
+{{- end -}}
+</div>
+{{- end -}}

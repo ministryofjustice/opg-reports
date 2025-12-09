@@ -57,5 +57,6 @@ func RegisterHandlers(ctx context.Context, log *slog.Logger, conf *config.Config
 	// GITHUB CODEOWNERS
 	githubcodeowners.RegisterGetGithubCodeOwnersAll(log, conf, humaapi, githubCodeOwnerService, githubCodeOwnerStore)
 	githubcodeowners.RegisterGetGithubCodeOwnersForTeam(log, conf, humaapi, githubCodeOwnerService, githubCodeOwnerStore)
+	githubcodeowners.RegisterGetGithubCodeOwnersForCodeOwner(log, conf, humaapi, githubCodeOwnerService, githubCodeOwnerStore)
 
 }

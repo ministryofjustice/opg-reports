@@ -20,6 +20,13 @@
         {{ template "costs-table" .CostsByTeamAndMonth }}
         </div>
         {{- end -}}
+
+        {{- if .UnownedCode -}}
+        <div class="app-content reports-font-s">
+            <h2 class="govuk-heading-m">Code without team ownership</h2>
+            {{ template "uncodeowner-list" .UnownedCode }}
+        </div>
+        {{- end -}}
     </main>
 
     {{- template "foot" . -}}
