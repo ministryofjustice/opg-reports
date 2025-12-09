@@ -1,9 +1,9 @@
 name: "[Reports] GitHub Code Owners"
 
 on:
-  # run at gam every day
+  # run at 5pm sunday
   schedule:
-    - cron: '0 4 * * *'
+    - cron: '0 17 * * 0'
   # run when triggered manually
   workflow_dispatch:
 
