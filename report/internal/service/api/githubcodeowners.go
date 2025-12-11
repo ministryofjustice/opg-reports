@@ -31,6 +31,7 @@ SELECT
 FROM github_codeownership
 WHERE
 	lower(team)=lower(:team)
+GROUP BY repository
 ORDER BY codeowner ASC;`
 
 // stmtGithubCodeOwnerSelectForTeam is sql used to filter results based on codeowner
