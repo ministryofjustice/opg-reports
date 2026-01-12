@@ -6,15 +6,15 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.41.0
 	github.com/aws/aws-sdk-go-v2/config v1.32.5
 	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.53.0
-	github.com/aws/aws-sdk-go-v2/service/costexplorer v1.62.0
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.93.2
+	github.com/aws/aws-sdk-go-v2/service/costexplorer v1.63.0
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.95.0
 	github.com/aws/aws-sdk-go-v2/service/sts v1.41.5
 	github.com/danielgtaylor/huma/v2 v2.34.1
 	github.com/gofri/go-github-ratelimit/v2 v2.0.2
 	github.com/google/go-github/v77 v77.0.0
 	github.com/jmoiron/sqlx v1.4.0
-	github.com/maruel/natural v1.2.1
-	github.com/mattn/go-sqlite3 v1.14.32
+	github.com/maruel/natural v1.3.0
+	github.com/mattn/go-sqlite3 v1.14.33
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	golang.org/x/text v0.32.0
