@@ -14,7 +14,9 @@ import (
 )
 
 const costsLongDesc string = `
-awscosts will call the aws costexplorer api to retrieve data for specified period.
+awscosts will call the aws costexplorer api to retrieve data for specified period and the month before.
+
+When stablise is enabled (true by default), the previous month is also run to ensure cost data is accurate. This is due to billing dates being middle of the next month to allow for discount plans and so on.
 
 env variables used that can be adjusted:
 
@@ -24,7 +26,8 @@ env variables used that can be adjusted:
 `
 
 var (
-	costsMonthFlag string         = "" // represents --month="YYYY-MM-DD"
+	stabliseCosts  bool           = true // represents --stabilise
+	costsMonthFlag string         = ""   // represents --month="YYYY-MM-DD"
 	awscostsCmd    *cobra.Command = &cobra.Command{
 		Use:   "awscosts",
 		Short: "awscosts fetches data from the cost explorer api",
@@ -35,28 +38,51 @@ var (
 
 // awsCostsRunner used by the cobra command (awscostsCmd) to process the cli request to fetch data from
 // the aws api and import to local database
+//
+// If `stablise` flag is enabled then it will also fetch the previous month cost data
 func awsCostsRunner(cmd *cobra.Command, args []string) (err error) {
+
 	var (
-		costs     []map[string]string                                                // api costs converted to map
-		accountID string                                                             // account if from the caller identity
-		start     = utils.StringToTimeReset(costsMonthFlag, utils.TimeIntervalMonth) // start of the month
-		// clients
+		requestedMonth   time.Time = utils.StringToTimeReset(costsMonthFlag, utils.TimeIntervalMonth) // start of the month
+		previousMonth    time.Time = utils.TimeAdd(requestedMonth, -1, utils.TimeIntervalMonth)       // previous month
+		getPreviousMonth bool      = stabliseCosts                                                    // should we fetch previous month as well
+	)
+	// get info for this month
+	err = awsCostsForMonth(requestedMonth)
+	// check if should be getting one for the last month
+	if err == nil && getPreviousMonth == true {
+		err = awsCostsForMonth(previousMonth)
+	}
+	return
+
+}
+
+// awsCostsForMonth finds the account account id from the awssion (expects aws-vault or similar)
+// as well as the cost data for all servies in the month and inserts into the database (set in the config).
+func awsCostsForMonth(month time.Time) (err error) {
+	var (
+		// clients / sessions
 		stsClient          = awsr.DefaultClient[*sts.Client](ctx, conf.Aws.GetRegion())
 		costexplorerClient = awsr.DefaultClient[*costexplorer.Client](ctx, conf.Aws.GetRegion())
 		awsStore           = awsr.Default(ctx, log, conf)
 		sqClient           = sqlr.DefaultWithSelect[*api.AwsCost](ctx, log, conf)
 		apiService         = api.Default[*api.AwsCost](ctx, log, conf)
+		// costs & account id
+		accountID string              = ""                    // account id from the caller identity
+		costs     []map[string]string = []map[string]string{} // api costs converted to map
+
 	)
+	// get the active account id
 	accountID, err = awsAccountID(stsClient, awsStore)
 	if err != nil {
 		return
 	}
-
-	costs, err = awsCostsGetData(costexplorerClient, awsStore, start)
+	// get the requested months data
+	costs, err = awsCostsGetData(costexplorerClient, awsStore, month)
 	if err != nil {
 		return
 	}
-
+	// insert
 	err = awsCostsInsert(sqClient, apiService, accountID, costs)
 	return
 }
@@ -126,4 +152,5 @@ func awsCostsInsert(
 
 func init() {
 	awscostsCmd.Flags().StringVar(&costsMonthFlag, "month", utils.StartOfMonth().Format(utils.DATE_FORMATS.YMD), "The month to get cost data for. (YYYY-MM-DD)")
+	awscostsCmd.Flags().BoolVar(&stabliseCosts, "stablise", true, "When enabled the command will also run the previous month to ensure costs are accurate.")
 }

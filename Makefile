@@ -63,7 +63,7 @@ local/build: local/build/api local/build/front local/build/others local/download
 .PHONY: local/download-database
 # download the development db
 local/download-database:
-	@rm -Rf ${DB_BUILD}
+	@rm -Rf ${DBP}
 	@mkdir -p ${DB_BUILD}
 	@go build -o ${CMD_BUILD}/bin/db ./report/cmd/db/
 	@aws-vault exec shared-development-operator -- \
