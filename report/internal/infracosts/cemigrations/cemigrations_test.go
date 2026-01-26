@@ -1,4 +1,4 @@
-package cemigration
+package cemigrations
 
 import (
 	"fmt"
@@ -16,7 +16,7 @@ func TestInfracostsCeMigrationWorking(t *testing.T) {
 		dir = t.TempDir()
 		// dir     = "./"
 		ctx     = t.Context()
-		lg      = logger.New("debug", "text")
+		lg      = logger.New("error", "text")
 		driver  = "sqlite3"
 		connStr = fmt.Sprintf("%s/%s", dir, "migration-working.db")
 	)

@@ -1,4 +1,4 @@
-package cemigration
+package cemigrations
 
 import (
 	"context"

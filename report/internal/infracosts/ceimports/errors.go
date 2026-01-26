@@ -1,4 +1,4 @@
-package ceimport
+package ceimports
 
 import "errors"
 

@@ -1,11 +1,11 @@
-package ceseed
+package ceseeds
 
 import (
 	"context"
 	"errors"
 	"log/slog"
 	"opg-reports/report/internal/db/dbstatements"
-	"opg-reports/report/internal/infracosts/ceimport"
+	"opg-reports/report/internal/infracosts/ceimports"
 	"opg-reports/report/internal/infracosts/cemodels"
 	"opg-reports/report/internal/utils/times"
 	"time"
@@ -57,7 +57,7 @@ func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbs
 	log = log.With("package", "infracosts.ceseed", "func", "Seed")
 	log.Debug("starting ...")
 
-	statements, err = ceimport.Import(ctx, log, db, seeds)
+	statements, err = ceimports.Import(ctx, log, db, seeds)
 	if err != nil {
 		log.Error("error with seed import", "err", err.Error())
 		err = errors.Join(ErrSeedImportFailed, err)

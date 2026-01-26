@@ -1,4 +1,4 @@
-package ceimport
+package ceimports
 
 import (
 	"context"
@@ -16,8 +16,8 @@ import (
 func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*cemodels.AwsCost) (statements []*dbstatements.DataStatement[*cemodels.AwsCost, int], err error) {
 
 	statements = []*dbstatements.DataStatement[*cemodels.AwsCost, int]{}
-
 	log = log.With("package", "infracosts.ce", "func", "Import")
+
 	log.Debug("starting ...")
 	log.Debug("generating db insert statements ...")
 	// generate all of the insert statements from the data passed

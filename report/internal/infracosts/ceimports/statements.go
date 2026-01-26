@@ -1,4 +1,4 @@
-package ceimport
+package ceimports
 
 // insertStmt used to insert records
 const insertStmt string = `

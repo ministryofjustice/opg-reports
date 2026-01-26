@@ -1,4 +1,4 @@
-package ceseed
+package ceseeds
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"opg-reports/report/internal/db/dbconnection"
 	"opg-reports/report/internal/db/dbstatements"
-	"opg-reports/report/internal/infracosts/cemigration"
+	"opg-reports/report/internal/infracosts/cemigrations"
 	"opg-reports/report/internal/infracosts/cemodels"
 	"opg-reports/report/internal/utils/logger"
 	"testing"
@@ -20,7 +20,7 @@ func TestInfracostsCeSeedWorking(t *testing.T) {
 		db         *sqlx.DB
 		dir        string          = t.TempDir()
 		ctx        context.Context = t.Context()
-		log        *slog.Logger    = logger.New("debug", "text")
+		log        *slog.Logger    = logger.New("error", "text")
 		driver     string          = "sqlite3"
 		connStr    string          = fmt.Sprintf("%s/%s", dir, "seed-working.db")
 		statements []*dbstatements.DataStatement[*cemodels.AwsCost, int]
@@ -32,7 +32,7 @@ func TestInfracostsCeSeedWorking(t *testing.T) {
 	}
 	defer db.Close()
 	// db schema setup
-	err = cemigration.Migrate(ctx, log, db)
+	err = cemigrations.Migrate(ctx, log, db)
 	if err != nil {
 		t.Errorf("unexpected migration issue:\n%v", err.Error())
 	}
@@ -40,6 +40,9 @@ func TestInfracostsCeSeedWorking(t *testing.T) {
 	statements, err = Seed(ctx, log, db)
 	if err != nil {
 		t.Errorf("unexpected seed issue:\n%v", err.Error())
+	}
+	if len(statements) < 1 {
+		t.Errorf("expected multiple results to be returned")
 	}
 	if statements[0].Returned <= 0 {
 		t.Errorf("expected positive id for row insert")
