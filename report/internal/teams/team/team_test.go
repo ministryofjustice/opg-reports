@@ -9,7 +9,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/google/go-github/v77/github"
+	"github.com/google/go-github/v81/github"
 )
 
 func TestTeamsWithoutMock(t *testing.T) {

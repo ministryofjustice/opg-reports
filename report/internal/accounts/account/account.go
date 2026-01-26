@@ -14,7 +14,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/google/go-github/v77/github"
+	"github.com/google/go-github/v81/github"
 )
 
 // GitHubClient wrapper around methods needed to fetch info from github to download the metadata release

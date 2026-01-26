@@ -5,7 +5,7 @@ import (
 	"opg-reports/report/internal/repository/sqlr"
 	"opg-reports/report/internal/service/api"
 
-	"github.com/google/go-github/v77/github"
+	"github.com/google/go-github/v81/github"
 	"github.com/spf13/cobra"
 )
 

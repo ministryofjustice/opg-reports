@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/google/go-github/v77/github"
+	"github.com/google/go-github/v81/github"
 )
 
 //---- REPOSITORY OWNERSHIP
