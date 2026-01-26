@@ -34,7 +34,7 @@ type AwsClient interface {
 //
 // Note: API limits grouping to 2, so we cant get linked account details at the same time.
 func GetCostData[T AwsClient](ctx context.Context, log *slog.Logger, client T, options *costexplorer.GetCostAndUsageInput) (result *costexplorer.GetCostAndUsageOutput, err error) {
-	log = log.With("func", "GetCostData")
+	log = log.With("package", "infracosts.ce", "func", "GetCostData")
 	// initial call
 	result, err = client.GetCostAndUsage(ctx, options)
 	if err != nil {
