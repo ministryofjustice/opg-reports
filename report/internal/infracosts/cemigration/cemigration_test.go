@@ -25,6 +25,7 @@ func TestInfracostsCeMigrationWorking(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error:\n%s", err.Error())
 	}
+	defer db.Close()
 
 	err = Migrate(ctx, lg, db)
 	if err != nil {

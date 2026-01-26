@@ -11,14 +11,15 @@ func TestDBDBConnectionWorking(t *testing.T) {
 		err     error
 		dir     = t.TempDir()
 		ctx     = t.Context()
-		lg      = logger.New("debug", "text")
+		log     = logger.New("error", "text")
 		driver  = "sqlite3"
-		connStr = fmt.Sprintf("%s/%s", dir, "test.db")
+		connStr = fmt.Sprintf("%s/%s", dir, "connection-working.db")
 	)
 
-	_, err = Connection(ctx, lg, driver, connStr)
+	db, err := Connection(ctx, log, driver, connStr)
 	if err != nil {
 		t.Errorf("unexpected connection issue:\n%v", err.Error())
 	}
+	defer db.Close()
 
 }
