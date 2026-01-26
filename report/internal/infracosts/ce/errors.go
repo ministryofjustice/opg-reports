@@ -1,4 +1,4 @@
-package cecosts
+package ce
 
 import "errors"
 

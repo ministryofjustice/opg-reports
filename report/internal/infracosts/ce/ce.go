@@ -1,21 +1,26 @@
-package cecosts
+// Package ce implements methods to fetch data from the AWS API for costexplorer (hence ce).
+package ce
 
 import (
 	"context"
 	"errors"
 	"log/slog"
-	"opg-reports/report/internal/utils"
+	"opg-reports/report/internal/utils/times"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
 )
 
-type ApiClient interface {
+// AwsClient is used to allow mocking and is a proxy for *costexplorer.Client
+type AwsClient interface {
+	// GetCostAndUsage method signature from the *costexplorer.Client
 	GetCostAndUsage(ctx context.Context, params *costexplorer.GetCostAndUsageInput, optFns ...func(*costexplorer.Options)) (*costexplorer.GetCostAndUsageOutput, error)
 }
 
-// GetCostData calls the cost explorer api and returns cost and usage data based on the options that are set.
+// GetCostData[T] calls the cost explorer api and returns cost and usage data based on the options that are set.
+//
+// `T AwsClient` is a proxy for *costexplorer.Client to allow mocking
 //
 // Expects `options` to resemble the output of `GetCostDataOptions`.
 //
@@ -28,7 +33,7 @@ type ApiClient interface {
 //		--group-by Type=DIMENSION,Key=SERVICE Type=DIMENSION,Key=REGION
 //
 // Note: API limits grouping to 2, so we cant get linked account details at the same time.
-func GetCostData[T ApiClient](ctx context.Context, log *slog.Logger, client T, options *costexplorer.GetCostAndUsageInput) (result *costexplorer.GetCostAndUsageOutput, err error) {
+func GetCostData[T AwsClient](ctx context.Context, log *slog.Logger, client T, options *costexplorer.GetCostAndUsageInput) (result *costexplorer.GetCostAndUsageOutput, err error) {
 	log = log.With("func", "GetCostData")
 	// initial call
 	result, err = client.GetCostAndUsage(ctx, options)
@@ -42,11 +47,13 @@ func GetCostData[T ApiClient](ctx context.Context, log *slog.Logger, client T, o
 }
 
 // GetCostDataOptions returns a CostAndUsageInput struct formatted with expected values
-// to fetch monthly cost data via `Get`
+// for monhtly cost data using the start and end date
+//
+// `start` & `end` dates are reset to the first day of the month so 2026-01-31 => 2026-01-01
 func GetCostDataOptions(start time.Time, end time.Time) *costexplorer.GetCostAndUsageInput {
 	var (
-		startDate string   = utils.TimeReset(start, utils.TimeIntervalMonth).Format(utils.DATE_FORMATS.YMD)
-		endDate   string   = utils.TimeReset(end, utils.TimeIntervalMonth).Format(utils.DATE_FORMATS.YMD)
+		startDate string   = times.AsString(times.ResetMonth(start), times.YMD)
+		endDate   string   = times.AsString(times.ResetMonth(end), times.YMD)
 		service   string   = "SERVICE"
 		region    string   = "REGION"
 		metrics   []string = []string{"UnblendedCost"}

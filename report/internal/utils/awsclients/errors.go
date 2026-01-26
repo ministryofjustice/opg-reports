@@ -1,4 +1,4 @@
-package client
+package awsclients
 
 import "errors"
 
