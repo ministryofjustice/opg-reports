@@ -1,4 +1,4 @@
-package cemodels
+package infracostmodels
 
 // AwsCost represents a simple, joinless, db row in the cost table
 //

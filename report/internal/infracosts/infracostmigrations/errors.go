@@ -1,4 +1,4 @@
-package cemigrations
+package infracostmigrations
 
 import "errors"
 

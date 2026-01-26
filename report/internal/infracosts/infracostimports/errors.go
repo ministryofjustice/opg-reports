@@ -1,4 +1,4 @@
-package ceimports
+package infracostimports
 
 import "errors"
 

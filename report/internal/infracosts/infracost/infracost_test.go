@@ -1,4 +1,4 @@
-package ce
+package infracost
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"opg-reports/report/internal/utils"
 	"opg-reports/report/internal/utils/awsclients"
+	"opg-reports/report/internal/utils/logger"
 	"os"
 	"testing"
 	"time"
@@ -85,14 +86,14 @@ var _ AwsClient = &mockGetterFailed{}
 
 // TestInfracostsCeWithMock uses mock struct above to test logic and values
 // without calling AWS api.
-func TestInfracostsCeWithMock(t *testing.T) {
+func TestInfracostsWithMock(t *testing.T) {
 	var (
 		err    error
 		client *mockGetter
 		r      *costexplorer.GetCostAndUsageOutput
 		opts   *costexplorer.GetCostAndUsageInput
 		ctx    context.Context = t.Context()
-		lg     *slog.Logger    = utils.Logger("ERROR", "TEXT")
+		log    *slog.Logger    = logger.New("error")
 		now    time.Time       = time.Now().UTC()
 		start  time.Time       = now.AddDate(0, -4, 0)
 		end    time.Time       = now.AddDate(0, -3, 0)
@@ -100,7 +101,7 @@ func TestInfracostsCeWithMock(t *testing.T) {
 
 	opts = GetCostDataOptions(start, end)
 	client = &mockGetter{}
-	r, err = GetCostData(ctx, lg, client, opts)
+	r, err = GetCostData(ctx, log, client, opts)
 	if err != nil {
 		t.Errorf("unexpected error:\n%s", err.Error())
 	}
@@ -115,14 +116,14 @@ func TestInfracostsCeWithMock(t *testing.T) {
 // Only runs if there is actually AWS_SESSION_TOKEN env var present.
 //
 // Run: aws-vault exec use-development-breakglass -- make test name="TestAwsCostsWithoutMock"
-func TestInfracostsCeWithoutMock(t *testing.T) {
+func TestInfracostsWithoutMock(t *testing.T) {
 	var (
 		err    error
 		client *costexplorer.Client
 		opts   *costexplorer.GetCostAndUsageInput
 		r      *costexplorer.GetCostAndUsageOutput
 		ctx    context.Context = t.Context()
-		lg     *slog.Logger    = utils.Logger("ERROR", "TEXT")
+		log    *slog.Logger    = logger.New("error")
 		now    time.Time       = time.Now().UTC()
 		start  time.Time       = now.AddDate(0, -4, 0)
 		end    time.Time       = now.AddDate(0, -3, 0)
@@ -131,13 +132,13 @@ func TestInfracostsCeWithoutMock(t *testing.T) {
 	opts = GetCostDataOptions(start, end)
 
 	if os.Getenv("AWS_SESSION_TOKEN") != "" {
-		client, err = awsclients.New[*costexplorer.Client](ctx, lg, "eu-west-1")
+		client, err = awsclients.New[*costexplorer.Client](ctx, log, "eu-west-1")
 		if err != nil {
 			t.Errorf("unexpected error:\n%s", err.Error())
 			t.FailNow()
 		}
 
-		r, err = GetCostData(ctx, lg, client, opts)
+		r, err = GetCostData(ctx, log, client, opts)
 		if err != nil {
 			t.Errorf("unexpected error:\n%s", err.Error())
 		}
@@ -149,13 +150,13 @@ func TestInfracostsCeWithoutMock(t *testing.T) {
 }
 
 // TestInfracostsCeWithFailure checks the error returned matches custom error type
-func TestInfracostsCeWithFailure(t *testing.T) {
+func TestInfracostsWithFailure(t *testing.T) {
 	var (
 		err    error
 		client *mockGetterFailed
 		opts   *costexplorer.GetCostAndUsageInput
 		ctx    context.Context = t.Context()
-		lg     *slog.Logger    = utils.Logger("ERROR", "TEXT")
+		log    *slog.Logger    = logger.New("error")
 		now    time.Time       = time.Now().UTC()
 		start  time.Time       = now.AddDate(0, -4, 0)
 		end    time.Time       = now.AddDate(0, -3, 0)
@@ -163,7 +164,7 @@ func TestInfracostsCeWithFailure(t *testing.T) {
 
 	opts = GetCostDataOptions(start, end)
 	client = &mockGetterFailed{}
-	_, err = GetCostData(ctx, lg, client, opts)
+	_, err = GetCostData(ctx, log, client, opts)
 	if err == nil {
 		t.Errorf("expected error, but nothing returned")
 	}

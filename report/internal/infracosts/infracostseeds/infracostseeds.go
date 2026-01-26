@@ -1,12 +1,12 @@
-package ceseeds
+package infracostseeds
 
 import (
 	"context"
 	"errors"
 	"log/slog"
 	"opg-reports/report/internal/db/dbstatements"
-	"opg-reports/report/internal/infracosts/ceimports"
-	"opg-reports/report/internal/infracosts/cemodels"
+	"opg-reports/report/internal/infracosts/infracostimports"
+	"opg-reports/report/internal/infracosts/infracostmodels"
 	"opg-reports/report/internal/utils/times"
 	"time"
 
@@ -15,12 +15,13 @@ import (
 
 var (
 	costDate string
-	seeds    []*cemodels.AwsCost
+	seeds    []*infracostmodels.AwsCost
 )
 
 func init() {
 	costDate = times.AsString(times.Add(time.Now(), -1, times.MONTHLY), times.YMD)
-	seeds = []*cemodels.AwsCost{
+
+	seeds = []*infracostmodels.AwsCost{
 		// account 001A
 		{Region: "eu-west-1", Service: "ECS", Date: costDate, Cost: "-0.01", AccountID: "001A"},
 		{Region: "eu-west-1", Service: "S3", Date: costDate, Cost: "10.10", AccountID: "001A"},
@@ -52,12 +53,12 @@ func init() {
 
 // Seed assumes the database already exists and the inserts pre-determined data
 // into the database via the import
-func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstatements.DataStatement[*cemodels.AwsCost, int], err error) {
+func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstatements.DataStatement[*infracostmodels.AwsCost, int], err error) {
 
 	log = log.With("package", "infracosts.ceseed", "func", "Seed")
 	log.Debug("starting ...")
 
-	statements, err = ceimports.Import(ctx, log, db, seeds)
+	statements, err = infracostimports.Import(ctx, log, db, seeds)
 	if err != nil {
 		log.Error("error with seed import", "err", err.Error())
 		err = errors.Join(ErrSeedImportFailed, err)

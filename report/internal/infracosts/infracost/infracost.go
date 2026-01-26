@@ -1,5 +1,5 @@
-// Package ce implements methods to fetch data from the AWS API for costexplorer (hence ce).
-package ce
+// Package infracost implements methods to fetch data from the AWS API for costexplorer (hence ce).
+package infracost
 
 import (
 	"context"

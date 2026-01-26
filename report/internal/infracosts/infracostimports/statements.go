@@ -1,4 +1,4 @@
-package ceimports
+package infracostimports
 
 // insertStmt used to insert records
 const insertStmt string = `

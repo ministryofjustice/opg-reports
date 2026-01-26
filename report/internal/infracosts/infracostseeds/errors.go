@@ -1,4 +1,4 @@
-package ceseeds
+package infracostseeds
 
 import "errors"
 

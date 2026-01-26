@@ -1,4 +1,4 @@
-package cemigrations
+package teammigrations
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func TestInfracostsCeMigrationWorking(t *testing.T) {
+func TestTeamsMigrationWorking(t *testing.T) {
 	var (
 		err error
 		db  *sqlx.DB
@@ -18,7 +18,7 @@ func TestInfracostsCeMigrationWorking(t *testing.T) {
 		ctx     = t.Context()
 		lg      = logger.New("error", "text")
 		driver  = "sqlite3"
-		connStr = fmt.Sprintf("%s/%s", dir, "migration-working.db")
+		connStr = fmt.Sprintf("%s/%s", dir, "team-migration-working.db")
 	)
 
 	db, err = dbconnection.Connection(ctx, lg, driver, connStr)

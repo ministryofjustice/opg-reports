@@ -1,4 +1,4 @@
-package ceimports
+package infracostimports
 
 import (
 	"context"
@@ -6,23 +6,23 @@ import (
 	"log/slog"
 	"opg-reports/report/internal/db/dbinserts"
 	"opg-reports/report/internal/db/dbstatements"
-	"opg-reports/report/internal/infracosts/cemodels"
+	"opg-reports/report/internal/infracosts/infracostmodels"
 
 	"github.com/jmoiron/sqlx"
 )
 
 // Import uses combines the cost data passed along with the with insert statement defined in this package to
 // insert records in to the active database connection.
-func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*cemodels.AwsCost) (statements []*dbstatements.DataStatement[*cemodels.AwsCost, int], err error) {
+func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*infracostmodels.AwsCost) (statements []*dbstatements.DataStatement[*infracostmodels.AwsCost, int], err error) {
 
-	statements = []*dbstatements.DataStatement[*cemodels.AwsCost, int]{}
+	statements = []*dbstatements.DataStatement[*infracostmodels.AwsCost, int]{}
 	log = log.With("package", "infracosts.ce", "func", "Import")
 
 	log.Debug("starting ...")
 	log.Debug("generating db insert statements ...")
 	// generate all of the insert statements from the data passed
 	for _, row := range data {
-		statements = append(statements, &dbstatements.DataStatement[*cemodels.AwsCost, int]{
+		statements = append(statements, &dbstatements.DataStatement[*infracostmodels.AwsCost, int]{
 			Statement: insertStmt,
 			Data:      row,
 		})

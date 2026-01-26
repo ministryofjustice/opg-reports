@@ -1,4 +1,4 @@
-package ceseeds
+package teamseeds
 
 import (
 	"context"
@@ -6,15 +6,15 @@ import (
 	"log/slog"
 	"opg-reports/report/internal/db/dbconnection"
 	"opg-reports/report/internal/db/dbstatements"
-	"opg-reports/report/internal/infracosts/cemigrations"
-	"opg-reports/report/internal/infracosts/cemodels"
+	"opg-reports/report/internal/teams/teammigrations"
+	"opg-reports/report/internal/teams/teammodels"
 	"opg-reports/report/internal/utils/logger"
 	"testing"
 
 	"github.com/jmoiron/sqlx"
 )
 
-func TestInfracostsCeSeedWorking(t *testing.T) {
+func TestTeamsSeedWorking(t *testing.T) {
 	var (
 		err        error
 		db         *sqlx.DB
@@ -22,8 +22,8 @@ func TestInfracostsCeSeedWorking(t *testing.T) {
 		ctx        context.Context = t.Context()
 		log        *slog.Logger    = logger.New("error", "text")
 		driver     string          = "sqlite3"
-		connStr    string          = fmt.Sprintf("%s/%s", dir, "seed-working.db")
-		statements []*dbstatements.DataStatement[*cemodels.AwsCost, int]
+		connStr    string          = fmt.Sprintf("%s/%s", dir, "seed-team-working.db")
+		statements []*dbstatements.DataStatement[*teammodels.Team, string]
 	)
 	// db connection
 	db, err = dbconnection.Connection(ctx, log, driver, connStr)
@@ -32,7 +32,7 @@ func TestInfracostsCeSeedWorking(t *testing.T) {
 	}
 	defer db.Close()
 	// db schema setup
-	err = cemigrations.Migrate(ctx, log, db)
+	err = teammigrations.Migrate(ctx, log, db)
 	if err != nil {
 		t.Errorf("unexpected migration issue:\n%v", err.Error())
 	}
@@ -44,7 +44,7 @@ func TestInfracostsCeSeedWorking(t *testing.T) {
 	if len(statements) < 1 {
 		t.Errorf("expected multiple results to be returned")
 	}
-	if statements[0].Returned <= 0 {
-		t.Errorf("expected positive id for row insert")
+	if statements[0].Returned == "" {
+		t.Errorf("expected name returned for row insert")
 	}
 }
