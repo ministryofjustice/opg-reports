@@ -69,12 +69,14 @@ func GetUptimeData[T AwsClient](ctx context.Context, log *slog.Logger, client T,
 	}
 
 	// fetch the list of all metrics from the api
+	log.Debug("getting lisst of metrics ...")
 	list, err = getHealthCheckMetrics(ctx, log, client)
 	if err != nil {
 		return
 	}
 
 	// get all the datapoints for each of the metrics
+	log.Debug("getting metric stats ...")
 	stats, statsOpts, err = getHealthCheckStatistics(ctx, log, client, list, options)
 	if err != nil {
 		return
@@ -82,8 +84,11 @@ func GetUptimeData[T AwsClient](ctx context.Context, log *slog.Logger, client T,
 
 	log.Debug("coverting to models ...")
 	data, err = toModels(ctx, log, options.AccountID, *statsOpts.Period, stats)
+	if err != nil {
+		return
+	}
 
-	log.Debug("complete")
+	log.With("count", len(data)).Debug("complete")
 	return
 }
 

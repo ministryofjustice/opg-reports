@@ -9,34 +9,38 @@ import (
 	"github.com/google/go-github/v81/github"
 )
 
+// GithubClient wrapper around *github.TeamsService
 type GithubClient interface {
 	ListTeamReposBySlug(ctx context.Context, org, slug string, opts *github.ListOptions) ([]*github.Repository, *github.Response, error)
 }
 
-// GetCodebasesOptions
+// GetCodebasesOptions used to decide / change what repositories to return
+// from the full list
 type GetCodebasesOptions struct {
 	ExcludeArchived bool
 }
 
-// fuxed values that are always used
+// fixed values
 const (
-	githubOrg  string = "ministryofjustice"
-	githubTeam string = "opg"
+	githubOrg  string = "ministryofjustice" // github org
+	githubTeam string = "opg"               // github root team
 )
 
 // GetCodebases
-func GetCodebases(ctx context.Context, log *slog.Logger, client *github.TeamsService, options *GetCodebasesOptions) (repos []*codebasemodels.Codebase, err error) {
+func GetCodebases[T GithubClient](ctx context.Context, log *slog.Logger, client T, options *GetCodebasesOptions) (repos []*codebasemodels.Codebase, err error) {
 	var list []*github.Repository
 
 	log = log.With("package", "codebases", "func", "GetCodebases")
 	log.Debug("starting ...")
 
 	// fetch all the repos
+	log.Debug("getting repository list ...")
 	list, err = getRepositoryList(ctx, log, client, options)
 	if err != nil {
 		return
 	}
 	// convert to local structs
+	log.Debug("converting to models ...")
 	repos, err = toModels(ctx, log, list)
 	if err != nil {
 		return
@@ -67,7 +71,7 @@ func toModels(ctx context.Context, log *slog.Logger, list []*github.Repository) 
 
 // getRepositoryList iterates over paginated data set from github api and merges all data
 // into one block
-func getRepositoryList(ctx context.Context, log *slog.Logger, client *github.TeamsService, options *GetCodebasesOptions) (repositories []*github.Repository, err error) {
+func getRepositoryList[T GithubClient](ctx context.Context, log *slog.Logger, client T, options *GetCodebasesOptions) (repositories []*github.Repository, err error) {
 
 	var (
 		page int                 = 1

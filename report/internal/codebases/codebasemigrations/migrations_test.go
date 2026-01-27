@@ -11,14 +11,13 @@ import (
 
 func TestRedoCodebasesMigrationWorking(t *testing.T) {
 	var (
-		err error
-		db  *sqlx.DB
-		dir = t.TempDir()
-		// dir     = "./"
+		err     error
+		db      *sqlx.DB
+		dir     = t.TempDir()
 		ctx     = t.Context()
 		lg      = logger.New("error", "text")
 		driver  = "sqlite3"
-		connStr = fmt.Sprintf("%s/%s", dir, "account-migration-working.db")
+		connStr = fmt.Sprintf("%s/%s", dir, "codebase-migration-working.db")
 	)
 
 	db, err = dbconnection.Connection(ctx, lg, driver, connStr)

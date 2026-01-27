@@ -53,27 +53,31 @@ func GetTeamData[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, op
 	log.Debug("starting ...")
 
 	// find the release data
+	log.Debug("getting release ...")
 	release, err = getRelease(ctx, log, gh, options)
 	if err != nil {
 		return
 	}
 	// find the metadata asset
+	log.Debug("getting release asset ...")
 	asset, err = getReleaseAsset(ctx, log, release)
 	if err != nil {
 		return
 	}
 	// download the asset to a extract and parse the teams.json file
+	log.Debug("downloading asset ...")
 	metadataFile, err = downloadAsset(ctx, log, gh, asset, options)
 	if err != nil {
 		return
 	}
 	// extract the zip and get the team data
+	log.Debug("extracting and converting ...")
 	teams, err = extractAndGetTeams(ctx, log, metadataFile, options)
 	if err != nil {
 		return
 	}
 
-	log.Debug("complete.")
+	log.With("count", len(teams)).Debug("complete.")
 	return
 }
 

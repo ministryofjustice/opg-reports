@@ -28,7 +28,6 @@ func TestRedoCodebasesWithoutMock(t *testing.T) {
 			t.Errorf("unexpected error:\n%s", err.Error())
 		}
 		opts := &GetCodebasesOptions{ExcludeArchived: true}
-
 		data, err = GetCodebases(ctx, log, client.Teams, opts)
 		if err != nil {
 			t.Errorf("unexpected error:\n%s", err.Error())

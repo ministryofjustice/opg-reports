@@ -55,10 +55,10 @@ func GetCostData[T AwsClient](ctx context.Context, log *slog.Logger, client T, o
 		return
 	}
 
-	log.Debug("covnerting to models ...")
+	log.Debug("converting to models ...")
 	costs, err = toModels(ctx, log, options.AccountID, result)
 
-	log.Debug("complete.")
+	log.With("count", len(costs)).Debug("complete.")
 	return
 }
 
