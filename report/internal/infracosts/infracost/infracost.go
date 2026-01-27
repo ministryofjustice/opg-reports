@@ -55,6 +55,7 @@ func GetCostData[T AwsClient](ctx context.Context, log *slog.Logger, client T, o
 		return
 	}
 
+	log.Debug("covnerting to models ...")
 	costs, err = toModels(ctx, log, options.AccountID, result)
 
 	log.Debug("complete.")
@@ -66,8 +67,8 @@ func toModels(ctx context.Context, log *slog.Logger, account string, result *cos
 
 	costs = []*infracostmodels.AwsCost{}
 	log = log.With("package", "infracosts", "func", "toModels")
-	// convert results into a map
-	log.Debug("coverting cost data ... ")
+	log.Debug("starting ... ")
+
 	for _, result := range result.ResultsByTime {
 		var day string = *result.TimePeriod.Start
 		for _, group := range result.Groups {

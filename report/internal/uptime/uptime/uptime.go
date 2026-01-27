@@ -7,8 +7,11 @@ package uptime
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
+	"opg-reports/report/internal/uptime/uptimemodels"
 	"opg-reports/report/internal/utils/ptr"
+	"opg-reports/report/internal/utils/times"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
@@ -26,8 +29,9 @@ type AwsClient interface {
 // GetUptimeDataOptions provides struct to deal with optional settings that can be changed
 // for hte api calls
 type GetUptimeDataOptions struct {
-	Start time.Time
-	End   time.Time
+	Start     time.Time
+	End       time.Time
+	AccountID string
 }
 
 // these are fixed values used for the api calls
@@ -47,9 +51,11 @@ const (
 // The route53 metrics require the client region to be set as us-east-1.
 //
 // T is `*cloudwatch.Client`.
-func GetUptimeData[T AwsClient](ctx context.Context, log *slog.Logger, client T, options *GetUptimeDataOptions) (stats *cloudwatch.GetMetricStatisticsOutput, err error) {
+func GetUptimeData[T AwsClient](ctx context.Context, log *slog.Logger, client T, options *GetUptimeDataOptions) (data []*uptimemodels.AwsUptime, err error) {
 	var (
 		list      *cloudwatch.ListMetricsOutput
+		statsOpts *cloudwatch.GetMetricStatisticsInput
+		stats     *cloudwatch.GetMetricStatisticsOutput
 		setRegion string = client.Options().Region
 	)
 
@@ -69,12 +75,57 @@ func GetUptimeData[T AwsClient](ctx context.Context, log *slog.Logger, client T,
 	}
 
 	// get all the datapoints for each of the metrics
-	stats, err = getHealthCheckStatistics(ctx, log, client, list, options)
+	stats, statsOpts, err = getHealthCheckStatistics(ctx, log, client, list, options)
 	if err != nil {
 		return
 	}
 
+	log.Debug("coverting to models ...")
+	data, err = toModels(ctx, log, options.AccountID, *statsOpts.Period, stats)
+
 	log.Debug("complete")
+	return
+}
+
+// toModels converts the raw data into a list of models ready to write to the database
+func toModels(ctx context.Context, log *slog.Logger, account string, period int32, result *cloudwatch.GetMetricStatisticsOutput) (data []*uptimemodels.AwsUptime, err error) {
+	var (
+		grouped map[string]float64 = map[string]float64{}
+		counter map[string]int     = map[string]int{}
+	)
+	data = []*uptimemodels.AwsUptime{}
+	log = log.With("package", "uptime", "func", "toModels")
+	log.Debug("starting ... ")
+
+	// create a sum and count of each month uptime to then create the average entries
+	for _, point := range result.Datapoints {
+		var (
+			month time.Time = times.ResetDay(*point.Timestamp)
+			key   string    = times.AsYMDString(month)
+		)
+		// find or update the value in
+		if _, ok := grouped[key]; !ok {
+			grouped[key] = 0.0
+			counter[key] = 0
+		}
+		grouped[key] += *point.Average
+		counter[key]++
+	}
+	// now generate the average values
+	for key, sum := range grouped {
+		var (
+			count   int                     = counter[key]
+			average float64                 = (sum / float64(count))
+			up      *uptimemodels.AwsUptime = &uptimemodels.AwsUptime{
+				Date:        key,
+				Average:     fmt.Sprintf("%g", average),
+				Granularity: fmt.Sprintf("%d", period),
+				AccountID:   account,
+			}
+		)
+		data = append(data, up)
+	}
+	log.Debug("complete.")
 	return
 }
 
@@ -82,13 +133,13 @@ func GetUptimeData[T AwsClient](ctx context.Context, log *slog.Logger, client T,
 // from the api and return the api call values
 //
 // T is *cloudwatch.Client
-func getHealthCheckStatistics[T AwsClient](ctx context.Context, log *slog.Logger, client T, list *cloudwatch.ListMetricsOutput, options *GetUptimeDataOptions) (stats *cloudwatch.GetMetricStatisticsOutput, err error) {
-
-	var statsInput *cloudwatch.GetMetricStatisticsInput = getHeathCheckMetricStatsOptions(list, options)
+func getHealthCheckStatistics[T AwsClient](ctx context.Context, log *slog.Logger, client T, list *cloudwatch.ListMetricsOutput, options *GetUptimeDataOptions) (stats *cloudwatch.GetMetricStatisticsOutput, statsInput *cloudwatch.GetMetricStatisticsInput, err error) {
 
 	log = log.With("package", "uptime", "func", "getHealthCheckStatistics")
+	statsInput = getHeathCheckMetricStatsOptions(list, options)
+
 	log.Debug("starting ...")
-	log.With("statsInput", statsInput).Debug("getting metrics statistics ...")
+	log.With("period", *statsInput.Period).Debug("getting metrics statistics ...")
 
 	// try and get the stats
 	stats, err = client.GetMetricStatistics(ctx, statsInput)
@@ -157,11 +208,7 @@ func getHeathCheckMetricStatsOptions(list *cloudwatch.ListMetricsOutput, options
 
 // getPeriod works out what period to use based on the api contraints and the start date being requested.
 //
-// Based on the below details:
-//   - Data points with a period of less than 60 seconds are available for 3 hours. These data points are high-resolution metrics and are available only for custom metrics that have been defined with a StorageResolution of 1.
-//   - Data points with a period of 60 seconds (1-minute) are available for 15 days.
-//   - Data points with a period of 300 seconds (5-minute) are available for 63 days.
-//   - Data points with a period of 3600 seconds (1 hour) are available for 455 days (15 months).
+// If time period is more than 15 days ago, use hourly.
 //
 // Don't use any granularity under 60 seconds.
 func getPeriod(start time.Time) (period int32) {
@@ -169,18 +216,12 @@ func getPeriod(start time.Time) (period int32) {
 		now       time.Time     = time.Now().UTC()
 		day       time.Duration = (time.Hour * 24)
 		days15    time.Duration = (15 * day)
-		days63    time.Duration = (63 * day)
-		days455   time.Duration = (455 * day)
 		hoursDiff float64       = now.Sub(start).Hours()
 	)
 	period = 3600
 
 	if hoursDiff < days15.Hours() {
 		period = 60
-	} else if hoursDiff < days63.Hours() {
-		period = 300
-	} else if hoursDiff < days455.Hours() {
-		period = 3600
 	}
 	return
 

@@ -3,7 +3,9 @@ package uptime
 import (
 	"context"
 	"log/slog"
+	"opg-reports/report/internal/uptime/uptimemodels"
 	"opg-reports/report/internal/utils/awsclients"
+	"opg-reports/report/internal/utils/awsid"
 	"opg-reports/report/internal/utils/logger"
 	"opg-reports/report/internal/utils/ptr"
 	"os"
@@ -58,19 +60,19 @@ func TestRedoUptimeWithMock(t *testing.T) {
 	var (
 		err    error
 		client *mockGetter = &mockGetter{}
-		r      *cloudwatch.GetMetricStatisticsOutput
+		r      []*uptimemodels.AwsUptime
 		ctx    context.Context = t.Context()
 		log    *slog.Logger    = logger.New("error")
 		now    time.Time       = time.Now().UTC()
-		start  time.Time       = now.AddDate(0, -4, 0)
-		end    time.Time       = now.AddDate(0, -3, 0)
+		start  time.Time       = now.AddDate(0, 0, -2)
+		end    time.Time       = now.AddDate(0, 0, -1)
 	)
 
-	r, err = GetUptimeData(ctx, log, client, &GetUptimeDataOptions{Start: start, End: end})
+	r, err = GetUptimeData(ctx, log, client, &GetUptimeDataOptions{Start: start, End: end, AccountID: "mock-account-A"})
 	if err != nil {
 		t.Errorf("unexpected error:\n%s", err.Error())
 	}
-	if len(r.Datapoints) <= 0 {
+	if len(r) <= 0 {
 		t.Error("failed to find uptime data")
 	}
 
@@ -78,14 +80,15 @@ func TestRedoUptimeWithMock(t *testing.T) {
 
 func TestRedoUptimeWithoutMock(t *testing.T) {
 	var (
-		err    error
-		client *cloudwatch.Client
-		r      *cloudwatch.GetMetricStatisticsOutput
-		ctx    context.Context = t.Context()
-		log    *slog.Logger    = logger.New("error")
-		now    time.Time       = time.Now().UTC()
-		start  time.Time       = now.AddDate(0, -4, 0)
-		end    time.Time       = now.AddDate(0, -3, 0)
+		err       error
+		accountId string
+		client    *cloudwatch.Client
+		r         []*uptimemodels.AwsUptime
+		ctx       context.Context = t.Context()
+		log       *slog.Logger    = logger.New("error")
+		now       time.Time       = time.Now().UTC()
+		start     time.Time       = now.AddDate(0, 0, -2)
+		end       time.Time       = now.AddDate(0, 0, -1)
 	)
 
 	if os.Getenv("AWS_SESSION_TOKEN") != "" {
@@ -94,12 +97,12 @@ func TestRedoUptimeWithoutMock(t *testing.T) {
 			t.Errorf("unexpected error:\n%s", err.Error())
 			t.FailNow()
 		}
-
-		r, err = GetUptimeData(ctx, log, client, &GetUptimeDataOptions{Start: start, End: end})
+		accountId = awsid.AccountID(ctx, log, "eu-west-1")
+		r, err = GetUptimeData(ctx, log, client, &GetUptimeDataOptions{Start: start, End: end, AccountID: accountId})
 		if err != nil {
 			t.Errorf("unexpected error:\n%s", err.Error())
 		}
-		if len(r.Datapoints) <= 0 {
+		if len(r) <= 0 {
 			t.Error("failed to find uptime data")
 		}
 	} else {
