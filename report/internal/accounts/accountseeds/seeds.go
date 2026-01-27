@@ -11,10 +11,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-var (
-	costDate string
-	seeds    []*accountmodels.AwsAccount
-)
+var seeds []*accountmodels.AwsAccount
 
 func init() {
 	seeds = []*accountmodels.AwsAccount{

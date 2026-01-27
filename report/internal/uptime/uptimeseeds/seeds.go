@@ -7,17 +7,24 @@ import (
 	"opg-reports/report/internal/db/dbstatements"
 	"opg-reports/report/internal/uptime/uptimeimports"
 	"opg-reports/report/internal/uptime/uptimemodels"
+	"opg-reports/report/internal/utils/times"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 )
 
 var (
-	costDate string
-	seeds    []*uptimemodels.AwsUptime
+	date  string
+	seeds []*uptimemodels.AwsUptime
 )
 
 func init() {
-	seeds = []*uptimemodels.AwsUptime{}
+	date = times.AsYMDString(time.Now())
+	seeds = []*uptimemodels.AwsUptime{
+		{Date: date, Average: "99.9901", AccountID: "001A"},
+		{Date: date, Average: "99.9801", AccountID: "001A"},
+		{Date: date, Average: "99.9801", AccountID: "001A"},
+	}
 }
 
 // Seed assumes the database already exists and the inserts pre-determined data
