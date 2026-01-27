@@ -153,7 +153,9 @@ func getReleaseAsset(ctx context.Context, log *slog.Logger, release *github.Repo
 }
 
 // getRelease finds the tagged release
-func getRelease(ctx context.Context, log *slog.Logger, gh GitHubClient, options *GetAwsAccountDataOptions) (release *github.RepositoryRelease, err error) {
+//
+// Does not check for pre-release / draft status, just the tag name
+func getRelease(ctx context.Context, log *slog.Logger, gh GitHubClient /**github.RepositoriesService*/, options *GetAwsAccountDataOptions) (release *github.RepositoryRelease, err error) {
 	release, _, err = gh.GetReleaseByTag(ctx, owner, repository, options.Tag)
 	if err != nil {
 		log.Error("error finding metadata release", "err", err.Error())

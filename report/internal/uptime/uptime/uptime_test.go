@@ -12,6 +12,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
 )
 
+type mockGetter struct{}
+
 func TestRedoUptimeWithoutMock(t *testing.T) {
 	var (
 		err    error
