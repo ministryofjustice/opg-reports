@@ -13,16 +13,18 @@ import (
 
 // Import uses combines the cost data passed along with the with insert statement defined in this package to
 // insert records in to the active database connection.
-func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*accountmodels.AwsAccountImport) (statements []*dbstatements.DataStatement[*accountmodels.AwsAccountImport, string], err error) {
+//
+// `data` is presumed to come from the account.GetAwsAccountData
+func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*accountmodels.AwsAccount) (statements []*dbstatements.DataStatement[*accountmodels.AwsAccount, string], err error) {
 
-	statements = []*dbstatements.DataStatement[*accountmodels.AwsAccountImport, string]{}
+	statements = []*dbstatements.DataStatement[*accountmodels.AwsAccount, string]{}
 	log = log.With("package", "accounts", "func", "Import")
 
 	log.Debug("starting ...")
 	log.Debug("generating db insert statements ...")
 	// generate all of the insert statements from the data passed
 	for _, row := range data {
-		statements = append(statements, &dbstatements.DataStatement[*accountmodels.AwsAccountImport, string]{
+		statements = append(statements, &dbstatements.DataStatement[*accountmodels.AwsAccount, string]{
 			Statement: insertStmt,
 			Data:      row,
 		})

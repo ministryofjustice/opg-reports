@@ -73,7 +73,7 @@ func TestRedoAccountsWithMock(t *testing.T) {
 		ctx    context.Context = t.Context()
 		log    *slog.Logger    = logger.New("error")
 		dir    string          = t.TempDir()
-		data   []*accountmodels.AwsAccountImport
+		data   []*accountmodels.AwsAccount
 	)
 
 	opts := &GetAwsAccountDataOptions{
@@ -99,7 +99,7 @@ func TestRedoAccountsWithoutMock(t *testing.T) {
 		ctx    context.Context = t.Context()
 		log    *slog.Logger    = logger.New("error")
 		dir    string          = t.TempDir()
-		data   []*accountmodels.AwsAccountImport
+		data   []*accountmodels.AwsAccount
 	)
 
 	if os.Getenv("GITHUB_TOKEN") != "" {
@@ -128,7 +128,7 @@ func TestRedoAccountsWithoutMock(t *testing.T) {
 // and from that reads the zip and returns the content to simulate
 // a downloaded file
 func createDummyZip() []byte {
-	var mockAccounts = []*accountmodels.AwsAccountImport{
+	var mockAccounts = []*accountmodels.AwsAccount{
 		{
 			ID:          "mock-account-01",
 			Name:        "mock-account",

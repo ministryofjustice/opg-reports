@@ -13,11 +13,11 @@ import (
 
 var (
 	costDate string
-	seeds    []*accountmodels.AwsAccountImport
+	seeds    []*accountmodels.AwsAccount
 )
 
 func init() {
-	seeds = []*accountmodels.AwsAccountImport{
+	seeds = []*accountmodels.AwsAccount{
 		{ID: "001A", Name: "Account 1A", Label: "A", Environment: "development", TeamName: "TEAM-A"},
 		{ID: "001B", Name: "Account 1B", Label: "B", Environment: "production", TeamName: "TEAM-A"},
 		{ID: "002A", Name: "Account 2A", Label: "A", Environment: "production", TeamName: "TEAM-B"},
@@ -30,7 +30,7 @@ func init() {
 
 // Seed assumes the database already exists and the inserts pre-determined data
 // into the database via the import
-func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstatements.DataStatement[*accountmodels.AwsAccountImport, string], err error) {
+func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstatements.DataStatement[*accountmodels.AwsAccount, string], err error) {
 
 	log = log.With("package", "accounts", "func", "Seed")
 	log.Debug("starting ...")

@@ -36,7 +36,7 @@ const (
 	owner          string = "ministryofjustice" // org
 	repository     string = "opg-metadata"      // repo name
 	assetName      string = "metadata.zip"      // the attached asset name in the release
-	teamFile       string = "accounts.aws.json" // the file to use in the release
+	extractFile    string = "accounts.aws.json" // the file to use in the release
 	downloadSubDir string = "dl"                // subdirectory to download data into
 	extractSubDir  string = "ex"                // directory to extraxt zip to
 )
@@ -44,15 +44,17 @@ const (
 // GetAccountData[T GitHubClient] connects to github and checks the releases for `opg-metadata` for the tag set within the options and then fetches
 // the metadata.zip from that release, extracting and parsing the accounts.aws..json file, which is then returned as a slice.
 //
+// Return data as model used for importing to the database. This get call is used by import commands directly
+//
 // Note: opg-metadata is private, so suitable permissions are required on the github client (and its token).
-func GetAwsAccountData[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, options *GetAwsAccountDataOptions) (teams []*accountmodels.AwsAccountImport, err error) {
+func GetAwsAccountData[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, options *GetAwsAccountDataOptions) (accounts []*accountmodels.AwsAccount, err error) {
 
 	var (
 		release      *github.RepositoryRelease
 		asset        *github.ReleaseAsset
 		metadataFile string
 	)
-	log = log.With("package", "teams", "func", "GetTeamData").With("options", options)
+	log = log.With("package", "accounts", "func", "GetTeamData").With("options", options)
 	log.Debug("starting ...")
 
 	// find the release data
@@ -71,7 +73,7 @@ func GetAwsAccountData[T GitHubClient](ctx context.Context, log *slog.Logger, gh
 		return
 	}
 	// extract the zip and get the team data
-	teams, err = extractAndGetTeams(ctx, log, metadataFile, options)
+	accounts, err = extractAndGet(ctx, log, metadataFile, options)
 	if err != nil {
 		return
 	}
@@ -80,23 +82,27 @@ func GetAwsAccountData[T GitHubClient](ctx context.Context, log *slog.Logger, gh
 	return
 }
 
-// extractAndGetTeams extract the file and parse the file
-func extractAndGetTeams(ctx context.Context, log *slog.Logger, metadataZip string, options *GetAwsAccountDataOptions) (teams []*accountmodels.AwsAccountImport, err error) {
+// extractAndGet extract the file and parse the file
+func extractAndGet(ctx context.Context, log *slog.Logger, metadataZip string, options *GetAwsAccountDataOptions) (accounts []*accountmodels.AwsAccount, err error) {
 	var (
 		extractTo string = filepath.Join(options.DataDirectory, extractSubDir)
-		teamsFile string = filepath.Join(extractTo, teamFile)
+		file      string = filepath.Join(extractTo, extractFile)
 	)
-	teams = []*accountmodels.AwsAccountImport{}
+	accounts = []*accountmodels.AwsAccount{}
 
 	_, err = zips.Extract(metadataZip, extractTo)
 	if err != nil {
 		return
 	}
-	if !files.Exists(teamsFile) {
+	if !files.Exists(file) {
 		err = ErrNoTeamsDatafile
 		return
 	}
-	unmarshal.FromFile(teamsFile, &teams)
+	err = unmarshal.FromFile(file, &accounts)
+	if err != nil {
+		err = errors.Join(ErrFailedtoUnmarshal, err)
+		return
+	}
 	return
 }
 

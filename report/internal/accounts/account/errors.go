@@ -8,4 +8,5 @@ var (
 	ErrNoMatchingAssetsInRelease = errors.New("no matching assets attached to release.")
 	ErrGithubAssetDownloadFailed = errors.New("failed to download github asset with error.")
 	ErrNoTeamsDatafile           = errors.New("no accounts.aws.json data file found.")
+	ErrFailedtoUnmarshal         = errors.New("failed to unmarshal struct.")
 )
