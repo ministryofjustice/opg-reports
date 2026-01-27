@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"opg-reports/report/internal/infracosts/infracostmodels"
 	"opg-reports/report/internal/utils"
 	"opg-reports/report/internal/utils/awsclients"
+	"opg-reports/report/internal/utils/awsid"
 	"opg-reports/report/internal/utils/logger"
 	"os"
 	"testing"
@@ -90,7 +92,7 @@ func TestRedoInfracostsWithMock(t *testing.T) {
 	var (
 		err    error
 		client *mockGetter
-		r      *costexplorer.GetCostAndUsageOutput
+		r      []*infracostmodels.AwsCost
 		ctx    context.Context = t.Context()
 		log    *slog.Logger    = logger.New("error")
 		now    time.Time       = time.Now().UTC()
@@ -103,7 +105,7 @@ func TestRedoInfracostsWithMock(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error:\n%s", err.Error())
 	}
-	if len(r.ResultsByTime) <= 0 {
+	if len(r) <= 0 {
 		t.Error("failed to find cost data")
 	}
 }
@@ -116,14 +118,15 @@ func TestRedoInfracostsWithMock(t *testing.T) {
 // Run: aws-vault exec use-development-breakglass -- make test name="TestAwsCostsWithoutMock"
 func TestRedoInfracostsWithoutMock(t *testing.T) {
 	var (
-		err    error
-		client *costexplorer.Client
-		r      *costexplorer.GetCostAndUsageOutput
-		ctx    context.Context = t.Context()
-		log    *slog.Logger    = logger.New("error")
-		now    time.Time       = time.Now().UTC()
-		start  time.Time       = now.AddDate(0, -4, 0)
-		end    time.Time       = now.AddDate(0, -3, 0)
+		err       error
+		client    *costexplorer.Client
+		accountId string
+		r         []*infracostmodels.AwsCost
+		ctx       context.Context = t.Context()
+		log       *slog.Logger    = logger.New("error")
+		now       time.Time       = time.Now().UTC()
+		start     time.Time       = now.AddDate(0, -4, 0)
+		end       time.Time       = now.AddDate(0, -3, 0)
 	)
 
 	if os.Getenv("AWS_SESSION_TOKEN") != "" {
@@ -132,12 +135,13 @@ func TestRedoInfracostsWithoutMock(t *testing.T) {
 			t.Errorf("unexpected error:\n%s", err.Error())
 			t.FailNow()
 		}
-
-		r, err = GetCostData(ctx, log, client, &GetCostDataOptions{Start: start, End: end})
+		accountId = awsid.AccountID(ctx, log, "eu-west-1")
+		r, err = GetCostData(ctx, log, client, &GetCostDataOptions{Start: start, End: end, AccountID: accountId})
 		if err != nil {
 			t.Errorf("unexpected error:\n%s", err.Error())
 		}
-		if len(r.ResultsByTime) <= 0 {
+
+		if len(r) <= 0 {
 			t.Error("failed to find cost data")
 		}
 	}

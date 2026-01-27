@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"opg-reports/report/internal/infracosts/infracostmodels"
 	"opg-reports/report/internal/utils/times"
 	"time"
 
@@ -20,8 +21,9 @@ type AwsClient interface {
 
 // GetCostDataOptions options that can change and specify for fetching cost data
 type GetCostDataOptions struct {
-	Start time.Time
-	End   time.Time
+	Start     time.Time
+	End       time.Time
+	AccountID string // AccountID provided by awsid.AccountID
 }
 
 // GetCostData[T] calls the cost explorer api and returns cost and usage data based on the options that are set.
@@ -39,10 +41,12 @@ type GetCostDataOptions struct {
 //		--group-by Type=DIMENSION,Key=SERVICE Type=DIMENSION,Key=REGION
 //
 // Note: API limits grouping to 2, so we cant get linked account details at the same time.
-func GetCostData[T AwsClient](ctx context.Context, log *slog.Logger, client T, options *GetCostDataOptions) (result *costexplorer.GetCostAndUsageOutput, err error) {
+func GetCostData[T AwsClient](ctx context.Context, log *slog.Logger, client T, options *GetCostDataOptions) (costs []*infracostmodels.AwsCost, err error) {
+	var result *costexplorer.GetCostAndUsageOutput
 	var apiOpts *costexplorer.GetCostAndUsageInput = getCostDataOptions(options.Start, options.End)
 
 	log = log.With("package", "infracosts", "func", "GetCostData")
+	log.Debug("starting ...")
 	// initial call
 	result, err = client.GetCostAndUsage(ctx, apiOpts)
 	if err != nil {
@@ -50,6 +54,41 @@ func GetCostData[T AwsClient](ctx context.Context, log *slog.Logger, client T, o
 		log.Error("error: failed to get cost data", "err", err.Error())
 		return
 	}
+
+	costs, err = toModels(ctx, log, options.AccountID, result)
+
+	log.Debug("complete.")
+	return
+}
+
+// toModels converts the raw data into a list of models ready to write to the database
+func toModels(ctx context.Context, log *slog.Logger, account string, result *costexplorer.GetCostAndUsageOutput) (costs []*infracostmodels.AwsCost, err error) {
+
+	costs = []*infracostmodels.AwsCost{}
+	log = log.With("package", "infracosts", "func", "toModels")
+	// convert results into a map
+	log.Debug("coverting cost data ... ")
+	for _, result := range result.ResultsByTime {
+		var day string = *result.TimePeriod.Start
+		for _, group := range result.Groups {
+			var service string = *&group.Keys[0]
+			var region string = *&group.Keys[1]
+
+			for _, cost := range group.Metrics {
+
+				var item = &infracostmodels.AwsCost{
+					AccountID: account,
+					Date:      day,
+					Service:   service,
+					Region:    region,
+					Cost:      *cost.Amount,
+				}
+				costs = append(costs, item)
+
+			}
+		}
+	}
+	log.Debug("complete.")
 
 	return
 }
