@@ -55,7 +55,7 @@ func init() {
 // into the database via the import
 func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstatements.DataStatement[*infracostmodels.AwsCost, int], err error) {
 
-	log = log.With("package", "infracosts.ceseed", "func", "Seed")
+	log = log.With("package", "infracostsseed", "func", "Seed")
 	log.Debug("starting ...")
 
 	statements, err = infracostimports.Import(ctx, log, db, seeds)

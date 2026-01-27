@@ -1,4 +1,4 @@
-package accountmigrations
+package uptimemigrations
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func TestRedoTeamsMigrationWorking(t *testing.T) {
+func TestUptimeMigrationWorking(t *testing.T) {
 	var (
 		err error
 		db  *sqlx.DB
@@ -18,7 +18,7 @@ func TestRedoTeamsMigrationWorking(t *testing.T) {
 		ctx     = t.Context()
 		lg      = logger.New("error", "text")
 		driver  = "sqlite3"
-		connStr = fmt.Sprintf("%s/%s", dir, "account-migration-working.db")
+		connStr = fmt.Sprintf("%s/%s", dir, "migration-uptime-working.db")
 	)
 
 	db, err = dbconnection.Connection(ctx, lg, driver, connStr)

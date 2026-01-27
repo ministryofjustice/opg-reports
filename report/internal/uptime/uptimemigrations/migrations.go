@@ -1,4 +1,4 @@
-package infracostmigrations
+package uptimemigrations
 
 import (
 	"context"
@@ -12,33 +12,31 @@ import (
 )
 
 const table string = `
-CREATE TABLE IF NOT EXISTS aws_costs (
+CREATE TABLE IF NOT EXISTS aws_uptime (
 	id INTEGER PRIMARY KEY,
 	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
-	region TEXT DEFAULT "NoRegion" NOT NULL,
-	service TEXT NOT NULL,
 	date TEXT NOT NULL,
-	cost TEXT NOT NULL,
 	aws_account_id TEXT,
-	UNIQUE (aws_account_id,date,region,service)
-) STRICT;`
+	average TEXT NOT NULL,
+	granularity TEXT NOT NULL,
+	UNIQUE (aws_account_id,date)
+) STRICT;
+ `
 
-const idx_date string = `CREATE INDEX IF NOT EXISTS aws_costs_date_idx ON aws_costs(date);`
-const idx_date_account string = `CREATE INDEX IF NOT EXISTS aws_costs_date_account_idx ON aws_costs(date, aws_account_id);`
-const idx_merged string = `CREATE INDEX IF NOT EXISTS aws_costs_unique_idx ON aws_costs(aws_account_id,date,region,service);`
+const idx_date string = `CREATE INDEX IF NOT EXISTS aws_uptime_date_idx ON aws_uptime(date);`
+const idx_date_account string = `CREATE INDEX IF NOT EXISTS aws_uptime_account_date_idx ON aws_uptime(aws_account_id,date);`
 
 var migrations []string = []string{
 	table,
 	idx_date,
 	idx_date_account,
-	idx_merged,
 }
 
 // Migrate runs all the create / index setup calls and executes them against the
 // db connections passed
 func Migrate(ctx context.Context, log *slog.Logger, db *sqlx.DB) (err error) {
 
-	log = log.With("package", "infracosts", "func", "Migrate")
+	log = log.With("package", "uptimetime", "func", "Migrate")
 	log.Debug("starting ...")
 
 	for _, stmt := range migrations {

@@ -14,7 +14,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func TestTeamsSeedWorking(t *testing.T) {
+func TestRedoTeamsSeedWorking(t *testing.T) {
 	var (
 		err        error
 		db         *sqlx.DB

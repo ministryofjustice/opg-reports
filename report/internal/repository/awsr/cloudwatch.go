@@ -178,7 +178,6 @@ func (self *Repository) GetUptimeMetrics(client ClientCloudWatchMetricsLister, o
 		output *cloudwatch.ListMetricsOutput
 		log    *slog.Logger = self.log.With("operation", "GetUptimeMetricsList")
 	)
-
 	log.With("options", options).Debug("getting route53 uptime metrics ... ")
 
 	output, err = client.ListMetrics(self.ctx, &cloudwatch.ListMetricsInput{

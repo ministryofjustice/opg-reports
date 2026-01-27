@@ -9,7 +9,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func TestInfracostsCeMigrationWorking(t *testing.T) {
+func TestRedoInfracostsMigrationWorking(t *testing.T) {
 	var (
 		err error
 		db  *sqlx.DB

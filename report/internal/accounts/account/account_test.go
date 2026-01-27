@@ -12,7 +12,7 @@ import (
 	"github.com/google/go-github/v81/github"
 )
 
-func TestAccountsWithoutMock(t *testing.T) {
+func TestRedoAccountsWithoutMock(t *testing.T) {
 
 	var (
 		err    error
@@ -28,7 +28,7 @@ func TestAccountsWithoutMock(t *testing.T) {
 		if err != nil {
 			t.Errorf("unexpected error:\n%s", err.Error())
 		}
-		opts := &AccountDataOptions{
+		opts := &GetAwsAccountDataOptions{
 			Tag:           "v0.1.26",
 			DataDirectory: dir,
 		}

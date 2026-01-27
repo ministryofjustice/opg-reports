@@ -12,7 +12,7 @@ import (
 	"github.com/google/go-github/v81/github"
 )
 
-func TestTeamsWithoutMock(t *testing.T) {
+func TestRedoTeamsWithoutMock(t *testing.T) {
 
 	var (
 		err    error

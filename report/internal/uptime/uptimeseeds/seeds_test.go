@@ -1,20 +1,20 @@
-package infracostseeds
+package uptimeseeds
 
 import (
 	"context"
 	"fmt"
 	"log/slog"
+	"opg-reports/report/internal/accounts/accountmigrations"
 	"opg-reports/report/internal/db/dbconnection"
 	"opg-reports/report/internal/db/dbstatements"
-	"opg-reports/report/internal/infracosts/infracostmigrations"
-	"opg-reports/report/internal/infracosts/infracostmodels"
+	"opg-reports/report/internal/uptime/uptimemodels"
 	"opg-reports/report/internal/utils/logger"
 	"testing"
 
 	"github.com/jmoiron/sqlx"
 )
 
-func TestRedoInfracostsSeedWorking(t *testing.T) {
+func TestAccountsSeedWorking(t *testing.T) {
 	var (
 		err        error
 		db         *sqlx.DB
@@ -22,8 +22,8 @@ func TestRedoInfracostsSeedWorking(t *testing.T) {
 		ctx        context.Context = t.Context()
 		log        *slog.Logger    = logger.New("error", "text")
 		driver     string          = "sqlite3"
-		connStr    string          = fmt.Sprintf("%s/%s", dir, "seed-working.db")
-		statements []*dbstatements.DataStatement[*infracostmodels.AwsCost, int]
+		connStr    string          = fmt.Sprintf("%s/%s", dir, "seed-accounts-working.db")
+		statements []*dbstatements.DataStatement[*uptimemodels.AwsUptime, int]
 	)
 	// db connection
 	db, err = dbconnection.Connection(ctx, log, driver, connStr)
@@ -32,7 +32,7 @@ func TestRedoInfracostsSeedWorking(t *testing.T) {
 	}
 	defer db.Close()
 	// db schema setup
-	err = infracostmigrations.Migrate(ctx, log, db)
+	err = accountmigrations.Migrate(ctx, log, db)
 	if err != nil {
 		t.Errorf("unexpected migration issue:\n%v", err.Error())
 	}
@@ -45,6 +45,6 @@ func TestRedoInfracostsSeedWorking(t *testing.T) {
 		t.Errorf("expected multiple results to be returned")
 	}
 	if statements[0].Returned <= 0 {
-		t.Errorf("expected positive id for row insert")
+		t.Errorf("expected postice id returned for row insert")
 	}
 }

@@ -11,7 +11,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.41.6
 	github.com/danielgtaylor/huma/v2 v2.34.3
 	github.com/gofri/go-github-ratelimit/v2 v2.0.2
-	github.com/google/go-github/v77 v77.0.0
+	github.com/google/go-github/v81 v81.0.0
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/maruel/natural v1.3.0
 	github.com/mattn/go-sqlite3 v1.14.33
@@ -38,7 +38,6 @@ require (
 	github.com/aws/smithy-go v1.24.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
-	github.com/google/go-github/v81 v81.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect

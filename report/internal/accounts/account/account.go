@@ -25,24 +25,27 @@ type GitHubClient interface {
 	DownloadReleaseAsset(ctx context.Context, owner, repo string, id int64, followRedirectsClient *http.Client) (rc io.ReadCloser, redirectURL string, err error)
 }
 
-type AccountDataOptions struct {
-	Tag           string
-	DataDirectory string
+// GetAwsAccountDataOptions input struct for the command to specify some variable data
+type GetAwsAccountDataOptions struct {
+	Tag           string // the version tag on the release to utilise
+	DataDirectory string // directory to write the data into
 }
 
 // fixed data about team sources - pulled from github
 const (
-	owner      string = "ministryofjustice" // org
-	repository string = "opg-metadata"      // repo name
-	assetName  string = "metadata.zip"      // the attached asset name in the release
-	teamFile   string = "accounts.aws.json" // the file to use in the release
+	owner          string = "ministryofjustice" // org
+	repository     string = "opg-metadata"      // repo name
+	assetName      string = "metadata.zip"      // the attached asset name in the release
+	teamFile       string = "accounts.aws.json" // the file to use in the release
+	downloadSubDir string = "dl"                // subdirectory to download data into
+	extractSubDir  string = "ex"                // directory to extraxt zip to
 )
 
 // GetAccountData[T GitHubClient] connects to github and checks the releases for `opg-metadata` for the tag set within the options and then fetches
 // the metadata.zip from that release, extracting and parsing the accounts.aws..json file, which is then returned as a slice.
 //
 // Note: opg-metadata is private, so suitable permissions are required on the github client (and its token).
-func GetAwsAccountData[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, options *AccountDataOptions) (teams []*accountmodels.AwsAccountImport, err error) {
+func GetAwsAccountData[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, options *GetAwsAccountDataOptions) (teams []*accountmodels.AwsAccountImport, err error) {
 
 	var (
 		release      *github.RepositoryRelease
@@ -78,9 +81,9 @@ func GetAwsAccountData[T GitHubClient](ctx context.Context, log *slog.Logger, gh
 }
 
 // extractAndGetTeams extract the file and parse the file
-func extractAndGetTeams(ctx context.Context, log *slog.Logger, metadataZip string, options *AccountDataOptions) (teams []*accountmodels.AwsAccountImport, err error) {
+func extractAndGetTeams(ctx context.Context, log *slog.Logger, metadataZip string, options *GetAwsAccountDataOptions) (teams []*accountmodels.AwsAccountImport, err error) {
 	var (
-		extractTo string = filepath.Join(options.DataDirectory, "ex")
+		extractTo string = filepath.Join(options.DataDirectory, extractSubDir)
 		teamsFile string = filepath.Join(extractTo, teamFile)
 	)
 	teams = []*accountmodels.AwsAccountImport{}
@@ -98,10 +101,10 @@ func extractAndGetTeams(ctx context.Context, log *slog.Logger, metadataZip strin
 }
 
 // downloadAsset downloads zip locally
-func downloadAsset(ctx context.Context, log *slog.Logger, gh GitHubClient, asset *github.ReleaseAsset, options *AccountDataOptions) (src string, err error) {
+func downloadAsset(ctx context.Context, log *slog.Logger, gh GitHubClient, asset *github.ReleaseAsset, options *GetAwsAccountDataOptions) (src string, err error) {
 	var (
 		buff     io.ReadCloser
-		dlTo     string = filepath.Join(options.DataDirectory, "dl")
+		dlTo     string = filepath.Join(options.DataDirectory, downloadSubDir)
 		fileDest string = filepath.Join(dlTo, *asset.Name)
 	)
 	// try to download
@@ -150,7 +153,7 @@ func getReleaseAsset(ctx context.Context, log *slog.Logger, release *github.Repo
 }
 
 // getRelease finds the tagged release
-func getRelease(ctx context.Context, log *slog.Logger, gh GitHubClient, options *AccountDataOptions) (release *github.RepositoryRelease, err error) {
+func getRelease(ctx context.Context, log *slog.Logger, gh GitHubClient, options *GetAwsAccountDataOptions) (release *github.RepositoryRelease, err error) {
 	release, _, err = gh.GetReleaseByTag(ctx, owner, repository, options.Tag)
 	if err != nil {
 		log.Error("error finding metadata release", "err", err.Error())
