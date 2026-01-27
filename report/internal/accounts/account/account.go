@@ -78,7 +78,7 @@ func GetAwsAccountData[T GitHubClient](ctx context.Context, log *slog.Logger, gh
 		return
 	}
 
-	log.Debug("complete.")
+	log.With("count", len(accounts)).Debug("complete.")
 	return
 }
 

@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS codebases (
 	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
 	name TEXT NOT NULL,
 	full_name TEXT NOT NULL,
-	url TEXT NOT NULL
+	url TEXT NOT NULL,
+	UNIQUE (full_name)
 ) STRICT;
  `
 
