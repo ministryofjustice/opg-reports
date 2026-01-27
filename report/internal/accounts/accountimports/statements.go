@@ -2,7 +2,7 @@ package accountimports
 
 // insertStmt used to insert records
 const insertStmt string = `
-INSERT INTO aws_accounts (
+INSERT INTO accounts (
 	id,
 	name,
 	label,

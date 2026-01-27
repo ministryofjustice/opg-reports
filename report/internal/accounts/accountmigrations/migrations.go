@@ -12,9 +12,10 @@ import (
 )
 
 const table string = `
-CREATE TABLE IF NOT EXISTS aws_accounts (
+CREATE TABLE IF NOT EXISTS accounts (
 	id TEXT PRIMARY KEY,
 	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
+	vendor TEXT NOT NULL DEFAULT 'aws',
 	name TEXT NOT NULL,
 	label TEXT NOT NULL,
 	environment TEXT NOT NULL DEFAULT "production",
@@ -22,7 +23,7 @@ CREATE TABLE IF NOT EXISTS aws_accounts (
 	team_name TEXT NOT NULL DEFAULT "ORG"
 ) WITHOUT ROWID;
  `
-const idx_account_id string = `CREATE INDEX IF NOT EXISTS aws_accounts_id_idx ON aws_accounts(id);`
+const idx_account_id string = `CREATE INDEX IF NOT EXISTS aws_accounts_id_idx ON accounts(id);`
 
 var migrations []string = []string{
 	table,
