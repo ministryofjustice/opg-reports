@@ -17,7 +17,8 @@ import (
 func Connection(ctx context.Context, log *slog.Logger, driver string, connectionStr string) (db *sqlx.DB, err error) {
 	var parentDir string = filepath.Dir(connectionStr)
 	// add log info
-	log = log.With("package", "db.dbconnection", "func", "Connection", "parentDir", parentDir, "driver", driver, "connectionStr", connectionStr)
+	log = log.With("package", "db.dbconnection", "func", "Connection",
+		"parentDir", parentDir, "driver", driver, "connectionStr", connectionStr)
 
 	log.Debug("starting ...")
 	os.MkdirAll(parentDir, os.ModePerm)

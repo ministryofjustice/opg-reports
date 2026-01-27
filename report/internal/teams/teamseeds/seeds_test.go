@@ -23,7 +23,7 @@ func TestRedoTeamsSeedWorking(t *testing.T) {
 		log        *slog.Logger    = logger.New("error", "text")
 		driver     string          = "sqlite3"
 		connStr    string          = fmt.Sprintf("%s/%s", dir, "seed-team-working.db")
-		statements []*dbstatements.DataStatement[*teammodels.Team, string]
+		statements []*dbstatements.InsertStatement[*teammodels.Team, string]
 	)
 	// db connection
 	db, err = dbconnection.Connection(ctx, log, driver, connStr)

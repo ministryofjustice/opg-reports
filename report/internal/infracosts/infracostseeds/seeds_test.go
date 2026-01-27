@@ -23,7 +23,7 @@ func TestRedoInfracostsSeedWorking(t *testing.T) {
 		log        *slog.Logger    = logger.New("error", "text")
 		driver     string          = "sqlite3"
 		connStr    string          = fmt.Sprintf("%s/%s", dir, "seed-costs-working.db")
-		statements []*dbstatements.DataStatement[*infracostmodels.Cost, int]
+		statements []*dbstatements.InsertStatement[*infracostmodels.Cost, int]
 	)
 	// db connection
 	db, err = dbconnection.Connection(ctx, log, driver, connStr)

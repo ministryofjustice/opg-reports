@@ -13,16 +13,16 @@ import (
 
 // Import uses combines the cost data passed along with the with insert statement defined in this package to
 // insert records in to the active database connection.
-func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*infracostmodels.Cost) (statements []*dbstatements.DataStatement[*infracostmodels.Cost, int], err error) {
+func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*infracostmodels.Cost) (statements []*dbstatements.InsertStatement[*infracostmodels.Cost, int], err error) {
 
-	statements = []*dbstatements.DataStatement[*infracostmodels.Cost, int]{}
+	statements = []*dbstatements.InsertStatement[*infracostmodels.Cost, int]{}
 	log = log.With("package", "infracosts", "func", "Import")
 
 	log.Debug("starting ...")
 	log.Debug("generating db insert statements ...")
 	// generate all of the insert statements from the data passed
 	for _, row := range data {
-		statements = append(statements, &dbstatements.DataStatement[*infracostmodels.Cost, int]{
+		statements = append(statements, &dbstatements.InsertStatement[*infracostmodels.Cost, int]{
 			Statement: insertStmt,
 			Data:      row,
 		})

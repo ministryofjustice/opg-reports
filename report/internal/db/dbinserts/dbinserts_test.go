@@ -45,7 +45,7 @@ func TestDBDBInsertsWorking(t *testing.T) {
 		driver  string          = "sqlite3"
 		connStr string          = fmt.Sprintf("%s/%s", dir, "insert-working.db")
 		mock    *mockRow        = &mockRow{Name: "test-name"}
-		inserts                 = []*dbstatements.DataStatement[*mockRow, int]{
+		inserts                 = []*dbstatements.InsertStatement[*mockRow, int]{
 			{Statement: mockInsert, Data: mock},
 		}
 	)

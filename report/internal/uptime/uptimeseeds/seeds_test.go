@@ -23,7 +23,7 @@ func TestAccountsSeedWorking(t *testing.T) {
 		log        *slog.Logger    = logger.New("error", "text")
 		driver     string          = "sqlite3"
 		connStr    string          = fmt.Sprintf("%s/%s", dir, "seed-accounts-working.db")
-		statements []*dbstatements.DataStatement[*uptimemodels.Uptime, int]
+		statements []*dbstatements.InsertStatement[*uptimemodels.Uptime, int]
 	)
 	// db connection
 	db, err = dbconnection.Connection(ctx, log, driver, connStr)

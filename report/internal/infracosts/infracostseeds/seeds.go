@@ -53,7 +53,7 @@ func init() {
 
 // Seed assumes the database already exists and the inserts pre-determined data
 // into the database via the import
-func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstatements.DataStatement[*infracostmodels.Cost, int], err error) {
+func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstatements.InsertStatement[*infracostmodels.Cost, int], err error) {
 
 	log = log.With("package", "infracostsseed", "func", "Seed")
 	log.Debug("starting ...")

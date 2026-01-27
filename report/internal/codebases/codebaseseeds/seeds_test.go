@@ -23,7 +23,7 @@ func TestRedoCodebasesSeedWorking(t *testing.T) {
 		log        *slog.Logger    = logger.New("error", "text")
 		driver     string          = "sqlite3"
 		connStr    string          = fmt.Sprintf("%s/%s", dir, "seed-codebases-working.db")
-		statements []*dbstatements.DataStatement[*codebasemodels.Codebase, int]
+		statements []*dbstatements.InsertStatement[*codebasemodels.Codebase, int]
 	)
 	// db connection
 	db, err = dbconnection.Connection(ctx, log, driver, connStr)

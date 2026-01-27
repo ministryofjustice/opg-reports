@@ -26,7 +26,7 @@ const (
 	githubTeam string = "opg"               // github root team
 )
 
-// GetCodebases
+// GetCodebases finds all github repositories and returns them for the moj/opg team
 func GetCodebases[T GithubClient](ctx context.Context, log *slog.Logger, client T, options *GetCodebasesOptions) (repos []*codebasemodels.Codebase, err error) {
 	var list []*github.Repository
 

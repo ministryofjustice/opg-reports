@@ -19,7 +19,7 @@ import (
 // Return data is populated within the statements directly.
 //
 // Note: On fail a rollback is triggered as well as error being returned.
-func Insert[T dbmodels.Model, R dbmodels.Result](ctx context.Context, log *slog.Logger, db *sqlx.DB, statements ...*dbstatements.DataStatement[T, R]) (err error) {
+func Insert[T dbmodels.Model, R dbmodels.Result](ctx context.Context, log *slog.Logger, db *sqlx.DB, statements ...*dbstatements.InsertStatement[T, R]) (err error) {
 	var (
 		transaction *sqlx.Tx
 		options     *sql.TxOptions = &sql.TxOptions{ReadOnly: false, Isolation: sql.LevelDefault}
@@ -77,7 +77,7 @@ func Insert[T dbmodels.Model, R dbmodels.Result](ctx context.Context, log *slog.
 
 // checkSuccess looks at each statments to see if there are any without a
 // Returned value, if so it flags an error
-func checkSuccess[T dbmodels.Model, R dbmodels.Result](statements ...*dbstatements.DataStatement[T, R]) (err error) {
+func checkSuccess[T dbmodels.Model, R dbmodels.Result](statements ...*dbstatements.InsertStatement[T, R]) (err error) {
 	// check if everything was inserted
 	for _, stmt := range statements {
 		var r = utils.Ptr(stmt.Returned)
