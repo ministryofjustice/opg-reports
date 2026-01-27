@@ -41,7 +41,7 @@ type GetCostDataOptions struct {
 //		--group-by Type=DIMENSION,Key=SERVICE Type=DIMENSION,Key=REGION
 //
 // Note: API limits grouping to 2, so we cant get linked account details at the same time.
-func GetCostData[T AwsClient](ctx context.Context, log *slog.Logger, client T, options *GetCostDataOptions) (costs []*infracostmodels.AwsCost, err error) {
+func GetCostData[T AwsClient](ctx context.Context, log *slog.Logger, client T, options *GetCostDataOptions) (costs []*infracostmodels.Cost, err error) {
 	var result *costexplorer.GetCostAndUsageOutput
 	var apiOpts *costexplorer.GetCostAndUsageInput = getCostDataOptions(options.Start, options.End)
 
@@ -63,9 +63,9 @@ func GetCostData[T AwsClient](ctx context.Context, log *slog.Logger, client T, o
 }
 
 // toModels converts the raw data into a list of models ready to write to the database
-func toModels(ctx context.Context, log *slog.Logger, account string, result *costexplorer.GetCostAndUsageOutput) (costs []*infracostmodels.AwsCost, err error) {
+func toModels(ctx context.Context, log *slog.Logger, account string, result *costexplorer.GetCostAndUsageOutput) (costs []*infracostmodels.Cost, err error) {
 
-	costs = []*infracostmodels.AwsCost{}
+	costs = []*infracostmodels.Cost{}
 	log = log.With("package", "infracosts", "func", "toModels")
 	log.Debug("starting ... ")
 
@@ -77,7 +77,7 @@ func toModels(ctx context.Context, log *slog.Logger, account string, result *cos
 
 			for _, cost := range group.Metrics {
 
-				var item = &infracostmodels.AwsCost{
+				var item = &infracostmodels.Cost{
 					AccountID: account,
 					Date:      day,
 					Service:   service,

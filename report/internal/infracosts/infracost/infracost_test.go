@@ -92,7 +92,7 @@ func TestRedoInfracostsWithMock(t *testing.T) {
 	var (
 		err    error
 		client *mockGetter
-		r      []*infracostmodels.AwsCost
+		r      []*infracostmodels.Cost
 		ctx    context.Context = t.Context()
 		log    *slog.Logger    = logger.New("error")
 		now    time.Time       = time.Now().UTC()
@@ -115,13 +115,13 @@ func TestRedoInfracostsWithMock(t *testing.T) {
 //
 // Only runs if there is actually AWS_SESSION_TOKEN env var present.
 //
-// Run: aws-vault exec use-development-breakglass -- make test name="TestAwsCostsWithoutMock"
+// Run: aws-vault exec use-development-breakglass -- make test name="TestCostsWithoutMock"
 func TestRedoInfracostsWithoutMock(t *testing.T) {
 	var (
 		err       error
 		client    *costexplorer.Client
 		accountId string
-		r         []*infracostmodels.AwsCost
+		r         []*infracostmodels.Cost
 		ctx       context.Context = t.Context()
 		log       *slog.Logger    = logger.New("error")
 		now       time.Time       = time.Now().UTC()

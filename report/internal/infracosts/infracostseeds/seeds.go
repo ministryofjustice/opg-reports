@@ -15,13 +15,13 @@ import (
 
 var (
 	costDate string
-	seeds    []*infracostmodels.AwsCost
+	seeds    []*infracostmodels.Cost
 )
 
 func init() {
 	costDate = times.AsString(times.Add(time.Now(), -1, times.MONTHLY), times.YMD)
 
-	seeds = []*infracostmodels.AwsCost{
+	seeds = []*infracostmodels.Cost{
 		// account 001A
 		{Region: "eu-west-1", Service: "ECS", Date: costDate, Cost: "-0.01", AccountID: "001A"},
 		{Region: "eu-west-1", Service: "S3", Date: costDate, Cost: "10.10", AccountID: "001A"},
@@ -53,7 +53,7 @@ func init() {
 
 // Seed assumes the database already exists and the inserts pre-determined data
 // into the database via the import
-func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstatements.DataStatement[*infracostmodels.AwsCost, int], err error) {
+func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstatements.DataStatement[*infracostmodels.Cost, int], err error) {
 
 	log = log.With("package", "infracostsseed", "func", "Seed")
 	log.Debug("starting ...")

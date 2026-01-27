@@ -12,20 +12,21 @@ import (
 )
 
 const table string = `
-CREATE TABLE IF NOT EXISTS aws_costs (
+CREATE TABLE IF NOT EXISTS infracosts (
 	id INTEGER PRIMARY KEY,
 	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
+	vendor TEXT NOT NULL DEFAULT 'aws',
 	region TEXT DEFAULT "NoRegion" NOT NULL,
 	service TEXT NOT NULL,
 	date TEXT NOT NULL,
 	cost TEXT NOT NULL,
-	aws_account_id TEXT,
-	UNIQUE (aws_account_id,date,region,service)
+	account_id TEXT,
+	UNIQUE (account_id,date,region,service)
 ) STRICT;`
 
-const idx_date string = `CREATE INDEX IF NOT EXISTS aws_costs_date_idx ON aws_costs(date);`
-const idx_date_account string = `CREATE INDEX IF NOT EXISTS aws_costs_date_account_idx ON aws_costs(date, aws_account_id);`
-const idx_merged string = `CREATE INDEX IF NOT EXISTS aws_costs_unique_idx ON aws_costs(aws_account_id,date,region,service);`
+const idx_date string = `CREATE INDEX IF NOT EXISTS infracosts_date_idx ON infracosts(date);`
+const idx_date_account string = `CREATE INDEX IF NOT EXISTS infracosts_date_account_idx ON infracosts(date, aws_account_id);`
+const idx_merged string = `CREATE INDEX IF NOT EXISTS infracosts_unique_idx ON infracosts(aws_account_id,date,region,service);`
 
 var migrations []string = []string{
 	table,
