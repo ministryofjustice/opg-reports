@@ -13,16 +13,16 @@ import (
 
 // Import uses combines the cost data passed along with the with insert statement defined in this package to
 // insert records in to the active database connection.
-func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*uptimemodels.AwsUptime) (statements []*dbstatements.DataStatement[*uptimemodels.AwsUptime, int], err error) {
+func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*uptimemodels.Uptime) (statements []*dbstatements.DataStatement[*uptimemodels.Uptime, int], err error) {
 
-	statements = []*dbstatements.DataStatement[*uptimemodels.AwsUptime, int]{}
+	statements = []*dbstatements.DataStatement[*uptimemodels.Uptime, int]{}
 	log = log.With("package", "uptime", "func", "Import")
 
 	log.Debug("starting ...")
 	log.Debug("generating db insert statements ...")
 	// generate all of the insert statements from the data passed
 	for _, row := range data {
-		statements = append(statements, &dbstatements.DataStatement[*uptimemodels.AwsUptime, int]{
+		statements = append(statements, &dbstatements.DataStatement[*uptimemodels.Uptime, int]{
 			Statement: insertStmt,
 			Data:      row,
 		})

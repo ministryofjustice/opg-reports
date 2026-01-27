@@ -15,12 +15,12 @@ import (
 
 var (
 	date  string
-	seeds []*uptimemodels.AwsUptime
+	seeds []*uptimemodels.Uptime
 )
 
 func init() {
 	date = times.AsYMDString(time.Now())
-	seeds = []*uptimemodels.AwsUptime{
+	seeds = []*uptimemodels.Uptime{
 		{Date: date, Average: "99.9901", AccountID: "001A"},
 		{Date: date, Average: "99.9801", AccountID: "001A"},
 		{Date: date, Average: "99.9801", AccountID: "001A"},
@@ -29,7 +29,7 @@ func init() {
 
 // Seed assumes the database already exists and the inserts pre-determined data
 // into the database via the import
-func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstatements.DataStatement[*uptimemodels.AwsUptime, int], err error) {
+func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstatements.DataStatement[*uptimemodels.Uptime, int], err error) {
 
 	log = log.With("package", "uptime", "func", "Seed")
 	log.Debug("starting ...")

@@ -2,7 +2,7 @@ package accountmodels
 
 // AwsAccount struct for db importing / seeding
 type AwsAccount struct {
-	ID          string `json:"id,omitempty" db:"id"`                   // This is the AWS Account ID as a string - they can have leading 0
+	ID          string `json:"id,omitempty" db:"id"`                   // This is the Account ID as a string - they can have leading 0
 	Name        string `json:"name,omitempty" db:"name"`               // account name as used internally
 	Label       string `json:"label,omitempty" db:"label"`             // internal label
 	Environment string `json:"environment,omitempty" db:"environment"` // environment type

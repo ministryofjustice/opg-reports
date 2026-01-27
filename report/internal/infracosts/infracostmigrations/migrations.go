@@ -25,8 +25,8 @@ CREATE TABLE IF NOT EXISTS infracosts (
 ) STRICT;`
 
 const idx_date string = `CREATE INDEX IF NOT EXISTS infracosts_date_idx ON infracosts(date);`
-const idx_date_account string = `CREATE INDEX IF NOT EXISTS infracosts_date_account_idx ON infracosts(date, aws_account_id);`
-const idx_merged string = `CREATE INDEX IF NOT EXISTS infracosts_unique_idx ON infracosts(aws_account_id,date,region,service);`
+const idx_date_account string = `CREATE INDEX IF NOT EXISTS infracosts_date_account_idx ON infracosts(date, account_id);`
+const idx_merged string = `CREATE INDEX IF NOT EXISTS infracosts_unique_idx ON infracosts(account_id,date,region,service);`
 
 var migrations []string = []string{
 	table,

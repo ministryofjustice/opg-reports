@@ -12,19 +12,19 @@ import (
 )
 
 const table string = `
-CREATE TABLE IF NOT EXISTS aws_uptime (
+CREATE TABLE IF NOT EXISTS uptime (
 	id INTEGER PRIMARY KEY,
 	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
 	date TEXT NOT NULL,
-	aws_account_id TEXT,
+	account_id TEXT,
 	average TEXT NOT NULL,
 	granularity TEXT NOT NULL,
-	UNIQUE (aws_account_id,date)
+	UNIQUE (account_id,date)
 ) STRICT;
  `
 
-const idx_date string = `CREATE INDEX IF NOT EXISTS aws_uptime_date_idx ON aws_uptime(date);`
-const idx_date_account string = `CREATE INDEX IF NOT EXISTS aws_uptime_account_date_idx ON aws_uptime(aws_account_id,date);`
+const idx_date string = `CREATE INDEX IF NOT EXISTS uptime_date_idx ON uptime(date);`
+const idx_date_account string = `CREATE INDEX IF NOT EXISTS uptime_account_date_idx ON uptime(account_id,date);`
 
 var migrations []string = []string{
 	table,

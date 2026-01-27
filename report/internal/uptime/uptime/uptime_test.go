@@ -60,7 +60,7 @@ func TestRedoUptimeWithMock(t *testing.T) {
 	var (
 		err    error
 		client *mockGetter = &mockGetter{}
-		r      []*uptimemodels.AwsUptime
+		r      []*uptimemodels.Uptime
 		ctx    context.Context = t.Context()
 		log    *slog.Logger    = logger.New("error")
 		now    time.Time       = time.Now().UTC()
@@ -83,7 +83,7 @@ func TestRedoUptimeWithoutMock(t *testing.T) {
 		err       error
 		accountId string
 		client    *cloudwatch.Client
-		r         []*uptimemodels.AwsUptime
+		r         []*uptimemodels.Uptime
 		ctx       context.Context = t.Context()
 		log       *slog.Logger    = logger.New("error")
 		now       time.Time       = time.Now().UTC()

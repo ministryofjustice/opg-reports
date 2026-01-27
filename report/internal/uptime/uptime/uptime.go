@@ -51,7 +51,7 @@ const (
 // The route53 metrics require the client region to be set as us-east-1.
 //
 // T is `*cloudwatch.Client`.
-func GetUptimeData[T AwsClient](ctx context.Context, log *slog.Logger, client T, options *GetUptimeDataOptions) (data []*uptimemodels.AwsUptime, err error) {
+func GetUptimeData[T AwsClient](ctx context.Context, log *slog.Logger, client T, options *GetUptimeDataOptions) (data []*uptimemodels.Uptime, err error) {
 	var (
 		list      *cloudwatch.ListMetricsOutput
 		statsOpts *cloudwatch.GetMetricStatisticsInput
@@ -93,12 +93,12 @@ func GetUptimeData[T AwsClient](ctx context.Context, log *slog.Logger, client T,
 }
 
 // toModels converts the raw data into a list of models ready to write to the database
-func toModels(ctx context.Context, log *slog.Logger, account string, period int32, result *cloudwatch.GetMetricStatisticsOutput) (data []*uptimemodels.AwsUptime, err error) {
+func toModels(ctx context.Context, log *slog.Logger, account string, period int32, result *cloudwatch.GetMetricStatisticsOutput) (data []*uptimemodels.Uptime, err error) {
 	var (
 		grouped map[string]float64 = map[string]float64{}
 		counter map[string]int     = map[string]int{}
 	)
-	data = []*uptimemodels.AwsUptime{}
+	data = []*uptimemodels.Uptime{}
 	log = log.With("package", "uptime", "func", "toModels")
 	log.Debug("starting ... ")
 
@@ -119,9 +119,9 @@ func toModels(ctx context.Context, log *slog.Logger, account string, period int3
 	// now generate the average values
 	for key, sum := range grouped {
 		var (
-			count   int                     = counter[key]
-			average float64                 = (sum / float64(count))
-			up      *uptimemodels.AwsUptime = &uptimemodels.AwsUptime{
+			count   int                  = counter[key]
+			average float64              = (sum / float64(count))
+			up      *uptimemodels.Uptime = &uptimemodels.Uptime{
 				Date:        key,
 				Average:     fmt.Sprintf("%g", average),
 				Granularity: fmt.Sprintf("%d", period),
