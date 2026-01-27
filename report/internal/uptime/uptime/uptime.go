@@ -42,10 +42,12 @@ const (
 // GetUptimeData makes multiple cloudwatch api calls to find uptime data for the months represented within the options.
 //
 // Firstly, it will find health check metric details and their respective id'. These are then used in the second call as part
-// of the dimensions
+// of the dimensions.
 //
-// The route53 metrics require the client region to be set as
-func GetUptimeData(ctx context.Context, log *slog.Logger, client *cloudwatch.Client, options *GetUptimeDataOptions) (stats *cloudwatch.GetMetricStatisticsOutput, err error) {
+// The route53 metrics require the client region to be set as us-east-1.
+//
+// T is `*cloudwatch.Client`.
+func GetUptimeData[T AwsClient](ctx context.Context, log *slog.Logger, client T, options *GetUptimeDataOptions) (stats *cloudwatch.GetMetricStatisticsOutput, err error) {
 	var (
 		list      *cloudwatch.ListMetricsOutput
 		setRegion string = client.Options().Region
