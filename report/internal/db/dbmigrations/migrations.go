@@ -40,7 +40,7 @@ DROP TABLE aws_uptime;
 
 // agnostic_costs removes the aws prefix
 const agnostic_costs string = `
-CREATE TABLE IF NOT EXISTS costs (
+CREATE TABLE IF NOT EXISTS infracosts (
 	id INTEGER PRIMARY KEY,
 	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
 	vendor TEXT NOT NULL DEFAULT 'aws',
@@ -52,16 +52,16 @@ CREATE TABLE IF NOT EXISTS costs (
 	UNIQUE (account_id,date,region,service)
 ) STRICT;
 
-INSERT INTO costs (created_at, region, service, date, cost, account_id)
+INSERT INTO infracosts (created_at, region, service, date, cost, account_id)
 	SELECT created_at, region, service, date, cost, aws_account_id FROM aws_costs;
 
 DROP INDEX aws_costs_date_idx;
 DROP INDEX aws_costs_date_account_idx;
 DROP INDEX aws_costs_unique_idx;
 
-CREATE INDEX IF NOT EXISTS idx_costs_date ON costs(date);
-CREATE INDEX IF NOT EXISTS idx_costs_date_account ON costs(date, account_id);
-CREATE INDEX IF NOT EXISTS idx_costs_unique ON costs(account_id,date,region,service);
+CREATE INDEX IF NOT EXISTS idx_infracosts_date ON infracosts(date);
+CREATE INDEX IF NOT EXISTS idx_infracosts_date_account ON infracosts(date, account_id);
+CREATE INDEX IF NOT EXISTS idx_infracosts_unique ON infracosts(account_id,date,region,service);
 
 DROP TABLE aws_costs;
 `

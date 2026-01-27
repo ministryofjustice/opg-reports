@@ -1,9 +1,9 @@
 package dbmigrations
 
 import (
-	"fmt"
 	"opg-reports/report/internal/db/dbconnection"
 	"opg-reports/report/internal/utils/logger"
+	"path/filepath"
 	"testing"
 
 	"github.com/jmoiron/sqlx"
@@ -11,15 +11,13 @@ import (
 
 func TestRedoDBMigrationWorking(t *testing.T) {
 	var (
-		err error
-		db  *sqlx.DB
-		// dir = t.TempDir()
-		dir     = "./"
+		err     error
+		db      *sqlx.DB
+		dir     = t.TempDir()
 		ctx     = t.Context()
-		lg      = logger.New("info", "text")
+		lg      = logger.New("error")
 		driver  = "sqlite3"
-		connStr = fmt.Sprintf("%s/%s", dir, "db-migration-working.db")
-		// connStr = filepath.Join("./", "test.db")
+		connStr = filepath.Join(dir, "dbmigrations-working.db")
 	)
 
 	db, err = dbconnection.Connection(ctx, lg, driver, connStr)
@@ -32,5 +30,4 @@ func TestRedoDBMigrationWorking(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error:\n%s", err.Error())
 	}
-	t.FailNow()
 }

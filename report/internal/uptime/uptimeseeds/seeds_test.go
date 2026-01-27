@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"opg-reports/report/internal/accounts/accountmigrations"
 	"opg-reports/report/internal/db/dbconnection"
+	"opg-reports/report/internal/db/dbmigrations"
 	"opg-reports/report/internal/db/dbstatements"
 	"opg-reports/report/internal/uptime/uptimemodels"
 	"opg-reports/report/internal/utils/logger"
@@ -32,7 +32,7 @@ func TestAccountsSeedWorking(t *testing.T) {
 	}
 	defer db.Close()
 	// db schema setup
-	err = accountmigrations.Migrate(ctx, log, db)
+	err = dbmigrations.Migrate(ctx, log, db)
 	if err != nil {
 		t.Errorf("unexpected migration issue:\n%v", err.Error())
 	}
