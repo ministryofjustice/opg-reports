@@ -13,7 +13,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// Select creates a transaction to run SQL command within
+// Select creates a transaction to run SQL command within the db. Data is attached to the `.Returned` property
+// on `stmt`
 func Select[T dbmodels.Model, R dbmodels.Result](ctx context.Context, log *slog.Logger, db *sqlx.DB, stmt *dbstatements.SelectStatement[T, R]) (err error) {
 
 	var (
@@ -33,7 +34,7 @@ func Select[T dbmodels.Model, R dbmodels.Result](ctx context.Context, log *slog.
 		err = errors.Join(ErrTransactionBeginFailed, err)
 		return
 	}
-
+	// create prepared statement so placeholders are used
 	statement, err = transaction.PrepareNamedContext(ctx, stmt.Statement)
 	if err != nil {
 		log.Warn("prepared stmt failed", "err", err.Error(), "stmt", stmt.Statement)
@@ -43,7 +44,7 @@ func Select[T dbmodels.Model, R dbmodels.Result](ctx context.Context, log *slog.
 		}
 		return
 	}
-
+	// run the select and attach the result
 	err = statement.SelectContext(ctx, &returned, data)
 	if err != nil && err != sql.ErrNoRows {
 		log.Error("stmt context failed", "error", err.Error())
@@ -51,7 +52,7 @@ func Select[T dbmodels.Model, R dbmodels.Result](ctx context.Context, log *slog.
 		return
 	}
 	stmt.Returned = returned
-
+	// commit the transaction
 	err = transaction.Commit()
 	if err != nil {
 		log.Error("failed to commit transaction")

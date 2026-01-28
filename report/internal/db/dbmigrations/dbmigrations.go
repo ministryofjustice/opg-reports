@@ -19,12 +19,13 @@ type Migration struct {
 	SQL  string `json:"sql" db:"sql"`
 }
 
-// selectValue is a dummy struct from the select
-type selectValue struct{}
+// empty is a dummy struct for the select
+type empty struct{}
 
 const selectStmt string = `SELECT id, name FROM migrations ORDER BY id ASC`
 const insertStmt string = `INSERT INTO migrations (name) VALUES (:name) RETURNING id`
 
+// errors
 var ErrMigrationExecFailed = errors.New("migration statement failed with error")
 
 // Migrate runs over all the configured statements, compares to what is in the database already and
@@ -32,19 +33,27 @@ var ErrMigrationExecFailed = errors.New("migration statement failed with error")
 //
 // Migrations that are excuted are added to the database via defer func call so trigger on
 // exiting
-func Migrate(ctx context.Context, log *slog.Logger, db *sqlx.DB) (err error) {
+//
+// If `migrations` param is empty, then the default MIGRATIONS is used
+func Migrate(ctx context.Context, log *slog.Logger, db *sqlx.DB, migrations ...Migration) (err error) {
 
 	var (
-		migrationsToRun []*Migration                                            = []*Migration{}
-		done            []*Migration                                            = []*Migration{}
-		selector        *dbstatements.SelectStatement[*selectValue, *Migration] = &dbstatements.SelectStatement[*selectValue, *Migration]{
+		allMigrations   []*Migration                                      = MIGRATIONS // use this by default
+		migrationsToRun []*Migration                                      = []*Migration{}
+		done            []*Migration                                      = []*Migration{}
+		selector        *dbstatements.SelectStatement[*empty, *Migration] = &dbstatements.SelectStatement[*empty, *Migration]{
 			Statement: selectStmt,
-			Data:      &selectValue{},
+			Data:      &empty{},
 		}
 	)
 
 	log = log.With("package", "dbmigration", "func", "Migrate")
 	log.Debug("starting ...")
+
+	// if migrations are passed, use those
+	if len(migrations) > 0 {
+		allMigrations = migrationsToRun
+	}
 
 	// first, find all migrations that have happened
 	log.Info("getting existing migrations ...")
@@ -64,7 +73,7 @@ func Migrate(ctx context.Context, log *slog.Logger, db *sqlx.DB) (err error) {
 		insertMigrationData(ctx, log, db, done)
 	}()
 	// get the migrations we need to run
-	migrationsToRun = migrationsToExec(selector.Returned)
+	migrationsToRun = migrationsToExec(selector.Returned, allMigrations)
 	// now run the migrations
 	log.With("count", len(migrationsToRun)).Info("running migrataions ...")
 	for _, toRun := range migrationsToRun {
@@ -96,10 +105,11 @@ func insertMigrationData(ctx context.Context, log *slog.Logger, db *sqlx.DB, don
 	return
 }
 
-func migrationsToExec(returned []*Migration) (migrationsToRun []*Migration) {
+// migrationsToExec finds the migrations need to run
+func migrationsToExec(returned []*Migration, all []*Migration) (migrationsToRun []*Migration) {
 	migrationsToRun = []*Migration{}
 	// check each migratrion and see if they are listed in the returned data
-	for _, migration := range MIGRATIONS {
+	for _, migration := range all {
 		var add = true
 		for _, row := range returned {
 			if row.Name == migration.Name {
