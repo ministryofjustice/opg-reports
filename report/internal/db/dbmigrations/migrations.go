@@ -80,9 +80,10 @@ const create_codeowners string = `
 CREATE TABLE IF NOT EXISTS codeowners (
 	id INTEGER PRIMARY KEY,
 	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
+	name TEXT NOT NULL,
 	codebase_full_name TEXT NOT NULL,
 	team_name TEXT NOT NULL,
-	UNIQUE (codebase_full_name,team_name)
+	UNIQUE (name,codebase_full_name,team_name)
 ) STRICT;
 
 CREATE INDEX IF NOT EXISTS idx_codeowners_join ON codeowners(codebase_full_name,team_name);
