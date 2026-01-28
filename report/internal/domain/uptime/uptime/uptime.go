@@ -18,6 +18,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
 )
 
+var (
+	ErrIncorrectRegion          = errors.New("metrics must be fetched via us-east-1.")
+	ErrFailedGettingMetricsList = errors.New("failed to get metrics list with error.")
+	ErrFailedGettingMetricStats = errors.New("failed to get metric statistics with error.")
+)
+
 // AwsClient is used to allow mocking and is a proxy for *cloudwatch.Client
 // and the methods the function calls
 type AwsClient interface {

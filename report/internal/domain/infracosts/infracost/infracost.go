@@ -13,6 +13,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
 )
 
+// ErrGettingCostData is used when the an error is returned from the sdk GetCostAndUsage
+var ErrGettingCostData error = errors.New("call to GetCostAndUsage failed with an error.")
+
 // AwsClient is used to allow mocking and is a proxy for *costexplorer.Client
 type AwsClient interface {
 	// GetCostAndUsage method signature from the *costexplorer.Client

@@ -8,6 +8,8 @@ var MIGRATIONS []*Migration = []*Migration{
 	{Name: "create_aws_costs", SQL: create_aws_costs},
 	{Name: "create_aws_uptime", SQL: create_aws_uptime},
 	{Name: "create_codebases", SQL: create_codebases},
+	{Name: "create_codeowners", SQL: create_codeowners},
+
 	{Name: "agnostic_accounts", SQL: agnostic_accounts},
 	{Name: "agnostic_costs", SQL: agnostic_costs},
 	{Name: "agnostic_uptime", SQL: agnostic_uptime},
@@ -74,6 +76,17 @@ ALTER TABLE aws_accounts ADD vendor TEXT NOT NULL DEFAULT 'aws';
 ALTER TABLE aws_accounts RENAME TO accounts;
 CREATE INDEX IF NOT EXISTS idx_accounts_id ON accounts(id);
 `
+const create_codeowners string = `
+CREATE TABLE IF NOT EXISTS codeowners (
+	id INTEGER PRIMARY KEY,
+	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
+	codebase_full_name TEXT NOT NULL,
+	team_name TEXT NOT NULL,
+	UNIQUE (codebase_full_name,team_name)
+) STRICT;
+
+CREATE INDEX IF NOT EXISTS idx_codeowners_join ON codeowners(codebase_full_name,team_name);
+`
 
 // create the codebase table
 const create_codebases string = `
@@ -120,7 +133,7 @@ CREATE INDEX IF NOT EXISTS aws_costs_date_account_idx ON aws_costs(date, aws_acc
 CREATE INDEX IF NOT EXISTS aws_costs_unique_idx ON aws_costs(aws_account_id,date,region,service);
 `
 
-// create the aws_accounts table
+// create the aws_accounts table & indexes
 const create_aws_accounts string = `
 CREATE TABLE IF NOT EXISTS aws_accounts (
 	id TEXT PRIMARY KEY,

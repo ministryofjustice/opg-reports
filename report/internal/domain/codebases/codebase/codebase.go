@@ -9,6 +9,8 @@ import (
 	"github.com/google/go-github/v81/github"
 )
 
+var ErrFailedGettingRepositoryPage = errors.New("error getting page of repositories")
+
 // GithubClient wrapper around *github.TeamsService
 type GithubClient interface {
 	ListTeamReposBySlug(ctx context.Context, org, slug string, opts *github.ListOptions) ([]*github.Repository, *github.Response, error)

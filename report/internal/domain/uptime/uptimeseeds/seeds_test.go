@@ -14,7 +14,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func TestAccountsSeedWorking(t *testing.T) {
+func TestDomainUptimeSeedWorking(t *testing.T) {
 	var (
 		err        error
 		db         *sqlx.DB
@@ -22,7 +22,7 @@ func TestAccountsSeedWorking(t *testing.T) {
 		ctx        context.Context = t.Context()
 		log        *slog.Logger    = logger.New("error", "text")
 		driver     string          = "sqlite3"
-		connStr    string          = fmt.Sprintf("%s/%s", dir, "seed-accounts-working.db")
+		connStr    string          = fmt.Sprintf("%s/%s", dir, "seed-uptime-working.db")
 		statements []*dbstatements.InsertStatement[*uptimemodels.Uptime, int]
 	)
 	// db connection
