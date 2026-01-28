@@ -11,6 +11,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+var ErrSeedFailed = errors.New("seed team call failed with an error.")
 var (
 	costDate string
 	seeds    []*teammodels.Team

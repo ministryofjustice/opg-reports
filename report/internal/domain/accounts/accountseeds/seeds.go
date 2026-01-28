@@ -11,6 +11,8 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+var ErrSeedFailed = errors.New("seed account call failed with an error.")
+
 var seeds []*accountmodels.AwsAccount
 
 func init() {

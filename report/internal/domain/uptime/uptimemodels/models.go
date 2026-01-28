@@ -2,7 +2,7 @@ package uptimemodels
 
 // Uptime struct for importing / seeding the db
 type Uptime struct {
-	ID          string `json:"id,omitempty" db:"id"`                   // This is the AWS Account ID as a string
+	ID          int    `json:"id,omitempty" db:"id"`                   // This is the AWS Account ID as a string
 	Date        string `json:"date,omitempty" db:"date" `              // The data the uptime value was for
 	Average     string `json:"average,omitempty" db:"average" `        // uptime average as a percentage
 	Granularity string `json:"granularity,omitempty" db:"granularity"` // the time period in seconds used for this metric

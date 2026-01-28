@@ -11,6 +11,26 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+var ErrImportFailed = errors.New("infracost import failed with error")
+
+const insertStmt string = `
+INSERT INTO infracosts (
+	region,
+	service,
+	date,
+	cost,
+	account_id
+) VALUES (
+	:region,
+	:service,
+	:date,
+	:cost,
+	:account_id
+) ON CONFLICT (account_id,date,region,service)
+ 	DO UPDATE SET cost=excluded.cost
+RETURNING id;
+`
+
 // Import uses combines the cost data passed along with the with insert statement defined in this package to
 // insert records in to the active database connection.
 func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*infracostmodels.Cost) (statements []*dbstatements.InsertStatement[*infracostmodels.Cost, int], err error) {

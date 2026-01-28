@@ -11,6 +11,20 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+var ErrImportFailed = errors.New("team import failed with error")
+
+// insertStmt used to insert records
+const insertStmt string = `
+INSERT INTO teams (
+	name
+) VALUES (
+	:name
+) ON CONFLICT (name)
+ 	DO UPDATE SET name=excluded.name
+RETURNING name
+;
+`
+
 // Import uses combines the cost data passed along with the with insert statement defined in this package to
 // insert records in to the active database connection.
 func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*teammodels.Team) (statements []*dbstatements.InsertStatement[*teammodels.Team, string], err error) {

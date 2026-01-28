@@ -13,6 +13,8 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+var ErrSeedImportFailed = errors.New("seed costs call failed with an error.")
+
 var (
 	costDate string
 	seeds    []*infracostmodels.Cost

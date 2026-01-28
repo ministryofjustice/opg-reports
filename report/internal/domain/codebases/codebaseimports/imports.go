@@ -11,6 +11,27 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+var ErrImportFailed = errors.New("codebase import failed with error")
+
+// insertStmt used to insert records
+const insertStmt string = `
+INSERT INTO codebases (
+	name,
+	full_name,
+	url
+) VALUES (
+	:name,
+	:full_name,
+	:url
+)
+ON CONFLICT (full_name)
+ 	DO UPDATE SET
+		name=excluded.name,
+		url=excluded.url
+RETURNING id
+;
+`
+
 // Import uses combines the cost data passed along with the with insert statement defined in this package to
 // insert records in to the active database connection.
 //

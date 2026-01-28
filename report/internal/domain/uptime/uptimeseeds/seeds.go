@@ -13,6 +13,8 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+var ErrSeedFailed = errors.New("seed uptime call failed with an error.")
+
 var (
 	date  string
 	seeds []*uptimemodels.Uptime

@@ -11,6 +11,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+var ErrSeedFailed = errors.New("seed codebases call failed with an error.")
 var seeds []*codebasemodels.Codebase
 
 func init() {

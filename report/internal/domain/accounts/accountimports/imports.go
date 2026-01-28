@@ -11,6 +11,32 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+var ErrImportFailed = errors.New("account import failed with error")
+
+// insertStmt used to insert records
+const insertStmt string = `
+INSERT INTO accounts (
+	id,
+	name,
+	label,
+	environment,
+	team_name
+) VALUES (
+	:id,
+	:name,
+	:label,
+	:environment,
+	:team_name
+)
+ON CONFLICT (id)
+ 	DO UPDATE SET
+		name=excluded.name,
+		label=excluded.label,
+		environment=excluded.environment
+RETURNING id
+;
+`
+
 // Import uses combines the cost data passed along with the with insert statement defined in this package to
 // insert records in to the active database connection.
 //

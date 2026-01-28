@@ -11,6 +11,25 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+var ErrImportFailed = errors.New("uptime import failed with error")
+
+// insertStmt used to insert records
+const insertStmt string = `
+INSERT INTO uptime (
+	date,
+	average,
+	granularity,
+	account_id
+) VALUES (
+	:date,
+	:average,
+	:granularity,
+	:account_id
+) ON CONFLICT (account_id,date)
+ 	DO UPDATE SET average=excluded.average, granularity=excluded.granularity
+RETURNING id;
+`
+
 // Import uses combines the cost data passed along with the with insert statement defined in this package to
 // insert records in to the active database connection.
 func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*uptimemodels.Uptime) (statements []*dbstatements.InsertStatement[*uptimemodels.Uptime, int], err error) {
