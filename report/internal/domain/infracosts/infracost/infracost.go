@@ -22,8 +22,8 @@ type AwsClient interface {
 	GetCostAndUsage(ctx context.Context, params *costexplorer.GetCostAndUsageInput, optFns ...func(*costexplorer.Options)) (*costexplorer.GetCostAndUsageOutput, error)
 }
 
-// GetCostDataOptions options that can change and specify for fetching cost data
-type GetCostDataOptions struct {
+// Options options that can change and specify for fetching cost data
+type Options struct {
 	Start     time.Time
 	End       time.Time
 	AccountID string // AccountID provided by awsid.AccountID
@@ -33,7 +33,7 @@ type GetCostDataOptions struct {
 //
 // `T AwsClient` is a proxy for *costexplorer.Client to allow mocking
 //
-// Expects `options` to resemble the output of `GetCostDataOptions`.
+// Expects `options` to resemble the output of `Options`.
 //
 // Equilivant cli call:
 //
@@ -44,9 +44,9 @@ type GetCostDataOptions struct {
 //		--group-by Type=DIMENSION,Key=SERVICE Type=DIMENSION,Key=REGION
 //
 // Note: API limits grouping to 2, so we cant get linked account details at the same time.
-func GetCostData[T AwsClient](ctx context.Context, log *slog.Logger, client T, options *GetCostDataOptions) (costs []*infracostmodels.Cost, err error) {
+func GetCostData[T AwsClient](ctx context.Context, log *slog.Logger, client T, options *Options) (costs []*infracostmodels.Cost, err error) {
 	var result *costexplorer.GetCostAndUsageOutput
-	var apiOpts *costexplorer.GetCostAndUsageInput = getCostDataOptions(options.Start, options.End)
+	var apiOpts *costexplorer.GetCostAndUsageInput = GetOptions(options.Start, options.End)
 
 	log = log.With("package", "infracosts", "func", "GetCostData")
 	log.Debug("starting ...")
@@ -97,11 +97,11 @@ func toModels(ctx context.Context, log *slog.Logger, account string, result *cos
 	return
 }
 
-// getCostDataOptions returns a CostAndUsageInput struct formatted with expected values
+// Options returns a CostAndUsageInput struct formatted with expected values
 // for monhtly cost data using the start and end date
 //
 // `start` & `end` dates are reset to the first day of the month so 2026-01-31 => 2026-01-01
-func getCostDataOptions(start time.Time, end time.Time) *costexplorer.GetCostAndUsageInput {
+func GetOptions(start time.Time, end time.Time) *costexplorer.GetCostAndUsageInput {
 	var (
 		startDate string   = times.AsString(times.ResetMonth(start), times.YMD)
 		endDate   string   = times.AsString(times.ResetMonth(end), times.YMD)

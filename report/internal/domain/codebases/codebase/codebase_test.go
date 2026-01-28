@@ -27,7 +27,7 @@ func TestDomainCodebasesWithoutMock(t *testing.T) {
 		if err != nil {
 			t.Errorf("unexpected error:\n%s", err.Error())
 		}
-		opts := &GetCodebasesOptions{ExcludeArchived: true}
+		opts := &Options{ExcludeArchived: true}
 		data, err = GetCodebases(ctx, log, client.Teams, opts)
 		if err != nil {
 			t.Errorf("unexpected error:\n%s", err.Error())

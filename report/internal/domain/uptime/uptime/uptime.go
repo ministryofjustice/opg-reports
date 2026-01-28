@@ -32,9 +32,9 @@ type AwsClient interface {
 	Options() cloudwatch.Options
 }
 
-// GetUptimeDataOptions provides struct to deal with optional settings that can be changed
+// Options provides struct to deal with optional settings that can be changed
 // for hte api calls
-type GetUptimeDataOptions struct {
+type Options struct {
 	Start     time.Time
 	End       time.Time
 	AccountID string
@@ -57,7 +57,7 @@ const (
 // The route53 metrics require the client region to be set as us-east-1.
 //
 // T is `*cloudwatch.Client`.
-func GetUptimeData[T AwsClient](ctx context.Context, log *slog.Logger, client T, options *GetUptimeDataOptions) (data []*uptimemodels.Uptime, err error) {
+func GetUptimeData[T AwsClient](ctx context.Context, log *slog.Logger, client T, options *Options) (data []*uptimemodels.Uptime, err error) {
 	var (
 		list      *cloudwatch.ListMetricsOutput
 		statsOpts *cloudwatch.GetMetricStatisticsInput
@@ -144,7 +144,7 @@ func toModels(ctx context.Context, log *slog.Logger, account string, period int3
 // from the api and return the api call values
 //
 // T is *cloudwatch.Client
-func getHealthCheckStatistics[T AwsClient](ctx context.Context, log *slog.Logger, client T, list *cloudwatch.ListMetricsOutput, options *GetUptimeDataOptions) (stats *cloudwatch.GetMetricStatisticsOutput, statsInput *cloudwatch.GetMetricStatisticsInput, err error) {
+func getHealthCheckStatistics[T AwsClient](ctx context.Context, log *slog.Logger, client T, list *cloudwatch.ListMetricsOutput, options *Options) (stats *cloudwatch.GetMetricStatisticsOutput, statsInput *cloudwatch.GetMetricStatisticsInput, err error) {
 
 	log = log.With("package", "uptime", "func", "getHealthCheckStatistics")
 	statsInput = getHeathCheckMetricStatsOptions(list, options)
@@ -192,7 +192,7 @@ func getHealthCheckMetrics[T AwsClient](ctx context.Context, log *slog.Logger, c
 // getHeathCheckMetricStatsOptions is used to generate a suitable GetMetricStatisticsInput struct
 // that contains all of the metric dimensions and uses the correct period and units that we need
 // to fetch uptime data
-func getHeathCheckMetricStatsOptions(list *cloudwatch.ListMetricsOutput, options *GetUptimeDataOptions) (opts *cloudwatch.GetMetricStatisticsInput) {
+func getHeathCheckMetricStatsOptions(list *cloudwatch.ListMetricsOutput, options *Options) (opts *cloudwatch.GetMetricStatisticsInput) {
 	var (
 		period     int32             = getPeriod(options.Start)
 		dimensions []types.Dimension = []types.Dimension{}

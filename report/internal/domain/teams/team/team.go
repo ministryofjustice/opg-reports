@@ -33,7 +33,7 @@ type GitHubClient interface {
 	DownloadReleaseAsset(ctx context.Context, owner, repo string, id int64, followRedirectsClient *http.Client) (rc io.ReadCloser, redirectURL string, err error)
 }
 
-type TeamDataOptions struct {
+type Options struct {
 	Tag           string
 	DataDirectory string // tmp directory to write data into - will get deleted at the end
 }
@@ -50,7 +50,7 @@ const (
 // the metadata.zip from that release, extracting and parsing the teams.json file, which is then returned as a slice.
 //
 // Note: opg-metadata is private, so suitable permissions are required on the github client (and its token).
-func GetTeamData[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, options *TeamDataOptions) (teams []*teammodels.Team, err error) {
+func GetTeamData[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, options *Options) (teams []*teammodels.Team, err error) {
 
 	var (
 		release      *github.RepositoryRelease
@@ -95,7 +95,7 @@ func GetTeamData[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, op
 }
 
 // extractAndGetTeams extract the file and parse the file
-func extractAndGetTeams(ctx context.Context, log *slog.Logger, metadataZip string, options *TeamDataOptions) (teams []*teammodels.Team, err error) {
+func extractAndGetTeams(ctx context.Context, log *slog.Logger, metadataZip string, options *Options) (teams []*teammodels.Team, err error) {
 	var (
 		extractTo string = filepath.Join(options.DataDirectory, "ex")
 		teamsFile string = filepath.Join(extractTo, teamFile)
@@ -115,7 +115,7 @@ func extractAndGetTeams(ctx context.Context, log *slog.Logger, metadataZip strin
 }
 
 // downloadAsset downloads zip locally
-func downloadAsset(ctx context.Context, log *slog.Logger, gh GitHubClient, asset *github.ReleaseAsset, options *TeamDataOptions) (src string, err error) {
+func downloadAsset(ctx context.Context, log *slog.Logger, gh GitHubClient, asset *github.ReleaseAsset, options *Options) (src string, err error) {
 	var (
 		buff     io.ReadCloser
 		dlTo     string = filepath.Join(options.DataDirectory, "dl")
@@ -167,7 +167,7 @@ func getReleaseAsset(ctx context.Context, log *slog.Logger, release *github.Repo
 }
 
 // getRelease finds the tagged release
-func getRelease(ctx context.Context, log *slog.Logger, gh GitHubClient, options *TeamDataOptions) (release *github.RepositoryRelease, err error) {
+func getRelease(ctx context.Context, log *slog.Logger, gh GitHubClient, options *Options) (release *github.RepositoryRelease, err error) {
 	release, _, err = gh.GetReleaseByTag(ctx, owner, repository, options.Tag)
 	if err != nil {
 		log.Error("error finding metadata release", "err", err.Error())

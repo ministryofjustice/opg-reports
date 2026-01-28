@@ -34,9 +34,9 @@ var (
 var (
 	teamsCmd *cobra.Command = &cobra.Command{
 		Use:   "teams",
-		Short: accountsShortDesc,
-		Long:  accountsLongDesc,
-		RunE:  accountsRunE,
+		Short: teamsShortDesc,
+		Long:  teamsLongDesc,
+		RunE:  teamsRunE,
 	}
 )
 
@@ -46,7 +46,6 @@ func teamsRunE(cmd *cobra.Command, args []string) (err error) {
 	var db *sqlx.DB
 	// fail if there is no github token
 	if cfg.Github.Token == "" {
-		log.Error("not github token found.")
 		err = ErrGitHubTokenMissing
 		return
 	}
@@ -70,8 +69,8 @@ func teamsRunE(cmd *cobra.Command, args []string) (err error) {
 func teamsImport(ctx context.Context, log *slog.Logger, client team.GitHubClient, db *sqlx.DB) (err error) {
 	var (
 		result []*dbstatements.InsertStatement[*teammodels.Team, string]
-		data   []*teammodels.Team    = []*teammodels.Team{}
-		opts   *team.TeamDataOptions = &team.TeamDataOptions{}
+		data   []*teammodels.Team = []*teammodels.Team{}
+		opts   *team.Options      = &team.Options{}
 	)
 	// config for the release
 	opts.Tag = cfg.Teams.Release

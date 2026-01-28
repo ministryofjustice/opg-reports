@@ -76,7 +76,7 @@ func TestDomainAccountsWithMock(t *testing.T) {
 		data   []*accountmodels.AwsAccount
 	)
 
-	opts := &GetAwsAccountDataOptions{
+	opts := &Options{
 		Tag:           "v0.1.26",
 		DataDirectory: dir,
 	}
@@ -107,7 +107,7 @@ func TestDomainAccountsWithoutMock(t *testing.T) {
 		if err != nil {
 			t.Errorf("unexpected error:\n%s", err.Error())
 		}
-		opts := &GetAwsAccountDataOptions{
+		opts := &Options{
 			Tag:           "v0.1.26",
 			DataDirectory: dir,
 		}

@@ -101,7 +101,7 @@ func TestDomainInfracostsWithMock(t *testing.T) {
 	)
 
 	client = &mockGetter{}
-	r, err = GetCostData(ctx, log, client, &GetCostDataOptions{Start: start, End: end})
+	r, err = GetCostData(ctx, log, client, &Options{Start: start, End: end})
 	if err != nil {
 		t.Errorf("unexpected error:\n%s", err.Error())
 	}
@@ -136,7 +136,7 @@ func TestDomainInfracostsWithoutMock(t *testing.T) {
 			t.FailNow()
 		}
 		accountId = awsid.AccountID(ctx, log, "eu-west-1")
-		r, err = GetCostData(ctx, log, client, &GetCostDataOptions{Start: start, End: end, AccountID: accountId})
+		r, err = GetCostData(ctx, log, client, &Options{Start: start, End: end, AccountID: accountId})
 		if err != nil {
 			t.Errorf("unexpected error:\n%s", err.Error())
 		}
@@ -161,7 +161,7 @@ func TestDomainInfracostsWithFailure(t *testing.T) {
 	)
 
 	client = &mockGetterFailed{}
-	_, err = GetCostData(ctx, log, client, &GetCostDataOptions{Start: start, End: end})
+	_, err = GetCostData(ctx, log, client, &Options{Start: start, End: end})
 	if err == nil {
 		t.Errorf("expected error, but nothing returned")
 	}

@@ -27,11 +27,6 @@ the 'id' field are updated with new values.
 )
 
 var (
-	ErrAccountsTokenMissing = errors.New("missing github token value.")
-	ErrAccountsConnFailed   = errors.New("github client failed with error.")
-)
-
-var (
 	accountsCmd *cobra.Command = &cobra.Command{
 		Use:   "accounts",
 		Short: accountsShortDesc,
@@ -46,7 +41,6 @@ func accountsRunE(cmd *cobra.Command, args []string) (err error) {
 	var db *sqlx.DB
 	// fail if there is no github token
 	if cfg.Github.Token == "" {
-		log.Error("not github token found.")
 		err = ErrGitHubTokenMissing
 		return
 	}
@@ -69,8 +63,8 @@ func accountsRunE(cmd *cobra.Command, args []string) (err error) {
 func accountsImport(ctx context.Context, log *slog.Logger, client account.GitHubClient, db *sqlx.DB) (err error) {
 	var (
 		result []*dbstatements.InsertStatement[*accountmodels.AwsAccount, string]
-		data   []*accountmodels.AwsAccount       = []*accountmodels.AwsAccount{}
-		opts   *account.GetAwsAccountDataOptions = &account.GetAwsAccountDataOptions{}
+		data   []*accountmodels.AwsAccount = []*accountmodels.AwsAccount{}
+		opts   *account.Options            = &account.Options{}
 	)
 	// config for the release
 	opts.Tag = cfg.Accounts.Release

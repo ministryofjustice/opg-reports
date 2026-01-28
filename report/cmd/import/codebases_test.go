@@ -14,7 +14,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func TestImportTeamsWithoutMock(t *testing.T) {
+func TestImportCodebasesWithoutMock(t *testing.T) {
 
 	var (
 		err    error
@@ -22,8 +22,8 @@ func TestImportTeamsWithoutMock(t *testing.T) {
 		db     *sqlx.DB
 		ctx    context.Context = t.Context()
 		log    *slog.Logger    = logger.New("error")
-		dir    string          = t.TempDir()
-		dbPath string          = filepath.Join(dir, "test-import-teams.db")
+		dir    string          = "./" //t.TempDir()
+		dbPath string          = filepath.Join(dir, "test-import-codebases.db")
 	)
 	// set the database
 	db, err = dbconnection.Connection(ctx, log, "sqlite3", dbPath)
@@ -35,7 +35,7 @@ func TestImportTeamsWithoutMock(t *testing.T) {
 	if os.Getenv("GITHUB_TOKEN") != "" {
 		client, err = ghclients.New(ctx, log, os.Getenv("GITHUB_TOKEN"))
 
-		err = teamsImport(ctx, log, client.Repositories, db)
+		err = codebasesImport(ctx, log, client.Teams, db)
 		if err != nil {
 			t.Errorf("unexpected import error: [%s]", err.Error())
 			t.FailNow()

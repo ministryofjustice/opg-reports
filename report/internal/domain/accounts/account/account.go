@@ -35,8 +35,8 @@ type GitHubClient interface {
 	DownloadReleaseAsset(ctx context.Context, owner, repo string, id int64, followRedirectsClient *http.Client) (rc io.ReadCloser, redirectURL string, err error)
 }
 
-// GetAwsAccountDataOptions input struct for the command to specify some variable data
-type GetAwsAccountDataOptions struct {
+// Options input struct for the command to specify some variable data
+type Options struct {
 	Tag           string // the version tag on the release to utilise
 	DataDirectory string // directory to write the data into, should be empty as it will be removed
 }
@@ -59,7 +59,7 @@ const (
 // The DataDirectory folder is deleted when exiting this function.
 //
 // Note: opg-metadata is private, so suitable permissions are required on the github client (and its token).
-func GetAwsAccountData[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, options *GetAwsAccountDataOptions) (accounts []*accountmodels.AwsAccount, err error) {
+func GetAwsAccountData[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, options *Options) (accounts []*accountmodels.AwsAccount, err error) {
 
 	var (
 		release      *github.RepositoryRelease
@@ -104,7 +104,7 @@ func GetAwsAccountData[T GitHubClient](ctx context.Context, log *slog.Logger, gh
 }
 
 // extractAndGet extract the file and parse the file
-func extractAndGet(ctx context.Context, log *slog.Logger, metadataZip string, options *GetAwsAccountDataOptions) (accounts []*accountmodels.AwsAccount, err error) {
+func extractAndGet(ctx context.Context, log *slog.Logger, metadataZip string, options *Options) (accounts []*accountmodels.AwsAccount, err error) {
 	var (
 		extractTo string = filepath.Join(options.DataDirectory, extractSubDir)
 		file      string = filepath.Join(extractTo, extractFile)
@@ -128,7 +128,7 @@ func extractAndGet(ctx context.Context, log *slog.Logger, metadataZip string, op
 }
 
 // downloadAsset downloads zip locally
-func downloadAsset(ctx context.Context, log *slog.Logger, gh GitHubClient, asset *github.ReleaseAsset, options *GetAwsAccountDataOptions) (src string, err error) {
+func downloadAsset(ctx context.Context, log *slog.Logger, gh GitHubClient, asset *github.ReleaseAsset, options *Options) (src string, err error) {
 	var (
 		buff     io.ReadCloser
 		dlTo     string = filepath.Join(options.DataDirectory, downloadSubDir)
@@ -182,7 +182,7 @@ func getReleaseAsset(ctx context.Context, log *slog.Logger, release *github.Repo
 // getRelease finds the tagged release
 //
 // Does not check for pre-release / draft status, just the tag name
-func getRelease(ctx context.Context, log *slog.Logger, gh GitHubClient /**github.RepositoriesService*/, options *GetAwsAccountDataOptions) (release *github.RepositoryRelease, err error) {
+func getRelease(ctx context.Context, log *slog.Logger, gh GitHubClient /**github.RepositoriesService*/, options *Options) (release *github.RepositoryRelease, err error) {
 	release, _, err = gh.GetReleaseByTag(ctx, owner, repository, options.Tag)
 	if err != nil {
 		log.Error("error finding metadata release", "err", err.Error())

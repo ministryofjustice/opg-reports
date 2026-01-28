@@ -11,14 +11,14 @@ import (
 
 var ErrFailedGettingRepositoryPage = errors.New("error getting page of repositories")
 
-// GithubClient wrapper around *github.TeamsService
-type GithubClient interface {
+// GitHubClient wrapper around *github.TeamsService
+type GitHubClient interface {
 	ListTeamReposBySlug(ctx context.Context, org, slug string, opts *github.ListOptions) ([]*github.Repository, *github.Response, error)
 }
 
 // GetCodebasesOptions used to decide / change what repositories to return
 // from the full list
-type GetCodebasesOptions struct {
+type Options struct {
 	ExcludeArchived bool
 }
 
@@ -29,7 +29,7 @@ const (
 )
 
 // GetCodebases finds all github repositories and returns them for the moj/opg team
-func GetCodebases[T GithubClient](ctx context.Context, log *slog.Logger, client T, options *GetCodebasesOptions) (repos []*codebasemodels.Codebase, err error) {
+func GetCodebases[T GitHubClient](ctx context.Context, log *slog.Logger, client T, options *Options) (repos []*codebasemodels.Codebase, err error) {
 	var list []*github.Repository
 
 	log = log.With("package", "codebases", "func", "GetCodebases")
@@ -73,7 +73,7 @@ func toModels(ctx context.Context, log *slog.Logger, list []*github.Repository) 
 
 // getRepositoryList iterates over paginated data set from github api and merges all data
 // into one block
-func getRepositoryList[T GithubClient](ctx context.Context, log *slog.Logger, client T, options *GetCodebasesOptions) (repositories []*github.Repository, err error) {
+func getRepositoryList[T GitHubClient](ctx context.Context, log *slog.Logger, client T, options *Options) (repositories []*github.Repository, err error) {
 
 	var (
 		page int                 = 1
@@ -111,7 +111,7 @@ func getRepositoryList[T GithubClient](ctx context.Context, log *slog.Logger, cl
 	return
 }
 
-func includeInResult(repo *github.Repository, criteria *GetCodebasesOptions) (pass bool) {
+func includeInResult(repo *github.Repository, criteria *Options) (pass bool) {
 	pass = true
 	if criteria == nil {
 		return

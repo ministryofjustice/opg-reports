@@ -68,7 +68,7 @@ func TestDomainUptimeWithMock(t *testing.T) {
 		end    time.Time       = now.AddDate(0, 0, -1)
 	)
 
-	r, err = GetUptimeData(ctx, log, client, &GetUptimeDataOptions{Start: start, End: end, AccountID: "mock-account-A"})
+	r, err = GetUptimeData(ctx, log, client, &Options{Start: start, End: end, AccountID: "mock-account-A"})
 	if err != nil {
 		t.Errorf("unexpected error:\n%s", err.Error())
 	}
@@ -98,7 +98,7 @@ func TestDomainUptimeWithoutMock(t *testing.T) {
 			t.FailNow()
 		}
 		accountId = awsid.AccountID(ctx, log, "eu-west-1")
-		r, err = GetUptimeData(ctx, log, client, &GetUptimeDataOptions{Start: start, End: end, AccountID: accountId})
+		r, err = GetUptimeData(ctx, log, client, &Options{Start: start, End: end, AccountID: accountId})
 		if err != nil {
 			t.Errorf("unexpected error:\n%s", err.Error())
 		}

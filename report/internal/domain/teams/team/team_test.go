@@ -76,7 +76,7 @@ func TestDomainTeamsWithMock(t *testing.T) {
 		teams  []*teammodels.Team
 	)
 
-	opts := &TeamDataOptions{
+	opts := &Options{
 		Tag:           "v0.1.26",
 		DataDirectory: dir,
 	}
@@ -106,7 +106,7 @@ func TestDomainTeamsWithoutMock(t *testing.T) {
 		if err != nil {
 			t.Errorf("unexpected error:\n%s", err.Error())
 		}
-		opts := &TeamDataOptions{
+		opts := &Options{
 			Tag:           "v0.1.26",
 			DataDirectory: dir,
 		}
