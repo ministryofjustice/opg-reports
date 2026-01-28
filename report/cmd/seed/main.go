@@ -28,7 +28,7 @@ var (
 	shortDesc string          = `seed inserts test data into the configured database`
 )
 var longDesc string = `
-seed inserts test data into the configured database; generally intended for development use only.
+seed inserts test data into the configured database; generally intended for development use only. This will also run database migrataions before inserting seed data.
 
 environment variables that are utilised by this command:
 

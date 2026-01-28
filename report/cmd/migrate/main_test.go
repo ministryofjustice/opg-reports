@@ -6,20 +6,20 @@ import (
 	"testing"
 )
 
-func TestCMDSeed(t *testing.T) {
+func TestCMDMigrate(t *testing.T) {
 
 	var (
 		err    error
 		dir    string = t.TempDir()
-		dbPath string = filepath.Join(dir, "test-cmd-seed.db")
+		dbPath string = filepath.Join(dir, "test-cmd-migrate.db")
 	)
 	// change location of the db
 	os.Setenv("DB_PATH", dbPath)
 	setup()
 
-	err = seedFunc(nil, []string{})
+	err = migrateFunc(nil, []string{})
 	if err != nil {
-		t.Errorf("unexpected seeding error: %s", err.Error())
+		t.Errorf("unexpected migration error: %s", err.Error())
 	}
 
 }
