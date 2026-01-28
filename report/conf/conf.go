@@ -1,51 +1,114 @@
 package conf
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/spf13/viper"
 )
 
-type config struct {
-	DB     *DB     `mapstructure:"db"`
-	Github *GitHub `mapstructure:"github"`
+// Config is the main config struct and is generated
+// from yaml file combined with environment variables
+type Config struct {
+	DB     *db     `json:"db"`
+	Github *github `json:"github"`
+	AWS    *aws    `json:"aws"`
+	Log    *log    `json:"log"`
 }
 
-type DB struct {
-	Driver string `mapstructure:"driver"`
-	Path   string `mapstructure:"path"`
-	Params string `mapstructure:"params"`
+// DB handles database related env & config values
+type db struct {
+	Driver string `json:"driver"`
+	Path   string `json:"path"`
+	Params string `json:"params"`
 }
 
-type GitHub struct {
-	Token string `mapstructure:"token"`
+func (self *db) ConnectionString() (conn string) {
+	conn = fmt.Sprintf("%s%s", self.Path, self.Params)
+	return
 }
 
-var (
-	vp   *viper.Viper             // viper instance
-	name string       = "default" // name of config file to use
-)
+// github handles env token for access to github
+// during data imports
+type github struct {
+	Token string `json:"token"`
+}
 
-func setup(filename string) (v *viper.Viper, cfg *config, err error) {
-	cfg = &config{}
+// aws handles env token / session access to aws
+// during data imports
+type aws struct {
+	Region  string      `json:"region"`
+	Default *awsDefault `json:"default"`
+	Session *awsSession `json:"session"`
+}
+type awsDefault struct {
+	Region string `json:"region"`
+}
+type awsSession struct {
+	Token string `json:"token"`
+}
+
+// log tracks logging configuration values used within
+// all apps
+type log struct {
+	Level string `json:"level"`
+	Type  string `json:"type"`
+}
+
+var vp *viper.Viper // viper instance
+
+func defaults() (cfg *Config) {
+	cfg = &Config{
+		Log: &log{
+			Level: "info",
+			Type:  "json",
+		},
+		DB: &db{
+			Driver: "sqlite3",
+			Path:   "./api.db",
+			Params: "?_journal=WAL&_busy_timeout=5000&_vacuum=incremental&_synchronous=NORMAL&_cache_size=1000000000",
+		},
+		Github: &github{
+			Token: "",
+		},
+		AWS: &aws{
+			Region:  "eu-west-1",
+			Default: &awsDefault{Region: "eu-west-1"},
+			Session: &awsSession{Token: ""},
+		},
+	}
+	return
+}
+
+// setup loads default config reads that to viper and
+// triggers env overwrites, then returns the unmarshaled
+// value
+func setup() (v *viper.Viper, cfg *Config, err error) {
+	cfg = defaults()
 	v = viper.New()
-	// load from the default file
-	v.SetConfigName(filename)
-	v.AddConfigPath(".")
+	// load from struct
+	v.SetConfigType("json")
+	v.ReadConfig(bytes.NewBuffer(mustMarshal(cfg)))
 	// use underscores from env vars
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	// load from evn
+	// load from env
 	v.AutomaticEnv()
-	// read
-	err = v.ReadInConfig()
-	if err != nil {
-		return
-	}
 	err = v.Unmarshal(&cfg)
 	return
 }
 
-func New() (c *config) {
-	vp, c, _ = setup(name)
+// mustMarshal does a generic marshal on item to convert to json bytes
+func mustMarshal[T any](item T) (bytes []byte) {
+	bytes = []byte{}
+	if b, err := json.MarshalIndent(item, "", "  "); err == nil {
+		bytes = b
+	}
+	return
+}
+
+func New() (c *Config) {
+	vp, c, _ = setup()
 	return
 }

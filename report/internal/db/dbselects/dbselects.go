@@ -37,7 +37,7 @@ func Select[T dbmodels.Model, R dbmodels.Result](ctx context.Context, log *slog.
 	// create prepared statement so placeholders are used
 	statement, err = transaction.PrepareNamedContext(ctx, stmt.Statement)
 	if err != nil {
-		log.Warn("prepared stmt failed", "err", err.Error(), "stmt", stmt.Statement)
+		log.Debug("prepared stmt failed", "err", err.Error(), "stmt", stmt.Statement)
 		err = errors.Join(ErrPreparedStmtFailed, err)
 		if strings.Contains(err.Error(), "no such table") {
 			err = errors.Join(ErrMissingTable, err)

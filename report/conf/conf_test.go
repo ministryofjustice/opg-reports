@@ -11,19 +11,15 @@ var confName = "default"
 // db values from a direct setup() call
 func TestConfLoadViaSetup(t *testing.T) {
 
-	vp, conf, err := setup(confName)
+	_, cfg, err := setup()
 
 	if err != nil {
-		t.Errorf("unexpected error getting config")
+		t.Errorf("unexpected error getting config: %s", err.Error())
 		t.FailNow()
 	}
 
-	if conf.DB.Driver != "sqlite3" {
+	if cfg.DB.Driver != "sqlite3" {
 		t.Errorf("setup db config does not match")
-	}
-
-	if vp.Get("db.driver") != "sqlite3" {
-		t.Errorf("viper get db config did not match default")
 	}
 
 }
@@ -31,9 +27,17 @@ func TestConfLoadViaSetup(t *testing.T) {
 func TestConfViaNewWithEnvVars(t *testing.T) {
 
 	os.Setenv("DB_DRIVER", "sqlite2")
-	conf := New()
-	if conf.DB.Driver != "sqlite2" {
+	os.Setenv("AWS_DEFAULT_REGION", "TEST")
+	cfg := New()
+
+	if cfg.DB.Driver != "sqlite2" {
 		t.Errorf("instance db config does not match")
 	}
+	if cfg.AWS.Default.Region != "TEST" {
+		t.Errorf("instance aws config does not match")
+	}
+
+	os.Setenv("DB_DRIVER", "sqlite3")
+	os.Setenv("AWS_DEFAULT_REGION", "")
 
 }

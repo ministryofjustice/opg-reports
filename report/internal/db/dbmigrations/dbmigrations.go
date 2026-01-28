@@ -61,7 +61,7 @@ func Migrate(ctx context.Context, log *slog.Logger, db *sqlx.DB, migrations ...M
 	// if we get an error about missing table, that means no migration table
 	// is present so we need to run all migrations
 	if errors.Is(err, dbselects.ErrMissingTable) {
-		log.Warn("no migration table found, so will run all migrations.")
+		log.Debug("no migration table found, so will run all migrations.")
 		err = nil
 	} else if err != nil {
 		log.Error("migration selection failed", "err", err.Error())
