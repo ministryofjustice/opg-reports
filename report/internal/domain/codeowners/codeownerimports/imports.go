@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"opg-reports/report/internal/db/dbexec"
 	"opg-reports/report/internal/db/dbinserts"
 	"opg-reports/report/internal/db/dbstatements"
 	"opg-reports/report/internal/domain/codeowners/codeownermodels"
@@ -11,7 +12,10 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-var ErrImportFailed = errors.New("codeowner import failed with error")
+var (
+	ErrImportFailed   = errors.New("codeowners import failed with error.")
+	ErrTruncateFailed = errors.New("codeowners truncate failed with error.")
+)
 
 // insertStmt used to insert records
 const insertStmt string = `
@@ -33,8 +37,13 @@ RETURNING id
 ;
 `
 
+// truncate to remove all entries as code bases may be removed / changed over time
+const truncateStmt string = `DELETE FROM codeowners;`
+
 // Import uses combines the cost data passed along with the with insert statement defined in this package to
 // insert records in to the active database connection.
+//
+// Table is truncated first, as codebases may have changed over time (deleted / renamed etc).
 func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*codeownermodels.Codeowner) (statements []*dbstatements.InsertStatement[*codeownermodels.Codeowner, int], err error) {
 
 	statements = []*dbstatements.InsertStatement[*codeownermodels.Codeowner, int]{}
@@ -49,6 +58,14 @@ func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*codeowne
 			Data:      row,
 		})
 	}
+	// truncate the table
+	_, err = dbexec.Exec(ctx, log, db, dbstatements.Statement(truncateStmt))
+	if err != nil {
+		log.Error("error with truncate", "err", err.Error())
+		err = errors.Join(ErrTruncateFailed, err)
+		return
+	}
+
 	// run inserts
 	log.Debug("running import statements via insert")
 	err = dbinserts.Insert(ctx, log, db, statements...)

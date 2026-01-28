@@ -22,7 +22,7 @@ func TestImportCodebasesWithoutMock(t *testing.T) {
 		db     *sqlx.DB
 		ctx    context.Context = t.Context()
 		log    *slog.Logger    = logger.New("error")
-		dir    string          = "./" //t.TempDir()
+		dir    string          = t.TempDir()
 		dbPath string          = filepath.Join(dir, "test-import-codebases.db")
 	)
 	// set the database
@@ -35,7 +35,7 @@ func TestImportCodebasesWithoutMock(t *testing.T) {
 	if os.Getenv("GITHUB_TOKEN") != "" {
 		client, err = ghclients.New(ctx, log, os.Getenv("GITHUB_TOKEN"))
 
-		err = codebasesImport(ctx, log, client.Teams, db)
+		err = codeimporter(ctx, log, client, db)
 		if err != nil {
 			t.Errorf("unexpected import error: [%s]", err.Error())
 			t.FailNow()
@@ -43,5 +43,5 @@ func TestImportCodebasesWithoutMock(t *testing.T) {
 	} else {
 		t.SkipNow()
 	}
-
+	t.FailNow()
 }

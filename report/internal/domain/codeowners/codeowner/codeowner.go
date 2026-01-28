@@ -20,10 +20,10 @@ var (
 	ErrFailedGettingRepositoryTeams = errors.New("failed to get team details for repository.")
 )
 
-// GithubClient
+// GitHubClient
 //
 // Wrapper around *github.RepositoriesService
-type GithubClient interface {
+type GitHubClient interface {
 	// fetch attached teams (*github.RepositoriesService)
 	ListTeams(ctx context.Context, owner, repo string, opts *github.ListOptions) ([]*github.Team, *github.Response, error)
 	// fetch file content (*github.RepositoriesService)
@@ -55,7 +55,7 @@ var codeOwnerToTeamName map[string]string = map[string]string{
 
 // GetCodeowners uses a list of repositories (`Input.Codebases`) to find all code owners attached to those and
 // will also try to map those to a specific team
-func GetCodeowners[T GithubClient](ctx context.Context, log *slog.Logger, client T, in *Input) (result []*codeownermodels.Codeowner, err error) {
+func GetCodeowners[T GitHubClient](ctx context.Context, log *slog.Logger, client T, in *Input) (result []*codeownermodels.Codeowner, err error) {
 
 	log = log.With("package", "codeowners", "func", "GetCodeowners", "codebases", len(in.Codebases))
 	log.Debug("starting ...")
@@ -66,12 +66,15 @@ func GetCodeowners[T GithubClient](ctx context.Context, log *slog.Logger, client
 			owners []string       = []string{}
 			merged []string       = []string{}
 		)
+
 		// fetch team info from the repo
+		log.With("codebase", code.FullName).Debug("getting teams ...")
 		teams, err = getTeams(ctx, log, client, code)
 		if err != nil {
 			return
 		}
 		// fetch content from code owner files
+		log.With("codebase", code.FullName).Debug("getting codeowners ...")
 		owners, err = getCodeownersFromFiles(ctx, log, client, code)
 		if err != nil {
 			return
@@ -93,7 +96,7 @@ func GetCodeowners[T GithubClient](ctx context.Context, log *slog.Logger, client
 
 // getCodeownersFromFiles tries to fetch CODEOWNER file content from set locations and
 // will process the content into just the team names, removing duplicates.
-func getCodeownersFromFiles[T GithubClient](ctx context.Context, log *slog.Logger, client T, code *codebasemodels.Codebase) (owners []string, err error) {
+func getCodeownersFromFiles[T GitHubClient](ctx context.Context, log *slog.Logger, client T, code *codebasemodels.Codebase) (owners []string, err error) {
 	var fileLocations []string = []string{
 		"./CODEOWNERS",
 		"./.github/CODEOWNERS",
@@ -115,6 +118,7 @@ func getCodeownersFromFiles[T GithubClient](ctx context.Context, log *slog.Logge
 		// if there is an error, file might not be present, so ignore rather than return
 		if e == nil && len(lines) > 0 {
 			owners = append(owners, ownersFromLines(lines)...)
+			break
 		}
 
 	}
@@ -129,7 +133,7 @@ func getCodeownersFromFiles[T GithubClient](ctx context.Context, log *slog.Logge
 // of github results
 //
 // Filters based on team having a parent of `opg`
-func getTeams[T GithubClient](ctx context.Context, log *slog.Logger, client T, code *codebasemodels.Codebase) (teams []*github.Team, err error) {
+func getTeams[T GitHubClient](ctx context.Context, log *slog.Logger, client T, code *codebasemodels.Codebase) (teams []*github.Team, err error) {
 	var (
 		page int                 = 1
 		opts *github.ListOptions = &github.ListOptions{PerPage: 200}
