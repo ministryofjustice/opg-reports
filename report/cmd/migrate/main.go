@@ -15,14 +15,16 @@ import (
 
 // config items
 var (
-	cfg       *conf.Config                // default config
-	ctx       context.Context             // default context
-	log       *slog.Logger                // default logger
-	rootCmd   *cobra.Command              // base command
-	cmdName   string          = "migrate" // root command name
-	shortDesc string          = `migrate operates on the database to run all migration commands`
+	cfg     *conf.Config    // default config
+	ctx     context.Context // default context
+	log     *slog.Logger    // default logger
+	rootCmd *cobra.Command  // base command
 )
-var longDesc string = `
+
+const (
+	cmdName   string = "migrate" // root command name
+	shortDesc string = `migrate operates on the database to run all migration commands`
+	longDesc  string = `
 migrate operates on the database to run all migration commands; generally intended for development use only.
 
 environment variables that are utilised by this command:
@@ -30,6 +32,7 @@ environment variables that are utilised by this command:
 	DB_PATH
 		The file path of the database
 `
+)
 
 func migrateFunc(cmd *cobra.Command, args []string) (err error) {
 	var (

@@ -56,6 +56,8 @@ const (
 //
 // Return data as model used for importing to the database. This get call is used by import commands directly
 //
+// The DataDirectory folder is deleted when exiting this function.
+//
 // Note: opg-metadata is private, so suitable permissions are required on the github client (and its token).
 func GetAwsAccountData[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, options *GetAwsAccountDataOptions) (accounts []*accountmodels.AwsAccount, err error) {
 

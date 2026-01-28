@@ -13,9 +13,12 @@ import (
 // from yaml file combined with environment variables
 type Config struct {
 	DB     *db     `json:"db"`
+	Log    *log    `json:"log"`
 	Github *github `json:"github"`
 	AWS    *aws    `json:"aws"`
-	Log    *log    `json:"log"`
+
+	Accounts *accounts `json:"accounts"`
+	Teams    *teams    `json:"teams"`
 }
 
 // DB handles database related env & config values
@@ -28,6 +31,18 @@ type db struct {
 func (self *db) ConnectionString() (conn string) {
 	conn = fmt.Sprintf("%s%s", self.Path, self.Params)
 	return
+}
+
+// accounts contains data relating to the accounts domain
+// and how to find / fetch that
+type accounts struct {
+	Release string `json:"release"`
+}
+
+// teams contains data relating to the accounts domain
+// and how to find / fetch that
+type teams struct {
+	Release string `json:"release"`
 }
 
 // github handles env token for access to github
@@ -77,6 +92,12 @@ func defaults() (cfg *Config) {
 			Region:  "eu-west-1",
 			Default: &awsDefault{Region: "eu-west-1"},
 			Session: &awsSession{Token: ""},
+		},
+		Accounts: &accounts{
+			Release: "v0.1.26",
+		},
+		Teams: &teams{
+			Release: "v0.1.26",
 		},
 	}
 	return

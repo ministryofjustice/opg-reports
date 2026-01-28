@@ -8,6 +8,7 @@ import (
 	"opg-reports/report/internal/db/dbmigrations"
 	"opg-reports/report/internal/domain/accounts/accountseeds"
 	"opg-reports/report/internal/domain/codebases/codebaseseeds"
+	"opg-reports/report/internal/domain/codeowners/codeownerseeds"
 	"opg-reports/report/internal/domain/infracosts/infracostseeds"
 	"opg-reports/report/internal/domain/teams/teamseeds"
 	"opg-reports/report/internal/domain/uptime/uptimeseeds"
@@ -20,14 +21,16 @@ import (
 
 // config items
 var (
-	cfg       *conf.Config             // default config
-	ctx       context.Context          // default context
-	log       *slog.Logger             // default logger
-	rootCmd   *cobra.Command           // base command
-	cmdName   string          = "seed" // root command name
-	shortDesc string          = `seed inserts test data into the configured database`
+	cfg     *conf.Config    // default config
+	ctx     context.Context // default context
+	log     *slog.Logger    // default logger
+	rootCmd *cobra.Command  // base command
 )
-var longDesc string = `
+
+const (
+	cmdName   string = "seed" // root command name
+	shortDesc string = `seed inserts test data into the configured database`
+	longDesc  string = `
 seed inserts test data into the configured database; generally intended for development use only. This will also run database migrataions before inserting seed data.
 
 environment variables that are utilised by this command:
@@ -35,6 +38,7 @@ environment variables that are utilised by this command:
 	DB_PATH
 		The file path of the database
 `
+)
 
 func seedFunc(cmd *cobra.Command, args []string) (err error) {
 	var (
@@ -81,6 +85,12 @@ func seedFunc(cmd *cobra.Command, args []string) (err error) {
 	if err != nil {
 		return
 	}
+	// seed codeowners
+	_, err = codeownerseeds.Seed(ctx, log, db)
+	if err != nil {
+		return
+	}
+
 	log.Info("completed.")
 	return
 }

@@ -48,5 +48,4 @@ func TestDomainCodeownerWithoutMock(t *testing.T) {
 	} else {
 		t.SkipNow()
 	}
-	t.FailNow()
 }
