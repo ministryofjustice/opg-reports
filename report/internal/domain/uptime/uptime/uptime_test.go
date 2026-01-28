@@ -56,7 +56,7 @@ func (self *mockGetter) Options() cloudwatch.Options {
 	}
 }
 
-func TestRedoUptimeWithMock(t *testing.T) {
+func TestDomainUptimeWithMock(t *testing.T) {
 	var (
 		err    error
 		client *mockGetter = &mockGetter{}
@@ -78,7 +78,7 @@ func TestRedoUptimeWithMock(t *testing.T) {
 
 }
 
-func TestRedoUptimeWithoutMock(t *testing.T) {
+func TestDomainUptimeWithoutMock(t *testing.T) {
 	var (
 		err       error
 		accountId string

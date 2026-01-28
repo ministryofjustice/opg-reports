@@ -39,7 +39,7 @@ var mockSelect *dbstatements.SelectStatement[*empty, *mockRow] = &dbstatements.S
 	Data:      &empty{},
 }
 
-func TestRedoDBSelectsWorking(t *testing.T) {
+func TestDBDBSelectsWorking(t *testing.T) {
 
 	var (
 		err     error

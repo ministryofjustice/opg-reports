@@ -35,7 +35,7 @@ type mockRow struct {
 	Name      string `json:"name,omitempty" db:"name"`
 }
 
-func TestDBDBInsertsWorking(t *testing.T) {
+func TestDBInsertsWorking(t *testing.T) {
 	var (
 		err     error
 		db      *sqlx.DB

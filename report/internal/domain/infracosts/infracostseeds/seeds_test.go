@@ -14,7 +14,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func TestRedoInfracostsSeedWorking(t *testing.T) {
+func TestDomainInfracostsSeedWorking(t *testing.T) {
 	var (
 		err        error
 		db         *sqlx.DB

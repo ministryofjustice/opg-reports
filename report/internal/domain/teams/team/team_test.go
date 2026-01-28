@@ -65,7 +65,7 @@ func (self *mockGetter) DownloadReleaseAsset(ctx context.Context, owner, repo st
 	return
 }
 
-func TestRedoTeamsWithMock(t *testing.T) {
+func TestDomainTeamsWithMock(t *testing.T) {
 
 	var (
 		err    error
@@ -90,7 +90,7 @@ func TestRedoTeamsWithMock(t *testing.T) {
 
 }
 
-func TestRedoTeamsWithoutMock(t *testing.T) {
+func TestDomainTeamsWithoutMock(t *testing.T) {
 
 	var (
 		err    error

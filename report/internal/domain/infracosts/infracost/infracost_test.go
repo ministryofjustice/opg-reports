@@ -88,7 +88,7 @@ var _ AwsClient = &mockGetterFailed{}
 
 // TestInfracostsWithMock uses mock struct above to test logic and values
 // without calling AWS api.
-func TestRedoInfracostsWithMock(t *testing.T) {
+func TestDomainInfracostsWithMock(t *testing.T) {
 	var (
 		err    error
 		client *mockGetter
@@ -116,7 +116,7 @@ func TestRedoInfracostsWithMock(t *testing.T) {
 // Only runs if there is actually AWS_SESSION_TOKEN env var present.
 //
 // Run: aws-vault exec use-development-breakglass -- make test name="TestCostsWithoutMock"
-func TestRedoInfracostsWithoutMock(t *testing.T) {
+func TestDomainInfracostsWithoutMock(t *testing.T) {
 	var (
 		err       error
 		client    *costexplorer.Client
@@ -149,7 +149,7 @@ func TestRedoInfracostsWithoutMock(t *testing.T) {
 }
 
 // TestInfracostsWithFailure checks the error returned matches custom error type
-func TestRedoInfracostsWithFailure(t *testing.T) {
+func TestDomainInfracostsWithFailure(t *testing.T) {
 	var (
 		err    error
 		client *mockGetterFailed
