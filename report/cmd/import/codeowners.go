@@ -58,16 +58,14 @@ func codeownersRunE(cmd *cobra.Command, args []string) (err error) {
 }
 
 // codeownersImport inner func called by the wrapper used by cobra
-// codeownerImport
 func importCodeowners(ctx context.Context, log *slog.Logger, client codeowner.GitHubClient, db *sqlx.DB, repos []*codebasemodels.Codebase) (err error) {
 	var (
 		result []*dbstatements.InsertStatement[*codeownermodels.Codeowner, int]
 		data   []*codeownermodels.Codeowner = []*codeownermodels.Codeowner{}
 		opts   *codeowner.Input             = &codeowner.Input{Codebases: repos}
+		lg     *slog.Logger                 = log.With("func", "import.importCodeowners")
 	)
-
-	log = log.With("package", "import", "func", "codeownerImport")
-	log.Info("starting codeonwer import command ...")
+	lg.Info("starting codeowner import command ...")
 
 	// fetch the data
 	data, err = codeowner.GetCodeowners(ctx, log, client, opts)
@@ -79,6 +77,6 @@ func importCodeowners(ctx context.Context, log *slog.Logger, client codeowner.Gi
 	if err != nil {
 		return
 	}
-	log.With("count", len(result)).Info("completed.")
+	lg.With("count", len(result)).Info("completed.")
 	return
 }

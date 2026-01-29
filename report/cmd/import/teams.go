@@ -62,13 +62,13 @@ func teamsImport(ctx context.Context, log *slog.Logger, client team.GitHubClient
 		result []*dbstatements.InsertStatement[*teammodels.Team, string]
 		data   []*teammodels.Team = []*teammodels.Team{}
 		opts   *team.Options      = &team.Options{}
+		lg     *slog.Logger       = log.With("func", "import.teamsImport")
 	)
 	// config for the release
 	opts.Tag = cfg.Teams.Release
 	opts.DataDirectory, _ = os.MkdirTemp("", "__import-teams-*")
 
-	log = log.With("package", "import", "func", "teamsImport")
-	log.Info("starting teams import command ...")
+	lg.Info("starting teams import command ...")
 
 	// fetch the data
 	data, err = team.GetTeamData(ctx, log, client, opts)
@@ -80,7 +80,7 @@ func teamsImport(ctx context.Context, log *slog.Logger, client team.GitHubClient
 	if err != nil {
 		return
 	}
-	log.With("count", len(result)).Info("completed.")
+	lg.With("count", len(result)).Info("completed.")
 
 	return
 }

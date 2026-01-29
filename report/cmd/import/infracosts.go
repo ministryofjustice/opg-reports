@@ -73,17 +73,15 @@ func importInfracosts(ctx context.Context, log *slog.Logger, client infracost.Aw
 	var (
 		result []*dbstatements.InsertStatement[*infracostmodels.Cost, int]
 		data   []*infracostmodels.Cost = []*infracostmodels.Cost{}
-		opts   *infracost.Options      = &infracost.Options{
-			AccountID: in.AccountID,
-		}
+		lg     *slog.Logger            = log.With("func", "import.importInfracosts", "account", in.AccountID)
+		opts   *infracost.Options      = &infracost.Options{AccountID: in.AccountID}
 	)
 
-	log = log.With("package", "import", "func", "infracostsImport", "account", opts.AccountID)
-	log.Info("starting infracost import command ...")
-
+	lg.Info("starting infracost import command ...")
 	// work out dates
 	opts.End, err = times.FromString(in.EndDate)
 	if err != nil {
+		lg.Error("error parsing month value.", "err", err.Error())
 		return
 	}
 	// reset to start of the month
@@ -94,7 +92,7 @@ func importInfracosts(ctx context.Context, log *slog.Logger, client infracost.Aw
 	} else {
 		opts.Start = times.Add(opts.End, -1, times.MONTH)
 	}
-	log.Debug("time period ...", "start", opts.Start, "end", opts.End)
+	lg.Debug("time period ...", "start", opts.Start, "end", opts.End)
 
 	// fetch the data
 	data, err = infracost.GetCostData(ctx, log, client, opts)
@@ -106,7 +104,7 @@ func importInfracosts(ctx context.Context, log *slog.Logger, client infracost.Aw
 	if err != nil {
 		return
 	}
-	log.With("count", len(result)).Info("completed.")
+	lg.With("count", len(result)).Info("completed.")
 
 	return
 }

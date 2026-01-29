@@ -68,12 +68,10 @@ func importUptime(ctx context.Context, log *slog.Logger, client uptime.AwsClient
 	var (
 		result []*dbstatements.InsertStatement[*uptimemodels.Uptime, int]
 		data   []*uptimemodels.Uptime = []*uptimemodels.Uptime{}
-		opts   *uptime.Options        = &uptime.Options{
-			AccountID: in.AccountID,
-		}
+		lg     *slog.Logger           = log.With("func", "import.importUptime", "account", in.AccountID)
+		opts   *uptime.Options        = &uptime.Options{AccountID: in.AccountID}
 	)
-	log = log.With("package", "import", "func", "uptimeImport", "account", opts.AccountID)
-	log.Info("starting uptime import command ...")
+	lg.Info("starting uptime import command ...")
 
 	// work out dates
 	opts.Start, err = times.FromString(in.Day)
@@ -82,7 +80,7 @@ func importUptime(ctx context.Context, log *slog.Logger, client uptime.AwsClient
 	}
 	// reset
 	opts.End = times.ResetDay(times.Add(opts.Start, 1, times.DAY))
-	log.Debug("time period ...", "start", opts.Start, "end", opts.End)
+	lg.Debug("time period ...", "start", opts.Start, "end", opts.End)
 
 	// fetch the data
 	data, err = uptime.GetUptimeData(ctx, log, client, opts)
@@ -95,7 +93,7 @@ func importUptime(ctx context.Context, log *slog.Logger, client uptime.AwsClient
 	if err != nil {
 		return
 	}
-	log.With("count", len(result)).Info("completed.")
+	lg.With("count", len(result)).Info("completed.")
 
 	return
 }

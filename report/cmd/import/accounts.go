@@ -55,13 +55,13 @@ func importAccounts(ctx context.Context, log *slog.Logger, client account.GitHub
 		result []*dbstatements.InsertStatement[*accountmodels.AwsAccount, string]
 		data   []*accountmodels.AwsAccount = []*accountmodels.AwsAccount{}
 		opts   *account.Options            = &account.Options{}
+		lg     *slog.Logger                = log.With("func", "import.importAccounts")
 	)
 	// config for the release
 	opts.Tag = cfg.Accounts.Release
 	opts.DataDirectory, _ = os.MkdirTemp("", "__import-accounts-*")
 
-	log = log.With("package", "import", "func", "accountsImport")
-	log.Info("starting accounts import command ...")
+	lg.Info("starting accounts import command ...")
 
 	// fetch the data
 	data, err = account.GetAwsAccountData(ctx, log, client, opts)
@@ -73,7 +73,7 @@ func importAccounts(ctx context.Context, log *slog.Logger, client account.GitHub
 	if err != nil {
 		return
 	}
-	log.With("count", len(result)).Info("completed.")
+	lg.With("count", len(result)).Info("completed.")
 
 	return
 }

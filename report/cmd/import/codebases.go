@@ -57,10 +57,10 @@ func importCodebases(ctx context.Context, log *slog.Logger, client codebase.GitH
 		result []*dbstatements.InsertStatement[*codebasemodels.Codebase, int]
 		data   []*codebasemodels.Codebase = []*codebasemodels.Codebase{}
 		opts   *codebase.Options          = &codebase.Options{ExcludeArchived: true}
+		lg     *slog.Logger               = log.With("func", "import.importCodebases")
 	)
 
-	log = log.With("package", "import", "func", "codebasesImport")
-	log.Info("starting codebases import command ...")
+	lg.Info("starting codebases import command ...")
 
 	// fetch the data
 	data, err = codebase.GetCodebases(ctx, log, client, opts)
@@ -73,7 +73,7 @@ func importCodebases(ctx context.Context, log *slog.Logger, client codebase.GitH
 		return
 	}
 
-	log.With("count", len(result)).Info("completed.")
+	lg.With("count", len(result)).Info("completed.")
 
 	return
 }
