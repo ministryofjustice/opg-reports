@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"opg-reports/report/internal/domain/codebases/codebasemodels"
 	"opg-reports/report/internal/domain/codeowners/codeownermodels"
-	"opg-reports/report/internal/utils/debugger"
 	"opg-reports/report/internal/utils/ghclients"
 	"opg-reports/report/internal/utils/logger"
 	"opg-reports/report/internal/utils/ptr"
@@ -127,9 +126,6 @@ func TestDomainCodebasesWithMock(t *testing.T) {
 	if foundExtraBTeam {
 		t.Errorf("returned data did not include extrea team for the b-repo.")
 	}
-
-	debugger.Dump(data)
-	t.FailNow()
 
 }
 
