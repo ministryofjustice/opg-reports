@@ -18,7 +18,7 @@ tests:
 		AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
 		AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
 		AWS_SESSION_TOKEN="${AWS_SESSION_TOKEN}" \
-		go test -count=1 -cover -covermode=atomic ./... && echo "" && echo "passed"
+		go test -count=1 -cover -covermode=atomic ./... && echo "" && echo "passed ✅" || echo "failed ❌"
 	@echo "==="
 .PHONY: tests
 
@@ -35,7 +35,7 @@ test:
 		AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
 		AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
 		AWS_SESSION_TOKEN="${AWS_SESSION_TOKEN}" \
-		go test -count=1 -cover -covermode=atomic ./... -run="$(name)" && echo "" && echo "passed"
+		go test -count=1 -cover -covermode=atomic ./... -run="$(name)" && echo "" && echo "passed ✅" || echo "failed ❌"
 	@echo "==="
 .PHONY: tests
 
