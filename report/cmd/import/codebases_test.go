@@ -35,7 +35,7 @@ func TestImportCodebasesWithoutMock(t *testing.T) {
 	if os.Getenv("GITHUB_TOKEN") != "" {
 		client, err = ghclients.New(ctx, log, os.Getenv("GITHUB_TOKEN"))
 
-		err = codeimporter(ctx, log, client, db)
+		_, err = codebasesImport(ctx, log, client.Teams, db)
 		if err != nil {
 			t.Errorf("unexpected import error: [%s]", err.Error())
 			t.FailNow()
@@ -43,5 +43,4 @@ func TestImportCodebasesWithoutMock(t *testing.T) {
 	} else {
 		t.SkipNow()
 	}
-	t.FailNow()
 }

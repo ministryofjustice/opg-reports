@@ -5,15 +5,10 @@ import (
 	"errors"
 	"log/slog"
 	"opg-reports/report/internal/db/dbconnection"
-	"opg-reports/report/internal/db/dbmigrations"
 	"opg-reports/report/internal/db/dbstatements"
 	"opg-reports/report/internal/domain/codebases/codebase"
 	"opg-reports/report/internal/domain/codebases/codebaseimports"
 	"opg-reports/report/internal/domain/codebases/codebasemodels"
-	"opg-reports/report/internal/domain/codeowners/codeowner"
-	"opg-reports/report/internal/domain/codeowners/codeownerimports"
-	"opg-reports/report/internal/domain/codeowners/codeownermodels"
-	"opg-reports/report/internal/utils/debugger"
 	"opg-reports/report/internal/utils/ghclients"
 
 	"github.com/google/go-github/v81/github"
@@ -22,19 +17,19 @@ import (
 )
 
 const (
-	codebasesShortDesc string = `codebases fetches and imports code bases and code owner data from github.`
+	codebasesShortDesc string = `codebases fetches and imports code bases / repositories from github.`
 	codebasesLongDesc  string = `
-codebases fetches data from github based on toek permissions, the moj org and opg team.
+codebases fetches and imports code bases / repositories from github bsaed on the moj org and opg team association.
 
-Truncates and then imports list of code bases and associated code owners.
+Truncates and then imports list of code bases.
 `
 )
 
 var (
 	codebasesCmd *cobra.Command = &cobra.Command{
 		Use:   "codebases",
-		Short: accountsShortDesc,
-		Long:  accountsLongDesc,
+		Short: codebasesShortDesc,
+		Long:  codebasesLongDesc,
 		RunE:  codebasesRunE,
 	}
 )
@@ -60,32 +55,11 @@ func codebasesRunE(cmd *cobra.Command, args []string) (err error) {
 		err = errors.Join(ErrGitHubConnFailed, err)
 		return
 	}
-	err = codeimporter(ctx, log, client, db)
-
-	return
-}
-
-// codeimporter calls both import roots
-func codeimporter(ctx context.Context, log *slog.Logger, client *github.Client, db *sqlx.DB) (err error) {
-	// close the db
-	defer db.Close()
-
-	err = dbmigrations.Migrate(ctx, log, db)
+	_, err = codebasesImport(ctx, log, client.Teams, db)
 	if err != nil {
 		return
 	}
 
-	res, err := codebasesImport(ctx, log, client.Teams, db)
-	if err != nil {
-		return
-	}
-
-	debugger.Dump(res)
-
-	err = codeownerImport(ctx, log, client.Repositories, db, res)
-	if err != nil {
-		return
-	}
 	return
 }
 
@@ -118,30 +92,5 @@ func codebasesImport(ctx context.Context, log *slog.Logger, client codebase.GitH
 
 	log.With("count", len(result)).Info("completed.")
 
-	return
-}
-
-// codeownerImport
-func codeownerImport(ctx context.Context, log *slog.Logger, client codeowner.GitHubClient, db *sqlx.DB, repos []*codebasemodels.Codebase) (err error) {
-	var (
-		result []*dbstatements.InsertStatement[*codeownermodels.Codeowner, int]
-		data   []*codeownermodels.Codeowner = []*codeownermodels.Codeowner{}
-		opts   *codeowner.Input             = &codeowner.Input{Codebases: repos}
-	)
-
-	log = log.With("package", "import", "func", "codeownerImport")
-	log.Info("starting codeonwer import command ...")
-
-	// fetch the data
-	data, err = codeowner.GetCodeowners(ctx, log, client, opts)
-	if err != nil {
-		return
-	}
-	// write the data
-	result, err = codeownerimports.Import(ctx, log, db, data)
-	if err != nil {
-		return
-	}
-	log.With("count", len(result)).Info("completed.")
 	return
 }
