@@ -1,4 +1,7 @@
-name: "[Reports] GitHub Code Owners"
+# Code Owners updates both the code base listing and codeowners as they rely on each other
+#
+# The call to fetch code owner files is slow so this process can take a while
+name: "[Reports] Code Owners"
 
 on:
   # run at 5pm sunday
@@ -16,7 +19,7 @@ permissions:
 env:
   RELEASE_DIR: ./releases
   DB_DIR: ./databases
-  REPORT: "githubcodeowners"
+  REPORT: "codeowners"
 
 # jobs
 jobs:
@@ -79,9 +82,9 @@ jobs:
       # Run the report
       - name: "Run ${{ env.REPORT }} report"
         env:
-          DATABASE_PATH: ${{ env.DB_DIR }}/api.db
+          DB_PATH: ${{ env.DB_DIR }}/api.db
           GITHUB_TOKEN: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
-          cmd: ${{ env.RELEASE_DIR }}/importer ${{ env.REPORT }}
+          cmd: ${{ env.RELEASE_DIR }}/import ${{ env.REPORT }}
         run: |
           chmod -Rf 0777 ${{ env.RELEASE_DIR }}
           ${{ env.cmd }}
