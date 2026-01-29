@@ -1,4 +1,4 @@
-name: "[Reports] AWS Uptime"
+name: "[Reports] Uptime"
 
 on:
   # run at 3am every day
