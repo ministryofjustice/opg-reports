@@ -32,14 +32,10 @@ type GitHubClient interface {
 
 // Input struct contains the options and required data for the function
 type Input struct {
-	Codebases []*codebasemodels.Codebase // list of codebases to fetch code ownership details about
+	OrgSlug    string                     // github org slug
+	ParentTeam string                     // github required parent team slug
+	Codebases  []*codebasemodels.Codebase // list of codebases to fetch code ownership details about
 }
-
-// fixed values
-const (
-	githubOrg          string = "ministryofjustice" // github org slug
-	requiredTeamParent string = "opg"               // used to filter team list based on parent slug matching
-)
 
 // mapping of codeowner / github teams to service teams (teams)
 var codeOwnerToTeamName map[string]string = map[string]string{
@@ -69,13 +65,13 @@ func GetCodeowners[T GitHubClient](ctx context.Context, log *slog.Logger, client
 
 		// fetch team info from the repo
 		lg.With("codebase", code.FullName).Debug("getting teams ...")
-		teams, err = getTeams(ctx, log, client, code)
+		teams, err = getTeams(ctx, log, client, in, code)
 		if err != nil {
 			return
 		}
 		// fetch content from code owner files
 		lg.With("codebase", code.FullName).Debug("getting codeowners ...")
-		owners, err = getCodeownersFromFiles(ctx, log, client, code)
+		owners, err = getCodeownersFromFiles(ctx, log, client, in, code)
 		if err != nil {
 			return
 		}
@@ -96,12 +92,14 @@ func GetCodeowners[T GitHubClient](ctx context.Context, log *slog.Logger, client
 
 // getCodeownersFromFiles tries to fetch CODEOWNER file content from set locations and
 // will process the content into just the team names, removing duplicates.
-func getCodeownersFromFiles[T GitHubClient](ctx context.Context, log *slog.Logger, client T, code *codebasemodels.Codebase) (owners []string, err error) {
-	var lg *slog.Logger = log.With("func", "domain.codeowners.codeowner.getCodeownersFromFiles")
-	var fileLocations []string = []string{
-		"./CODEOWNERS",
-		"./.github/CODEOWNERS",
-	}
+func getCodeownersFromFiles[T GitHubClient](ctx context.Context, log *slog.Logger, client T, in *Input, code *codebasemodels.Codebase) (owners []string, err error) {
+	var (
+		lg            *slog.Logger = log.With("func", "domain.codeowners.codeowner.getCodeownersFromFiles")
+		fileLocations []string     = []string{
+			"./CODEOWNERS",
+			"./.github/CODEOWNERS",
+		}
+	)
 	owners = []string{}
 
 	lg.With("codebase", code.FullName).Debug("starting ...")
@@ -113,7 +111,7 @@ func getCodeownersFromFiles[T GitHubClient](ctx context.Context, log *slog.Logge
 		)
 		lg.With("codeowner", filename).Debug("getting codeowner file ...")
 		// fetch
-		buff, _, e = client.DownloadContents(ctx, githubOrg, code.Name, filename, nil)
+		buff, _, e = client.DownloadContents(ctx, in.OrgSlug, code.Name, filename, nil)
 		lines = files.Lines(buff)
 		// if there is an error, file might not be present, so ignore rather than return
 		if e == nil && len(lines) > 0 {
@@ -133,7 +131,7 @@ func getCodeownersFromFiles[T GitHubClient](ctx context.Context, log *slog.Logge
 // of github results
 //
 // Filters based on team having a parent of `opg`
-func getTeams[T GitHubClient](ctx context.Context, log *slog.Logger, client T, code *codebasemodels.Codebase) (teams []*github.Team, err error) {
+func getTeams[T GitHubClient](ctx context.Context, log *slog.Logger, client T, in *Input, code *codebasemodels.Codebase) (teams []*github.Team, err error) {
 	var (
 		lg   *slog.Logger        = log.With("func", "domain.codeowners.codeowner.getTeams")
 		page int                 = 1
@@ -150,7 +148,7 @@ func getTeams[T GitHubClient](ctx context.Context, log *slog.Logger, client T, c
 		lg = log.With("page", page)
 		lg.Debug("getting team list ... ")
 		// fetch team data
-		list, response, err = client.ListTeams(ctx, githubOrg, code.Name, opts)
+		list, response, err = client.ListTeams(ctx, in.OrgSlug, code.Name, opts)
 		if err != nil {
 			log.Error("error getting team list")
 			err = errors.Join(ErrFailedGettingRepositoryTeams, err)
@@ -159,7 +157,7 @@ func getTeams[T GitHubClient](ctx context.Context, log *slog.Logger, client T, c
 		lg.With("count", len(list)).Debug("found teams ...")
 		// attach teams to the list
 		for _, team := range list {
-			if team.Parent != nil && *team.Parent.Slug == requiredTeamParent {
+			if team.Parent != nil && *team.Parent.Slug == in.ParentTeam {
 				teams = append(teams, team)
 			}
 		}

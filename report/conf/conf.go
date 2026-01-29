@@ -48,7 +48,9 @@ type teams struct {
 // github handles env token for access to github
 // during data imports
 type github struct {
-	Token string `json:"token"`
+	Token  string `json:"token"`
+	Org    string `json:"org"`
+	Parent string `json:"parent"`
 }
 
 // aws handles env token / session access to aws
@@ -86,7 +88,9 @@ func defaults() (cfg *Config) {
 			Params: "?_journal=WAL&_busy_timeout=5000&_vacuum=incremental&_synchronous=NORMAL&_cache_size=1000000000",
 		},
 		Github: &github{
-			Token: "",
+			Token:  "",
+			Parent: "opg",
+			Org:    "ministryofjustice",
 		},
 		AWS: &aws{
 			Region:  "eu-west-1",

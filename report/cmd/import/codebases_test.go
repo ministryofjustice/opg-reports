@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"opg-reports/report/internal/db/dbconnection"
 	"opg-reports/report/internal/db/dbmigrations"
+	"opg-reports/report/internal/domain/codebases/codebase"
 	"opg-reports/report/internal/domain/codebases/codebaseselects"
 	"opg-reports/report/internal/utils/ghclients"
 	"opg-reports/report/internal/utils/logger"
@@ -72,7 +73,11 @@ func TestImportsCodebasesWithMock(t *testing.T) {
 	dbmigrations.Migrate(ctx, log, db)
 	defer db.Close()
 
-	err = importCodebases(ctx, log, client, db)
+	err = importCodebases(ctx, log, client, db, &codebase.Options{
+		ExcludeArchived: true,
+		ParentTeam:      "opg",
+		OrgSlug:         "ministryofjustice",
+	})
 	if err != nil {
 		t.Errorf("unexpected import error: [%s]", err.Error())
 		t.FailNow()
@@ -112,7 +117,11 @@ func TestImportsCodebasesWithoutMock(t *testing.T) {
 	if os.Getenv("GH_TOKEN") != "" {
 		client, err = ghclients.New(ctx, log, os.Getenv("GH_TOKEN"))
 
-		err = importCodebases(ctx, log, client.Teams, db)
+		err = importCodebases(ctx, log, client.Teams, db, &codebase.Options{
+			ExcludeArchived: true,
+			ParentTeam:      "opg",
+			OrgSlug:         "ministryofjustice",
+		})
 		if err != nil {
 			t.Errorf("unexpected import error: [%s]", err.Error())
 			t.FailNow()

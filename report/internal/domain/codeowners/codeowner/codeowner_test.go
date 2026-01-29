@@ -21,8 +21,9 @@ import (
 type mockGetter struct{}
 
 func (self *mockGetter) ListTeams(ctx context.Context, owner, repo string, opts *github.ListOptions) (teams []*github.Team, resp *github.Response, err error) {
+
 	parent := &github.Team{
-		Slug: ptr.Ptr(requiredTeamParent),
+		Slug: ptr.Ptr("opg"),
 	}
 
 	teams = []*github.Team{
@@ -85,6 +86,7 @@ func TestDomainCodebasesWithMock(t *testing.T) {
 	var (
 		err    error
 		opts   *Input
+		org    string                       = "ministryofjustice"
 		client *mockGetter                  = &mockGetter{}
 		ctx    context.Context              = t.Context()
 		log    *slog.Logger                 = logger.New("error")
@@ -92,10 +94,12 @@ func TestDomainCodebasesWithMock(t *testing.T) {
 	)
 
 	opts = &Input{
+		OrgSlug:    org,
+		ParentTeam: "mock-parent",
 		Codebases: []*codebasemodels.Codebase{
-			{FullName: githubOrg + "/mock-repo-a", Name: "mock-repo-a"},
-			{FullName: githubOrg + "/mock-repo-b", Name: "mock-repo-b"},
-			{FullName: githubOrg + "/mock-repo-c", Name: "mock-repo-c"},
+			{FullName: org + "/mock-repo-a", Name: "mock-repo-a"},
+			{FullName: org + "/mock-repo-b", Name: "mock-repo-b"},
+			{FullName: org + "/mock-repo-c", Name: "mock-repo-c"},
 		},
 	}
 
@@ -119,7 +123,7 @@ func TestDomainCodebasesWithMock(t *testing.T) {
 
 	foundExtraBTeam := false
 	for _, row := range data {
-		if row.Name == "mock-team-c" && row.CodebaseFullName == githubOrg+"/mock-repo-b" {
+		if row.Name == "mock-team-c" && row.CodebaseFullName == org+"/mock-repo-b" {
 			foundExtraBTeam = true
 		}
 	}
@@ -140,6 +144,8 @@ func TestDomainCodeownerWithoutMock(t *testing.T) {
 		result []*codeownermodels.Codeowner = []*codeownermodels.Codeowner{}
 	)
 	opts = &Input{
+		OrgSlug:    "ministryofjustice",
+		ParentTeam: "opg",
 		Codebases: []*codebasemodels.Codebase{
 			{FullName: "ministryofjustice/opg-lpa", Name: "opg-lpa"},
 			{FullName: "ministryofjustice/opg-use-an-lpa", Name: "opg-use-an-lpa"},

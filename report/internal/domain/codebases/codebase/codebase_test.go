@@ -40,7 +40,7 @@ func TestDomainCodebasesWithMock(t *testing.T) {
 		client *mockGetter     = &mockGetter{}
 		ctx    context.Context = t.Context()
 		log    *slog.Logger    = logger.New("error")
-		opts   *Options        = &Options{ExcludeArchived: true}
+		opts   *Options        = &Options{ExcludeArchived: true, OrgSlug: "mock", ParentTeam: "test"}
 		data   []*codebasemodels.Codebase
 	)
 
@@ -69,7 +69,7 @@ func TestDomainCodebasesWithoutMock(t *testing.T) {
 		if err != nil {
 			t.Errorf("unexpected error:\n%s", err.Error())
 		}
-		opts := &Options{ExcludeArchived: true}
+		opts := &Options{ExcludeArchived: true, OrgSlug: "ministryofjustice", ParentTeam: "opg"}
 		data, err = GetCodebases(ctx, log, client.Teams, opts)
 		if err != nil {
 			t.Errorf("unexpected error:\n%s", err.Error())

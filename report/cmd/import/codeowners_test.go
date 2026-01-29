@@ -10,6 +10,7 @@ import (
 	"opg-reports/report/internal/db/dbconnection"
 	"opg-reports/report/internal/db/dbmigrations"
 	"opg-reports/report/internal/domain/codebases/codebasemodels"
+	"opg-reports/report/internal/domain/codeowners/codeowner"
 	"opg-reports/report/internal/domain/codeowners/codeownerselects"
 	"opg-reports/report/internal/utils/ghclients"
 	"opg-reports/report/internal/utils/logger"
@@ -89,20 +90,20 @@ func (self *mockCodeownerClient) DownloadContents(ctx context.Context, owner, re
 func TestImportsCodeownersWithMock(t *testing.T) {
 
 	var (
-		err       error
-		db        *sqlx.DB
-		client    *mockCodeownerClient = &mockCodeownerClient{}
-		code      []*codebasemodels.Codebase
-		ctx       context.Context = t.Context()
-		log       *slog.Logger    = logger.New("error")
-		dir       string          = t.TempDir()
-		dbPath    string          = filepath.Join(dir, "test-import-mock-codeowners.db")
-		githubOrg string          = "ministryofjustice"
+		err    error
+		db     *sqlx.DB
+		client *mockCodeownerClient = &mockCodeownerClient{}
+		code   []*codebasemodels.Codebase
+		ctx    context.Context = t.Context()
+		log    *slog.Logger    = logger.New("error")
+		dir    string          = t.TempDir()
+		dbPath string          = filepath.Join(dir, "test-import-mock-codeowners.db")
+		org    string          = "mock-org"
 	)
 	code = []*codebasemodels.Codebase{
-		{FullName: githubOrg + "/mock-repo-a", Name: "mock-repo-a"},
-		{FullName: githubOrg + "/mock-repo-b", Name: "mock-repo-b"},
-		{FullName: githubOrg + "/mock-repo-c", Name: "mock-repo-c"},
+		{FullName: org + "/mock-repo-a", Name: "mock-repo-a"},
+		{FullName: org + "/mock-repo-b", Name: "mock-repo-b"},
+		{FullName: org + "/mock-repo-c", Name: "mock-repo-c"},
 	}
 	// set the database
 	db, err = dbconnection.Connection(ctx, log, "sqlite3", dbPath)
@@ -113,7 +114,12 @@ func TestImportsCodeownersWithMock(t *testing.T) {
 	dbmigrations.Migrate(ctx, log, db)
 	defer db.Close()
 
-	err = importCodeowners(ctx, log, client, db, code)
+	err = importCodeowners(ctx, log, client, db, &codeowner.Input{
+		Codebases:  code,
+		ParentTeam: "opg",
+		OrgSlug:    org,
+	})
+
 	if err != nil {
 		t.Errorf("unexpected import error: [%s]", err.Error())
 		t.FailNow()
@@ -158,7 +164,11 @@ func TestImportsCodeownersWithoutMock(t *testing.T) {
 
 	if os.Getenv("GH_TOKEN") != "" {
 		client, err = ghclients.New(ctx, log, os.Getenv("GH_TOKEN"))
-		err = importCodeowners(ctx, log, client.Repositories, db, code)
+		err = importCodeowners(ctx, log, client.Repositories, db, &codeowner.Input{
+			Codebases:  code,
+			ParentTeam: "opg",
+			OrgSlug:    "ministryofjustice",
+		})
 		if err != nil {
 			t.Errorf("unexpected import error: [%s]", err.Error())
 			t.FailNow()

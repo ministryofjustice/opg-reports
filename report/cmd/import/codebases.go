@@ -47,16 +47,19 @@ func codebasesRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 	defer db.Close()
 
-	err = importCodebases(ctx, log, client.Teams, db)
+	err = importCodebases(ctx, log, client.Teams, db, &codebase.Options{
+		ExcludeArchived: true,
+		ParentTeam:      cfg.Github.Parent,
+		OrgSlug:         cfg.Github.Org,
+	})
 	return
 }
 
 // importCodebases imports all known, active codebases locally
-func importCodebases(ctx context.Context, log *slog.Logger, client codebase.GitHubClient, db *sqlx.DB) (err error) {
+func importCodebases(ctx context.Context, log *slog.Logger, client codebase.GitHubClient, db *sqlx.DB, opts *codebase.Options) (err error) {
 	var (
 		result []*dbstatements.InsertStatement[*codebasemodels.Codebase, int]
 		data   []*codebasemodels.Codebase = []*codebasemodels.Codebase{}
-		opts   *codebase.Options          = &codebase.Options{ExcludeArchived: true}
 		lg     *slog.Logger               = log.With("func", "import.importCodebases")
 	)
 

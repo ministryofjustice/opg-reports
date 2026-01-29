@@ -20,13 +20,9 @@ type GitHubClient interface {
 // from the full list
 type Options struct {
 	ExcludeArchived bool
+	OrgSlug         string // github org slug
+	ParentTeam      string // github required parent team slug
 }
-
-// fixed values
-const (
-	githubOrg  string = "ministryofjustice" // github org
-	githubTeam string = "opg"               // github root team
-)
 
 // GetCodebases finds all github repositories and returns them for the moj/opg team
 func GetCodebases[T GitHubClient](ctx context.Context, log *slog.Logger, client T, options *Options) (repos []*codebasemodels.Codebase, err error) {
@@ -88,7 +84,7 @@ func getRepositoryList[T GitHubClient](ctx context.Context, log *slog.Logger, cl
 		opts.Page = page
 		lg.With("page", page).Debug("getting page of repositories ...")
 		// fetch data from api
-		list, response, err = client.ListTeamReposBySlug(ctx, githubOrg, githubTeam, opts)
+		list, response, err = client.ListTeamReposBySlug(ctx, options.OrgSlug, options.ParentTeam, opts)
 		if err != nil {
 			err = errors.Join(ErrFailedGettingRepositoryPage, err)
 			return
