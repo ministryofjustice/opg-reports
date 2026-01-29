@@ -43,14 +43,14 @@ const (
 
 // mapping of codeowner / github teams to service teams (teams)
 var codeOwnerToTeamName map[string]string = map[string]string{
-	"ministryofjustice/digideps":                 "Digideps",
-	"ministryofjustice/opg-lpa-team":             "Make",
-	"ministryofjustice/opg-modernising-lpa-team": "Modernise",
-	"ministryofjustice/opg-sirius-poas":          "Sirius",
-	"ministryofjustice/opg-sirius-supervision":   "Sirius",
-	"ministryofjustice/opg-use-a-lpa-team":       "Use",
-	"ministryofjustice/serve-opg":                "Serve",
-	"ministryofjustice/sirius":                   "Sirius",
+	"ministryofjustice/digideps":                 "digideps",
+	"ministryofjustice/opg-lpa-team":             "make",
+	"ministryofjustice/opg-modernising-lpa-team": "modernise",
+	"ministryofjustice/opg-sirius-poas":          "sirius",
+	"ministryofjustice/opg-sirius-supervision":   "sirius",
+	"ministryofjustice/opg-use-a-lpa-team":       "use",
+	"ministryofjustice/serve-opg":                "serve",
+	"ministryofjustice/sirius":                   "sirius",
 }
 
 // GetCodeowners uses a list of repositories (`Input.Codebases`) to find all code owners attached to those and
@@ -86,7 +86,7 @@ func GetCodeowners[T GitHubClient](ctx context.Context, log *slog.Logger, client
 			result = append(result, &codeownermodels.Codeowner{
 				Name:             row,
 				CodebaseFullName: code.FullName,
-				TeamName:         ownerToServiceTeam(row),
+				TeamName:         strings.ToLower(ownerToServiceTeam(row)),
 			})
 		}
 	}

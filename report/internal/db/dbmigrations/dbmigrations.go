@@ -54,7 +54,6 @@ func Migrate(ctx context.Context, log *slog.Logger, db *sqlx.DB, migrations ...M
 	if len(migrations) > 0 {
 		allMigrations = migrationsToRun
 	}
-
 	// first, find all migrations that have happened
 	log.Info("getting existing migrations ...")
 	err = dbselects.Select(ctx, log, db, selector)
@@ -67,7 +66,6 @@ func Migrate(ctx context.Context, log *slog.Logger, db *sqlx.DB, migrations ...M
 		log.Error("migration selection failed", "err", err.Error())
 		return
 	}
-
 	// insert migrations when done with the function, should trigger before error returns
 	defer func() {
 		insertMigrationData(ctx, log, db, done)

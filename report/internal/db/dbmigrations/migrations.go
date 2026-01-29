@@ -13,7 +13,15 @@ var MIGRATIONS []*Migration = []*Migration{
 	{Name: "agnostic_accounts", SQL: agnostic_accounts},
 	{Name: "agnostic_costs", SQL: agnostic_costs},
 	{Name: "agnostic_uptime", SQL: agnostic_uptime},
+
+	{Name: "lowercase_team_name", SQL: lowercase_team_name},
 }
+
+const lowercase_team_name string = `
+UPDATE codeowners SET(team_name) = LOWER(team_name);
+UPDATE accounts SET(team_name) = LOWER(team_name);
+UPDATE teams SET(name) = LOWER(name);
+`
 
 // agnostic_uptime removes the aws prefix
 const agnostic_uptime string = `

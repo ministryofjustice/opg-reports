@@ -13,6 +13,7 @@ import (
 	"opg-reports/report/internal/utils/zips"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/google/go-github/v81/github"
 )
@@ -110,7 +111,14 @@ func extractAndGetTeams(ctx context.Context, log *slog.Logger, metadataZip strin
 		err = ErrNoTeamsDatafile
 		return
 	}
-	unmarshal.FromFile(teamsFile, &teams)
+	err = unmarshal.FromFile(teamsFile, &teams)
+	if err != nil {
+		return
+	}
+
+	for _, team := range teams {
+		team.Name = strings.ToLower(team.Name)
+	}
 	return
 }
 
