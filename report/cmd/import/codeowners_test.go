@@ -42,8 +42,8 @@ func TestImportsCodeownersWithoutMock(t *testing.T) {
 	dbmigrations.Migrate(ctx, log, db)
 	defer db.Close()
 
-	if os.Getenv("GITHUB_TOKEN") != "" {
-		client, err = ghclients.New(ctx, log, os.Getenv("GITHUB_TOKEN"))
+	if os.Getenv("GH_TOKEN") != "" {
+		client, err = ghclients.New(ctx, log, os.Getenv("GH_TOKEN"))
 		err = importCodeowners(ctx, log, client.Repositories, db, code)
 		if err != nil {
 			t.Errorf("unexpected import error: [%s]", err.Error())

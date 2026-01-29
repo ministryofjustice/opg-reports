@@ -101,8 +101,8 @@ func TestDomainTeamsWithoutMock(t *testing.T) {
 		teams  []*teammodels.Team
 	)
 
-	if os.Getenv("GITHUB_TOKEN") != "" {
-		client, err = ghclients.New(ctx, log, os.Getenv("GITHUB_TOKEN"))
+	if os.Getenv("GH_TOKEN") != "" {
+		client, err = ghclients.New(ctx, log, os.Getenv("GH_TOKEN"))
 		if err != nil {
 			t.Errorf("unexpected error:\n%s", err.Error())
 		}

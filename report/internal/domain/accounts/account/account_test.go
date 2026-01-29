@@ -102,8 +102,8 @@ func TestDomainAccountsWithoutMock(t *testing.T) {
 		data   []*accountmodels.AwsAccount
 	)
 
-	if os.Getenv("GITHUB_TOKEN") != "" {
-		client, err = ghclients.New(ctx, log, os.Getenv("GITHUB_TOKEN"))
+	if os.Getenv("GH_TOKEN") != "" {
+		client, err = ghclients.New(ctx, log, os.Getenv("GH_TOKEN"))
 		if err != nil {
 			t.Errorf("unexpected error:\n%s", err.Error())
 		}
