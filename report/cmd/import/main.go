@@ -67,6 +67,7 @@ func main() {
 		teamsCmd,
 		codebasesCmd,
 		infracostsCmd,
+		uptimeCmd,
 	)
 
 	err = rootCmd.Execute()

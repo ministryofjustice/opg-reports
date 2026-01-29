@@ -31,3 +31,8 @@ func Add(t time.Time, modifier int, interval Interval) (added time.Time) {
 	}
 	return
 }
+
+// Yesterday returns the start of yesterday as a time
+func Yesterday() (t time.Time) {
+	return Add(ResetDay(time.Now().UTC()), -1, DAY)
+}

@@ -42,13 +42,12 @@ var (
 )
 
 type InfraOpts struct {
-	Region               string
 	AccountID            string
 	EndDate              string
 	IncludePreviousMonth bool
 }
 
-// accountsRunE is wrapper to use with cobra
+// wrapper to use with cobra
 func infracostsRunE(cmd *cobra.Command, args []string) (err error) {
 	var db *sqlx.DB
 	var client *costexplorer.Client
@@ -60,14 +59,13 @@ func infracostsRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	return infracostsImport(ctx, log, client, db, &InfraOpts{
-		Region:               region,
 		AccountID:            awsid.AccountID(ctx, log, region),
 		EndDate:              costsMonthFlag,
 		IncludePreviousMonth: includePreviousMonth,
 	})
 }
 
-// infracostsCmd
+// main import command
 func infracostsImport(ctx context.Context, log *slog.Logger, client infracost.AwsClient, db *sqlx.DB, in *InfraOpts) (err error) {
 	var (
 		result []*dbstatements.InsertStatement[*infracostmodels.Cost, int]
