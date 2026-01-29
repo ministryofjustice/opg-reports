@@ -3,12 +3,11 @@ package main
 import (
 	"context"
 	"log/slog"
-	"opg-reports/report/internal/db/dbconnection"
-	"opg-reports/report/internal/db/dbmigrations"
 	"opg-reports/report/internal/db/dbstatements"
 	"opg-reports/report/internal/domain/infracosts/infracost"
 	"opg-reports/report/internal/domain/infracosts/infracostimports"
 	"opg-reports/report/internal/domain/infracosts/infracostmodels"
+	"opg-reports/report/internal/utils/awsclients"
 	"opg-reports/report/internal/utils/awsid"
 	"opg-reports/report/internal/utils/times"
 	"time"
@@ -52,13 +51,17 @@ func infracostsRunE(cmd *cobra.Command, args []string) (err error) {
 	var db *sqlx.DB
 	var client *costexplorer.Client
 	var region string = cfg.AWS.Region
+
 	// db connection
-	db, err = dbconnection.Connection(ctx, log, cfg.DB.Driver, cfg.DB.ConnectionString())
+	db, err = dbconn(ctx, log)
 	if err != nil {
 		return
 	}
+	defer db.Close()
 
-	return infracostsImport(ctx, log, client, db, &InfraOpts{
+	client, err = awsclients.New[*costexplorer.Client](ctx, log, region)
+
+	return importInfracosts(ctx, log, client, db, &InfraOpts{
 		AccountID:            awsid.AccountID(ctx, log, region),
 		EndDate:              costsMonthFlag,
 		IncludePreviousMonth: includePreviousMonth,
@@ -66,7 +69,7 @@ func infracostsRunE(cmd *cobra.Command, args []string) (err error) {
 }
 
 // main import command
-func infracostsImport(ctx context.Context, log *slog.Logger, client infracost.AwsClient, db *sqlx.DB, in *InfraOpts) (err error) {
+func importInfracosts(ctx context.Context, log *slog.Logger, client infracost.AwsClient, db *sqlx.DB, in *InfraOpts) (err error) {
 	var (
 		result []*dbstatements.InsertStatement[*infracostmodels.Cost, int]
 		data   []*infracostmodels.Cost = []*infracostmodels.Cost{}
@@ -77,8 +80,6 @@ func infracostsImport(ctx context.Context, log *slog.Logger, client infracost.Aw
 
 	log = log.With("package", "import", "func", "infracostsImport", "account", opts.AccountID)
 	log.Info("starting infracost import command ...")
-	// close the db
-	defer db.Close()
 
 	// work out dates
 	opts.End, err = times.FromString(in.EndDate)
@@ -95,10 +96,6 @@ func infracostsImport(ctx context.Context, log *slog.Logger, client infracost.Aw
 	}
 	log.Debug("time period ...", "start", opts.Start, "end", opts.End)
 
-	err = dbmigrations.Migrate(ctx, log, db)
-	if err != nil {
-		return
-	}
 	// fetch the data
 	data, err = infracost.GetCostData(ctx, log, client, opts)
 	if err != nil {

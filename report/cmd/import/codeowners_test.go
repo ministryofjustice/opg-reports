@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"opg-reports/report/internal/db/dbconnection"
 	"opg-reports/report/internal/db/dbmigrations"
+	"opg-reports/report/internal/domain/codebases/codebasemodels"
 	"opg-reports/report/internal/utils/ghclients"
 	"opg-reports/report/internal/utils/logger"
 	"os"
@@ -15,17 +16,23 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func TestImportsCodebasesWithoutMock(t *testing.T) {
+func TestImportsCodeownersWithoutMock(t *testing.T) {
 
 	var (
 		err    error
 		client *github.Client
 		db     *sqlx.DB
+		code   []*codebasemodels.Codebase
 		ctx    context.Context = t.Context()
 		log    *slog.Logger    = logger.New("error")
 		dir    string          = t.TempDir()
-		dbPath string          = filepath.Join(dir, "test-import-codebases.db")
+		dbPath string          = filepath.Join(dir, "test-import-codeowners.db")
 	)
+	code = []*codebasemodels.Codebase{
+		{FullName: "ministryofjustice/opg-lpa", Name: "opg-lpa"},
+		{FullName: "ministryofjustice/opg-use-an-lpa", Name: "opg-use-an-lpa"},
+		{FullName: "ministryofjustice/opg-data-lpa-store", Name: "opg-data-lpa-store"},
+	}
 	// set the database
 	db, err = dbconnection.Connection(ctx, log, "sqlite3", dbPath)
 	if err != nil {
@@ -37,8 +44,7 @@ func TestImportsCodebasesWithoutMock(t *testing.T) {
 
 	if os.Getenv("GITHUB_TOKEN") != "" {
 		client, err = ghclients.New(ctx, log, os.Getenv("GITHUB_TOKEN"))
-
-		err = importCodebases(ctx, log, client.Teams, db)
+		err = importCodeowners(ctx, log, client.Repositories, db, code)
 		if err != nil {
 			t.Errorf("unexpected import error: [%s]", err.Error())
 			t.FailNow()

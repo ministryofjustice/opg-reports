@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"opg-reports/report/internal/db/dbconnection"
+	"opg-reports/report/internal/db/dbmigrations"
 	"opg-reports/report/internal/utils/awsclients"
 	"opg-reports/report/internal/utils/awsid"
 	"opg-reports/report/internal/utils/logger"
@@ -15,7 +16,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func TestImportInfracostsWithoutMock(t *testing.T) {
+func TestImportsInfracostsWithoutMock(t *testing.T) {
 
 	var (
 		err    error
@@ -33,6 +34,8 @@ func TestImportInfracostsWithoutMock(t *testing.T) {
 		t.Errorf("unexpected connection error: [%s]", err.Error())
 		t.FailNow()
 	}
+	dbmigrations.Migrate(ctx, log, db)
+	defer db.Close()
 
 	if os.Getenv("AWS_SESSION_TOKEN") != "" {
 		client, err = awsclients.New[*costexplorer.Client](ctx, log, region)
@@ -40,7 +43,7 @@ func TestImportInfracostsWithoutMock(t *testing.T) {
 			t.Errorf("unexpected error:\n%s", err.Error())
 			t.FailNow()
 		}
-		err = infracostsImport(ctx, log, client, db, &InfraOpts{
+		err = importInfracosts(ctx, log, client, db, &InfraOpts{
 			AccountID:            awsid.AccountID(ctx, log, region),
 			IncludePreviousMonth: true,
 			EndDate:              "2025-11-12",
@@ -50,5 +53,5 @@ func TestImportInfracostsWithoutMock(t *testing.T) {
 			t.FailNow()
 		}
 	}
-	t.FailNow()
+
 }

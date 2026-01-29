@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"opg-reports/report/internal/db/dbconnection"
+	"opg-reports/report/internal/db/dbmigrations"
 	"opg-reports/report/internal/utils/ghclients"
 	"opg-reports/report/internal/utils/logger"
 	"os"
@@ -14,7 +15,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func TestImportTeamsWithoutMock(t *testing.T) {
+func TestImportsTeamsWithoutMock(t *testing.T) {
 
 	var (
 		err    error
@@ -31,6 +32,8 @@ func TestImportTeamsWithoutMock(t *testing.T) {
 		t.Errorf("unexpected connection error: [%s]", err.Error())
 		t.FailNow()
 	}
+	dbmigrations.Migrate(ctx, log, db)
+	defer db.Close()
 
 	if os.Getenv("GITHUB_TOKEN") != "" {
 		client, err = ghclients.New(ctx, log, os.Getenv("GITHUB_TOKEN"))

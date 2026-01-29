@@ -2,16 +2,13 @@ package main
 
 import (
 	"context"
-	"errors"
 	"log/slog"
-	"opg-reports/report/internal/db/dbconnection"
 	"opg-reports/report/internal/db/dbstatements"
 	"opg-reports/report/internal/domain/codebases/codebasemodels"
 	"opg-reports/report/internal/domain/codebases/codebaseselects"
 	"opg-reports/report/internal/domain/codeowners/codeowner"
 	"opg-reports/report/internal/domain/codeowners/codeownerimports"
 	"opg-reports/report/internal/domain/codeowners/codeownermodels"
-	"opg-reports/report/internal/utils/ghclients"
 
 	"github.com/google/go-github/v81/github"
 	"github.com/jmoiron/sqlx"
@@ -37,37 +34,32 @@ var (
 
 // codeownersRunE is wrapper to use with cobra
 func codeownersRunE(cmd *cobra.Command, args []string) (err error) {
+	var repos []*codebasemodels.Codebase
 	var client *github.Client
 	var db *sqlx.DB
-	var repos []*codebasemodels.Codebase
-	// fail if there is no github token
-	if cfg.Github.Token == "" {
-		err = ErrGitHubTokenMissing
-		return
-	}
-	// create client
-	client, err = ghclients.New(ctx, log, cfg.Github.Token)
+	// get the github client
+	client, err = ghclient()
 	if err != nil {
-		log.Error("error connecting to client.", "err", err.Error())
-		err = errors.Join(ErrGitHubConnFailed, err)
 		return
 	}
 	// db connection
-	db, err = dbconnection.Connection(ctx, log, cfg.DB.Driver, cfg.DB.ConnectionString())
+	db, err = dbconn(ctx, log)
 	if err != nil {
 		return
 	}
+	defer db.Close()
+	// fetch codebases
 	repos, err = codebaseselects.All(ctx, log, db)
 	if err != nil {
 		return
 	}
 
-	return codeownerImport(ctx, log, client.Repositories, db, repos)
+	return importCodeowners(ctx, log, client.Repositories, db, repos)
 }
 
 // codeownersImport inner func called by the wrapper used by cobra
 // codeownerImport
-func codeownerImport(ctx context.Context, log *slog.Logger, client codeowner.GitHubClient, db *sqlx.DB, repos []*codebasemodels.Codebase) (err error) {
+func importCodeowners(ctx context.Context, log *slog.Logger, client codeowner.GitHubClient, db *sqlx.DB, repos []*codebasemodels.Codebase) (err error) {
 	var (
 		result []*dbstatements.InsertStatement[*codeownermodels.Codeowner, int]
 		data   []*codeownermodels.Codeowner = []*codeownermodels.Codeowner{}

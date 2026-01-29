@@ -5,9 +5,14 @@ import (
 	"errors"
 	"log/slog"
 	"opg-reports/report/conf"
+	"opg-reports/report/internal/db/dbconnection"
+	"opg-reports/report/internal/db/dbmigrations"
+	"opg-reports/report/internal/utils/ghclients"
 	"opg-reports/report/internal/utils/logger"
 	"os"
 
+	"github.com/google/go-github/v81/github"
+	"github.com/jmoiron/sqlx"
 	"github.com/spf13/cobra"
 )
 
@@ -42,6 +47,32 @@ var (
 	ErrGitHubConnFailed   = errors.New("github client failed with error.")
 )
 
+func dbconn(ctx context.Context, log *slog.Logger) (db *sqlx.DB, err error) {
+	// db connection
+	db, err = dbconnection.Connection(ctx, log, cfg.DB.Driver, cfg.DB.ConnectionString())
+	if err == nil {
+		err = dbmigrations.Migrate(ctx, log, db)
+	}
+	return
+}
+
+func ghclient() (client *github.Client, err error) {
+	// fail if there is no github token
+	if cfg.Github.Token == "" {
+		err = ErrGitHubTokenMissing
+		return
+	}
+	// create client
+	client, err = ghclients.New(ctx, log, cfg.Github.Token)
+	if err != nil {
+		log.Error("error connecting to client.", "err", err.Error())
+		err = errors.Join(ErrGitHubConnFailed, err)
+		return
+	}
+	return
+}
+
+// setup configures required vars for the commands
 func setup() {
 	cfg = conf.New()
 	ctx = context.Background()
@@ -66,6 +97,7 @@ func main() {
 		accountsCmd,
 		teamsCmd,
 		codebasesCmd,
+		codeownersCmd,
 		infracostsCmd,
 		uptimeCmd,
 	)

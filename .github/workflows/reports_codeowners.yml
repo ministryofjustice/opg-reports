@@ -1,6 +1,4 @@
-# Code Owners updates both the code base listing and codeowners as they rely on each other
-#
-# The call to fetch code owner files is slow so this process can take a while
+# Code Owners calls api & downloads code owner files - can be slow
 name: "[Reports] Code Owners"
 
 on:

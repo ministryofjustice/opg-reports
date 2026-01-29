@@ -4,13 +4,10 @@ import (
 	"context"
 	"errors"
 	"log/slog"
-	"opg-reports/report/internal/db/dbconnection"
-	"opg-reports/report/internal/db/dbmigrations"
 	"opg-reports/report/internal/db/dbstatements"
 	"opg-reports/report/internal/domain/teams/team"
 	"opg-reports/report/internal/domain/teams/teamimports"
 	"opg-reports/report/internal/domain/teams/teammodels"
-	"opg-reports/report/internal/utils/ghclients"
 	"os"
 
 	"github.com/google/go-github/v81/github"
@@ -44,23 +41,17 @@ var (
 func teamsRunE(cmd *cobra.Command, args []string) (err error) {
 	var client *github.Client
 	var db *sqlx.DB
-	// fail if there is no github token
-	if cfg.Github.Token == "" {
-		err = ErrGitHubTokenMissing
-		return
-	}
-	// create client
-	client, err = ghclients.New(ctx, log, cfg.Github.Token)
+	// get the github client
+	client, err = ghclient()
 	if err != nil {
-		log.Error("error connecting to client.", "err", err.Error())
-		err = errors.Join(ErrGitHubConnFailed, err)
 		return
 	}
 	// db connection
-	db, err = dbconnection.Connection(ctx, log, cfg.DB.Driver, cfg.DB.ConnectionString())
+	db, err = dbconn(ctx, log)
 	if err != nil {
 		return
 	}
+	defer db.Close()
 
 	return teamsImport(ctx, log, client.Repositories, db)
 }
@@ -78,13 +69,7 @@ func teamsImport(ctx context.Context, log *slog.Logger, client team.GitHubClient
 
 	log = log.With("package", "import", "func", "teamsImport")
 	log.Info("starting teams import command ...")
-	// close the db
-	defer db.Close()
 
-	err = dbmigrations.Migrate(ctx, log, db)
-	if err != nil {
-		return
-	}
 	// fetch the data
 	data, err = team.GetTeamData(ctx, log, client, opts)
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"opg-reports/report/internal/db/dbconnection"
+	"opg-reports/report/internal/db/dbmigrations"
 	"opg-reports/report/internal/utils/awsclients"
 	"opg-reports/report/internal/utils/awsid"
 	"opg-reports/report/internal/utils/logger"
@@ -16,7 +17,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func TestImportUptimeWithoutMock(t *testing.T) {
+func TestImportsUptimeWithoutMock(t *testing.T) {
 
 	var (
 		err    error
@@ -34,6 +35,8 @@ func TestImportUptimeWithoutMock(t *testing.T) {
 		t.Errorf("unexpected connection error: [%s]", err.Error())
 		t.FailNow()
 	}
+	dbmigrations.Migrate(ctx, log, db)
+	defer db.Close()
 
 	if os.Getenv("AWS_SESSION_TOKEN") != "" {
 		client, err = awsclients.New[*cloudwatch.Client](ctx, log, region)
@@ -41,7 +44,7 @@ func TestImportUptimeWithoutMock(t *testing.T) {
 			t.Errorf("unexpected error:\n%s", err.Error())
 			t.FailNow()
 		}
-		err = uptimeImport(ctx, log, client, db, &UptimeOpts{
+		err = importUptime(ctx, log, client, db, &UptimeOpts{
 			AccountID: awsid.AccountID(ctx, log, region),
 			Day:       times.AsYMDString(times.Yesterday()),
 		})

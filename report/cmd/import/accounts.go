@@ -2,15 +2,11 @@ package main
 
 import (
 	"context"
-	"errors"
 	"log/slog"
-	"opg-reports/report/internal/db/dbconnection"
-	"opg-reports/report/internal/db/dbmigrations"
 	"opg-reports/report/internal/db/dbstatements"
 	"opg-reports/report/internal/domain/accounts/account"
 	"opg-reports/report/internal/domain/accounts/accountimports"
 	"opg-reports/report/internal/domain/accounts/accountmodels"
-	"opg-reports/report/internal/utils/ghclients"
 	"os"
 
 	"github.com/google/go-github/v81/github"
@@ -39,28 +35,22 @@ var (
 func accountsRunE(cmd *cobra.Command, args []string) (err error) {
 	var client *github.Client
 	var db *sqlx.DB
-	// fail if there is no github token
-	if cfg.Github.Token == "" {
-		err = ErrGitHubTokenMissing
-		return
-	}
-	// create client
-	client, err = ghclients.New(ctx, log, cfg.Github.Token)
+	// get the github client
+	client, err = ghclient()
 	if err != nil {
-		log.Error("error connecting to client.", "err", err.Error())
-		err = errors.Join(ErrGitHubConnFailed, err)
 		return
 	}
 	// db connection
-	db, err = dbconnection.Connection(ctx, log, cfg.DB.Driver, cfg.DB.ConnectionString())
+	db, err = dbconn(ctx, log)
 	if err != nil {
 		return
 	}
-	return accountsImport(ctx, log, client.Repositories, db)
+	defer db.Close()
+	return importAccounts(ctx, log, client.Repositories, db)
 }
 
-// accountsImport inner func called by the wrapper used by cobra
-func accountsImport(ctx context.Context, log *slog.Logger, client account.GitHubClient, db *sqlx.DB) (err error) {
+// importAccounts imports all accounts from the opg-metadata repo released artifact
+func importAccounts(ctx context.Context, log *slog.Logger, client account.GitHubClient, db *sqlx.DB) (err error) {
 	var (
 		result []*dbstatements.InsertStatement[*accountmodels.AwsAccount, string]
 		data   []*accountmodels.AwsAccount = []*accountmodels.AwsAccount{}
@@ -72,13 +62,7 @@ func accountsImport(ctx context.Context, log *slog.Logger, client account.GitHub
 
 	log = log.With("package", "import", "func", "accountsImport")
 	log.Info("starting accounts import command ...")
-	// close the db
-	defer db.Close()
 
-	err = dbmigrations.Migrate(ctx, log, db)
-	if err != nil {
-		return
-	}
 	// fetch the data
 	data, err = account.GetAwsAccountData(ctx, log, client, opts)
 	if err != nil {
