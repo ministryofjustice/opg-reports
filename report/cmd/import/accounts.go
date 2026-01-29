@@ -52,10 +52,10 @@ func accountsRunE(cmd *cobra.Command, args []string) (err error) {
 // importAccounts imports all accounts from the opg-metadata repo released artifact
 func importAccounts(ctx context.Context, log *slog.Logger, client account.GitHubClient, db *sqlx.DB) (err error) {
 	var (
-		result []*dbstatements.InsertStatement[*accountmodels.AwsAccount, string]
-		data   []*accountmodels.AwsAccount = []*accountmodels.AwsAccount{}
-		opts   *account.Options            = &account.Options{}
-		lg     *slog.Logger                = log.With("func", "import.importAccounts")
+		result []*dbstatements.InsertStatement[*accountmodels.Account, string]
+		data   []*accountmodels.Account = []*accountmodels.Account{}
+		opts   *account.Options         = &account.Options{}
+		lg     *slog.Logger             = log.With("func", "import.importAccounts")
 	)
 	// config for the release
 	opts.Tag = cfg.Accounts.Release

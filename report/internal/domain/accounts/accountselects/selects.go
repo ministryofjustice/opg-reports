@@ -25,14 +25,14 @@ ORDER BY name, environment ASC
 // as a `select *` or `select count(*)`
 type empty struct{}
 
-func All(ctx context.Context, log *slog.Logger, db *sqlx.DB) (data []*accountmodels.AwsAccount, err error) {
+func All(ctx context.Context, log *slog.Logger, db *sqlx.DB) (data []*accountmodels.Account, err error) {
 	var (
 		lg       *slog.Logger = log.With("func", "domain.accounts.accountselects.All")
-		selector *dbstatements.SelectStatement[*empty, *accountmodels.AwsAccount]
+		selector *dbstatements.SelectStatement[*empty, *accountmodels.Account]
 	)
-	data = []*accountmodels.AwsAccount{}
+	data = []*accountmodels.Account{}
 	// setup the select
-	selector = &dbstatements.SelectStatement[*empty, *accountmodels.AwsAccount]{
+	selector = &dbstatements.SelectStatement[*empty, *accountmodels.Account]{
 		Statement: selectAllStmt,
 		Data:      &empty{},
 	}

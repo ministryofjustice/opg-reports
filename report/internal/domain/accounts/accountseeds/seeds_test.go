@@ -23,7 +23,7 @@ func TestDomainAccountsSeedWorking(t *testing.T) {
 		log        *slog.Logger    = logger.New("error", "text")
 		driver     string          = "sqlite3"
 		connStr    string          = fmt.Sprintf("%s/%s", dir, "seed-accounts-working.db")
-		statements []*dbstatements.InsertStatement[*accountmodels.AwsAccount, string]
+		statements []*dbstatements.InsertStatement[*accountmodels.Account, string]
 	)
 	// db connection
 	db, err = dbconnection.Connection(ctx, log, driver, connStr)

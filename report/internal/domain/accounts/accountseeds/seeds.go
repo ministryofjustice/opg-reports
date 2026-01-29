@@ -13,10 +13,10 @@ import (
 
 var ErrSeedFailed = errors.New("seed account call failed with an error.")
 
-var seeds []*accountmodels.AwsAccount
+var seeds []*accountmodels.Account
 
 func init() {
-	seeds = []*accountmodels.AwsAccount{
+	seeds = []*accountmodels.Account{
 		{ID: "001A", Name: "Account 1A", Label: "A", Environment: "development", TeamName: "TEAM-A"},
 		{ID: "001B", Name: "Account 1B", Label: "B", Environment: "production", TeamName: "TEAM-A"},
 		{ID: "002A", Name: "Account 2A", Label: "A", Environment: "production", TeamName: "TEAM-B"},
@@ -29,7 +29,7 @@ func init() {
 
 // Seed assumes the database already exists and the inserts pre-determined data
 // into the database via the import
-func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstatements.InsertStatement[*accountmodels.AwsAccount, string], err error) {
+func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstatements.InsertStatement[*accountmodels.Account, string], err error) {
 	var lg *slog.Logger = log.With("func", "domain.accounts.accountseeds.Seed")
 
 	lg.Debug("starting ...")

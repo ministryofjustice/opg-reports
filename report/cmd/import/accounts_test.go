@@ -143,7 +143,7 @@ func TestImportsAccountsWithoutMock(t *testing.T) {
 // and from that reads the zip and returns the content to simulate
 // a downloaded file
 func createDummyAccountsZip() []byte {
-	var mockAccounts = []*accountmodels.AwsAccount{
+	var mockAccounts = []*accountmodels.Account{
 		{
 			ID:          "mock-account-01A",
 			Name:        "mock-account-dev",

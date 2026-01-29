@@ -60,7 +60,7 @@ const (
 // The DataDirectory folder is deleted when exiting this function.
 //
 // Note: opg-metadata is private, so suitable permissions are required on the github client (and its token).
-func GetAwsAccountData[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, options *Options) (accounts []*accountmodels.AwsAccount, err error) {
+func GetAwsAccountData[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, options *Options) (accounts []*accountmodels.Account, err error) {
 
 	var (
 		release      *github.RepositoryRelease
@@ -105,12 +105,12 @@ func GetAwsAccountData[T GitHubClient](ctx context.Context, log *slog.Logger, gh
 }
 
 // extractAndGet extract the file and parse the file
-func extractAndGet(ctx context.Context, log *slog.Logger, metadataZip string, options *Options) (accounts []*accountmodels.AwsAccount, err error) {
+func extractAndGet(ctx context.Context, log *slog.Logger, metadataZip string, options *Options) (accounts []*accountmodels.Account, err error) {
 	var (
 		extractTo string = filepath.Join(options.DataDirectory, extractSubDir)
 		file      string = filepath.Join(extractTo, extractFile)
 	)
-	accounts = []*accountmodels.AwsAccount{}
+	accounts = []*accountmodels.Account{}
 
 	_, err = zips.Extract(metadataZip, extractTo)
 	if err != nil {

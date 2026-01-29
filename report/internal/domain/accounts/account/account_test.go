@@ -73,7 +73,7 @@ func TestDomainAccountsWithMock(t *testing.T) {
 		ctx    context.Context = t.Context()
 		log    *slog.Logger    = logger.New("error")
 		dir    string          = t.TempDir()
-		data   []*accountmodels.AwsAccount
+		data   []*accountmodels.Account
 	)
 
 	opts := &Options{
@@ -99,7 +99,7 @@ func TestDomainAccountsWithoutMock(t *testing.T) {
 		ctx    context.Context = t.Context()
 		log    *slog.Logger    = logger.New("error")
 		dir    string          = t.TempDir()
-		data   []*accountmodels.AwsAccount
+		data   []*accountmodels.Account
 	)
 
 	if os.Getenv("GH_TOKEN") != "" {
@@ -128,7 +128,7 @@ func TestDomainAccountsWithoutMock(t *testing.T) {
 // and from that reads the zip and returns the content to simulate
 // a downloaded file
 func createDummyZip() []byte {
-	var mockAccounts = []*accountmodels.AwsAccount{
+	var mockAccounts = []*accountmodels.Account{
 		{
 			ID:          "mock-account-01",
 			Name:        "mock-account",

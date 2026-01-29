@@ -41,16 +41,16 @@ RETURNING id
 // insert records in to the active database connection.
 //
 // `data` is presumed to come from the account.GetAwsAccountData
-func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*accountmodels.AwsAccount) (statements []*dbstatements.InsertStatement[*accountmodels.AwsAccount, string], err error) {
+func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*accountmodels.Account) (statements []*dbstatements.InsertStatement[*accountmodels.Account, string], err error) {
 	var lg *slog.Logger = log.With("func", "domain.accounts.accountimports.Import")
 
-	statements = []*dbstatements.InsertStatement[*accountmodels.AwsAccount, string]{}
+	statements = []*dbstatements.InsertStatement[*accountmodels.Account, string]{}
 
 	lg.Debug("starting ...")
 	lg.Debug("generating db insert statements ...")
 	// generate all of the insert statements from the data passed
 	for _, row := range data {
-		statements = append(statements, &dbstatements.InsertStatement[*accountmodels.AwsAccount, string]{
+		statements = append(statements, &dbstatements.InsertStatement[*accountmodels.Account, string]{
 			Statement: insertStmt,
 			Data:      row,
 		})
