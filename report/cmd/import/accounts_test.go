@@ -23,11 +23,11 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// mockClient is a mocked client that returns successful results
-type mockClient struct{}
+// mockAccountClient is a mocked client that returns successful results
+type mockAccountClient struct{}
 
 // GetReleaseByTag mocked version to return preset version
-func (self *mockClient) GetReleaseByTag(ctx context.Context, owner, repo, tag string) (rel *github.RepositoryRelease, resp *github.Response, err error) {
+func (self *mockAccountClient) GetReleaseByTag(ctx context.Context, owner, repo, tag string) (rel *github.RepositoryRelease, resp *github.Response, err error) {
 	var (
 		mockTar = &github.ReleaseAsset{
 			ID:          ptr.Ptr[int64](20001),
@@ -60,7 +60,7 @@ func (self *mockClient) GetReleaseByTag(ctx context.Context, owner, repo, tag st
 }
 
 // DownloadReleaseAsset returns mocked version with the asset name as the content of the file
-func (self *mockClient) DownloadReleaseAsset(ctx context.Context, owner, repo string, id int64, followRedirectsClient *http.Client) (rc io.ReadCloser, redirectURL string, err error) {
+func (self *mockAccountClient) DownloadReleaseAsset(ctx context.Context, owner, repo string, id int64, followRedirectsClient *http.Client) (rc io.ReadCloser, redirectURL string, err error) {
 
 	// create a temp zip file with account.aws.json file which contains dummy data
 	// - write to tmp location, read and stream
@@ -73,11 +73,11 @@ func TestImportsAccountsWithMock(t *testing.T) {
 	var (
 		err    error
 		db     *sqlx.DB
-		client *mockClient     = &mockClient{}
-		ctx    context.Context = t.Context()
-		log    *slog.Logger    = logger.New("error")
-		dir    string          = t.TempDir()
-		dbPath string          = filepath.Join(dir, "test-import-mock-accounts.db")
+		client *mockAccountClient = &mockAccountClient{}
+		ctx    context.Context    = t.Context()
+		log    *slog.Logger       = logger.New("error")
+		dir    string             = t.TempDir()
+		dbPath string             = filepath.Join(dir, "test-import-mock-accounts.db")
 	)
 	// set the database
 	db, err = dbconnection.Connection(ctx, log, "sqlite3", dbPath)
@@ -95,6 +95,10 @@ func TestImportsAccountsWithMock(t *testing.T) {
 	}
 
 	res, err := accountselects.All(ctx, log, db)
+	if err != nil {
+		t.Errorf("unexpected select error: [%s]", err.Error())
+		t.FailNow()
+	}
 	if len(res) != 2 {
 		t.Errorf("expected exactly 2 accounts from the mock data to be created.")
 	}
