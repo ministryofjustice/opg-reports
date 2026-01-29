@@ -24,8 +24,8 @@ func init() {
 	date = times.AsYMDString(time.Now())
 	seeds = []*uptimemodels.Uptime{
 		{Date: date, Average: "99.9901", AccountID: "001A"},
-		{Date: date, Average: "99.9801", AccountID: "001A"},
-		{Date: date, Average: "99.9801", AccountID: "001A"},
+		{Date: date, Average: "99.9801", AccountID: "001B"},
+		{Date: date, Average: "99.9801", AccountID: "001C"},
 	}
 }
 
