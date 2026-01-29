@@ -62,51 +62,51 @@ func GetUptimeData[T AwsClient](ctx context.Context, log *slog.Logger, client T,
 		list      *cloudwatch.ListMetricsOutput
 		statsOpts *cloudwatch.GetMetricStatisticsInput
 		stats     *cloudwatch.GetMetricStatisticsOutput
-		setRegion string = client.Options().Region
+		lg        *slog.Logger = log.With("func", "domain.uptime.uptime.GetUptimeData")
+		setRegion string       = client.Options().Region
 	)
 
-	log = log.With("package", "uptime", "func", "GetUptimeData")
-	log.With("options", options).Debug("starting ...")
+	lg.With("options", options).Debug("starting ...")
 	// check region
 	if setRegion != metricRegion {
 		err = ErrIncorrectRegion
-		log.Error("incorrect region used in client - requires us-east-1", "region", setRegion)
+		lg.Error("incorrect region used in client - requires us-east-1", "region", setRegion)
 		return
 	}
 
 	// fetch the list of all metrics from the api
-	log.Debug("getting lisst of metrics ...")
+	lg.Debug("getting lisst of metrics ...")
 	list, err = getHealthCheckMetrics(ctx, log, client)
 	if err != nil {
 		return
 	}
 
 	// get all the datapoints for each of the metrics
-	log.Debug("getting metric stats ...")
+	lg.Debug("getting metric stats ...")
 	stats, statsOpts, err = getHealthCheckStatistics(ctx, log, client, list, options)
 	if err != nil {
 		return
 	}
 
-	log.Debug("coverting to models ...")
+	lg.Debug("coverting to models ...")
 	data, err = toModels(ctx, log, options.AccountID, *statsOpts.Period, stats)
 	if err != nil {
 		return
 	}
 
-	log.With("count", len(data)).Debug("complete")
+	lg.With("count", len(data)).Debug("complete")
 	return
 }
 
 // toModels converts the raw data into a list of models ready to write to the database
 func toModels(ctx context.Context, log *slog.Logger, account string, period int32, result *cloudwatch.GetMetricStatisticsOutput) (data []*uptimemodels.Uptime, err error) {
 	var (
+		lg      *slog.Logger       = log.With("func", "domain.uptime.uptime.toModels")
 		grouped map[string]float64 = map[string]float64{}
 		counter map[string]int     = map[string]int{}
 	)
 	data = []*uptimemodels.Uptime{}
-	log = log.With("package", "uptime", "func", "toModels")
-	log.Debug("starting ... ")
+	lg.Debug("starting ... ")
 
 	// create a sum and count of each month uptime to then create the average entries
 	for _, point := range result.Datapoints {
@@ -136,7 +136,7 @@ func toModels(ctx context.Context, log *slog.Logger, account string, period int3
 		)
 		data = append(data, up)
 	}
-	log.Debug("complete.")
+	lg.Debug("complete.")
 	return
 }
 
@@ -145,22 +145,19 @@ func toModels(ctx context.Context, log *slog.Logger, account string, period int3
 //
 // T is *cloudwatch.Client
 func getHealthCheckStatistics[T AwsClient](ctx context.Context, log *slog.Logger, client T, list *cloudwatch.ListMetricsOutput, options *Options) (stats *cloudwatch.GetMetricStatisticsOutput, statsInput *cloudwatch.GetMetricStatisticsInput, err error) {
+	var lg *slog.Logger = log.With("func", "domain.uptime.uptime.getHealthCheckStatistics")
 
-	log = log.With("package", "uptime", "func", "getHealthCheckStatistics")
 	statsInput = getHeathCheckMetricStatsOptions(list, options)
-
-	log.Debug("starting ...")
-	log.With("period", *statsInput.Period).Debug("getting metrics statistics ...")
-
+	lg.Debug("starting ...")
+	lg.With("period", *statsInput.Period).Debug("getting metrics statistics ...")
 	// try and get the stats
 	stats, err = client.GetMetricStatistics(ctx, statsInput)
 	if err != nil {
-		log.Error("error getting metric statistics", "err", err.Error())
+		lg.Error("error getting metric statistics.", "err", err.Error())
 		err = errors.Join(ErrFailedGettingMetricStats, err)
 		return
 	}
-
-	log.With("count", len(stats.Datapoints)).Debug("complete.")
+	lg.With("count", len(stats.Datapoints)).Debug("complete.")
 	return
 }
 
@@ -168,24 +165,21 @@ func getHealthCheckStatistics[T AwsClient](ctx context.Context, log *slog.Logger
 //
 // T is *cloudwatch.Client
 func getHealthCheckMetrics[T AwsClient](ctx context.Context, log *slog.Logger, client T) (list *cloudwatch.ListMetricsOutput, err error) {
-
+	var lg *slog.Logger = log.With("func", "domain.uptime.uptime.getHealthCheckMetrics")
 	var listOptions *cloudwatch.ListMetricsInput = &cloudwatch.ListMetricsInput{
 		Namespace:  ptr.Ptr(metricsNamespace),
 		MetricName: ptr.Ptr(metricsName),
 	}
 
-	log = log.With("package", "uptime", "func", "getHealthCheckMetrics")
-	log.Debug("starting ...")
-	log.Debug("fetching metric data for account ...")
-
+	lg.Debug("starting ...")
+	lg.Debug("fetching metric data for account ...")
 	list, err = client.ListMetrics(ctx, listOptions)
 	if err != nil {
-		log.Error("error getting list of metrics", "err", err.Error())
+		lg.Error("error getting list of metrics", "err", err.Error())
 		err = errors.Join(ErrFailedGettingMetricsList, err)
 		return
 	}
-
-	log.With("count", len(list.Metrics)).Debug("complete.")
+	lg.With("count", len(list.Metrics)).Debug("complete.")
 	return
 }
 

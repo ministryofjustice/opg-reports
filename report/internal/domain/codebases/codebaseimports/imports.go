@@ -44,12 +44,11 @@ const truncateStmt string = `DELETE FROM codebases;`
 //
 // Table is truncated first, as codebases may have changed over time (deleted / renamed etc).
 func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*codebasemodels.Codebase) (statements []*dbstatements.InsertStatement[*codebasemodels.Codebase, int], err error) {
+	var lg *slog.Logger = log.With("func", "domain.codebases.codebaseimports.Import")
 
 	statements = []*dbstatements.InsertStatement[*codebasemodels.Codebase, int]{}
-	log = log.With("package", "codebases", "func", "Import")
-
-	log.Debug("starting ...")
-	log.Debug("generating db insert statements ...")
+	lg.Debug("starting ...")
+	lg.Debug("generating db insert statements ...")
 	// generate all of the insert statements from the data passed
 	for _, row := range data {
 		statements = append(statements, &dbstatements.InsertStatement[*codebasemodels.Codebase, int]{
@@ -60,18 +59,18 @@ func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*codebase
 	// truncate table
 	_, err = dbexec.Exec(ctx, log, db, dbstatements.Statement(truncateStmt))
 	if err != nil {
-		log.Error("error with truncate", "err", err.Error())
+		lg.Error("error with truncate.", "err", err.Error())
 		err = errors.Join(ErrTruncateFailed, err)
 		return
 	}
 	// run inserts
-	log.Debug("running import statements via insert")
+	lg.Debug("running import statements via insert ...")
 	err = dbinserts.Insert(ctx, log, db, statements...)
 	if err != nil {
-		log.Error("error with insert", "err", err.Error())
+		lg.Error("error with insert.", "err", err.Error())
 		err = errors.Join(ErrImportFailed, err)
 		return
 	}
-	log.Debug("complete.")
+	lg.Debug("complete.")
 	return
 }

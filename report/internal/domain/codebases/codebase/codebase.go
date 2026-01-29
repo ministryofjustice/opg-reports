@@ -30,34 +30,33 @@ const (
 
 // GetCodebases finds all github repositories and returns them for the moj/opg team
 func GetCodebases[T GitHubClient](ctx context.Context, log *slog.Logger, client T, options *Options) (repos []*codebasemodels.Codebase, err error) {
+	var lg *slog.Logger = log.With("func", "domain.codebases.codebase.GetCodebases")
 	var list []*github.Repository
 
-	log = log.With("package", "codebases", "func", "GetCodebases")
-	log.Debug("starting ...")
-
+	lg.Debug("starting ...")
 	// fetch all the repos
-	log.Debug("getting repository list ...")
+	lg.Debug("getting repository list ...")
 	list, err = getRepositoryList(ctx, log, client, options)
 	if err != nil {
 		return
 	}
 	// convert to local structs
-	log.Debug("converting to models ...")
+	lg.Debug("converting to models ...")
 	repos, err = toModels(ctx, log, list)
 	if err != nil {
 		return
 	}
 
-	log.With("count", len(repos)).Debug("complete.")
+	lg.With("count", len(repos)).Debug("complete.")
 	return
 }
 
 // toModels converts the api results into local structs
 func toModels(ctx context.Context, log *slog.Logger, list []*github.Repository) (repos []*codebasemodels.Codebase, err error) {
+	var lg *slog.Logger = log.With("func", "domain.codebases.codebase.toModels")
 
 	repos = []*codebasemodels.Codebase{}
-	log = log.With("package", "codebases", "func", "toModels")
-	log.Debug("starting ...")
+	lg.Debug("starting ...")
 
 	for _, item := range list {
 		var repo = &codebasemodels.Codebase{
@@ -67,7 +66,7 @@ func toModels(ctx context.Context, log *slog.Logger, list []*github.Repository) 
 		}
 		repos = append(repos, repo)
 	}
-	log.Debug("complete.")
+	lg.Debug("complete.")
 	return
 }
 
@@ -78,16 +77,16 @@ func getRepositoryList[T GitHubClient](ctx context.Context, log *slog.Logger, cl
 	var (
 		page int                 = 1
 		opts *github.ListOptions = &github.ListOptions{PerPage: 200}
+		lg   *slog.Logger        = log.With("func", "domain.codebases.codebase.getRepositoryList")
 	)
-	log = log.With("package", "codebases", "func", "getRepositoryList")
-	log.Debug("starting ...")
+	lg.Debug("starting ...")
 
 	for page > 0 {
 		var response *github.Response
 		var list []*github.Repository
 		// set the page to request
 		opts.Page = page
-		log.With("page", page).Debug("getting page of repositories ...")
+		lg.With("page", page).Debug("getting page of repositories ...")
 		// fetch data from api
 		list, response, err = client.ListTeamReposBySlug(ctx, githubOrg, githubTeam, opts)
 		if err != nil {
@@ -95,11 +94,11 @@ func getRepositoryList[T GitHubClient](ctx context.Context, log *slog.Logger, cl
 			return
 		}
 		// only add non archived repos
-		log.With("page", page, "count", len(list)).Debug("found repositories ... ")
+		lg.With("page", page, "count", len(list)).Debug("found repositories ...")
 
 		for _, repo := range list {
 			var include = includeInResult(repo, options)
-			log.With("include", include, "repo", *repo.FullName).Debug("checking repository ...")
+			lg.With("include", include, "repo", *repo.FullName).Debug("checking repository ...")
 			if include {
 				repositories = append(repositories, repo)
 			}
@@ -107,7 +106,7 @@ func getRepositoryList[T GitHubClient](ctx context.Context, log *slog.Logger, cl
 		page = response.NextPage
 	}
 
-	log.Debug("complete.")
+	lg.Debug("complete.")
 	return
 }
 

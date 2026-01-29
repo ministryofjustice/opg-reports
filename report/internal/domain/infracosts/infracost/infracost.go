@@ -45,32 +45,32 @@ type Options struct {
 //
 // Note: API limits grouping to 2, so we cant get linked account details at the same time.
 func GetCostData[T AwsClient](ctx context.Context, log *slog.Logger, client T, options *Options) (costs []*infracostmodels.Cost, err error) {
+	var lg *slog.Logger = log.With("func", "domain.infracosts.infracost.GetCostData")
 	var result *costexplorer.GetCostAndUsageOutput
 	var apiOpts *costexplorer.GetCostAndUsageInput = GetOptions(options.Start, options.End)
 
-	log = log.With("package", "infracosts", "func", "GetCostData")
-	log.Debug("starting ...")
+	lg.Debug("starting ...")
 	// initial call
 	result, err = client.GetCostAndUsage(ctx, apiOpts)
 	if err != nil {
 		err = errors.Join(ErrGettingCostData, err)
-		log.Error("error: failed to get cost data", "err", err.Error())
+		lg.Error("error: failed to get cost data.", "err", err.Error())
 		return
 	}
 
-	log.Debug("converting to models ...")
+	lg.Debug("converting to models ...")
 	costs, err = toModels(ctx, log, options.AccountID, result)
 
-	log.With("count", len(costs)).Debug("complete.")
+	lg.With("count", len(costs)).Debug("complete.")
 	return
 }
 
 // toModels converts the raw data into a list of models ready to write to the database
 func toModels(ctx context.Context, log *slog.Logger, account string, result *costexplorer.GetCostAndUsageOutput) (costs []*infracostmodels.Cost, err error) {
+	var lg *slog.Logger = log.With("func", "domain.infracosts.infracost.toModels")
 
 	costs = []*infracostmodels.Cost{}
-	log = log.With("package", "infracosts", "func", "toModels")
-	log.Debug("starting ... ")
+	lg.Debug("starting ... ")
 
 	for _, result := range result.ResultsByTime {
 		var day string = *result.TimePeriod.Start
@@ -92,7 +92,7 @@ func toModels(ctx context.Context, log *slog.Logger, account string, result *cos
 			}
 		}
 	}
-	log.Debug("complete.")
+	lg.With("count", len(costs)).Debug("complete.")
 
 	return
 }

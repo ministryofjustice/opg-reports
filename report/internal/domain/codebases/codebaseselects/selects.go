@@ -26,6 +26,7 @@ type empty struct{}
 
 func All(ctx context.Context, log *slog.Logger, db *sqlx.DB) (code []*codebasemodels.Codebase, err error) {
 	var (
+		lg       *slog.Logger = log.With("func", "domain.codebases.codebaseselects.All")
 		selector *dbstatements.SelectStatement[*empty, *codebasemodels.Codebase]
 	)
 	code = []*codebasemodels.Codebase{}
@@ -34,18 +35,17 @@ func All(ctx context.Context, log *slog.Logger, db *sqlx.DB) (code []*codebasemo
 		Statement: selectAllStmt,
 		Data:      &empty{},
 	}
-	log = log.With("package", "codebaseselects", "func", "All")
-	log.Debug("starting ...")
 
+	lg.Debug("starting ...")
 	err = dbselects.Select(ctx, log, db, selector)
 	if err != nil {
-		log.Error("error with select", "err", err.Error())
+		lg.Error("error with select.", "err", err.Error())
 		return
 	}
-
+	// setup output
 	for _, row := range selector.Returned {
 		code = append(code, row)
 	}
-
+	lg.Debug("complete.")
 	return
 }
