@@ -41,29 +41,29 @@ func Migrate(ctx context.Context, log *slog.Logger, db *sqlx.DB, migrations ...M
 		allMigrations   []*Migration                                      = MIGRATIONS // use this by default
 		migrationsToRun []*Migration                                      = []*Migration{}
 		done            []*Migration                                      = []*Migration{}
+		lg              *slog.Logger                                      = log.With("func", "dbmigrations.Migrate")
 		selector        *dbstatements.SelectStatement[*empty, *Migration] = &dbstatements.SelectStatement[*empty, *Migration]{
 			Statement: selectStmt,
 			Data:      &empty{},
 		}
 	)
 
-	log = log.With("package", "dbmigration", "func", "Migrate")
-	log.Debug("starting ...")
+	lg.Debug("starting ...")
 
 	// if migrations are passed, use those
 	if len(migrations) > 0 {
 		allMigrations = migrationsToRun
 	}
 	// first, find all migrations that have happened
-	log.Info("getting existing migrations ...")
+	lg.Info("getting existing migrations ...")
 	err = dbselects.Select(ctx, log, db, selector)
 	// if we get an error about missing table, that means no migration table
 	// is present so we need to run all migrations
 	if errors.Is(err, dbselects.ErrMissingTable) {
-		log.Debug("no migration table found, so will run all migrations.")
+		lg.Debug("no migration table found, so will run all migrations.")
 		err = nil
 	} else if err != nil {
-		log.Error("migration selection failed", "err", err.Error())
+		lg.Error("migration selection failed", "err", err.Error())
 		return
 	}
 	// insert migrations when done with the function, should trigger before error returns
@@ -73,19 +73,18 @@ func Migrate(ctx context.Context, log *slog.Logger, db *sqlx.DB, migrations ...M
 	// get the migrations we need to run
 	migrationsToRun = migrationsToExec(selector.Returned, allMigrations)
 	// now run the migrations
-	log.With("count", len(migrationsToRun)).Info("running migrataions ...")
+	lg.With("count", len(migrationsToRun)).Debug("running migrataions ...")
 	for _, toRun := range migrationsToRun {
 		_, err = dbexec.Exec(ctx, log, db, dbstatements.Statement(toRun.SQL))
 		if err != nil {
-			log.Error("error with migration exec", "err", err.Error())
+			lg.Error("error with migration exec", "err", err.Error())
 			err = errors.Join(ErrMigrationExecFailed, err)
 			return
 		} else {
 			done = append(done, toRun)
 		}
 	}
-
-	log.Debug("complete")
+	lg.Debug("complete.")
 	return
 
 }

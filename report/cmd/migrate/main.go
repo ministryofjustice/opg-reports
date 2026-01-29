@@ -37,11 +37,12 @@ environment variables that are utilised by this command:
 func migrateFunc(cmd *cobra.Command, args []string) (err error) {
 	var (
 		db      *sqlx.DB
-		driver  = cfg.DB.Driver
-		connStr = cfg.DB.ConnectionString()
+		driver  string       = cfg.DB.Driver
+		connStr string       = cfg.DB.ConnectionString()
+		lg      *slog.Logger = log.With("func", "migrate.migrateFunc")
 	)
-	log = log.With("package", "migrate", "func", "migrateFunc")
-	log.Info("starting migrate command ...")
+
+	lg.Info("starting migrate command ...")
 	// db connection
 	db, err = dbconnection.Connection(ctx, log, driver, connStr)
 	if err != nil {
@@ -54,7 +55,7 @@ func migrateFunc(cmd *cobra.Command, args []string) (err error) {
 	if err != nil {
 		return
 	}
-	log.Info("completed.")
+	lg.Info("completed.")
 	return
 }
 

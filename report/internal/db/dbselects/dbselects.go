@@ -13,6 +13,14 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+var (
+	ErrTransactionBeginFailed = errors.New("transaction begin failed with error.")
+	ErrPreparedStmtFailed     = errors.New("prepared stmt failed with error.")
+	ErrMissingResults         = errors.New("error with returned results.")
+	ErrFailedTx               = errors.New("error comitting txn.")
+	ErrMissingTable           = errors.New("missing table.")
+)
+
 // Select creates a transaction to run SQL command within the db. Data is attached to the `.Returned` property
 // on `stmt`
 func Select[T dbmodels.Model, R dbmodels.Result](ctx context.Context, log *slog.Logger, db *sqlx.DB, stmt *dbstatements.SelectStatement[T, R]) (err error) {
@@ -20,24 +28,24 @@ func Select[T dbmodels.Model, R dbmodels.Result](ctx context.Context, log *slog.
 	var (
 		transaction *sqlx.Tx
 		statement   *sqlx.NamedStmt
+		lg          *slog.Logger   = log.With("func", "dbselects.Select")
 		data        T              = stmt.Data
 		returned    []R            = []R{}
 		options     *sql.TxOptions = &sql.TxOptions{ReadOnly: true, Isolation: sql.LevelDefault}
 	)
 
-	log = log.With("package", "dbinserts", "func", "Insert")
-	log.Debug("starting ...")
+	lg.Debug("starting ...")
 	// start transaction
 	transaction, err = db.BeginTxx(ctx, options)
 	if err != nil {
-		log.Error("error with transaction begin", "err", err.Error())
+		lg.Error("error with transaction begin", "err", err.Error())
 		err = errors.Join(ErrTransactionBeginFailed, err)
 		return
 	}
 	// create prepared statement so placeholders are used
 	statement, err = transaction.PrepareNamedContext(ctx, stmt.Statement)
 	if err != nil {
-		log.Debug("prepared stmt failed", "err", err.Error(), "stmt", stmt.Statement)
+		lg.Debug("prepared stmt failed", "err", err.Error(), "stmt", stmt.Statement)
 		err = errors.Join(ErrPreparedStmtFailed, err)
 		if strings.Contains(err.Error(), "no such table") {
 			err = errors.Join(ErrMissingTable, err)
@@ -47,7 +55,7 @@ func Select[T dbmodels.Model, R dbmodels.Result](ctx context.Context, log *slog.
 	// run the select and attach the result
 	err = statement.SelectContext(ctx, &returned, data)
 	if err != nil && err != sql.ErrNoRows {
-		log.Error("stmt context failed", "error", err.Error())
+		lg.Error("stmt context failed", "error", err.Error())
 		err = errors.Join(ErrMissingResults, err)
 		return
 	}
@@ -55,10 +63,10 @@ func Select[T dbmodels.Model, R dbmodels.Result](ctx context.Context, log *slog.
 	// commit the transaction
 	err = transaction.Commit()
 	if err != nil {
-		log.Error("failed to commit transaction")
+		lg.Error("failed to commit transaction")
 		err = errors.Join(ErrFailedTx, err)
 	}
 
-	log.With("count", len(returned)).Debug("complete")
+	lg.With("count", len(returned)).Debug("complete")
 	return
 }

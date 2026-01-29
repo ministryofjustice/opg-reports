@@ -66,41 +66,41 @@ func GetAwsAccountData[T GitHubClient](ctx context.Context, log *slog.Logger, gh
 		release      *github.RepositoryRelease
 		asset        *github.ReleaseAsset
 		metadataFile string
+		lg           *slog.Logger = log.With("func", "domain.accounts.account.GetAwsAccountData")
 	)
 	// clean out the directory content
 	defer func() {
 		os.RemoveAll(options.DataDirectory)
 	}()
 
-	log = log.With("package", "accounts", "func", "GetTeamData").With("options", options)
-	log.Debug("starting ...")
+	lg.With("options", options).Debug("starting ...")
 
 	// find the release data
-	log.Debug("getting release ...")
+	lg.Debug("getting release ...")
 	release, err = getRelease(ctx, log, gh, options)
 	if err != nil {
 		return
 	}
 	// find the metadata asset
-	log.Debug("getting release asset ...")
+	lg.Debug("getting release asset ...")
 	asset, err = getReleaseAsset(ctx, log, release)
 	if err != nil {
 		return
 	}
 	// download the asset to a extract and parse the teams.json file
-	log.Debug("downloading asset ...")
+	lg.Debug("downloading asset ...")
 	metadataFile, err = downloadAsset(ctx, log, gh, asset, options)
 	if err != nil {
 		return
 	}
 	// extract the zip and get the team data
-	log.Debug("extracting and converting to models ...")
+	lg.Debug("extracting and converting to models ...")
 	accounts, err = extractAndGet(ctx, log, metadataFile, options)
 	if err != nil {
 		return
 	}
 
-	log.With("count", len(accounts)).Debug("complete.")
+	lg.With("count", len(accounts)).Debug("complete.")
 	return
 }
 
@@ -137,14 +137,15 @@ func extractAndGet(ctx context.Context, log *slog.Logger, metadataZip string, op
 func downloadAsset(ctx context.Context, log *slog.Logger, gh GitHubClient, asset *github.ReleaseAsset, options *Options) (src string, err error) {
 	var (
 		buff     io.ReadCloser
-		dlTo     string = filepath.Join(options.DataDirectory, downloadSubDir)
-		fileDest string = filepath.Join(dlTo, *asset.Name)
+		dlTo     string       = filepath.Join(options.DataDirectory, downloadSubDir)
+		fileDest string       = filepath.Join(dlTo, *asset.Name)
+		lg       *slog.Logger = log.With("func", "domain.accounts.account.downloadAsset")
 	)
 	// try to download
 	// download to buffer
 	buff, _, err = gh.DownloadReleaseAsset(ctx, owner, repository, *asset.ID, http.DefaultClient)
 	if err != nil {
-		log.Error("failed to download github release asset", "err", err.Error())
+		lg.Error("failed to download github release asset.", "err", err.Error())
 		err = errors.Join(ErrGithubAssetDownloadFailed, err)
 		return
 	}
@@ -155,7 +156,7 @@ func downloadAsset(ctx context.Context, log *slog.Logger, gh GitHubClient, asset
 	// copy to local dir
 	err = files.Copy(buff, fileDest)
 	if err != nil {
-		log.Error("error downloading metadata release asset", "err", err.Error())
+		lg.Error("error downloading metadata release asset.", "err", err.Error())
 		return
 	}
 	src = fileDest
@@ -164,10 +165,11 @@ func downloadAsset(ctx context.Context, log *slog.Logger, gh GitHubClient, asset
 
 // getReleaseAsset finds the named asset from the attached assets
 func getReleaseAsset(ctx context.Context, log *slog.Logger, release *github.RepositoryRelease) (asset *github.ReleaseAsset, err error) {
+	var lg *slog.Logger = log.With("func", "domain.accounts.account.getReleaseAsset")
 	// no assets, so a failure
 	if len(release.Assets) <= 0 {
 		err = ErrNoAssetsInRelease
-		log.Error("no assets found", "err", err.Error())
+		lg.Error("no assets found.", "err", err.Error())
 		return
 	}
 	// look for the asset name
@@ -179,7 +181,7 @@ func getReleaseAsset(ctx context.Context, log *slog.Logger, release *github.Repo
 	}
 	if asset == nil {
 		err = ErrNoMatchingAssetsInRelease
-		log.Error("no metadata.zip asset found", "err", err.Error())
+		lg.Error("no metadata.zip asset found.", "err", err.Error())
 		return
 	}
 	return
@@ -189,9 +191,11 @@ func getReleaseAsset(ctx context.Context, log *slog.Logger, release *github.Repo
 //
 // Does not check for pre-release / draft status, just the tag name
 func getRelease(ctx context.Context, log *slog.Logger, gh GitHubClient /**github.RepositoriesService*/, options *Options) (release *github.RepositoryRelease, err error) {
+	var lg *slog.Logger = log.With("func", "domain.accounts.account.getRelease")
+
 	release, _, err = gh.GetReleaseByTag(ctx, owner, repository, options.Tag)
 	if err != nil {
-		log.Error("error finding metadata release", "err", err.Error())
+		lg.Error("error finding metadata release.", "err", err.Error())
 		err = errors.Join(ErrFailedtoFindRelease, err)
 		return
 	}

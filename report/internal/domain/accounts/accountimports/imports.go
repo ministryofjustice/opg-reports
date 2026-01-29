@@ -42,12 +42,12 @@ RETURNING id
 //
 // `data` is presumed to come from the account.GetAwsAccountData
 func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*accountmodels.AwsAccount) (statements []*dbstatements.InsertStatement[*accountmodels.AwsAccount, string], err error) {
+	var lg *slog.Logger = log.With("func", "domain.accounts.accountimports.Import")
 
 	statements = []*dbstatements.InsertStatement[*accountmodels.AwsAccount, string]{}
-	log = log.With("package", "accounts", "func", "Import")
 
-	log.Debug("starting ...")
-	log.Debug("generating db insert statements ...")
+	lg.Debug("starting ...")
+	lg.Debug("generating db insert statements ...")
 	// generate all of the insert statements from the data passed
 	for _, row := range data {
 		statements = append(statements, &dbstatements.InsertStatement[*accountmodels.AwsAccount, string]{
@@ -56,10 +56,10 @@ func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*accountm
 		})
 	}
 	// run inserts
-	log.Debug("running import statements via insert")
+	lg.Debug("running import statements via insert ...")
 	err = dbinserts.Insert(ctx, log, db, statements...)
 	if err != nil {
-		log.Error("error with insert", "err", err.Error())
+		lg.Error("error with insert.", "err", err.Error())
 		err = errors.Join(ErrImportFailed, err)
 		return
 	}
