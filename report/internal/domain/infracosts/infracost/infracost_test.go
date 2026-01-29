@@ -144,6 +144,8 @@ func TestDomainInfracostsWithoutMock(t *testing.T) {
 		if len(r) <= 0 {
 			t.Error("failed to find cost data")
 		}
+	} else {
+		t.SkipNow()
 	}
 
 }

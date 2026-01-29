@@ -5,17 +5,107 @@ import (
 	"log/slog"
 	"opg-reports/report/internal/db/dbconnection"
 	"opg-reports/report/internal/db/dbmigrations"
+	"opg-reports/report/internal/domain/uptime/uptimeselects"
 	"opg-reports/report/internal/utils/awsclients"
 	"opg-reports/report/internal/utils/awsid"
 	"opg-reports/report/internal/utils/logger"
+	"opg-reports/report/internal/utils/ptr"
 	"opg-reports/report/internal/utils/times"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
 	"github.com/jmoiron/sqlx"
 )
+
+type mockUptimeClient struct{}
+
+func (self *mockUptimeClient) ListMetrics(ctx context.Context, params *cloudwatch.ListMetricsInput, optFns ...func(*cloudwatch.Options)) (out *cloudwatch.ListMetricsOutput, err error) {
+	var (
+		metricsNamespace string = "AWS/Route53"
+		metricsName      string = "HealthCheckPercentageHealthy"
+	)
+
+	out = &cloudwatch.ListMetricsOutput{
+		Metrics: []types.Metric{
+			{
+				MetricName: ptr.Ptr(metricsName),
+				Namespace:  ptr.Ptr(metricsNamespace),
+				Dimensions: []types.Dimension{
+					{
+						Name:  ptr.Ptr("metric-A"),
+						Value: ptr.Ptr("value-A"),
+					},
+				},
+			},
+		},
+	}
+	return
+}
+
+func (self *mockUptimeClient) GetMetricStatistics(ctx context.Context, params *cloudwatch.GetMetricStatisticsInput, optFns ...func(*cloudwatch.Options)) (out *cloudwatch.GetMetricStatisticsOutput, err error) {
+	var metricsUnit types.StandardUnit = types.StandardUnitPercent
+	var ts = time.Now()
+	out = &cloudwatch.GetMetricStatisticsOutput{
+		Datapoints: []types.Datapoint{
+			{
+				Unit:      metricsUnit,
+				Timestamp: ptr.Ptr(ts),
+				Average:   ptr.Ptr(99.999),
+			},
+		},
+	}
+	return
+}
+
+func (self *mockUptimeClient) Options() cloudwatch.Options {
+	return cloudwatch.Options{
+		Region: "us-east-1",
+	}
+}
+
+func TestImportsUptimeWithMock(t *testing.T) {
+
+	var (
+		err    error
+		db     *sqlx.DB
+		client *mockUptimeClient = &mockUptimeClient{}
+		ctx    context.Context   = t.Context()
+		log    *slog.Logger      = logger.New("error")
+		dir    string            = t.TempDir()
+		dbPath string            = filepath.Join(dir, "test-import-mock-uptime.db")
+	)
+	// set the database
+	db, err = dbconnection.Connection(ctx, log, "sqlite3", dbPath)
+	if err != nil {
+		t.Errorf("unexpected connection error: [%s]", err.Error())
+		t.FailNow()
+	}
+	dbmigrations.Migrate(ctx, log, db)
+	defer db.Close()
+
+	err = importUptime(ctx, log, client, db, &UptimeOpts{
+		AccountID: "mock-account-a",
+		Day:       times.AsYMDString(times.Yesterday()),
+	})
+	if err != nil {
+		t.Errorf("unexpected import error: [%s]", err.Error())
+		t.FailNow()
+	}
+
+	data, err := uptimeselects.All(ctx, log, db)
+	if err != nil {
+		t.Errorf("unexpected select error: [%s]", err.Error())
+		t.FailNow()
+	}
+	if len(data) <= 0 {
+		t.Errorf("expected more results.")
+	}
+
+}
 
 func TestImportsUptimeWithoutMock(t *testing.T) {
 
@@ -52,5 +142,7 @@ func TestImportsUptimeWithoutMock(t *testing.T) {
 			t.Errorf("unexpected import error: [%s]", err.Error())
 			t.FailNow()
 		}
+	} else {
+		t.SkipNow()
 	}
 }

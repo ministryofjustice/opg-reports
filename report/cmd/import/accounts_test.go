@@ -64,7 +64,7 @@ func (self *mockAccountClient) DownloadReleaseAsset(ctx context.Context, owner, 
 
 	// create a temp zip file with account.aws.json file which contains dummy data
 	// - write to tmp location, read and stream
-	content := createDummyZip()
+	content := createDummyAccountsZip()
 	rc = io.NopCloser(bytes.NewBuffer(content))
 	return
 }
@@ -139,10 +139,10 @@ func TestImportsAccountsWithoutMock(t *testing.T) {
 
 }
 
-// createDummyZip makes fake accounts json file, then builds a zip
+// createDummyAccountsZip makes fake accounts json file, then builds a zip
 // and from that reads the zip and returns the content to simulate
 // a downloaded file
-func createDummyZip() []byte {
+func createDummyAccountsZip() []byte {
 	var mockAccounts = []*accountmodels.AwsAccount{
 		{
 			ID:          "mock-account-01A",

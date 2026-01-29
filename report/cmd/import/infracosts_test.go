@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"opg-reports/report/internal/db/dbconnection"
 	"opg-reports/report/internal/db/dbmigrations"
+	"opg-reports/report/internal/domain/infracosts/infracostselects"
+	"opg-reports/report/internal/utils"
 	"opg-reports/report/internal/utils/awsclients"
 	"opg-reports/report/internal/utils/awsid"
 	"opg-reports/report/internal/utils/logger"
@@ -13,8 +15,106 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
+	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
 	"github.com/jmoiron/sqlx"
 )
+
+// mockInfracostClient returns a positive result with test data
+type mockInfracostClient struct{}
+
+func (self *mockInfracostClient) GetCostAndUsage(ctx context.Context, params *costexplorer.GetCostAndUsageInput, optFns ...func(*costexplorer.Options)) (out *costexplorer.GetCostAndUsageOutput, err error) {
+	out = &costexplorer.GetCostAndUsageOutput{
+		NextPageToken: nil,
+		ResultsByTime: []types.ResultByTime{
+			{
+				TimePeriod: &types.DateInterval{
+					Start: params.TimePeriod.Start,
+					End:   params.TimePeriod.End,
+				},
+				Groups: []types.Group{
+					{
+						Keys: []string{"AWS CloudTrail", "NoRegion"},
+						Metrics: map[string]types.MetricValue{
+							params.Metrics[0]: {
+								Amount: utils.Ptr("-3.61234665"),
+								Unit:   utils.Ptr("USD"),
+							},
+						},
+					},
+					{
+						Keys: []string{"AWS CloudTrail", "eu-west-1"},
+						Metrics: map[string]types.MetricValue{
+							params.Metrics[0]: {
+								Amount: utils.Ptr("10.8865"),
+								Unit:   utils.Ptr("USD"),
+							},
+						},
+					},
+					{
+						Keys: []string{"AWS CloudTrail", "eu-west-2"},
+						Metrics: map[string]types.MetricValue{
+							params.Metrics[0]: {
+								Amount: utils.Ptr("0.1065"),
+								Unit:   utils.Ptr("USD"),
+							},
+						},
+					},
+					{
+						Keys: []string{"Amazon DynamoDB", "eu-west-2"},
+						Metrics: map[string]types.MetricValue{
+							params.Metrics[0]: {
+								Amount: utils.Ptr("0.0050711398"),
+								Unit:   utils.Ptr("USD"),
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	return
+}
+
+func TestImportsInfracostsWithMock(t *testing.T) {
+
+	var (
+		err    error
+		db     *sqlx.DB
+		client *mockInfracostClient = &mockInfracostClient{}
+		ctx    context.Context      = t.Context()
+		log    *slog.Logger         = logger.New("error")
+		dir    string               = t.TempDir()
+		dbPath string               = filepath.Join(dir, "test-import-mock-infracosts.db")
+	)
+	// set the database
+	db, err = dbconnection.Connection(ctx, log, "sqlite3", dbPath)
+	if err != nil {
+		t.Errorf("unexpected connection error: [%s]", err.Error())
+		t.FailNow()
+	}
+	dbmigrations.Migrate(ctx, log, db)
+	defer db.Close()
+
+	err = importInfracosts(ctx, log, client, db, &InfraOpts{
+		AccountID:            "mock-account-id",
+		IncludePreviousMonth: true,
+		EndDate:              "2025-11-12",
+	})
+	if err != nil {
+		t.Errorf("unexpected import error: [%s]", err.Error())
+		t.FailNow()
+	}
+
+	data, err := infracostselects.All(ctx, log, db)
+	if err != nil {
+		t.Errorf("unexpected select error: [%s]", err.Error())
+		t.FailNow()
+	}
+	if len(data) <= 1 {
+		t.Errorf("expected more results.")
+	}
+
+}
 
 func TestImportsInfracostsWithoutMock(t *testing.T) {
 
@@ -52,6 +152,8 @@ func TestImportsInfracostsWithoutMock(t *testing.T) {
 			t.Errorf("unexpected import error: [%s]", err.Error())
 			t.FailNow()
 		}
+	} else {
+		t.Skip()
 	}
 
 }
