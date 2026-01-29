@@ -21,7 +21,7 @@ var (
 )
 
 func init() {
-	costDate = times.AsString(times.Add(time.Now(), -1, times.MONTHLY), times.YMD)
+	costDate = times.AsString(times.Add(time.Now(), -1, times.MONTH), times.YMD)
 
 	seeds = []*infracostmodels.Cost{
 		// account 001A

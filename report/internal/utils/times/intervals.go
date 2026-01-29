@@ -7,10 +7,10 @@ type Interval string
 
 // Enum values for Interval
 const (
-	YEARLY  Interval = "yearly"
-	MONTHLY Interval = "monthly"
-	DAILY   Interval = "daily"
-	HOURLY  Interval = "hourly"
+	YEAR  Interval = "yearly"
+	MONTH Interval = "monthly"
+	DAY   Interval = "daily"
+	HOUR  Interval = "hourly"
 )
 
 // Add increases (or decreases if modifier is negative) the time passed by the
@@ -19,13 +19,13 @@ func Add(t time.Time, modifier int, interval Interval) (added time.Time) {
 
 	added = t
 	switch interval {
-	case YEARLY:
+	case YEAR:
 		added = t.AddDate(modifier, 0, 0)
-	case MONTHLY:
+	case MONTH:
 		added = t.AddDate(0, modifier, 0)
-	case DAILY:
+	case DAY:
 		added = t.AddDate(0, 0, modifier)
-	case HOURLY:
+	case HOUR:
 		dur := time.Hour * time.Duration(modifier)
 		added = t.Add(dur)
 	}

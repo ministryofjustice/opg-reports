@@ -109,7 +109,7 @@ local/build/others:
 	@rm -Rf ${CMD_BUILD}
 	@mkdir -p ${CMD_BUILD} ${CMD_BUILD}/bin
 	@go build -o ${CMD_BUILD}/bin/db ./report/cmd/db/
-	@go build -o ${CMD_BUILD}/bin/importer ./report/cmd/importer/
+	@go build -o ${CMD_BUILD}/bin/import ./report/cmd/import/
 	@go build -o ${CMD_BUILD}/bin/seed ./report/cmd/seed/
 	@go build -o ${CMD_BUILD}/bin/migrate ./report/cmd/migrate/
 

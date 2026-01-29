@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	codebasesShortDesc string = `codebases fetches and imports code bases and codeowner data from github.`
+	codebasesShortDesc string = `codebases fetches and imports code bases and code owner data from github.`
 	codebasesLongDesc  string = `
 codebases fetches data from github based on toek permissions, the moj org and opg team.
 

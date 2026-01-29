@@ -65,6 +65,8 @@ func main() {
 	rootCmd.AddCommand(
 		accountsCmd,
 		teamsCmd,
+		codebasesCmd,
+		infracostsCmd,
 	)
 
 	err = rootCmd.Execute()
