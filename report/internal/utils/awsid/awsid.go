@@ -12,33 +12,35 @@ import (
 func Identity(ctx context.Context, log *slog.Logger, region string) (id *sts.GetCallerIdentityOutput) {
 	var err error
 	var client *sts.Client
+	var lg *slog.Logger = log.With("func", "utils.awsid.Identity")
 
-	log = log.With("package", "awsid", "func", "Identity")
-	log.Debug("starting ...")
+	lg.Debug("starting ...")
 
 	client, err = awsclients.New[*sts.Client](ctx, log, region)
 	if err != nil {
-		log.Error("failed to create sts client.")
+		lg.Error("failed to create sts client.")
 		return
 	}
 
 	id, err = client.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {
-		log.Error("failed to get identity details.")
+		lg.Error("failed to get identity details.")
 		return
 	}
-
-	log.Debug("complete.")
+	lg.Debug("complete.")
 	return
 
 }
 
 // AccountID returns just the account id detials from the session information
 func AccountID(ctx context.Context, log *slog.Logger, region string) (account string) {
-
-	var id *sts.GetCallerIdentityOutput = Identity(ctx, log, region)
+	var lg *slog.Logger = log.With("func", "utils.awsid.AccountID")
+	var id *sts.GetCallerIdentityOutput
+	lg.Debug("starting ...")
+	id = Identity(ctx, log, region)
 	if id != nil {
 		account = *id.Account
 	}
+	lg.Debug("complete.")
 	return
 }

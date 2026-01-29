@@ -14,6 +14,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
+var (
+	ErrLoadingConfig   error = errors.New("error loading config.")
+	ErrUnsupportedType error = errors.New("client type unsupported.")
+)
+
 // SupportedClients is a type constraint on creatign clients
 type SupportedClients interface {
 	*s3.Client | *sts.Client | *costexplorer.Client | *cloudwatch.Client
@@ -23,10 +28,14 @@ type SupportedClients interface {
 //
 // Supports: *s3.Client | *sts.Client | *costexplorer.Client | *cloudwatch.Client
 func New[T SupportedClients](ctx context.Context, log *slog.Logger, region string) (T, error) {
-	var err error
-	var awscfg aws.Config
-	var c interface{}
-	var t T
+	var (
+		err    error
+		awscfg aws.Config
+		c      interface{}
+		t      T
+		lg     *slog.Logger = log.With("func", "utils.awsclients.New")
+	)
+	lg.Debug("starting ...")
 
 	awscfg, err = config.LoadDefaultConfig(ctx, config.WithRegion(region))
 	if err != nil {
@@ -37,22 +46,20 @@ func New[T SupportedClients](ctx context.Context, log *slog.Logger, region strin
 	switch any(t).(type) {
 	case *costexplorer.Client:
 		c = costexplorer.NewFromConfig(awscfg)
-		return c.(T), nil
 	case *sts.Client:
 		c = sts.NewFromConfig(awscfg)
-		return c.(T), nil
 	case *s3.Client:
 		// disable checksum warning outputs
 		c = s3.NewFromConfig(awscfg, func(o *s3.Options) {
 			o.DisableLogOutputChecksumValidationSkipped = true
 		})
-		return c.(T), nil
 	case *cloudwatch.Client:
 		c = cloudwatch.NewFromConfig(awscfg)
-		return c.(T), nil
 	default:
 		err = errors.Join(ErrUnsupportedType, fmt.Errorf("client type [%T] is not supported.", t))
+		return nil, err
 	}
-	return nil, err
+	lg.Debug("complete.")
+	return c.(T), nil
 
 }
