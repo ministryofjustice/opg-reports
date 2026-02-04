@@ -130,10 +130,10 @@ jobs:
       - name: "Download GOV UK Front End assets [${{ env.BUILD_DIR_FRONT }}]"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SERVERS_FRONT_DIRECTORY: ${{ env.BUILD_DIR_FRONT }}
+          TARGET_DIR: ${{ env.BUILD_DIR_FRONT }}/govuk
           cmd: ${{ env.BUILD_DIR_BINARIES }}/govuk
         run: |
-          ${{ env.cmd }} frontend
+          ${{ env.cmd }} --directory="${{ env.TARGET_DIR }}"
           cp -r ./report/cmd/front/templates ${{ env.BUILD_DIR_FRONT }}/
           cp -r ./report/cmd/front/local-assets ${{ env.BUILD_DIR_FRONT }}/
       ## API BUILD
