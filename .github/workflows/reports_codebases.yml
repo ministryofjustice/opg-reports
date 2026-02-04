@@ -15,6 +15,7 @@ permissions:
 
 # general env vars for where downloading db / binary
 env:
+  ROOT_DIR: ./
   RELEASE_DIR: ./releases
   DB_DIR: ./databases
   REPORT: "codebases"
@@ -70,12 +71,16 @@ jobs:
       # download PRODUCTION database as the base to use to insert into
       - name: "Download database from PROD"
         env:
-          DATABASE_PATH: ${{ env.DB_DIR }}/api.db
-          DATABASE_BUCKET_NAME: ${{ needs.setup.outputs.s3_bucket_production }}
+          db_dir: ${{ env.ROOT_DIR }}
+          bucket: ${{ needs.setup.outputs.s3_bucket_production }}
+          key: databases/api.db
           cmd: ${{ env.RELEASE_DIR }}/db
         run: |
           chmod -Rf 0777 ${{ env.RELEASE_DIR }}
-          ${{ env.cmd }} download
+          ${{ env.cmd }} download \
+            --bucket=${{ env.bucket }} \
+            --key=${{ env.key }} \
+            --directory=${{ env.db_dir }}
           ls -lh ${{ env.DB_DIR }}
       # Run the report
       - name: "Run ${{ env.REPORT }} report"

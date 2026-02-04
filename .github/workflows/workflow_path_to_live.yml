@@ -151,11 +151,15 @@ jobs:
       # Download the database from the bucket
       - name: "Download database [${{ needs.setup.outputs.s3_bucket }}]"
         env:
-          DATABASE_PATH: ${{ env.BUILD_DIR_API }}/databases/api.db
-          DATABASE_BUCKET_NAME: ${{ needs.setup.outputs.s3_bucket }}
+          db_dir: ${{ env.BUILD_DIR_API }}
+          bucket: ${{ needs.setup.outputs.s3_bucket }}
+          key: databases/api.db
           cmd: ${{ env.BUILD_DIR_BINARIES }}/db
         run: |
-          ${{ env.cmd }} download
+          ${{ env.cmd }} download \
+            --bucket=${{ env.bucket }} \
+            --key=${{ env.key }} \
+            --directory=${{ env.db_dir }}
           ls -lh ${{ env.DATABASE_PATH }}
       ## DOCKER BUILD AND PUSH
       # Swap AWS creds for ECR usage
