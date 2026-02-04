@@ -102,26 +102,26 @@ func TestDomainAccountsWithoutMock(t *testing.T) {
 		data   []*accountmodels.Account
 	)
 
-	if os.Getenv("GH_TOKEN") != "" {
-		client, err = ghclients.New(ctx, log, os.Getenv("GH_TOKEN"))
-		if err != nil {
-			t.Errorf("unexpected error:\n%s", err.Error())
-		}
-		opts := &Options{
-			Tag:           "v0.1.26",
-			DataDirectory: dir,
-		}
-
-		data, err = GetAwsAccountData[*github.RepositoriesService](ctx, log, client.Repositories, opts)
-		if err != nil {
-			t.Errorf("unexpected error:\n%s", err.Error())
-		}
-		if len(data) < 30 {
-			t.Errorf("expected more teams in the list")
-		}
-	} else {
+	if os.Getenv("GH_TOKEN") == "" {
 		t.SkipNow()
 	}
+	client, err = ghclients.New(ctx, log, os.Getenv("GH_TOKEN"))
+	if err != nil {
+		t.Errorf("unexpected error:\n%s", err.Error())
+	}
+	opts := &Options{
+		Tag:           "v0.1.26",
+		DataDirectory: dir,
+	}
+
+	data, err = GetAwsAccountData[*github.RepositoriesService](ctx, log, client.Repositories, opts)
+	if err != nil {
+		t.Errorf("unexpected error:\n%s", err.Error())
+	}
+	if len(data) < 30 {
+		t.Errorf("expected more teams in the list")
+	}
+
 }
 
 // createDummyZip makes fake accounts json file, then builds a zip

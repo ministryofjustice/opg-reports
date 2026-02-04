@@ -105,6 +105,9 @@ func TestImportsCodebasesWithoutMock(t *testing.T) {
 		dir    string          = t.TempDir()
 		dbPath string          = filepath.Join(dir, "test-import-codebases.db")
 	)
+	if os.Getenv("GH_TOKEN") == "" {
+		t.SkipNow()
+	}
 	// set the database
 	db, err = dbconnection.Connection(ctx, log, "sqlite3", dbPath)
 	if err != nil {
@@ -114,19 +117,16 @@ func TestImportsCodebasesWithoutMock(t *testing.T) {
 	dbmigrations.Migrate(ctx, log, db)
 	defer db.Close()
 
-	if os.Getenv("GH_TOKEN") != "" {
-		client, err = ghclients.New(ctx, log, os.Getenv("GH_TOKEN"))
+	client, err = ghclients.New(ctx, log, os.Getenv("GH_TOKEN"))
 
-		err = importCodebases(ctx, log, client.Teams, db, &codebase.Options{
-			ExcludeArchived: true,
-			ParentTeam:      "opg",
-			OrgSlug:         "ministryofjustice",
-		})
-		if err != nil {
-			t.Errorf("unexpected import error: [%s]", err.Error())
-			t.FailNow()
-		}
-	} else {
-		t.SkipNow()
+	err = importCodebases(ctx, log, client.Teams, db, &codebase.Options{
+		ExcludeArchived: true,
+		ParentTeam:      "opg",
+		OrgSlug:         "ministryofjustice",
+	})
+	if err != nil {
+		t.Errorf("unexpected import error: [%s]", err.Error())
+		t.FailNow()
 	}
+
 }

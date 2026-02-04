@@ -63,22 +63,21 @@ func TestDomainCodebasesWithoutMock(t *testing.T) {
 		log    *slog.Logger    = logger.New("error")
 		data   []*codebasemodels.Codebase
 	)
-
-	if os.Getenv("GH_TOKEN") != "" {
-		client, err = ghclients.New(ctx, log, os.Getenv("GH_TOKEN"))
-		if err != nil {
-			t.Errorf("unexpected error:\n%s", err.Error())
-		}
-		opts := &Options{ExcludeArchived: true, OrgSlug: "ministryofjustice", ParentTeam: "opg"}
-		data, err = GetCodebases(ctx, log, client.Teams, opts)
-		if err != nil {
-			t.Errorf("unexpected error:\n%s", err.Error())
-		}
-		if len(data) < 5 {
-			t.Errorf("expected more teams in the list")
-		}
-
-	} else {
+	if os.Getenv("GH_TOKEN") == "" {
 		t.SkipNow()
 	}
+
+	client, err = ghclients.New(ctx, log, os.Getenv("GH_TOKEN"))
+	if err != nil {
+		t.Errorf("unexpected error:\n%s", err.Error())
+	}
+	opts := &Options{ExcludeArchived: true, OrgSlug: "ministryofjustice", ParentTeam: "opg"}
+	data, err = GetCodebases(ctx, log, client.Teams, opts)
+	if err != nil {
+		t.Errorf("unexpected error:\n%s", err.Error())
+	}
+	if len(data) < 5 {
+		t.Errorf("expected more teams in the list")
+	}
+
 }

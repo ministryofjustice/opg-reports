@@ -152,21 +152,21 @@ func TestDomainCodeownerWithoutMock(t *testing.T) {
 			{FullName: "ministryofjustice/opg-data-lpa-store", Name: "opg-data-lpa-store"},
 		},
 	}
-
-	if os.Getenv("GH_TOKEN") != "" {
-		client, err = ghclients.New(ctx, log, os.Getenv("GH_TOKEN"))
-		if err != nil {
-			t.Errorf("unexpected error:\n%s", err.Error())
-		}
-
-		result, err = GetCodeowners(ctx, log, client.Repositories, opts)
-		if err != nil {
-			t.Errorf("unexpected error:\n%s", err.Error())
-		}
-		if len(result) <= 0 {
-			t.Errorf("unexpected count of results")
-		}
-	} else {
+	if os.Getenv("GH_TOKEN") == "" {
 		t.SkipNow()
 	}
+
+	client, err = ghclients.New(ctx, log, os.Getenv("GH_TOKEN"))
+	if err != nil {
+		t.Errorf("unexpected error:\n%s", err.Error())
+	}
+
+	result, err = GetCodeowners(ctx, log, client.Repositories, opts)
+	if err != nil {
+		t.Errorf("unexpected error:\n%s", err.Error())
+	}
+	if len(result) <= 0 {
+		t.Errorf("unexpected count of results")
+	}
+
 }

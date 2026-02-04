@@ -30,22 +30,21 @@ func TestDBDownloadWithoutMock(t *testing.T) {
 			Directory: dir,
 		}
 	)
-
-	if os.Getenv("AWS_SESSION_TOKEN") != "" {
-		client, err = awsclients.New[*s3.Client](ctx, log, "eu-west-1")
-		if err != nil {
-			t.Errorf("unexpected error:\n%s", err.Error())
-		}
-
-		err = downloadItem(ctx, log, client, opts)
-		if err != nil {
-			t.Errorf("unexpected error:\n%s", err.Error())
-		}
-		if !files.Exists(filepath.Join(dir, opts.Key)) {
-			t.Errorf("file was not downloaded")
-		}
-
-	} else {
+	if os.Getenv("AWS_SESSION_TOKEN") == "" {
 		t.SkipNow()
 	}
+
+	client, err = awsclients.New[*s3.Client](ctx, log, "eu-west-1")
+	if err != nil {
+		t.Errorf("unexpected error:\n%s", err.Error())
+	}
+
+	err = downloadItem(ctx, log, client, opts)
+	if err != nil {
+		t.Errorf("unexpected error:\n%s", err.Error())
+	}
+	if !files.Exists(filepath.Join(dir, opts.Key)) {
+		t.Errorf("file was not downloaded")
+	}
+
 }

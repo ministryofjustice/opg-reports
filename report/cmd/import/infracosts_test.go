@@ -137,23 +137,23 @@ func TestImportsInfracostsWithoutMock(t *testing.T) {
 	dbmigrations.Migrate(ctx, log, db)
 	defer db.Close()
 
-	if os.Getenv("AWS_SESSION_TOKEN") != "" {
-		client, err = awsclients.New[*costexplorer.Client](ctx, log, region)
-		if err != nil {
-			t.Errorf("unexpected error:\n%s", err.Error())
-			t.FailNow()
-		}
-		err = importInfracosts(ctx, log, client, db, &InfraOpts{
-			AccountID:            awsid.AccountID(ctx, log, region),
-			IncludePreviousMonth: true,
-			EndDate:              "2025-11-12",
-		})
-		if err != nil {
-			t.Errorf("unexpected import error: [%s]", err.Error())
-			t.FailNow()
-		}
-	} else {
-		t.Skip()
+	if os.Getenv("AWS_SESSION_TOKEN") == "" {
+		t.SkipNow()
+	}
+
+	client, err = awsclients.New[*costexplorer.Client](ctx, log, region)
+	if err != nil {
+		t.Errorf("unexpected error:\n%s", err.Error())
+		t.FailNow()
+	}
+	err = importInfracosts(ctx, log, client, db, &InfraOpts{
+		AccountID:            awsid.AccountID(ctx, log, region),
+		IncludePreviousMonth: true,
+		EndDate:              "2025-11-12",
+	})
+	if err != nil {
+		t.Errorf("unexpected import error: [%s]", err.Error())
+		t.FailNow()
 	}
 
 }

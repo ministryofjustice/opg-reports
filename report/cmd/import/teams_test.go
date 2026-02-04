@@ -118,6 +118,10 @@ func TestImportsTeamsWithoutMock(t *testing.T) {
 		dir    string          = t.TempDir()
 		dbPath string          = filepath.Join(dir, "test-import-teams.db")
 	)
+	if os.Getenv("GH_TOKEN") == "" {
+		t.SkipNow()
+	}
+
 	// set the database
 	db, err = dbconnection.Connection(ctx, log, "sqlite3", dbPath)
 	if err != nil {
@@ -127,16 +131,12 @@ func TestImportsTeamsWithoutMock(t *testing.T) {
 	dbmigrations.Migrate(ctx, log, db)
 	defer db.Close()
 
-	if os.Getenv("GH_TOKEN") != "" {
-		client, err = ghclients.New(ctx, log, os.Getenv("GH_TOKEN"))
+	client, err = ghclients.New(ctx, log, os.Getenv("GH_TOKEN"))
 
-		err = teamsImport(ctx, log, client.Repositories, db)
-		if err != nil {
-			t.Errorf("unexpected import error: [%s]", err.Error())
-			t.FailNow()
-		}
-	} else {
-		t.SkipNow()
+	err = teamsImport(ctx, log, client.Repositories, db)
+	if err != nil {
+		t.Errorf("unexpected import error: [%s]", err.Error())
+		t.FailNow()
 	}
 
 }

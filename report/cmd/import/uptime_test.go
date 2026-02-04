@@ -119,6 +119,10 @@ func TestImportsUptimeWithoutMock(t *testing.T) {
 		dir    string          = t.TempDir()
 		dbPath string          = filepath.Join(dir, "test-import-uptime.db")
 	)
+	if os.Getenv("AWS_SESSION_TOKEN") == "" {
+		t.SkipNow()
+	}
+
 	// set the database
 	db, err = dbconnection.Connection(ctx, log, "sqlite3", dbPath)
 	if err != nil {
@@ -128,21 +132,18 @@ func TestImportsUptimeWithoutMock(t *testing.T) {
 	dbmigrations.Migrate(ctx, log, db)
 	defer db.Close()
 
-	if os.Getenv("AWS_SESSION_TOKEN") != "" {
-		client, err = awsclients.New[*cloudwatch.Client](ctx, log, region)
-		if err != nil {
-			t.Errorf("unexpected error:\n%s", err.Error())
-			t.FailNow()
-		}
-		err = importUptime(ctx, log, client, db, &UptimeOpts{
-			AccountID: awsid.AccountID(ctx, log, region),
-			Day:       times.AsYMDString(times.Yesterday()),
-		})
-		if err != nil {
-			t.Errorf("unexpected import error: [%s]", err.Error())
-			t.FailNow()
-		}
-	} else {
-		t.SkipNow()
+	client, err = awsclients.New[*cloudwatch.Client](ctx, log, region)
+	if err != nil {
+		t.Errorf("unexpected error:\n%s", err.Error())
+		t.FailNow()
 	}
+	err = importUptime(ctx, log, client, db, &UptimeOpts{
+		AccountID: awsid.AccountID(ctx, log, region),
+		Day:       times.AsYMDString(times.Yesterday()),
+	})
+	if err != nil {
+		t.Errorf("unexpected import error: [%s]", err.Error())
+		t.FailNow()
+	}
+
 }

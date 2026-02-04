@@ -25,22 +25,22 @@ func TestDomainGovUKDLWithoutMock(t *testing.T) {
 			Directory: dir,
 		}
 	)
-
-	if os.Getenv("GH_TOKEN") != "" {
-		client, err = ghclients.New(ctx, log, os.Getenv("GH_TOKEN"))
-		if err != nil {
-			t.Errorf("unexpected error:\n%s", err.Error())
-		}
-
-		dest, err = DownloadFrontEnd(ctx, log, client.Repositories, opts)
-		if err != nil {
-			t.Errorf("unexpected error:\n%s", err.Error())
-		}
-
-		if dest != dir {
-			t.Error("extracted zip into different location that set")
-		}
-	} else {
+	if os.Getenv("GH_TOKEN") == "" {
 		t.SkipNow()
 	}
+
+	client, err = ghclients.New(ctx, log, os.Getenv("GH_TOKEN"))
+	if err != nil {
+		t.Errorf("unexpected error:\n%s", err.Error())
+	}
+
+	dest, err = DownloadFrontEnd(ctx, log, client.Repositories, opts)
+	if err != nil {
+		t.Errorf("unexpected error:\n%s", err.Error())
+	}
+
+	if dest != dir {
+		t.Error("extracted zip into different location that set")
+	}
+
 }

@@ -90,22 +90,22 @@ func TestDomainUptimeWithoutMock(t *testing.T) {
 		start     time.Time       = now.AddDate(0, 0, -2)
 		end       time.Time       = now.AddDate(0, 0, -1)
 	)
-
-	if os.Getenv("AWS_SESSION_TOKEN") != "" {
-		client, err = awsclients.New[*cloudwatch.Client](ctx, log, "us-east-1")
-		if err != nil {
-			t.Errorf("unexpected error:\n%s", err.Error())
-			t.FailNow()
-		}
-		accountId = awsid.AccountID(ctx, log, "eu-west-1")
-		r, err = GetUptimeData(ctx, log, client, &Options{Start: start, End: end, AccountID: accountId})
-		if err != nil {
-			t.Errorf("unexpected error:\n%s", err.Error())
-		}
-		if len(r) <= 0 {
-			t.Error("failed to find uptime data")
-		}
-	} else {
-		t.Skip()
+	if os.Getenv("AWS_SESSION_TOKEN") == "" {
+		t.SkipNow()
 	}
+
+	client, err = awsclients.New[*cloudwatch.Client](ctx, log, "us-east-1")
+	if err != nil {
+		t.Errorf("unexpected error:\n%s", err.Error())
+		t.FailNow()
+	}
+	accountId = awsid.AccountID(ctx, log, "eu-west-1")
+	r, err = GetUptimeData(ctx, log, client, &Options{Start: start, End: end, AccountID: accountId})
+	if err != nil {
+		t.Errorf("unexpected error:\n%s", err.Error())
+	}
+	if len(r) <= 0 {
+		t.Error("failed to find uptime data")
+	}
+
 }
