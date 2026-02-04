@@ -75,7 +75,7 @@ func (self *mockInfracostClient) GetCostAndUsage(ctx context.Context, params *co
 	return
 }
 
-func TestImportsInfracostsWithMock(t *testing.T) {
+func TestCMDImportsInfracostsWithMock(t *testing.T) {
 
 	var (
 		err    error
@@ -116,7 +116,7 @@ func TestImportsInfracostsWithMock(t *testing.T) {
 
 }
 
-func TestImportsInfracostsWithoutMock(t *testing.T) {
+func TestCMDImportsInfracostsWithoutMock(t *testing.T) {
 
 	var (
 		err    error

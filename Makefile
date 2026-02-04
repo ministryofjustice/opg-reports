@@ -7,109 +7,66 @@ SERVICES ?= api front
 # FRONT_BUILD = ./builds/front
 
 # SOURCE DIRECTORIES
-SRC_CMDS = ./report/cmd
-CMD_LIST = $(notdir $(wildcard ${SRC_CMDS}/*))
+SRC_CMD_DIR = ./report/cmd
+CMD_LIST = $(notdir $(wildcard ${SRC_CMD_DIR}/*))
 SRC_FRONT_DIR = ./report/cmd/front
 # BUILT LOCATIONS
 BUILT_ROOT = ./builds
 ## api locations
-BUILT_API_DB_DIR = ${BUILT_ROOT}/api/databases
-BUILT_API_DB_PATH = ${BUILT_API_DB_DIR}/api.db
-BUILT_API_CMD = ${BUILT_ROOT}/api/api
+BUILT_API_DIR = ${BUILT_ROOT}/api
+BUILT_API_DB_PATH = ${BUILT_API_DIR}/api.db
+BUILT_API_CMD = ${BUILT_API_DIR}/api
 ## database downloader tool
-BUILT_DB_DOWNLOADER = ${BUILT_ROOT}/db/db
+BUILT_DB_DOWNLOADER_CMD = ${BUILT_ROOT}/db/db
 ## front
 BUILT_FRONT_DIR = ${BUILT_ROOT}/front/
 BUILT_FRONT_CMD = ${BUILT_ROOT}/front/front
 ## govuk related settings
 BUILT_GOVUK_CMD = ${BUILT_ROOT}/govuk/govuk
+## seed locations
+BUILT_SEED_CMD = ${BUILT_ROOT}/seed/seed
 
-
-#========= TESTS =========
-## Run all tests
-.PHONY: tests
-tests:
-	@go clean -testcache
-	@clear
-	@echo "=== tests"
-	@env CGO_ENABLED=1 \
-		LOG_LEVEL="WARN" \
-		GITHUB_TOKEN="${GITHUB_TOKEN}" \
-		AWS_REGION="${AWS_REGION}" \
-		AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" \
-		AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
-		AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
-		AWS_SESSION_TOKEN="${AWS_SESSION_TOKEN}" \
-		go test -count=1 -cover -covermode=atomic ./... && echo "" && echo "passed ✅" || echo "failed ❌"
-	@echo "==="
-
-## Run specific test via named param
-.PHONY: tests
-test:
-	@go clean -testcache
-	@clear
-	@echo "=== test: $(name)"
-	@env CGO_ENABLED=1 \
-		LOG_LEVEL="WARN" \
-		GITHUB_TOKEN="${GITHUB_TOKEN}" \
-		GH_TOKEN="${GITHUB_TOKEN}" \
-		AWS_REGION="${AWS_REGION}" \
-		AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" \
-		AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
-		AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
-		AWS_SESSION_TOKEN="${AWS_SESSION_TOKEN}" \
-		go test -count=1 -cover -covermode=atomic ./... -run="$(name)" && echo "" && echo "passed ✅" || echo "failed ❌"
-	@echo "==="
-
-
-## Run the go code coverage tool
-.PHONY: coverage
-coverage:
-	@rm -Rf ./code-coverage.out
-	@clear
-	@echo "=== coverage"
-	@env CGO_ENABLED=1 \
-		LOG_LEVEL="WARN" \
-		GITHUB_TOKEN="${GITHUB_TOKEN}" \
-		AWS_REGION="${AWS_REGION}" \
-		AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" \
-		AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
-		AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
-		AWS_SESSION_TOKEN="${AWS_SESSION_TOKEN}" \
-		go test -count=1 -covermode=count -coverprofile=code-coverage.out -cover ./...
-	@go tool cover -html=code-coverage.out
-
-#========= LOCAL BUILDS =========
+#========= LOCAL =========
 ## build all commands based on folder structure within the ./reports/cmd
-## directory
+## directory but allow CMD_LIST changed to make it smarter and allow
+## for updating just specific commands
 .PHONY: build-cmds
 build-cmds:
 	@for cmd in ${CMD_LIST}; do \
 		echo "- building command [$${cmd}] "; \
 		mkdir -p ${BUILT_ROOT}/$${cmd}/ ; \
 		rm -f ${BUILT_ROOT}/$${cmd}/$${cmd} ; \
-		go build -ldflags="-w -s" -o ${BUILT_ROOT}/$${cmd}/$${cmd} ${SRC_CMDS}/$${cmd}; \
+		go build -ldflags="-w -s" -o ${BUILT_ROOT}/$${cmd}/$${cmd} ${SRC_CMD_DIR}/$${cmd}; \
 	done
 
-#========= LOCAL SETUP =========
-
 ## download the development version of the database
+db_bucket = opg-reports-development
+db_key = database/api.db
 .PHONY: db-download
-db-download: CMD_LIST="db"
+db-download: CMD_LIST=db
 db-download: build-cmds
 	@echo "- downloading development database with aws-vault"
-	@mkdir -p ${BUILT_API_DB_DIR}
 	@rm -f ${BUILT_API_DB_PATH}
 	@aws-vault exec shared-development-operator -- \
-		env DATABASE_PATH=${BUILT_API_DB_PATH} \
-		DATABASE_BUCKET_NAME="opg-reports-development" \
-		${BUILT_DB_DOWNLOADER} download
+		${BUILT_DB_DOWNLOADER_CMD} download \
+			--bucket="${db_bucket}" \
+			--key="${db_key}" \
+			--directory="${BUILT_API_DIR}"
+
+## seed a local database at fixed path
+.PHONY: db-seed
+db-seed: CMD_LIST=seed
+db-seed: build-cmds
+	@echo "- seeding local database"
+	@env LOG_LEVEL=error ${BUILT_SEED_CMD} --db="${BUILT_API_DB_PATH}"
+
+
 
 ## run the api from the local ./build folder structure
 .PHONY: api
-api: CMD_LIST="api"
+api: CMD_LIST=api
 api: build-cmds
-	@echo "- starting api binary"
+	@echo "- starting api "
 	@env DATABASE_PATH=${BUILT_API_DB_PATH} \
 	SERVERS_API_ADDR="localhost:8081" \
 	SERVERS_FRONT_ADDR="localhost:8080" \
@@ -118,7 +75,7 @@ api: build-cmds
 ## run the front from the local ./build folders and setup templates
 ## and govuk assets as well
 .PHONY: front
-front: CMD_LIST="front"
+front: CMD_LIST=front govuk
 front: build-cmds
 	@rm -Rf ${BUILT_FRONT_DIR}/govuk
 	@echo "- downloading govuk assets"
@@ -176,3 +133,60 @@ front: build-cmds
 # 		-f docker-compose.dev.yml \
 # 		down
 # .PHONY: docker/down
+
+
+
+#========= TESTS =========
+## Run all tests
+.PHONY: tests
+tests:
+	@go clean -testcache
+	@clear
+	@echo "=== tests"
+	@env CGO_ENABLED=1 \
+		LOG_LEVEL="WARN" \
+		GITHUB_TOKEN="${GITHUB_TOKEN}" \
+		AWS_REGION="${AWS_REGION}" \
+		AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" \
+		AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
+		AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
+		AWS_SESSION_TOKEN="${AWS_SESSION_TOKEN}" \
+		go test -count=1 -cover -covermode=atomic ./... && echo "" && echo "passed ✅" || echo "failed ❌"
+	@echo "==="
+
+## Run specific test via named param
+.PHONY: tests
+test:
+	@go clean -testcache
+	@clear
+	@echo "=== test: $(name)"
+	@env CGO_ENABLED=1 \
+		LOG_LEVEL="WARN" \
+		GITHUB_TOKEN="${GITHUB_TOKEN}" \
+		GH_TOKEN="${GITHUB_TOKEN}" \
+		AWS_REGION="${AWS_REGION}" \
+		AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" \
+		AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
+		AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
+		AWS_SESSION_TOKEN="${AWS_SESSION_TOKEN}" \
+		go test -count=1 -cover -covermode=atomic ./... -run="$(name)" && echo "" && echo "passed ✅" || echo "failed ❌"
+	@echo "==="
+
+
+## Run the go code coverage tool
+.PHONY: coverage
+coverage:
+	@rm -Rf ./code-coverage.out
+	@clear
+	@echo "=== coverage"
+	@env CGO_ENABLED=1 \
+		LOG_LEVEL="WARN" \
+		GITHUB_TOKEN="${GITHUB_TOKEN}" \
+		AWS_REGION="${AWS_REGION}" \
+		AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" \
+		AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
+		AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
+		AWS_SESSION_TOKEN="${AWS_SESSION_TOKEN}" \
+		go test -count=1 -covermode=count -coverprofile=code-coverage.out -cover ./...
+	@go tool cover -html=code-coverage.out
+

@@ -69,7 +69,7 @@ func (self *mockAccountClient) DownloadReleaseAsset(ctx context.Context, owner, 
 	return
 }
 
-func TestImportsAccountsWithMock(t *testing.T) {
+func TestCMDImportsAccountsWithMock(t *testing.T) {
 	var (
 		err    error
 		db     *sqlx.DB
@@ -105,7 +105,7 @@ func TestImportsAccountsWithMock(t *testing.T) {
 
 }
 
-func TestImportsAccountsWithoutMock(t *testing.T) {
+func TestCMDImportsAccountsWithoutMock(t *testing.T) {
 
 	var (
 		err    error

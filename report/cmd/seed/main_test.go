@@ -1,23 +1,35 @@
 package main
 
 import (
-	"os"
+	"context"
+	"log/slog"
+	"opg-reports/report/internal/db/dbconnection"
+	"opg-reports/report/internal/utils/logger"
 	"path/filepath"
 	"testing"
+
+	"github.com/jmoiron/sqlx"
 )
 
 func TestCMDSeed(t *testing.T) {
 
 	var (
 		err    error
-		dir    string = t.TempDir()
-		dbPath string = filepath.Join(dir, "test-cmd-seed.db")
+		db     *sqlx.DB
+		ctx    context.Context = t.Context()
+		log    *slog.Logger    = logger.New("error")
+		dir    string          = t.TempDir()
+		dbPath string          = filepath.Join(dir, "test-cmd-seed.db")
 	)
-	// change location of the db
-	os.Setenv("DB_PATH", dbPath)
-	setup()
 
-	err = seedFunc(nil, []string{})
+	db, err = dbconnection.Connection(ctx, log, "sqlite3", dbPath)
+	if err != nil {
+		t.Errorf("unexpected connection error: [%s]", err.Error())
+		t.FailNow()
+	}
+	defer db.Close()
+
+	err = runSeeds(ctx, log, db)
 	if err != nil {
 		t.Errorf("unexpected seeding error: %s", err.Error())
 	}

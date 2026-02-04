@@ -69,7 +69,7 @@ func (self *mockTeamsClient) DownloadReleaseAsset(ctx context.Context, owner, re
 	return
 }
 
-func TestImportsTeamsWithMock(t *testing.T) {
+func TestCMDImportsTeamsWithMock(t *testing.T) {
 
 	var (
 		err    error
@@ -107,7 +107,7 @@ func TestImportsTeamsWithMock(t *testing.T) {
 
 }
 
-func TestImportsTeamsWithoutMock(t *testing.T) {
+func TestCMDImportsTeamsWithoutMock(t *testing.T) {
 
 	var (
 		err    error

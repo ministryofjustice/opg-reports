@@ -53,7 +53,7 @@ func (self *mockCodebaseClient) ListTeamReposBySlug(ctx context.Context, org, sl
 	return
 }
 
-func TestImportsCodebasesWithMock(t *testing.T) {
+func TestCMDImportsCodebasesWithMock(t *testing.T) {
 
 	var (
 		err    error
@@ -94,7 +94,7 @@ func TestImportsCodebasesWithMock(t *testing.T) {
 
 }
 
-func TestImportsCodebasesWithoutMock(t *testing.T) {
+func TestCMDImportsCodebasesWithoutMock(t *testing.T) {
 
 	var (
 		err    error

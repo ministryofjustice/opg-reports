@@ -67,7 +67,7 @@ func (self *mockUptimeClient) Options() cloudwatch.Options {
 	}
 }
 
-func TestImportsUptimeWithMock(t *testing.T) {
+func TestCMDImportsUptimeWithMock(t *testing.T) {
 
 	var (
 		err    error
@@ -107,7 +107,7 @@ func TestImportsUptimeWithMock(t *testing.T) {
 
 }
 
-func TestImportsUptimeWithoutMock(t *testing.T) {
+func TestCMDImportsUptimeWithoutMock(t *testing.T) {
 
 	var (
 		err    error

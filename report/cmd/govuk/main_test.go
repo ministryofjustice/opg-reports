@@ -12,7 +12,7 @@ import (
 	"github.com/google/go-github/v81/github"
 )
 
-func TestGovUKWithoutMock(t *testing.T) {
+func TestCMDGovUKWithoutMock(t *testing.T) {
 
 	var (
 		err    error

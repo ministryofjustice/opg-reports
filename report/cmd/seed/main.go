@@ -19,43 +19,54 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// config items
-var (
-	cfg     *conf.Config    // default config
-	ctx     context.Context // default context
-	log     *slog.Logger    // default logger
-	rootCmd *cobra.Command  // base command
-)
-
 const (
 	cmdName   string = "seed" // root command name
 	shortDesc string = `seed inserts test data into the configured database`
 	longDesc  string = `
 seed inserts test data into the configured database; generally intended for development use only. This will also run database migrataions before inserting seed data.
-
-environment variables that are utilised by this command:
-
-	DB_PATH
-		The file path of the database
 `
 )
 
-func seedFunc(cmd *cobra.Command, args []string) (err error) {
-	var (
-		db      *sqlx.DB
-		driver  string       = cfg.DB.Driver
-		connStr string       = cfg.DB.ConnectionString()
-		lg      *slog.Logger = log.With("func", "seed.seedFunc")
-	)
+// config items
+var (
+	cfg *conf.Config    // default config
+	ctx context.Context // default context
+	log *slog.Logger    // default logger
+)
 
-	lg.Info("starting seed command ...")
+var rootCmd = &cobra.Command{
+	Use:   cmdName,
+	Short: shortDesc,
+	Long:  longDesc,
+	RunE:  seedRunE,
+}
+
+var dbPath string = "api.db" // represents --db
+
+func seedRunE(cmd *cobra.Command, args []string) (err error) {
+	var db *sqlx.DB
+	// use the command flag value as the path
+	cfg.DB.Path = dbPath
 	// db connection
-	db, err = dbconnection.Connection(ctx, log, driver, connStr)
+	db, err = dbconnection.Connection(ctx, log, cfg.DB.Driver, cfg.DB.ConnectionString())
 	if err != nil {
 		return
 	}
 	// close the db
 	defer db.Close()
+	// run the seeds
+	err = runSeeds(ctx, log, db)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func runSeeds(ctx context.Context, log *slog.Logger, db *sqlx.DB) (err error) {
+	var lg *slog.Logger = log.With("func", "seed.runSeeds")
+
+	lg.Info("starting seed command ...")
 	// migrate the database
 	err = dbmigrations.Migrate(ctx, log, db)
 	if err != nil {
@@ -100,17 +111,13 @@ func setup() {
 	cfg = conf.New()
 	ctx = context.Background()
 	log = logger.New(cfg.Log.Level, cfg.Log.Type)
-	rootCmd = &cobra.Command{
-		Use:   cmdName,
-		Short: shortDesc,
-		Long:  longDesc,
-		RunE:  seedFunc,
-	}
+
 }
 
 // setup default values for config and logging
 func init() {
 	setup()
+	rootCmd.Flags().StringVar(&dbPath, "db", dbPath, "Path to database")
 }
 
 func main() {

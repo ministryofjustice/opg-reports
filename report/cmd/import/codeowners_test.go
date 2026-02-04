@@ -87,7 +87,7 @@ func (self *mockCodeownerClient) DownloadContents(ctx context.Context, owner, re
 	return
 }
 
-func TestImportsCodeownersWithMock(t *testing.T) {
+func TestCMDImportsCodeownersWithMock(t *testing.T) {
 
 	var (
 		err    error
@@ -136,7 +136,7 @@ func TestImportsCodeownersWithMock(t *testing.T) {
 
 }
 
-func TestImportsCodeownersWithoutMock(t *testing.T) {
+func TestCMDImportsCodeownersWithoutMock(t *testing.T) {
 
 	var (
 		err    error

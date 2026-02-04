@@ -16,33 +16,41 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// config items
-var (
-	cfg     *conf.Config    // default config
-	ctx     context.Context // default context
-	log     *slog.Logger    // default logger
-	rootCmd *cobra.Command  // base command
-)
-
 const (
-	cmdName   string = "import" // root command name
-	shortDesc string = `import fetches data from api source to then populate the local database.`
-	longDesc  string = `
+	metaDataReleaseTag string = "v0.1.26" // used by the account & team imports as default release
+	cmdName            string = "import"  // root command name
+	shortDesc          string = `import fetches data from api source to then populate the local database.`
+	longDesc           string = `
 import fetches data from API sources and other locations such as json file artifacts to populate the local database. It
 has a series of sub commands to call which will fetch data based on their domain / scope.
 `
 )
 
-const (
-	metaDataReleaseTag string = "v0.1.26"
-)
-
+// errors
 var (
 	ErrGitHubTokenMissing = errors.New("missing github token value.")
 	ErrGitHubConnFailed   = errors.New("github client failed with error.")
 )
 
+// config items
+var (
+	cfg *conf.Config    // default config
+	ctx context.Context // default context
+	log *slog.Logger    // default logger
+)
+
+var rootCmd *cobra.Command = &cobra.Command{
+	Use:               cmdName,
+	Short:             shortDesc,
+	Long:              longDesc,
+	CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
+}
+
+var dbPath string = "api.db" // represents --db
+
 func dbconn(ctx context.Context, log *slog.Logger) (db *sqlx.DB, err error) {
+	// set the path to the db from the param
+	cfg.DB.Path = dbPath
 	// db connection
 	db, err = dbconnection.Connection(ctx, log, cfg.DB.Driver, cfg.DB.ConnectionString())
 	if err == nil {
@@ -72,17 +80,13 @@ func setup() {
 	cfg = conf.New()
 	ctx = context.Background()
 	log = logger.New(cfg.Log.Level, cfg.Log.Type)
-	rootCmd = &cobra.Command{
-		Use:               cmdName,
-		Short:             shortDesc,
-		Long:              longDesc,
-		CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
-	}
+
 }
 
 // setup default values for config and logging
 func init() {
 	setup()
+	rootCmd.Flags().StringVar(&dbPath, "db", dbPath, "Path to database")
 }
 
 func main() {
