@@ -14,7 +14,7 @@ SRC_FRONT_DIR = ./report/cmd/front
 BUILT_ROOT = ./builds
 ## api locations
 BUILT_API_DIR = ${BUILT_ROOT}/api
-BUILT_API_DB_PATH = ${BUILT_API_DIR}/api.db
+BUILT_API_DB_PATH = ${BUILT_API_DIR}/database/api.db
 BUILT_API_CMD = ${BUILT_API_DIR}/api
 ## database downloader tool
 BUILT_DB_DOWNLOADER_CMD = ${BUILT_ROOT}/db/db
@@ -53,11 +53,11 @@ db-download: build-cmds
 			--key="${db_key}" \
 			--directory="${BUILT_API_DIR}"
 
-## seed a local database at fixed path
+## seed and migrate a local database at fixed path
 .PHONY: db-seed
 db-seed: CMD_LIST=seed
 db-seed: build-cmds
-	@echo "- seeding local database"
+	@echo "- seeding local database [${BUILT_API_DB_PATH}]"
 	@env LOG_LEVEL=error ${BUILT_SEED_CMD} --db="${BUILT_API_DB_PATH}"
 
 

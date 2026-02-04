@@ -41,7 +41,7 @@ var rootCmd = &cobra.Command{
 	RunE:  seedRunE,
 }
 
-var dbPath string = "api.db" // represents --db
+var dbPath string = "database/api.db" // represents --db
 
 func seedRunE(cmd *cobra.Command, args []string) (err error) {
 	var db *sqlx.DB
@@ -67,11 +67,12 @@ func runSeeds(ctx context.Context, log *slog.Logger, db *sqlx.DB) (err error) {
 	var lg *slog.Logger = log.With("func", "seed.runSeeds")
 
 	lg.Info("starting seed command ...")
-	// migrate the database
+	// // migrate the database
 	err = dbmigrations.Migrate(ctx, log, db)
 	if err != nil {
 		return
 	}
+
 	// seed teams
 	_, err = teamseeds.Seed(ctx, log, db)
 	if err != nil {

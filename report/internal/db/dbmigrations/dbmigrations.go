@@ -35,11 +35,11 @@ var ErrMigrationExecFailed = errors.New("migration statement failed with error")
 // exiting
 //
 // If `migrations` param is empty, then the default MIGRATIONS is used
-func Migrate(ctx context.Context, log *slog.Logger, db *sqlx.DB, migrations ...Migration) (err error) {
+func Migrate(ctx context.Context, log *slog.Logger, db *sqlx.DB, migrations ...*Migration) (err error) {
 
 	var (
 		allMigrations   []*Migration                                      = MIGRATIONS // use this by default
-		migrationsToRun []*Migration                                      = []*Migration{}
+		migrationsToRun []*Migration                                      = allMigrations
 		done            []*Migration                                      = []*Migration{}
 		lg              *slog.Logger                                      = log.With("func", "dbmigrations.Migrate")
 		selector        *dbstatements.SelectStatement[*empty, *Migration] = &dbstatements.SelectStatement[*empty, *Migration]{
@@ -50,26 +50,25 @@ func Migrate(ctx context.Context, log *slog.Logger, db *sqlx.DB, migrations ...M
 
 	lg.Debug("starting ...")
 
+	lg.Debug("running migration table create ....")
+	_, err = dbexec.Exec(ctx, log, db, dbstatements.Statement(create_migration))
+	if err != nil {
+		return
+	}
+
 	// if migrations are passed, use those
 	if len(migrations) > 0 {
-		allMigrations = migrationsToRun
+		migrationsToRun = migrations
 	}
 	// first, find all migrations that have happened
 	lg.Info("getting existing migrations ...")
 	err = dbselects.Select(ctx, log, db, selector)
-	// if we get an error about missing table, that means no migration table
-	// is present so we need to run all migrations
-	if errors.Is(err, dbselects.ErrMissingTable) {
-		lg.Debug("no migration table found, so will run all migrations.")
-		err = nil
-	} else if err != nil {
-		lg.Error("migration selection failed", "err", err.Error())
-		return
-	}
+
 	// insert migrations when done with the function, should trigger before error returns
 	defer func() {
 		insertMigrationData(ctx, log, db, done)
 	}()
+
 	// get the migrations we need to run
 	migrationsToRun = migrationsToExec(selector.Returned, allMigrations)
 	// now run the migrations

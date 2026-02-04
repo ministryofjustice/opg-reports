@@ -35,7 +35,7 @@ var rootCmd *cobra.Command = &cobra.Command{
 	RunE:  migrateRunE,
 }
 
-var dbPath string = "api.db" // represents --db
+var dbPath string = "database/api.db" // represents --db
 
 func migrateRunE(cmd *cobra.Command, args []string) (err error) {
 	var db *sqlx.DB
