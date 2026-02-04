@@ -42,6 +42,10 @@ environment variables that are utilised by this command:
 `
 )
 
+const (
+	metaDataReleaseTag string = "v0.1.26"
+)
+
 var (
 	ErrGitHubTokenMissing = errors.New("missing github token value.")
 	ErrGitHubConnFailed   = errors.New("github client failed with error.")

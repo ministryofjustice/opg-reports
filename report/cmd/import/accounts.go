@@ -22,6 +22,8 @@ the 'id' field are updated with new values.
 `
 )
 
+var accountReleaseTag string = metaDataReleaseTag // release version tag to fetch account data from
+
 var (
 	accountsCmd *cobra.Command = &cobra.Command{
 		Use:   "accounts",
@@ -58,7 +60,7 @@ func importAccounts(ctx context.Context, log *slog.Logger, client account.GitHub
 		lg     *slog.Logger             = log.With("func", "import.importAccounts")
 	)
 	// config for the release
-	opts.Tag = cfg.Accounts.Release
+	opts.Tag = accountReleaseTag
 	opts.DataDirectory, _ = os.MkdirTemp("", "__import-accounts-*")
 
 	lg.Info("starting accounts import command ...")
@@ -76,4 +78,10 @@ func importAccounts(ctx context.Context, log *slog.Logger, client account.GitHub
 	lg.With("count", len(result)).Info("completed.")
 
 	return
+}
+
+// add params to the command
+func init() {
+	accountsCmd.Flags().StringVar(&accountReleaseTag, "release-tag", accountReleaseTag, "Release to fetch account data from")
+
 }

@@ -23,6 +23,8 @@ the name field are updated with new values.
 `
 )
 
+var teamReleaseTag string = metaDataReleaseTag // release version tag to fetch account data from
+
 var (
 	ErrTeamsTokenMissing = errors.New("missing github token value.")
 	ErrTeamsConnFailed   = errors.New("github client failed with error.")
@@ -65,7 +67,7 @@ func teamsImport(ctx context.Context, log *slog.Logger, client team.GitHubClient
 		lg     *slog.Logger       = log.With("func", "import.teamsImport")
 	)
 	// config for the release
-	opts.Tag = cfg.Teams.Release
+	opts.Tag = teamReleaseTag
 	opts.DataDirectory, _ = os.MkdirTemp("", "__import-teams-*")
 
 	lg.Info("starting teams import command ...")
@@ -83,4 +85,10 @@ func teamsImport(ctx context.Context, log *slog.Logger, client team.GitHubClient
 	lg.With("count", len(result)).Info("completed.")
 
 	return
+}
+
+// add params to the command
+func init() {
+	accountsCmd.Flags().StringVar(&teamReleaseTag, "release-tag", teamReleaseTag, "Release to fetch account data from")
+
 }
