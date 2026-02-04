@@ -13,10 +13,6 @@ Available commands:
 
 	download
 	upload
-
-# Example
-
-`aws-vault exec <profile> -- env DATABASE_PATH="./data/api.db" db download`
 */
 package main
 

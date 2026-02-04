@@ -69,7 +69,10 @@ func init() {
 
 func main() {
 	var err error
-
+	// add commands
+	rootCmd.AddCommand(
+		dlCmd,
+	)
 	err = rootCmd.Execute()
 	if err != nil {
 		log.Error("error running command", "err", err.Error())
