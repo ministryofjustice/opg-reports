@@ -13,55 +13,70 @@ Available commands:
 
 	download
 	upload
+
+# Example
+
+`aws-vault exec <profile> -- env DATABASE_PATH="./data/api.db" db download`
 */
 package main
 
 import (
 	"context"
 	"log/slog"
+	"opg-reports/report/conf"
+	"opg-reports/report/internal/utils/logger"
 	"os"
 
-	"opg-reports/report/config"
-	"opg-reports/report/internal/utils"
-
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-// set up in the init
+const (
+	cmdName   string = "db" // root command name
+	shortDesc string = `db downloads or uploads sqlite database from s3`
+	longDesc  string = `
+db downloads or uploads the sqlite database from s3 bucket configured via argments with defaults.
+`
+)
+
+// config items
 var (
-	conf      *config.Config
-	viperConf *viper.Viper
-	ctx       context.Context
-	log       *slog.Logger
+	cfg *conf.Config    // default config
+	ctx context.Context // default context
+	log *slog.Logger    // default logger
 )
 
-// optional arguments
 var (
-	month string = ""
+	rootCmd *cobra.Command = &cobra.Command{
+		Use:   cmdName,
+		Short: shortDesc,
+		Long:  longDesc,
+		CompletionOptions: cobra.CompletionOptions{
+			DisableDefaultCmd: true,
+		},
+	}
 )
 
-// root command
-var rootCmd = &cobra.Command{
-	Use:               "db",
-	Short:             "db",
-	Long:              `db downloads or uploads sqlite database from s3`,
-	CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
+func setup() {
+	cfg = conf.New()
+	ctx = context.Background()
+	log = logger.New(cfg.Log.Level, cfg.Log.Type)
 }
 
-// init
+// setup default values for config and logging & add options
 func init() {
-	conf, viperConf = config.New()
-	ctx = context.Background()
-	log = utils.Logger(conf.Log.Level, conf.Log.Type)
+	setup()
 }
 
 func main() {
-	rootCmd.AddCommand(downloadCmd, uploadCmd)
-	err := rootCmd.Execute()
-	// fail on errir
+	var err error
+	// add commands
+	rootCmd.AddCommand(
+		dlCmd,
+		upCmd,
+	)
+	err = rootCmd.Execute()
 	if err != nil {
+		log.Error("error running command", "err", err.Error())
 		os.Exit(1)
 	}
-
 }

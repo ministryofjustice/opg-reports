@@ -1,69 +1,69 @@
 package main
 
 import (
-	"os"
-	"path/filepath"
-
-	"opg-reports/report/internal/repository/awsr"
-	"opg-reports/report/internal/utils"
+	"context"
+	"log/slog"
+	"opg-reports/report/internal/domain/uploads/upload"
+	"opg-reports/report/internal/utils/awsclients"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/spf13/cobra"
 )
 
-// uploadCmd uploads the local database to the configured s3 bucket
-var uploadCmd = &cobra.Command{
-	Use:   "upload",
-	Short: "upload uploads a local database to the s3 bucket",
-	Long: `
-upload uploads a local database to the s3 bucket
+const (
+	upCmdName   string = "upload" // root command name
+	upShortDesc string = `upload is used to upload the sqlite db to the s3 bucket.`
+	upLongDesc  string = `
+upload is used to upload the sqlite db local to the configured s3 bucket.
+`
+)
 
-env variables used that can be adjusted:
+var (
+	upBucket string = "opg-reports-development"
+	upKey    string = "database/api.db"
+	upFile   string = "database/api.db"
+	upRegion string = "eu-west-1"
+)
 
-	DATABASE_BUCKET_NAME
-		The name of the bucket to upload the database to
-	DATABASE_PATH
-		The file path to the sqlite database on the local filesystem to upload to s3
-`,
-	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		var (
-			s3Client = awsr.DefaultClient[*s3.Client](ctx, "eu-west-1")
-			awsStore = awsr.Default(ctx, log, conf)
-		)
-		err = uploadCmdRunner(s3Client, awsStore)
-		return
-	},
+var (
+	upCmd *cobra.Command = &cobra.Command{
+		Use:   upCmdName,
+		Short: upShortDesc,
+		Long:  upLongDesc,
+		RunE:  upRunE,
+	}
+)
+
+// wrapper to use with cobra
+func upRunE(cmd *cobra.Command, args []string) (err error) {
+
+	var client *s3.Client
+	client, err = awsclients.New[*s3.Client](ctx, log, dlRegion)
+	return uploadItem(ctx, log, client, &upload.Options{
+		Bucket:   upBucket,
+		Key:      upKey,
+		Filepath: "",
+	})
 }
 
-func uploadCmdRunner(
-	client awsr.ClientS3Putter,
-	store awsr.RepositoryS3BucketItemUploader,
-) (err error) {
-	var (
-		dir, _       = os.MkdirTemp("./", "__upload-s3-*")
-		copyFrom     = conf.Database.Path
-		copyTo       = filepath.Join(dir, filepath.Base(conf.Database.Path))
-		targetBucket = conf.Database.Bucket.Name
-		targetKey    = conf.Database.Bucket.Path()
-		src          *os.File
-	)
-	// open the existing db file & copy to the new location
-	src, err = os.Open(copyFrom)
-	if err != nil {
-		return
-	}
-	defer func() {
-		src.Close()
-		os.RemoveAll(dir)
-	}()
-	// copy...
-	err = utils.FileCopy(src, copyTo)
-	if err != nil {
-		return
-	}
-	// targetKey = "database/api2.db"
-	// now upload the copy
-	_, err = store.UploadItemToBucket(client, targetBucket, targetKey, copyTo)
+func uploadItem(ctx context.Context, log *slog.Logger, client upload.AwsClient, opts *upload.Options) (err error) {
+	var lg *slog.Logger = log.With("func", "db.uploadItem")
 
+	lg.Info("starting db upload command ...")
+	lg.With("opts", opts).Debug("options ...")
+
+	_, err = upload.UploadItemToBucket(ctx, log, client, opts)
+	if err != nil {
+		return
+	}
+
+	lg.With("filepath", opts.Filepath).Info("complete.")
 	return
+}
+
+func init() {
+	upCmd.Flags().StringVar(&upBucket, "bucket", upBucket, "Bucket name")
+	upCmd.Flags().StringVar(&upKey, "key", upKey, "Item key to upload file as.")
+	upCmd.Flags().StringVar(&upFile, "file", upFile, "File to upload.")
+	upCmd.Flags().StringVar(&upRegion, "region", upRegion, "AWS region.")
 }

@@ -112,7 +112,7 @@ func TestDomainTeamsWithoutMock(t *testing.T) {
 		Tag:           "v0.1.26",
 		DataDirectory: dir,
 	}
-	teams, err = GetTeamData[*github.RepositoriesService](ctx, log, client.Repositories, opts)
+	teams, err = GetTeamData(ctx, log, client.Repositories, opts)
 	if err != nil {
 		t.Errorf("unexpected error:\n%s", err.Error())
 	}

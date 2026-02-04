@@ -1,54 +1,69 @@
 package main
 
 import (
-	"os"
-	"path/filepath"
-
-	"opg-reports/report/internal/repository/awsr"
+	"context"
+	"log/slog"
+	"opg-reports/report/internal/domain/downloads/download"
+	"opg-reports/report/internal/utils/awsclients"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/spf13/cobra"
 )
 
-// downloadCmd downloads the database from the s3 bucket to a temp file
-// and then overwrites (using os.Rename) the configured database file.
-var downloadCmd = &cobra.Command{
-	Use:   "download",
-	Short: "download downloads the database from an s3 bucket to local file system",
-	Long: `
-download downloads the database from an s3 bucket to local file system
+const (
+	dlCmdName   string = "download" // root command name
+	dlShortDesc string = `download is used to download the sqlite db from the configured s3 bucket.`
+	dlLongDesc  string = `
+download is used to download the sqlite db from the configured s3 bucket to local file system.
+`
+)
 
-env variables used that can be adjusted:
+var (
+	dlBucket    string = "opg-reports-development"
+	dlKey       string = "database/api.db"
+	dlDirectory string = "./dl"
+	dlRegion    string = "eu-west-1"
+)
 
-	DATABASE_BUCKET_NAME
-		The name of the bucket that stores the sqlite database
-	DATABASE_BUCKET_KEY
-		The object key in the bucket (include folder path) where the sqlite db is stored
-	DATABASE_PATH
-		The file path to the sqlite database on the local filesystem to copy the s3 version into
-`,
-	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		var (
-			s3Client = awsr.DefaultClient[*s3.Client](ctx, "eu-west-1")
-			awsStore = awsr.Default(ctx, log, conf)
-		)
-		err = downloadCmdRunner(s3Client, awsStore)
-		return
-	},
+var (
+	dlCmd *cobra.Command = &cobra.Command{
+		Use:   dlCmdName,
+		Short: dlShortDesc,
+		Long:  dlLongDesc,
+		RunE:  dlRunE,
+	}
+)
+
+// wrapper to use with cobra
+func dlRunE(cmd *cobra.Command, args []string) (err error) {
+
+	var client *s3.Client
+	client, err = awsclients.New[*s3.Client](ctx, log, dlRegion)
+	return downloadItem(ctx, log, client, &download.Options{
+		Bucket:    dlBucket,
+		Key:       dlKey,
+		Directory: dlDirectory,
+	})
 }
 
-func downloadCmdRunner(client awsr.ClientS3Getter, store awsr.RepositoryS3BucketItemDownloader) (err error) {
-	var (
-		dir, _ = os.MkdirTemp("./", "__download-s3-*")
-		parent = filepath.Dir(conf.Database.Path)
-		local  string
-	)
-	defer os.RemoveAll(dir)
-	local, err = store.DownloadItemFromBucket(client, conf.Database.Bucket.Name, conf.Database.Bucket.Path(), dir)
+func downloadItem(ctx context.Context, log *slog.Logger, client download.AwsClient, opts *download.Options) (err error) {
+	var path string
+	var lg *slog.Logger = log.With("func", "db.downloadItem")
+
+	lg.Info("starting db download command ...")
+	lg.With("opts", opts).Debug("options ...")
+
+	path, err = download.DownloadItemFromBucket(ctx, log, client, opts)
 	if err != nil {
 		return
 	}
-	os.MkdirAll(parent, os.ModePerm)
-	err = os.Rename(local, conf.Database.Path)
+	lg.With("path", path).Info("complete.")
 	return
+}
+
+func init() {
+	dlCmd.Flags().StringVar(&dlBucket, "bucket", dlBucket, "Bucket name to fetch from.")
+	dlCmd.Flags().StringVar(&dlKey, "key", dlKey, "Item key to download from the bucket")
+	dlCmd.Flags().StringVar(&dlDirectory, "directory", dlDirectory, "Top level directory to download into.")
+	dlCmd.Flags().StringVar(&dlRegion, "region", dlRegion, "AWS region.")
 }
