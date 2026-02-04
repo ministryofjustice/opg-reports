@@ -1,11 +1,33 @@
 SERVICES ?= api front
 
-CMD_BUILD = ./builds/cmd
-API_BUILD = ./builds/api
-DB_BUILD = ./builds/databases
-DBP ?= ${DB_BUILD}/api.db
-FRONT_BUILD = ./builds/front
+# CMD_BUILD = ./builds/cmd
+# API_BUILD = ./builds/api
+# DB_BUILD = ./builds/databases
+# DBP ?= ${DB_BUILD}/api.db
+# FRONT_BUILD = ./builds/front
 
+# SOURCE DIRECTORIES
+SRC_CMDS = ./report/cmd
+CMD_LIST = $(notdir $(wildcard ${SRC_CMDS}/*))
+SRC_FRONT_DIR = ./report/cmd/front
+# BUILT LOCATIONS
+BUILT_ROOT = ./builds
+## api locations
+BUILT_API_DB_DIR = ${BUILT_ROOT}/api/databases
+BUILT_API_DB_PATH = ${BUILT_API_DB_DIR}/api.db
+BUILT_API_CMD = ${BUILT_ROOT}/api/api
+## database downloader tool
+BUILT_DB_DOWNLOADER = ${BUILT_ROOT}/db/db
+## front
+BUILT_FRONT_DIR = ${BUILT_ROOT}/front/
+BUILT_FRONT_CMD = ${BUILT_ROOT}/front/front
+## govuk related settings
+BUILT_GOVUK_CMD = ${BUILT_ROOT}/govuk/govuk
+
+
+#========= TESTS =========
+## Run all tests
+.PHONY: tests
 tests:
 	@go clean -testcache
 	@clear
@@ -20,8 +42,9 @@ tests:
 		AWS_SESSION_TOKEN="${AWS_SESSION_TOKEN}" \
 		go test -count=1 -cover -covermode=atomic ./... && echo "" && echo "passed ✅" || echo "failed ❌"
 	@echo "==="
-.PHONY: tests
 
+## Run specific test via named param
+.PHONY: tests
 test:
 	@go clean -testcache
 	@clear
@@ -37,9 +60,10 @@ test:
 		AWS_SESSION_TOKEN="${AWS_SESSION_TOKEN}" \
 		go test -count=1 -cover -covermode=atomic ./... -run="$(name)" && echo "" && echo "passed ✅" || echo "failed ❌"
 	@echo "==="
-.PHONY: tests
+
 
 ## Run the go code coverage tool
+.PHONY: coverage
 coverage:
 	@rm -Rf ./code-coverage.out
 	@clear
@@ -54,103 +78,101 @@ coverage:
 		AWS_SESSION_TOKEN="${AWS_SESSION_TOKEN}" \
 		go test -count=1 -covermode=count -coverprofile=code-coverage.out -cover ./...
 	@go tool cover -html=code-coverage.out
-.PHONY: coverage
 
-#========= LOCAL =========
+#========= LOCAL BUILDS =========
+## build all commands based on folder structure within the ./reports/cmd
+## directory
+.PHONY: build-cmds
+build-cmds:
+	@for cmd in ${CMD_LIST}; do \
+		echo "- building command [$${cmd}] "; \
+		mkdir -p ${BUILT_ROOT}/$${cmd}/ ; \
+		rm -f ${BUILT_ROOT}/$${cmd}/$${cmd} ; \
+		go build -ldflags="-w -s" -o ${BUILT_ROOT}/$${cmd}/$${cmd} ${SRC_CMDS}/$${cmd}; \
+	done
 
-.PHONY: local/build
-local/build: local/build/api local/build/front local/build/others local/download-database
+#========= LOCAL SETUP =========
 
-.PHONY: local/download-database
-# download the development db
-local/download-database:
-	@rm -Rf ${DBP}
-	@mkdir -p ${DB_BUILD}
-	@go build -o ${CMD_BUILD}/bin/db ./report/cmd/db/
+## download the development version of the database
+.PHONY: db-download
+db-download: CMD_LIST="db"
+db-download: build-cmds
+	@echo "- downloading development database with aws-vault"
+	@mkdir -p ${BUILT_API_DB_DIR}
+	@rm -f ${BUILT_API_DB_PATH}
 	@aws-vault exec shared-development-operator -- \
-   		env DATABASE_PATH=${DBP} \
+		env DATABASE_PATH=${BUILT_API_DB_PATH} \
 		DATABASE_BUCKET_NAME="opg-reports-development" \
-   		${CMD_BUILD}/bin/db download
+		${BUILT_DB_DOWNLOADER} download
 
-.PHONY: local/build/api
-local/build/api:
-	@rm -Rf ${API_BUILD}
-	@mkdir -p ${API_BUILD} ${API_BUILD}/bin
-	@go build -o ${API_BUILD}/bin/api ./report/cmd/api
+## run the api from the local ./build folder structure
+.PHONY: api
+api: CMD_LIST="api"
+api: build-cmds
+	@echo "- starting api binary"
+	@env DATABASE_PATH=${BUILT_API_DB_PATH} \
+	SERVERS_API_ADDR="localhost:8081" \
+	SERVERS_FRONT_ADDR="localhost:8080" \
+		${BUILT_API_CMD}
 
-.PHONY: local/api
-local/api: local/build/api
-	@env DATABASE_PATH=${DBP} \
-		SERVERS_API_ADDR="localhost:8081" \
-		SERVERS_FRONT_ADDR="localhost:8080" \
-		${API_BUILD}/bin/api
+## run the front from the local ./build folders and setup templates
+## and govuk assets as well
+.PHONY: front
+front: CMD_LIST="front"
+front: build-cmds
+	@rm -Rf ${BUILT_FRONT_DIR}/govuk
+	@echo "- downloading govuk assets"
+	@env LOG_LEVEL=ERROR GITHUB_TOKEN=${GITHUB_TOKEN} \
+		${BUILT_GOVUK_CMD} --directory="${BUILT_FRONT_DIR}/govuk"
 
-.PHONY: local/build/front
-local/build/front:
-	@rm -Rf ${FRONT_BUILD}
-	@mkdir -p ${FRONT_BUILD} ${FRONT_BUILD}/bin
-	@go build -o ${FRONT_BUILD}/bin/govuk ./report/cmd/govuk/
-	@env SERVERS_FRONT_DIRECTORY=${FRONT_BUILD} \
-  		env GITHUB_TOKEN=${GITHUB_TOKEN} \
-  		${FRONT_BUILD}/bin/govuk frontend
-	@go build -o ${FRONT_BUILD}/bin/front ./report/cmd/front/
-	@cp -r ./report/cmd/front/templates ${FRONT_BUILD}/
-	@cp -r ./report/cmd/front/local-assets ${FRONT_BUILD}/
+	@echo "- copying templates and local assets"
+	@cp -r ${SRC_FRONT_DIR}/templates ${BUILT_FRONT_DIR}/
+	@cp -r ${SRC_FRONT_DIR}/local-assets ${BUILT_FRONT_DIR}/
 
-
-.PHONY: local/front
-local/front: local/build/front
+	@echo "- starting front server"
 	@env SERVERS_API_ADDR="localhost:8081" \
 		SERVERS_FRONT_ADDR="localhost:8080" \
-		SERVERS_FRONT_DIRECTORY=${FRONT_BUILD} \
-		${FRONT_BUILD}/bin/front
+		SERVERS_FRONT_DIRECTORY=${BUILT_FRONT_DIR} \
+			${BUILT_FRONT_CMD}
 
-.PHONY: local/build/others
-local/build/others:
-	@rm -Rf ${CMD_BUILD}
-	@mkdir -p ${CMD_BUILD} ${CMD_BUILD}/bin
-	@go build -o ${CMD_BUILD}/bin/db ./report/cmd/db/
-	@go build -o ${CMD_BUILD}/bin/import ./report/cmd/import/
-	@go build -o ${CMD_BUILD}/bin/seed ./report/cmd/seed/
-	@go build -o ${CMD_BUILD}/bin/migrate ./report/cmd/migrate/
 
-#========= DOCKER =========
-## Build local development version of the docker image
-docker/build:
-	@env DOCKER_BUILDKIT=1 \
-	docker compose ${VERBOSE} \
-		-f docker-compose.yml \
-		-f docker-compose.dev.yml \
-		build ${SERVICES}
-.PHONY: docker/build
+# #========= DOCKER =========
+# ## Build local development version of the docker image
+# docker/build:
+# 	@env DOCKER_BUILDKIT=1 \
+# 	docker compose ${VERBOSE} \
+# 		-f docker-compose.yml \
+# 		-f docker-compose.dev.yml \
+# 		build ${SERVICES}
+# .PHONY: docker/build
 
-## Build and run the local docker images
-docker/up: local/build docker/clean docker/build
-	@env DOCKER_BUILDKIT=1 \
-	docker compose ${VERBOSE} \
-		-f docker-compose.yml \
-		-f docker-compose.dev.yml \
-		up \
-		-d ${SERVICES}
-.PHONY: docker/up
+# ## Build and run the local docker images
+# docker/up: local/build docker/clean docker/build
+# 	@env DOCKER_BUILDKIT=1 \
+# 	docker compose ${VERBOSE} \
+# 		-f docker-compose.yml \
+# 		-f docker-compose.dev.yml \
+# 		up \
+# 		-d ${SERVICES}
+# .PHONY: docker/up
 
-## Clean any old docker images out
-docker/clean: docker/down
-	@docker image rm $(shell docker images -a | grep 'opg-reports/*' | awk '{print $$1":"$$2}') || echo "ok"
-	@env DOCKER_BUILDKIT=1 \
-	docker compose ${VERBOSE} \
-		-f docker-compose.yml \
-		-f docker-compose.dev.yml \
-		rm ${SERVICES}
-	@docker container prune -f
-	@docker image prune -f --filter="dangling=true"
-.PHONY: docker/clean
+# ## Clean any old docker images out
+# docker/clean: docker/down
+# 	@docker image rm $(shell docker images -a | grep 'opg-reports/*' | awk '{print $$1":"$$2}') || echo "ok"
+# 	@env DOCKER_BUILDKIT=1 \
+# 	docker compose ${VERBOSE} \
+# 		-f docker-compose.yml \
+# 		-f docker-compose.dev.yml \
+# 		rm ${SERVICES}
+# 	@docker container prune -f
+# 	@docker image prune -f --filter="dangling=true"
+# .PHONY: docker/clean
 
-## run docker compose down, turning off all docker containers
-docker/down:
-	@env DOCKER_BUILDKIT=1 \
-	docker compose ${VERBOSE} \
-		-f docker-compose.yml \
-		-f docker-compose.dev.yml \
-		down
-.PHONY: docker/down
+# ## run docker compose down, turning off all docker containers
+# docker/down:
+# 	@env DOCKER_BUILDKIT=1 \
+# 	docker compose ${VERBOSE} \
+# 		-f docker-compose.yml \
+# 		-f docker-compose.dev.yml \
+# 		down
+# .PHONY: docker/down
