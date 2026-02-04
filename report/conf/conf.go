@@ -14,7 +14,7 @@ import (
 type Config struct {
 	DB          *db    `json:"db"`
 	Log         *log   `json:"log"`
-	GithubToken string `json:"github_token"`
+	GithubToken string `json:"github_token" mapstructure:"github_token"`
 }
 
 // DB handles database related env & config values
