@@ -29,7 +29,7 @@ type Options struct {
 }
 
 // DownloadItemFromBucket connects to s3 setup and pull the content of a single item from s3 - presumes the location is know nexactly.
-func DownloadItemFromBucket[T AwsClient](ctx context.Context, log *slog.Logger, client T, options *Options) (file string, err error) {
+func DownloadItemFromBucket[T AwsClient](ctx context.Context, log *slog.Logger, client T, options *Options) (path string, err error) {
 	var (
 		result    *s3.GetObjectOutput
 		body      []byte
@@ -67,7 +67,7 @@ func DownloadItemFromBucket[T AwsClient](ctx context.Context, log *slog.Logger, 
 		err = errors.Join(ErrFailedToReadObject, err)
 		return
 	}
-	file = localFile
+	path = localFile
 	lg.Debug("complete.")
 	return
 }
