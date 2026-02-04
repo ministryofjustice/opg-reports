@@ -153,7 +153,7 @@ jobs:
         env:
           db_dir: ${{ env.BUILD_DIR_API }}
           bucket: ${{ needs.setup.outputs.s3_bucket }}
-          key: databases/api.db
+          key: database/api.db
           cmd: ${{ env.BUILD_DIR_BINARIES }}/db
         run: |
           ${{ env.cmd }} download \

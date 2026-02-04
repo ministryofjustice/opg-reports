@@ -73,7 +73,7 @@ jobs:
         env:
           db_dir: ${{ env.ROOT_DIR }}
           bucket: ${{ needs.setup.outputs.s3_bucket_production }}
-          key: databases/api.db
+          key: database/api.db
           cmd: ${{ env.RELEASE_DIR }}/db
         run: |
           chmod -Rf 0777 ${{ env.RELEASE_DIR }}

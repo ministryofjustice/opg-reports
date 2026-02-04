@@ -74,7 +74,7 @@ locals {
       },
       {
         name  = "DATABASE_PATH",
-        value = "./databases/api.db"
+        value = "./database/api.db"
       },
       {
         name  = "VERSIONS_SEMVER",
