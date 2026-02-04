@@ -266,11 +266,11 @@ jobs:
           name: govuk
           source: ./report/cmd/govuk/
           destination: ${{ env.BUILD_DIR_BINARIES }}
-      - name: "Build command [importer]"
+      - name: "Build command [import]"
         uses: ./.github/actions/build-command
         with:
-          name: importer
-          source: ./report/cmd/importer/
+          name: import
+          source: ./report/cmd/import/
           destination: ${{ env.BUILD_DIR_BINARIES }}
       - name: "Create release [${{ needs.setup.outputs.semver_tag }}]"
         uses: ministryofjustice/opg-github-actions/actions/release@82323da6c533ab565c1652a590230ff2f0acc942 # v4.3.8
