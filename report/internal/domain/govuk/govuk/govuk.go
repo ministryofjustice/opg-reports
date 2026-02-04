@@ -1,3 +1,7 @@
+// Package govuk is used to download govuk assets from a known release version to a local directory.
+//
+// Used by front end of the reporting site to use built versions of css while avoiding introducing
+// a significant js ecosystem.
 package govuk
 
 import (
