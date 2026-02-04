@@ -134,7 +134,7 @@ func extractAndGet(ctx context.Context, log *slog.Logger, metadataZip string, op
 }
 
 // downloadAsset downloads zip locally
-func downloadAsset(ctx context.Context, log *slog.Logger, gh GitHubClient, asset *github.ReleaseAsset, options *Options) (src string, err error) {
+func downloadAsset[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, asset *github.ReleaseAsset, options *Options) (src string, err error) {
 	var (
 		buff     io.ReadCloser
 		dlTo     string       = filepath.Join(options.DataDirectory, downloadSubDir)
@@ -190,7 +190,7 @@ func getReleaseAsset(ctx context.Context, log *slog.Logger, release *github.Repo
 // getRelease finds the tagged release
 //
 // Does not check for pre-release / draft status, just the tag name
-func getRelease(ctx context.Context, log *slog.Logger, gh GitHubClient /**github.RepositoriesService*/, options *Options) (release *github.RepositoryRelease, err error) {
+func getRelease[T GitHubClient](ctx context.Context, log *slog.Logger, gh T /**github.RepositoriesService*/, options *Options) (release *github.RepositoryRelease, err error) {
 	var lg *slog.Logger = log.With("func", "domain.accounts.account.getRelease")
 
 	release, _, err = gh.GetReleaseByTag(ctx, owner, repository, options.Tag)

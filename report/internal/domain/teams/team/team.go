@@ -125,7 +125,7 @@ func extractAndGetTeams(ctx context.Context, log *slog.Logger, metadataZip strin
 }
 
 // downloadAsset downloads zip locally
-func downloadAsset(ctx context.Context, log *slog.Logger, gh GitHubClient, asset *github.ReleaseAsset, options *Options) (src string, err error) {
+func downloadAsset[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, asset *github.ReleaseAsset, options *Options) (src string, err error) {
 	var (
 		buff     io.ReadCloser
 		lg       *slog.Logger = log.With("func", "domain.teams.team.downloadAsset")
@@ -183,7 +183,7 @@ func getReleaseAsset(ctx context.Context, log *slog.Logger, release *github.Repo
 }
 
 // getRelease finds the tagged release
-func getRelease(ctx context.Context, log *slog.Logger, gh GitHubClient, options *Options) (release *github.RepositoryRelease, err error) {
+func getRelease[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, options *Options) (release *github.RepositoryRelease, err error) {
 	var lg *slog.Logger = log.With("func", "domain.teams.team.getRelease")
 	lg.Debug("starting ...")
 	release, _, err = gh.GetReleaseByTag(ctx, owner, repository, options.Tag)

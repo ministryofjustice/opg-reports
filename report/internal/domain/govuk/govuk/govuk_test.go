@@ -19,7 +19,11 @@ func TestDomainGovUKDLWithoutMock(t *testing.T) {
 		client *github.Client
 		ctx    context.Context = t.Context()
 		log    *slog.Logger    = logger.New("error")
-		dir    string          = "./tmp/" //t.TempDir()
+		dir    string          = t.TempDir()
+		opts   *Options        = &Options{
+			Tag:       "v5.11.0",
+			Directory: dir,
+		}
 	)
 
 	if os.Getenv("GH_TOKEN") != "" {
@@ -27,18 +31,15 @@ func TestDomainGovUKDLWithoutMock(t *testing.T) {
 		if err != nil {
 			t.Errorf("unexpected error:\n%s", err.Error())
 		}
-		opts := &Options{
-			Tag:       "v5.11.0",
-			Directory: dir,
-		}
+
 		dest, err = DownloadFrontEnd(ctx, log, client.Repositories, opts)
 		if err != nil {
 			t.Errorf("unexpected error:\n%s", err.Error())
 		}
+
 		if dest != dir {
 			t.Error("extracted zip into different location that set")
 		}
-
 	} else {
 		t.SkipNow()
 	}
