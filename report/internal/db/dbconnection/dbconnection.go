@@ -28,6 +28,6 @@ func Connection(ctx context.Context, log *slog.Logger, driver string, connection
 		err = errors.Join(ErrFailedToConnect, err)
 		return
 	}
-	lg.Debug("completed.")
+	lg.Debug("complete.")
 	return
 }

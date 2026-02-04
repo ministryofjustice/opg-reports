@@ -55,7 +55,7 @@ func migrateFunc(cmd *cobra.Command, args []string) (err error) {
 	if err != nil {
 		return
 	}
-	lg.Info("completed.")
+	lg.Info("complete.")
 	return
 }
 

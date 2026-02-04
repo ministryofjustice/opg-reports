@@ -82,7 +82,7 @@ func teamsImport(ctx context.Context, log *slog.Logger, client team.GitHubClient
 	if err != nil {
 		return
 	}
-	lg.With("count", len(result)).Info("completed.")
+	lg.With("count", len(result)).Info("complete.")
 
 	return
 }

@@ -30,15 +30,6 @@ const (
 	longDesc  string = `
 import fetches data from API sources and other locations such as json file artifacts to populate the local database. It
 has a series of sub commands to call which will fetch data based on their domain / scope.
-
-environment variables that are utilised by this command:
-
-	DB_PATH
-		The file path of the database
-	AWS_SESSION
-		The AWS active session data
-	GITHUB_TOKEN
-		The GitHub token sesion token
 `
 )
 

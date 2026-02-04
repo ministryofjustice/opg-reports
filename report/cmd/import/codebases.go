@@ -81,7 +81,7 @@ func importCodebases(ctx context.Context, log *slog.Logger, client codebase.GitH
 		return
 	}
 
-	lg.With("count", len(result)).Info("completed.")
+	lg.With("count", len(result)).Info("complete.")
 
 	return
 }

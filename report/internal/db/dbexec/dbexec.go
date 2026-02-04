@@ -52,6 +52,6 @@ func Exec(ctx context.Context, log *slog.Logger, db *sqlx.DB, statement dbstatem
 		return
 	}
 
-	lg.Debug("completed.")
+	lg.Debug("complete.")
 	return
 }

@@ -85,7 +85,7 @@ func importCodeowners(ctx context.Context, log *slog.Logger, client codeowner.Gi
 	if err != nil {
 		return
 	}
-	lg.With("count", len(result)).Info("completed.")
+	lg.With("count", len(result)).Info("complete.")
 	return
 }
 

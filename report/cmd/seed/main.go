@@ -92,7 +92,7 @@ func seedFunc(cmd *cobra.Command, args []string) (err error) {
 		return
 	}
 
-	lg.Info("completed.")
+	lg.Info("complete.")
 	return
 }
 

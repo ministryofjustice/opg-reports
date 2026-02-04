@@ -91,7 +91,7 @@ func importUptime(ctx context.Context, log *slog.Logger, client uptime.AwsClient
 	if err != nil {
 		return
 	}
-	lg.With("count", len(result)).Info("completed.")
+	lg.With("count", len(result)).Info("complete.")
 
 	return
 }
