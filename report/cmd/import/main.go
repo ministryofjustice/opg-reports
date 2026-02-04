@@ -62,12 +62,12 @@ func dbconn(ctx context.Context, log *slog.Logger) (db *sqlx.DB, err error) {
 
 func ghclient() (client *github.Client, err error) {
 	// fail if there is no github token
-	if cfg.Github.Token == "" {
+	if cfg.GithubToken == "" {
 		err = ErrGitHubTokenMissing
 		return
 	}
 	// create client
-	client, err = ghclients.New(ctx, log, cfg.Github.Token)
+	client, err = ghclients.New(ctx, log, cfg.GithubToken)
 	if err != nil {
 		log.Error("error connecting to client.", "err", err.Error())
 		err = errors.Join(ErrGitHubConnFailed, err)

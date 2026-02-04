@@ -12,10 +12,9 @@ import (
 // Config is the main config struct and is generated
 // from yaml file combined with environment variables
 type Config struct {
-	DB     *db     `json:"db"`
-	Log    *log    `json:"log"`
-	Github *github `json:"github"`
-	AWS    *aws    `json:"aws"`
+	DB          *db    `json:"db"`
+	Log         *log   `json:"log"`
+	GithubToken string `json:"github_token"`
 }
 
 // DB handles database related env & config values
@@ -28,28 +27,6 @@ type db struct {
 func (self *db) ConnectionString() (conn string) {
 	conn = fmt.Sprintf("%s%s", self.Path, self.Params)
 	return
-}
-
-// github handles env token for access to github
-// during data imports
-type github struct {
-	Token  string `json:"token"`
-	Org    string `json:"org"`
-	Parent string `json:"parent"`
-}
-
-// aws handles env token / session access to aws
-// during data imports
-type aws struct {
-	Region  string      `json:"region"`
-	Default *awsDefault `json:"default"`
-	Session *awsSession `json:"session"`
-}
-type awsDefault struct {
-	Region string `json:"region"`
-}
-type awsSession struct {
-	Token string `json:"token"`
 }
 
 // log tracks logging configuration values used within
@@ -72,16 +49,7 @@ func defaults() (cfg *Config) {
 			Path:   "./api.db",
 			Params: "?_journal=WAL&_busy_timeout=5000&_vacuum=incremental&_synchronous=NORMAL&_cache_size=1000000000",
 		},
-		Github: &github{
-			Token:  "",
-			Parent: "opg",
-			Org:    "ministryofjustice",
-		},
-		AWS: &aws{
-			Region:  "eu-west-1",
-			Default: &awsDefault{Region: "eu-west-1"},
-			Session: &awsSession{Token: ""},
-		},
+		GithubToken: "",
 	}
 	return
 }

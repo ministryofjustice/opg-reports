@@ -27,8 +27,9 @@ By default, it will also fetch the previous months data as well to ensure billin
 )
 
 var (
-	includePreviousMonth bool   = true // represents --include-previous-month
-	costsMonthFlag       string = ""   // represents --month="YYYY-MM-DD"
+	includePreviousMonth bool   = true        // represents --include-previous-month
+	costsMonth           string = ""          // represents --month="YYYY-MM-DD"
+	costsRegion          string = "eu-west-1" // represents --region
 )
 
 var (
@@ -50,7 +51,7 @@ type InfraOpts struct {
 func infracostsRunE(cmd *cobra.Command, args []string) (err error) {
 	var db *sqlx.DB
 	var client *costexplorer.Client
-	var region string = cfg.AWS.Region
+	var region string = costsRegion
 
 	// db connection
 	db, err = dbconn(ctx, log)
@@ -63,7 +64,7 @@ func infracostsRunE(cmd *cobra.Command, args []string) (err error) {
 
 	return importInfracosts(ctx, log, client, db, &InfraOpts{
 		AccountID:            awsid.AccountID(ctx, log, region),
-		EndDate:              costsMonthFlag,
+		EndDate:              costsMonth,
 		IncludePreviousMonth: includePreviousMonth,
 	})
 }
@@ -111,6 +112,7 @@ func importInfracosts(ctx context.Context, log *slog.Logger, client infracost.Aw
 
 // add params to the command
 func init() {
-	infracostsCmd.Flags().StringVar(&costsMonthFlag, "month", times.AsYMDString(times.ResetMonth(time.Now().UTC())), "The month to get cost data for. (YYYY-MM-DD)")
+	infracostsCmd.Flags().StringVar(&costsMonth, "month", times.AsYMDString(times.ResetMonth(time.Now().UTC())), "The month to get cost data for. (YYYY-MM-DD)")
+	infracostsCmd.Flags().StringVar(&costsRegion, "region", costsRegion, "The AWS region to fetch data from.")
 	infracostsCmd.Flags().BoolVar(&includePreviousMonth, "include-previous-month", true, "When enabled the command will also run the previous month to ensure costs are accurate.")
 }

@@ -27,17 +27,11 @@ func TestConfLoadViaSetup(t *testing.T) {
 func TestConfViaNewWithEnvVars(t *testing.T) {
 
 	os.Setenv("DB_DRIVER", "sqlite2")
-	os.Setenv("AWS_DEFAULT_REGION", "TEST")
 	cfg := New()
 
 	if cfg.DB.Driver != "sqlite2" {
 		t.Errorf("instance db config does not match")
 	}
-	if cfg.AWS.Default.Region != "TEST" {
-		t.Errorf("instance aws config does not match")
-	}
-
 	os.Setenv("DB_DRIVER", "sqlite3")
-	os.Setenv("AWS_DEFAULT_REGION", "")
 
 }

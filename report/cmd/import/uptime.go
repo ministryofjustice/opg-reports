@@ -25,9 +25,7 @@ Uptime is determined via route53 health check data.
 `
 )
 
-var (
-	uptimeDayFlag string = "" // represents --day="YYYY-MM-DD"
-)
+var uptimeDay string = "" // represents --day="YYYY-MM-DD"
 
 var (
 	uptimeCmd *cobra.Command = &cobra.Command{
@@ -59,7 +57,7 @@ func uptimeRunE(cmd *cobra.Command, args []string) (err error) {
 
 	return importUptime(ctx, log, client, db, &UptimeOpts{
 		AccountID: awsid.AccountID(ctx, log, region),
-		Day:       uptimeDayFlag,
+		Day:       uptimeDay,
 	})
 }
 
@@ -100,5 +98,5 @@ func importUptime(ctx context.Context, log *slog.Logger, client uptime.AwsClient
 
 // add params to the command
 func init() {
-	uptimeCmd.Flags().StringVar(&uptimeDayFlag, "day", times.AsYMDString(times.Yesterday()), "The day to get uptime data for. (YYYY-MM-DD)")
+	uptimeCmd.Flags().StringVar(&uptimeDay, "day", times.AsYMDString(times.Yesterday()), "The day to get uptime data for. (YYYY-MM-DD)")
 }

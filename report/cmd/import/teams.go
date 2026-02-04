@@ -89,6 +89,6 @@ func teamsImport(ctx context.Context, log *slog.Logger, client team.GitHubClient
 
 // add params to the command
 func init() {
-	accountsCmd.Flags().StringVar(&teamReleaseTag, "release-tag", teamReleaseTag, "Release to fetch account data from")
+	teamsCmd.Flags().StringVar(&teamReleaseTag, "release-tag", teamReleaseTag, "Release to fetch account data from")
 
 }

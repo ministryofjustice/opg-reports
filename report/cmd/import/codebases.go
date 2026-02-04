@@ -23,6 +23,11 @@ Truncates before importing to remove stale / inaccurate data.
 )
 
 var (
+	codebasesOwner      string = "ministryofjustice"
+	codebasesParentTeam string = "opg"
+)
+
+var (
 	codebasesCmd *cobra.Command = &cobra.Command{
 		Use:   "codebases",
 		Short: codebasesShortDesc,
@@ -49,8 +54,8 @@ func codebasesRunE(cmd *cobra.Command, args []string) (err error) {
 
 	err = importCodebases(ctx, log, client.Teams, db, &codebase.Options{
 		ExcludeArchived: true,
-		ParentTeam:      cfg.Github.Parent,
-		OrgSlug:         cfg.Github.Org,
+		ParentTeam:      codebasesParentTeam,
+		OrgSlug:         codebasesOwner,
 	})
 	return
 }
@@ -79,4 +84,11 @@ func importCodebases(ctx context.Context, log *slog.Logger, client codebase.GitH
 	lg.With("count", len(result)).Info("completed.")
 
 	return
+}
+
+// add params to the command
+func init() {
+	codebasesCmd.Flags().StringVar(&codebasesOwner, "owner", codebasesOwner, "Owner / Organisation to fetch data about.")
+	codebasesCmd.Flags().StringVar(&codebasesParentTeam, "parent", codebasesParentTeam, "Limit codebases to those owned by this team and sub-teams.")
+
 }

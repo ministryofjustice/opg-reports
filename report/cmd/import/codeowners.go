@@ -24,6 +24,11 @@ the 'id' field are updated with new values.
 )
 
 var (
+	codeownerOwner      string = "ministryofjustice"
+	codeownerParentTeam string = "opg"
+)
+
+var (
 	codeownersCmd *cobra.Command = &cobra.Command{
 		Use:   "codeowners",
 		Short: codeownersShortDesc,
@@ -56,8 +61,8 @@ func codeownersRunE(cmd *cobra.Command, args []string) (err error) {
 
 	return importCodeowners(ctx, log, client.Repositories, db, &codeowner.Input{
 		Codebases:  repos,
-		ParentTeam: cfg.Github.Parent,
-		OrgSlug:    cfg.Github.Org,
+		ParentTeam: codeownerParentTeam,
+		OrgSlug:    codeownerOwner,
 	})
 }
 
@@ -82,4 +87,11 @@ func importCodeowners(ctx context.Context, log *slog.Logger, client codeowner.Gi
 	}
 	lg.With("count", len(result)).Info("completed.")
 	return
+}
+
+// add params to the command
+func init() {
+	codeownersCmd.Flags().StringVar(&codeownerOwner, "owner", codeownerOwner, "Owner / Organisation to fetch data about.")
+	codeownersCmd.Flags().StringVar(&codeownerParentTeam, "parent", codeownerParentTeam, "Limit codebases to those owned by this team and sub-teams.")
+
 }
