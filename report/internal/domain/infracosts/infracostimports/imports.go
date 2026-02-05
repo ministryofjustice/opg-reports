@@ -2,16 +2,13 @@ package infracostimports
 
 import (
 	"context"
-	"errors"
 	"log/slog"
-	"opg-reports/report/internal/db/dbinserts"
+	"opg-reports/report/internal/db/dbimports"
 	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/infracosts/infracostmodels"
 
 	"github.com/jmoiron/sqlx"
 )
-
-var ErrImportFailed = errors.New("infracost import failed with error")
 
 const insertStmt string = `
 INSERT INTO infracosts (
@@ -35,23 +32,10 @@ RETURNING id;
 // insert records in to the active database connection.
 func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*infracostmodels.Cost) (statements []*dbstmts.Insert[*infracostmodels.Cost, int], err error) {
 	var lg *slog.Logger = log.With("func", "domain.infracosts.infracostimports.Import")
-	statements = []*dbstmts.Insert[*infracostmodels.Cost, int]{}
 
 	lg.Debug("starting ...")
-	lg.Debug("generating db insert statements ...")
-	// generate all of the insert statements from the data passed
-	for _, row := range data {
-		statements = append(statements, &dbstmts.Insert[*infracostmodels.Cost, int]{
-			Statement: insertStmt,
-			Data:      row,
-		})
-	}
-	// run inserts
-	lg.Debug("running import statements via insert ...")
-	err = dbinserts.Insert(ctx, log, db, statements...)
+	statements, err = dbimports.Import[int](ctx, log, db, insertStmt, data)
 	if err != nil {
-		log.Error("error with insert", "err", err.Error())
-		err = errors.Join(ErrImportFailed, err)
 		return
 	}
 	lg.Debug("complete.")

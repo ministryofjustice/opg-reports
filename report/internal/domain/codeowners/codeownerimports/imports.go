@@ -5,7 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"opg-reports/report/internal/db/dbexec"
-	"opg-reports/report/internal/db/dbinserts"
+	"opg-reports/report/internal/db/dbimports"
 	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/codeowners/codeownermodels"
 
@@ -47,17 +47,8 @@ const truncateStmt string = `DELETE FROM codeowners;`
 func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*codeownermodels.Codeowner) (statements []*dbstmts.Insert[*codeownermodels.Codeowner, int], err error) {
 	var lg *slog.Logger = log.With("func", "domain.codeowners.codeownerimports.Import")
 
-	statements = []*dbstmts.Insert[*codeownermodels.Codeowner, int]{}
 	lg.Debug("starting ...")
-	lg.Debug("generating db insert statements ...")
-	// generate all of the insert statements from the data passed
-	for _, row := range data {
-		statements = append(statements, &dbstmts.Insert[*codeownermodels.Codeowner, int]{
-			Statement: insertStmt,
-			Data:      row,
-		})
-	}
-	// truncate the table
+	lg.Debug("trucating table ...")
 	_, err = dbexec.Exec(ctx, log, db, dbstmts.Statement(truncateStmt))
 	if err != nil {
 		lg.Error("error with truncate", "err", err.Error())
@@ -65,12 +56,8 @@ func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*codeowne
 		return
 	}
 
-	// run inserts
-	lg.Debug("running import statements via insert")
-	err = dbinserts.Insert(ctx, log, db, statements...)
+	statements, err = dbimports.Import[int](ctx, log, db, insertStmt, data)
 	if err != nil {
-		lg.Error("error with insert", "err", err.Error())
-		err = errors.Join(ErrImportFailed, err)
 		return
 	}
 	lg.Debug("complete.")

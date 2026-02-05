@@ -5,17 +5,14 @@ import (
 	"errors"
 	"log/slog"
 	"opg-reports/report/internal/db/dbexec"
-	"opg-reports/report/internal/db/dbinserts"
+	"opg-reports/report/internal/db/dbimports"
 	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/codebases/codebasemodels"
 
 	"github.com/jmoiron/sqlx"
 )
 
-var (
-	ErrImportFailed   = errors.New("codebase import failed with error.")
-	ErrTruncateFailed = errors.New("codebase truncate failed with error.")
-)
+var ErrTruncateFailed = errors.New("codebase truncate failed with error.")
 
 // insertStmt used to insert records
 const insertStmt string = `
@@ -46,16 +43,8 @@ const truncateStmt string = `DELETE FROM codebases;`
 func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*codebasemodels.Codebase) (statements []*dbstmts.Insert[*codebasemodels.Codebase, int], err error) {
 	var lg *slog.Logger = log.With("func", "domain.codebases.codebaseimports.Import")
 
-	statements = []*dbstmts.Insert[*codebasemodels.Codebase, int]{}
 	lg.Debug("starting ...")
-	lg.Debug("generating db insert statements ...")
-	// generate all of the insert statements from the data passed
-	for _, row := range data {
-		statements = append(statements, &dbstmts.Insert[*codebasemodels.Codebase, int]{
-			Statement: insertStmt,
-			Data:      row,
-		})
-	}
+	lg.Debug("trucating table ...")
 	// truncate table
 	_, err = dbexec.Exec(ctx, log, db, dbstmts.Statement(truncateStmt))
 	if err != nil {
@@ -63,12 +52,9 @@ func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*codebase
 		err = errors.Join(ErrTruncateFailed, err)
 		return
 	}
-	// run inserts
-	lg.Debug("running import statements via insert ...")
-	err = dbinserts.Insert(ctx, log, db, statements...)
+
+	statements, err = dbimports.Import[int](ctx, log, db, insertStmt, data)
 	if err != nil {
-		lg.Error("error with insert.", "err", err.Error())
-		err = errors.Join(ErrImportFailed, err)
 		return
 	}
 	lg.Debug("complete.")

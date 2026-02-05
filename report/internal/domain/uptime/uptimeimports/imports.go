@@ -2,16 +2,13 @@ package uptimeimports
 
 import (
 	"context"
-	"errors"
 	"log/slog"
-	"opg-reports/report/internal/db/dbinserts"
+	"opg-reports/report/internal/db/dbimports"
 	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/uptime/uptimemodels"
 
 	"github.com/jmoiron/sqlx"
 )
-
-var ErrImportFailed = errors.New("uptime import failed with error.")
 
 // insertStmt used to insert records
 const insertStmt string = `
@@ -35,22 +32,9 @@ RETURNING id;
 func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*uptimemodels.Uptime) (statements []*dbstmts.Insert[*uptimemodels.Uptime, int], err error) {
 	var lg *slog.Logger = log.With("func", "domain.uptime.uptimeimports.Import")
 
-	statements = []*dbstmts.Insert[*uptimemodels.Uptime, int]{}
 	lg.Debug("starting ...")
-	lg.Debug("generating db insert statements ...")
-	// generate all of the insert statements from the data passed
-	for _, row := range data {
-		statements = append(statements, &dbstmts.Insert[*uptimemodels.Uptime, int]{
-			Statement: insertStmt,
-			Data:      row,
-		})
-	}
-	// run inserts
-	lg.Debug("running import statements via insert ...")
-	err = dbinserts.Insert(ctx, log, db, statements...)
+	statements, err = dbimports.Import[int](ctx, log, db, insertStmt, data)
 	if err != nil {
-		lg.Error("error with insert.", "err", err.Error())
-		err = errors.Join(ErrImportFailed, err)
 		return
 	}
 	lg.Debug("complete.")
