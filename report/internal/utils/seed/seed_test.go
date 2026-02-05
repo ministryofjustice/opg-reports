@@ -1,4 +1,4 @@
-package main
+package seed
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func TestCMDDBSeedWithoutMock(t *testing.T) {
+func TestUtilsSeedDB(t *testing.T) {
 
 	var (
 		err    error
@@ -29,7 +29,7 @@ func TestCMDDBSeedWithoutMock(t *testing.T) {
 	}
 	defer db.Close()
 
-	err = runSeeds(ctx, log, db)
+	err = SeedDB(ctx, log, db)
 	if err != nil {
 		t.Errorf("unexpected seeding error: %s", err.Error())
 	}

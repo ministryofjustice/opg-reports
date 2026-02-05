@@ -16,15 +16,13 @@ BUILT_ROOT = ./builds
 BUILT_API_DIR = ${BUILT_ROOT}/api
 BUILT_API_DB_PATH = ${BUILT_API_DIR}/database/api.db
 BUILT_API_CMD = ${BUILT_API_DIR}/api
-## database downloader tool
-BUILT_DB_DOWNLOADER_CMD = ${BUILT_ROOT}/db/db
+## db locations
+BUILT_DB_CMD = ${BUILT_ROOT}/db/db
 ## front
 BUILT_FRONT_DIR = ${BUILT_ROOT}/front/
 BUILT_FRONT_CMD = ${BUILT_ROOT}/front/front
 ## govuk related settings
 BUILT_GOVUK_CMD = ${BUILT_ROOT}/govuk/govuk
-## seed locations
-BUILT_SEED_CMD = ${BUILT_ROOT}/seed/seed
 
 #========= LOCAL =========
 ## build all commands based on folder structure within the ./reports/cmd
@@ -48,18 +46,24 @@ db-download: build-cmds
 	@echo "- downloading development database with aws-vault"
 	@rm -f ${BUILT_API_DB_PATH}
 	@aws-vault exec shared-development-operator -- \
-		${BUILT_DB_DOWNLOADER_CMD} download \
+		${BUILT_DB_CMD} download \
 			--bucket="${db_bucket}" \
 			--key="${db_key}" \
 			--directory="${BUILT_API_DIR}"
 
 ## seed and migrate a local database at fixed path
 .PHONY: db-seed
-db-seed: CMD_LIST=seed
+db-seed: CMD_LIST=db
 db-seed: build-cmds
 	@echo "- seeding local database [${BUILT_API_DB_PATH}]"
-	@env LOG_LEVEL=error ${BUILT_SEED_CMD} --db="${BUILT_API_DB_PATH}"
+	@env LOG_LEVEL=error ${BUILT_DB_CMD} seed --db="${BUILT_API_DB_PATH}"
 
+## migrate a local database at fixed path
+.PHONY: db-migrate
+db-migrate: CMD_LIST=db
+db-migrate: build-cmds
+	@echo "- migrating local database [${BUILT_API_DB_PATH}]"
+	@env LOG_LEVEL=error ${BUILT_DB_CMD} migrate --db="${BUILT_API_DB_PATH}"
 
 
 ## run the api from the local ./build folder structure
