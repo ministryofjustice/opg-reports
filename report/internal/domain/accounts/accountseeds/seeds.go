@@ -3,6 +3,7 @@ package accountseeds
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/accounts/accountimports"
@@ -13,23 +14,35 @@ import (
 
 var ErrSeedFailed = errors.New("seed account call failed with an error.")
 
-var seeds []*accountmodels.Account
+// GetSeeds will generate 104 accounts (26 * 4 =A-Z with 4 environments)
+func GetSeeds() (data []*accountmodels.Account) {
+	var accountGroups = 26 // so we dont loop around the captial letters
+	var envs map[string]string = map[string]string{"A": "development", "B": "preproduction", "C": "integration", "D": "production"}
+	var ch rune = 'A'
+	data = []*accountmodels.Account{}
 
-func init() {
-	seeds = []*accountmodels.Account{
-		{ID: "001A", Name: "Account 1A", Label: "A", Environment: "development", TeamName: "TEAM-A"},
-		{ID: "001B", Name: "Account 1B", Label: "B", Environment: "production", TeamName: "TEAM-A"},
-		{ID: "002A", Name: "Account 2A", Label: "A", Environment: "production", TeamName: "TEAM-B"},
-		{ID: "003A", Name: "Account 3A", Label: "A", Environment: "development", TeamName: "TEAM-C"},
-		{ID: "003B", Name: "Account 3B", Label: "B", Environment: "production", TeamName: "TEAM-C"},
-		{ID: "004A", Name: "Account 4A", Label: "A", Environment: "production", TeamName: "TEAM-D"},
-		{ID: "004B", Name: "Account 4B", Label: "B", Environment: "production", TeamName: "TEAM-D"},
+	// generate 180 accounts for testing purposes
+	for i := 1; i <= accountGroups; i++ {
+		var prefix string = fmt.Sprintf("%03d", i)
+		var team string = fmt.Sprintf("TEAM-%s", string(ch))
+		for _, letter := range []string{"A", "B", "C", "D"} {
+			data = append(data, &accountmodels.Account{
+				ID:          fmt.Sprintf("%s%s", prefix, letter),
+				Name:        fmt.Sprintf("Account %s%s", prefix, letter),
+				Label:       letter,
+				Environment: envs[letter],
+				TeamName:    team,
+			})
+		}
+		ch = getNextRune(ch)
 	}
+	return
 }
 
 // Seed assumes the database already exists and the inserts pre-determined data
 // into the database via the import
 func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstmts.Insert[*accountmodels.Account, string], err error) {
+	var seeds []*accountmodels.Account = GetSeeds()
 	var lg *slog.Logger = log.With("func", "domain.accounts.accountseeds.Seed")
 
 	lg.Debug("starting ...")
@@ -42,4 +55,8 @@ func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbs
 	lg.Debug("complete.")
 	return
 
+}
+
+func getNextRune(ch rune) rune {
+	return (ch+1-'A')%('Z'-'A') + 'A'
 }

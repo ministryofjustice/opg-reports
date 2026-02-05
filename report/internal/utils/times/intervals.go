@@ -36,3 +36,21 @@ func Add(t time.Time, modifier int, interval Interval) (added time.Time) {
 func Yesterday() (t time.Time) {
 	return Add(ResetDay(time.Now().UTC()), -1, DAY)
 }
+
+// FirstDayOfMonth provides the time for the first minute of the first day of the month
+//
+// If `t` is `2022-12-10T09:00:00` then should return `2022-12-01T00:00:00`
+func FirstDayOfMonth(t time.Time) (firstDay time.Time) {
+	firstDay = time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, time.UTC)
+	return
+}
+
+// LastDayOfMonth provides the time for the last minute of the last day of the month
+//
+// If `t` is `2022-12-01T09:00:00` then should return `2022-12-31T23:59:59`
+func LastDayOfMonth(t time.Time) (lastDay time.Time) {
+	var nextMonth = Add(ResetMonth(t), 1, MONTH)
+
+	lastDay = nextMonth.Add(-1 * time.Second)
+	return
+}
