@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"log/slog"
-	"opg-reports/report/internal/db/dbstatements"
+	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/codebases/codebasemodels"
 	"opg-reports/report/internal/domain/codebases/codebaseselects"
 	"opg-reports/report/internal/domain/codeowners/codeowner"
@@ -69,7 +69,7 @@ func codeownersRunE(cmd *cobra.Command, args []string) (err error) {
 // codeownersImport inner func called by the wrapper used by cobra
 func importCodeowners(ctx context.Context, log *slog.Logger, client codeowner.GitHubClient, db *sqlx.DB, opts *codeowner.Input) (err error) {
 	var (
-		result []*dbstatements.InsertStatement[*codeownermodels.Codeowner, int]
+		result []*dbstmts.Insert[*codeownermodels.Codeowner, int]
 		data   []*codeownermodels.Codeowner = []*codeownermodels.Codeowner{}
 		lg     *slog.Logger                 = log.With("func", "import.importCodeowners")
 	)

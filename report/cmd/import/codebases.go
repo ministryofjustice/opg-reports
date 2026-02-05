@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"log/slog"
-	"opg-reports/report/internal/db/dbstatements"
+	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/codebases/codebase"
 	"opg-reports/report/internal/domain/codebases/codebaseimports"
 	"opg-reports/report/internal/domain/codebases/codebasemodels"
@@ -63,7 +63,7 @@ func codebasesRunE(cmd *cobra.Command, args []string) (err error) {
 // importCodebases imports all known, active codebases locally
 func importCodebases(ctx context.Context, log *slog.Logger, client codebase.GitHubClient, db *sqlx.DB, opts *codebase.Options) (err error) {
 	var (
-		result []*dbstatements.InsertStatement[*codebasemodels.Codebase, int]
+		result []*dbstmts.Insert[*codebasemodels.Codebase, int]
 		data   []*codebasemodels.Codebase = []*codebasemodels.Codebase{}
 		lg     *slog.Logger               = log.With("func", "import.importCodebases")
 	)

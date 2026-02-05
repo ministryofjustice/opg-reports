@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"log/slog"
-	"opg-reports/report/internal/db/dbstatements"
+	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/infracosts/infracost"
 	"opg-reports/report/internal/domain/infracosts/infracostimports"
 	"opg-reports/report/internal/domain/infracosts/infracostmodels"
@@ -72,7 +72,7 @@ func infracostsRunE(cmd *cobra.Command, args []string) (err error) {
 // main import command
 func importInfracosts(ctx context.Context, log *slog.Logger, client infracost.AwsClient, db *sqlx.DB, in *InfraOpts) (err error) {
 	var (
-		result []*dbstatements.InsertStatement[*infracostmodels.Cost, int]
+		result []*dbstmts.Insert[*infracostmodels.Cost, int]
 		data   []*infracostmodels.Cost = []*infracostmodels.Cost{}
 		lg     *slog.Logger            = log.With("func", "import.importInfracosts", "account", in.AccountID)
 		opts   *infracost.Options      = &infracost.Options{AccountID: in.AccountID}

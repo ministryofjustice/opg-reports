@@ -6,7 +6,7 @@ import (
 	"errors"
 	"log/slog"
 	"opg-reports/report/internal/db/dbmodels"
-	"opg-reports/report/internal/db/dbstatements"
+	"opg-reports/report/internal/db/dbstmts"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -23,7 +23,7 @@ var (
 
 // Select creates a transaction to run SQL command within the db. Data is attached to the `.Returned` property
 // on `stmt`
-func Select[T dbmodels.Model, R dbmodels.Result](ctx context.Context, log *slog.Logger, db *sqlx.DB, stmt *dbstatements.SelectStatement[T, R]) (err error) {
+func Select[T dbmodels.Model, R dbmodels.Result](ctx context.Context, log *slog.Logger, db *sqlx.DB, stmt *dbstmts.Select[T, R]) (err error) {
 
 	var (
 		transaction *sqlx.Tx

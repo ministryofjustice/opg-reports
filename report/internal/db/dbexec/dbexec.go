@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"log/slog"
-	"opg-reports/report/internal/db/dbstatements"
+	"opg-reports/report/internal/db/dbstmts"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
@@ -19,7 +19,7 @@ var (
 )
 
 // Exec runs a complete statement against the database and returns any error
-func Exec(ctx context.Context, log *slog.Logger, db *sqlx.DB, statement dbstatements.Statement) (result sql.Result, err error) {
+func Exec(ctx context.Context, log *slog.Logger, db *sqlx.DB, statement dbstmts.Statement) (result sql.Result, err error) {
 	var (
 		transaction *sqlx.Tx
 		options     *sql.TxOptions = &sql.TxOptions{ReadOnly: false, Isolation: sql.LevelDefault}

@@ -7,7 +7,7 @@ import (
 	"opg-reports/report/internal/db/dbexec"
 	"opg-reports/report/internal/db/dbinserts"
 	"opg-reports/report/internal/db/dbselects"
-	"opg-reports/report/internal/db/dbstatements"
+	"opg-reports/report/internal/db/dbstmts"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -38,11 +38,11 @@ var ErrMigrationExecFailed = errors.New("migration statement failed with error")
 func Migrate(ctx context.Context, log *slog.Logger, db *sqlx.DB, migrations ...*Migration) (err error) {
 
 	var (
-		allMigrations   []*Migration                                      = MIGRATIONS // use this by default
-		migrationsToRun []*Migration                                      = allMigrations
-		done            []*Migration                                      = []*Migration{}
-		lg              *slog.Logger                                      = log.With("func", "dbmigrations.Migrate")
-		selector        *dbstatements.SelectStatement[*empty, *Migration] = &dbstatements.SelectStatement[*empty, *Migration]{
+		allMigrations   []*Migration                        = MIGRATIONS // use this by default
+		migrationsToRun []*Migration                        = allMigrations
+		done            []*Migration                        = []*Migration{}
+		lg              *slog.Logger                        = log.With("func", "dbmigrations.Migrate")
+		selector        *dbstmts.Select[*empty, *Migration] = &dbstmts.Select[*empty, *Migration]{
 			Statement: selectStmt,
 			Data:      &empty{},
 		}
@@ -51,7 +51,7 @@ func Migrate(ctx context.Context, log *slog.Logger, db *sqlx.DB, migrations ...*
 	lg.Debug("starting ...")
 
 	lg.Debug("running migration table create ....")
-	_, err = dbexec.Exec(ctx, log, db, dbstatements.Statement(create_migration))
+	_, err = dbexec.Exec(ctx, log, db, dbstmts.Statement(create_migration))
 	if err != nil {
 		return
 	}
@@ -74,7 +74,7 @@ func Migrate(ctx context.Context, log *slog.Logger, db *sqlx.DB, migrations ...*
 	// now run the migrations
 	lg.With("count", len(migrationsToRun)).Debug("running migrataions ...")
 	for _, toRun := range migrationsToRun {
-		_, err = dbexec.Exec(ctx, log, db, dbstatements.Statement(toRun.SQL))
+		_, err = dbexec.Exec(ctx, log, db, dbstmts.Statement(toRun.SQL))
 		if err != nil {
 			lg.Error("error with migration exec", "err", err.Error())
 			err = errors.Join(ErrMigrationExecFailed, err)
@@ -90,9 +90,9 @@ func Migrate(ctx context.Context, log *slog.Logger, db *sqlx.DB, migrations ...*
 
 // insertMigrationData insert migration info based on set of done migrations
 func insertMigrationData(ctx context.Context, log *slog.Logger, db *sqlx.DB, done []*Migration) (err error) {
-	var stmts = []*dbstatements.InsertStatement[*Migration, int]{}
+	var stmts = []*dbstmts.Insert[*Migration, int]{}
 	for _, item := range done {
-		stmts = append(stmts, &dbstatements.InsertStatement[*Migration, int]{
+		stmts = append(stmts, &dbstmts.Insert[*Migration, int]{
 			Statement: insertStmt,
 			Data:      &Migration{Name: item.Name},
 		})

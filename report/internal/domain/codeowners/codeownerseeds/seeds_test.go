@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"opg-reports/report/internal/db/dbconnection"
 	"opg-reports/report/internal/db/dbmigrations"
-	"opg-reports/report/internal/db/dbstatements"
+	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/codeowners/codeownermodels"
 	"opg-reports/report/internal/utils/logger"
 	"testing"
@@ -24,7 +24,7 @@ func TestDomainCodeownerSeedWorking(t *testing.T) {
 		log        *slog.Logger    = logger.New("error", "text")
 		driver     string          = "sqlite3"
 		connStr    string          = fmt.Sprintf("%s/%s", dir, "seed-codeowner-working.db")
-		statements []*dbstatements.InsertStatement[*codeownermodels.Codeowner, int]
+		statements []*dbstmts.Insert[*codeownermodels.Codeowner, int]
 	)
 	// db connection
 	db, err = dbconnection.Connection(ctx, log, driver, connStr)

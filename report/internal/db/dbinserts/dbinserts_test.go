@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"opg-reports/report/internal/db/dbconnection"
 	"opg-reports/report/internal/db/dbexec"
-	"opg-reports/report/internal/db/dbstatements"
+	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/utils/logger"
 	"testing"
 
@@ -45,7 +45,7 @@ func TestDBInsertsWorking(t *testing.T) {
 		driver  string          = "sqlite3"
 		connStr string          = fmt.Sprintf("%s/%s", dir, "insert-working.db")
 		mock    *mockRow        = &mockRow{Name: "test-name"}
-		inserts                 = []*dbstatements.InsertStatement[*mockRow, int]{
+		inserts                 = []*dbstmts.Insert[*mockRow, int]{
 			{Statement: mockInsert, Data: mock},
 		}
 	)
@@ -56,7 +56,7 @@ func TestDBInsertsWorking(t *testing.T) {
 	}
 	defer db.Close()
 	// db schema setup
-	_, err = dbexec.Exec(ctx, log, db, dbstatements.Statement(mockTableCreate))
+	_, err = dbexec.Exec(ctx, log, db, dbstmts.Statement(mockTableCreate))
 	if err != nil {
 		t.Errorf("unexpected exec issue:\n%v", err.Error())
 	}

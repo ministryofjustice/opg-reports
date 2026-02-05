@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
-	"opg-reports/report/internal/db/dbstatements"
+	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/accounts/accountimports"
 	"opg-reports/report/internal/domain/accounts/accountmodels"
 
@@ -29,7 +29,7 @@ func init() {
 
 // Seed assumes the database already exists and the inserts pre-determined data
 // into the database via the import
-func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstatements.InsertStatement[*accountmodels.Account, string], err error) {
+func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstmts.Insert[*accountmodels.Account, string], err error) {
 	var lg *slog.Logger = log.With("func", "domain.accounts.accountseeds.Seed")
 
 	lg.Debug("starting ...")

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"opg-reports/report/internal/db/dbinserts"
-	"opg-reports/report/internal/db/dbstatements"
+	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/infracosts/infracostmodels"
 
 	"github.com/jmoiron/sqlx"
@@ -33,15 +33,15 @@ RETURNING id;
 
 // Import uses combines the cost data passed along with the with insert statement defined in this package to
 // insert records in to the active database connection.
-func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*infracostmodels.Cost) (statements []*dbstatements.InsertStatement[*infracostmodels.Cost, int], err error) {
+func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*infracostmodels.Cost) (statements []*dbstmts.Insert[*infracostmodels.Cost, int], err error) {
 	var lg *slog.Logger = log.With("func", "domain.infracosts.infracostimports.Import")
-	statements = []*dbstatements.InsertStatement[*infracostmodels.Cost, int]{}
+	statements = []*dbstmts.Insert[*infracostmodels.Cost, int]{}
 
 	lg.Debug("starting ...")
 	lg.Debug("generating db insert statements ...")
 	// generate all of the insert statements from the data passed
 	for _, row := range data {
-		statements = append(statements, &dbstatements.InsertStatement[*infracostmodels.Cost, int]{
+		statements = append(statements, &dbstmts.Insert[*infracostmodels.Cost, int]{
 			Statement: insertStmt,
 			Data:      row,
 		})

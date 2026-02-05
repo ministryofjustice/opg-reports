@@ -7,7 +7,7 @@ import (
 	"opg-reports/report/internal/db/dbconnection"
 	"opg-reports/report/internal/db/dbexec"
 	"opg-reports/report/internal/db/dbinserts"
-	"opg-reports/report/internal/db/dbstatements"
+	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/utils/logger"
 	"testing"
 
@@ -27,14 +27,14 @@ const (
 	mockInsertStmt string = `INSERT INTO mocktable (name) VALUES (:name) RETURNING id`
 )
 
-var mockInserts []*dbstatements.InsertStatement[*mockRow, int] = []*dbstatements.InsertStatement[*mockRow, int]{
+var mockInserts []*dbstmts.Insert[*mockRow, int] = []*dbstmts.Insert[*mockRow, int]{
 	{Statement: mockInsertStmt, Data: &mockRow{Name: "mock-a"}},
 	{Statement: mockInsertStmt, Data: &mockRow{Name: "mock-b"}},
 	{Statement: mockInsertStmt, Data: &mockRow{Name: "mock-c"}},
 	{Statement: mockInsertStmt, Data: &mockRow{Name: "mock-d"}},
 }
 
-var mockSelect *dbstatements.SelectStatement[*empty, *mockRow] = &dbstatements.SelectStatement[*empty, *mockRow]{
+var mockSelect *dbstmts.Select[*empty, *mockRow] = &dbstmts.Select[*empty, *mockRow]{
 	Statement: mockSelectStmt,
 	Data:      &empty{},
 }
@@ -58,7 +58,7 @@ func TestDBDBSelectsWorking(t *testing.T) {
 	defer db.Close()
 
 	// run the create
-	_, err = dbexec.Exec(ctx, log, db, dbstatements.Statement(mockCreate))
+	_, err = dbexec.Exec(ctx, log, db, dbstmts.Statement(mockCreate))
 	if err != nil {
 		t.Errorf("unexpected exec issue:\n%v", err.Error())
 	}

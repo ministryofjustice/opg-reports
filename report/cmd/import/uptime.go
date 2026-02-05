@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"log/slog"
-	"opg-reports/report/internal/db/dbstatements"
+	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/uptime/uptime"
 	"opg-reports/report/internal/domain/uptime/uptimeimports"
 	"opg-reports/report/internal/domain/uptime/uptimemodels"
@@ -64,7 +64,7 @@ func uptimeRunE(cmd *cobra.Command, args []string) (err error) {
 // main import command
 func importUptime(ctx context.Context, log *slog.Logger, client uptime.AwsClient, db *sqlx.DB, in *UptimeOpts) (err error) {
 	var (
-		result []*dbstatements.InsertStatement[*uptimemodels.Uptime, int]
+		result []*dbstmts.Insert[*uptimemodels.Uptime, int]
 		data   []*uptimemodels.Uptime = []*uptimemodels.Uptime{}
 		lg     *slog.Logger           = log.With("func", "import.importUptime", "account", in.AccountID)
 		opts   *uptime.Options        = &uptime.Options{AccountID: in.AccountID}

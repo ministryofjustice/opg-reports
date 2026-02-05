@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
-	"opg-reports/report/internal/db/dbstatements"
+	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/uptime/uptimeimports"
 	"opg-reports/report/internal/domain/uptime/uptimemodels"
 	"opg-reports/report/internal/utils/times"
@@ -31,7 +31,7 @@ func init() {
 
 // Seed assumes the database already exists and the inserts pre-determined data
 // into the database via the import
-func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstatements.InsertStatement[*uptimemodels.Uptime, int], err error) {
+func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstmts.Insert[*uptimemodels.Uptime, int], err error) {
 	var lg *slog.Logger = log.With("func", "domain.uptime.uptimeseeds.Seed")
 
 	lg.Debug("starting ...")

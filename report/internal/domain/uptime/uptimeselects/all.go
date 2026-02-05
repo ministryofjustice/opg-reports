@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"opg-reports/report/internal/db/dbselects"
-	"opg-reports/report/internal/db/dbstatements"
+	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/uptime/uptimemodels"
 
 	"github.com/jmoiron/sqlx"
@@ -28,11 +28,11 @@ type empty struct{}
 func All(ctx context.Context, log *slog.Logger, db *sqlx.DB) (code []*uptimemodels.Uptime, err error) {
 	var (
 		lg       *slog.Logger = log.With("func", "domain.teams.teamselects.All")
-		selector *dbstatements.SelectStatement[*empty, *uptimemodels.Uptime]
+		selector *dbstmts.Select[*empty, *uptimemodels.Uptime]
 	)
 	code = []*uptimemodels.Uptime{}
 	// setup the select
-	selector = &dbstatements.SelectStatement[*empty, *uptimemodels.Uptime]{
+	selector = &dbstmts.Select[*empty, *uptimemodels.Uptime]{
 		Statement: selectAllStmt,
 		Data:      &empty{},
 	}

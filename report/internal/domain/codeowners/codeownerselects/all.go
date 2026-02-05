@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"opg-reports/report/internal/db/dbselects"
-	"opg-reports/report/internal/db/dbstatements"
+	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/codeowners/codeownermodels"
 
 	"github.com/jmoiron/sqlx"
@@ -27,11 +27,11 @@ type empty struct{}
 func All(ctx context.Context, log *slog.Logger, db *sqlx.DB) (code []*codeownermodels.Codeowner, err error) {
 	var (
 		lg       *slog.Logger = log.With("func", "domain.codeowners.codeownerselects.All")
-		selector *dbstatements.SelectStatement[*empty, *codeownermodels.Codeowner]
+		selector *dbstmts.Select[*empty, *codeownermodels.Codeowner]
 	)
 	code = []*codeownermodels.Codeowner{}
 	// setup the select
-	selector = &dbstatements.SelectStatement[*empty, *codeownermodels.Codeowner]{
+	selector = &dbstmts.Select[*empty, *codeownermodels.Codeowner]{
 		Statement: selectAllStmt,
 		Data:      &empty{},
 	}

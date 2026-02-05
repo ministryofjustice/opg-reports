@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"opg-reports/report/internal/db/dbconnection"
 	"opg-reports/report/internal/db/dbmigrations"
-	"opg-reports/report/internal/db/dbstatements"
+	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/accounts/accountmodels"
 	"opg-reports/report/internal/utils/logger"
 	"testing"
@@ -23,7 +23,7 @@ func TestDomainAccountsSeedWorking(t *testing.T) {
 		log        *slog.Logger    = logger.New("error", "text")
 		driver     string          = "sqlite3"
 		connStr    string          = fmt.Sprintf("%s/%s", dir, "seed-accounts-working.db")
-		statements []*dbstatements.InsertStatement[*accountmodels.Account, string]
+		statements []*dbstmts.Insert[*accountmodels.Account, string]
 	)
 	// db connection
 	db, err = dbconnection.Connection(ctx, log, driver, connStr)

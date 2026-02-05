@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"opg-reports/report/internal/db/dbexec"
 	"opg-reports/report/internal/db/dbinserts"
-	"opg-reports/report/internal/db/dbstatements"
+	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/codebases/codebasemodels"
 
 	"github.com/jmoiron/sqlx"
@@ -43,21 +43,21 @@ const truncateStmt string = `DELETE FROM codebases;`
 // insert records in to the active database connection.
 //
 // Table is truncated first, as codebases may have changed over time (deleted / renamed etc).
-func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*codebasemodels.Codebase) (statements []*dbstatements.InsertStatement[*codebasemodels.Codebase, int], err error) {
+func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*codebasemodels.Codebase) (statements []*dbstmts.Insert[*codebasemodels.Codebase, int], err error) {
 	var lg *slog.Logger = log.With("func", "domain.codebases.codebaseimports.Import")
 
-	statements = []*dbstatements.InsertStatement[*codebasemodels.Codebase, int]{}
+	statements = []*dbstmts.Insert[*codebasemodels.Codebase, int]{}
 	lg.Debug("starting ...")
 	lg.Debug("generating db insert statements ...")
 	// generate all of the insert statements from the data passed
 	for _, row := range data {
-		statements = append(statements, &dbstatements.InsertStatement[*codebasemodels.Codebase, int]{
+		statements = append(statements, &dbstmts.Insert[*codebasemodels.Codebase, int]{
 			Statement: insertStmt,
 			Data:      row,
 		})
 	}
 	// truncate table
-	_, err = dbexec.Exec(ctx, log, db, dbstatements.Statement(truncateStmt))
+	_, err = dbexec.Exec(ctx, log, db, dbstmts.Statement(truncateStmt))
 	if err != nil {
 		lg.Error("error with truncate.", "err", err.Error())
 		err = errors.Join(ErrTruncateFailed, err)

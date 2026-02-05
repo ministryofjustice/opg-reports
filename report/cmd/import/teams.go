@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
-	"opg-reports/report/internal/db/dbstatements"
+	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/teams/team"
 	"opg-reports/report/internal/domain/teams/teamimports"
 	"opg-reports/report/internal/domain/teams/teammodels"
@@ -61,7 +61,7 @@ func teamsRunE(cmd *cobra.Command, args []string) (err error) {
 // teamsImport inner func called by the wrapper used by cobra
 func teamsImport(ctx context.Context, log *slog.Logger, client team.GitHubClient, db *sqlx.DB) (err error) {
 	var (
-		result []*dbstatements.InsertStatement[*teammodels.Team, string]
+		result []*dbstmts.Insert[*teammodels.Team, string]
 		data   []*teammodels.Team = []*teammodels.Team{}
 		opts   *team.Options      = &team.Options{}
 		lg     *slog.Logger       = log.With("func", "import.teamsImport")

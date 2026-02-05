@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
-	"opg-reports/report/internal/db/dbstatements"
+	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/codeowners/codeownerimports"
 	"opg-reports/report/internal/domain/codeowners/codeownermodels"
 
@@ -25,7 +25,7 @@ func init() {
 
 // Seed assumes the database already exists and the inserts pre-determined data
 // into the database via the import
-func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstatements.InsertStatement[*codeownermodels.Codeowner, int], err error) {
+func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstmts.Insert[*codeownermodels.Codeowner, int], err error) {
 	var lg *slog.Logger = log.With("func", "domain.codeowners.codeownerseeds.Seed")
 
 	lg.Debug("starting ...")

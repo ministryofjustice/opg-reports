@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"opg-reports/report/internal/db/dbselects"
-	"opg-reports/report/internal/db/dbstatements"
+	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/infracosts/infracostmodels"
 
 	"github.com/jmoiron/sqlx"
@@ -33,11 +33,11 @@ type empty struct{}
 func All(ctx context.Context, log *slog.Logger, db *sqlx.DB) (code []*infracostmodels.Cost, err error) {
 	var (
 		lg       *slog.Logger = log.With("func", "domain.infracosts.infracostselects.All")
-		selector *dbstatements.SelectStatement[*empty, *infracostmodels.Cost]
+		selector *dbstmts.Select[*empty, *infracostmodels.Cost]
 	)
 	code = []*infracostmodels.Cost{}
 	// setup the select
-	selector = &dbstatements.SelectStatement[*empty, *infracostmodels.Cost]{
+	selector = &dbstmts.Select[*empty, *infracostmodels.Cost]{
 		Statement: selectAllStmt,
 		Data:      &empty{},
 	}

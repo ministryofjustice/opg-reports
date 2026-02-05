@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"opg-reports/report/internal/db/dbselects"
-	"opg-reports/report/internal/db/dbstatements"
+	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/accounts/accountmodels"
 
 	"github.com/jmoiron/sqlx"
@@ -28,11 +28,11 @@ type empty struct{}
 func All(ctx context.Context, log *slog.Logger, db *sqlx.DB) (data []*accountmodels.Account, err error) {
 	var (
 		lg       *slog.Logger = log.With("func", "domain.accounts.accountselects.All")
-		selector *dbstatements.SelectStatement[*empty, *accountmodels.Account]
+		selector *dbstmts.Select[*empty, *accountmodels.Account]
 	)
 	data = []*accountmodels.Account{}
 	// setup the select
-	selector = &dbstatements.SelectStatement[*empty, *accountmodels.Account]{
+	selector = &dbstmts.Select[*empty, *accountmodels.Account]{
 		Statement: selectAllStmt,
 		Data:      &empty{},
 	}

@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"log/slog"
-	"opg-reports/report/internal/db/dbstatements"
+	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/accounts/account"
 	"opg-reports/report/internal/domain/accounts/accountimports"
 	"opg-reports/report/internal/domain/accounts/accountmodels"
@@ -54,7 +54,7 @@ func accountsRunE(cmd *cobra.Command, args []string) (err error) {
 // importAccounts imports all accounts from the opg-metadata repo released artifact
 func importAccounts(ctx context.Context, log *slog.Logger, client account.GitHubClient, db *sqlx.DB) (err error) {
 	var (
-		result []*dbstatements.InsertStatement[*accountmodels.Account, string]
+		result []*dbstmts.Insert[*accountmodels.Account, string]
 		data   []*accountmodels.Account = []*accountmodels.Account{}
 		opts   *account.Options         = &account.Options{}
 		lg     *slog.Logger             = log.With("func", "import.importAccounts")

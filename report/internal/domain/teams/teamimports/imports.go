@@ -5,7 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"opg-reports/report/internal/db/dbinserts"
-	"opg-reports/report/internal/db/dbstatements"
+	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/teams/teammodels"
 
 	"github.com/jmoiron/sqlx"
@@ -27,15 +27,15 @@ RETURNING name
 
 // Import uses combines the cost data passed along with the with insert statement defined in this package to
 // insert records in to the active database connection.
-func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*teammodels.Team) (statements []*dbstatements.InsertStatement[*teammodels.Team, string], err error) {
+func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*teammodels.Team) (statements []*dbstmts.Insert[*teammodels.Team, string], err error) {
 	var lg *slog.Logger = log.With("func", "domain.teams.teamimports.Import")
 
-	statements = []*dbstatements.InsertStatement[*teammodels.Team, string]{}
+	statements = []*dbstmts.Insert[*teammodels.Team, string]{}
 	lg.Debug("starting ...")
 	lg.Debug("generating db insert statements ...")
 	// generate all of the insert statements from the data passed
 	for _, row := range data {
-		statements = append(statements, &dbstatements.InsertStatement[*teammodels.Team, string]{
+		statements = append(statements, &dbstmts.Insert[*teammodels.Team, string]{
 			Statement: insertStmt,
 			Data:      row,
 		})
