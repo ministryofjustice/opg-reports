@@ -31,7 +31,7 @@ func TestDomainUptimeApiByTeam(t *testing.T) {
 		driver   string          = "sqlite3"
 		connStr  string          = fmt.Sprintf("%s/%s", dir, "test-uptime-api.db")
 		apiData  *ResponseBody   = &ResponseBody{}
-		start    string          = times.AsYMString(times.Add(time.Now(), -4, times.MONTH))
+		start    string          = times.AsYMString(times.Add(time.Now(), -8, times.MONTH))
 		end      string          = times.AsYMString(times.Add(time.Now(), -2, times.MONTH))
 	)
 

@@ -18,8 +18,8 @@ import (
 
 // fixed values for this endpoint, used by the operation setup for huma
 const (
-	ENDPOINT      string = `/v1/uptime/by-team/{start_date}/{end_date}`
-	opID          string = `uptime-get-by-team`
+	ENDPOINT      string = `/v1/uptime/by-month-and-team/{start_date}/{end_date}`
+	opID          string = `uptime-get-by-team-and-month`
 	opSummary     string = `Return uptime grouped by team and month.`
 	opDescription string = `Returns uptime data grouped by team name and the year-month date.`
 )
@@ -92,10 +92,7 @@ type perf struct {
 // empty is used as there are no placeholders within the sql,
 // its fully generated from the data ranges creating multiple
 // sub selects
-type empty struct {
-	StartDate string `db:"start_date"`
-	EndDate   string `db:"end_date"`
-}
+type empty struct{}
 
 // Register attachs the local handler to the huma api allows way to pass along the configured logger, db etc
 func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.API) {
@@ -141,7 +138,7 @@ func getUptimeGroupedByTeamAndMonth(ctx context.Context, log *slog.Logger, db *s
 
 	// clean up the returned data to remove _ prefix on dynamic columns
 	for _, row := range selector.Returned {
-		var entry = map[string]string{}
+		var entry = map[string]string{"trend": ""}
 		for k, v := range row {
 			entry[strings.TrimPrefix(k, "_")] = fmt.Sprintf("%v", v)
 		}
