@@ -1,4 +1,4 @@
-package teamall
+package accountall
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"opg-reports/report/internal/db/dbselects"
 	"opg-reports/report/internal/db/dbstmts"
-	"opg-reports/report/internal/domain/teams/teammodels"
+	"opg-reports/report/internal/domain/accounts/accountmodels"
 	"opg-reports/report/internal/utils/marshal"
 	"time"
 
@@ -18,10 +18,10 @@ import (
 
 // fixed values for this endpoint, used by the operation setup for huma
 const (
-	ENDPOINT      string = `/v1/teams/all`
-	opID          string = `teams-get-all`
-	opSummary     string = `Return all teams.`
-	opDescription string = `Returns a list of all teams from the database without filtering.`
+	ENDPOINT      string = `/v1/accounts/all`
+	opID          string = `accounts-get-all`
+	opSummary     string = `Return all accounts and their teams.`
+	opDescription string = `Returns a list of all accounts and team data from the database without filtering.`
 )
 
 // operation describes what this endpoint is doing
@@ -32,7 +32,7 @@ var operation = huma.Operation{
 	Summary:       opSummary,
 	Description:   opDescription,
 	OperationID:   opID,
-	Tags:          []string{"teams"},
+	Tags:          []string{"accounts"},
 }
 
 // errors
@@ -44,10 +44,16 @@ var (
 // selectStmt is the main sql statment to fetch data from the db
 var selectStmt string = `
 SELECT
-	name
-FROM teams
+	id,
+	name,
+	label,
+	environment,
+	team_name
+FROM accounts
 ORDER BY
-	name ASC
+	team_name,
+	name,
+	environment ASC
 ;`
 
 // Request contains the incoming url and query string data for this endpoint
@@ -60,9 +66,9 @@ type Response struct {
 
 // ResponseBody is the response body, containing all data to be returned
 type ResponseBody struct {
-	Data        []map[string]string `json:"data"`
 	Request     *Request            `json:"request"`
 	Performance *perf               `json:"performance"` // duration of the request
+	Data        []map[string]string `json:"data"`
 	Count       int                 `json:"count,omitempty"`
 }
 
@@ -83,25 +89,25 @@ func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.A
 
 	// input is an empty struct as
 	huma.Register(humaapi, operation, func(ctx context.Context, input *Request) (*Response, error) {
-		return getAllTeams(ctx, log, db, &operation, input)
+		return getAllAccounts(ctx, log, db, &operation, input)
 	})
 
 }
 
-// getAllTeams
-func getAllTeams(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.Operation, input *Request) (response *Response, err error) {
+// getAllAccounts
+func getAllAccounts(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.Operation, input *Request) (response *Response, err error) {
 	var (
 		body      *ResponseBody
-		selector  *dbstmts.Select[*empty, *teammodels.Team]
+		selector  *dbstmts.Select[*empty, *accountmodels.AccountRow]
 		callEnd   time.Time
 		callStart time.Time           = time.Now().UTC()
 		result    []map[string]string = []map[string]string{}
-		lg        *slog.Logger        = log.With("func", "teams.teamapis.teamall.getAllTeams", "operation", operation.OperationID)
+		lg        *slog.Logger        = log.With("func", "domain.teamapis.teamall.getAllTeams", "operation", operation.OperationID)
 	)
 	lg.Info("starting handler ...")
 	// create the statement
 	lg.Debug("creating select statement ...")
-	selector = &dbstmts.Select[*empty, *teammodels.Team]{
+	selector = &dbstmts.Select[*empty, *accountmodels.AccountRow]{
 		Statement: selectStmt,
 		Data:      &empty{},
 	}

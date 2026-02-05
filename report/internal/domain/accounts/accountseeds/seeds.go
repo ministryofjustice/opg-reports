@@ -14,15 +14,15 @@ import (
 
 var ErrSeedFailed = errors.New("seed account call failed with an error.")
 
-// GetSeeds will generate 104 accounts (26 * 4 =A-Z with 4 environments)
+// GetSeeds will generate 96 accounts (24 * 4 =A-Z with 4 environments)
 func GetSeeds() (data []*accountmodels.Account) {
-	var accountGroups = 26 // so we dont loop around the captial letters
+	var limit = 24 // so we dont loop around the captial letters
 	var envs map[string]string = map[string]string{"A": "development", "B": "preproduction", "C": "integration", "D": "production"}
-	var ch rune = 'A'
+	var ch rune = 'B'
 	data = []*accountmodels.Account{}
 
 	// generate 180 accounts for testing purposes
-	for i := 1; i <= accountGroups; i++ {
+	for i := 1; i <= limit; i++ {
 		var prefix string = fmt.Sprintf("%03d", i)
 		var team string = fmt.Sprintf("TEAM-%s", string(ch))
 		for _, letter := range []string{"A", "B", "C", "D"} {
