@@ -73,6 +73,8 @@ func main() {
 	rootCmd.AddCommand(
 		dlCmd,
 		upCmd,
+		seedCmd,
+		migrateCmd,
 	)
 	err = rootCmd.Execute()
 	if err != nil {

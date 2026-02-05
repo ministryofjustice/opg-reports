@@ -14,9 +14,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-// TestDBDownloadWithoutMock
+// TestCMDDBDownloadWithoutMock
 // run with aws-vault exec shared-development-operator -- make test name="TestDBDownloadWithoutMock"
-func TestDBDownloadWithoutMock(t *testing.T) {
+func TestCMDDBDownloadWithoutMock(t *testing.T) {
 
 	var (
 		err    error

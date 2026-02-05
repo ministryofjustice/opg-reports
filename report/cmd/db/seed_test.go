@@ -11,7 +11,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func TestCMDSeed(t *testing.T) {
+func TestCMDDBSeedWithoutMock(t *testing.T) {
 
 	var (
 		err    error

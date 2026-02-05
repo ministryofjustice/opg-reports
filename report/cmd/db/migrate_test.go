@@ -11,7 +11,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func TestCMDMigrate(t *testing.T) {
+func TestCMDDBMigrateWithoutMock(t *testing.T) {
 
 	var (
 		err    error
