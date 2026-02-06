@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"opg-reports/report/internal/db/dbselects"
 	"opg-reports/report/internal/db/dbstmts"
+	"opg-reports/report/internal/utils/timers"
 	"opg-reports/report/internal/utils/times"
 	"strings"
 	"time"
@@ -70,7 +71,7 @@ type ResponseBody struct {
 	Months      []string            `json:"months"`      // months within the range specified
 	Headers     *headers            `json:"headers"`     // headers contains details for table headers / rendering
 	Data        []map[string]string `json:"data"`        // the actual data results
-	Performance *perf               `json:"performance"` // duration of the request
+	Performance []*timers.Timer     `json:"performance"` // duration of the request
 	Count       int                 `json:"count"`       // counter to check data aligns
 }
 
@@ -79,14 +80,6 @@ type headers struct {
 	Labels  []string `json:"labels"`  // labels at the start of a row (table headers)
 	Columns []string `json:"columns"` // the core data of the table row (monthly totals)
 	Extras  []string `json:"extras"`  // additional columns and the end of row - like row totals
-}
-
-// pref tracks performance of the request to this endpoint, logging start & endtime
-// as well as the duration from starting the handler till finishing
-type perf struct {
-	Start    time.Time `json:"start"`
-	End      time.Time `json:"end"`
-	Duration string    `json:"duration"`
 }
 
 // empty is used as there are no placeholders within the sql,
@@ -106,14 +99,15 @@ func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.A
 // getInfracostsGroupedByMonthAndTeam
 func getInfracostsGroupedByMonthAndTeam(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.Operation, input *Request) (response *Response, err error) {
 	var (
-		body      *ResponseBody
-		callEnd   time.Time
-		selector  *dbstmts.Select[*empty, map[string]interface{}]
-		callStart time.Time           = time.Now().UTC()
-		result    []map[string]string = []map[string]string{}
-		months    []string            = []string{}
-		lg        *slog.Logger        = log.With("func", "infracostsbyteam.getInfracostsGroupedByMonthAndTeam", "operation", operation.OperationID)
+		body     *ResponseBody
+		selector *dbstmts.Select[*empty, map[string]interface{}]
+		result   []map[string]string = []map[string]string{}
+		months   []string            = []string{}
+		lg       *slog.Logger        = log.With("func", "infracostsbyteam.getInfracostsGroupedByMonthAndTeam", "operation", operation.OperationID)
 	)
+	timers.Start(operation.OperationID)
+	defer func() { timers.Stop(operation.OperationID) }()
+
 	lg.Info("starting handler ...")
 
 	// work out months in time frame, including the last month
@@ -129,7 +123,9 @@ func getInfracostsGroupedByMonthAndTeam(ctx context.Context, log *slog.Logger, d
 
 	// run the select
 	lg.Debug("running select call ...")
+	timers.Start("select-all")
 	err = dbselects.SelectMap(ctx, log, db, selector)
+	timers.Stop("select-all")
 	if err != nil {
 		lg.Error("select failed with error", "err", err.Error())
 		err = errors.Join(ErrSelectFailed, err)
@@ -146,17 +142,13 @@ func getInfracostsGroupedByMonthAndTeam(ctx context.Context, log *slog.Logger, d
 	}
 
 	// prep result
-	callEnd = time.Now().UTC()
+	timers.Stop(operation.OperationID)
 	body = &ResponseBody{
-		Request: input,
-		Months:  months,
-		Count:   len(result),
-		Data:    result,
-		Performance: &perf{
-			Start:    callStart,
-			End:      callEnd,
-			Duration: fmt.Sprintf("%v", callEnd.Sub(callStart).String()),
-		},
+		Request:     input,
+		Months:      months,
+		Count:       len(result),
+		Data:        result,
+		Performance: timers.AllTimers(),
 		Headers: &headers{
 			Labels:  []string{"team"},
 			Columns: months,
