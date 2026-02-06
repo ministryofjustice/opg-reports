@@ -12,6 +12,7 @@ import (
 	"opg-reports/report/internal/utils/tabulate"
 	"opg-reports/report/internal/utils/timers"
 	"opg-reports/report/internal/utils/times"
+	"sort"
 	"strings"
 	"time"
 
@@ -72,12 +73,12 @@ type CostByMonthTeamResponse struct {
 
 // CostByMonthTeamResponseBody is the response body, containing all data to be returned
 type CostByMonthTeamResponseBody struct {
-	Request     *CostByMonthTeamRequest           `json:"request"`     // the original CostByMonthTeamRequest
-	Months      []string                          `json:"months"`      // months within the range specified
-	Data        map[string]map[string]interface{} `json:"data"`        // the actual data results
-	Performance []*timers.Timer                   `json:"performance"` // duration of the CostByMonthTeamRequest
-	Headers     *CostByMonthTeamHeaders           `json:"headers"`     // headers contains details for table headers / rendering
-	Count       int                               `json:"count"`       // counter to check data aligns
+	Request     *CostByMonthTeamRequest  `json:"request"`     // the original CostByMonthTeamRequest
+	Months      []string                 `json:"months"`      // months within the range specified
+	Data        []map[string]interface{} `json:"data"`        // the actual data results
+	Performance []*timers.Timer          `json:"performance"` // duration of the CostByMonthTeamRequest
+	Headers     *CostByMonthTeamHeaders  `json:"headers"`     // headers contains details for table headers / rendering
+	Count       int                      `json:"count"`       // counter to check data aligns
 }
 
 // track the headings to use in the table for easier rendering
@@ -149,7 +150,7 @@ func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.A
 func getByMonthTeam(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.Operation, input *CostByMonthTeamRequest) (resp *CostByMonthTeamResponse, err error) {
 	var (
 		body             *CostByMonthTeamResponseBody
-		table            map[string]map[string]interface{}
+		table            []map[string]interface{}
 		query            *dbstmts.Select[*empty, *infracostmodels.CostMonthTeam]
 		lg               *slog.Logger            = log.With("func", "infracostsbyteam.getByMonthTeam", "operation", operation.OperationID)
 		monthStr, months                         = times.JoinedYMList(times.Months(input.Start(), input.End()))
@@ -216,7 +217,6 @@ func rowLabelFunc(dbRow map[string]interface{}, tableRow map[string]interface{},
 func rowUpdatefunc(dbRow map[string]interface{}, tableRow map[string]interface{}, headers tabulate.TableHeaders) map[string]interface{} {
 	var month = dbRow["date"].(string)
 	var cost = dbRow["cost"].(float64)
-
 	updated := tableRow[month].(float64) + cost
 	tableRow[month] = updated
 	return tableRow
@@ -224,10 +224,8 @@ func rowUpdatefunc(dbRow map[string]interface{}, tableRow map[string]interface{}
 
 // rowTotalfunc updates the row total, run after only once after all data is set
 func rowTotalfunc(dbRow map[string]interface{}, tableRow map[string]interface{}, headers tabulate.TableHeaders) map[string]interface{} {
-	var (
-		cols  []string = headers.DataColumns()
-		total float64  = 0.0
-	)
+	var cols []string = headers.DataColumns()
+	var total float64 = 0.0
 	for _, col := range cols {
 		total += tableRow[col].(float64)
 	}
@@ -236,15 +234,46 @@ func rowTotalfunc(dbRow map[string]interface{}, tableRow map[string]interface{},
 	return tableRow
 }
 
+// tableSort - sort the table by the team name for consistency
+func tableSort(table []map[string]interface{}, headers tabulate.TableHeaders) []map[string]interface{} {
+	sort.Slice(table, func(i, j int) bool {
+		var a = table[i]["team"].(string)
+		var b = table[j]["team"].(string)
+		return (a < b)
+	})
+	return table
+}
+
+// tableSummaary runs over all of the table creating a new row based on the total of each column
+func tableSummaary(table []map[string]interface{}, headers tabulate.TableHeaders) []map[string]interface{} {
+	var newRow = tabulate.SkeletonRow(headers)
+	var cols = headers.DataColumns()
+	var total float64 = 0.0
+
+	for _, row := range table {
+		for _, col := range cols {
+			newRow[col] = newRow[col].(float64) + row[col].(float64)
+		}
+		total += row["total"].(float64)
+	}
+	newRow["team"] = "Total"
+	newRow["total"] = total
+	table = append(table, newRow)
+
+	return table
+}
+
 // tabular wraps around the main tabular helper to create the return data
-func tabular(results []*infracostmodels.CostMonthTeam, headers *CostByMonthTeamHeaders) (table map[string]map[string]interface{}) {
+func tabular(results []*infracostmodels.CostMonthTeam, headers *CostByMonthTeamHeaders) (table []map[string]interface{}) {
 	var dbRows = []map[string]interface{}{}
 	var opts = &tabulate.TabulateOptions{
-		Headers: headers,
-		KeyF:    rowKey,
-		LabelF:  rowLabelFunc,
-		ColumnF: rowUpdatefunc,
-		RowEndF: rowTotalfunc,
+		Headers:    headers,
+		KeyF:       rowKey,
+		LabelF:     rowLabelFunc,
+		ColumnF:    rowUpdatefunc,
+		RowEndF:    rowTotalfunc,
+		TableSortF: tableSort,
+		TableEndF:  tableSummaary,
 	}
 	marshal.Convert(results, &dbRows)
 	table = tabulate.Tabulate(dbRows, opts)

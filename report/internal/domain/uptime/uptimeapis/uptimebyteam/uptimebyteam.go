@@ -12,6 +12,7 @@ import (
 	"opg-reports/report/internal/utils/tabulate"
 	"opg-reports/report/internal/utils/timers"
 	"opg-reports/report/internal/utils/times"
+	"sort"
 	"strings"
 	"time"
 
@@ -68,12 +69,12 @@ type UptimeByMonthTeamResponse struct {
 
 // UptimeByMonthTeamResponseBody is the response body, containing all data to be returned
 type UptimeByMonthTeamResponseBody struct {
-	Request     *UptimeByMonthTeamRequest         `json:"request"`     // the original request
-	Months      []string                          `json:"months"`      // months within the range specified
-	Headers     *UptimeByMonthTeamHeaders         `json:"headers"`     // headers contains details for table headers / rendering
-	Data        map[string]map[string]interface{} `json:"data"`        // the actual data results
-	Performance []*timers.Timer                   `json:"performance"` // duration of the request
-	Count       int                               `json:"count"`       // counter to check data aligns
+	Request     *UptimeByMonthTeamRequest `json:"request"`     // the original request
+	Months      []string                  `json:"months"`      // months within the range specified
+	Headers     *UptimeByMonthTeamHeaders `json:"headers"`     // headers contains details for table headers / rendering
+	Data        []map[string]interface{}  `json:"data"`        // the actual data results
+	Performance []*timers.Timer           `json:"performance"` // duration of the request
+	Count       int                       `json:"count"`       // counter to check data aligns
 
 }
 
@@ -144,7 +145,7 @@ func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.A
 func getByMonthTeam(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.Operation, input *UptimeByMonthTeamRequest) (resp *UptimeByMonthTeamResponse, err error) {
 	var (
 		body             *UptimeByMonthTeamResponseBody
-		table            map[string]map[string]interface{} // table formatted version of the database rows
+		table            []map[string]interface{} // table formatted version of the database rows
 		query            *dbstmts.Select[*empty, *uptimemodels.UptimeMonthTeam]
 		lg               *slog.Logger              = log.With("func", "uptime.getByMonthTeam", "operation", operation.OperationID)
 		monthStr, months                           = times.JoinedYMList(times.Months(input.Start(), input.End()))
@@ -228,15 +229,51 @@ func rowAverageFunc(dbRow map[string]interface{}, tableRow map[string]interface{
 	return tableRow
 }
 
+// tableSort - sort the table by the team name for consistency
+func tableSort(table []map[string]interface{}, headers tabulate.TableHeaders) []map[string]interface{} {
+	sort.Slice(table, func(i, j int) bool {
+		var a = table[i]["team"].(string)
+		var b = table[j]["team"].(string)
+		return (a < b)
+	})
+	return table
+}
+
+// tableSummaary runs over all of the table creating a new row based on the total average of each column
+func tableSummaary(table []map[string]interface{}, headers tabulate.TableHeaders) []map[string]interface{} {
+	var newRow = tabulate.SkeletonRow(headers)
+	var cols = headers.DataColumns()
+	var count = len(table)
+	var total float64 = 0.0
+	// generate total for each column
+	for _, row := range table {
+		for _, col := range cols {
+			newRow[col] = newRow[col].(float64) + row[col].(float64)
+		}
+		total += row["overall"].(float64)
+	}
+	// deal with dividing by count for average of averages
+	for _, col := range cols {
+		newRow[col] = newRow[col].(float64) / float64(count)
+	}
+	newRow["team"] = "Overall"
+	newRow["overall"] = total / float64(count)
+	table = append(table, newRow)
+
+	return table
+}
+
 // tabular wraps around the main tabular helper to create the return data
-func tabular(results []*uptimemodels.UptimeMonthTeam, headers *UptimeByMonthTeamHeaders) (table map[string]map[string]interface{}) {
+func tabular(results []*uptimemodels.UptimeMonthTeam, headers *UptimeByMonthTeamHeaders) (table []map[string]interface{}) {
 	var dbRows = []map[string]interface{}{}
 	var opts = &tabulate.TabulateOptions{
-		Headers: headers,
-		KeyF:    rowKey,
-		LabelF:  rowLabelFunc,
-		ColumnF: rowUpdatefunc,
-		RowEndF: rowAverageFunc,
+		Headers:    headers,
+		KeyF:       rowKey,
+		LabelF:     rowLabelFunc,
+		ColumnF:    rowUpdatefunc,
+		RowEndF:    rowAverageFunc,
+		TableSortF: tableSort,
+		TableEndF:  tableSummaary,
 	}
 	marshal.Convert(results, &dbRows)
 	table = tabulate.Tabulate(dbRows, opts)

@@ -35,7 +35,7 @@ func TestDomainInfacostsApiByTeam(t *testing.T) {
 		pth      string                       = filepath.Join(dir, "test-infracosts-api.db")
 		connStr  string                       = fmt.Sprintf("%s%s", pth, sqlParams)
 		apiData  *CostByMonthTeamResponseBody = &CostByMonthTeamResponseBody{}
-		start    string                       = times.AsYMString(times.Add(time.Now(), -8, times.MONTH))
+		start    string                       = times.AsYMString(times.Add(time.Now(), -3, times.MONTH))
 		end      string                       = times.AsYMString(times.Add(time.Now(), -2, times.MONTH))
 	)
 	ctx = context.WithValue(ctx, "db", pth)
