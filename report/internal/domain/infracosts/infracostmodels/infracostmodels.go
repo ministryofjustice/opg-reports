@@ -11,3 +11,9 @@ type Cost struct {
 	Cost      string `json:"cost,omitempty" db:"cost" `      // The actual cost value as a string - without an currency, but is USD by default
 	AccountID string `json:"account_id" db:"account_id"`     // the actual account id - string as it can have leading zeros. Use in joins as well
 }
+
+type CostMonthAndTeam struct {
+	Date     string `json:"date,omitempty" db:"date" ` // The month for this cost
+	Cost     string `json:"cost,omitempty" db:"cost" ` // The sum of all costs within this month
+	TeamName string `json:"team_name" db:"team_name"`  // the team this costs is attached to
+}

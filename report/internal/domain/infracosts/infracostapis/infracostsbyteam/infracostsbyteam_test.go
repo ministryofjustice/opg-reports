@@ -10,6 +10,7 @@ import (
 	"opg-reports/report/internal/utils/seed"
 	"opg-reports/report/internal/utils/times"
 	"opg-reports/report/internal/utils/unmarshal"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -17,6 +18,8 @@ import (
 	"github.com/danielgtaylor/huma/v2/humatest"
 	"github.com/jmoiron/sqlx"
 )
+
+var sqlParams string = "?_journal=WAL&_busy_timeout=5000&_vacuum=incremental&_synchronous=NORMAL&_cache_size=1000000000&_temp_store=memory"
 
 func TestDomainInfacostsApiByTeam(t *testing.T) {
 	var (
@@ -29,12 +32,13 @@ func TestDomainInfacostsApiByTeam(t *testing.T) {
 		ctx      context.Context = t.Context()
 		log      *slog.Logger    = logger.New("error", "text")
 		driver   string          = "sqlite3"
-		connStr  string          = fmt.Sprintf("%s/%s", dir, "test-infracosts-api.db")
+		pth      string          = filepath.Join(dir, "test-infracosts-api.db")
+		connStr  string          = fmt.Sprintf("%s%s", pth, sqlParams)
 		apiData  *ResponseBody   = &ResponseBody{}
-		start    string          = times.AsYMString(times.Add(time.Now(), -14, times.MONTH))
+		start    string          = times.AsYMString(times.Add(time.Now(), -10, times.MONTH))
 		end      string          = times.AsYMString(times.Add(time.Now(), -2, times.MONTH))
 	)
-
+	ctx = context.WithValue(ctx, "db", pth)
 	// setup the test huma instance
 	_, api = humatest.New(t)
 	// db connection
@@ -67,5 +71,6 @@ func TestDomainInfacostsApiByTeam(t *testing.T) {
 	if len(apiData.Data) != apiData.Count {
 		t.Errorf("data length and count dont match.")
 	}
+	t.FailNow()
 
 }
