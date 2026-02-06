@@ -2,8 +2,10 @@ package awscosts
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"opg-reports/report/config"
 	"opg-reports/report/internal/endpoints"
@@ -28,14 +30,21 @@ type CostTable struct {
 	Footer  map[string]string   `json:"footer"`
 }
 
+type perf struct {
+	Start    time.Time `json:"start"`
+	End      time.Time `json:"end"`
+	Duration string    `json:"duration"`
+}
+
 // GetAwsCostsGroupedResponseBody is the body of the response returned
 type GetAwsCostsGroupedResponseBody[T api.Model] struct {
-	Count   int                   `json:"count"`   // number of db results from the query
-	Request *AwsCostsGroupedInput `json:"request"` // the original request for comparison
-	Dates   []string              `json:"dates"`   // the date range the request is for
-	Groups  []string              `json:"groups"`  // the data grouping that the request generated
-	Data    []T                   `json:"data"`    // the data records
-	Tabular *CostTable            `json:"tabular"` // the data records covnerted to a table structure
+	Count       int                   `json:"count"`       // number of db results from the query
+	Request     *AwsCostsGroupedInput `json:"request"`     // the original request for comparison
+	Dates       []string              `json:"dates"`       // the date range the request is for
+	Groups      []string              `json:"groups"`      // the data grouping that the request generated
+	Data        []T                   `json:"data"`        // the data records
+	Tabular     *CostTable            `json:"tabular"`     // the data records covnerted to a table structure
+	Performance *perf                 `json:"performance"` // duration of the request
 }
 
 // GetAwsCostsGroupedResponse - this is the main struct returned by the handlers
@@ -99,6 +108,8 @@ func handleGetAwsCostsGrouped[T api.Model](
 	input *AwsCostsGroupedInput,
 ) (response *GetAwsCostsGroupedResponse[T], err error) {
 	var costs []T = []T{}
+	var callEnd time.Time
+	var callStart time.Time = time.Now().UTC()
 
 	log = log.With("operation", "handleGetAwsCostsGrouped")
 	log.With("input", input).Info("handling get-awscosts-grouped")
@@ -162,6 +173,11 @@ func handleGetAwsCostsGrouped[T api.Model](
 			}
 		}
 	}
-
+	callEnd = time.Now().UTC()
+	response.Body.Performance = &perf{
+		Start:    callStart,
+		End:      callEnd,
+		Duration: fmt.Sprintf("%v", callEnd.Sub(callStart).String()),
+	}
 	return
 }
