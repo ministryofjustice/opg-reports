@@ -10,6 +10,7 @@ import (
 	"opg-reports/report/internal/utils/seed"
 	"opg-reports/report/internal/utils/times"
 	"opg-reports/report/internal/utils/unmarshal"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -18,21 +19,24 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+var sqlParams string = "?_journal=WAL&_busy_timeout=5000&_vacuum=incremental&_synchronous=NORMAL&_cache_size=1000000000&_temp_store=memory"
+
 func TestDomainUptimeApiByTeam(t *testing.T) {
 	var (
 		err      error
 		db       *sqlx.DB
 		api      humatest.TestAPI
 		resp     *httptest.ResponseRecorder
-		endpoint string          = ENDPOINT
-		dir      string          = t.TempDir()
-		ctx      context.Context = t.Context()
-		log      *slog.Logger    = logger.New("error", "text")
-		driver   string          = "sqlite3"
-		connStr  string          = fmt.Sprintf("%s/%s", dir, "test-uptime-api.db")
-		apiData  *ResponseBody   = &ResponseBody{}
-		start    string          = times.AsYMString(times.Add(time.Now(), -8, times.MONTH))
-		end      string          = times.AsYMString(times.Add(time.Now(), -2, times.MONTH))
+		endpoint string                         = ENDPOINT
+		dir      string                         = t.TempDir()
+		ctx      context.Context                = t.Context()
+		log      *slog.Logger                   = logger.New("error", "text")
+		driver   string                         = "sqlite3"
+		pth      string                         = filepath.Join(dir, "test-uptime-api.db")
+		connStr  string                         = fmt.Sprintf("%s%s", pth, sqlParams)
+		apiData  *UptimeByMonthTeamResponseBody = &UptimeByMonthTeamResponseBody{}
+		start    string                         = times.AsYMString(times.Add(time.Now(), -8, times.MONTH))
+		end      string                         = times.AsYMString(times.Add(time.Now(), -2, times.MONTH))
 	)
 
 	// setup the test huma instance
