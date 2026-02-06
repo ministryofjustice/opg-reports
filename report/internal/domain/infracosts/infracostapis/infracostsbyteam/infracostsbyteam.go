@@ -3,11 +3,13 @@ package infracostsbyteam
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"opg-reports/report/internal/db/dbselects"
 	"opg-reports/report/internal/db/dbstmts"
+	"opg-reports/report/internal/domain/infracosts/infracostmodels"
+	"opg-reports/report/internal/utils/marshal"
+	"opg-reports/report/internal/utils/tabulate"
 	"opg-reports/report/internal/utils/timers"
 	"opg-reports/report/internal/utils/times"
 	"strings"
@@ -24,6 +26,90 @@ const (
 	opSummary     string = `Return costs grouped by the month and team.`
 	opDescription string = `Returns a list costs between the start and end dates grouped by team and formatted as a table.`
 )
+
+// baseSelect - fastest way to get the data
+//   - tried multiple selects, one for each month, concurrently - slowest at ~300ms
+//   - tried multiple selects, one per month, in sequence - ~150ms
+//   - tried sub-selects per month - ~185ms
+//   - this one getting row for each month - ~35ms
+const baseSelect string = `
+SELECT
+    strftime("%Y-%m", infracosts.date) as date,
+    CAST(COALESCE(SUM(cost), 0) as REAL) as cost,
+    accounts.team_name
+FROM infracosts
+LEFT JOIN accounts ON accounts.id = infracosts.account_id
+WHERE
+    strftime("%Y-%m", infracosts.date) IN (:months)
+GROUP BY
+    accounts.team_name,
+    strftime("%Y-%m", infracosts.date)
+;
+`
+
+// CostByMonthTeamRequest contains the incoming url paths and query string data for this endpoint
+type CostByMonthTeamRequest struct {
+	StartDate string `json:"start_date,omitempty" path:"start_date" doc:"Earliest date to return data from (uses >=). YYYY-MM." example:"2025-01" pattern:"([0-9]{4}-[0-9]{2})"`
+	EndDate   string `json:"end_date,omitempty" path:"end_date" doc:"Latest date to capture the data for (uses <). YYYY-MM."  example:"2025-06" pattern:"([0-9]{4}-[0-9]{2})"`
+}
+
+// Start converts the string to a time
+func (self *CostByMonthTeamRequest) Start() (t time.Time) {
+	t, _ = times.FromString(self.StartDate)
+	return
+}
+
+// End converts the string to a time
+func (self *CostByMonthTeamRequest) End() (t time.Time) {
+	t, _ = times.FromString(self.EndDate)
+	return
+}
+
+// CostByMonthTeamResponse is the handlers data struct passed to a huma api which will then be rendered
+type CostByMonthTeamResponse struct {
+	Body *CostByMonthTeamResponseBody
+}
+
+// CostByMonthTeamResponseBody is the response body, containing all data to be returned
+type CostByMonthTeamResponseBody struct {
+	Request     *CostByMonthTeamRequest           `json:"request"`     // the original CostByMonthTeamRequest
+	Months      []string                          `json:"months"`      // months within the range specified
+	Data        map[string]map[string]interface{} `json:"data"`        // the actual data results
+	Performance []*timers.Timer                   `json:"performance"` // duration of the CostByMonthTeamRequest
+	Headers     *CostByMonthTeamHeaders           `json:"headers"`     // headers contains details for table headers / rendering
+	Count       int                               `json:"count"`       // counter to check data aligns
+}
+
+// track the headings to use in the table for easier rendering
+// interface: TableHeaders
+type CostByMonthTeamHeaders struct {
+	Labels  []string `json:"labels"`  // labels at the start of a row (table headers)
+	Columns []string `json:"columns"` // the core data of the table row (monthly totals)
+	Extras  []string `json:"extras"`  // additional columns between columns & totals
+	End     []string `json:"end"`     //
+}
+
+// Textual returns headers that should be strings
+func (self *CostByMonthTeamHeaders) Textual() (list []string) {
+	list = []string{}
+	list = append(list, self.Labels...)
+	list = append(list, self.Extras...)
+	return
+}
+func (self *CostByMonthTeamHeaders) Numeric() (list []string) {
+	list = []string{}
+	list = append(list, self.Columns...)
+	list = append(list, self.End...)
+	return
+}
+func (self *CostByMonthTeamHeaders) DataColumns() (list []string) {
+	return self.Columns
+}
+
+// empty is used as there are no placeholders within the sql,
+// its fully generated from the data ranges creating multiple
+// sub selects
+type empty struct{}
 
 // operation describes what this endpoint is doing
 var operation = huma.Operation{
@@ -42,186 +128,125 @@ var (
 	ErrConvertFailed = errors.New("dataset type conversion failed.")
 )
 
-// Request contains the incoming url paths and query string data for this endpoint
-type Request struct {
-	StartDate string `json:"start_date,omitempty" path:"start_date" doc:"Earliest date to return data from (uses >=). YYYY-MM." example:"2025-01" pattern:"([0-9]{4}-[0-9]{2})"`
-	EndDate   string `json:"end_date,omitempty" path:"end_date" doc:"Latest date to capture the data for (uses <). YYYY-MM."  example:"2025-06" pattern:"([0-9]{4}-[0-9]{2})"`
-}
-
-// Start converts the string to a time
-func (self *Request) Start() (t time.Time) {
-	t, _ = times.FromString(self.StartDate)
-	return
-}
-
-// End converts the string to a time
-func (self *Request) End() (t time.Time) {
-	t, _ = times.FromString(self.EndDate)
-	return
-}
-
-// Response is the handlers data struct passed to a huma api which will then be rendered
-type Response struct {
-	Body *ResponseBody
-}
-
-// ResponseBody is the response body, containing all data to be returned
-type ResponseBody struct {
-	Request     *Request            `json:"request"`     // the original request
-	Months      []string            `json:"months"`      // months within the range specified
-	Headers     *headers            `json:"headers"`     // headers contains details for table headers / rendering
-	Data        []map[string]string `json:"data"`        // the actual data results
-	Performance []*timers.Timer     `json:"performance"` // duration of the request
-	Count       int                 `json:"count"`       // counter to check data aligns
-}
-
-// track the headings to use in the table for easier rendering
-type headers struct {
-	Labels  []string `json:"labels"`  // labels at the start of a row (table headers)
-	Columns []string `json:"columns"` // the core data of the table row (monthly totals)
-	Extras  []string `json:"extras"`  // additional columns and the end of row - like row totals
-}
-
-// empty is used as there are no placeholders within the sql,
-// its fully generated from the data ranges creating multiple
-// sub selects
-type empty struct{}
+// used for table rows
+var (
+	headerLabels = []string{"team"}
+	headerTotals = []string{"total"}
+	headerExtras = []string{"trend"}
+)
 
 // Register attachs the local handler to the huma api allows way to pass along the configured logger, db etc
 func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.API) {
 	// input is an empty struct as
-	huma.Register(humaapi, operation, func(ctx context.Context, input *Request) (*Response, error) {
-		return getInfracostsGroupedByMonthAndTeam(ctx, log, db, &operation, input)
+	huma.Register(humaapi, operation, func(ctx context.Context, input *CostByMonthTeamRequest) (*CostByMonthTeamResponse, error) {
+		return getByMonthTeam(ctx, log, db, &operation, input)
 	})
 
 }
 
-// getInfracostsGroupedByMonthAndTeam
-func getInfracostsGroupedByMonthAndTeam(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.Operation, input *Request) (response *Response, err error) {
+// getByMonthAndTeam fetches the data directly and then converts the db rows from the result into a table row styled
+// map to return
+func getByMonthTeam(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.Operation, input *CostByMonthTeamRequest) (resp *CostByMonthTeamResponse, err error) {
 	var (
-		body     *ResponseBody
-		selector *dbstmts.Select[*empty, map[string]interface{}]
-		result   []map[string]string = []map[string]string{}
-		months   []string            = []string{}
-		lg       *slog.Logger        = log.With("func", "infracostsbyteam.getInfracostsGroupedByMonthAndTeam", "operation", operation.OperationID)
+		body             *CostByMonthTeamResponseBody
+		table            map[string]map[string]interface{}
+		query            *dbstmts.Select[*empty, *infracostmodels.CostMonthTeam]
+		lg               *slog.Logger            = log.With("func", "infracostsbyteam.getByMonthTeam", "operation", operation.OperationID)
+		monthStr, months                         = times.JoinedYMList(times.Months(input.Start(), input.End()))
+		headers          *CostByMonthTeamHeaders = &CostByMonthTeamHeaders{
+			Labels:  headerLabels,
+			Columns: months,
+			Extras:  headerExtras,
+			End:     headerTotals,
+		}
 	)
 	timers.Start(operation.OperationID)
 	defer func() { timers.Stop(operation.OperationID) }()
 
 	lg.Info("starting handler ...")
-
-	// work out months in time frame, including the last month
-	months = times.AsYMStrings(times.Months(input.Start(), input.End()))
 	lg.With("months", months).Debug("determined range of months ...")
 
 	// create the statement
 	lg.Debug("creating select statement ...")
-	selector = &dbstmts.Select[*empty, map[string]interface{}]{
-		Statement: selectStmt(months),
+	query = &dbstmts.Select[*empty, *infracostmodels.CostMonthTeam]{
+		Statement: strings.ReplaceAll(baseSelect, ":months", monthStr),
 		Data:      &empty{},
 	}
 
 	// run the select
 	lg.Debug("running select call ...")
-	timers.Start("select-all")
-	err = dbselects.SelectMap(ctx, log, db, selector)
-	timers.Stop("select-all")
+	err = dbselects.Select(ctx, log, db, query)
 	if err != nil {
 		lg.Error("select failed with error", "err", err.Error())
 		err = errors.Join(ErrSelectFailed, err)
 		return
 	}
-
-	// clean up the returned data to remove _ prefix on dynamic columns
-	for _, row := range selector.Returned {
-		var entry = map[string]string{"trend": ""}
-		for k, v := range row {
-			entry[strings.TrimPrefix(k, "_")] = fmt.Sprintf("%v", v)
-		}
-		result = append(result, entry)
-	}
-
+	// convert to a table format
+	table = tabular(query.Returned, headers)
 	// prep result
 	timers.Stop(operation.OperationID)
-	body = &ResponseBody{
+	body = &CostByMonthTeamResponseBody{
 		Request:     input,
 		Months:      months,
-		Count:       len(result),
-		Data:        result,
+		Count:       len(table),
+		Data:        table,
 		Performance: timers.AllTimers(),
-		Headers: &headers{
-			Labels:  []string{"team"},
-			Columns: months,
-			Extras:  []string{"trend", "total"},
-		},
+		Headers:     headers,
 	}
-	response = &Response{Body: body}
+	// setup response
+	resp = &CostByMonthTeamResponse{Body: body}
 	lg.Info("complete.")
 	return
 }
 
-// baseSelect is the outline of the select to fetch and join over time period
-const baseSelect string = `
-SELECT
-{subs}
-{total}
-accA.team_name as team
-FROM infracosts as A
-LEFT JOIN accounts as accA ON accA.id = A.account_id
-GROUP BY
-accA.team_name
-;`
+// rowKey used by tabulation to decide the key for each row in the table
+func rowKey(row map[string]interface{}) string {
+	return strings.ToLower(row["team_name"].(string))
+}
 
-// selectSub contains the repeating select statment we use for each month to fetch the data
-// and generate a table row style output
-const selectSub string = `
-(
-	SELECT
-		COALESCE(SUM(cost), 0) as cost
-	FROM infracosts
-	LEFT JOIN accounts ON accounts.id = infracosts.account_id
-	WHERE
-		strftime("%Y-%m", infracosts.date) = '{month}' AND
-		accounts.team_name = accA.team_name
-	GROUP BY
-		accounts.team_name, strftime("%Y-%m", infracosts.date)
-) as '_{month}',
-`
+// rowLabelFunc generates the values for the label columns in the table
+//
+// Label columns are those at the start of the table, non-muric like account names and grouped by values
+func rowLabelFunc(dbRow map[string]interface{}, tableRow map[string]interface{}, headers tabulate.TableHeaders) map[string]interface{} {
+	tableRow["team"] = dbRow["team_name"]
+	return tableRow
+}
 
-// totalSub works out row rotals for the table so they can be added to the end
-const totalSub string = `
-(
-	SELECT
-		COALESCE(SUM(cost), 0) as cost
-	FROM infracosts
-	LEFT JOIN accounts ON accounts.id = infracosts.account_id
-	WHERE
-		strftime("%Y-%m", infracosts.date) IN ({monthList}) AND
-		accounts.team_name = accA.team_name
-	GROUP BY
-		accounts.team_name
-) as 'total',
-`
+// rowUpdatefunc used by tabulation to update each row with data cost values and the labels
+func rowUpdatefunc(dbRow map[string]interface{}, tableRow map[string]interface{}, headers tabulate.TableHeaders) map[string]interface{} {
+	var month = dbRow["date"].(string)
+	var cost = dbRow["cost"].(float64)
 
-// selectStmt generates the select from multiple sub-selects so the end result
-// has months as column headers, making rendering much easier
-func selectStmt(months []string) (stmt string) {
+	updated := tableRow[month].(float64) + cost
+	tableRow[month] = updated
+	return tableRow
+}
+
+// rowTotalfunc updates the row total, run after only once after all data is set
+func rowTotalfunc(dbRow map[string]interface{}, tableRow map[string]interface{}, headers tabulate.TableHeaders) map[string]interface{} {
 	var (
-		baseStmt    string = baseSelect
-		subKey      string = `{subs}`
-		totalKey    string = `{total}`
-		selects     string = ""
-		monthString string = fmt.Sprintf("'%s'", strings.Join(months, "','"))
+		cols  []string = headers.DataColumns()
+		total float64  = 0.0
 	)
-	// iterate over the months to create the joins and sub selects
-	for _, month := range months {
-		selects += strings.ReplaceAll(selectSub, "{month}", month)
+	for _, col := range cols {
+		total += tableRow[col].(float64)
 	}
-	// now replace the total query with real values
-	baseStmt = strings.ReplaceAll(baseStmt, totalKey, strings.ReplaceAll(totalSub, "{monthList}", monthString))
-	stmt = strings.ReplaceAll(baseStmt, subKey, selects)
+	tableRow["total"] = total
 
-	fmt.Println(stmt)
+	return tableRow
+}
+
+// tabular wraps around the main tabular helper to create the return data
+func tabular(results []*infracostmodels.CostMonthTeam, headers *CostByMonthTeamHeaders) (table map[string]map[string]interface{}) {
+	var dbRows = []map[string]interface{}{}
+	var opts = &tabulate.TabulateOptions{
+		Headers: headers,
+		KeyF:    rowKey,
+		LabelF:  rowLabelFunc,
+		ColumnF: rowUpdatefunc,
+		RowEndF: rowTotalfunc,
+	}
+	marshal.Convert(results, &dbRows)
+	table = tabulate.Tabulate(dbRows, opts)
 	return
-
 }

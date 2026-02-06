@@ -27,16 +27,16 @@ func TestDomainInfacostsApiByTeam(t *testing.T) {
 		db       *sqlx.DB
 		api      humatest.TestAPI
 		resp     *httptest.ResponseRecorder
-		endpoint string          = ENDPOINT
-		dir      string          = "./tmp" //t.TempDir()
-		ctx      context.Context = t.Context()
-		log      *slog.Logger    = logger.New("error", "text")
-		driver   string          = "sqlite3"
-		pth      string          = filepath.Join(dir, "test-infracosts-api.db")
-		connStr  string          = fmt.Sprintf("%s%s", pth, sqlParams)
-		apiData  *ResponseBody   = &ResponseBody{}
-		start    string          = times.AsYMString(times.Add(time.Now(), -10, times.MONTH))
-		end      string          = times.AsYMString(times.Add(time.Now(), -2, times.MONTH))
+		endpoint string                       = ENDPOINT
+		dir      string                       = t.TempDir()
+		ctx      context.Context              = t.Context()
+		log      *slog.Logger                 = logger.New("error", "text")
+		driver   string                       = "sqlite3"
+		pth      string                       = filepath.Join(dir, "test-infracosts-api.db")
+		connStr  string                       = fmt.Sprintf("%s%s", pth, sqlParams)
+		apiData  *CostByMonthTeamResponseBody = &CostByMonthTeamResponseBody{}
+		start    string                       = times.AsYMString(times.Add(time.Now(), -8, times.MONTH))
+		end      string                       = times.AsYMString(times.Add(time.Now(), -2, times.MONTH))
 	)
 	ctx = context.WithValue(ctx, "db", pth)
 	// setup the test huma instance
@@ -71,6 +71,4 @@ func TestDomainInfacostsApiByTeam(t *testing.T) {
 	if len(apiData.Data) != apiData.Count {
 		t.Errorf("data length and count dont match.")
 	}
-	t.FailNow()
-
 }

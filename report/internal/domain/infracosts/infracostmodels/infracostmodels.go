@@ -12,8 +12,9 @@ type Cost struct {
 	AccountID string `json:"account_id" db:"account_id"`     // the actual account id - string as it can have leading zeros. Use in joins as well
 }
 
-type CostMonthAndTeam struct {
-	Date     string `json:"date,omitempty" db:"date" ` // The month for this cost
-	Cost     string `json:"cost,omitempty" db:"cost" ` // The sum of all costs within this month
-	TeamName string `json:"team_name" db:"team_name"`  // the team this costs is attached to
+// CostMonthTeam used by the infracosts api for fetching data by month & team, so limited data
+type CostMonthTeam struct {
+	Date     string  `json:"date,omitempty" db:"date" `          // The month for this cost
+	Cost     float64 `json:"cost,omitempty" db:"cost" `          // The sum of all costs within this month
+	TeamName string  `json:"team_name,omitempty" db:"team_name"` // the team this costs is attached to
 }
