@@ -22,8 +22,8 @@ import (
 
 // fixed values for this endpoint, used by the operation setup for huma
 const (
-	ENDPOINT      string = `/v1/uptime/by-month-and-team/{start_date}/{end_date}`
-	opID          string = `uptime-get-by-team-and-month`
+	ENDPOINT      string = `/v1/uptime/between/{start_date}/{end_date}/team`
+	opID          string = `uptime-get-groupedby-month-and-team`
 	opSummary     string = `Return uptime grouped by team and month.`
 	opDescription string = `Returns uptime data grouped by team name and the year-month date.`
 )

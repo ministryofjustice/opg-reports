@@ -22,8 +22,8 @@ import (
 
 // fixed values for this endpoint, used by the operation setup for huma
 const (
-	ENDPOINT      string = `/v1/infracosts/by-month-and-team/{start_date}/{end_date}`
-	opID          string = `infracosts-get-by-team-and-month`
+	ENDPOINT      string = `/v1/infracosts/between/{start_date}/{end_date}/team`
+	opID          string = `infracosts-get-groupedby-month-and-team`
 	opSummary     string = `Return costs grouped by the month and team.`
 	opDescription string = `Returns a list costs between the start and end dates grouped by team and formatted as a table.`
 )
