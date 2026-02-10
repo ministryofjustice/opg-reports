@@ -42,12 +42,20 @@ var (
 // selectStmt is the main sql statment to fetch data from the db
 var selectStmt string = `
 SELECT
-	id,
-	name,
-	full_name,
-	url
+	codebases.id,
+	codebases.name,
+	codebases.full_name,
+	codebases.url,
+	json_group_array(
+		DISTINCT json_object(
+			'name', codeowners.team_name
+		)
+	) filter ( where codeowners.team_name is not null) as team_list
 FROM codebases
+LEFT JOIN codeowners on codeowners.codebase_full_name = codebases.full_name
+GROUP BY codebases.full_name
 ORDER BY
+	codeowners.team_name,
 	full_name ASC
 ;`
 
@@ -61,10 +69,10 @@ type CodebaseResponse struct {
 
 // ResponseBody is the response body, containing all data to be returned
 type CodebaseResponseBody struct {
-	Request     *CodebaseRequest           `json:"request"`
-	Data        []*codebasemodels.Codebase `json:"data"`
-	Count       int                        `json:"count,omitempty"`
-	Performance []*timers.Timer            `json:"performance"`
+	Request     *CodebaseRequest              `json:"request"`
+	Data        []*codebasemodels.CodebaseAll `json:"data"`
+	Count       int                           `json:"count,omitempty"`
+	Performance []*timers.Timer               `json:"performance"`
 }
 
 // empty is used as the input data for the select statement
@@ -85,14 +93,14 @@ func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.A
 func getAll(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.Operation, input *CodebaseRequest) (response *CodebaseResponse, err error) {
 	var (
 		body     *CodebaseResponseBody
-		selector *dbstmts.Select[*empty, *codebasemodels.Codebase]
+		selector *dbstmts.Select[*empty, *codebasemodels.CodebaseAll]
 		lg       *slog.Logger = log.With("func", "codebaseapis.getAll", "operation", operation.OperationID)
 	)
 	lg.Info("starting handler ...")
 	timers.Start(operation.OperationID)
 	// create the statement
 	lg.Debug("creating select statement ...")
-	selector = &dbstmts.Select[*empty, *codebasemodels.Codebase]{
+	selector = &dbstmts.Select[*empty, *codebasemodels.CodebaseAll]{
 		Statement: selectStmt,
 		Data:      &empty{},
 	}

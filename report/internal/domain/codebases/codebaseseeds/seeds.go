@@ -16,9 +16,9 @@ var seeds []*codebasemodels.Codebase
 
 func init() {
 	seeds = []*codebasemodels.Codebase{
-		{Name: "codebase-A", FullName: "owner/codebase-A"},
-		{Name: "codebase-B", FullName: "owner/codebase-B"},
-		{Name: "codebase-C", FullName: "owner/codebase-C"},
+		{Name: "codebase-A", FullName: "mock/codebase-A"},
+		{Name: "codebase-B", FullName: "mock/codebase-B"},
+		{Name: "codebase-C", FullName: "mock/codebase-C"},
 	}
 }
 

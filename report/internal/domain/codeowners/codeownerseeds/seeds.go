@@ -16,10 +16,10 @@ var seeds []*codeownermodels.Codeowner
 
 func init() {
 	seeds = []*codeownermodels.Codeowner{
-		{TeamName: "TEAM-A", CodebaseFullName: "owner/codebase-A", Name: "mock-owner-a"},
-		{TeamName: "TEAM-A", CodebaseFullName: "owner/codebase-B", Name: "mock-owner-a"},
-		{TeamName: "TEAM-B", CodebaseFullName: "owner/codebase-B", Name: "mock-owner-b"},
-		{TeamName: "TEAM-C", CodebaseFullName: "owner/codebase-C", Name: "mock-owner-c"},
+		{TeamName: "TEAM-B", CodebaseFullName: "mock/codebase-A", Name: "mock-github-team-a"},
+		{TeamName: "TEAM-B", CodebaseFullName: "mock/codebase-B", Name: "mock-github-team-a"},
+		{TeamName: "TEAM-C", CodebaseFullName: "mock/codebase-B", Name: "mock-github-team-b"},
+		{TeamName: "TEAM-D", CodebaseFullName: "mock/codebase-C", Name: "mock-github-team-c"},
 	}
 }
 
