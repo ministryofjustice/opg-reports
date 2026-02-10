@@ -25,7 +25,14 @@ type db struct {
 }
 
 func (self *db) ConnectionString() (conn string) {
-	conn = fmt.Sprintf("%s%s", self.Path, self.Params)
+	return DBConnectionString(self.Path, self.Params)
+}
+
+func DBConnectionString(path string, params string) (conn string) {
+	if params == "" {
+		params = defaultParams
+	}
+	conn = fmt.Sprintf("%s%s", path, params)
 	return
 }
 
@@ -36,7 +43,10 @@ type log struct {
 	Type  string `json:"type"`
 }
 
-var vp *viper.Viper // viper instance
+var (
+	vp            *viper.Viper // viper instance
+	defaultParams string       = "?_journal=WAL&_busy_timeout=5000&_vacuum=incremental&_synchronous=NORMAL&_cache_size=1000000000"
+)
 
 func defaults() (cfg *Config) {
 	cfg = &Config{
@@ -47,7 +57,7 @@ func defaults() (cfg *Config) {
 		DB: &db{
 			Driver: "sqlite3",
 			Path:   "./api.db",
-			Params: "?_journal=WAL&_busy_timeout=5000&_vacuum=incremental&_synchronous=NORMAL&_cache_size=1000000000",
+			Params: defaultParams,
 		},
 		GithubToken: "",
 	}

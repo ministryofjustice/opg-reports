@@ -96,7 +96,7 @@ func getAllTeams(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *
 		callEnd   time.Time
 		callStart time.Time           = time.Now().UTC()
 		result    []map[string]string = []map[string]string{}
-		lg        *slog.Logger        = log.With("func", "teams.teamapis.teamall.getAllTeams", "operation", operation.OperationID)
+		lg        *slog.Logger        = log.With("func", "teamall.getAllTeams", "operation", operation.OperationID)
 	)
 	lg.Info("starting handler ...")
 	// create the statement

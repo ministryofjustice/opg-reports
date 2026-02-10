@@ -76,7 +76,6 @@ type empty struct{}
 
 // Register attachs the local handler to the huma api allows way to pass along the configured logger, db etc
 func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.API) {
-
 	// input is an empty struct as
 	huma.Register(humaapi, operation, func(ctx context.Context, input *AccountRequest) (*AccountResponse, error) {
 		return getAllAccounts(ctx, log, db, &operation, input)
@@ -89,7 +88,7 @@ func getAllAccounts(ctx context.Context, log *slog.Logger, db *sqlx.DB, operatio
 	var (
 		body     *AccountResponseBody
 		selector *dbstmts.Select[*empty, *accountmodels.AccountRow]
-		lg       *slog.Logger = log.With("func", "teamall.getAllTeams", "operation", operation.OperationID)
+		lg       *slog.Logger = log.With("func", "accountall.getAllAccounts", "operation", operation.OperationID)
 	)
 	lg.Info("starting handler ...")
 	timers.Start(operation.OperationID)

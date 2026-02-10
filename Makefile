@@ -71,10 +71,9 @@ db-migrate: build-cmds
 api: CMD_LIST=api
 api: build-cmds
 	@echo "- starting api "
-	@env DATABASE_PATH=${BUILT_API_DB_PATH} \
-	SERVERS_API_ADDR="localhost:8081" \
-	SERVERS_FRONT_ADDR="localhost:8080" \
-		${BUILT_API_CMD}
+	@env LOG_LEVEL=debug ${BUILT_API_CMD} \
+		--db="${BUILT_API_DB_PATH}" \
+		--address="localhost:8081"
 
 ## run the front from the local ./build folders and setup templates
 ## and govuk assets as well
