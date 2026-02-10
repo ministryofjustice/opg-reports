@@ -9,7 +9,12 @@ import (
 	"opg-reports/report/internal/db/dbconnection"
 	"opg-reports/report/internal/db/dbmigrations"
 	"opg-reports/report/internal/domain/accounts/accountapis/accountall"
+	"opg-reports/report/internal/domain/codebases/codebaseapis/codebaseall"
+	"opg-reports/report/internal/domain/codeowners/codeownerapis/codeownerall"
+	"opg-reports/report/internal/domain/codeowners/codeownerapis/codeownerforteam"
+	"opg-reports/report/internal/domain/infracosts/infracostapis/infracostsbyteam"
 	"opg-reports/report/internal/domain/teams/teamapis/teamall"
+	"opg-reports/report/internal/domain/uptime/uptimeapis/uptimebyteam"
 	"opg-reports/report/internal/utils/logger"
 	"os"
 	"time"
@@ -23,9 +28,7 @@ import (
 const (
 	cmdName   string = "api" // root command name
 	shortDesc string = `api runs the main api command to start huma etc.`
-	longDesc  string = `
-api runs the main api command to start huma etc.
-`
+	longDesc  string = `api runs the main api command to start huma api & docs endpoints.`
 )
 
 // config items
@@ -57,11 +60,20 @@ func handlers(ctx context.Context, log *slog.Logger, opts *apiOpts, api huma.API
 	if err != nil {
 		return
 	}
-	// teams
-	teamall.Register(ctx, log, db, api)
+
 	// accounts
 	accountall.Register(ctx, log, db, api)
-
+	// codebases
+	codebaseall.Register(ctx, log, db, api)
+	// codeowners
+	codeownerall.Register(ctx, log, db, api)
+	codeownerforteam.Register(ctx, log, db, api)
+	// infracosts
+	infracostsbyteam.Register(ctx, log, db, api)
+	// teams
+	teamall.Register(ctx, log, db, api)
+	// uptime
+	uptimebyteam.Register(ctx, log, db, api)
 	return
 }
 

@@ -74,10 +74,10 @@ type CostByMonthTeamResponse struct {
 // CostByMonthTeamResponseBody is the response body, containing all data to be returned
 type CostByMonthTeamResponseBody struct {
 	Request     *CostByMonthTeamRequest  `json:"request"`     // the original CostByMonthTeamRequest
+	Headers     *CostByMonthTeamHeaders  `json:"headers"`     // headers contains details for table headers / rendering
 	Months      []string                 `json:"months"`      // months within the range specified
 	Data        []map[string]interface{} `json:"data"`        // the actual data results
-	Performance []*timers.Timer          `json:"performance"` // duration of the CostByMonthTeamRequest
-	Headers     *CostByMonthTeamHeaders  `json:"headers"`     // headers contains details for table headers / rendering
+	Performance []*timers.Timer          `json:"performance"` // duration of the call
 	Count       int                      `json:"count"`       // counter to check data aligns
 }
 
@@ -140,7 +140,7 @@ var (
 func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.API) {
 	// input is an empty struct as
 	huma.Register(humaapi, operation, func(ctx context.Context, input *CostByMonthTeamRequest) (*CostByMonthTeamResponse, error) {
-		return getByMonthTeam(ctx, log, db, &operation, input)
+		return getByMonthTeam(timers.ContextWithTimers(ctx), log, db, &operation, input)
 	})
 
 }
@@ -161,12 +161,12 @@ func getByMonthTeam(ctx context.Context, log *slog.Logger, db *sqlx.DB, operatio
 			End:     headerTotals,
 		}
 	)
-	timers.Start(operation.OperationID)
-	defer func() { timers.Stop(operation.OperationID) }()
+	// timers
+	timers.Start(ctx, operation.OperationID)
+	defer func() { timers.Stop(ctx) }()
 
 	lg.Info("starting handler ...")
 	lg.With("months", months).Debug("determined range of months ...")
-
 	// create the statement
 	lg.Debug("creating select statement ...")
 	query = &dbstmts.Select[*empty, *infracostmodels.CostMonthTeam]{
@@ -185,14 +185,14 @@ func getByMonthTeam(ctx context.Context, log *slog.Logger, db *sqlx.DB, operatio
 	// convert to a table format
 	table = tabular(query.Returned, headers)
 	// prep result
-	timers.Stop(operation.OperationID)
+	timers.Stop(ctx, operation.OperationID)
 	body = &CostByMonthTeamResponseBody{
 		Request:     input,
-		Months:      months,
-		Count:       len(table),
-		Data:        table,
-		Performance: timers.AllTimers(),
 		Headers:     headers,
+		Months:      months,
+		Data:        table,
+		Count:       len(table),
+		Performance: timers.All(ctx),
 	}
 	// setup response
 	resp = &CostByMonthTeamResponse{Body: body}

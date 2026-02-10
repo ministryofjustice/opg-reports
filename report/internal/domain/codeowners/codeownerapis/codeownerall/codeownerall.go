@@ -65,8 +65,8 @@ type CodeownerResponse struct {
 type CodeownerResponseBody struct {
 	Request     *CodeownerRequest               `json:"request"`
 	Data        []*codeownermodels.CodeownerAll `json:"data"`
-	Count       int                             `json:"count,omitempty"`
 	Performance []*timers.Timer                 `json:"performance"`
+	Count       int                             `json:"count,omitempty"`
 }
 
 // empty is used as the input data for the select statement
@@ -77,7 +77,7 @@ type empty struct{}
 func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.API) {
 	// input is an empty struct as
 	huma.Register(humaapi, operation, func(ctx context.Context, input *CodeownerRequest) (*CodeownerResponse, error) {
-		return getAll(ctx, log, db, &operation, input)
+		return getAll(timers.ContextWithTimers(ctx), log, db, &operation, input)
 	})
 
 }
@@ -89,8 +89,11 @@ func getAll(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.
 		selector *dbstmts.Select[*empty, *codeownermodels.CodeownerAll]
 		lg       *slog.Logger = log.With("func", "codeowners.getAll", "operation", operation.OperationID)
 	)
+	// timers
+	timers.Start(ctx, operation.OperationID)
+	defer func() { timers.Stop(ctx) }()
+
 	lg.Info("starting handler ...")
-	timers.Start(operation.OperationID)
 	// create the statement
 	lg.Debug("creating select statement ...")
 	selector = &dbstmts.Select[*empty, *codeownermodels.CodeownerAll]{
@@ -106,12 +109,11 @@ func getAll(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.
 		return
 	}
 	// prep result
-	timers.Stop(operation.OperationID)
 	body = &CodeownerResponseBody{
 		Request:     input,
-		Count:       len(selector.Returned),
 		Data:        selector.Returned,
-		Performance: timers.AllTimers(),
+		Count:       len(selector.Returned),
+		Performance: timers.All(ctx),
 	}
 	response = &CodeownerResponse{Body: body}
 	lg.Info("complete.")

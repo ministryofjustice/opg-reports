@@ -3,14 +3,13 @@ package teamall
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"opg-reports/report/internal/db/dbselects"
 	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/teams/teammodels"
 	"opg-reports/report/internal/utils/marshal"
-	"time"
+	"opg-reports/report/internal/utils/timers"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/jmoiron/sqlx"
@@ -62,16 +61,8 @@ type TeamResponse struct {
 type TeamResponseBody struct {
 	Data        []map[string]string `json:"data"`
 	Request     *TeamRequest        `json:"request"`
-	Performance *perf               `json:"performance"` // duration of the request
+	Performance []*timers.Timer     `json:"performance"`
 	Count       int                 `json:"count,omitempty"`
-}
-
-// pref tracks performance of the request to this endpoint, logging start & endtime
-// as well as the duration from starting the handler till finishing
-type perf struct {
-	Start    time.Time `json:"start"`
-	End      time.Time `json:"end"`
-	Duration string    `json:"duration"`
 }
 
 // empty is used as the input data for the select statement
@@ -83,7 +74,7 @@ func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.A
 
 	// input is an empty struct as
 	huma.Register(humaapi, operation, func(ctx context.Context, input *TeamRequest) (*TeamResponse, error) {
-		return getAllTeams(ctx, log, db, &operation, input)
+		return getAllTeams(timers.ContextWithTimers(ctx), log, db, &operation, input)
 	})
 
 }
@@ -91,13 +82,15 @@ func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.A
 // getAllTeams
 func getAllTeams(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.Operation, input *TeamRequest) (response *TeamResponse, err error) {
 	var (
-		body      *TeamResponseBody
-		selector  *dbstmts.Select[*empty, *teammodels.Team]
-		callEnd   time.Time
-		callStart time.Time           = time.Now().UTC()
-		result    []map[string]string = []map[string]string{}
-		lg        *slog.Logger        = log.With("func", "teamall.getAllTeams", "operation", operation.OperationID)
+		body     *TeamResponseBody
+		selector *dbstmts.Select[*empty, *teammodels.Team]
+		result   []map[string]string = []map[string]string{}
+		lg       *slog.Logger        = log.With("func", "teamall.getAllTeams", "operation", operation.OperationID)
 	)
+	// timers
+	timers.Start(ctx, operation.OperationID)
+	defer func() { timers.Stop(ctx) }()
+
 	lg.Info("starting handler ...")
 	// create the statement
 	lg.Debug("creating select statement ...")
@@ -122,16 +115,12 @@ func getAllTeams(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *
 		return
 	}
 	// prep result
-	callEnd = time.Now().UTC()
+	timers.Stop(ctx, operation.OperationID)
 	body = &TeamResponseBody{
-		Request: input,
-		Count:   len(result),
-		Data:    result,
-		Performance: &perf{
-			Start:    callStart,
-			End:      callEnd,
-			Duration: fmt.Sprintf("%v", callEnd.Sub(callStart).String()),
-		},
+		Request:     input,
+		Data:        result,
+		Count:       len(result),
+		Performance: timers.All(ctx),
 	}
 	response = &TeamResponse{Body: body}
 	lg.Info("complete.")

@@ -69,8 +69,8 @@ type CodeownerForTeamResponse struct {
 type CodeownerForTeamResponseBody struct {
 	Request     *CodeownerForTeamRequest            `json:"request"`
 	Data        []*codeownermodels.CodeownerForTeam `json:"data"`
-	Count       int                                 `json:"count,omitempty"`
 	Performance []*timers.Timer                     `json:"performance"`
+	Count       int                                 `json:"count,omitempty"`
 }
 
 // filter is used to provide the filters on the sql statement (`:x` notation) and generally
@@ -83,7 +83,7 @@ type filter struct {
 func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.API) {
 	// input is an empty struct as
 	huma.Register(humaapi, operation, func(ctx context.Context, input *CodeownerForTeamRequest) (*CodeownerForTeamResponse, error) {
-		return getForTeam(ctx, log, db, &operation, input)
+		return getForTeam(timers.ContextWithTimers(ctx), log, db, &operation, input)
 	})
 
 }
@@ -95,8 +95,11 @@ func getForTeam(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *h
 		selector *dbstmts.Select[*filter, *codeownermodels.CodeownerForTeam]
 		lg       *slog.Logger = log.With("func", "codeowners.getForTeam", "operation", operation.OperationID, "in", input)
 	)
+	// timers
+	timers.Start(ctx, operation.OperationID)
+	defer func() { timers.Stop(ctx) }()
+
 	lg.Info("starting handler ...")
-	timers.Start(operation.OperationID)
 	// create the statement
 	lg.Debug("creating select statement ...")
 	selector = &dbstmts.Select[*filter, *codeownermodels.CodeownerForTeam]{
@@ -112,12 +115,12 @@ func getForTeam(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *h
 		return
 	}
 	// prep result
-	timers.Stop(operation.OperationID)
+	timers.Stop(ctx, operation.OperationID)
 	body = &CodeownerForTeamResponseBody{
 		Request:     input,
-		Count:       len(selector.Returned),
 		Data:        selector.Returned,
-		Performance: timers.AllTimers(),
+		Count:       len(selector.Returned),
+		Performance: timers.All(ctx),
 	}
 	response = &CodeownerForTeamResponse{Body: body}
 	lg.Info("complete.")

@@ -1,6 +1,6 @@
 package dbmigrations
 
-// list of ALL migrations
+// list of ALL migrations to run in sequence
 var MIGRATIONS []*Migration = []*Migration{
 	{Name: "create_migration", SQL: create_migration},
 	{Name: "create_teams", SQL: create_teams},
@@ -15,8 +15,19 @@ var MIGRATIONS []*Migration = []*Migration{
 	{Name: "agnostic_uptime", SQL: agnostic_uptime},
 
 	{Name: "lowercase_team_name", SQL: lowercase_team_name},
+	{Name: "copy_from_github_codewners", SQL: copy_from_github_codewners},
 }
 
+// copy from codeowners into codebases and codeowners
+const copy_from_github_codewners string = `
+INSERT INTO codebases (created_at, full_name, name, url)
+	SELECT created_at, repository, replace(repository, "ministryofjustice/", ""), concat("https://github.com/", repository) FROM github_codeownership GROUP BY repository;
+INSERT INTO codeowners (created_at, name, codebase_full_name, team_name)
+	SELECT created_at, codeowner, repository, team FROM github_codeownership;
+UPDATE codeowners SET(team_name) = LOWER(team_name);
+`
+
+// drop things to lower cases
 const lowercase_team_name string = `
 UPDATE codeowners SET(team_name) = LOWER(team_name);
 UPDATE accounts SET(team_name) = LOWER(team_name);

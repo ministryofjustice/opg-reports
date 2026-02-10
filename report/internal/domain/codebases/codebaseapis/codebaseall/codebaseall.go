@@ -71,8 +71,8 @@ type CodebaseResponse struct {
 type CodebaseResponseBody struct {
 	Request     *CodebaseRequest              `json:"request"`
 	Data        []*codebasemodels.CodebaseAll `json:"data"`
-	Count       int                           `json:"count,omitempty"`
 	Performance []*timers.Timer               `json:"performance"`
+	Count       int                           `json:"count,omitempty"`
 }
 
 // empty is used as the input data for the select statement
@@ -81,10 +81,9 @@ type empty struct{}
 
 // Register attachs the local handler to the huma api allows way to pass along the configured logger, db etc
 func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.API) {
-
 	// input is an empty struct as
 	huma.Register(humaapi, operation, func(ctx context.Context, input *CodebaseRequest) (*CodebaseResponse, error) {
-		return getAll(ctx, log, db, &operation, input)
+		return getAll(timers.ContextWithTimers(ctx), log, db, &operation, input)
 	})
 
 }
@@ -96,8 +95,11 @@ func getAll(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.
 		selector *dbstmts.Select[*empty, *codebasemodels.CodebaseAll]
 		lg       *slog.Logger = log.With("func", "codebaseapis.getAll", "operation", operation.OperationID)
 	)
+	// timers
+	timers.Start(ctx, operation.OperationID)
+	defer func() { timers.Stop(ctx) }()
+
 	lg.Info("starting handler ...")
-	timers.Start(operation.OperationID)
 	// create the statement
 	lg.Debug("creating select statement ...")
 	selector = &dbstmts.Select[*empty, *codebasemodels.CodebaseAll]{
@@ -113,12 +115,12 @@ func getAll(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.
 		return
 	}
 	// prep result
-	timers.Stop(operation.OperationID)
+	timers.Stop(ctx, operation.OperationID)
 	body = &CodebaseResponseBody{
 		Request:     input,
-		Count:       len(selector.Returned),
 		Data:        selector.Returned,
-		Performance: timers.AllTimers(),
+		Count:       len(selector.Returned),
+		Performance: timers.All(ctx),
 	}
 	response = &CodebaseResponse{Body: body}
 	lg.Info("complete.")

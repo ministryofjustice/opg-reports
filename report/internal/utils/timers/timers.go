@@ -1,8 +1,8 @@
 package timers
 
 import (
-	"fmt"
-	"sort"
+	"context"
+	"slices"
 	"sync"
 	"time"
 )
@@ -15,76 +15,99 @@ type Timer struct {
 	Duration string        `json:"duration"`
 }
 
+type TimerList map[string]*Timer
+
 var (
-	mu  sync.Mutex
-	idx int               = 0 // internal default label that gets incremented
-	all map[string]*Timer = map[string]*Timer{}
+	mu         sync.Mutex
+	contextKey string = "request-timers"
 )
 
-// Start will create new times for each label passed along generate start time of now (in UTC). If
-// no labels are passed then a counter in used (`t${i}`) to generate one.
-//
-// Uses a mutex lock
-func Start(labels ...string) (list []*Timer) {
-	list = []*Timer{}
-
-	// if no label is passed, increasment the base by one
-	if len(labels) == 0 {
-		idx += 1
-		labels = append(labels, fmt.Sprintf("t%d", idx))
-	}
-
-	for _, lb := range labels {
-		var t = &Timer{Label: lb, Start: time.Now().UTC()}
-		mu.Lock()
-		all[lb] = t
-		list = append(list, t)
-		mu.Unlock()
-	}
-
-	return
+// ContextWithTimers will add a timers list to the context for use within all calls
+func ContextWithTimers(ctx context.Context) context.Context {
+	return context.WithValue(ctx, contextKey, newSet())
 }
 
-// Stop sets the end time and duration details of all timers matching the labels passed along. If
-// no labels are passed than it uses the current internal counter to find a timer (`t${i}`).
+// Start will trigger a timer for each label passed as with the current time (in UTC)
+// as long as the `request-timers` pointer exists within the context.
 //
-// Uses a mutex lock to update.
-func Stop(labels ...string) (list []*Timer) {
-	list = []*Timer{}
+// Use `ContextWithTimers` to get a suitable context object to use with this function,
+// as otherwise no timer will be started
+//
+// Must pass alogn at least 1 label to start a timer, extra labels will start
+// additional timers for each label
+func Start(ctx context.Context, label string, labels ...string) {
+	var list TimerList
+	var pntr = getList(ctx)
 
 	if len(labels) == 0 {
-		labels = append(labels, fmt.Sprintf("t%d", idx))
+		labels = []string{label}
+	} else {
+		labels = append(labels, label)
 	}
-	for _, lb := range labels {
+	// if no pointer, return immediately
+	if pntr == nil {
+		return
+	}
+	list = *pntr
+	for _, label := range labels {
+		var t = &Timer{Label: label, Start: time.Now().UTC()}
+		list[label] = t
+	}
+	// update the pointer
+	mu.Lock()
+	pntr = &list
+	mu.Unlock()
+}
+
+// Stop will set the end time and duration values for timers that match the labels
+// passed that are within this context.
+//
+// If no labels are passed then all timers are stopped.
+func Stop(ctx context.Context, labels ...string) {
+	var list TimerList
+	var pntr = getList(ctx)
+	// if no pointer, return immediately
+	if pntr == nil {
+		return
+	}
+	list = *pntr
+	for k, t := range list {
 		var end = time.Now().UTC()
-		// if we find the timer and the duration has not been set, then add end and duration
-		if t, ok := all[lb]; ok && t.Duration == "" {
+		// if there are no labels or this key is in the label then set any unset durations
+		if (len(labels) == 0 || slices.Contains(labels, k)) && t.Duration == "" {
 			mu.Lock()
 			t.End = end
 			t.Dur = end.Sub(t.Start)
 			t.Duration = t.Dur.String()
-			list = append(list, t)
 			mu.Unlock()
 		}
+
 	}
+
+}
+
+// All returns timers attached to this context
+func All(ctx context.Context) (timers []*Timer) {
+	var pntr = getList(ctx)
+	timers = []*Timer{}
+
+	if pntr == nil {
+		return
+	}
+	for _, t := range *pntr {
+		timers = append(timers, t)
+	}
+
 	return
 }
 
-// AllTimers returns a sorted list of all the currently known timers
-func AllTimers() (list []*Timer) {
-	list = []*Timer{}
-	for _, t := range all {
-		list = append(list, t)
-	}
-	sort.Slice(list, func(i, j int) bool {
-		return list[i].Dur < list[j].Dur
-	})
-	return
+// getList returns the pointer from the context
+func getList(ctx context.Context) *TimerList {
+	return ctx.Value(contextKey).(*TimerList)
 }
 
-// Clear resets all timers
-func Clear() {
-	mu.Lock()
-	all = map[string]*Timer{}
-	mu.Unlock()
+// newSet creates a timerlist to attach to the context
+func newSet() *TimerList {
+	var set TimerList = map[string]*Timer{}
+	return &set
 }

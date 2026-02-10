@@ -69,13 +69,12 @@ type UptimeByMonthTeamResponse struct {
 
 // UptimeByMonthTeamResponseBody is the response body, containing all data to be returned
 type UptimeByMonthTeamResponseBody struct {
-	Request     *UptimeByMonthTeamRequest `json:"request"`     // the original request
-	Months      []string                  `json:"months"`      // months within the range specified
-	Headers     *UptimeByMonthTeamHeaders `json:"headers"`     // headers contains details for table headers / rendering
-	Data        []map[string]interface{}  `json:"data"`        // the actual data results
-	Performance []*timers.Timer           `json:"performance"` // duration of the request
-	Count       int                       `json:"count"`       // counter to check data aligns
-
+	Request     *UptimeByMonthTeamRequest `json:"request"` // the original request
+	Headers     *UptimeByMonthTeamHeaders `json:"headers"` // headers contains details for table headers / rendering
+	Months      []string                  `json:"months"`  // months within the range specified
+	Data        []map[string]interface{}  `json:"data"`    // the actual data results
+	Count       int                       `json:"count"`   // counter to check data aligns
+	Performance []*timers.Timer           `json:"performance"`
 }
 
 // track the headings to use in the table for easier rendering
@@ -136,7 +135,7 @@ var (
 func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.API) {
 	// input is an empty struct as
 	huma.Register(humaapi, operation, func(ctx context.Context, input *UptimeByMonthTeamRequest) (*UptimeByMonthTeamResponse, error) {
-		return getByMonthTeam(ctx, log, db, &operation, input)
+		return getByMonthTeam(timers.ContextWithTimers(ctx), log, db, &operation, input)
 	})
 
 }
@@ -156,8 +155,9 @@ func getByMonthTeam(ctx context.Context, log *slog.Logger, db *sqlx.DB, operatio
 			End:     headerOverall,
 		}
 	)
-	timers.Start(operation.OperationID)
-	defer func() { timers.Stop(operation.OperationID) }()
+	// timers
+	timers.Start(ctx, operation.OperationID)
+	defer func() { timers.Stop(ctx) }()
 
 	lg.Info("starting handler ...")
 	lg.With("months", months).Debug("determined range of months ...")
@@ -178,15 +178,16 @@ func getByMonthTeam(ctx context.Context, log *slog.Logger, db *sqlx.DB, operatio
 	}
 	// convert to a table format
 	table = tabular(query.Returned, headers)
+
 	// prep result
-	timers.Stop(operation.OperationID)
+	timers.Stop(ctx, operation.OperationID)
 	body = &UptimeByMonthTeamResponseBody{
 		Request:     input,
-		Months:      months,
-		Count:       len(table),
-		Data:        table,
-		Performance: timers.AllTimers(),
 		Headers:     headers,
+		Months:      months,
+		Data:        table,
+		Count:       len(table),
+		Performance: timers.All(ctx),
 	}
 	// setup response
 	resp = &UptimeByMonthTeamResponse{Body: body}

@@ -12,19 +12,19 @@ import (
 // Config is the main config struct and is generated
 // from yaml file combined with environment variables
 type Config struct {
-	DB          *db    `json:"db"`
+	DB          *Db    `json:"db"`
 	Log         *log   `json:"log"`
 	GithubToken string `json:"github_token" mapstructure:"github_token"`
 }
 
 // DB handles database related env & config values
-type db struct {
+type Db struct {
 	Driver string `json:"driver"`
 	Path   string `json:"path"`
 	Params string `json:"params"`
 }
 
-func (self *db) ConnectionString() (conn string) {
+func (self *Db) ConnectionString() (conn string) {
 	return DBConnectionString(self.Path, self.Params)
 }
 
@@ -54,7 +54,7 @@ func defaults() (cfg *Config) {
 			Level: "info",
 			Type:  "json",
 		},
-		DB: &db{
+		DB: &Db{
 			Driver: "sqlite3",
 			Path:   "./api.db",
 			Params: defaultParams,

@@ -71,7 +71,7 @@ db-migrate: build-cmds
 api: CMD_LIST=api
 api: build-cmds
 	@echo "- starting api "
-	@env LOG_LEVEL=debug ${BUILT_API_CMD} \
+	@env LOG_LEVEL=info ${BUILT_API_CMD} \
 		--db="${BUILT_API_DB_PATH}" \
 		--address="localhost:8081"
 

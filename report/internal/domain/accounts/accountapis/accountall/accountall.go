@@ -65,8 +65,8 @@ type AccountResponse struct {
 // ResponseBody is the response body, containing all data to be returned
 type AccountResponseBody struct {
 	Request     *AccountRequest             `json:"request"`
-	Performance []*timers.Timer             `json:"performance"` // duration of the request
 	Data        []*accountmodels.AccountRow `json:"data"`
+	Performance []*timers.Timer             `json:"performance"`
 	Count       int                         `json:"count,omitempty"`
 }
 
@@ -78,7 +78,7 @@ type empty struct{}
 func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.API) {
 	// input is an empty struct as
 	huma.Register(humaapi, operation, func(ctx context.Context, input *AccountRequest) (*AccountResponse, error) {
-		return getAllAccounts(ctx, log, db, &operation, input)
+		return getAllAccounts(timers.ContextWithTimers(ctx), log, db, &operation, input)
 	})
 
 }
@@ -90,8 +90,11 @@ func getAllAccounts(ctx context.Context, log *slog.Logger, db *sqlx.DB, operatio
 		selector *dbstmts.Select[*empty, *accountmodels.AccountRow]
 		lg       *slog.Logger = log.With("func", "accountall.getAllAccounts", "operation", operation.OperationID)
 	)
+	// timers
+	timers.Start(ctx, operation.OperationID)
+	defer func() { timers.Stop(ctx) }()
+
 	lg.Info("starting handler ...")
-	timers.Start(operation.OperationID)
 	// create the statement
 	lg.Debug("creating select statement ...")
 	selector = &dbstmts.Select[*empty, *accountmodels.AccountRow]{
@@ -108,12 +111,12 @@ func getAllAccounts(ctx context.Context, log *slog.Logger, db *sqlx.DB, operatio
 	}
 
 	// prep result
-	timers.Stop(operation.OperationID)
+	timers.Stop(ctx, operation.OperationID)
 	body = &AccountResponseBody{
 		Request:     input,
-		Count:       len(selector.Returned),
 		Data:        selector.Returned,
-		Performance: timers.AllTimers(),
+		Count:       len(selector.Returned),
+		Performance: timers.All(ctx),
 	}
 	response = &AccountResponse{Body: body}
 	lg.Info("complete.")
