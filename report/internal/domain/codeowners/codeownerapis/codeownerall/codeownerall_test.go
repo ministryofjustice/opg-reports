@@ -1,4 +1,4 @@
-package codebaseall
+package codeownerall
 
 import (
 	"context"
@@ -15,18 +15,18 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func TestDomainCodebaseApiAll(t *testing.T) {
+func TestDomainCodeownerApiAll(t *testing.T) {
 	var (
 		err     error
 		db      *sqlx.DB
 		api     humatest.TestAPI
 		resp    *httptest.ResponseRecorder
-		dir     string                = t.TempDir()
-		ctx     context.Context       = t.Context()
-		log     *slog.Logger          = logger.New("error", "text")
-		driver  string                = "sqlite3"
-		connStr string                = fmt.Sprintf("%s/%s", dir, "test-codebase-api.db")
-		apiData *CodebaseResponseBody = &CodebaseResponseBody{}
+		dir     string                 = t.TempDir()
+		ctx     context.Context        = t.Context()
+		log     *slog.Logger           = logger.New("error", "text")
+		driver  string                 = "sqlite3"
+		connStr string                 = fmt.Sprintf("%s/%s", dir, "test-codeowner-api.db")
+		apiData *CodeownerResponseBody = &CodeownerResponseBody{}
 	)
 	// setup the test huma instance
 	_, api = humatest.New(t)
