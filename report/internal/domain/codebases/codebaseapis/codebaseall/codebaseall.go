@@ -18,8 +18,8 @@ import (
 const (
 	ENDPOINT      string = `/v1/codebases/all`
 	opID          string = `codebases-get-all`
-	opSummary     string = `Return all codebases and their teams.`
-	opDescription string = `Returns a list of all codebases and team data from the database without filtering.`
+	opSummary     string = `Return all codebases and their codeowners.`
+	opDescription string = `Returns a list of all codebases and codeowner data from the database without filtering.`
 )
 
 // operation describes what this endpoint is doing
@@ -48,9 +48,10 @@ SELECT
 	codebases.url,
 	json_group_array(
 		DISTINCT json_object(
-			'name', codeowners.team_name
+			'name', codeowners.name,
+			'team_name', codeowners.team_name
 		)
-	) filter ( where codeowners.team_name is not null) as team_list
+	) filter ( where codeowners.name is not null) as codeowner_list
 FROM codebases
 LEFT JOIN codeowners on codeowners.codebase_full_name = codebases.full_name
 GROUP BY codebases.full_name

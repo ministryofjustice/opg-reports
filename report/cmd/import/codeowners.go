@@ -16,10 +16,9 @@ import (
 )
 
 const (
-	codeownersShortDesc string = `codeowners fetches and imports codeowner data from opg-metadata releases.`
+	codeownersShortDesc string = `codeowners fetches and imports codeowner data from github.`
 	codeownersLongDesc  string = `
-codeowners fetches data from opg-metadata and imports that into the local database. Conflicts based on
-the 'id' field are updated with new values.
+codeowners fetches all repositories from github and then processes the codeowner & team data for each, importing unique valid records.
 `
 )
 
@@ -37,7 +36,7 @@ var (
 	}
 )
 
-// codeownersRunE is wrapper to use with cobra
+// codeownersRunE is wrapper to use with cobra and setup what repositories to fetch
 func codeownersRunE(cmd *cobra.Command, args []string) (err error) {
 	var repos []*codebasemodels.Codebase
 	var client *github.Client
@@ -53,7 +52,7 @@ func codeownersRunE(cmd *cobra.Command, args []string) (err error) {
 		return
 	}
 	defer db.Close()
-	// fetch codebases
+	// fetch alll codebases
 	repos, err = codebaseselects.All(ctx, log, db)
 	if err != nil {
 		return

@@ -49,10 +49,10 @@ var codeOwnerToTeamName map[string]string = map[string]string{
 	"ministryofjustice/sirius":                   "sirius",
 }
 
-// GetCodeowners uses a list of repositories (`Input.Codebases`) to find all code owners attached to those and
+// GetCodeowners uses a list of repositories (`in.Codebases`) to find all code owners attached to those and
 // will also try to map those to a specific team
 func GetCodeowners[T GitHubClient](ctx context.Context, log *slog.Logger, client T, in *Input) (result []*codeownermodels.Codeowner, err error) {
-	var lg *slog.Logger = log.With("func", "domain.codeowners.codeowner.GetCodeowners")
+	var lg *slog.Logger = log.With("func", "codeowner.GetCodeowners")
 
 	lg.With("codebases", len(in.Codebases)).Debug("starting ...")
 
