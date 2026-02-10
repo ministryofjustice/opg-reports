@@ -51,17 +51,17 @@ ORDER BY
 ;`
 
 // Request contains the incoming url and query string data for this endpoint
-type Request struct{}
+type TeamRequest struct{}
 
 // Response is the handlers data struct passed to a huma api which will then be rendered
-type Response struct {
-	Body *ResponseBody
+type TeamResponse struct {
+	Body *TeamResponseBody
 }
 
 // ResponseBody is the response body, containing all data to be returned
-type ResponseBody struct {
+type TeamResponseBody struct {
 	Data        []map[string]string `json:"data"`
-	Request     *Request            `json:"request"`
+	Request     *TeamRequest        `json:"request"`
 	Performance *perf               `json:"performance"` // duration of the request
 	Count       int                 `json:"count,omitempty"`
 }
@@ -82,16 +82,16 @@ type empty struct{}
 func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.API) {
 
 	// input is an empty struct as
-	huma.Register(humaapi, operation, func(ctx context.Context, input *Request) (*Response, error) {
+	huma.Register(humaapi, operation, func(ctx context.Context, input *TeamRequest) (*TeamResponse, error) {
 		return getAllTeams(ctx, log, db, &operation, input)
 	})
 
 }
 
 // getAllTeams
-func getAllTeams(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.Operation, input *Request) (response *Response, err error) {
+func getAllTeams(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.Operation, input *TeamRequest) (response *TeamResponse, err error) {
 	var (
-		body      *ResponseBody
+		body      *TeamResponseBody
 		selector  *dbstmts.Select[*empty, *teammodels.Team]
 		callEnd   time.Time
 		callStart time.Time           = time.Now().UTC()
@@ -123,7 +123,7 @@ func getAllTeams(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *
 	}
 	// prep result
 	callEnd = time.Now().UTC()
-	body = &ResponseBody{
+	body = &TeamResponseBody{
 		Request: input,
 		Count:   len(result),
 		Data:    result,
@@ -133,7 +133,7 @@ func getAllTeams(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *
 			Duration: fmt.Sprintf("%v", callEnd.Sub(callStart).String()),
 		},
 	}
-	response = &Response{Body: body}
+	response = &TeamResponse{Body: body}
 	lg.Info("complete.")
 	return
 }

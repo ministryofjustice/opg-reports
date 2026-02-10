@@ -3,14 +3,12 @@ package accountall
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"opg-reports/report/internal/db/dbselects"
 	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/accounts/accountmodels"
-	"opg-reports/report/internal/utils/marshal"
-	"time"
+	"opg-reports/report/internal/utils/timers"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/jmoiron/sqlx"
@@ -57,27 +55,19 @@ ORDER BY
 ;`
 
 // Request contains the incoming url and query string data for this endpoint
-type Request struct{}
+type AccountRequest struct{}
 
 // Response is the handlers data struct passed to a huma api which will then be rendered
-type Response struct {
-	Body *ResponseBody
+type AccountResponse struct {
+	Body *AccountResponseBody
 }
 
 // ResponseBody is the response body, containing all data to be returned
-type ResponseBody struct {
-	Request     *Request            `json:"request"`
-	Performance *perf               `json:"performance"` // duration of the request
-	Data        []map[string]string `json:"data"`
-	Count       int                 `json:"count,omitempty"`
-}
-
-// pref tracks performance of the request to this endpoint, logging start & endtime
-// as well as the duration from starting the handler till finishing
-type perf struct {
-	Start    time.Time `json:"start"`
-	End      time.Time `json:"end"`
-	Duration string    `json:"duration"`
+type AccountResponseBody struct {
+	Request     *AccountRequest             `json:"request"`
+	Performance []*timers.Timer             `json:"performance"` // duration of the request
+	Data        []*accountmodels.AccountRow `json:"data"`
+	Count       int                         `json:"count,omitempty"`
 }
 
 // empty is used as the input data for the select statement
@@ -88,23 +78,21 @@ type empty struct{}
 func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.API) {
 
 	// input is an empty struct as
-	huma.Register(humaapi, operation, func(ctx context.Context, input *Request) (*Response, error) {
+	huma.Register(humaapi, operation, func(ctx context.Context, input *AccountRequest) (*AccountResponse, error) {
 		return getAllAccounts(ctx, log, db, &operation, input)
 	})
 
 }
 
 // getAllAccounts
-func getAllAccounts(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.Operation, input *Request) (response *Response, err error) {
+func getAllAccounts(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.Operation, input *AccountRequest) (response *AccountResponse, err error) {
 	var (
-		body      *ResponseBody
-		selector  *dbstmts.Select[*empty, *accountmodels.AccountRow]
-		callEnd   time.Time
-		callStart time.Time           = time.Now().UTC()
-		result    []map[string]string = []map[string]string{}
-		lg        *slog.Logger        = log.With("func", "domain.teamapis.teamall.getAllTeams", "operation", operation.OperationID)
+		body     *AccountResponseBody
+		selector *dbstmts.Select[*empty, *accountmodels.AccountRow]
+		lg       *slog.Logger = log.With("func", "teamall.getAllTeams", "operation", operation.OperationID)
 	)
 	lg.Info("starting handler ...")
+	timers.Start(operation.OperationID)
 	// create the statement
 	lg.Debug("creating select statement ...")
 	selector = &dbstmts.Select[*empty, *accountmodels.AccountRow]{
@@ -119,27 +107,16 @@ func getAllAccounts(ctx context.Context, log *slog.Logger, db *sqlx.DB, operatio
 		err = errors.Join(ErrSelectFailed, err)
 		return
 	}
-	// handle converting the results to the outbound format by using covnert on the
-	// result struct
-	err = marshal.Convert(selector.Returned, &result)
-	if err != nil {
-		lg.Error("marshal type conversion failed", "err", err.Error())
-		err = errors.Join(ErrConvertFailed, err)
-		return
-	}
+
 	// prep result
-	callEnd = time.Now().UTC()
-	body = &ResponseBody{
-		Request: input,
-		Count:   len(result),
-		Data:    result,
-		Performance: &perf{
-			Start:    callStart,
-			End:      callEnd,
-			Duration: fmt.Sprintf("%v", callEnd.Sub(callStart).String()),
-		},
+	timers.Stop(operation.OperationID)
+	body = &AccountResponseBody{
+		Request:     input,
+		Count:       len(selector.Returned),
+		Data:        selector.Returned,
+		Performance: timers.AllTimers(),
 	}
-	response = &Response{Body: body}
+	response = &AccountResponse{Body: body}
 	lg.Info("complete.")
 	return
 }

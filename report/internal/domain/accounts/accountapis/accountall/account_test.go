@@ -21,12 +21,12 @@ func TestDomainAccountApiAll(t *testing.T) {
 		db      *sqlx.DB
 		api     humatest.TestAPI
 		resp    *httptest.ResponseRecorder
-		dir     string          = t.TempDir()
-		ctx     context.Context = t.Context()
-		log     *slog.Logger    = logger.New("error", "text")
-		driver  string          = "sqlite3"
-		connStr string          = fmt.Sprintf("%s/%s", dir, "test-team-api.db")
-		apiData *ResponseBody   = &ResponseBody{}
+		dir     string               = t.TempDir()
+		ctx     context.Context      = t.Context()
+		log     *slog.Logger         = logger.New("error", "text")
+		driver  string               = "sqlite3"
+		connStr string               = fmt.Sprintf("%s/%s", dir, "test-team-api.db")
+		apiData *AccountResponseBody = &AccountResponseBody{}
 	)
 	// setup the test huma instance
 	_, api = humatest.New(t)
