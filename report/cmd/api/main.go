@@ -12,9 +12,9 @@ import (
 	"opg-reports/report/internal/domain/codebases/codebaseapis/codebaseall"
 	"opg-reports/report/internal/domain/codeowners/codeownerapis/codeownerall"
 	"opg-reports/report/internal/domain/codeowners/codeownerapis/codeownerforteam"
-	"opg-reports/report/internal/domain/infracosts/infracostapis/infracostsbyteam"
+	"opg-reports/report/internal/domain/infracosts/infracostapis/infracostsbymonthteam"
 	"opg-reports/report/internal/domain/teams/teamapis/teamall"
-	"opg-reports/report/internal/domain/uptime/uptimeapis/uptimebyteam"
+	"opg-reports/report/internal/domain/uptime/uptimeapis/uptimebymonthteam"
 	"opg-reports/report/internal/utils/logger"
 	"os"
 	"time"
@@ -69,11 +69,11 @@ func handlers(ctx context.Context, log *slog.Logger, opts *apiOpts, api huma.API
 	codeownerall.Register(ctx, log, db, api)
 	codeownerforteam.Register(ctx, log, db, api)
 	// infracosts
-	infracostsbyteam.Register(ctx, log, db, api)
+	infracostsbymonthteam.Register(ctx, log, db, api)
 	// teams
 	teamall.Register(ctx, log, db, api)
 	// uptime
-	uptimebyteam.Register(ctx, log, db, api)
+	uptimebymonthteam.Register(ctx, log, db, api)
 	return
 }
 

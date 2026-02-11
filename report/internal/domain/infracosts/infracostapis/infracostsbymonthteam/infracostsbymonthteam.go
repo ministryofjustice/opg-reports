@@ -1,4 +1,4 @@
-package uptimebyteam
+package infracostsbymonthteam
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"opg-reports/report/internal/db/dbselects"
 	"opg-reports/report/internal/db/dbstmts"
-	"opg-reports/report/internal/domain/uptime/uptimemodels"
+	"opg-reports/report/internal/domain/infracosts/infracostmodels"
 	"opg-reports/report/internal/utils/marshal"
 	"opg-reports/report/internal/utils/tabulate"
 	"opg-reports/report/internal/utils/timers"
@@ -22,63 +22,68 @@ import (
 
 // fixed values for this endpoint, used by the operation setup for huma
 const (
-	ENDPOINT      string = `/v1/uptime/between/{start_date}/{end_date}/team`
-	opID          string = `uptime-get-by-month-and-team`
-	opSummary     string = `Return uptime grouped by team and month.`
-	opDescription string = `Returns uptime data grouped by team name and the year-month date.`
+	ENDPOINT      string = `/v1/infracosts/between/{start_date}/{end_date}/team`
+	opID          string = `infracosts-get-by-month-and-team`
+	opSummary     string = `Return costs grouped by the month and team.`
+	opDescription string = `Returns a list costs between the start and end dates grouped by team and formatted as a table.`
 )
 
 // baseSelect - fastest way to get the data
+//   - tried multiple selects, one for each month, concurrently - slowest at ~300ms
+//   - tried multiple selects, one per month, in sequence - ~150ms
+//   - tried sub-selects per month - ~185ms
+//   - this one getting row for each month - ~35ms
 const baseSelect string = `
 SELECT
-    strftime("%Y-%m", uptime.date) as date,
-	CAST(COALESCE(AVG(uptime.average), 0) as REAL) as average,
+    strftime("%Y-%m", infracosts.date) as date,
+    CAST(COALESCE(SUM(cost), 0) as REAL) as cost,
     accounts.team_name
-FROM uptime
-LEFT JOIN accounts ON accounts.id = uptime.account_id
+FROM infracosts
+LEFT JOIN accounts ON accounts.id = infracosts.account_id
 WHERE
-    strftime("%Y-%m", uptime.date) IN (:months)
+    strftime("%Y-%m", infracosts.date) IN (:months)
 GROUP BY
     accounts.team_name,
-    strftime("%Y-%m", uptime.date)
+    strftime("%Y-%m", infracosts.date)
 ;
 `
 
-// UptimeByMonthTeamRequest contains the incoming url paths and query string data for this endpoint
-type UptimeByMonthTeamRequest struct {
+// CostByMonthTeamRequest contains the incoming url paths and query string data for this endpoint
+type CostByMonthTeamRequest struct {
 	StartDate string `json:"start_date,omitempty" path:"start_date" doc:"Earliest date to return data from (uses >=). YYYY-MM." example:"2025-01" pattern:"([0-9]{4}-[0-9]{2})"`
 	EndDate   string `json:"end_date,omitempty" path:"end_date" doc:"Latest date to capture the data for (uses <). YYYY-MM."  example:"2025-06" pattern:"([0-9]{4}-[0-9]{2})"`
 }
 
 // Start converts the string to a time
-func (self *UptimeByMonthTeamRequest) Start() (t time.Time) {
+func (self *CostByMonthTeamRequest) Start() (t time.Time) {
 	t, _ = times.FromString(self.StartDate)
 	return
 }
 
 // End converts the string to a time
-func (self *UptimeByMonthTeamRequest) End() (t time.Time) {
+func (self *CostByMonthTeamRequest) End() (t time.Time) {
 	t, _ = times.FromString(self.EndDate)
 	return
 }
 
-// UptimeByMonthTeamResponse is the handlers data struct passed to a huma api which will then be rendered
-type UptimeByMonthTeamResponse struct {
-	Body *UptimeByMonthTeamResponseBody
+// CostByMonthTeamResponse is the handlers data struct passed to a huma api which will then be rendered
+type CostByMonthTeamResponse struct {
+	Body *CostByMonthTeamResponseBody
 }
 
-// UptimeByMonthTeamResponseBody is the response body, containing all data to be returned
-type UptimeByMonthTeamResponseBody struct {
-	Request     *UptimeByMonthTeamRequest `json:"request"` // the original request
-	Headers     *UptimeByMonthTeamHeaders `json:"headers"` // headers contains details for table headers / rendering
-	Months      []string                  `json:"months"`  // months within the range specified
-	Data        []map[string]interface{}  `json:"data"`    // the actual data results
-	Count       int                       `json:"count"`   // counter to check data aligns
-	Performance []*timers.Timer           `json:"performance"`
+// CostByMonthTeamResponseBody is the response body, containing all data to be returned
+type CostByMonthTeamResponseBody struct {
+	Request     *CostByMonthTeamRequest  `json:"request"`     // the original CostByMonthTeamRequest
+	Headers     *CostByMonthTeamHeaders  `json:"headers"`     // headers contains details for table headers / rendering
+	Months      []string                 `json:"months"`      // months within the range specified
+	Data        []map[string]interface{} `json:"data"`        // the actual data results
+	Performance []*timers.Timer          `json:"performance"` // duration of the call
+	Count       int                      `json:"count"`       // counter to check data aligns
 }
 
 // track the headings to use in the table for easier rendering
-type UptimeByMonthTeamHeaders struct {
+// interface: TableHeaders
+type CostByMonthTeamHeaders struct {
 	Labels  []string `json:"labels"`  // labels at the start of a row (table headers)
 	Columns []string `json:"columns"` // the core data of the table row (monthly totals)
 	Extras  []string `json:"extras"`  // additional columns between columns & totals
@@ -86,19 +91,19 @@ type UptimeByMonthTeamHeaders struct {
 }
 
 // Textual returns headers that should be strings
-func (self *UptimeByMonthTeamHeaders) Textual() (list []string) {
+func (self *CostByMonthTeamHeaders) Textual() (list []string) {
 	list = []string{}
 	list = append(list, self.Labels...)
 	list = append(list, self.Extras...)
 	return
 }
-func (self *UptimeByMonthTeamHeaders) Numeric() (list []string) {
+func (self *CostByMonthTeamHeaders) Numeric() (list []string) {
 	list = []string{}
 	list = append(list, self.Columns...)
 	list = append(list, self.End...)
 	return
 }
-func (self *UptimeByMonthTeamHeaders) DataColumns() (list []string) {
+func (self *CostByMonthTeamHeaders) DataColumns() (list []string) {
 	return self.Columns
 }
 
@@ -115,7 +120,7 @@ var operation = huma.Operation{
 	Summary:       opSummary,
 	Description:   opDescription,
 	OperationID:   opID,
-	Tags:          []string{"uptime"},
+	Tags:          []string{"infracosts"},
 }
 
 // errors
@@ -126,33 +131,34 @@ var (
 
 // used for table rows
 var (
-	headerLabels  = []string{"team"}
-	headerExtras  = []string{"trend"}
-	headerOverall = []string{"overall"}
+	headerLabels = []string{"team"}
+	headerTotals = []string{"total"}
+	headerExtras = []string{"trend"}
 )
 
 // Register attachs the local handler to the huma api allows way to pass along the configured logger, db etc
 func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.API) {
 	// input is an empty struct as
-	huma.Register(humaapi, operation, func(ctx context.Context, input *UptimeByMonthTeamRequest) (*UptimeByMonthTeamResponse, error) {
+	huma.Register(humaapi, operation, func(ctx context.Context, input *CostByMonthTeamRequest) (*CostByMonthTeamResponse, error) {
 		return getByMonthTeam(timers.ContextWithTimers(ctx), log, db, &operation, input)
 	})
 
 }
 
-// getByMonthTeam
-func getByMonthTeam(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.Operation, input *UptimeByMonthTeamRequest) (resp *UptimeByMonthTeamResponse, err error) {
+// getByMonthAndTeam fetches the data directly and then converts the db rows from the result into a table row styled
+// map to return
+func getByMonthTeam(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.Operation, input *CostByMonthTeamRequest) (resp *CostByMonthTeamResponse, err error) {
 	var (
-		body             *UptimeByMonthTeamResponseBody
-		table            []map[string]interface{} // table formatted version of the database rows
-		query            *dbstmts.Select[*empty, *uptimemodels.UptimeMonthTeam]
-		lg               *slog.Logger              = log.With("func", "uptime.getByMonthTeam", "operation", operation.OperationID)
-		monthStr, months                           = times.JoinedYMList(times.Months(input.Start(), input.End()))
-		headers          *UptimeByMonthTeamHeaders = &UptimeByMonthTeamHeaders{
+		body             *CostByMonthTeamResponseBody
+		table            []map[string]interface{}
+		query            *dbstmts.Select[*empty, *infracostmodels.CostMonthTeam]
+		lg               *slog.Logger            = log.With("func", "infracostsbymonthteam.getByMonthTeam", "operation", operation.OperationID)
+		monthStr, months                         = times.JoinedYMList(times.Months(input.Start(), input.End()))
+		headers          *CostByMonthTeamHeaders = &CostByMonthTeamHeaders{
 			Labels:  headerLabels,
 			Columns: months,
 			Extras:  headerExtras,
-			End:     headerOverall,
+			End:     headerTotals,
 		}
 	)
 	// timers
@@ -161,13 +167,13 @@ func getByMonthTeam(ctx context.Context, log *slog.Logger, db *sqlx.DB, operatio
 
 	lg.Info("starting handler ...")
 	lg.With("months", months).Debug("determined range of months ...")
-
 	// create the statement
 	lg.Debug("creating select statement ...")
-	query = &dbstmts.Select[*empty, *uptimemodels.UptimeMonthTeam]{
+	query = &dbstmts.Select[*empty, *infracostmodels.CostMonthTeam]{
 		Statement: strings.ReplaceAll(baseSelect, ":months", monthStr),
 		Data:      &empty{},
 	}
+
 	// run the select
 	lg.Debug("running select call ...")
 	err = dbselects.Select(ctx, log, db, query)
@@ -178,10 +184,9 @@ func getByMonthTeam(ctx context.Context, log *slog.Logger, db *sqlx.DB, operatio
 	}
 	// convert to a table format
 	table = tabular(query.Returned, headers)
-
 	// prep result
 	timers.Stop(ctx, operation.OperationID)
-	body = &UptimeByMonthTeamResponseBody{
+	body = &CostByMonthTeamResponseBody{
 		Request:     input,
 		Headers:     headers,
 		Months:      months,
@@ -190,7 +195,7 @@ func getByMonthTeam(ctx context.Context, log *slog.Logger, db *sqlx.DB, operatio
 		Performance: timers.All(ctx),
 	}
 	// setup response
-	resp = &UptimeByMonthTeamResponse{Body: body}
+	resp = &CostByMonthTeamResponse{Body: body}
 	lg.Info("complete.")
 	return
 }
@@ -200,32 +205,31 @@ func rowKey(row map[string]interface{}) string {
 	return strings.ToLower(row["team_name"].(string))
 }
 
-// updates the labels on the row to values from the database
+// rowLabelFunc generates the values for the label columns in the table
+//
+// Label columns are those at the start of the table, non-muric like account names and grouped by values
 func rowLabelFunc(dbRow map[string]interface{}, tableRow map[string]interface{}, headers tabulate.TableHeaders) map[string]interface{} {
 	tableRow["team"] = dbRow["team_name"]
 	return tableRow
 }
 
-// rowUpdatefunc used by tabulation to update each row with average uptime
+// rowUpdatefunc used by tabulation to update each row with data cost values and the labels
 func rowUpdatefunc(dbRow map[string]interface{}, tableRow map[string]interface{}, headers tabulate.TableHeaders) map[string]interface{} {
 	var month = dbRow["date"].(string)
-	tableRow[month] = dbRow["average"].(float64)
+	var cost = dbRow["cost"].(float64)
+	updated := tableRow[month].(float64) + cost
+	tableRow[month] = updated
 	return tableRow
 }
 
-// rowAverageFunc updates the table rows average values based on count and total sum
-func rowAverageFunc(dbRow map[string]interface{}, tableRow map[string]interface{}, headers tabulate.TableHeaders) map[string]interface{} {
-	var (
-		cols    []string = headers.DataColumns()
-		total   float64  = 0.0
-		average float64  = 0.0
-		count   int      = len(cols)
-	)
+// rowTotalfunc updates the row total, run after only once after all data is set
+func rowTotalfunc(dbRow map[string]interface{}, tableRow map[string]interface{}, headers tabulate.TableHeaders) map[string]interface{} {
+	var cols []string = headers.DataColumns()
+	var total float64 = 0.0
 	for _, col := range cols {
 		total += tableRow[col].(float64)
 	}
-	average = total / float64(count)
-	tableRow["overall"] = average
+	tableRow["total"] = total
 
 	return tableRow
 }
@@ -240,39 +244,34 @@ func tableSort(table []map[string]interface{}, headers tabulate.TableHeaders) []
 	return table
 }
 
-// tableSummaary runs over all of the table creating a new row based on the total average of each column
+// tableSummaary runs over all of the table creating a new row based on the total of each column
 func tableSummaary(table []map[string]interface{}, headers tabulate.TableHeaders) []map[string]interface{} {
 	var newRow = tabulate.SkeletonRow(headers)
 	var cols = headers.DataColumns()
-	var count = len(table)
 	var total float64 = 0.0
-	// generate total for each column
+
 	for _, row := range table {
 		for _, col := range cols {
 			newRow[col] = newRow[col].(float64) + row[col].(float64)
 		}
-		total += row["overall"].(float64)
+		total += row["total"].(float64)
 	}
-	// deal with dividing by count for average of averages
-	for _, col := range cols {
-		newRow[col] = newRow[col].(float64) / float64(count)
-	}
-	newRow["team"] = "Overall"
-	newRow["overall"] = total / float64(count)
+	newRow["team"] = "Total"
+	newRow["total"] = total
 	table = append(table, newRow)
 
 	return table
 }
 
 // tabular wraps around the main tabular helper to create the return data
-func tabular(results []*uptimemodels.UptimeMonthTeam, headers *UptimeByMonthTeamHeaders) (table []map[string]interface{}) {
+func tabular(results []*infracostmodels.CostMonthTeam, headers *CostByMonthTeamHeaders) (table []map[string]interface{}) {
 	var dbRows = []map[string]interface{}{}
 	var opts = &tabulate.TabulateOptions{
 		Headers:    headers,
 		KeyF:       rowKey,
 		LabelF:     rowLabelFunc,
 		ColumnF:    rowUpdatefunc,
-		RowEndF:    rowAverageFunc,
+		RowEndF:    rowTotalfunc,
 		TableSortF: tableSort,
 		TableEndF:  tableSummaary,
 	}

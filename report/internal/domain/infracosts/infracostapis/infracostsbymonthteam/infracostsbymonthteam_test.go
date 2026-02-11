@@ -1,4 +1,4 @@
-package infracostsbyteam
+package infracostsbymonthteam
 
 import (
 	"context"

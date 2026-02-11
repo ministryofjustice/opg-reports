@@ -1,4 +1,4 @@
-package uptimebyteam
+package uptimebymonthteam
 
 import (
 	"context"
