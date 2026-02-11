@@ -63,3 +63,32 @@ func JoinedYMList(months []time.Time) (str string, mths []string) {
 	str = fmt.Sprintf("'%s'", strings.Join(mths, "','"))
 	return
 }
+
+// FromMonthRangeString
+//
+//	rangeStr = "2025-01..2025-06"
+func FromMonthRangeString(rangeStr string) (months []time.Time) {
+	var (
+		err    error
+		t1, t2 time.Time
+		dates  = strings.Split(rangeStr, "..")
+	)
+	months = []time.Time{}
+
+	if len(dates) != 2 {
+		return
+	}
+
+	t1, err = FromString(dates[0])
+	if err != nil {
+		return
+	}
+
+	t2, err = FromString(dates[1])
+	if err != nil {
+		return
+	}
+	months = Months(t1, t2)
+
+	return
+}
