@@ -81,7 +81,7 @@ func TestDBDBSelectIn(t *testing.T) {
 		Statement: mockSelectStmt,
 		Data:      &empty{},
 	}
-	err = Select2(ctx, log, db, all)
+	err = Select(ctx, log, db, all)
 	if err != nil {
 		t.Errorf("unexpected select issue:\n%v", err.Error())
 	}
@@ -94,7 +94,7 @@ func TestDBDBSelectIn(t *testing.T) {
 		Statement: mockSelectOnNameStmt,
 		Data:      &namefilter{Name: "mock-d"},
 	}
-	err = Select2(ctx, log, db, singleFilter)
+	err = Select(ctx, log, db, singleFilter)
 	if err != nil {
 		t.Errorf("unexpected select issue:\n%v", err.Error())
 	}
@@ -107,7 +107,7 @@ func TestDBDBSelectIn(t *testing.T) {
 		Statement: mockSelectOnNameStmt,
 		Data:      &namefilter{Name: "mock-01"},
 	}
-	err = Select2(ctx, log, db, singleFilterZero)
+	err = Select(ctx, log, db, singleFilterZero)
 	if err != nil {
 		t.Errorf("unexpected select issue:\n%v", err.Error())
 	}
@@ -119,7 +119,7 @@ func TestDBDBSelectIn(t *testing.T) {
 		Statement: mockSelectInStmt,
 		Data:      &infilter{Names: []string{"a", "mock-a"}},
 	}
-	err = Select2(ctx, log, db, inFilter)
+	err = Select(ctx, log, db, inFilter)
 	if err != nil {
 		t.Errorf("unexpected select issue:\n%v", err.Error())
 	}
@@ -132,7 +132,7 @@ func TestDBDBSelectIn(t *testing.T) {
 		Statement: mockSelectInAndIDStmt,
 		Data:      &infilterx{Names: []string{"mock-a", "mock-d"}, ID: 2},
 	}
-	err = Select2(ctx, log, db, inIDFilter)
+	err = Select(ctx, log, db, inIDFilter)
 	if err != nil {
 		t.Errorf("unexpected select issue:\n%v", err.Error())
 	}
@@ -140,8 +140,6 @@ func TestDBDBSelectIn(t *testing.T) {
 		t.Errorf("select with in and id limit failed, result count mismatch.")
 		debugger.Dump(inIDFilter.Returned)
 	}
-
-	t.FailNow()
 
 }
 
