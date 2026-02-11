@@ -18,3 +18,19 @@ type CostMonthTeam struct {
 	Cost     float64 `json:"cost" db:"cost" ` // The sum of all costs within this month
 	TeamName string  `json:"team" db:"team"`  // the team this costs is attached to
 }
+
+// CostMonthAccountForTeam used by the infracosts api for fetching data by month, account and filter by team
+type CostMonthAccountForTeam struct {
+	Date        string  `json:"date" db:"date"`                 // The month for this cost
+	Cost        float64 `json:"cost" db:"cost"`                 // The sum of all costs within this month
+	AccountName string  `json:"account_name" db:"account_name"` // the account this costs is attached to
+}
+
+// CostMonthAccountServiceForTeam used by api to fetch costs grouped by month, account, env and service - filter by team
+type CostMonthAccountServiceForTeam struct {
+	Date        string  `json:"date" db:"date" `                // The month for this cost
+	Cost        float64 `json:"cost" db:"cost" `                // The sum of all costs within this month
+	AccountName string  `json:"account_name" db:"account_name"` // the account this costs is attached to
+	Environment string  `json:"environment" db:"environment"`   // the env used
+	Service     string  `json:"service" db:"service" `          // The aws service name
+}
