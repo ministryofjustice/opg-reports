@@ -15,16 +15,16 @@ type Codebase struct {
 
 // CodebaseAll is used in codebaseall api to return list of codebase data and the attached codeowners
 type CodebaseAll struct {
-	Name       string            `json:"name,omitempty" db:"name"`           // short name of codebase (without owner)
-	FullName   string            `json:"full_name,omitempty" db:"full_name"` // full name including the owner
-	Url        string            `json:"url,omitempty" db:"url"`             // url to access the codebase
-	Codeowners hasManyCodeowners `json:"codeowners" db:"codeowner_list"`     // list from the join
+	Name       string            `json:"name" db:"name"`                           // short name of codebase (without owner)
+	FullName   string            `json:"full_name" db:"full_name"`                 // full name including the owner
+	Url        string            `json:"url" db:"url"`                             // url to access the codebase
+	Codeowners hasManyCodeowners `json:"codeowners,omitempty" db:"codeowner_list"` // list from the join
 }
 
 // joined teams is the codebase -> codeowners data
 type joinedCodeowner struct {
-	Name     string `json:"name,omitempty" db:"name"`
-	TeamName string `json:"team_name,omitempty" db:"team_name"`
+	Name     string `json:"name" db:"name"`
+	TeamName string `json:"team_name" db:"team_name"`
 }
 
 // hasManyCodeowners represents the join

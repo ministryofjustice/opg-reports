@@ -33,7 +33,7 @@ const baseSelect string = `
 SELECT
     strftime("%Y-%m", uptime.date) as date,
 	CAST(COALESCE(AVG(uptime.average), 0) as REAL) as average,
-    accounts.team_name
+    accounts.team_name as team
 FROM uptime
 LEFT JOIN accounts ON accounts.id = uptime.account_id
 WHERE
@@ -44,10 +44,15 @@ GROUP BY
 ;
 `
 
+// filter is used with the sql statment to limit the months to return
+type filter struct {
+	Months []string `json:"months" db:"months"`
+}
+
 // UptimeByMonthTeamRequest contains the incoming url paths and query string data for this endpoint
 type UptimeByMonthTeamRequest struct {
-	StartDate string `json:"start_date,omitempty" path:"start_date" doc:"Earliest date to return data from (uses >=). YYYY-MM." example:"2025-01" pattern:"([0-9]{4}-[0-9]{2})"`
-	EndDate   string `json:"end_date,omitempty" path:"end_date" doc:"Latest date to capture the data for (uses <). YYYY-MM."  example:"2025-06" pattern:"([0-9]{4}-[0-9]{2})"`
+	StartDate string `json:"start_date,omitempty" path:"start_date" doc:"Earliest date to return data from. YYYY-MM." example:"2025-11" pattern:"([0-9]{4}-[0-9]{2})"`
+	EndDate   string `json:"end_date,omitempty" path:"end_date" doc:"Latest date to capture the data for. YYYY-MM."  example:"2026-01" pattern:"([0-9]{4}-[0-9]{2})"`
 }
 
 // Start converts the string to a time
@@ -102,11 +107,6 @@ func (self *UptimeByMonthTeamHeaders) DataColumns() (list []string) {
 	return self.Columns
 }
 
-// empty is used as there are no placeholders within the sql,
-// its fully generated from the data ranges creating multiple
-// sub selects
-type empty struct{}
-
 // operation describes what this endpoint is doing
 var operation = huma.Operation{
 	Method:        http.MethodGet,
@@ -126,6 +126,7 @@ var (
 
 // used for table rows
 var (
+	rowKey        = "team"
 	headerLabels  = []string{"team"}
 	headerExtras  = []string{"trend"}
 	headerOverall = []string{"overall"}
@@ -143,12 +144,12 @@ func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.A
 // getByMonthTeam
 func getByMonthTeam(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.Operation, input *UptimeByMonthTeamRequest) (resp *UptimeByMonthTeamResponse, err error) {
 	var (
-		body             *UptimeByMonthTeamResponseBody
-		table            []map[string]interface{} // table formatted version of the database rows
-		query            *dbstmts.Select[*empty, *uptimemodels.UptimeMonthTeam]
-		lg               *slog.Logger              = log.With("func", "uptime.getByMonthTeam", "operation", operation.OperationID)
-		monthStr, months                           = times.JoinedYMList(times.Months(input.Start(), input.End()))
-		headers          *UptimeByMonthTeamHeaders = &UptimeByMonthTeamHeaders{
+		body    *UptimeByMonthTeamResponseBody
+		table   []map[string]interface{} // table formatted version of the database rows
+		query   *dbstmts.Select[*filter, *uptimemodels.UptimeMonthTeam]
+		lg      *slog.Logger              = log.With("func", "uptime.getByMonthTeam", "operation", operation.OperationID)
+		months  []string                  = times.AsYMStrings(times.Months(input.Start(), input.End()))
+		headers *UptimeByMonthTeamHeaders = &UptimeByMonthTeamHeaders{
 			Labels:  headerLabels,
 			Columns: months,
 			Extras:  headerExtras,
@@ -164,9 +165,9 @@ func getByMonthTeam(ctx context.Context, log *slog.Logger, db *sqlx.DB, operatio
 
 	// create the statement
 	lg.Debug("creating select statement ...")
-	query = &dbstmts.Select[*empty, *uptimemodels.UptimeMonthTeam]{
-		Statement: strings.ReplaceAll(baseSelect, ":months", monthStr),
-		Data:      &empty{},
+	query = &dbstmts.Select[*filter, *uptimemodels.UptimeMonthTeam]{
+		Statement: baseSelect,
+		Data:      &filter{Months: months},
 	}
 	// run the select
 	lg.Debug("running select call ...")
@@ -196,13 +197,13 @@ func getByMonthTeam(ctx context.Context, log *slog.Logger, db *sqlx.DB, operatio
 }
 
 // rowKey used by tabulation to decide the key for each row in the table
-func rowKey(row map[string]interface{}) string {
-	return strings.ToLower(row["team_name"].(string))
+func rowKeyFunc(row map[string]interface{}) string {
+	return strings.ToLower(row[rowKey].(string))
 }
 
 // updates the labels on the row to values from the database
 func rowLabelFunc(dbRow map[string]interface{}, tableRow map[string]interface{}, headers tabulate.TableHeaders) map[string]interface{} {
-	tableRow["team"] = dbRow["team_name"]
+	tableRow[rowKey] = dbRow[rowKey]
 	return tableRow
 }
 
@@ -233,8 +234,8 @@ func rowAverageFunc(dbRow map[string]interface{}, tableRow map[string]interface{
 // tableSort - sort the table by the team name for consistency
 func tableSort(table []map[string]interface{}, headers tabulate.TableHeaders) []map[string]interface{} {
 	sort.Slice(table, func(i, j int) bool {
-		var a = table[i]["team"].(string)
-		var b = table[j]["team"].(string)
+		var a = table[i][rowKey].(string)
+		var b = table[j][rowKey].(string)
 		return (a < b)
 	})
 	return table
@@ -257,7 +258,7 @@ func tableSummaary(table []map[string]interface{}, headers tabulate.TableHeaders
 	for _, col := range cols {
 		newRow[col] = newRow[col].(float64) / float64(count)
 	}
-	newRow["team"] = "Overall"
+	newRow[rowKey] = "Overall"
 	newRow["overall"] = total / float64(count)
 	table = append(table, newRow)
 
@@ -269,7 +270,7 @@ func tabular(results []*uptimemodels.UptimeMonthTeam, headers *UptimeByMonthTeam
 	var dbRows = []map[string]interface{}{}
 	var opts = &tabulate.TabulateOptions{
 		Headers:    headers,
-		KeyF:       rowKey,
+		KeyF:       rowKeyFunc,
 		LabelF:     rowLabelFunc,
 		ColumnF:    rowUpdatefunc,
 		RowEndF:    rowAverageFunc,

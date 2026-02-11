@@ -48,10 +48,15 @@ GROUP BY
 ;
 `
 
+// filter is used with the sql statment to limit the months to return
+type filter struct {
+	Months []string `json:"months" db:"months"`
+}
+
 // CostByMonthTeamRequest contains the incoming url paths and query string data for this endpoint
 type CostByMonthTeamRequest struct {
-	StartDate string `json:"start_date,omitempty" path:"start_date" doc:"Earliest date to return data from (uses >=). YYYY-MM." example:"2025-01" pattern:"([0-9]{4}-[0-9]{2})"`
-	EndDate   string `json:"end_date,omitempty" path:"end_date" doc:"Latest date to capture the data for (uses <). YYYY-MM."  example:"2025-06" pattern:"([0-9]{4}-[0-9]{2})"`
+	StartDate string `json:"start_date,omitempty" path:"start_date" doc:"Earliest date to return data from. YYYY-MM." example:"2025-01" pattern:"([0-9]{4}-[0-9]{2})"`
+	EndDate   string `json:"end_date,omitempty" path:"end_date" doc:"Latest date to capture the data for. YYYY-MM."  example:"2025-06" pattern:"([0-9]{4}-[0-9]{2})"`
 }
 
 // Start converts the string to a time
@@ -107,11 +112,6 @@ func (self *CostByMonthTeamHeaders) DataColumns() (list []string) {
 	return self.Columns
 }
 
-// empty is used as there are no placeholders within the sql,
-// its fully generated from the data ranges creating multiple
-// sub selects
-type empty struct{}
-
 // operation describes what this endpoint is doing
 var operation = huma.Operation{
 	Method:        http.MethodGet,
@@ -149,12 +149,12 @@ func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.A
 // map to return
 func getByMonthTeam(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.Operation, input *CostByMonthTeamRequest) (resp *CostByMonthTeamResponse, err error) {
 	var (
-		body             *CostByMonthTeamResponseBody
-		table            []map[string]interface{}
-		query            *dbstmts.Select[*empty, *infracostmodels.CostMonthTeam]
-		lg               *slog.Logger            = log.With("func", "infracostsbymonthteam.getByMonthTeam", "operation", operation.OperationID)
-		monthStr, months                         = times.JoinedYMList(times.Months(input.Start(), input.End()))
-		headers          *CostByMonthTeamHeaders = &CostByMonthTeamHeaders{
+		body    *CostByMonthTeamResponseBody
+		table   []map[string]interface{}
+		query   *dbstmts.Select[*filter, *infracostmodels.CostMonthTeam]
+		lg      *slog.Logger            = log.With("func", "infracostsbymonthteam.getByMonthTeam", "operation", operation.OperationID)
+		months  []string                = times.AsYMStrings(times.Months(input.Start(), input.End()))
+		headers *CostByMonthTeamHeaders = &CostByMonthTeamHeaders{
 			Labels:  headerLabels,
 			Columns: months,
 			Extras:  headerExtras,
@@ -169,9 +169,9 @@ func getByMonthTeam(ctx context.Context, log *slog.Logger, db *sqlx.DB, operatio
 	lg.With("months", months).Debug("determined range of months ...")
 	// create the statement
 	lg.Debug("creating select statement ...")
-	query = &dbstmts.Select[*empty, *infracostmodels.CostMonthTeam]{
-		Statement: strings.ReplaceAll(baseSelect, ":months", monthStr),
-		Data:      &empty{},
+	query = &dbstmts.Select[*filter, *infracostmodels.CostMonthTeam]{
+		Statement: baseSelect,
+		Data:      &filter{Months: months},
 	}
 
 	// run the select
