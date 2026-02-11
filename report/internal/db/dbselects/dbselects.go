@@ -45,7 +45,7 @@ func Select[T dbmodels.Model, R dbmodels.Result](ctx context.Context, log *slog.
 	// create prepared statement so placeholders are used
 	statement, err = transaction.PrepareNamedContext(ctx, stmt.Statement)
 	if err != nil {
-		lg.Debug("prepared stmt failed", "err", err.Error(), "stmt", stmt.Statement)
+		lg.Warn("prepared stmt failed", "err", err.Error(), "stmt", stmt.Statement, "data", stmt.Data)
 		err = errors.Join(ErrPreparedStmtFailed, err)
 		if strings.Contains(err.Error(), "no such table") {
 			err = errors.Join(ErrMissingTable, err)
@@ -96,7 +96,7 @@ func SelectMap[T dbmodels.Model](ctx context.Context, log *slog.Logger, db *sqlx
 	// create prepared statement so placeholders are used
 	statement, err = transaction.PrepareNamedContext(ctx, stmt.Statement)
 	if err != nil {
-		lg.Debug("prepared stmt failed", "err", err.Error(), "stmt", stmt.Statement)
+		lg.Warn("prepared stmt failed", "err", err.Error(), "stmt", stmt.Statement, "data", stmt.Data)
 		err = errors.Join(ErrPreparedStmtFailed, err)
 		if strings.Contains(err.Error(), "no such table") {
 			err = errors.Join(ErrMissingTable, err)

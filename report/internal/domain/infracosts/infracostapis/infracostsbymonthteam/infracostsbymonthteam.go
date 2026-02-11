@@ -37,7 +37,7 @@ const baseSelect string = `
 SELECT
     strftime("%Y-%m", infracosts.date) as date,
     CAST(COALESCE(SUM(cost), 0) as REAL) as cost,
-    accounts.team_name
+    accounts.team_name as team
 FROM infracosts
 LEFT JOIN accounts ON accounts.id = infracosts.account_id
 WHERE
@@ -131,6 +131,7 @@ var (
 
 // used for table rows
 var (
+	rowKey       = "team"
 	headerLabels = []string{"team"}
 	headerTotals = []string{"total"}
 	headerExtras = []string{"trend"}
@@ -142,7 +143,6 @@ func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.A
 	huma.Register(humaapi, operation, func(ctx context.Context, input *CostByMonthTeamRequest) (*CostByMonthTeamResponse, error) {
 		return getByMonthTeam(timers.ContextWithTimers(ctx), log, db, &operation, input)
 	})
-
 }
 
 // getByMonthAndTeam fetches the data directly and then converts the db rows from the result into a table row styled
@@ -201,15 +201,15 @@ func getByMonthTeam(ctx context.Context, log *slog.Logger, db *sqlx.DB, operatio
 }
 
 // rowKey used by tabulation to decide the key for each row in the table
-func rowKey(row map[string]interface{}) string {
-	return strings.ToLower(row["team_name"].(string))
+func rowKeyFunc(row map[string]interface{}) string {
+	return strings.ToLower(row[rowKey].(string))
 }
 
 // rowLabelFunc generates the values for the label columns in the table
 //
 // Label columns are those at the start of the table, non-muric like account names and grouped by values
 func rowLabelFunc(dbRow map[string]interface{}, tableRow map[string]interface{}, headers tabulate.TableHeaders) map[string]interface{} {
-	tableRow["team"] = dbRow["team_name"]
+	tableRow[rowKey] = dbRow[rowKey]
 	return tableRow
 }
 
@@ -237,8 +237,8 @@ func rowTotalfunc(dbRow map[string]interface{}, tableRow map[string]interface{},
 // tableSort - sort the table by the team name for consistency
 func tableSort(table []map[string]interface{}, headers tabulate.TableHeaders) []map[string]interface{} {
 	sort.Slice(table, func(i, j int) bool {
-		var a = table[i]["team"].(string)
-		var b = table[j]["team"].(string)
+		var a = table[i][rowKey].(string)
+		var b = table[j][rowKey].(string)
 		return (a < b)
 	})
 	return table
@@ -268,7 +268,7 @@ func tabular(results []*infracostmodels.CostMonthTeam, headers *CostByMonthTeamH
 	var dbRows = []map[string]interface{}{}
 	var opts = &tabulate.TabulateOptions{
 		Headers:    headers,
-		KeyF:       rowKey,
+		KeyF:       rowKeyFunc,
 		LabelF:     rowLabelFunc,
 		ColumnF:    rowUpdatefunc,
 		RowEndF:    rowTotalfunc,

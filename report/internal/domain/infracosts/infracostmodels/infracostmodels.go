@@ -14,7 +14,7 @@ type Cost struct {
 
 // CostMonthTeam used by the infracosts api for fetching data by month & team, so limited data
 type CostMonthTeam struct {
-	Date     string  `json:"date,omitempty" db:"date" `          // The month for this cost
-	Cost     float64 `json:"cost,omitempty" db:"cost" `          // The sum of all costs within this month
-	TeamName string  `json:"team_name,omitempty" db:"team_name"` // the team this costs is attached to
+	Date     string  `json:"date,omitempty" db:"date" ` // The month for this cost
+	Cost     float64 `json:"cost,omitempty" db:"cost" ` // The sum of all costs within this month
+	TeamName string  `json:"team,omitempty" db:"team"`  // the team this costs is attached to
 }
