@@ -30,7 +30,7 @@ RETURNING id;
 // Import uses combines the cost data passed along with the with insert statement defined in this package to
 // insert records in to the active database connection.
 func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*uptimemodels.Uptime) (statements []*dbstmts.Insert[*uptimemodels.Uptime, int], err error) {
-	var lg *slog.Logger = log.With("func", "domain.uptime.uptimeimports.Import")
+	var lg *slog.Logger = log.With("func", "uptimeimports.Import")
 
 	lg.Debug("starting ...")
 	statements, err = dbimports.Import[int](ctx, log, db, insertStmt, data)

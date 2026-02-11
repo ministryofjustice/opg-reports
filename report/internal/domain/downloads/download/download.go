@@ -35,7 +35,7 @@ func DownloadItemFromBucket[T AwsClient](ctx context.Context, log *slog.Logger, 
 		body      []byte
 		localFile string             = filepath.Join(options.Directory, options.Key)
 		localDir  string             = filepath.Dir(localFile)
-		lg        *slog.Logger       = log.With("func", "domain.downloads.download.GetItemFromBucket")
+		lg        *slog.Logger       = log.With("func", "download.GetItemFromBucket")
 		opts      *s3.GetObjectInput = &s3.GetObjectInput{
 			Bucket: &options.Bucket,
 			Key:    &options.Key,

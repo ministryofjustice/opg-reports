@@ -26,7 +26,7 @@ type Options struct {
 
 // GetCodebases finds all github repositories and returns them for the moj/opg team
 func GetCodebases[T GitHubClient](ctx context.Context, log *slog.Logger, client T, options *Options) (repos []*codebasemodels.Codebase, err error) {
-	var lg *slog.Logger = log.With("func", "domain.codebases.codebase.GetCodebases")
+	var lg *slog.Logger = log.With("func", "codebase.GetCodebases")
 	var list []*github.Repository
 
 	lg.Debug("starting ...")
@@ -49,7 +49,7 @@ func GetCodebases[T GitHubClient](ctx context.Context, log *slog.Logger, client 
 
 // toModels converts the api results into local structs
 func toModels(ctx context.Context, log *slog.Logger, list []*github.Repository) (repos []*codebasemodels.Codebase, err error) {
-	var lg *slog.Logger = log.With("func", "domain.codebases.codebase.toModels")
+	var lg *slog.Logger = log.With("func", "codebase.toModels")
 
 	repos = []*codebasemodels.Codebase{}
 	lg.Debug("starting ...")
@@ -73,7 +73,7 @@ func getRepositoryList[T GitHubClient](ctx context.Context, log *slog.Logger, cl
 	var (
 		page int                 = 1
 		opts *github.ListOptions = &github.ListOptions{PerPage: 200}
-		lg   *slog.Logger        = log.With("func", "domain.codebases.codebase.getRepositoryList")
+		lg   *slog.Logger        = log.With("func", "codebase.getRepositoryList")
 	)
 	lg.Debug("starting ...")
 

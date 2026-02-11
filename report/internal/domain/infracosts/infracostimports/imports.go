@@ -31,7 +31,7 @@ RETURNING id;
 // Import uses combines the cost data passed along with the with insert statement defined in this package to
 // insert records in to the active database connection.
 func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*infracostmodels.Cost) (statements []*dbstmts.Insert[*infracostmodels.Cost, int], err error) {
-	var lg *slog.Logger = log.With("func", "domain.infracosts.infracostimports.Import")
+	var lg *slog.Logger = log.With("func", "infracostimports.Import")
 
 	lg.Debug("starting ...")
 	statements, err = dbimports.Import[int](ctx, log, db, insertStmt, data)

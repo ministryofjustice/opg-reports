@@ -66,7 +66,7 @@ func GetAwsAccountData[T GitHubClient](ctx context.Context, log *slog.Logger, gh
 		release      *github.RepositoryRelease
 		asset        *github.ReleaseAsset
 		metadataFile string
-		lg           *slog.Logger = log.With("func", "domain.accounts.account.GetAwsAccountData")
+		lg           *slog.Logger = log.With("func", "account.GetAwsAccountData")
 	)
 	// clean out the directory content
 	defer func() {
@@ -139,7 +139,7 @@ func downloadAsset[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, 
 		buff     io.ReadCloser
 		dlTo     string       = filepath.Join(options.DataDirectory, downloadSubDir)
 		fileDest string       = filepath.Join(dlTo, *asset.Name)
-		lg       *slog.Logger = log.With("func", "domain.accounts.account.downloadAsset")
+		lg       *slog.Logger = log.With("func", "account.downloadAsset")
 	)
 	// try to download
 	// download to buffer
@@ -165,7 +165,7 @@ func downloadAsset[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, 
 
 // getReleaseAsset finds the named asset from the attached assets
 func getReleaseAsset(ctx context.Context, log *slog.Logger, release *github.RepositoryRelease) (asset *github.ReleaseAsset, err error) {
-	var lg *slog.Logger = log.With("func", "domain.accounts.account.getReleaseAsset")
+	var lg *slog.Logger = log.With("func", "account.getReleaseAsset")
 	// no assets, so a failure
 	if len(release.Assets) <= 0 {
 		err = ErrNoAssetsInRelease
@@ -191,7 +191,7 @@ func getReleaseAsset(ctx context.Context, log *slog.Logger, release *github.Repo
 //
 // Does not check for pre-release / draft status, just the tag name
 func getRelease[T GitHubClient](ctx context.Context, log *slog.Logger, gh T /**github.RepositoriesService*/, options *Options) (release *github.RepositoryRelease, err error) {
-	var lg *slog.Logger = log.With("func", "domain.accounts.account.getRelease")
+	var lg *slog.Logger = log.With("func", "account.getRelease")
 
 	release, _, err = gh.GetReleaseByTag(ctx, owner, repository, options.Tag)
 	if err != nil {

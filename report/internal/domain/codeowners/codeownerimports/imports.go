@@ -45,7 +45,7 @@ const truncateStmt string = `DELETE FROM codeowners;`
 //
 // Table is truncated first, as codebases may have changed over time (deleted / renamed etc).
 func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*codeownermodels.Codeowner) (statements []*dbstmts.Insert[*codeownermodels.Codeowner, int], err error) {
-	var lg *slog.Logger = log.With("func", "domain.codeowners.codeownerimports.Import")
+	var lg *slog.Logger = log.With("func", "codeownerimports.Import")
 
 	lg.Debug("starting ...")
 	lg.Debug("trucating table ...")

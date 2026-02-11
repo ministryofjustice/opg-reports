@@ -43,7 +43,7 @@ func GetSeeds() (data []*accountmodels.Account) {
 // into the database via the import
 func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstmts.Insert[*accountmodels.Account, string], err error) {
 	var seeds []*accountmodels.Account = GetSeeds()
-	var lg *slog.Logger = log.With("func", "domain.accounts.accountseeds.Seed")
+	var lg *slog.Logger = log.With("func", "accountseeds.Seed")
 
 	lg.Debug("starting ...")
 	statements, err = accountimports.Import(ctx, log, db, seeds)

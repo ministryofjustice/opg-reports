@@ -33,7 +33,7 @@ func New[T SupportedClients](ctx context.Context, log *slog.Logger, region strin
 		awscfg aws.Config
 		c      interface{}
 		t      T
-		lg     *slog.Logger = log.With("func", "utils.awsclients.New")
+		lg     *slog.Logger = log.With("func", "awsclients.New")
 	)
 	lg.Debug("starting ...")
 

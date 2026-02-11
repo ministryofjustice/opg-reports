@@ -27,7 +27,7 @@ type empty struct{}
 
 func All(ctx context.Context, log *slog.Logger, db *sqlx.DB) (data []*accountmodels.Account, err error) {
 	var (
-		lg       *slog.Logger = log.With("func", "domain.accounts.accountselects.All")
+		lg       *slog.Logger = log.With("func", "accountselects.All")
 		selector *dbstmts.Select[*empty, *accountmodels.Account]
 	)
 	data = []*accountmodels.Account{}

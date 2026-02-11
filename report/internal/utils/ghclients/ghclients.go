@@ -15,7 +15,7 @@ var ErrNoToken = errors.New("missing required token.")
 // New returns a token based client for github usage
 func New(ctx context.Context, log *slog.Logger, token string) (client *github.Client, err error) {
 	var limited *http.Client
-	var lg *slog.Logger = log.With("func", "utils.ghclients.New")
+	var lg *slog.Logger = log.With("func", "ghclients.New")
 
 	lg.Debug("starting ...")
 	if token == "" {

@@ -37,7 +37,7 @@ func UploadItemToBucket[T AwsClient](ctx context.Context, log *slog.Logger, clie
 	var (
 		file *os.File
 		opts *s3.PutObjectInput
-		lg   *slog.Logger = log.With("func", "domain.downloads.download.GetItemFromBucket")
+		lg   *slog.Logger = log.With("func", "download.GetItemFromBucket")
 	)
 
 	lg.Debug("starting ...")

@@ -41,7 +41,7 @@ const truncateStmt string = `DELETE FROM codebases;`
 //
 // Table is truncated first, as codebases may have changed over time (deleted / renamed etc).
 func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*codebasemodels.Codebase) (statements []*dbstmts.Insert[*codebasemodels.Codebase, int], err error) {
-	var lg *slog.Logger = log.With("func", "domain.codebases.codebaseimports.Import")
+	var lg *slog.Logger = log.With("func", "codebaseimports.Import")
 
 	lg.Debug("starting ...")
 	lg.Debug("trucating table ...")

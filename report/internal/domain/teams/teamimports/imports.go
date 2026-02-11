@@ -25,7 +25,7 @@ RETURNING name
 // Import uses combines the cost data passed along with the with insert statement defined in this package to
 // insert records in to the active database connection.
 func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*teammodels.Team) (statements []*dbstmts.Insert[*teammodels.Team, string], err error) {
-	var lg *slog.Logger = log.With("func", "domain.teams.teamimports.Import")
+	var lg *slog.Logger = log.With("func", "teamimports.Import")
 
 	lg.Debug("starting ...")
 	statements, err = dbimports.Import[string](ctx, log, db, insertStmt, data)

@@ -12,7 +12,7 @@ import (
 func Identity(ctx context.Context, log *slog.Logger, region string) (id *sts.GetCallerIdentityOutput) {
 	var err error
 	var client *sts.Client
-	var lg *slog.Logger = log.With("func", "utils.awsid.Identity")
+	var lg *slog.Logger = log.With("func", "awsid.Identity")
 
 	lg.Debug("starting ...")
 
@@ -34,7 +34,7 @@ func Identity(ctx context.Context, log *slog.Logger, region string) (id *sts.Get
 
 // AccountID returns just the account id detials from the session information
 func AccountID(ctx context.Context, log *slog.Logger, region string) (account string) {
-	var lg *slog.Logger = log.With("func", "utils.awsid.AccountID")
+	var lg *slog.Logger = log.With("func", "awsid.AccountID")
 	var id *sts.GetCallerIdentityOutput
 	lg.Debug("starting ...")
 	id = Identity(ctx, log, region)

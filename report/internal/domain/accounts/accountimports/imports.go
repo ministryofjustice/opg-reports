@@ -37,7 +37,7 @@ RETURNING id
 // Import uses combines the data passed along with the with insert statement defined in this package to
 // insert records in to the active database connection.
 func Import(ctx context.Context, log *slog.Logger, db *sqlx.DB, data []*accountmodels.Account) (statements []*dbstmts.Insert[*accountmodels.Account, string], err error) {
-	var lg *slog.Logger = log.With("func", "domain.accounts.accountimports.Import")
+	var lg *slog.Logger = log.With("func", "accountimports.Import")
 
 	lg.Debug("starting ...")
 	statements, err = dbimports.Import[string](ctx, log, db, insertStmt, data)

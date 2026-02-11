@@ -46,7 +46,7 @@ func GetSeeds() (data []*uptimemodels.Uptime) {
 // into the database via the import
 func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstmts.Insert[*uptimemodels.Uptime, int], err error) {
 	var seeds []*uptimemodels.Uptime = GetSeeds()
-	var lg *slog.Logger = log.With("func", "domain.uptime.uptimeseeds.Seed")
+	var lg *slog.Logger = log.With("func", "uptimeseeds.Seed")
 
 	lg.Debug("starting ...")
 	statements, err = uptimeimports.Import(ctx, log, db, seeds)

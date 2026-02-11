@@ -26,7 +26,7 @@ type empty struct{}
 
 func All(ctx context.Context, log *slog.Logger, db *sqlx.DB) (code []*codeownermodels.Codeowner, err error) {
 	var (
-		lg       *slog.Logger = log.With("func", "domain.codeowners.codeownerselects.All")
+		lg       *slog.Logger = log.With("func", "codeownerselects.All")
 		selector *dbstmts.Select[*empty, *codeownermodels.Codeowner]
 	)
 	code = []*codeownermodels.Codeowner{}

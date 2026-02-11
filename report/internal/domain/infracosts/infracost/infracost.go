@@ -45,7 +45,7 @@ type Options struct {
 //
 // Note: API limits grouping to 2, so we cant get linked account details at the same time.
 func GetCostData[T AwsClient](ctx context.Context, log *slog.Logger, client T, options *Options) (costs []*infracostmodels.Cost, err error) {
-	var lg *slog.Logger = log.With("func", "domain.infracosts.infracost.GetCostData")
+	var lg *slog.Logger = log.With("func", "infracost.GetCostData")
 	var result *costexplorer.GetCostAndUsageOutput
 	var apiOpts *costexplorer.GetCostAndUsageInput = GetOptions(options.Start, options.End)
 
@@ -67,7 +67,7 @@ func GetCostData[T AwsClient](ctx context.Context, log *slog.Logger, client T, o
 
 // toModels converts the raw data into a list of models ready to write to the database
 func toModels(ctx context.Context, log *slog.Logger, account string, result *costexplorer.GetCostAndUsageOutput) (costs []*infracostmodels.Cost, err error) {
-	var lg *slog.Logger = log.With("func", "domain.infracosts.infracost.toModels")
+	var lg *slog.Logger = log.With("func", "infracost.toModels")
 
 	costs = []*infracostmodels.Cost{}
 	lg.Debug("starting ... ")

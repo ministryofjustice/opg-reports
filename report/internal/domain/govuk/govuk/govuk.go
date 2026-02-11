@@ -55,7 +55,7 @@ func DownloadFrontEnd[T GitHubClient](ctx context.Context, log *slog.Logger, gh 
 		zip     string // zip file thats been downloaded
 		release *github.RepositoryRelease
 		asset   *github.ReleaseAsset
-		lg      *slog.Logger = log.With("func", "domain.govuk.govuk.DownloadFrontEnd")
+		lg      *slog.Logger = log.With("func", "govuk.DownloadFrontEnd")
 	)
 
 	lg.With("options", options).Debug("starting ...")
@@ -93,7 +93,7 @@ func DownloadFrontEnd[T GitHubClient](ctx context.Context, log *slog.Logger, gh 
 
 // extract the zip into the directory directly (no sub-folder) and confirm it worked
 func extract(ctx context.Context, log *slog.Logger, zip string, options *Options) (extracted string, err error) {
-	var lg *slog.Logger = log.With("func", "domain.govuk.govuk.extractAndGetTeams")
+	var lg *slog.Logger = log.With("func", "govuk.extractAndGetTeams")
 	var versionFile string = filepath.Join(options.Directory, "VERSION.txt")
 	lg.Debug("starting ...")
 	// make sure the dir exists
@@ -126,7 +126,7 @@ func downloadAsset[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, 
 		buff     io.ReadCloser
 		dir      string
 		fileDest string
-		lg       *slog.Logger = log.With("func", "domain.govuk.govuk.downloadAsset")
+		lg       *slog.Logger = log.With("func", "govuk.downloadAsset")
 	)
 	lg.Debug("starting ...")
 
@@ -159,7 +159,7 @@ func downloadAsset[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, 
 
 // getReleaseAsset finds the named asset from the attached assets
 func getReleaseAsset(ctx context.Context, log *slog.Logger, release *github.RepositoryRelease, tag string) (asset *github.ReleaseAsset, err error) {
-	var lg *slog.Logger = log.With("func", "domain.govuk.govuk.getReleaseAsset")
+	var lg *slog.Logger = log.With("func", "govuk.getReleaseAsset")
 	var assetName string = fmt.Sprintf("release-%s.zip", tag)
 
 	lg.Debug("starting ...")
@@ -187,7 +187,7 @@ func getReleaseAsset(ctx context.Context, log *slog.Logger, release *github.Repo
 
 // getRelease finds the tagged release
 func getRelease[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, options *Options) (release *github.RepositoryRelease, err error) {
-	var lg *slog.Logger = log.With("func", "domain.govuk.govuk.getRelease")
+	var lg *slog.Logger = log.With("func", "govuk.getRelease")
 	lg.Debug("starting ...")
 	release, _, err = gh.GetReleaseByTag(ctx, owner, repository, options.Tag)
 	if err != nil {

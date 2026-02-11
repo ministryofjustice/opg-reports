@@ -32,7 +32,7 @@ type empty struct{}
 
 func All(ctx context.Context, log *slog.Logger, db *sqlx.DB) (code []*infracostmodels.Cost, err error) {
 	var (
-		lg       *slog.Logger = log.With("func", "domain.infracosts.infracostselects.All")
+		lg       *slog.Logger = log.With("func", "infracostselects.All")
 		selector *dbstmts.Select[*empty, *infracostmodels.Cost]
 	)
 	code = []*infracostmodels.Cost{}

@@ -23,7 +23,7 @@ type empty struct{}
 
 func All(ctx context.Context, log *slog.Logger, db *sqlx.DB) (code []*teammodels.Team, err error) {
 	var (
-		lg       *slog.Logger = log.With("func", "domain.teams.teamselects.All")
+		lg       *slog.Logger = log.With("func", "teamselects.All")
 		selector *dbstmts.Select[*empty, *teammodels.Team]
 	)
 	code = []*teammodels.Team{}

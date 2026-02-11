@@ -16,7 +16,7 @@ var ErrImportFailed = errors.New("import failed with error.")
 // Import uses combines the data passed along with the with insert statement defined in this package to
 // insert records in to the active database connection.
 func Import[R dbmodels.Result, T dbmodels.Model](ctx context.Context, log *slog.Logger, db *sqlx.DB, insertStmt string, data []T) (statements []*dbstmts.Insert[T, R], err error) {
-	var lg *slog.Logger = log.With("func", "db.dbimports.Import")
+	var lg *slog.Logger = log.With("func", "dbimports.Import")
 
 	statements = []*dbstmts.Insert[T, R]{}
 	lg.Debug("starting ...")

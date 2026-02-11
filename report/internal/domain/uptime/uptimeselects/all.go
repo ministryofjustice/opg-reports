@@ -27,7 +27,7 @@ type empty struct{}
 
 func All(ctx context.Context, log *slog.Logger, db *sqlx.DB) (code []*uptimemodels.Uptime, err error) {
 	var (
-		lg       *slog.Logger = log.With("func", "domain.teams.teamselects.All")
+		lg       *slog.Logger = log.With("func", "teamselects.All")
 		selector *dbstmts.Select[*empty, *uptimemodels.Uptime]
 	)
 	code = []*uptimemodels.Uptime{}

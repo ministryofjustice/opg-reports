@@ -94,7 +94,7 @@ func GetCodeowners[T GitHubClient](ctx context.Context, log *slog.Logger, client
 // will process the content into just the team names, removing duplicates.
 func getCodeownersFromFiles[T GitHubClient](ctx context.Context, log *slog.Logger, client T, in *Input, code *codebasemodels.Codebase) (owners []string, err error) {
 	var (
-		lg            *slog.Logger = log.With("func", "domain.codeowners.codeowner.getCodeownersFromFiles")
+		lg            *slog.Logger = log.With("func", "codeowner.getCodeownersFromFiles")
 		fileLocations []string     = []string{
 			"./CODEOWNERS",
 			"./.github/CODEOWNERS",
@@ -133,7 +133,7 @@ func getCodeownersFromFiles[T GitHubClient](ctx context.Context, log *slog.Logge
 // Filters based on team having a parent of `opg`
 func getTeams[T GitHubClient](ctx context.Context, log *slog.Logger, client T, in *Input, code *codebasemodels.Codebase) (teams []*github.Team, err error) {
 	var (
-		lg   *slog.Logger        = log.With("func", "domain.codeowners.codeowner.getTeams")
+		lg   *slog.Logger        = log.With("func", "codeowner.getTeams")
 		page int                 = 1
 		opts *github.ListOptions = &github.ListOptions{PerPage: 200}
 	)

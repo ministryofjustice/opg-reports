@@ -30,7 +30,7 @@ func init() {
 // Seed assumes the database already exists and the inserts pre-determined data
 // into the database via the import
 func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstmts.Insert[*teammodels.Team, string], err error) {
-	var lg *slog.Logger = log.With("func", "domain.teams.teamseeds.Seed")
+	var lg *slog.Logger = log.With("func", "teamseeds.Seed")
 
 	lg.Debug("starting ...")
 	statements, err = teamimports.Import(ctx, log, db, seeds)

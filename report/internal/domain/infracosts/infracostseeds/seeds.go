@@ -63,7 +63,7 @@ func GetSeeds() (data []*infracostmodels.Cost) {
 // Seed assumes the database already exists and the inserts pre-determined data
 // into the database via the import
 func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstmts.Insert[*infracostmodels.Cost, int], err error) {
-	var lg *slog.Logger = log.With("func", "domain.infracosts.infracostseeds.Seed")
+	var lg *slog.Logger = log.With("func", "infracostseeds.Seed")
 	var seeds []*infracostmodels.Cost = GetSeeds()
 	lg.Debug("starting ...")
 	statements, err = infracostimports.Import(ctx, log, db, seeds)

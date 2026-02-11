@@ -62,7 +62,7 @@ func GetUptimeData[T AwsClient](ctx context.Context, log *slog.Logger, client T,
 		list      *cloudwatch.ListMetricsOutput
 		statsOpts *cloudwatch.GetMetricStatisticsInput
 		stats     *cloudwatch.GetMetricStatisticsOutput
-		lg        *slog.Logger = log.With("func", "domain.uptime.uptime.GetUptimeData")
+		lg        *slog.Logger = log.With("func", "uptime.GetUptimeData")
 		setRegion string       = client.Options().Region
 	)
 
@@ -101,7 +101,7 @@ func GetUptimeData[T AwsClient](ctx context.Context, log *slog.Logger, client T,
 // toModels converts the raw data into a list of models ready to write to the database
 func toModels(ctx context.Context, log *slog.Logger, account string, period int32, result *cloudwatch.GetMetricStatisticsOutput) (data []*uptimemodels.Uptime, err error) {
 	var (
-		lg      *slog.Logger       = log.With("func", "domain.uptime.uptime.toModels")
+		lg      *slog.Logger       = log.With("func", "uptime.toModels")
 		grouped map[string]float64 = map[string]float64{}
 		counter map[string]int     = map[string]int{}
 	)
@@ -145,7 +145,7 @@ func toModels(ctx context.Context, log *slog.Logger, account string, period int3
 //
 // T is *cloudwatch.Client
 func getHealthCheckStatistics[T AwsClient](ctx context.Context, log *slog.Logger, client T, list *cloudwatch.ListMetricsOutput, options *Options) (stats *cloudwatch.GetMetricStatisticsOutput, statsInput *cloudwatch.GetMetricStatisticsInput, err error) {
-	var lg *slog.Logger = log.With("func", "domain.uptime.uptime.getHealthCheckStatistics")
+	var lg *slog.Logger = log.With("func", "uptime.getHealthCheckStatistics")
 
 	statsInput = getHeathCheckMetricStatsOptions(list, options)
 	lg.Debug("starting ...")
@@ -165,7 +165,7 @@ func getHealthCheckStatistics[T AwsClient](ctx context.Context, log *slog.Logger
 //
 // T is *cloudwatch.Client
 func getHealthCheckMetrics[T AwsClient](ctx context.Context, log *slog.Logger, client T) (list *cloudwatch.ListMetricsOutput, err error) {
-	var lg *slog.Logger = log.With("func", "domain.uptime.uptime.getHealthCheckMetrics")
+	var lg *slog.Logger = log.With("func", "uptime.getHealthCheckMetrics")
 	var listOptions *cloudwatch.ListMetricsInput = &cloudwatch.ListMetricsInput{
 		Namespace:  ptr.Ptr(metricsNamespace),
 		MetricName: ptr.Ptr(metricsName),

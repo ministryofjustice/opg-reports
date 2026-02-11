@@ -53,7 +53,7 @@ const (
 // Note: opg-metadata is private, so suitable permissions are required on the github client (and its token).
 func GetTeamData[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, options *Options) (teams []*teammodels.Team, err error) {
 	var (
-		lg           *slog.Logger = log.With("func", "domain.teams.team.GetTeamData")
+		lg           *slog.Logger = log.With("func", "team.GetTeamData")
 		release      *github.RepositoryRelease
 		asset        *github.ReleaseAsset
 		metadataFile string
@@ -96,7 +96,7 @@ func GetTeamData[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, op
 // extractAndGetTeams extract the file and parse the file
 func extractAndGetTeams(ctx context.Context, log *slog.Logger, metadataZip string, options *Options) (teams []*teammodels.Team, err error) {
 	var (
-		lg        *slog.Logger = log.With("func", "domain.teams.team.extractAndGetTeams")
+		lg        *slog.Logger = log.With("func", "team.extractAndGetTeams")
 		extractTo string       = filepath.Join(options.DataDirectory, "ex")
 		teamsFile string       = filepath.Join(extractTo, teamFile)
 	)
@@ -128,7 +128,7 @@ func extractAndGetTeams(ctx context.Context, log *slog.Logger, metadataZip strin
 func downloadAsset[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, asset *github.ReleaseAsset, options *Options) (src string, err error) {
 	var (
 		buff     io.ReadCloser
-		lg       *slog.Logger = log.With("func", "domain.teams.team.downloadAsset")
+		lg       *slog.Logger = log.With("func", "team.downloadAsset")
 		dlTo     string       = filepath.Join(options.DataDirectory, "dl")
 		fileDest string       = filepath.Join(dlTo, *asset.Name)
 	)
@@ -158,7 +158,7 @@ func downloadAsset[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, 
 
 // getReleaseAsset finds the named asset from the attached assets
 func getReleaseAsset(ctx context.Context, log *slog.Logger, release *github.RepositoryRelease) (asset *github.ReleaseAsset, err error) {
-	var lg *slog.Logger = log.With("func", "domain.teams.team.getReleaseAsset")
+	var lg *slog.Logger = log.With("func", "team.getReleaseAsset")
 	lg.Debug("starting ...")
 	// no assets, so a failure
 	if len(release.Assets) <= 0 {
@@ -184,7 +184,7 @@ func getReleaseAsset(ctx context.Context, log *slog.Logger, release *github.Repo
 
 // getRelease finds the tagged release
 func getRelease[T GitHubClient](ctx context.Context, log *slog.Logger, gh T, options *Options) (release *github.RepositoryRelease, err error) {
-	var lg *slog.Logger = log.With("func", "domain.teams.team.getRelease")
+	var lg *slog.Logger = log.With("func", "team.getRelease")
 	lg.Debug("starting ...")
 	release, _, err = gh.GetReleaseByTag(ctx, owner, repository, options.Tag)
 	if err != nil {

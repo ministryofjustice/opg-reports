@@ -26,7 +26,7 @@ func init() {
 // Seed assumes the database already exists and the inserts pre-determined data
 // into the database via the import
 func Seed(ctx context.Context, log *slog.Logger, db *sqlx.DB) (statements []*dbstmts.Insert[*codeownermodels.Codeowner, int], err error) {
-	var lg *slog.Logger = log.With("func", "domain.codeowners.codeownerseeds.Seed")
+	var lg *slog.Logger = log.With("func", "codeownerseeds.Seed")
 
 	lg.Debug("starting ...")
 	statements, err = codeownerimports.Import(ctx, log, db, seeds)
