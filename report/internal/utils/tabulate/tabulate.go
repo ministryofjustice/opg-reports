@@ -1,71 +1,123 @@
 package tabulate
 
-type TableHeaders interface {
-	Textual() (list []string)
-	Numeric() (list []string)
-	DataColumns() (list []string)
+import (
+	"opg-reports/report/internal/utils/tabulate/headers"
+	"opg-reports/report/internal/utils/tabulate/rows"
+	"sort"
+)
+
+type RowEndFunc func(tableRow map[string]interface{}, headings *headers.Headers)
+type TableEndFunc func(table []map[string]interface{}, headings *headers.Headers) []map[string]interface{}
+
+type Options struct {
+	ColumnKey    string // population rows, proxy for rows.PopulateOptions
+	ValueKey     string // populating rows, proxy for rows.PopulateOptions
+	SortByColumn string // colum to sort the table data on
+
+	RowEndF   RowEndFunc   // run this function against each row of the table at the end
+	TableEndF TableEndFunc // runs against the completed table data
 }
 
-type TableKeyFunc func(r map[string]interface{}) string
-type TableRowFunc func(dbRow map[string]interface{}, tableRow map[string]interface{}, headers TableHeaders) (updatedTableRow map[string]interface{})
-type TableSortFunc func(table []map[string]interface{}, headers TableHeaders) (updatedTable []map[string]interface{})
-type TableSummaryFunc func(table []map[string]interface{}, headers TableHeaders) (updatedTable []map[string]interface{})
+func Tabulate[T int | float64 | string](databaseRows []map[string]interface{}, headings *headers.Headers, opts *Options) (table []map[string]interface{}) {
 
-type TabulateOptions struct {
-	Headers    TableHeaders
-	KeyF       TableKeyFunc  // used to generate the key for the table row, from the raw db data
-	ColumnF    TableRowFunc  // used to update the table row - generally updates the column values, run on every loop
-	LabelF     TableRowFunc  // used to update the table row - generally sets the row labels; run only once per row at the end
-	RowEndF    TableRowFunc  // used to handle row totals - run after only once per row after all data is set
-	TableSortF TableSortFunc // used to sort the table in a set order
-	TableEndF  TableSummaryFunc
-}
-
-// Tabulate converts a set of database rows into a table row structure:
-func Tabulate(dbRows []map[string]interface{}, opts *TabulateOptions) (table []map[string]interface{}) {
-	var done map[string]bool = map[string]bool{}
-	var tableRows = map[string]map[string]interface{}{}
-	// add all column values into the table row setup
-	for _, dbRow := range dbRows {
-		var key = opts.KeyF(dbRow)
-		var tableRow, ok = tableRows[key]
+	var tableMap = map[string]map[string]interface{}{}
+	// generate the table
+	for _, src := range databaseRows {
+		var rowKey = rows.Key(src, headings)
+		var dest, ok = tableMap[rowKey]
 		if !ok {
-			tableRow = SkeletonRow(opts.Headers)
+			dest = rows.Empty(headings)
 		}
-		tableRow = opts.ColumnF(dbRow, tableRow, opts.Headers)
-		tableRows[key] = tableRow
+		// populate the destination row with data from the src db record
+		rows.Populate(src, dest, headings, &rows.Options{
+			ColumnKey: opts.ColumnKey,
+			ValueKey:  opts.ValueKey,
+		})
+		// set table value
+		tableMap[rowKey] = dest
 	}
-	// after adding all values in, loop over and handle labels & totals
-	for _, dbRow := range dbRows {
-		var key = opts.KeyF(dbRow)
-		var tableRow, ok = tableRows[key]
-
-		if _, set := done[key]; !set && ok {
-			done[key] = true
-			tableRow = opts.LabelF(dbRow, tableRow, opts.Headers)
-			tableRow = opts.RowEndF(dbRow, tableRow, opts.Headers)
+	// now add in row end data, if function is set
+	if opts.RowEndF != nil {
+		for _, row := range tableMap {
+			opts.RowEndF(row, headings)
 		}
 	}
-	// now convert to a slice
-	for _, row := range tableRows {
+	// convert to slice
+	for _, row := range tableMap {
 		table = append(table, row)
 	}
-	// now sort table by team
-	table = opts.TableSortF(table, opts.Headers)
-	// now process the table totals
-	table = opts.TableEndF(table, opts.Headers)
+	// run sort if required
+	if opts.SortByColumn != "" {
+		SortDescending[T](table, headings, opts.SortByColumn)
+	}
+	// now add table summary details if set
+	if opts.TableEndF != nil {
+		table = opts.TableEndF(table, headings)
+	}
 	return
-
 }
 
-// SkeletonRow generates row for a table with empty string / float values
-func SkeletonRow(th TableHeaders) (row map[string]interface{}) {
-	row = map[string]interface{}{}
-	for _, txt := range th.Textual() {
-		row[txt] = ""
+// SortDescending sorts the table slice by the column set
+func SortDescending[T int | float64 | string](table []map[string]interface{}, headings *headers.Headers, sortColumn string) {
+	var sortBy *headers.Header = headings.Get(sortColumn)
+	if sortBy == nil {
+		return
 	}
-	for _, num := range th.Numeric() {
-		row[num] = 0.0
+	sort.Slice(table, func(i, j int) bool {
+		var a = table[i][sortBy.Field].(T)
+		var b = table[j][sortBy.Field].(T)
+		return (a > b)
+	})
+}
+
+// TotalF generates a table summary row contains the totals of each data column combined
+func TotalF(table []map[string]interface{}, headings *headers.Headers) []map[string]interface{} {
+	var (
+		summary    map[string]interface{} = rows.Empty(headings)
+		endCol     *headers.Header        = headings.End()
+		firstCol   *headers.Header        = headings.First()
+		dataCols   []*headers.Header      = headings.Data()
+		tableTotal float64                = 0.0
+	)
+
+	for _, row := range table {
+		for _, col := range dataCols {
+			summary[col.Field] = summary[col.Field].(float64) + row[col.Field].(float64)
+		}
+		tableTotal += row[endCol.Field].(float64)
 	}
-	return
+	// give the first column a name
+	summary[firstCol.Field] = endCol.Field
+	summary[endCol.Field] = tableTotal
+	table = append(table, summary)
+	return table
+}
+
+// AverageF generates a table summary row contains the totals averages of each data column combined
+func AverageF(table []map[string]interface{}, headings *headers.Headers) []map[string]interface{} {
+	var (
+		summary    map[string]interface{} = rows.Empty(headings)
+		endCol     *headers.Header        = headings.End()
+		firstCol   *headers.Header        = headings.First()
+		dataCols   []*headers.Header      = headings.Data()
+		count      int                    = len(table)
+		tableTotal float64                = 0.0
+	)
+
+	for _, row := range table {
+		for _, col := range dataCols {
+			summary[col.Field] = summary[col.Field].(float64) + row[col.Field].(float64)
+		}
+		tableTotal += row[endCol.Field].(float64)
+	}
+	// now divide to fix create average
+	for _, col := range dataCols {
+		summary[col.Field] = summary[col.Field].(float64) / float64(count)
+	}
+	// give the first column a name
+	summary[firstCol.Field] = endCol.Field
+	// work out overall average
+	summary[endCol.Field] = tableTotal / float64(count)
+	table = append(table, summary)
+	return table
 }
