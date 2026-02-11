@@ -7,6 +7,7 @@ var MIGRATIONS []*Migration = []*Migration{
 	{Name: "create_aws_accounts", SQL: create_aws_accounts},
 	{Name: "create_aws_costs", SQL: create_aws_costs},
 	{Name: "create_aws_uptime", SQL: create_aws_uptime},
+	{Name: "create_github_codeownership", SQL: create_github_codeownership},
 	{Name: "create_codebases", SQL: create_codebases},
 	{Name: "create_codeowners", SQL: create_codeowners},
 
@@ -14,24 +15,37 @@ var MIGRATIONS []*Migration = []*Migration{
 	{Name: "agnostic_costs", SQL: agnostic_costs},
 	{Name: "agnostic_uptime", SQL: agnostic_uptime},
 
-	{Name: "lowercase_team_name", SQL: lowercase_team_name},
-	{Name: "copy_from_github_codewners", SQL: copy_from_github_codewners},
-}
+	{Name: "migrate_codebases", SQL: migrate_codebases},
+	{Name: "migrate_codewners", SQL: migrate_codewners},
+	{Name: "drop_github_codeownership", SQL: drop_github_codeownership},
 
-// copy from codeowners into codebases and codeowners
-const copy_from_github_codewners string = `
-INSERT INTO codebases (created_at, full_name, name, url)
-	SELECT created_at, repository, replace(repository, "ministryofjustice/", ""), concat("https://github.com/", repository) FROM github_codeownership GROUP BY repository;
-INSERT INTO codeowners (created_at, name, codebase_full_name, team_name)
-	SELECT created_at, codeowner, repository, team FROM github_codeownership;
-UPDATE codeowners SET(team_name) = LOWER(team_name);
-`
+	{Name: "lowercase_team_name", SQL: lowercase_team_name},
+}
 
 // drop things to lower cases
 const lowercase_team_name string = `
 UPDATE codeowners SET(team_name) = LOWER(team_name);
 UPDATE accounts SET(team_name) = LOWER(team_name);
 UPDATE teams SET(name) = LOWER(name);
+`
+
+const drop_github_codeownership string = `
+DROP INDEX gh_codeownership_all_idx;
+DROP INDEX gh_codeownership_codeowner_idx;
+DROP INDEX gh_codeownership_repo_idx;
+DROP INDEX gh_codeownership_team_idx;
+DROP TABLE github_codeownership;
+`
+
+const migrate_codewners string = `
+INSERT INTO codeowners (created_at, name, codebase_full_name, team_name)
+	SELECT created_at, codeowner, repository, team FROM github_codeownership;
+`
+
+const migrate_codebases string = `
+INSERT INTO codebases (full_name, name, url, created_at)
+	SELECT DISTINCT repository, replace(repository, "ministryofjustice/", ""), concat("https://github.com/", repository), created_at FROM github_codeownership GROUP BY repository
+;
 `
 
 // agnostic_uptime removes the aws prefix
@@ -119,6 +133,22 @@ CREATE TABLE IF NOT EXISTS codebases (
 	UNIQUE (full_name)
 ) STRICT;
 CREATE INDEX IF NOT EXISTS idx_codebases_fullname ON codebases(full_name);
+`
+
+// create the old github tables
+const create_github_codeownership string = `
+CREATE TABLE IF NOT EXISTS github_codeownership (
+	id INTEGER PRIMARY KEY,
+	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
+	codeowner TEXT NOT NULL,
+	repository TEXT NOT NULL,
+	team TEXT,
+	UNIQUE (codeowner,repository,team)
+) STRICT;
+CREATE INDEX IF NOT EXISTS gh_codeownership_all_idx ON github_codeownership(codeowner,repository,team);
+CREATE INDEX IF NOT EXISTS gh_codeownership_codeowner_idx ON github_codeownership(codeowner);
+CREATE INDEX IF NOT EXISTS gh_codeownership_repo_idx ON github_codeownership(repository);
+CREATE INDEX IF NOT EXISTS gh_codeownership_team_idx ON github_codeownership(team);
 `
 
 // create the aws uptime tracking table
