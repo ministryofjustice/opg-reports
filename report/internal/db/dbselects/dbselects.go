@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log/slog"
 	"opg-reports/report/internal/db/dbmodels"
 	"opg-reports/report/internal/db/dbstmts"
@@ -19,7 +20,83 @@ var (
 	ErrMissingResults         = errors.New("error with returned results.")
 	ErrFailedTx               = errors.New("error comitting txn.")
 	ErrMissingTable           = errors.New("missing table.")
+
+	ErrNamedFailed    = errors.New("error when calling named.")
+	ErrInRebindFailed = errors.New("error when calling sqlx in.")
+	ErrSelectFailed   = errors.New("error running select.")
 )
+
+func Select2[T dbmodels.Model, R dbmodels.Result](ctx context.Context, log *slog.Logger, db *sqlx.DB, stmt *dbstmts.Select[T, R]) (err error) {
+
+	var (
+		query  string        // the generated sqlx query statement
+		args   []interface{} // the generated arguments used for a query
+		lg     *slog.Logger  = log.With("func", "dbselects.Select2", "stmt", fmt.Sprintln(stmt.Statement))
+		result []R           = []R{}
+	)
+
+	lg.Debug("starting ...")
+	// generate the sql statement and args from passed data
+	query, args, err = sqlx.Named(stmt.Statement, stmt.Data)
+	if err != nil {
+		lg.Error("error when calling named", "err", err.Error())
+		err = errors.Join(ErrNamedFailed, err)
+		return
+	}
+
+	// if there is an IN, handle the args and rebind
+	if strings.Contains(strings.ToLower(query), " in (") {
+		lg.Debug("sql contains an IN element, rebinding arguments")
+		// rebind
+		query, args, err = sqlx.In(query, args...)
+		if err != nil {
+			lg.Error("error calling sqlx.In", "err", err.Error())
+			err = errors.Join(ErrInRebindFailed, err)
+			return
+		}
+		query = db.Rebind(query)
+	}
+
+	// run the select
+	err = db.Select(&result, query, args...)
+	if err != nil {
+		lg.Error("error running select", "err", err.Error())
+		err = errors.Join(ErrSelectFailed, err)
+		return
+	}
+
+	stmt.Returned = result
+	lg.With("count", len(result)).Debug("complete")
+
+	// query, args, err = sqlx.Named(stmt.Statement, stmt.Data)
+	// if err != nil {
+	// 	return
+	// }
+	// query, args, err = sqlx.In(query, args...)
+	// if err != nil {
+	// 	return
+	// }
+
+	// query = db.Rebind(query)
+	// fmt.Println("query >>")
+	// debugger.Dump(query)
+
+	// // rows, err := db.Query(query, args...)
+	// var res []R = []R{}
+	// db.Select(&res, query, args...)
+
+	// fmt.Println("query >>")
+	// debugger.Dump(query)
+	// fmt.Println("args >>")
+	// debugger.Dump(args)
+	// fmt.Println("res >>")
+	// debugger.Dump(res)
+	// fmt.Println("err >>")
+	// debugger.Dump(err)
+	// fmt.Println("====")
+	return
+
+}
 
 // Select creates a transaction to run SQL command within the db. Data is attached to the `.Returned` property
 // on `stmt`
@@ -59,72 +136,6 @@ func Select[T dbmodels.Model, R dbmodels.Result](ctx context.Context, log *slog.
 		err = errors.Join(ErrMissingResults, err)
 		return
 	}
-	stmt.Returned = returned
-	// commit the transaction
-	err = transaction.Commit()
-	if err != nil {
-		lg.Error("failed to commit transaction")
-		err = errors.Join(ErrFailedTx, err)
-	}
-
-	lg.With("count", len(returned)).Debug("complete")
-	return
-}
-
-// SelectMap creates a transaction to run SQL command within the db. Data is attached to the `.Returned` property
-// on `stmt` but is directly setup to be a `[]map[string]interface{}` to allow for dynamic column names
-func SelectMap[T dbmodels.Model](ctx context.Context, log *slog.Logger, db *sqlx.DB, stmt *dbstmts.Select[T, map[string]interface{}]) (err error) {
-
-	var (
-		transaction *sqlx.Tx
-		statement   *sqlx.NamedStmt
-		rows        *sqlx.Rows
-		lg          *slog.Logger             = log.With("func", "dbselects.SelectMap")
-		args        T                        = stmt.Data
-		returned    []map[string]interface{} = []map[string]interface{}{}
-		options     *sql.TxOptions           = &sql.TxOptions{ReadOnly: true, Isolation: sql.LevelDefault}
-	)
-
-	lg.Debug("starting ...")
-	// start transaction
-	transaction, err = db.BeginTxx(ctx, options)
-	if err != nil {
-		lg.Error("error with transaction begin", "err", err.Error())
-		err = errors.Join(ErrTransactionBeginFailed, err)
-		return
-	}
-	// create prepared statement so placeholders are used
-	statement, err = transaction.PrepareNamedContext(ctx, stmt.Statement)
-	if err != nil {
-		lg.Warn("prepared stmt failed", "err", err.Error(), "stmt", stmt.Statement, "data", stmt.Data)
-		err = errors.Join(ErrPreparedStmtFailed, err)
-		if strings.Contains(err.Error(), "no such table") {
-			err = errors.Join(ErrMissingTable, err)
-		}
-		return
-	}
-	// create query context to allow row scanning into slice of maps
-	rows, err = statement.QueryxContext(ctx, args)
-	if err != nil && err != sql.ErrNoRows {
-		lg.Error("stmt queryx failed", "error", err.Error())
-		err = errors.Join(ErrMissingResults, err)
-		return
-	}
-	// scan the results into a map per row and merge into the main set
-	for rows.Next() {
-		res := make(map[string]interface{})
-		err = rows.MapScan(res)
-		if err != nil {
-			break
-		}
-		returned = append(returned, res)
-	}
-	if err != nil {
-		lg.Error("map scan failed", "error", err.Error())
-		err = errors.Join(ErrMissingResults, err)
-		return
-	}
-	// set return data
 	stmt.Returned = returned
 	// commit the transaction
 	err = transaction.Commit()
