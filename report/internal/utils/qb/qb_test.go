@@ -1,4 +1,4 @@
-package query
+package qb
 
 import (
 	"opg-reports/report/internal/utils/debugger"
@@ -11,17 +11,17 @@ type variant struct {
 }
 
 type tester struct {
-	Q        *Query
+	QB       *Builder
 	Variants []*variant
 }
 
 var tests = []*tester{
 
 	{
-		Q: &Query{
+		QB: &Builder{
 			From:  "infracosts as base",
 			Joins: []string{"LEFT JOIN accounts ON accounts.id = base.account_id"},
-			Segments: map[string][]*QuerySegment{
+			Segments: map[string][]*Segment{
 				"date_range": {
 					{Type: SELECT, Stmt: `strftime("%Y-%m", base.date) as date`},
 					{Type: SELECT, Stmt: `CAST(COALESCE(SUM(cost), 0) as REAL) as cost`},
@@ -323,10 +323,10 @@ var tests = []*tester{
 	},
 }
 
-func TestUtilsQuery(t *testing.T) {
+func TestUtilsBuilder(t *testing.T) {
 
 	for _, test := range tests {
-		var q = test.Q
+		var q = test.QB
 		for i, variant := range test.Variants {
 			_, blocks := q.FromRequest(variant.Request)
 			if len(blocks) != len(variant.Expected) {
@@ -356,7 +356,5 @@ func TestUtilsQuery(t *testing.T) {
 		}
 
 	}
-	t.Errorf("done!")
-	t.FailNow()
 
 }

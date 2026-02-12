@@ -1,10 +1,10 @@
-// Package query is used to generate a sql statment that contains named vars (`:x“) and compatible
+// Package qb (query builder) is used to generate a sql statment that contains named vars (`:x“) and compatible
 // with the dbselect package
 //
 // Mainly used in combination with an incoming request (converts to a `map[string]interface{}`) and
 // map of request files to sql segments to convert incoming api parameters into a usable sql
 // statment. Input vars are not directly used (assumes bind vars etc)
-package query
+package qb
 
 import (
 	"fmt"
@@ -33,17 +33,17 @@ const (
 	ORDERBY Type = "order_by"
 )
 
-// QuerySegment is used to build a part of the overall sql statment
+// Segment is used to build a part of the overall sql statment
 // and depending on the `Type` will be used in the sql clause differently.
 //
 // For example, in WHERE clause segements are joined using `AND` but in
 // GROUP BY they are joined via `,`
-type QuerySegment struct {
+type Segment struct {
 	Type Type
 	Stmt string
 }
 
-// Query is the struct used to generate a string that can be used as a named
+// Builder is the struct used to generate a string that can be used as a named
 // statement (containing bind var syntax of `:x`).
 //
 // Generally combination of mapped query segments and inpur request is used to create
@@ -53,18 +53,18 @@ type QuerySegment struct {
 //
 //	`From` attribute is used as `FROM {from}` replacement.
 //	`Joins` are merged together to create the set of join statements after the `FROM` - as these can be various types this struct does not add the JOIN notation at the start like ti does for FROM.
-type Query struct {
+type Builder struct {
 	From     string
 	Joins    []string
-	Segments map[string][]*QuerySegment
+	Segments map[string][]*Segment
 }
 
 // FromRequest builds a sql statement from the reuest, mapping each input key against the `Segments` to generate
 // each clause.
 //
 // See test for examples.
-func (self *Query) FromRequest(request map[string]interface{}) (query string, blocks map[Type][]string) {
-	var qs = newQueryStr(baseStmt, self)
+func (self *Builder) FromRequest(request map[string]interface{}) (query string, blocks map[Type][]string) {
+	var qs = newBuilderStr(baseStmt, self)
 
 	for key, value := range request {
 		for _, segment := range self.Segments[key] {
@@ -76,9 +76,17 @@ func (self *Query) FromRequest(request map[string]interface{}) (query string, bl
 	return
 }
 
+func New(from string, joins []string, segments map[string][]*Segment) *Builder {
+	return &Builder{
+		From:     from,
+		Joins:    joins,
+		Segments: segments,
+	}
+}
+
 type queryStr struct {
 	base string
-	q    *Query
+	q    *Builder
 	strs map[Type][]string
 }
 
@@ -87,7 +95,7 @@ type queryStr struct {
 // If the qs.Stmt contains a `:` then its presumed to be a filter (`where x = :value`) so
 // it will only be added if the `val` is set to a real value (not "true"). This allows
 // filters to be handled on where / having etc
-func (self *queryStr) Add(qs *QuerySegment, val interface{}) {
+func (self *queryStr) Add(qs *Segment, val interface{}) {
 	var (
 		hasColon bool   = strings.Contains(qs.Stmt, ":")
 		add      bool   = false
@@ -142,7 +150,7 @@ func (self *queryStr) String() (stmt string) {
 	return
 }
 
-func newQueryStr(sql string, q *Query) *queryStr {
+func newBuilderStr(sql string, q *Builder) *queryStr {
 	return &queryStr{
 		q:    q,
 		base: sql,
