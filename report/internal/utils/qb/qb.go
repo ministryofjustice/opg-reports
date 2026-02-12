@@ -63,7 +63,7 @@ type Builder struct {
 // each clause.
 //
 // See test for examples.
-func (self *Builder) FromRequest(request map[string]interface{}) (query string, blocks map[Type][]string) {
+func (self *Builder) FromRequest(request map[string]string) (query string, blocks map[Type][]string) {
 	var qs = newBuilderStr(baseStmt, self)
 
 	for key, value := range request {
@@ -76,6 +76,7 @@ func (self *Builder) FromRequest(request map[string]interface{}) (query string, 
 	return
 }
 
+// New
 func New(from string, joins []string, segments map[string][]*Segment) *Builder {
 	return &Builder{
 		From:     from,
@@ -103,7 +104,7 @@ func (self *queryStr) Add(qs *Segment, val interface{}) {
 	)
 	// if there is no colon, its not a filter statement, so add directly
 	// otherwise only add if it has a filterable value
-	if !hasColon || (hasColon && v != "" && v != "true") {
+	if v != "" && (!hasColon || (hasColon && v != "true")) {
 		add = true
 	}
 	if add {
@@ -144,9 +145,16 @@ func (self *queryStr) String() (stmt string) {
 	stmt = strings.ReplaceAll(stmt, "\n\n", "\n")
 	stmt = strings.TrimPrefix(stmt, "\n")
 	stmt = strings.TrimSuffix(stmt, "\n")
-	// proces t he from & join clauses
+	// proces the from & join clauses
 	stmt = strings.ReplaceAll(stmt, `{from}`, self.q.From)
 	stmt = strings.ReplaceAll(stmt, `{joins}`, strings.Join(self.q.Joins, "\n"))
+	// remove any defaults
+	stmt = strings.ReplaceAll(stmt, `{select}`, "")
+	stmt = strings.ReplaceAll(stmt, `{from}`, "")
+	stmt = strings.ReplaceAll(stmt, `{where}`, "")
+	stmt = strings.ReplaceAll(stmt, `{group_by}`, "")
+	stmt = strings.ReplaceAll(stmt, `{having}`, "")
+	stmt = strings.ReplaceAll(stmt, `{order_by}`, "")
 	return
 }
 

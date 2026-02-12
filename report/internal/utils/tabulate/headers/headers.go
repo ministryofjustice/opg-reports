@@ -1,6 +1,7 @@
 package headers
 
 import (
+	"slices"
 	"sort"
 )
 
@@ -33,10 +34,27 @@ type Headers struct {
 	Headers []*Header `json:"headers"`
 }
 
+func (self *Headers) AddKeyHeader(request map[string]string, exclude ...string) {
+	for fieldName, value := range request {
+		// if it has a value and its not an excluded header, add field
+		if value != "" && !slices.Contains(exclude, fieldName) {
+			self.Headers = append(self.Headers, &Header{
+				Field:   fieldName,
+				Type:    KEY,
+				Default: "",
+			})
+		}
+	}
+}
+
 // AddDataHeader allows add multiple data fields at once (used for adding months etc)
 func (self *Headers) AddDataHeader(fields ...string) {
 	for _, field := range fields {
-		self.Headers = append(self.Headers, &Header{Field: field, Type: DATA, Default: 0.0})
+		self.Headers = append(self.Headers, &Header{
+			Field:   field,
+			Type:    DATA,
+			Default: 0.0,
+		})
 	}
 }
 
@@ -118,6 +136,13 @@ func (self *Headers) All() (all []*Header) {
 	return
 }
 
+func KeyHeadersFromRequest(request map[string]interface{}) (keyHeaders []*Header) {
+	keyHeaders = []*Header{}
+
+	return
+}
+
+// byType filters
 func byType(headers []*Header, t Type) (list []*Header) {
 	list = []*Header{}
 	for _, h := range headers {
@@ -128,6 +153,7 @@ func byType(headers []*Header, t Type) (list []*Header) {
 	return
 }
 
+// fieldsByType filters just field names
 func fieldsByType(headers []*Header, t Type) (list []string) {
 	list = []string{}
 	for _, h := range headers {

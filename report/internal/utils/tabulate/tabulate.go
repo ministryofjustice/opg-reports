@@ -59,13 +59,10 @@ func Tabulate[T int | float64 | string](databaseRows []map[string]interface{}, h
 
 // SortDescending sorts the table slice by the column set
 func SortDescending[T int | float64 | string](table []map[string]interface{}, headings *headers.Headers, sortColumn string) {
-	var sortBy *headers.Header = headings.Get(sortColumn)
-	if sortBy == nil {
-		return
-	}
+
 	sort.Slice(table, func(i, j int) bool {
-		var a = table[i][sortBy.Field].(T)
-		var b = table[j][sortBy.Field].(T)
+		var a = table[i][sortColumn].(T)
+		var b = table[j][sortColumn].(T)
 		return (a > b)
 	})
 }
@@ -79,6 +76,10 @@ func TotalF(table []map[string]interface{}, headings *headers.Headers) []map[str
 		dataCols   []*headers.Header      = headings.Data()
 		tableTotal float64                = 0.0
 	)
+
+	// if endCol == nil || firstCol == nil {
+	// 	return table
+	// }
 
 	for _, row := range table {
 		for _, col := range dataCols {
@@ -103,6 +104,9 @@ func AverageF(table []map[string]interface{}, headings *headers.Headers) []map[s
 		count      int                    = len(table)
 		tableTotal float64                = 0.0
 	)
+	// if endCol == nil || firstCol == nil {
+	// 	return table
+	// }
 
 	for _, row := range table {
 		for _, col := range dataCols {

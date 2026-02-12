@@ -20,6 +20,9 @@ func Empty(headings *headers.Headers) (row map[string]interface{}) {
 func Key(src map[string]interface{}, headings *headers.Headers) (key string) {
 	key = ""
 	for _, k := range headings.Keys() {
+		if src[k.Field] == nil {
+			panic("row key looking for missing field: " + k.Field)
+		}
 		key += fmt.Sprintf("%s=%s^", k.Field, strings.ToLower(src[k.Field].(string)))
 	}
 	return
@@ -67,6 +70,10 @@ func AverageF(row map[string]interface{}, headings *headers.Headers) {
 		count    int               = len(dataCols)
 	)
 	for _, col := range dataCols {
+		if row[col.Field] == nil {
+			row[col.Field] = 0.0
+			// panic("AverageF looking for missing field [" + col.Field + "]:\n" + debugger.DumpStr(row))
+		}
 		total += row[col.Field].(float64)
 	}
 	average = total / float64(count)
@@ -80,6 +87,11 @@ func TotalF(row map[string]interface{}, headings *headers.Headers) {
 		total  float64         = 0.0
 	)
 	for _, col := range headings.Data() {
+		// occassionally something is null ..
+		if row[col.Field] == nil {
+			row[col.Field] = 0.0
+			// panic("TotalF looking for missing field [" + col.Field + "]:\n" + debugger.DumpStr(row))
+		}
 		total += row[col.Field].(float64)
 	}
 	row[endCol.Field] = total

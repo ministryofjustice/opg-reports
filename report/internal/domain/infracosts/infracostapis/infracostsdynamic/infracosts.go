@@ -1,0 +1,246 @@
+package infracostsdynamic
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+	"net/http"
+	"opg-reports/report/internal/db/dbselects"
+	"opg-reports/report/internal/db/dbstmts"
+	"opg-reports/report/internal/domain/infracosts/infracostmodels"
+	"opg-reports/report/internal/utils/ex"
+	"opg-reports/report/internal/utils/marshal"
+	"opg-reports/report/internal/utils/qb"
+	"opg-reports/report/internal/utils/tabulate"
+	"opg-reports/report/internal/utils/tabulate/headers"
+	"opg-reports/report/internal/utils/tabulate/rows"
+	"opg-reports/report/internal/utils/timers"
+	"opg-reports/report/internal/utils/times"
+
+	"github.com/danielgtaylor/huma/v2"
+	"github.com/jmoiron/sqlx"
+)
+
+// fixed values for this endpoint, used by the operation setup for huma
+const (
+	ENDPOINT      string = `/v1/costs/between/{date_range}/`
+	opID          string = `infracosts-by-month`
+	opSummary     string = `Return costs grouped by the month and other filter options.`
+	opDescription string = `Returns a table of costs`
+)
+
+// InfracostRequest is the incoming request options
+type InfracostRequest struct {
+	DateRange   string `path:"date_range" json:"date_range" required:"true" doc:"Date range to use." example:"2025-01..2025-02" pattern:"([0-9]{4}-[0-9]{2}..[0-9]{4}-[0-9]{2})"` // required - date range input
+	Team        string `query:"team" json:"team,omitempty"`
+	Account     string `query:"account" json:"account_name,omitempty"`
+	Environment string `query:"environment" json:"account_environment,omitempty"`
+	Service     string `query:"service" json:"service,omitempty"`
+	Sort        string `query:"sort" json:"-"` // sort data, dont json encode otherwise break the cast to filter
+}
+
+// Months returns all months between dates
+func (self *InfracostRequest) Months() (months []string) {
+	months = times.AsYMStrings(times.FromMonthRangeString(self.DateRange))
+	return
+}
+
+// InfracostResponse is the handlers data struct passed to a huma api which will then be rendered
+type InfracostResponse struct {
+	Body *InfracostResponseBody
+}
+
+// InfracostResponseBody is the response body, containing all data to be returned
+type InfracostResponseBody struct {
+	Request     *InfracostRequest        `json:"request"`     // the original request
+	Headers     map[string][]string      `json:"headers"`     // headers contains details for table headers / rendering
+	Data        []map[string]interface{} `json:"data"`        // the actual data results
+	Performance []*timers.Timer          `json:"performance"` // duration of the call
+	Count       int                      `json:"count"`       // counter to check data aligns
+}
+
+// Filter contains all the possible filters passed from the request that arent "true"
+type Filter struct {
+	Months      []string `db:"months" json:"months"`
+	Team        string   `db:"team" json:"team"`
+	Account     string   `db:"account_name" json:"account_name"`
+	Environment string   `db:"account_environment" json:"account_environment"`
+	Service     string   `db:"service" json:"service"`
+}
+
+// querySegments is the possible options to use when query the database
+//
+// The key should map to the json name in `InfracostRequest`, any `:x`
+// values should match the json name in `filter` struct.
+//
+// Aliases and selected fields should match the json values for the
+// returned struct
+var querySegments = map[string][]*qb.Segment{
+	// date_range is required, so add the base line fields of date & cost to this
+	// segment as its always there
+	"date_range": {
+		{Type: qb.SELECT, Stmt: `strftime("%Y-%m", base.date) as date`},
+		{Type: qb.SELECT, Stmt: `CAST(COALESCE(SUM(cost), 0) as REAL) as cost`},
+		{Type: qb.WHERE, Stmt: `base.service != 'Tax'`},
+		{Type: qb.WHERE, Stmt: `strftime("%Y-%m", base.date) IN (:months)`},
+		{Type: qb.GROUPBY, Stmt: `strftime("%Y-%m", base.date)`},
+		{Type: qb.ORDERBY, Stmt: `strftime("%Y-%m", base.date) ASC`},
+	},
+	"team": {
+		{Type: qb.SELECT, Stmt: `accounts.team_name as team`},
+		{Type: qb.WHERE, Stmt: `accounts.team_name = :team`},
+		{Type: qb.GROUPBY, Stmt: `accounts.team_name`},
+		{Type: qb.ORDERBY, Stmt: `accounts.team_name ASC`},
+	},
+	"account_name": {
+		{Type: qb.SELECT, Stmt: `accounts.name as account_name`},
+		{Type: qb.SELECT, Stmt: `accounts.id as account_id`},
+		{Type: qb.GROUPBY, Stmt: `accounts.name`},
+		{Type: qb.WHERE, Stmt: `accounts.name = :account`},
+		{Type: qb.ORDERBY, Stmt: `accounts.name ASC`},
+	},
+	"account_environment": {
+		{Type: qb.SELECT, Stmt: `accounts.environment as account_environment`},
+		{Type: qb.WHERE, Stmt: `accounts.environment = :environment`},
+		{Type: qb.GROUPBY, Stmt: `accounts.environment`},
+		{Type: qb.ORDERBY, Stmt: `accounts.environment ASC`},
+	},
+	"service": {
+		{Type: qb.SELECT, Stmt: `base.service as service`},
+		{Type: qb.WHERE, Stmt: `base.service = :service`},
+		{Type: qb.GROUPBY, Stmt: `base.service`},
+		{Type: qb.ORDERBY, Stmt: `base.service ASC`},
+	},
+}
+
+// the query builder
+var builder = &qb.Builder{
+	From:     "infracosts as base",
+	Joins:    []string{"LEFT JOIN accounts ON accounts.id = base.account_id"},
+	Segments: querySegments,
+}
+
+// base table options, add more details to this within the handler
+var tableOpts = &tabulate.Options{
+	ColumnKey: "date",
+	ValueKey:  "cost",
+	RowEndF:   rows.TotalF,
+	TableEndF: tabulate.TotalF,
+}
+
+// operation describes what this endpoint is doing
+var operation = huma.Operation{
+	Method:        http.MethodGet,
+	DefaultStatus: http.StatusOK,
+	Path:          ENDPOINT,
+	Summary:       opSummary,
+	Description:   opDescription,
+	OperationID:   opID,
+	Tags:          []string{"infracosts"},
+}
+
+// Register attachs the local handler to the huma api allows way to pass along the configured logger, db etc
+func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.API) {
+	// input is an empty struct as
+	huma.Register(humaapi, operation, func(ctx context.Context, input *InfracostRequest) (*InfracostResponse, error) {
+		return getData(timers.ContextWithTimers(ctx), log, db, &operation, input)
+	})
+}
+
+func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.Operation, input *InfracostRequest) (resp *InfracostResponse, err error) {
+	var (
+		body        *InfracostResponseBody
+		query       *dbstmts.Select[*Filter, *infracostmodels.CostData]
+		filter      *Filter = &Filter{}
+		forFilter   map[string]string
+		stmt        string                   = ""
+		tableData   []map[string]interface{} = []map[string]interface{}{}
+		months      []string                 = []string{}
+		requestData map[string]string        = map[string]string{}
+		lg          *slog.Logger             = log.With("func", "infracostsdynamic.getData", "operation", operation.OperationID)
+		headings    *headers.Headers         = &headers.Headers{ // baseline headings, will get expanded from the Request data within the handler
+			Headers: []*headers.Header{
+				{Field: "trend", Type: headers.EXTRA, Default: ""},
+				{Field: "total", Type: headers.END, Default: 0.0},
+			},
+		}
+	)
+	// timers
+	timers.Start(ctx, operation.OperationID)
+	defer func() { timers.Stop(ctx) }()
+
+	lg.With("input", input).Info("starting handler ...")
+	// convert input
+	err = marshal.Convert(input, &requestData)
+	if err != nil {
+		return
+	}
+	// if there is only dates in the request, force add teams
+	if len(requestData) == 1 {
+		input.Team = "true"
+		requestData["team"] = "true"
+	}
+
+	// generate query statement
+	stmt, _ = builder.FromRequest(requestData)
+	lg.With("stmt", fmt.Sprintln(stmt)).Debug("sql statement ... ")
+	// get months
+	months = input.Months()
+	// setup headings
+	lg.With("headings", headings).Debug("setup headings ...")
+	// 	- add headers, exclude the date_range field as that becomes the data columns
+	headings.AddKeyHeader(requestData, "date_range")
+	//  - add data headers of the months
+	headings.AddDataHeader(months...)
+
+	lg.Debug("creating select statement ...")
+	// remove true values from the data for the filter usage
+	forFilter = ex.FilterValue(requestData, "true")
+	err = marshal.Convert(forFilter, &filter)
+	if err != nil {
+		return
+	}
+	// add the months
+	filter.Months = months
+	// configure the db query with the generated statement and
+	// filter values
+	query = &dbstmts.Select[*Filter, *infracostmodels.CostData]{
+		Statement: stmt,
+		Data:      filter,
+	}
+
+	lg.Debug("running select call ...")
+	err = dbselects.Select(ctx, log, db, query)
+	if err != nil {
+		return
+	}
+	// convert data to table form
+	err = marshal.Convert(query.Returned, &tableData)
+	if err != nil {
+		return
+	}
+
+	// if asked to sort by cost, then actually use the last month
+	// otherwise its a string based sort
+	tableOpts.SortByColumn = ""
+	if input.Sort == "cost" {
+		tableOpts.SortByColumn = months[len(months)-1]
+		tableData = tabulate.Tabulate[float64](tableData, headings, tableOpts)
+	} else {
+		tableData = tabulate.Tabulate[string](tableData, headings, tableOpts)
+	}
+
+	// prep result
+	timers.Stop(ctx, operation.OperationID)
+	body = &InfracostResponseBody{
+		Request:     input,
+		Headers:     headings.ByType(),
+		Data:        tableData,
+		Count:       len(tableData),
+		Performance: timers.All(ctx),
+	}
+	// setup response
+	resp = &InfracostResponse{Body: body}
+	lg.Info("complete.")
+	return
+}

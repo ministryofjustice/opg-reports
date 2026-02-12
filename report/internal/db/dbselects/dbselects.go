@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"log/slog"
 	"opg-reports/report/internal/db/dbmodels"
 	"opg-reports/report/internal/db/dbstmts"
@@ -33,11 +32,11 @@ func Select[T dbmodels.Model, R dbmodels.Result](ctx context.Context, log *slog.
 		query       string                 // the generated sqlx query statement
 		args        []interface{}          // the generated arguments used for a query
 		result      []R            = []R{} // the result data set
-		lg          *slog.Logger   = log.With("func", "dbselects.Select", "stmt", fmt.Sprintln(stmt.Statement))
+		lg          *slog.Logger   = log.With("func", "dbselects.Select")
 		options     *sql.TxOptions = &sql.TxOptions{ReadOnly: true, Isolation: sql.LevelDefault}
 	)
 
-	lg.Debug("starting ...")
+	lg.With("stmt", stmt.Statement).Debug("starting ...")
 
 	// generate the sql statement and args from passed data
 	query, args, err = sqlx.Named(stmt.Statement, stmt.Data)

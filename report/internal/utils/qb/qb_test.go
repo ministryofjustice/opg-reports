@@ -6,7 +6,7 @@ import (
 )
 
 type variant struct {
-	Request  map[string]interface{}
+	Request  map[string]string
 	Expected map[Type][]string
 }
 
@@ -61,7 +61,7 @@ var tests = []*tester{
 		Variants: []*variant{
 			// simple filter on the just month
 			{
-				Request: map[string]interface{}{
+				Request: map[string]string{
 					"date_range": "2025-11..2026-02",
 				},
 				Expected: map[Type][]string{
@@ -83,7 +83,7 @@ var tests = []*tester{
 			},
 			// filter on the month and group by the team name
 			{
-				Request: map[string]interface{}{
+				Request: map[string]string{
 					"date_range": "2025-11..2026-02",
 					"team":       "true",
 				},
@@ -109,7 +109,7 @@ var tests = []*tester{
 			},
 			// filter on the month and the team
 			{
-				Request: map[string]interface{}{
+				Request: map[string]string{
 					"date_range": "2025-11..2026-02",
 					"team":       "sirius",
 				},
@@ -136,7 +136,7 @@ var tests = []*tester{
 			},
 			// filter on the month and the team and group by the account
 			{
-				Request: map[string]interface{}{
+				Request: map[string]string{
 					"date_range": "2025-11..2026-02",
 					"team":       "sirius",
 					"account":    "true",
@@ -168,7 +168,7 @@ var tests = []*tester{
 			},
 			// filter on the month, team and account
 			{
-				Request: map[string]interface{}{
+				Request: map[string]string{
 					"date_range": "2025-11..2026-02",
 					"team":       "sirius",
 					"account":    "sirius production",
@@ -201,7 +201,7 @@ var tests = []*tester{
 			},
 			// add in environment
 			{
-				Request: map[string]interface{}{
+				Request: map[string]string{
 					"date_range":  "2025-11..2026-02",
 					"team":        "sirius",
 					"account":     "sirius production",
@@ -238,7 +238,7 @@ var tests = []*tester{
 			},
 			// filter by environment
 			{
-				Request: map[string]interface{}{
+				Request: map[string]string{
 					"date_range":  "2025-11..2026-02",
 					"team":        "sirius",
 					"account":     "sirius production",
@@ -276,7 +276,7 @@ var tests = []*tester{
 			},
 			// add service
 			{
-				Request: map[string]interface{}{
+				Request: map[string]string{
 					"date_range":  "2025-11..2026-02",
 					"team":        "sirius",
 					"account":     "sirius production",
