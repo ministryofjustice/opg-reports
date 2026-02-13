@@ -23,14 +23,15 @@ var seedCmd = &cobra.Command{
 	RunE:  seedRunE,
 }
 
-var seedDBPath string = "database/api.db" // represents --db
+var (
+	seedDBPath   string = "database/api.db" // represents --db
+	seedDBDriver string = "sqlite3"         // represents --driver
+)
 
 func seedRunE(cmd *cobra.Command, args []string) (err error) {
 	var db *sqlx.DB
-	// use the command flag value as the path
-	cfg.DB.Path = seedDBPath
 	// db connection
-	db, err = dbconnection.Connection(ctx, log, cfg.DB.Driver, cfg.DB.ConnectionString())
+	db, err = dbconnection.Connection(ctx, log, migrateDBDriver, migrateDBPath)
 	if err != nil {
 		return
 	}
@@ -48,4 +49,5 @@ func seedRunE(cmd *cobra.Command, args []string) (err error) {
 // setup default values for config and logging
 func init() {
 	seedCmd.Flags().StringVar(&seedDBPath, "db", seedDBPath, "Path to database")
+	seedCmd.Flags().StringVar(&seedDBDriver, "driver", seedDBDriver, "Database driver")
 }

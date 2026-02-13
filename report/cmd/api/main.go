@@ -32,7 +32,6 @@ const (
 
 // config items
 var (
-	cfg *conf.Config    // default config
 	ctx context.Context // default context
 	log *slog.Logger    // default logger
 )
@@ -59,7 +58,6 @@ func handlers(ctx context.Context, log *slog.Logger, opts *apiOpts, api huma.API
 	if err != nil {
 		return
 	}
-
 	// accounts
 	accountdynamic.Register(ctx, log, db, api)
 	// codebases
@@ -155,10 +153,8 @@ func dbconn(ctx context.Context, log *slog.Logger, opts *apiOpts) (db *sqlx.DB, 
 
 func main() {
 	var err error
-
-	cfg = conf.New()
 	ctx = context.Background()
-	log = logger.New(cfg.Log.Level, cfg.Log.Type)
+	log = logger.New(os.Getenv("LOG_LEVEL"), os.Getenv("LOG_TYPE"))
 
 	err = runApiServer(ctx, log)
 	if err != nil {

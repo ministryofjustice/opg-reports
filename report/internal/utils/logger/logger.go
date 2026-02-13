@@ -13,11 +13,10 @@ func strToLevel(lvl string) slog.Leveler {
 		return slog.LevelError
 	case "warn":
 		return slog.LevelWarn
-	// case "info":
-	// 	return slog.LevelInfo
 	case "debug":
 		return slog.LevelDebug
 	}
+	// default to info
 	return slog.LevelInfo
 }
 
@@ -30,6 +29,7 @@ func New(lvl string, as ...string) (logger *slog.Logger) {
 		options *slog.HandlerOptions = &slog.HandlerOptions{Level: strToLevel(lvl)}
 		handler slog.Handler         = slog.NewTextHandler(os.Stdout, options)
 	)
+
 	// hackey way to have optional param
 	for _, h := range as {
 		h = strings.ToLower(h)

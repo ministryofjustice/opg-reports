@@ -23,7 +23,6 @@ package main
 import (
 	"context"
 	"log/slog"
-	"opg-reports/report/conf"
 	"opg-reports/report/internal/utils/logger"
 	"os"
 
@@ -40,7 +39,6 @@ db downloads or uploads the sqlite database from s3 bucket configured via argmen
 
 // config items
 var (
-	cfg *conf.Config    // default config
 	ctx context.Context // default context
 	log *slog.Logger    // default logger
 )
@@ -57,9 +55,8 @@ var (
 )
 
 func setup() {
-	cfg = conf.New()
 	ctx = context.Background()
-	log = logger.New(cfg.Log.Level, cfg.Log.Type)
+	log = logger.New(os.Getenv("LOG_LEVEL"), os.Getenv("LOG_TYPE"))
 }
 
 // setup default values for config and logging & add options

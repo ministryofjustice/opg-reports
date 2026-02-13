@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"log/slog"
-	"opg-reports/report/conf"
 	"opg-reports/report/internal/domain/govuk/govuk"
 	"opg-reports/report/internal/utils/ghclients"
 	"opg-reports/report/internal/utils/logger"
@@ -25,7 +24,6 @@ repoistory and extracts the zip into the requested folder.
 
 // config items
 var (
-	cfg *conf.Config    // default config
 	ctx context.Context // default context
 	log *slog.Logger    // default logger
 )
@@ -78,13 +76,14 @@ func downloadAssets(ctx context.Context, log *slog.Logger, client govuk.GitHubCl
 }
 
 func ghclient() (client *github.Client, err error) {
+	var token = os.Getenv("GITHUB_TOKEN")
 	// fail if there is no github token
-	if cfg.GithubToken == "" {
+	if token == "" {
 		err = ErrGitHubTokenMissing
 		return
 	}
 	// create client
-	client, err = ghclients.New(ctx, log, cfg.GithubToken)
+	client, err = ghclients.New(ctx, log, token)
 	if err != nil {
 		log.Error("error connecting to client.", "err", err.Error())
 		err = errors.Join(ErrGitHubConnFailed, err)
@@ -94,9 +93,8 @@ func ghclient() (client *github.Client, err error) {
 }
 
 func setup() {
-	cfg = conf.New()
 	ctx = context.Background()
-	log = logger.New(cfg.Log.Level, cfg.Log.Type)
+	log = logger.New(os.Getenv("LOG_LEVEL"), os.Getenv("LOG_TYPE"))
 }
 
 // setup default values for config and logging & add options

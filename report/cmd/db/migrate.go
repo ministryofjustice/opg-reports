@@ -25,14 +25,16 @@ var migrateCmd *cobra.Command = &cobra.Command{
 	RunE:  migrateRunE,
 }
 
-var migrateDBPath string = "database/api.db" // represents --db
+var (
+	migrateDBPath   string = "database/api.db" // represents --db
+	migrateDBDriver string = "sqlite3"         // represents --dbdriver
+)
 
 func migrateRunE(cmd *cobra.Command, args []string) (err error) {
 	var db *sqlx.DB
-	// use the command flag value as the path
-	cfg.DB.Path = migrateDBPath
+
 	// db connection
-	db, err = dbconnection.Connection(ctx, log, cfg.DB.Driver, cfg.DB.ConnectionString())
+	db, err = dbconnection.Connection(ctx, log, migrateDBDriver, migrateDBPath)
 	if err != nil {
 		return
 	}
@@ -57,4 +59,5 @@ func runMigrations(ctx context.Context, log *slog.Logger, db *sqlx.DB) (err erro
 // setup default values for config and logging
 func init() {
 	migrateCmd.Flags().StringVar(&migrateDBPath, "db", migrateDBPath, "Path to database")
+	migrateCmd.Flags().StringVar(&migrateDBDriver, "driver", migrateDBDriver, "Database driver")
 }
