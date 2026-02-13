@@ -8,7 +8,6 @@ import (
 	"opg-reports/report/internal/db/dbselects"
 	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/infracosts/infracostmodels"
-	"opg-reports/report/internal/utils/debugger"
 	"opg-reports/report/internal/utils/ex"
 	"opg-reports/report/internal/utils/marshal"
 	"opg-reports/report/internal/utils/qb"
@@ -84,6 +83,7 @@ var querySegments = map[string][]*qb.Segment{
 	"_default": {
 		{Type: qb.SELECT, Stmt: `strftime("%Y-%m", base.date) as date`},
 		{Type: qb.SELECT, Stmt: `CAST(COALESCE(SUM(cost), 0) as REAL) as cost`},
+		{Type: qb.JOIN, Stmt: `LEFT JOIN accounts ON accounts.id = base.account_id`},
 		{Type: qb.WHERE, Stmt: `base.service != 'Tax'`},
 		{Type: qb.WHERE, Stmt: `strftime("%Y-%m", base.date) IN (:months)`},
 		{Type: qb.GROUPBY, Stmt: `strftime("%Y-%m", base.date)`},
@@ -119,7 +119,7 @@ var querySegments = map[string][]*qb.Segment{
 // the query builder
 var builder = &qb.Builder{
 	From:     "infracosts as base",
-	Joins:    []string{"LEFT JOIN accounts ON accounts.id = base.account_id"},
+	Joins:    []string{""},
 	Segments: querySegments,
 }
 
@@ -222,9 +222,6 @@ func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma
 	if err != nil {
 		return
 	}
-	debugger.Dump(headings)
-	debugger.Dump(tableData)
-
 	// if asked to sort by cost, then actually use the last month
 	// otherwise its a string based sort
 	tableOpts.SortByColumn = ""

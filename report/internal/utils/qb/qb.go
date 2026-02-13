@@ -29,6 +29,7 @@ type Type string
 const (
 	SELECT  Type = "select"
 	WHERE   Type = "where"
+	JOIN    Type = "joins"
 	GROUPBY Type = "group_by"
 	HAVING  Type = "having"
 	ORDERBY Type = "order_by"
@@ -37,9 +38,8 @@ const (
 func segmentTypes() []string {
 	return []string{
 		`select`,
-		`from`,
-		`joins`,
 		`where`,
+		`joins`,
 		`group_by`,
 		`having`,
 		`order_by`,
@@ -125,10 +125,9 @@ func (self *queryStr) Add(value *string, segments ...*Segment) {
 	} else {
 		lowerValue = strings.ToLower(*value)
 		for _, segment := range segments {
-			var (
-				hasColon bool = strings.Contains(segment.Stmt, ":")
-				isFilter bool = (hasColon && lowerValue != "true")
-			)
+			var hasColon bool = strings.Contains(segment.Stmt, ":")
+			var isFilter bool = (hasColon && lowerValue != "true")
+
 			if lowerValue != "" && (!hasColon || isFilter) {
 				add = append(add, segment)
 			}
@@ -153,33 +152,46 @@ func (self *queryStr) Blocks() map[Type][]string {
 func (self *queryStr) String() (stmt string) {
 	stmt = self.base
 
-	// generate the string from the current set of slices
-	for k, values := range self.sqlBlocks {
+	for blockType, blocks := range self.sqlBlocks {
 		var (
-			joined string = ""
-			eol    string = ",\n" // end of line is normally a , but not for where or having so adjust
-			key    string = fmt.Sprintf(`{%s}`, string(k))
-			prefix string = strings.ReplaceAll(strings.ToUpper(string(k)), "_", " ") + "\n"
+			joined  string = ""
+			eol     string = ""
+			prefix  string = ""
+			lower   string = strings.ToLower(string(blockType))
+			upper   string = strings.ToUpper(lower)
+			replace string = fmt.Sprintf(`{%s}`, lower)
 		)
-		// switch end of line
-		if k == WHERE || k == HAVING {
+		// skip if there are no blocks to process
+		if len(blocks) == 0 {
+			continue
+		}
+
+		switch blockType {
+		case WHERE, HAVING:
+			prefix = strings.ReplaceAll(upper, "_", " ") + "\n"
 			eol = " AND\n"
+		case JOIN:
+			prefix = ""
+			eol = "\n"
+		default:
+			prefix = strings.ReplaceAll(upper, "_", " ") + "\n"
+			eol = ",\n"
 		}
-		if len(values) > 0 {
-			joined = prefix + strings.TrimSuffix(strings.Join(values, eol), eol)
-		}
-		stmt = strings.ReplaceAll(stmt, key, joined)
+		joined = strings.Join(blocks, eol)
+		joined = prefix + strings.TrimSuffix(joined, eol)
+		// update end string
+		stmt = strings.ReplaceAll(stmt, replace, joined)
 	}
-	// remove empty lines and trailing lines
+	// remove any defaults
+	for _, def := range segmentTypes() {
+		stmt = strings.ReplaceAll(stmt, fmt.Sprintf(`{%s}`, def), "")
+	}
 	stmt = strings.ReplaceAll(stmt, "\n\n", "\n")
 	stmt = strings.TrimPrefix(stmt, "\n")
 	stmt = strings.TrimSuffix(stmt, "\n")
 	// proces the from & join clauses
 	stmt = strings.ReplaceAll(stmt, `{from}`, self.q.From)
-	// remove any defaults
-	for _, def := range segmentTypes() {
-		stmt = strings.ReplaceAll(stmt, def, "")
-	}
+
 	return
 }
 
