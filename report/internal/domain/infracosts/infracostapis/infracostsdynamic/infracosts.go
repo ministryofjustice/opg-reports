@@ -150,8 +150,8 @@ func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma
 	var (
 		body        *InfracostResponseBody
 		query       *dbstmts.Select[*Filter, *infracostmodels.CostData]
-		filter      *Filter = &Filter{}
 		forFilter   map[string]string
+		filter      *Filter                  = &Filter{}
 		stmt        string                   = ""
 		tableData   []map[string]interface{} = []map[string]interface{}{}
 		months      []string                 = []string{}

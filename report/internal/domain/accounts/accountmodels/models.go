@@ -10,7 +10,7 @@ type Account struct {
 }
 
 // AccountRow is used in the api calls so the json name of TeamName can be corrected
-type AccountRow struct {
+type AccountData struct {
 	ID          string `json:"id" db:"id"`                   // This is the Account ID as a string - they can have leading 0
 	Name        string `json:"name" db:"name"`               // account name as used internally
 	Label       string `json:"label" db:"label"`             // internal label

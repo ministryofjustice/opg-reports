@@ -125,8 +125,8 @@ func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma
 	var (
 		body        *UptimeResponseBody
 		query       *dbstmts.Select[*Filter, *uptimemodels.UptimeData]
-		filter      *Filter = &Filter{}
 		forFilter   map[string]string
+		filter      *Filter                  = &Filter{}
 		stmt        string                   = ""
 		tableData   []map[string]interface{} = []map[string]interface{}{}
 		months      []string                 = []string{}

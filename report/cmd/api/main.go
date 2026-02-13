@@ -8,7 +8,7 @@ import (
 	"opg-reports/report/conf"
 	"opg-reports/report/internal/db/dbconnection"
 	"opg-reports/report/internal/db/dbmigrations"
-	"opg-reports/report/internal/domain/accounts/accountapis/accountall"
+	"opg-reports/report/internal/domain/accounts/accountapis/accountdynamic"
 	"opg-reports/report/internal/domain/codebases/codebaseapis/codebaseall"
 	"opg-reports/report/internal/domain/codeowners/codeownerapis/codeownerall"
 	"opg-reports/report/internal/domain/codeowners/codeownerapis/codeownerforteam"
@@ -62,7 +62,7 @@ func handlers(ctx context.Context, log *slog.Logger, opts *apiOpts, api huma.API
 	}
 
 	// accounts
-	accountall.Register(ctx, log, db, api)
+	accountdynamic.Register(ctx, log, db, api)
 	// codebases
 	codebaseall.Register(ctx, log, db, api)
 	// codeowners
