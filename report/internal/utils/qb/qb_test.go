@@ -22,7 +22,7 @@ var tests = []*tester{
 			From:  "infracosts as base",
 			Joins: []string{"LEFT JOIN accounts ON accounts.id = base.account_id"},
 			Segments: map[string][]*Segment{
-				"date_range": {
+				"_default": {
 					{Type: SELECT, Stmt: `strftime("%Y-%m", base.date) as date`},
 					{Type: SELECT, Stmt: `CAST(COALESCE(SUM(cost), 0) as REAL) as cost`},
 					{Type: WHERE, Stmt: `base.service != 'Tax'`},

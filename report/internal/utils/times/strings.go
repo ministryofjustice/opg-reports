@@ -57,6 +57,11 @@ func FromString(str string) (t time.Time, err error) {
 	return
 }
 
+func MustFromString(str string) (t time.Time) {
+	t, _ = FromString(str)
+	return
+}
+
 // JoinedYMDList converts slice of times to a single string and list of strings
 func JoinedYMList(months []time.Time) (str string, mths []string) {
 	mths = AsYMStrings(months)

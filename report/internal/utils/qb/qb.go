@@ -8,6 +8,7 @@ package qb
 
 import (
 	"fmt"
+	"opg-reports/report/internal/utils/debugger"
 	"strings"
 )
 
@@ -32,6 +33,18 @@ const (
 	HAVING  Type = "having"
 	ORDERBY Type = "order_by"
 )
+
+func segmentTypes() []string {
+	return []string{
+		`select`,
+		`from`,
+		`joins`,
+		`where`,
+		`group_by`,
+		`having`,
+		`order_by`,
+	}
+}
 
 // Segment is used to build a part of the overall sql statment
 // and depending on the `Type` will be used in the sql clause differently.
@@ -66,13 +79,18 @@ type Builder struct {
 func (self *Builder) FromRequest(request map[string]string) (query string, blocks map[Type][]string) {
 	var qs = newBuilderStr(baseStmt, self)
 
+	if def, ok := self.Segments["_default"]; ok {
+		qs.Add(nil, def...)
+	}
+
 	for key, value := range request {
 		for _, segment := range self.Segments[key] {
-			qs.Add(segment, value)
+			qs.Add(&value, segment)
 		}
 	}
 	blocks = qs.Blocks()
 	query = qs.String()
+	debugger.Dump(blocks)
 	return
 }
 
@@ -86,9 +104,9 @@ func New(from string, joins []string, segments map[string][]*Segment) *Builder {
 }
 
 type queryStr struct {
-	base string
-	q    *Builder
-	strs map[Type][]string
+	base      string
+	q         *Builder
+	sqlBlocks map[Type][]string
 }
 
 // Add inserts query segments into the correct category.
@@ -96,43 +114,54 @@ type queryStr struct {
 // If the qs.Stmt contains a `:` then its presumed to be a filter (`where x = :value`) so
 // it will only be added if the `val` is set to a real value (not "true"). This allows
 // filters to be handled on where / having etc
-func (self *queryStr) Add(qs *Segment, val interface{}) {
-	var (
-		hasColon bool   = strings.Contains(qs.Stmt, ":")
-		add      bool   = false
-		v        string = strings.ToLower(val.(string))
-	)
-	// if there is no colon, its not a filter statement, so add directly
-	// otherwise only add if it has a filterable value
-	if v != "" && (!hasColon || (hasColon && v != "true")) {
-		add = true
-	}
-	if add {
-		// set the default
-		if _, ok := self.strs[qs.Type]; !ok {
-			self.strs[qs.Type] = []string{}
+func (self *queryStr) Add(value *string, segments ...*Segment) {
+	var lowerValue string = ""
+	var add []*Segment = []*Segment{}
+
+	// if val is exactly nil then add everything - used to enable defaults
+	// otherwise decide which should be added based on type
+	if value == nil {
+		add = segments
+	} else {
+		lowerValue = strings.ToLower(*value)
+		for _, segment := range segments {
+			var (
+				hasColon bool = strings.Contains(segment.Stmt, ":")
+				isFilter bool = (hasColon && lowerValue != "true")
+			)
+			if lowerValue != "" && (!hasColon || isFilter) {
+				add = append(add, segment)
+			}
 		}
-		self.strs[qs.Type] = append(self.strs[qs.Type], qs.Stmt)
+	}
+	// add selected segments
+	for _, segment := range add {
+		if _, ok := self.sqlBlocks[segment.Type]; !ok {
+			self.sqlBlocks[segment.Type] = []string{}
+		}
+		self.sqlBlocks[segment.Type] = append(self.sqlBlocks[segment.Type], segment.Stmt)
 	}
 
 }
 
-// Blocks returns the internal strs set
+// Blocks returns the internal sqlBlocks set
 func (self *queryStr) Blocks() map[Type][]string {
-	return self.strs
+	return self.sqlBlocks
 }
 
 // String will return the generate sql statement from all added blocks
 func (self *queryStr) String() (stmt string) {
 	stmt = self.base
+
 	// generate the string from the current set of slices
-	for k, values := range self.strs {
+	for k, values := range self.sqlBlocks {
 		var (
 			joined string = ""
 			eol    string = ",\n" // end of line is normally a , but not for where or having so adjust
 			key    string = fmt.Sprintf(`{%s}`, string(k))
 			prefix string = strings.ReplaceAll(strings.ToUpper(string(k)), "_", " ") + "\n"
 		)
+		// switch end of line
 		if k == WHERE || k == HAVING {
 			eol = " AND\n"
 		}
@@ -147,21 +176,17 @@ func (self *queryStr) String() (stmt string) {
 	stmt = strings.TrimSuffix(stmt, "\n")
 	// proces the from & join clauses
 	stmt = strings.ReplaceAll(stmt, `{from}`, self.q.From)
-	stmt = strings.ReplaceAll(stmt, `{joins}`, strings.Join(self.q.Joins, "\n"))
 	// remove any defaults
-	stmt = strings.ReplaceAll(stmt, `{select}`, "")
-	stmt = strings.ReplaceAll(stmt, `{from}`, "")
-	stmt = strings.ReplaceAll(stmt, `{where}`, "")
-	stmt = strings.ReplaceAll(stmt, `{group_by}`, "")
-	stmt = strings.ReplaceAll(stmt, `{having}`, "")
-	stmt = strings.ReplaceAll(stmt, `{order_by}`, "")
+	for _, def := range segmentTypes() {
+		stmt = strings.ReplaceAll(stmt, def, "")
+	}
 	return
 }
 
 func newBuilderStr(sql string, q *Builder) *queryStr {
 	return &queryStr{
-		q:    q,
-		base: sql,
-		strs: map[Type][]string{},
+		q:         q,
+		base:      sql,
+		sqlBlocks: map[Type][]string{},
 	}
 }

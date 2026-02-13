@@ -8,6 +8,7 @@ import (
 	"opg-reports/report/internal/db/dbselects"
 	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/infracosts/infracostmodels"
+	"opg-reports/report/internal/utils/debugger"
 	"opg-reports/report/internal/utils/ex"
 	"opg-reports/report/internal/utils/marshal"
 	"opg-reports/report/internal/utils/qb"
@@ -23,25 +24,29 @@ import (
 
 // fixed values for this endpoint, used by the operation setup for huma
 const (
-	ENDPOINT      string = `/v1/costs/between/{date_range}/`
-	opID          string = `infracosts-by-month`
+	ENDPOINT      string = `/v1/infacosts/between/{start_date}/{end_date}`
+	opID          string = `infracosts-get-dynamic`
 	opSummary     string = `Return costs grouped by the month and other filter options.`
 	opDescription string = `Returns a table of costs`
 )
 
 // InfracostRequest is the incoming request options
 type InfracostRequest struct {
-	DateRange   string `path:"date_range" json:"date_range" required:"true" doc:"Date range to use." example:"2025-01..2025-02" pattern:"([0-9]{4}-[0-9]{2}..[0-9]{4}-[0-9]{2})"` // required - date range input
+	// DateRange   string `path:"date_range" json:"date_range" required:"true" doc:"Date range to use." example:"2025-01..2025-02" pattern:"([0-9]{4}-[0-9]{2}..[0-9]{4}-[0-9]{2})"` // required - date range input
+	StartDate   string `path:"start_date" json:"start_date" required:"true" doc:"Start date to use." example:"2026-01" pattern:"([0-9]{4}-[0-9]{2})"` // required - date range input
+	EndDate     string `path:"end_date" json:"end_date" required:"true" doc:"End date to use." example:"2026-02" pattern:"([0-9]{4}-[0-9]{2})"`       // required - date range input
 	Team        string `query:"team" json:"team,omitempty"`
 	Account     string `query:"account" json:"account_name,omitempty"`
-	Environment string `query:"environment" json:"account_environment,omitempty"`
+	Environment string `query:"environment" json:"environment,omitempty"`
 	Service     string `query:"service" json:"service,omitempty"`
 	Sort        string `query:"sort" json:"-"` // sort data, dont json encode otherwise break the cast to filter
 }
 
-// Months returns all months between dates
+// Months returns all months between date range string
 func (self *InfracostRequest) Months() (months []string) {
-	months = times.AsYMStrings(times.FromMonthRangeString(self.DateRange))
+	months = times.AsYMStrings(
+		times.Months(times.MustFromString(self.StartDate), times.MustFromString(self.EndDate)))
+	// months = times.AsYMStrings(times.FromMonthRangeString(self.DateRange))
 	return
 }
 
@@ -64,7 +69,7 @@ type Filter struct {
 	Months      []string `db:"months" json:"months"`
 	Team        string   `db:"team" json:"team"`
 	Account     string   `db:"account_name" json:"account_name"`
-	Environment string   `db:"account_environment" json:"account_environment"`
+	Environment string   `db:"environment" json:"environment"`
 	Service     string   `db:"service" json:"service"`
 }
 
@@ -76,9 +81,7 @@ type Filter struct {
 // Aliases and selected fields should match the json values for the
 // returned struct
 var querySegments = map[string][]*qb.Segment{
-	// date_range is required, so add the base line fields of date & cost to this
-	// segment as its always there
-	"date_range": {
+	"_default": {
 		{Type: qb.SELECT, Stmt: `strftime("%Y-%m", base.date) as date`},
 		{Type: qb.SELECT, Stmt: `CAST(COALESCE(SUM(cost), 0) as REAL) as cost`},
 		{Type: qb.WHERE, Stmt: `base.service != 'Tax'`},
@@ -99,8 +102,8 @@ var querySegments = map[string][]*qb.Segment{
 		{Type: qb.WHERE, Stmt: `accounts.name = :account`},
 		{Type: qb.ORDERBY, Stmt: `accounts.name ASC`},
 	},
-	"account_environment": {
-		{Type: qb.SELECT, Stmt: `accounts.environment as account_environment`},
+	"environment": {
+		{Type: qb.SELECT, Stmt: `accounts.environment as environment`},
 		{Type: qb.WHERE, Stmt: `accounts.environment = :environment`},
 		{Type: qb.GROUPBY, Stmt: `accounts.environment`},
 		{Type: qb.ORDERBY, Stmt: `accounts.environment ASC`},
@@ -188,8 +191,8 @@ func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma
 	months = input.Months()
 	// setup headings
 	lg.With("headings", headings).Debug("setup headings ...")
-	// 	- add headers, exclude the date_range field as that becomes the data columns
-	headings.AddKeyHeader(requestData, "date_range")
+	// 	- add headers, exclude the date fields as that becomes the data columns
+	headings.AddKeyHeader(requestData, "start_date", "end_date")
 	//  - add data headers of the months
 	headings.AddDataHeader(months...)
 
@@ -219,6 +222,8 @@ func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma
 	if err != nil {
 		return
 	}
+	debugger.Dump(headings)
+	debugger.Dump(tableData)
 
 	// if asked to sort by cost, then actually use the last month
 	// otherwise its a string based sort
