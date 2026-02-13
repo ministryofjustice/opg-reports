@@ -1,4 +1,4 @@
-package infracostsdynamic
+package uptimedynamic
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"opg-reports/report/internal/db/dbselects"
 	"opg-reports/report/internal/db/dbstmts"
-	"opg-reports/report/internal/domain/infracosts/infracostmodels"
+	"opg-reports/report/internal/domain/uptime/uptimemodels"
 	"opg-reports/report/internal/utils/ex"
 	"opg-reports/report/internal/utils/marshal"
 	"opg-reports/report/internal/utils/qb"
@@ -23,40 +23,35 @@ import (
 
 // fixed values for this endpoint, used by the operation setup for huma
 const (
-	ENDPOINT      string = `/v1/infacosts/between/{start_date}/{end_date}`
-	opID          string = `infracosts-get-dynamic`
-	opSummary     string = `Return costs grouped by the month and other filter options.`
-	opDescription string = `Returns a table of costs`
+	ENDPOINT      string = `/v1/uptime/between/{start_date}/{end_date}`
+	opID          string = `uptime-get-dynamic`
+	opSummary     string = `Return uptime grouped by month and others.`
+	opDescription string = `Returns uptime data grouped by year-month date and other choices.`
 )
 
-// InfracostRequest is the incoming request options
-type InfracostRequest struct {
-	// DateRange   string `path:"date_range" json:"date_range" required:"true" doc:"Date range to use." example:"2025-01..2025-02" pattern:"([0-9]{4}-[0-9]{2}..[0-9]{4}-[0-9]{2})"` // required - date range input
-	StartDate   string `path:"start_date" json:"start_date" required:"true" doc:"Start date to use." example:"2026-01" pattern:"([0-9]{4}-[0-9]{2})"` // required - date range input
-	EndDate     string `path:"end_date" json:"end_date" required:"true" doc:"End date to use." example:"2026-02" pattern:"([0-9]{4}-[0-9]{2})"`       // required - date range input
-	Team        string `query:"team" json:"team,omitempty"`
-	Account     string `query:"account" json:"account,omitempty"`
-	Environment string `query:"environment" json:"environment,omitempty"`
-	Service     string `query:"service" json:"service,omitempty"`
-	Sort        string `query:"sort" json:"-"` // sort data, dont json encode otherwise break the cast to filter
+// UptimeRequest is the incoming request options
+type UptimeRequest struct {
+	StartDate string `path:"start_date" json:"start_date" required:"true" doc:"Start date to use." example:"2026-01" pattern:"([0-9]{4}-[0-9]{2})"` // required - date range input
+	EndDate   string `path:"end_date" json:"end_date" required:"true" doc:"End date to use." example:"2026-02" pattern:"([0-9]{4}-[0-9]{2})"`       // required - date range input
+	Team      string `query:"team" json:"team,omitempty"`
+	Sort      string `query:"sort" enum:"average,team" json:"-"` // sort data, dont json encode otherwise break the cast to filter
 }
 
 // Months returns all months between date range string
-func (self *InfracostRequest) Months() (months []string) {
+func (self *UptimeRequest) Months() (months []string) {
 	months = times.AsYMStrings(
 		times.Months(times.MustFromString(self.StartDate), times.MustFromString(self.EndDate)))
-	// months = times.AsYMStrings(times.FromMonthRangeString(self.DateRange))
 	return
 }
 
-// InfracostResponse is the handlers data struct passed to a huma api which will then be rendered
-type InfracostResponse struct {
-	Body *InfracostResponseBody
+// UptimeResponse is the handlers data struct passed to a huma api which will then be rendered
+type UptimeResponse struct {
+	Body *UptimeResponseBody
 }
 
-// InfracostResponseBody is the response body, containing all data to be returned
-type InfracostResponseBody struct {
-	Request     *InfracostRequest        `json:"request"`     // the original request
+// UptimeResponseBody is the response body, containing all data to be returned
+type UptimeResponseBody struct {
+	Request     *UptimeRequest           `json:"request"`     // the original request
 	Headers     map[string][]string      `json:"headers"`     // headers contains details for table headers / rendering
 	Data        []map[string]interface{} `json:"data"`        // the actual data results
 	Performance []*timers.Timer          `json:"performance"` // duration of the call
@@ -65,16 +60,13 @@ type InfracostResponseBody struct {
 
 // Filter contains all the possible filters passed from the request that arent "true"
 type Filter struct {
-	Months      []string `db:"months" json:"months"`
-	Team        string   `db:"team" json:"team"`
-	Account     string   `db:"account" json:"account"`
-	Environment string   `db:"environment" json:"environment"`
-	Service     string   `db:"service" json:"service"`
+	Months []string `db:"months" json:"months"`
+	Team   string   `db:"team" json:"team"`
 }
 
 // querySegments is the possible options to use when query the database
 //
-// The key should map to the json name in `InfracostRequest`, any `:x`
+// The key should map to the json name in `UptimeRequest`, any `:x`
 // values should match the json name in `filter` struct.
 //
 // Aliases and selected fields should match the json values for the
@@ -82,9 +74,8 @@ type Filter struct {
 var querySegments = map[string][]*qb.Segment{
 	"_default": {
 		{Type: qb.SELECT, Stmt: `strftime("%Y-%m", base.date) as date`},
-		{Type: qb.SELECT, Stmt: `CAST(COALESCE(SUM(cost), 0) as REAL) as cost`},
+		{Type: qb.SELECT, Stmt: `CAST(COALESCE(AVG(base.average), 0) as REAL) as average`},
 		{Type: qb.JOIN, Stmt: `LEFT JOIN accounts ON accounts.id = base.account_id`},
-		{Type: qb.WHERE, Stmt: `base.service != 'Tax'`},
 		{Type: qb.WHERE, Stmt: `strftime("%Y-%m", base.date) IN (:months)`},
 		{Type: qb.GROUPBY, Stmt: `strftime("%Y-%m", base.date)`},
 		{Type: qb.ORDERBY, Stmt: `strftime("%Y-%m", base.date) ASC`},
@@ -95,36 +86,20 @@ var querySegments = map[string][]*qb.Segment{
 		{Type: qb.GROUPBY, Stmt: `accounts.team_name`},
 		{Type: qb.ORDERBY, Stmt: `accounts.team_name ASC`},
 	},
-	"account": {
-		{Type: qb.SELECT, Stmt: `accounts.name as account`},
-		{Type: qb.SELECT, Stmt: `accounts.id as account_id`},
-		{Type: qb.GROUPBY, Stmt: `accounts.name`},
-		{Type: qb.WHERE, Stmt: `accounts.name = :account`},
-		{Type: qb.ORDERBY, Stmt: `accounts.name ASC`},
-	},
-	"environment": {
-		{Type: qb.SELECT, Stmt: `accounts.environment as environment`},
-		{Type: qb.WHERE, Stmt: `accounts.environment = :environment`},
-		{Type: qb.GROUPBY, Stmt: `accounts.environment`},
-		{Type: qb.ORDERBY, Stmt: `accounts.environment ASC`},
-	},
-	"service": {
-		{Type: qb.SELECT, Stmt: `base.service as service`},
-		{Type: qb.WHERE, Stmt: `base.service = :service`},
-		{Type: qb.GROUPBY, Stmt: `base.service`},
-		{Type: qb.ORDERBY, Stmt: `base.service ASC`},
-	},
 }
 
 // the query builder
-var builder = qb.New("infracosts as base", querySegments)
+var builder = &qb.Builder{
+	From:     "uptime as base",
+	Segments: querySegments,
+}
 
 // base table options, add more details to this within the handler
 var tableOpts = &tabulate.Options{
 	ColumnKey: "date",
-	ValueKey:  "cost",
-	RowEndF:   rows.TotalF,
-	TableEndF: tabulate.TotalF,
+	ValueKey:  "average",
+	RowEndF:   rows.AverageF,
+	TableEndF: tabulate.AverageF,
 }
 
 // operation describes what this endpoint is doing
@@ -135,32 +110,32 @@ var operation = huma.Operation{
 	Summary:       opSummary,
 	Description:   opDescription,
 	OperationID:   opID,
-	Tags:          []string{"infracosts"},
+	Tags:          []string{"uptime"},
 }
 
 // Register attachs the local handler to the huma api allows way to pass along the configured logger, db etc
 func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.API) {
 	// input is an empty struct as
-	huma.Register(humaapi, operation, func(ctx context.Context, input *InfracostRequest) (*InfracostResponse, error) {
+	huma.Register(humaapi, operation, func(ctx context.Context, input *UptimeRequest) (*UptimeResponse, error) {
 		return getData(timers.ContextWithTimers(ctx), log, db, &operation, input)
 	})
 }
 
-func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.Operation, input *InfracostRequest) (resp *InfracostResponse, err error) {
+func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.Operation, input *UptimeRequest) (resp *UptimeResponse, err error) {
 	var (
-		body        *InfracostResponseBody
-		query       *dbstmts.Select[*Filter, *infracostmodels.CostData]
+		body        *UptimeResponseBody
+		query       *dbstmts.Select[*Filter, *uptimemodels.UptimeData]
 		filter      *Filter = &Filter{}
 		forFilter   map[string]string
 		stmt        string                   = ""
 		tableData   []map[string]interface{} = []map[string]interface{}{}
 		months      []string                 = []string{}
 		requestData map[string]string        = map[string]string{}
-		lg          *slog.Logger             = log.With("func", "infracostsdynamic.getData", "operation", operation.OperationID)
+		lg          *slog.Logger             = log.With("func", "uptimedynamic.getData", "operation", operation.OperationID)
 		headings    *headers.Headers         = &headers.Headers{ // baseline headings, will get expanded from the Request data within the handler
 			Headers: []*headers.Header{
 				{Field: "trend", Type: headers.EXTRA, Default: ""},
-				{Field: "total", Type: headers.END, Default: 0.0},
+				{Field: "average", Type: headers.END, Default: 0.0},
 			},
 		}
 	)
@@ -174,12 +149,11 @@ func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma
 	if err != nil {
 		return
 	}
-	// if there is only dates in the request, force add teams
+	// if there is only dates in the request, force teams
 	if len(ex.FilterKeys(requestData, "start_date", "end_date")) == 0 {
 		input.Team = "true"
 		requestData["team"] = "true"
 	}
-
 	// generate query statement
 	stmt, _ = builder.FromRequest(requestData)
 	lg.With("stmt", fmt.Sprintln(stmt)).Debug("sql statement ... ")
@@ -203,7 +177,7 @@ func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma
 	filter.Months = months
 	// configure the db query with the generated statement and
 	// filter values
-	query = &dbstmts.Select[*Filter, *infracostmodels.CostData]{
+	query = &dbstmts.Select[*Filter, *uptimemodels.UptimeData]{
 		Statement: stmt,
 		Data:      filter,
 	}
@@ -221,7 +195,7 @@ func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma
 	// if asked to sort by cost, then actually use the last month
 	// otherwise its a string based sort
 	tableOpts.SortByColumn = input.Sort
-	if input.Sort == "cost" {
+	if input.Sort == "average" {
 		tableOpts.SortByColumn = months[len(months)-1]
 		tableData = tabulate.Tabulate[float64](tableData, headings, tableOpts)
 	} else {
@@ -230,7 +204,7 @@ func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma
 
 	// prep result
 	timers.Stop(ctx, operation.OperationID)
-	body = &InfracostResponseBody{
+	body = &UptimeResponseBody{
 		Request:     input,
 		Headers:     headings.ByType(),
 		Data:        tableData,
@@ -238,7 +212,7 @@ func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma
 		Performance: timers.All(ctx),
 	}
 	// setup response
-	resp = &InfracostResponse{Body: body}
+	resp = &UptimeResponse{Body: body}
 	lg.Info("complete.")
 	return
 }

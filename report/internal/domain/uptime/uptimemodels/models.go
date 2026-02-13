@@ -9,8 +9,7 @@ type Uptime struct {
 	AccountID   string `json:"account_id" db:"account_id"`             // the account id reference
 }
 
-// UptimeMonthTeam used by the uptime api for fetching data by month & team, so limited data
-type UptimeMonthTeam struct {
+type UptimeData struct {
 	Date     string  `json:"date" db:"date" `       // The month for this cost
 	Average  float64 `json:"average" db:"average" ` // uptime average as a percentage
 	TeamName string  `json:"team" db:"team"`        // the team this costs is attached to

@@ -1,6 +1,8 @@
 package tabulate
 
 import (
+	"fmt"
+	"opg-reports/report/internal/utils/debugger"
 	"opg-reports/report/internal/utils/tabulate/headers"
 	"opg-reports/report/internal/utils/tabulate/rows"
 	"sort"
@@ -77,9 +79,9 @@ func TotalF(table []map[string]interface{}, headings *headers.Headers) []map[str
 		tableTotal float64                = 0.0
 	)
 
-	// if endCol == nil || firstCol == nil {
-	// 	return table
-	// }
+	if firstCol == nil || endCol == nil {
+		panic(fmt.Sprintf("TotalF missing first/end columns in headings:\n[%s]", debugger.DumpStr(headings)))
+	}
 
 	for _, row := range table {
 		for _, col := range dataCols {
@@ -87,6 +89,7 @@ func TotalF(table []map[string]interface{}, headings *headers.Headers) []map[str
 		}
 		tableTotal += row[endCol.Field].(float64)
 	}
+
 	// give the first column a name
 	summary[firstCol.Field] = endCol.Field
 	summary[endCol.Field] = tableTotal
@@ -104,9 +107,9 @@ func AverageF(table []map[string]interface{}, headings *headers.Headers) []map[s
 		count      int                    = len(table)
 		tableTotal float64                = 0.0
 	)
-	// if endCol == nil || firstCol == nil {
-	// 	return table
-	// }
+	if firstCol == nil || endCol == nil {
+		panic(fmt.Sprintf("AverageF missing first/end columns in headings:\n[%s]", debugger.DumpStr(headings)))
+	}
 
 	for _, row := range table {
 		for _, col := range dataCols {
@@ -118,6 +121,7 @@ func AverageF(table []map[string]interface{}, headings *headers.Headers) []map[s
 	for _, col := range dataCols {
 		summary[col.Field] = summary[col.Field].(float64) / float64(count)
 	}
+
 	// give the first column a name
 	summary[firstCol.Field] = endCol.Field
 	// work out overall average

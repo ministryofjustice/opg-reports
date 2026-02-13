@@ -14,7 +14,7 @@ import (
 	"opg-reports/report/internal/domain/codeowners/codeownerapis/codeownerforteam"
 	"opg-reports/report/internal/domain/infracosts/infracostapis/infracostsdynamic"
 	"opg-reports/report/internal/domain/teams/teamapis/teamall"
-	"opg-reports/report/internal/domain/uptime/uptimeapis/uptimebymonthteam"
+	"opg-reports/report/internal/domain/uptime/uptimeapis/uptimedynamic"
 	"opg-reports/report/internal/utils/logger"
 	"os"
 	"time"
@@ -73,7 +73,7 @@ func handlers(ctx context.Context, log *slog.Logger, opts *apiOpts, api huma.API
 	// teams
 	teamall.Register(ctx, log, db, api)
 	// uptime
-	uptimebymonthteam.Register(ctx, log, db, api)
+	uptimedynamic.Register(ctx, log, db, api)
 	return
 }
 

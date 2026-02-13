@@ -8,7 +8,6 @@ package qb
 
 import (
 	"fmt"
-	"opg-reports/report/internal/utils/debugger"
 	"strings"
 )
 
@@ -68,7 +67,6 @@ type Segment struct {
 //	`Joins` are merged together to create the set of join statements after the `FROM` - as these can be various types this struct does not add the JOIN notation at the start like ti does for FROM.
 type Builder struct {
 	From     string
-	Joins    []string
 	Segments map[string][]*Segment
 }
 
@@ -90,15 +88,13 @@ func (self *Builder) FromRequest(request map[string]string) (query string, block
 	}
 	blocks = qs.Blocks()
 	query = qs.String()
-	debugger.Dump(blocks)
 	return
 }
 
 // New
-func New(from string, joins []string, segments map[string][]*Segment) *Builder {
+func New(from string, segments map[string][]*Segment) *Builder {
 	return &Builder{
 		From:     from,
-		Joins:    joins,
 		Segments: segments,
 	}
 }
