@@ -28,8 +28,9 @@ const (
 // TeamRequest is the incoming request options
 type TeamRequest struct {
 	// joins.... accounts, codeowners / codebases
-
-	Sort string `query:"sort" json:"-"` // sort data, dont json encode otherwise break the cast to filter
+	Team    string `query:"team_name" json:"team_name,omitempty"`
+	Account string `query:"account" json:"account,omitempty"`
+	Sort    string `query:"sort" json:"-"` // sort data, dont json encode otherwise break the cast to filter
 }
 
 // TeamResponse is the handlers data struct passed to a huma api which will then be rendered
@@ -39,15 +40,17 @@ type TeamResponse struct {
 
 // TeamResponseBody is the response body, containing all data to be returned
 type TeamResponseBody struct {
-	Request     *TeamRequest       `json:"request"`     // the original request
-	Data        []*teammodels.Team `json:"data"`        // the actual data results
-	Performance []*timers.Timer    `json:"performance"` // duration of the call
-	Count       int                `json:"count"`       // counter to check data aligns
+	Request     *TeamRequest           `json:"request"`     // the original request
+	Data        []*teammodels.TeamData `json:"data"`        // the actual data results
+	Performance []*timers.Timer        `json:"performance"` // duration of the call
+	Count       int                    `json:"count"`       // counter to check data aligns
 }
 
 // Filter contains all the possible filters passed from the request that arent "true"
 // - currently empty
 type Filter struct {
+	Team    string `db:"team_name" json:"team_name"`
+	Account string `db:"account" json:"account"`
 }
 
 // querySegments is the possible options to use when query the database
@@ -59,7 +62,16 @@ type Filter struct {
 // returned struct
 var querySegments = map[string][]*qb.Segment{
 	"_default": {
-		{Type: qb.SELECT, Stmt: `teams.name`},
+		{Type: qb.SELECT, Stmt: `teams.name as team_name`},
+		{Type: qb.GROUPBY, Stmt: `teams.name`},
+		{Type: qb.ORDERBY, Stmt: `teams.name ASC`},
+	},
+	"team_name": {
+		{Type: qb.WHERE, Stmt: `teams.name = :team_name`},
+	},
+	"account": {
+		{Type: qb.SELECT, Stmt: `json_group_array( DISTINCT json_object( 'id', accounts.id, 'name', accounts.name, 'label', accounts.label, 'environment', accounts.environment ) ) filter ( where accounts.id is not null) as account_list`},
+		{Type: qb.JOIN, Stmt: `LEFT JOIN accounts ON accounts.team_name = teams.name`},
 	},
 }
 
@@ -88,7 +100,7 @@ func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.A
 func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.Operation, input *TeamRequest) (resp *TeamResponse, err error) {
 	var (
 		body        *TeamResponseBody
-		query       *dbstmts.Select[*Filter, *teammodels.Team]
+		query       *dbstmts.Select[*Filter, *teammodels.TeamData]
 		forFilter   map[string]string
 		filter      *Filter           = &Filter{}
 		stmt        string            = ""
@@ -110,6 +122,8 @@ func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma
 	stmt, _ = builder.FromRequest(requestData)
 	lg.With("stmt", fmt.Sprintln(stmt)).Debug("sql statement ... ")
 
+	fmt.Println(stmt)
+
 	lg.Debug("creating select statement ...")
 	// remove true values from the data for the filter usage
 	forFilter = ex.FilterValue(requestData, "true")
@@ -119,7 +133,7 @@ func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma
 	}
 	// configure the db query with the generated statement and
 	// filter values
-	query = &dbstmts.Select[*Filter, *teammodels.Team]{
+	query = &dbstmts.Select[*Filter, *teammodels.TeamData]{
 		Statement: stmt,
 		Data:      filter,
 	}
