@@ -25,8 +25,8 @@ import (
 const (
 	ENDPOINT      string = `/v1/infacosts/between/{start_date}/{end_date}`
 	opID          string = `infracosts-get-dynamic`
-	opSummary     string = `Return costs grouped by the month and other filter options.`
-	opDescription string = `Returns a table of costs`
+	opSummary     string = `Infracost table data`
+	opDescription string = `Returns a table of infracost data based on the requested dates and filters.`
 )
 
 // InfracostRequest is the incoming request options
@@ -81,13 +81,13 @@ type Filter struct {
 // returned struct
 var querySegments = map[string][]*qb.Segment{
 	"_default": {
-		{Type: qb.SELECT, Stmt: `strftime("%Y-%m", base.date) as date`},
+		{Type: qb.SELECT, Stmt: `strftime("%Y-%m", infracosts.date) as date`},
 		{Type: qb.SELECT, Stmt: `CAST(COALESCE(SUM(cost), 0) as REAL) as cost`},
-		{Type: qb.JOIN, Stmt: `LEFT JOIN accounts ON accounts.id = base.account_id`},
-		{Type: qb.WHERE, Stmt: `base.service != 'Tax'`},
-		{Type: qb.WHERE, Stmt: `strftime("%Y-%m", base.date) IN (:months)`},
-		{Type: qb.GROUPBY, Stmt: `strftime("%Y-%m", base.date)`},
-		{Type: qb.ORDERBY, Stmt: `strftime("%Y-%m", base.date) ASC`},
+		{Type: qb.JOIN, Stmt: `LEFT JOIN accounts ON accounts.id = infracosts.account_id`},
+		{Type: qb.WHERE, Stmt: `infracosts.service != 'Tax'`},
+		{Type: qb.WHERE, Stmt: `strftime("%Y-%m", infracosts.date) IN (:months)`},
+		{Type: qb.GROUPBY, Stmt: `strftime("%Y-%m", infracosts.date)`},
+		{Type: qb.ORDERBY, Stmt: `strftime("%Y-%m", infracosts.date) ASC`},
 	},
 	"team": {
 		{Type: qb.SELECT, Stmt: `accounts.team_name as team`},
@@ -109,15 +109,15 @@ var querySegments = map[string][]*qb.Segment{
 		{Type: qb.ORDERBY, Stmt: `accounts.environment ASC`},
 	},
 	"service": {
-		{Type: qb.SELECT, Stmt: `base.service as service`},
-		{Type: qb.WHERE, Stmt: `base.service = :service`},
-		{Type: qb.GROUPBY, Stmt: `base.service`},
-		{Type: qb.ORDERBY, Stmt: `base.service ASC`},
+		{Type: qb.SELECT, Stmt: `infracosts.service as service`},
+		{Type: qb.WHERE, Stmt: `infracosts.service = :service`},
+		{Type: qb.GROUPBY, Stmt: `infracosts.service`},
+		{Type: qb.ORDERBY, Stmt: `infracosts.service ASC`},
 	},
 }
 
 // the query builder
-var builder = qb.New("infracosts as base", querySegments)
+var builder = qb.New("infracosts", querySegments)
 
 // base table options, add more details to this within the handler
 var tableOpts = &tabulate.Options{

@@ -25,8 +25,8 @@ import (
 const (
 	ENDPOINT      string = `/v1/uptime/between/{start_date}/{end_date}`
 	opID          string = `uptime-get-dynamic`
-	opSummary     string = `Return uptime grouped by month and others.`
-	opDescription string = `Returns uptime data grouped by year-month date and other choices.`
+	opSummary     string = `Uptime table data`
+	opDescription string = `Returns uptime data as a table grouped by the month and filtered based on query.`
 )
 
 // UptimeRequest is the incoming request options
@@ -73,12 +73,12 @@ type Filter struct {
 // returned struct
 var querySegments = map[string][]*qb.Segment{
 	"_default": {
-		{Type: qb.SELECT, Stmt: `strftime("%Y-%m", base.date) as date`},
-		{Type: qb.SELECT, Stmt: `CAST(COALESCE(AVG(base.average), 0) as REAL) as average`},
-		{Type: qb.JOIN, Stmt: `LEFT JOIN accounts ON accounts.id = base.account_id`},
-		{Type: qb.WHERE, Stmt: `strftime("%Y-%m", base.date) IN (:months)`},
-		{Type: qb.GROUPBY, Stmt: `strftime("%Y-%m", base.date)`},
-		{Type: qb.ORDERBY, Stmt: `strftime("%Y-%m", base.date) ASC`},
+		{Type: qb.SELECT, Stmt: `strftime("%Y-%m", uptime.date) as date`},
+		{Type: qb.SELECT, Stmt: `CAST(COALESCE(AVG(uptime.average), 0) as REAL) as average`},
+		{Type: qb.JOIN, Stmt: `LEFT JOIN accounts ON accounts.id = uptime.account_id`},
+		{Type: qb.WHERE, Stmt: `strftime("%Y-%m", uptime.date) IN (:months)`},
+		{Type: qb.GROUPBY, Stmt: `strftime("%Y-%m", uptime.date)`},
+		{Type: qb.ORDERBY, Stmt: `strftime("%Y-%m", uptime.date) ASC`},
 	},
 	"team": {
 		{Type: qb.SELECT, Stmt: `accounts.team_name as team`},
@@ -89,10 +89,7 @@ var querySegments = map[string][]*qb.Segment{
 }
 
 // the query builder
-var builder = &qb.Builder{
-	From:     "uptime as base",
-	Segments: querySegments,
-}
+var builder = qb.New("uptime", querySegments)
 
 // base table options, add more details to this within the handler
 var tableOpts = &tabulate.Options{

@@ -1,4 +1,4 @@
-package accountdynamic
+package codebasedynamic
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"opg-reports/report/internal/db/dbselects"
 	"opg-reports/report/internal/db/dbstmts"
-	"opg-reports/report/internal/domain/accounts/accountmodels"
+	"opg-reports/report/internal/domain/codebases/codebasemodels"
 	"opg-reports/report/internal/utils/ex"
 	"opg-reports/report/internal/utils/marshal"
 	"opg-reports/report/internal/utils/qb"
@@ -19,66 +19,61 @@ import (
 
 // fixed values for this endpoint, used by the operation setup for huma
 const (
-	ENDPOINT      string = `/v1/accounts`
-	opID          string = `accounts-get-dynamic`
-	opSummary     string = `Account listing.`
-	opDescription string = `Returns a list of all accounts and team data.`
+	ENDPOINT      string = `/v1/codebases`
+	opID          string = `codebases-get-dynamic`
+	opSummary     string = `Codebase listing.`
+	opDescription string = `Returns a list of all codebases and codeowner data.`
 )
 
-// AccountRequest is the incoming request options
-type AccountRequest struct {
-	Team        string `query:"team" json:"team,omitempty"`
-	Environment string `query:"environment" json:"environment,omitempty"`
-	Sort        string `query:"sort" json:"-"` // sort data, dont json encode otherwise break the cast to filter
+// CodebaseRequest is the incoming request options
+type CodebaseRequest struct {
+	Team string `query:"team" json:"team,omitempty"`
+	Sort string `query:"sort" json:"-"` // sort data, dont json encode otherwise break the cast to filter
 }
 
-// AccountResponse is the handlers data struct passed to a huma api which will then be rendered
-type AccountResponse struct {
-	Body *AccountResponseBody
+// CodebaseResponse is the handlers data struct passed to a huma api which will then be rendered
+type CodebaseResponse struct {
+	Body *CodebaseResponseBody
 }
 
-// AccountResponseBody is the response body, containing all data to be returned
-type AccountResponseBody struct {
-	Request     *AccountRequest              `json:"request"`     // the original request
-	Data        []*accountmodels.AccountData `json:"data"`        // the actual data results
-	Performance []*timers.Timer              `json:"performance"` // duration of the call
-	Count       int                          `json:"count"`       // counter to check data aligns
+// CodebaseResponseBody is the response body, containing all data to be returned
+type CodebaseResponseBody struct {
+	Request     *CodebaseRequest               `json:"request"`     // the original request
+	Data        []*codebasemodels.CodebaseData `json:"data"`        // the actual data results
+	Performance []*timers.Timer                `json:"performance"` // duration of the call
+	Count       int                            `json:"count"`       // counter to check data aligns
 }
 
 // Filter contains all the possible filters passed from the request that arent "true"
 type Filter struct {
-	Team        string `db:"team" json:"team"`
-	Environment string `db:"environment" json:"environment"`
+	Team string `db:"team" json:"team"`
 }
 
 // querySegments is the possible options to use when query the database
 //
-// The key should map to the json name in `AccountRequest`, any `:x`
+// The key should map to the json name in `CodebaseRequest`, any `:x`
 // values should match the json name in `filter` struct.
 //
 // Aliases and selected fields should match the json values for the
 // returned struct
 var querySegments = map[string][]*qb.Segment{
 	"_default": {
-		{Type: qb.SELECT, Stmt: `accounts.id`},
-		{Type: qb.SELECT, Stmt: `accounts.name`},
-		{Type: qb.SELECT, Stmt: `accounts.environment`},
-		{Type: qb.SELECT, Stmt: `accounts.label`},
-		{Type: qb.SELECT, Stmt: `accounts.team_name`},
-		{Type: qb.ORDERBY, Stmt: `accounts.team_name ASC`},
-		{Type: qb.ORDERBY, Stmt: `accounts.name ASC`},
-		{Type: qb.ORDERBY, Stmt: `accounts.environment ASC`},
+		{Type: qb.SELECT, Stmt: `codebases.name`},
+		{Type: qb.SELECT, Stmt: `codebases.full_name`},
+		{Type: qb.SELECT, Stmt: `codebases.url`},
+		{Type: qb.SELECT, Stmt: `json_group_array( DISTINCT json_object( 'name', codeowners.name, 'team_name', codeowners.team_name ) ) filter ( where codeowners.name is not null) as codeowner_list`},
+		{Type: qb.JOIN, Stmt: `LEFT JOIN codeowners on codeowners.codebase_full_name = codebases.full_name`},
+		{Type: qb.GROUPBY, Stmt: `codebases.full_name`},
+		{Type: qb.ORDERBY, Stmt: `codeowners.team_name ASC`},
+		{Type: qb.ORDERBY, Stmt: `codebases.full_name ASC`},
 	},
 	"team": {
-		{Type: qb.WHERE, Stmt: `accounts.team_name = :team`},
-	},
-	"environment": {
-		{Type: qb.WHERE, Stmt: `accounts.environment = :environment`},
+		{Type: qb.WHERE, Stmt: `codeowners.team_name = :team`},
 	},
 }
 
 // the query builder
-var builder = qb.New("accounts", querySegments)
+var builder = qb.New("codebases", querySegments)
 
 // operation describes what this endpoint is doing
 var operation = huma.Operation{
@@ -88,26 +83,26 @@ var operation = huma.Operation{
 	Summary:       opSummary,
 	Description:   opDescription,
 	OperationID:   opID,
-	Tags:          []string{"accounts"},
+	Tags:          []string{"codebases"},
 }
 
 // Register attachs the local handler to the huma api allows way to pass along the configured logger, db etc
 func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.API) {
 	// input is an empty struct as
-	huma.Register(humaapi, operation, func(ctx context.Context, input *AccountRequest) (*AccountResponse, error) {
+	huma.Register(humaapi, operation, func(ctx context.Context, input *CodebaseRequest) (*CodebaseResponse, error) {
 		return getData(timers.ContextWithTimers(ctx), log, db, &operation, input)
 	})
 }
 
-func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.Operation, input *AccountRequest) (resp *AccountResponse, err error) {
+func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma.Operation, input *CodebaseRequest) (resp *CodebaseResponse, err error) {
 	var (
-		body        *AccountResponseBody
-		query       *dbstmts.Select[*Filter, *accountmodels.AccountData]
+		body        *CodebaseResponseBody
+		query       *dbstmts.Select[*Filter, *codebasemodels.CodebaseData]
 		forFilter   map[string]string
 		filter      *Filter           = &Filter{}
 		stmt        string            = ""
 		requestData map[string]string = map[string]string{}
-		lg          *slog.Logger      = log.With("func", "accountdynamic.getData", "operation", operation.OperationID)
+		lg          *slog.Logger      = log.With("func", "codebasedynamic.getData", "operation", operation.OperationID)
 	)
 	// timers
 	timers.Start(ctx, operation.OperationID)
@@ -133,7 +128,7 @@ func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma
 	}
 	// configure the db query with the generated statement and
 	// filter values
-	query = &dbstmts.Select[*Filter, *accountmodels.AccountData]{
+	query = &dbstmts.Select[*Filter, *codebasemodels.CodebaseData]{
 		Statement: stmt,
 		Data:      filter,
 	}
@@ -145,14 +140,14 @@ func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma
 
 	// prep result
 	timers.Stop(ctx, operation.OperationID)
-	body = &AccountResponseBody{
+	body = &CodebaseResponseBody{
 		Request:     input,
 		Data:        query.Returned,
 		Count:       len(query.Returned),
 		Performance: timers.All(ctx),
 	}
 	// setup response
-	resp = &AccountResponse{Body: body}
+	resp = &CodebaseResponse{Body: body}
 	lg.Info("complete.")
 	return
 }

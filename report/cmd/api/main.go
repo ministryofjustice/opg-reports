@@ -9,7 +9,7 @@ import (
 	"opg-reports/report/internal/db/dbconnection"
 	"opg-reports/report/internal/db/dbmigrations"
 	"opg-reports/report/internal/domain/accounts/accountapis/accountdynamic"
-	"opg-reports/report/internal/domain/codebases/codebaseapis/codebaseall"
+	"opg-reports/report/internal/domain/codebases/codebaseapis/codebasedynamic"
 	"opg-reports/report/internal/domain/codeowners/codeownerapis/codeownerall"
 	"opg-reports/report/internal/domain/codeowners/codeownerapis/codeownerforteam"
 	"opg-reports/report/internal/domain/infracosts/infracostapis/infracostsdynamic"
@@ -64,7 +64,7 @@ func handlers(ctx context.Context, log *slog.Logger, opts *apiOpts, api huma.API
 	// accounts
 	accountdynamic.Register(ctx, log, db, api)
 	// codebases
-	codebaseall.Register(ctx, log, db, api)
+	codebasedynamic.Register(ctx, log, db, api)
 	// codeowners
 	codeownerall.Register(ctx, log, db, api)
 	codeownerforteam.Register(ctx, log, db, api)

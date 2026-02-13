@@ -13,8 +13,8 @@ type Codebase struct {
 	Url      string `json:"url,omitempty" db:"url"`             // url to access the codebase
 }
 
-// CodebaseAll is used in codebaseall api to return list of codebase data and the attached codeowners
-type CodebaseAll struct {
+// CodebaseData
+type CodebaseData struct {
 	Name       string            `json:"name" db:"name"`                           // short name of codebase (without owner)
 	FullName   string            `json:"full_name" db:"full_name"`                 // full name including the owner
 	Url        string            `json:"url" db:"url"`                             // url to access the codebase
