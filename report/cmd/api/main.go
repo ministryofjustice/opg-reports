@@ -10,8 +10,7 @@ import (
 	"opg-reports/report/internal/db/dbmigrations"
 	"opg-reports/report/internal/domain/accounts/accountapis/accountdynamic"
 	"opg-reports/report/internal/domain/codebases/codebaseapis/codebasedynamic"
-	"opg-reports/report/internal/domain/codeowners/codeownerapis/codeownerall"
-	"opg-reports/report/internal/domain/codeowners/codeownerapis/codeownerforteam"
+	"opg-reports/report/internal/domain/codeowners/codeownerapis/codeownerdynamic"
 	"opg-reports/report/internal/domain/infracosts/infracostapis/infracostsdynamic"
 	"opg-reports/report/internal/domain/teams/teamapis/teamall"
 	"opg-reports/report/internal/domain/uptime/uptimeapis/uptimedynamic"
@@ -66,8 +65,7 @@ func handlers(ctx context.Context, log *slog.Logger, opts *apiOpts, api huma.API
 	// codebases
 	codebasedynamic.Register(ctx, log, db, api)
 	// codeowners
-	codeownerall.Register(ctx, log, db, api)
-	codeownerforteam.Register(ctx, log, db, api)
+	codeownerdynamic.Register(ctx, log, db, api)
 	// infracosts
 	infracostsdynamic.Register(ctx, log, db, api)
 	// teams
