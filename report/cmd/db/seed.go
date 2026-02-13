@@ -2,7 +2,7 @@ package main
 
 import (
 	"opg-reports/report/internal/db/dbconnection"
-	"opg-reports/report/internal/utils/seed"
+	"opg-reports/report/internal/db/dbsetup"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/spf13/cobra"
@@ -36,8 +36,8 @@ func seedRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 	// close the db
 	defer db.Close()
-	// run the seeds
-	err = seed.SeedDB(ctx, log, db)
+
+	err = dbsetup.SeedAll(ctx, log, db)
 	if err != nil {
 		return
 	}

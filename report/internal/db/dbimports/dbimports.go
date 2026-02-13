@@ -11,7 +11,10 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-var ErrImportFailed = errors.New("import failed with error.")
+var (
+	ErrPreFailed    = errors.New("import pre-statement failed with error.")
+	ErrImportFailed = errors.New("import failed with error.")
+)
 
 // Import uses combines the data passed along with the with insert statement defined in this package to
 // insert records in to the active database connection.
@@ -36,6 +39,6 @@ func Import[R dbmodels.Result, T dbmodels.Model](ctx context.Context, log *slog.
 		err = errors.Join(ErrImportFailed, err)
 		return
 	}
-	log.Debug("complete.")
+	lg.Debug("complete.")
 	return
 }

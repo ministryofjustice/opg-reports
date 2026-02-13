@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"opg-reports/report/internal/db/dbconnection"
-	"opg-reports/report/internal/db/dbmigrations"
+	"opg-reports/report/internal/db/dbsetup"
 	"opg-reports/report/internal/domain/infracosts/infracostselects"
 	"opg-reports/report/internal/utils"
 	"opg-reports/report/internal/utils/awsclients"
@@ -92,7 +92,7 @@ func TestCMDImportsInfracostsWithMock(t *testing.T) {
 		t.Errorf("unexpected connection error: [%s]", err.Error())
 		t.FailNow()
 	}
-	dbmigrations.Migrate(ctx, log, db)
+	dbsetup.Migrate(ctx, log, db)
 	defer db.Close()
 
 	err = importInfracosts(ctx, log, client, db, &InfraOpts{
@@ -134,7 +134,7 @@ func TestCMDImportsInfracostsWithoutMock(t *testing.T) {
 		t.Errorf("unexpected connection error: [%s]", err.Error())
 		t.FailNow()
 	}
-	dbmigrations.Migrate(ctx, log, db)
+	dbsetup.Migrate(ctx, log, db)
 	defer db.Close()
 
 	if os.Getenv("AWS_SESSION_TOKEN") == "" {

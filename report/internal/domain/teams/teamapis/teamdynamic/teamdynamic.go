@@ -27,7 +27,6 @@ const (
 
 // TeamRequest is the incoming request options
 type TeamRequest struct {
-	// joins.... accounts, codeowners / codebases
 	Team    string `query:"team_name" json:"team_name,omitempty"`
 	Account string `query:"account" json:"account,omitempty"`
 	Sort    string `query:"sort" json:"-"` // sort data, dont json encode otherwise break the cast to filter

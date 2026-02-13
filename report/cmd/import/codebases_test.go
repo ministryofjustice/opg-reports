@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"opg-reports/report/internal/db/dbconnection"
-	"opg-reports/report/internal/db/dbmigrations"
+	"opg-reports/report/internal/db/dbsetup"
 	"opg-reports/report/internal/domain/codebases/codebase"
 	"opg-reports/report/internal/domain/codebases/codebaseselects"
 	"opg-reports/report/internal/utils/ghclients"
@@ -70,7 +70,7 @@ func TestCMDImportsCodebasesWithMock(t *testing.T) {
 		t.Errorf("unexpected connection error: [%s]", err.Error())
 		t.FailNow()
 	}
-	dbmigrations.Migrate(ctx, log, db)
+	dbsetup.Migrate(ctx, log, db)
 	defer db.Close()
 
 	err = importCodebases(ctx, log, client, db, &codebase.Options{
@@ -114,7 +114,7 @@ func TestCMDImportsCodebasesWithoutMock(t *testing.T) {
 		t.Errorf("unexpected connection error: [%s]", err.Error())
 		t.FailNow()
 	}
-	dbmigrations.Migrate(ctx, log, db)
+	dbsetup.Migrate(ctx, log, db)
 	defer db.Close()
 
 	client, err = ghclients.New(ctx, log, os.Getenv("GH_TOKEN"))

@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"opg-reports/report/conf"
 	"opg-reports/report/internal/db/dbconnection"
-	"opg-reports/report/internal/db/dbmigrations"
+	"opg-reports/report/internal/db/dbsetup"
 	"opg-reports/report/internal/utils/ghclients"
 	"opg-reports/report/internal/utils/logger"
 	"os"
@@ -54,7 +54,7 @@ func dbconn(ctx context.Context, log *slog.Logger) (db *sqlx.DB, err error) {
 	// db connection
 	db, err = dbconnection.Connection(ctx, log, cfg.DB.Driver, cfg.DB.ConnectionString())
 	if err == nil {
-		err = dbmigrations.Migrate(ctx, log, db)
+		err = dbsetup.Migrate(ctx, log, db)
 	}
 	return
 }

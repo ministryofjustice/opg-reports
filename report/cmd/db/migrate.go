@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"opg-reports/report/internal/db/dbconnection"
-	"opg-reports/report/internal/db/dbmigrations"
+	"opg-reports/report/internal/db/dbsetup"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/spf13/cobra"
@@ -46,8 +46,7 @@ func runMigrations(ctx context.Context, log *slog.Logger, db *sqlx.DB) (err erro
 	var lg *slog.Logger = log.With("func", "db.runMigrations")
 
 	lg.Info("starting migrate command ...")
-	// migrate the database
-	err = dbmigrations.Migrate(ctx, log, db)
+	err = dbsetup.Migrate(ctx, log, db)
 	if err != nil {
 		return
 	}

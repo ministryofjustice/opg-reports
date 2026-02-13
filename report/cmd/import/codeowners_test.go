@@ -8,7 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"opg-reports/report/internal/db/dbconnection"
-	"opg-reports/report/internal/db/dbmigrations"
+	"opg-reports/report/internal/db/dbsetup"
 	"opg-reports/report/internal/domain/codebases/codebasemodels"
 	"opg-reports/report/internal/domain/codeowners/codeowner"
 	"opg-reports/report/internal/domain/codeowners/codeownerselects"
@@ -111,7 +111,7 @@ func TestCMDImportsCodeownersWithMock(t *testing.T) {
 		t.Errorf("unexpected connection error: [%s]", err.Error())
 		t.FailNow()
 	}
-	dbmigrations.Migrate(ctx, log, db)
+	dbsetup.Migrate(ctx, log, db)
 	defer db.Close()
 
 	err = importCodeowners(ctx, log, client, db, &codeowner.Input{
@@ -164,7 +164,7 @@ func TestCMDImportsCodeownersWithoutMock(t *testing.T) {
 		t.Errorf("unexpected connection error: [%s]", err.Error())
 		t.FailNow()
 	}
-	dbmigrations.Migrate(ctx, log, db)
+	dbsetup.Migrate(ctx, log, db)
 	defer db.Close()
 
 	client, err = ghclients.New(ctx, log, os.Getenv("GH_TOKEN"))

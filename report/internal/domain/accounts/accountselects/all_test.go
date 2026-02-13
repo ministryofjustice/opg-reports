@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"opg-reports/report/internal/db/dbconnection"
-	"opg-reports/report/internal/db/dbmigrations"
+	"opg-reports/report/internal/db/dbsetup"
 	"opg-reports/report/internal/domain/accounts/accountseeds"
 	"opg-reports/report/internal/utils/logger"
 	"path/filepath"
@@ -29,7 +29,7 @@ func TestDomainSelectsAccountsAll(t *testing.T) {
 		t.Errorf("unexpected connection error: [%s]", err.Error())
 		t.FailNow()
 	}
-	dbmigrations.Migrate(ctx, log, db)
+	dbsetup.Migrate(ctx, log, db)
 	defer db.Close()
 	// insert some dummy selects with seed command
 	seeded, err := accountseeds.Seed(ctx, log, db)

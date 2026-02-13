@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"opg-reports/report/internal/db/dbconnection"
-	"opg-reports/report/internal/db/dbmigrations"
+	"opg-reports/report/internal/db/dbsetup"
 	"opg-reports/report/internal/domain/teams/teammodels"
 	"opg-reports/report/internal/domain/teams/teamselects"
 	"opg-reports/report/internal/utils/ghclients"
@@ -86,7 +86,7 @@ func TestCMDImportsTeamsWithMock(t *testing.T) {
 		t.Errorf("unexpected connection error: [%s]", err.Error())
 		t.FailNow()
 	}
-	dbmigrations.Migrate(ctx, log, db)
+	dbsetup.Migrate(ctx, log, db)
 	defer db.Close()
 
 	err = teamsImport(ctx, log, client, db)
@@ -128,7 +128,7 @@ func TestCMDImportsTeamsWithoutMock(t *testing.T) {
 		t.Errorf("unexpected connection error: [%s]", err.Error())
 		t.FailNow()
 	}
-	dbmigrations.Migrate(ctx, log, db)
+	dbsetup.Migrate(ctx, log, db)
 	defer db.Close()
 
 	client, err = ghclients.New(ctx, log, os.Getenv("GH_TOKEN"))

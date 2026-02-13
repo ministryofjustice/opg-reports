@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"opg-reports/report/internal/db/dbconnection"
-	"opg-reports/report/internal/db/dbmigrations"
+	"opg-reports/report/internal/db/dbsetup"
 	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/codebases/codebasemodels"
 	"opg-reports/report/internal/utils/logger"
@@ -32,7 +32,7 @@ func TestDomainCodebasesSeedWorking(t *testing.T) {
 	}
 	defer db.Close()
 	// db schema setup
-	err = dbmigrations.Migrate(ctx, log, db)
+	err = dbsetup.Migrate(ctx, log, db)
 	if err != nil {
 		t.Errorf("unexpected migration issue:\n%v", err.Error())
 	}

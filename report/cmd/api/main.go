@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"opg-reports/report/conf"
 	"opg-reports/report/internal/db/dbconnection"
-	"opg-reports/report/internal/db/dbmigrations"
+	"opg-reports/report/internal/db/dbsetup"
 	"opg-reports/report/internal/domain/accounts/accountapis/accountdynamic"
 	"opg-reports/report/internal/domain/codebases/codebaseapis/codebasedynamic"
 	"opg-reports/report/internal/domain/codeowners/codeownerapis/codeownerdynamic"
@@ -148,7 +148,7 @@ func dbconn(ctx context.Context, log *slog.Logger, opts *apiOpts) (db *sqlx.DB, 
 	// db connection
 	db, err = dbconnection.Connection(ctx, log, driver, conf.DBConnectionString(path, ""))
 	if err == nil {
-		err = dbmigrations.Migrate(ctx, log, db)
+		err = dbsetup.Migrate(ctx, log, db)
 	}
 	return
 }
