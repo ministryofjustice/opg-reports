@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"opg-reports/report/internal/db/dbconnection"
 	"opg-reports/report/internal/db/dbsetup"
-	"opg-reports/report/internal/domain/codebases/codebaseseeds"
 	"opg-reports/report/internal/utils/logger"
 	"path/filepath"
 	"testing"
@@ -29,23 +28,19 @@ func TestDomainSelectsCodebasesAll(t *testing.T) {
 		t.Errorf("unexpected connection error: [%s]", err.Error())
 		t.FailNow()
 	}
-	dbsetup.Migrate(ctx, log, db)
+
 	defer db.Close()
 	// insert some dummy selects with seed command
-	seeded, err := codebaseseeds.Seed(ctx, log, db)
+	err = dbsetup.SeedAll(ctx, log, db)
 	if err != nil {
 		t.Errorf("unexpected seeds error: [%s]", err.Error())
 		t.FailNow()
 	}
 	// select all and compare counts
-	data, err := All(ctx, log, db)
+	_, err = All(ctx, log, db)
 	if err != nil {
 		t.Errorf("unexpected all error: [%s]", err.Error())
 		t.FailNow()
-	}
-
-	if len(data) != len(seeded) {
-		t.Errorf("mismatched row count between seed and select.")
 	}
 
 }

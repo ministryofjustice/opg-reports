@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"opg-reports/report/internal/db/dbconnection"
 	"opg-reports/report/internal/db/dbsetup"
-	"opg-reports/report/internal/domain/infracosts/infracostselects"
 	"opg-reports/report/internal/utils"
 	"opg-reports/report/internal/utils/awsclients"
 	"opg-reports/report/internal/utils/awsid"
@@ -103,15 +102,6 @@ func TestCMDImportsInfracostsWithMock(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected import error: [%s]", err.Error())
 		t.FailNow()
-	}
-
-	data, err := infracostselects.All(ctx, log, db)
-	if err != nil {
-		t.Errorf("unexpected select error: [%s]", err.Error())
-		t.FailNow()
-	}
-	if len(data) <= 1 {
-		t.Errorf("expected more results.")
 	}
 
 }

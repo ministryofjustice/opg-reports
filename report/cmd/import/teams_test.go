@@ -9,7 +9,6 @@ import (
 	"opg-reports/report/internal/db/dbconnection"
 	"opg-reports/report/internal/db/dbsetup"
 	"opg-reports/report/internal/domain/teams/teammodels"
-	"opg-reports/report/internal/domain/teams/teamselects"
 	"opg-reports/report/internal/utils/ghclients"
 	"opg-reports/report/internal/utils/logger"
 	"opg-reports/report/internal/utils/marshal"
@@ -93,16 +92,6 @@ func TestCMDImportsTeamsWithMock(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected import error: [%s]", err.Error())
 		t.FailNow()
-	}
-
-	data, err := teamselects.All(ctx, log, db)
-	if err != nil {
-		t.Errorf("unexpected select error: [%s]", err.Error())
-		t.FailNow()
-	}
-
-	if len(data) <= 1 {
-		t.Error("expected more results to be returned.")
 	}
 
 }

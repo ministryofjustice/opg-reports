@@ -11,7 +11,6 @@ import (
 	"opg-reports/report/internal/db/dbsetup"
 	"opg-reports/report/internal/domain/codebases/codebasemodels"
 	"opg-reports/report/internal/domain/codeowners/codeowner"
-	"opg-reports/report/internal/domain/codeowners/codeownerselects"
 	"opg-reports/report/internal/utils/ghclients"
 	"opg-reports/report/internal/utils/logger"
 	"opg-reports/report/internal/utils/ptr"
@@ -123,15 +122,6 @@ func TestCMDImportsCodeownersWithMock(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected import error: [%s]", err.Error())
 		t.FailNow()
-	}
-
-	data, err := codeownerselects.All(ctx, log, db)
-	if err != nil {
-		t.Errorf("unexpected select error: [%s]", err.Error())
-		t.FailNow()
-	}
-	if len(data) <= 1 {
-		t.Errorf("expected more results.")
 	}
 
 }

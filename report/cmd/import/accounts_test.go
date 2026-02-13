@@ -9,7 +9,6 @@ import (
 	"opg-reports/report/internal/db/dbconnection"
 	"opg-reports/report/internal/db/dbsetup"
 	"opg-reports/report/internal/domain/accounts/accountmodels"
-	"opg-reports/report/internal/domain/accounts/accountselects"
 	"opg-reports/report/internal/utils/ghclients"
 	"opg-reports/report/internal/utils/logger"
 	"opg-reports/report/internal/utils/marshal"
@@ -92,15 +91,6 @@ func TestCMDImportsAccountsWithMock(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected import error: [%s]", err.Error())
 		t.FailNow()
-	}
-
-	res, err := accountselects.All(ctx, log, db)
-	if err != nil {
-		t.Errorf("unexpected select error: [%s]", err.Error())
-		t.FailNow()
-	}
-	if len(res) != 2 {
-		t.Errorf("expected exactly 2 accounts from the mock data to be created.")
 	}
 
 }

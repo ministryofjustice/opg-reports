@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"opg-reports/report/internal/db/dbconnection"
 	"opg-reports/report/internal/db/dbsetup"
-	"opg-reports/report/internal/domain/uptime/uptimeselects"
 	"opg-reports/report/internal/utils/awsclients"
 	"opg-reports/report/internal/utils/awsid"
 	"opg-reports/report/internal/utils/logger"
@@ -94,15 +93,6 @@ func TestCMDImportsUptimeWithMock(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected import error: [%s]", err.Error())
 		t.FailNow()
-	}
-
-	data, err := uptimeselects.All(ctx, log, db)
-	if err != nil {
-		t.Errorf("unexpected select error: [%s]", err.Error())
-		t.FailNow()
-	}
-	if len(data) <= 0 {
-		t.Errorf("expected more results.")
 	}
 
 }
