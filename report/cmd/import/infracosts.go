@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"log/slog"
+	"opg-reports/report/internal/db/dbsetup"
 	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/infracosts/infracost"
-	"opg-reports/report/internal/domain/infracosts/infracostimports"
 	"opg-reports/report/internal/domain/infracosts/infracostmodels"
 	"opg-reports/report/internal/utils/awsclients"
 	"opg-reports/report/internal/utils/awsid"
@@ -101,7 +101,7 @@ func importInfracosts(ctx context.Context, log *slog.Logger, client infracost.Aw
 		return
 	}
 	// write the data
-	result, err = infracostimports.Import(ctx, log, db, data)
+	result, err = dbsetup.Import[int](ctx, log, db, data, nil)
 	if err != nil {
 		return
 	}

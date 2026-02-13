@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"log/slog"
+	"opg-reports/report/internal/db/dbsetup"
 	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/accounts/account"
-	"opg-reports/report/internal/domain/accounts/accountimports"
 	"opg-reports/report/internal/domain/accounts/accountmodels"
 	"os"
 
@@ -64,14 +64,13 @@ func importAccounts(ctx context.Context, log *slog.Logger, client account.GitHub
 	opts.DataDirectory, _ = os.MkdirTemp("", "__import-accounts-*")
 
 	lg.Info("starting accounts import command ...")
-
 	// fetch the data
 	data, err = account.GetAwsAccountData(ctx, log, client, opts)
 	if err != nil {
 		return
 	}
-	// write the data
-	result, err = accountimports.Import(ctx, log, db, data)
+	// import
+	result, err = dbsetup.Import[string](ctx, log, db, data, nil)
 	if err != nil {
 		return
 	}

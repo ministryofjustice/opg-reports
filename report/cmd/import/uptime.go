@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"log/slog"
+	"opg-reports/report/internal/db/dbsetup"
 	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/uptime/uptime"
-	"opg-reports/report/internal/domain/uptime/uptimeimports"
 	"opg-reports/report/internal/domain/uptime/uptimemodels"
 	"opg-reports/report/internal/utils/awsclients"
 	"opg-reports/report/internal/utils/awsid"
@@ -87,7 +87,7 @@ func importUptime(ctx context.Context, log *slog.Logger, client uptime.AwsClient
 	}
 
 	// write the data
-	result, err = uptimeimports.Import(ctx, log, db, data)
+	result, err = dbsetup.Import[int](ctx, log, db, data, nil)
 	if err != nil {
 		return
 	}

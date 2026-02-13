@@ -13,6 +13,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+// SeedAll populates the database with generated data
 func SeedAll(ctx context.Context, log *slog.Logger, db *sqlx.DB) (err error) {
 
 	var (
@@ -35,7 +36,7 @@ func SeedAll(ctx context.Context, log *slog.Logger, db *sqlx.DB) (err error) {
 	}
 
 	// seed teams
-	lg.Error("seeding teams ...")
+	lg.Info("seeding teams ...")
 	teams = generateTeams(5)
 	importStmt = _IMPORTS["teams"]
 	_, err = Import[string](ctx, log, db, teams, importStmt)
@@ -43,7 +44,7 @@ func SeedAll(ctx context.Context, log *slog.Logger, db *sqlx.DB) (err error) {
 		return
 	}
 	// seed accounts
-	lg.Error("seeding accounts ...")
+	lg.Info("seeding accounts ...")
 	accounts = generateAccounts(50, teams)
 	importStmt = _IMPORTS["accounts"]
 	_, err = Import[string](ctx, log, db, accounts, importStmt)
@@ -51,7 +52,7 @@ func SeedAll(ctx context.Context, log *slog.Logger, db *sqlx.DB) (err error) {
 		return
 	}
 	// costs
-	lg.Error("seeding infracosts ...")
+	lg.Info("seeding infracosts ...")
 	infracosts = generateInfracosts(13000, accounts)
 	importStmt = _IMPORTS["infracosts"]
 	_, err = Import[int](ctx, log, db, infracosts, importStmt)
@@ -59,7 +60,7 @@ func SeedAll(ctx context.Context, log *slog.Logger, db *sqlx.DB) (err error) {
 		return
 	}
 	// uptime
-	lg.Error("seeding uptime ...")
+	lg.Info("seeding uptime ...")
 	uptime = generateUptime(8000, accounts)
 	importStmt = _IMPORTS["uptime"]
 	_, err = Import[int](ctx, log, db, uptime, importStmt)
@@ -67,7 +68,7 @@ func SeedAll(ctx context.Context, log *slog.Logger, db *sqlx.DB) (err error) {
 		return
 	}
 
-	lg.Error("seeding codebases ...")
+	lg.Info("seeding codebases ...")
 	codebases = generateCodebases(50)
 	importStmt = _IMPORTS["codebases"]
 	_, err = Import[int](ctx, log, db, codebases, importStmt)
@@ -75,7 +76,7 @@ func SeedAll(ctx context.Context, log *slog.Logger, db *sqlx.DB) (err error) {
 		return
 	}
 
-	lg.Error("seeding codeowners ...")
+	lg.Info("seeding codeowners ...")
 	codeowners = generateCodeowners(75, teams, codebases)
 	importStmt = _IMPORTS["codeowners"]
 	_, err = Import[int](ctx, log, db, codeowners, importStmt)

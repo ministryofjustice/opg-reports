@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"log/slog"
+	"opg-reports/report/internal/db/dbsetup"
 	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/codebases/codebase"
-	"opg-reports/report/internal/domain/codebases/codebaseimports"
 	"opg-reports/report/internal/domain/codebases/codebasemodels"
 
 	"github.com/google/go-github/v81/github"
@@ -76,7 +76,7 @@ func importCodebases(ctx context.Context, log *slog.Logger, client codebase.GitH
 		return
 	}
 	// write the data
-	result, err = codebaseimports.Import(ctx, log, db, data)
+	result, err = dbsetup.Import[int](ctx, log, db, data, nil)
 	if err != nil {
 		return
 	}

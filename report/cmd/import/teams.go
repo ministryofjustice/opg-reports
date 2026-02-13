@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"opg-reports/report/internal/db/dbsetup"
 	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/teams/team"
-	"opg-reports/report/internal/domain/teams/teamimports"
 	"opg-reports/report/internal/domain/teams/teammodels"
 	"os"
 
@@ -78,7 +78,7 @@ func teamsImport(ctx context.Context, log *slog.Logger, client team.GitHubClient
 		return
 	}
 	// write the data
-	result, err = teamimports.Import(ctx, log, db, data)
+	result, err = dbsetup.Import[string](ctx, log, db, data, nil)
 	if err != nil {
 		return
 	}

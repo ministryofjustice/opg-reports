@@ -3,11 +3,11 @@ package main
 import (
 	"context"
 	"log/slog"
+	"opg-reports/report/internal/db/dbsetup"
 	"opg-reports/report/internal/db/dbstmts"
 	"opg-reports/report/internal/domain/codebases/codebasemodels"
 	"opg-reports/report/internal/domain/codebases/codebaseselects"
 	"opg-reports/report/internal/domain/codeowners/codeowner"
-	"opg-reports/report/internal/domain/codeowners/codeownerimports"
 	"opg-reports/report/internal/domain/codeowners/codeownermodels"
 
 	"github.com/google/go-github/v81/github"
@@ -80,7 +80,7 @@ func importCodeowners(ctx context.Context, log *slog.Logger, client codeowner.Gi
 		return
 	}
 	// write the data
-	result, err = codeownerimports.Import(ctx, log, db, data)
+	result, err = dbsetup.Import[int](ctx, log, db, data, nil)
 	if err != nil {
 		return
 	}

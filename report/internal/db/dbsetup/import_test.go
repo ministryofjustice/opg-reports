@@ -2,6 +2,7 @@ package dbsetup
 
 import (
 	"opg-reports/report/internal/db/dbconnection"
+	"opg-reports/report/internal/domain/accounts/accountmodels"
 	"opg-reports/report/internal/utils/logger"
 	"path/filepath"
 	"testing"
@@ -9,8 +10,18 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func TestDBSetupImports(t *testing.T) {
+func TestDBSetupStatementFromT(t *testing.T) {
+	var err error
 
+	d1 := []*accountmodels.Account{}
+	_, err = statementFromT(d1)
+	if err != nil {
+		t.Error("non statement matched")
+	}
+
+}
+
+func TestDBSetupImports(t *testing.T) {
 	var (
 		err     error
 		db      *sqlx.DB
@@ -33,10 +44,9 @@ func TestDBSetupImports(t *testing.T) {
 		t.Errorf("unexpected error:\n%s", err.Error())
 		t.FailNow()
 	}
-	// test team insert
+	// test team import without a fixed statement
 	teams := generateTeams(5)
-	importStmt := _IMPORTS["teams"]
-	s1, err := Import[string](ctx, lg, db, teams, importStmt)
+	s1, err := Import[string](ctx, lg, db, teams, nil)
 	if err != nil || len(teams) != len(s1) {
 		t.Errorf("unexpected team import error:\n%s", err.Error())
 		t.FailNow()
@@ -44,7 +54,7 @@ func TestDBSetupImports(t *testing.T) {
 
 	// test account insert
 	accounts := generateAccounts(10, teams)
-	importStmt = _IMPORTS["accounts"]
+	importStmt := _IMPORTS["accounts"]
 	s2, err := Import[string](ctx, lg, db, accounts, importStmt)
 	if err != nil || len(accounts) != len(s2) {
 		t.Errorf("unexpected account import error:\n%s", err.Error())

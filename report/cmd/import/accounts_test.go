@@ -112,7 +112,7 @@ func TestCMDImportsAccountsWithoutMock(t *testing.T) {
 		client *github.Client
 		db     *sqlx.DB
 		ctx    context.Context = t.Context()
-		log    *slog.Logger    = logger.New("error")
+		log    *slog.Logger    = logger.New("debug")
 		dir    string          = t.TempDir()
 		dbPath string          = filepath.Join(dir, "test-import-accounts.db")
 	)
