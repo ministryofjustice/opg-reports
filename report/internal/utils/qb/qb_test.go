@@ -19,12 +19,12 @@ var tests = []*tester{
 
 	{
 		QB: &Builder{
-			From:  "infracosts as base",
-			Joins: []string{"LEFT JOIN accounts ON accounts.id = base.account_id"},
+			From: "infracosts as base",
 			Segments: map[string][]*Segment{
 				"_default": {
 					{Type: SELECT, Stmt: `strftime("%Y-%m", base.date) as date`},
 					{Type: SELECT, Stmt: `CAST(COALESCE(SUM(cost), 0) as REAL) as cost`},
+					{Type: JOIN, Stmt: `LEFT JOIN accounts ON accounts.id = base.account_id`},
 					{Type: WHERE, Stmt: `base.service != 'Tax'`},
 					{Type: WHERE, Stmt: `strftime("%Y-%m", base.date) IN (:month)`},
 					{Type: GROUPBY, Stmt: `strftime("%Y-%m", base.date)`},
@@ -65,6 +65,7 @@ var tests = []*tester{
 					"date_range": "2025-11..2026-02",
 				},
 				Expected: map[Type][]string{
+					JOIN: []string{`LEFT JOIN accounts ON accounts.id = base.account_id`},
 					SELECT: []string{
 						`strftime("%Y-%m", base.date) as date`,
 						`CAST(COALESCE(SUM(cost), 0) as REAL) as cost`,
@@ -88,6 +89,7 @@ var tests = []*tester{
 					"team":       "true",
 				},
 				Expected: map[Type][]string{
+					JOIN: []string{`LEFT JOIN accounts ON accounts.id = base.account_id`},
 					SELECT: []string{
 						`strftime("%Y-%m", base.date) as date`,
 						`CAST(COALESCE(SUM(cost), 0) as REAL) as cost`,
@@ -114,6 +116,7 @@ var tests = []*tester{
 					"team":       "sirius",
 				},
 				Expected: map[Type][]string{
+					JOIN: []string{`LEFT JOIN accounts ON accounts.id = base.account_id`},
 					SELECT: []string{
 						`strftime("%Y-%m", base.date) as date`,
 						`CAST(COALESCE(SUM(cost), 0) as REAL) as cost`,
@@ -142,6 +145,7 @@ var tests = []*tester{
 					"account":    "true",
 				},
 				Expected: map[Type][]string{
+					JOIN: []string{`LEFT JOIN accounts ON accounts.id = base.account_id`},
 					SELECT: []string{
 						`strftime("%Y-%m", base.date) as date`,
 						`CAST(COALESCE(SUM(cost), 0) as REAL) as cost`,
@@ -174,6 +178,7 @@ var tests = []*tester{
 					"account":    "sirius production",
 				},
 				Expected: map[Type][]string{
+					JOIN: []string{`LEFT JOIN accounts ON accounts.id = base.account_id`},
 					SELECT: []string{
 						`strftime("%Y-%m", base.date) as date`,
 						`CAST(COALESCE(SUM(cost), 0) as REAL) as cost`,
@@ -208,6 +213,7 @@ var tests = []*tester{
 					"environment": "true",
 				},
 				Expected: map[Type][]string{
+					JOIN: []string{`LEFT JOIN accounts ON accounts.id = base.account_id`},
 					SELECT: []string{
 						`strftime("%Y-%m", base.date) as date`,
 						`CAST(COALESCE(SUM(cost), 0) as REAL) as cost`,
@@ -245,6 +251,7 @@ var tests = []*tester{
 					"environment": "production",
 				},
 				Expected: map[Type][]string{
+					JOIN: []string{`LEFT JOIN accounts ON accounts.id = base.account_id`},
 					SELECT: []string{
 						`strftime("%Y-%m", base.date) as date`,
 						`CAST(COALESCE(SUM(cost), 0) as REAL) as cost`,
@@ -284,6 +291,7 @@ var tests = []*tester{
 					"service":     "true",
 				},
 				Expected: map[Type][]string{
+					JOIN: []string{`LEFT JOIN accounts ON accounts.id = base.account_id`},
 					SELECT: []string{
 						`strftime("%Y-%m", base.date) as date`,
 						`CAST(COALESCE(SUM(cost), 0) as REAL) as cost`,
@@ -330,7 +338,7 @@ func TestUtilsBuilder(t *testing.T) {
 		for i, variant := range test.Variants {
 			_, blocks := q.FromRequest(variant.Request)
 			if len(blocks) != len(variant.Expected) {
-				t.Errorf("different number of sql segments returned. expected [%d] actual [%v].", len(variant.Expected), len(blocks))
+				t.Errorf("[%d] different number of sql segments returned. expected [%d] actual [%v].", i, len(variant.Expected), len(blocks))
 			}
 			// loop over expected chunks
 			for ty, expected := range variant.Expected {

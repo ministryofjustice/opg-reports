@@ -21,7 +21,7 @@ import (
 const (
 	ENDPOINT      string = `/v1/codeowners`
 	opID          string = `codeowners-get-dynamic`
-	opSummary     string = `Codeowner listing.`
+	opSummary     string = `Codeowner listing`
 	opDescription string = `Returns a list of all codeowners and their codebases.`
 )
 

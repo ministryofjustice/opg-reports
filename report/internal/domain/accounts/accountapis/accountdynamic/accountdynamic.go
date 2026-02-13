@@ -21,7 +21,7 @@ import (
 const (
 	ENDPOINT      string = `/v1/accounts`
 	opID          string = `accounts-get-dynamic`
-	opSummary     string = `Account listing.`
+	opSummary     string = `Account listing`
 	opDescription string = `Returns a list of all accounts and team data.`
 )
 

@@ -21,7 +21,7 @@ import (
 const (
 	ENDPOINT      string = `/v1/codebases`
 	opID          string = `codebases-get-dynamic`
-	opSummary     string = `Codebase listing.`
+	opSummary     string = `Codebase listing`
 	opDescription string = `Returns a list of all codebases and codeowner data.`
 )
 

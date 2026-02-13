@@ -21,12 +21,14 @@ import (
 const (
 	ENDPOINT      string = `/v1/teams`
 	opID          string = `teams-get-dynamic`
-	opSummary     string = `Teams listing.`
+	opSummary     string = `Teams listing`
 	opDescription string = `Returns a list of all teams.`
 )
 
 // TeamRequest is the incoming request options
 type TeamRequest struct {
+	// joins.... accounts, codeowners / codebases
+
 	Sort string `query:"sort" json:"-"` // sort data, dont json encode otherwise break the cast to filter
 }
 
