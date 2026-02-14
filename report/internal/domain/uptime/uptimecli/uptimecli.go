@@ -20,7 +20,7 @@ import (
 
 const (
 	name  string = "uptime"
-	short string = `uptime fetches and imports uptime data from cloudwatch.`
+	short string = `uptime fetches and imports uptime data from cloudwatch [needs AWS_SESSION].`
 )
 
 // the command flags used on the import cli tool
@@ -89,6 +89,11 @@ func runCmd(cmd *cobra.Command, args []string) (err error) {
 		return
 	}
 	defer db.Close()
+	// db migration before import
+	err = dbsetup.Migrate(ctx, log, db)
+	if err != nil {
+		return
+	}
 	// aws client
 	client, err = awsclients.New[*cloudwatch.Client](ctx, log, flags.Region)
 	if err != nil {

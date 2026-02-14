@@ -19,7 +19,7 @@ import (
 
 const (
 	name  string = "codebases"
-	short string = `codebases fetches and imports active repositories from github.`
+	short string = `codebases fetches and imports active repositories from github [needs GITHUB_TOKEN].`
 )
 
 // the command flags used on the import cli tool
@@ -93,6 +93,11 @@ func runCmd(cmd *cobra.Command, args []string) (err error) {
 		return
 	}
 	defer db.Close()
+	// db migration before import
+	err = dbsetup.Migrate(ctx, log, db)
+	if err != nil {
+		return
+	}
 	// aws client
 	client, err = ghclients.New(ctx, log, token)
 	if err != nil {

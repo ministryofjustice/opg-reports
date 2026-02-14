@@ -121,8 +121,6 @@ func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma
 	stmt, _ = builder.FromRequest(requestData)
 	lg.With("stmt", fmt.Sprintln(stmt)).Debug("sql statement ... ")
 
-	fmt.Println(stmt)
-
 	lg.Debug("creating select statement ...")
 	// remove true values from the data for the filter usage
 	forFilter = ex.FilterValue(requestData, "true")

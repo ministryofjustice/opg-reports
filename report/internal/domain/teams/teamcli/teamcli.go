@@ -19,7 +19,7 @@ import (
 
 const (
 	name  string = "teams"
-	short string = `teams fetches and imports team data from opg-metadata releases.`
+	short string = `teams fetches and imports team data from opg-metadata releases [needs GITHUB_TOKEN].`
 )
 
 // the command flags used on the import cli tool
@@ -86,6 +86,11 @@ func runCmd(cmd *cobra.Command, args []string) (err error) {
 		return
 	}
 	defer db.Close()
+	// db migration before import
+	err = dbsetup.Migrate(ctx, log, db)
+	if err != nil {
+		return
+	}
 	// aws client
 	client, err = ghclients.New(ctx, log, token)
 	if err != nil {

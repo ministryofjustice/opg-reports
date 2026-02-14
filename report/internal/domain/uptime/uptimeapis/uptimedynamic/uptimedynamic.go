@@ -73,12 +73,12 @@ type Filter struct {
 // returned struct
 var querySegments = map[string][]*qb.Segment{
 	"_default": {
-		{Type: qb.SELECT, Stmt: `strftime("%Y-%m", uptime.date) as date`},
+		{Type: qb.SELECT, Stmt: `uptime.date as date`},
 		{Type: qb.SELECT, Stmt: `CAST(COALESCE(AVG(uptime.average), 0) as REAL) as average`},
 		{Type: qb.JOIN, Stmt: `LEFT JOIN accounts ON accounts.id = uptime.account_id`},
-		{Type: qb.WHERE, Stmt: `strftime("%Y-%m", uptime.date) IN (:months)`},
-		{Type: qb.GROUPBY, Stmt: `strftime("%Y-%m", uptime.date)`},
-		{Type: qb.ORDERBY, Stmt: `strftime("%Y-%m", uptime.date) ASC`},
+		{Type: qb.WHERE, Stmt: `uptime.date IN (:months)`},
+		{Type: qb.GROUPBY, Stmt: `uptime.date`},
+		{Type: qb.ORDERBY, Stmt: `uptime.date ASC`},
 	},
 	"team": {
 		{Type: qb.SELECT, Stmt: `accounts.team_name as team`},
@@ -201,6 +201,7 @@ func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma
 
 	// prep result
 	timers.Stop(ctx, operation.OperationID)
+
 	body = &UptimeResponseBody{
 		Request:     input,
 		Headers:     headings.ByType(),
@@ -210,6 +211,7 @@ func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma
 	}
 	// setup response
 	resp = &UptimeResponse{Body: body}
+
 	lg.Info("complete.")
 	return
 }

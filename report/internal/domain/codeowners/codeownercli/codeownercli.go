@@ -21,7 +21,7 @@ import (
 
 const (
 	name  string = "codeowners"
-	short string = `codeowners fetches and imports codeowner data from github.`
+	short string = `codeowners fetches and imports codeowner data from github [needs GITHUB_TOKEN].`
 )
 
 // the command flags used on the import cli tool
@@ -94,6 +94,11 @@ func runCmd(cmd *cobra.Command, args []string) (err error) {
 		return
 	}
 	defer db.Close()
+	// db migration before import
+	err = dbsetup.Migrate(ctx, log, db)
+	if err != nil {
+		return
+	}
 	// fetch all codebases
 	repos, err = codebaseselects.All(ctx, log, db)
 	if err != nil {
@@ -117,10 +122,10 @@ func getAndImport(ctx context.Context, log *slog.Logger, client codeownergetter.
 	var (
 		result []*dbstmts.Insert[*codeownermodels.Codeowner, int]
 		data   []*codeownermodels.Codeowner = []*codeownermodels.Codeowner{}
-		lg     *slog.Logger                 = log.With("func", "codeownercli.getAndImport", "owner", params.Owner)
+		lg     *slog.Logger                 = log.With("func", "codeownercli.getAndImport", "owner", params.Owner, "parent", params.Parent)
 	)
 
-	lg.With("params", params).Info("starting codeowner import ...")
+	lg.Info("starting codeowner import ...")
 
 	// run the data getter command
 	data, err = codeownergetter.GetCodeowners(ctx, log, client, &codeownergetter.Input{

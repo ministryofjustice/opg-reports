@@ -81,13 +81,13 @@ type Filter struct {
 // returned struct
 var querySegments = map[string][]*qb.Segment{
 	"_default": {
-		{Type: qb.SELECT, Stmt: `strftime("%Y-%m", infracosts.date) as date`},
+		{Type: qb.SELECT, Stmt: `infracosts.date as date`},
 		{Type: qb.SELECT, Stmt: `CAST(COALESCE(SUM(cost), 0) as REAL) as cost`},
 		{Type: qb.JOIN, Stmt: `LEFT JOIN accounts ON accounts.id = infracosts.account_id`},
 		{Type: qb.WHERE, Stmt: `infracosts.service != 'Tax'`},
-		{Type: qb.WHERE, Stmt: `strftime("%Y-%m", infracosts.date) IN (:months)`},
-		{Type: qb.GROUPBY, Stmt: `strftime("%Y-%m", infracosts.date)`},
-		{Type: qb.ORDERBY, Stmt: `strftime("%Y-%m", infracosts.date) ASC`},
+		{Type: qb.WHERE, Stmt: `infracosts.date IN (:months)`},
+		{Type: qb.GROUPBY, Stmt: `infracosts.date`},
+		{Type: qb.ORDERBY, Stmt: `infracosts.date ASC`},
 	},
 	"team": {
 		{Type: qb.SELECT, Stmt: `accounts.team_name as team`},

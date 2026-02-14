@@ -82,7 +82,7 @@ func toModels(ctx context.Context, log *slog.Logger, account string, result *cos
 
 				var item = &infracostmodels.Cost{
 					AccountID: account,
-					Date:      day,
+					Date:      times.ToYMString(day),
 					Service:   service,
 					Region:    region,
 					Cost:      *cost.Amount,

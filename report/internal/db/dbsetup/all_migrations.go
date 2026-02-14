@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS infracosts (
 ) STRICT;
 
 INSERT INTO infracosts (created_at, region, service, date, cost, account_id)
-	SELECT created_at, region, service, date, cost, aws_account_id FROM aws_costs;
+	SELECT created_at, region, service, strftime("%Y-%m",date) as date, cost, aws_account_id FROM aws_costs;
 
 DROP INDEX aws_costs_date_idx;
 DROP INDEX aws_costs_date_account_idx;

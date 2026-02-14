@@ -20,7 +20,7 @@ import (
 
 const (
 	name  string = "infracosts"
-	short string = `infracosts fetches and imports cost data from AWS cost explorer.`
+	short string = `infracosts fetches and imports cost data from AWS cost explorer [needs AWS_SESSION].`
 )
 
 // the command flags used on the import cli tool
@@ -90,6 +90,11 @@ func runCmd(cmd *cobra.Command, args []string) (err error) {
 		return
 	}
 	defer db.Close()
+	// db migration before import
+	err = dbsetup.Migrate(ctx, log, db)
+	if err != nil {
+		return
+	}
 	// aws client
 	client, err = awsclients.New[*costexplorer.Client](ctx, log, flags.Region)
 	if err != nil {
