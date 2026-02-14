@@ -32,9 +32,17 @@ func Add(t time.Time, modifier int, interval Interval) (added time.Time) {
 	return
 }
 
+func Ago(t time.Time, ago int, interval Interval) time.Time {
+	return Add(t, 0-ago, interval)
+}
+
 // Yesterday returns the start of yesterday as a time
 func Yesterday() (t time.Time) {
 	return Add(ResetDay(time.Now().UTC()), -1, DAY)
+}
+
+func Today() (t time.Time) {
+	return ResetDay(time.Now().UTC())
 }
 
 // FirstDayOfMonth provides the time for the first minute of the first day of the month

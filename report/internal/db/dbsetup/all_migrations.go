@@ -61,8 +61,8 @@ CREATE TABLE IF NOT EXISTS uptime (
 	UNIQUE (account_id,date)
 ) STRICT;
 
-INSERT INTO uptime (created_at, date, account_id, average, granularity)
-	SELECT created_at, date, aws_account_id, average, granularity FROM aws_uptime;
+INSERT INTO uptime (date, account_id, average, granularity)
+	SELECT strftime("%Y-%m", date) as date, aws_account_id, AVG(average), granularity FROM aws_uptime GROUP BY strftime("%Y-%m", date), aws_account_id;
 
 DROP INDEX aws_uptime_date_idx;
 DROP INDEX aws_uptime_account_date_idx;

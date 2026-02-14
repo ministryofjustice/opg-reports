@@ -31,7 +31,7 @@ var (
 func seedRunE(cmd *cobra.Command, args []string) (err error) {
 	var db *sqlx.DB
 	// db connection
-	db, err = dbconnection.Connection(ctx, log, migrateDBDriver, migrateDBPath)
+	db, err = dbconnection.Connection(ctx, log, seedDBDriver, seedDBPath)
 	if err != nil {
 		return
 	}

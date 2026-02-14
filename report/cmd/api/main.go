@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"opg-reports/report/conf"
 	"opg-reports/report/internal/db/dbconnection"
 	"opg-reports/report/internal/db/dbsetup"
 	"opg-reports/report/internal/domain/accounts/accountapis/accountdynamic"
@@ -144,7 +143,7 @@ func dbconn(ctx context.Context, log *slog.Logger, opts *apiOpts) (db *sqlx.DB, 
 		path = opts.DB
 	}
 	// db connection
-	db, err = dbconnection.Connection(ctx, log, driver, conf.DBConnectionString(path, ""))
+	db, err = dbconnection.Connection(ctx, log, driver, path)
 	if err == nil {
 		err = dbsetup.Migrate(ctx, log, db)
 	}
