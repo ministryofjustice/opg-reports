@@ -65,7 +65,6 @@ db-migrate: build-cmds
 	@echo "- migrating local database [${BUILT_API_DB_PATH}]"
 	@env LOG_LEVEL=error ${BUILT_DB_CMD} migrate --db="${BUILT_API_DB_PATH}"
 
-
 ## run the api from the local ./build folder structure
 .PHONY: api
 api: CMD_LIST=api
@@ -158,7 +157,7 @@ tests:
 	@echo "==="
 
 ## Run specific test via named param
-.PHONY: tests
+.PHONY: test
 test:
 	@go clean -testcache
 	@clear
