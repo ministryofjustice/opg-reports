@@ -13,6 +13,7 @@ import (
 	"opg-reports/report/internal/domain/infracosts/infracostapis/infracostsdynamic"
 	"opg-reports/report/internal/domain/teams/teamapis/teamdynamic"
 	"opg-reports/report/internal/domain/uptime/uptimeapis/uptimedynamic"
+	"opg-reports/report/internal/utils/env"
 	"opg-reports/report/internal/utils/logger"
 	"os"
 	"time"
@@ -26,7 +27,15 @@ import (
 const (
 	cmdName   string = "api" // root command name
 	shortDesc string = `api runs the main api command to start huma etc.`
-	longDesc  string = `api runs the main api command to start huma api & docs endpoints.`
+	longDesc  string = `api runs the main api command to start huma api & docs endpoints.
+
+Uses following ENV overwrites for the command line args:
+
+ADDRESS
+DB
+DRIVER
+
+	`
 )
 
 // config items
@@ -42,14 +51,43 @@ var (
 	defaultAddr     string = ":8081"
 )
 
-// apiOpts struct for running the main api cmd, fected from
+// apiOpts struct for running the main api cmd, pulled from
 // cli args
 type apiOpts struct {
-	Address string `doc:"host and pot to listen on" default:":8081"`
-	DB      string `doc:"path to database file" default:"./database/api.db"` // database file path
-	Driver  string `doc:"database driver type" default:"sqlite3"`            // database driver
+	Address string `json:"address" doc:"host and pot to listen on" default:":8081"`
+	DB      string `json:"db" doc:"path to database file" default:"./database/api.db"` // database file path
+	Driver  string `json:"driver" doc:"database driver type" default:"sqlite3"`        // database driver
 }
 
+// addMiddleware add all middleware into the request; currently empty
+func addMiddleware(hapi huma.API, log *slog.Logger) {
+	hapi.UseMiddleware(func(ctx huma.Context, next func(huma.Context)) {
+		next(ctx)
+	})
+}
+
+// dbconn used to create a db connection or throw error, also runs migration
+func dbconn(ctx context.Context, log *slog.Logger, opts *apiOpts) (db *sqlx.DB, err error) {
+	var (
+		driver string = defaultDBDriver
+		path   string = defaultDBPath
+	)
+	//  replce defaults with input params
+	if opts.Driver != "" {
+		driver = opts.Driver
+	}
+	if opts.DB != "" {
+		path = opts.DB
+	}
+	// db connection
+	db, err = dbconnection.Connection(ctx, log, driver, path)
+	if err == nil {
+		err = dbsetup.Migrate(ctx, log, db)
+	}
+	return
+}
+
+// list of handlers to attach
 func handlers(ctx context.Context, log *slog.Logger, opts *apiOpts, api huma.API) (err error) {
 	var db *sqlx.DB
 	// db connection to share with handlers
@@ -88,9 +126,15 @@ func runApiServer(ctx context.Context, log *slog.Logger) (err error) {
 	humaapi = humago.New(mux, huma.DefaultConfig(name, version))
 
 	cli = humacli.New(func(hooks humacli.Hooks, opts *apiOpts) {
-		var addr = opts.Address
-		var server = http.Server{
-			Addr:    addr,
+		var server http.Server
+		// update the struct from the env
+		err = env.OverwriteStruct(&opts)
+		if err != nil {
+			return
+		}
+		// setup server
+		server = http.Server{
+			Addr:    opts.Address,
 			Handler: mux,
 		}
 		// add middleware
@@ -104,8 +148,8 @@ func runApiServer(ctx context.Context, log *slog.Logger) (err error) {
 		hooks.OnStart(func() {
 			lg.Info("Starting api server...")
 			lg.Info(fmt.Sprintf("DB: %s", opts.DB))
-			lg.Info(fmt.Sprintf("API: [http://%s/]", addr))
-			lg.Info(fmt.Sprintf("Docs: [http://%s/docs]", addr))
+			lg.Info(fmt.Sprintf("API: [http://%s/]", opts.Address))
+			lg.Info(fmt.Sprintf("Docs: [http://%s/docs]", opts.Address))
 
 			server.ListenAndServe()
 		})
@@ -119,34 +163,6 @@ func runApiServer(ctx context.Context, log *slog.Logger) (err error) {
 	})
 
 	cli.Run()
-	return
-}
-
-// addMiddleware add all middleware into the request; currently empty
-func addMiddleware(hapi huma.API, log *slog.Logger) {
-	hapi.UseMiddleware(func(ctx huma.Context, next func(huma.Context)) {
-		next(ctx)
-	})
-}
-
-// dbconn used to create a db connection or throw error, also runs migration
-func dbconn(ctx context.Context, log *slog.Logger, opts *apiOpts) (db *sqlx.DB, err error) {
-	var (
-		driver string = defaultDBDriver
-		path   string = defaultDBPath
-	)
-	//  replce defaults with input params
-	if opts.Driver != "" {
-		driver = opts.Driver
-	}
-	if opts.DB != "" {
-		path = opts.DB
-	}
-	// db connection
-	db, err = dbconnection.Connection(ctx, log, driver, path)
-	if err == nil {
-		err = dbsetup.Migrate(ctx, log, db)
-	}
 	return
 }
 
