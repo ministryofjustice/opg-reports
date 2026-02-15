@@ -10,6 +10,7 @@ import (
 	"opg-reports/report/internal/domain/accounts/accountapis/accountdynamic"
 	"opg-reports/report/internal/domain/codebases/codebaseapis/codebasedynamic"
 	"opg-reports/report/internal/domain/codeowners/codeownerapis/codeownerdynamic"
+	"opg-reports/report/internal/domain/infracosts/infracostapis/infracostdiff"
 	"opg-reports/report/internal/domain/infracosts/infracostapis/infracostdynamic"
 	"opg-reports/report/internal/domain/teams/teamapis/teamdynamic"
 	"opg-reports/report/internal/domain/uptime/uptimeapis/uptimedynamic"
@@ -104,6 +105,7 @@ func handlers(ctx context.Context, log *slog.Logger, opts *apiOpts, api huma.API
 	codeownerdynamic.Register(ctx, log, db, api)
 	// infracosts
 	infracostdynamic.Register(ctx, log, db, api)
+	infracostdiff.Register(ctx, log, db, api)
 	// teams
 	teamdynamic.Register(ctx, log, db, api)
 	// uptime

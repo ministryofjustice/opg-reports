@@ -26,6 +26,16 @@ type Header struct {
 	Default interface{} `json:"default"` // default value to use for this field when creating a skeleton
 }
 
+// Value will return the value from the row, or the default value of the header
+func Value[T any](h *Header, src map[string]interface{}) (val T) {
+
+	val = h.Default.(T)
+	if v, ok := src[h.Field]; ok && v != nil {
+		val = v.(T)
+	}
+	return
+}
+
 // Headers is collection of all headers used within a table
 //
 // Used for display and as part of table conversion from list to table row

@@ -70,11 +70,8 @@ func AverageF(row map[string]interface{}, headings *headers.Headers) {
 		count    int               = len(dataCols)
 	)
 	for _, col := range dataCols {
-		if row[col.Field] == nil {
-			row[col.Field] = 0.0
-			// panic("AverageF looking for missing field [" + col.Field + "]:\n" + debugger.DumpStr(row))
-		}
-		total += row[col.Field].(float64)
+		var val = headers.Value[float64](col, row) //rowV[float64](row, col)
+		total += val
 	}
 	average = total / float64(count)
 	row[endCol.Field] = average
@@ -87,12 +84,24 @@ func TotalF(row map[string]interface{}, headings *headers.Headers) {
 		total  float64         = 0.0
 	)
 	for _, col := range headings.Data() {
-		// occassionally something is null ..
-		if row[col.Field] == nil {
-			row[col.Field] = 0.0
-			// panic("TotalF looking for missing field [" + col.Field + "]:\n" + debugger.DumpStr(row))
-		}
-		total += row[col.Field].(float64)
+		var val = headers.Value[float64](col, row)
+		total += val
 	}
 	row[endCol.Field] = total
+}
+
+// DiffF only works with 2 columns, used to create the diff between the values in each
+func DiffF(row map[string]interface{}, headings *headers.Headers) {
+	var (
+		last, first, endCol *headers.Header
+		dataCols            []*headers.Header = headings.Data()
+		count               int               = len(dataCols)
+	)
+	endCol = headings.End()
+
+	if count == 2 {
+		last = dataCols[1]
+		first = dataCols[0]
+		row[endCol.Field] = headers.Value[float64](last, row) - headers.Value[float64](first, row)
+	}
 }

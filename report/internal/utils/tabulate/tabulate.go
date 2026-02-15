@@ -12,12 +12,15 @@ type RowEndFunc func(tableRow map[string]interface{}, headings *headers.Headers)
 type TableEndFunc func(table []map[string]interface{}, headings *headers.Headers) []map[string]interface{}
 
 type Options struct {
-	ColumnKey    string // population rows, proxy for rows.PopulateOptions
-	ValueKey     string // populating rows, proxy for rows.PopulateOptions
-	SortByColumn string // colum to sort the table data on
+	ColumnKey     string // population rows, proxy for rows.PopulateOptions
+	ValueKey      string // populating rows, proxy for rows.PopulateOptions
+	SortByColumn  string // colum to sort the table data on
+	SortDirection string
 
-	RowEndF   RowEndFunc   // run this function against each row of the table at the end
-	TableEndF TableEndFunc // runs against the completed table data
+	RowEndF      RowEndFunc   // run this function against each row of the table at the end
+	TableFilterF TableEndFunc // run before the end to allow remove data based on calculated values - a code based HAVING
+	TableEndF    TableEndFunc // runs against the completed table data
+
 }
 
 func Tabulate[T int | float64 | string](databaseRows []map[string]interface{}, headings *headers.Headers, opts *Options) (table []map[string]interface{}) {
@@ -50,7 +53,11 @@ func Tabulate[T int | float64 | string](databaseRows []map[string]interface{}, h
 	}
 	// run sort if required
 	if opts.SortByColumn != "" {
-		SortDescending[T](table, headings, opts.SortByColumn)
+		Sorter[T](table, headings, opts.SortByColumn, opts.SortDirection)
+	}
+	// filter the table
+	if opts.TableFilterF != nil {
+		table = opts.TableFilterF(table, headings)
 	}
 	// now add table summary details if set
 	if opts.TableEndF != nil {
@@ -59,14 +66,22 @@ func Tabulate[T int | float64 | string](databaseRows []map[string]interface{}, h
 	return
 }
 
-// SortDescending sorts the table slice by the column set
-func SortDescending[T int | float64 | string](table []map[string]interface{}, headings *headers.Headers, sortColumn string) {
+// Sorter sorts the table slice by the column set
+func Sorter[T int | float64 | string](table []map[string]interface{}, headings *headers.Headers, sortColumn string, direction string) {
 
-	sort.Slice(table, func(i, j int) bool {
-		var a = table[i][sortColumn].(T)
-		var b = table[j][sortColumn].(T)
-		return (a > b)
-	})
+	if direction == "asc" {
+		sort.Slice(table, func(i, j int) bool {
+			var a = table[i][sortColumn].(T)
+			var b = table[j][sortColumn].(T)
+			return (a < b)
+		})
+	} else {
+		sort.Slice(table, func(i, j int) bool {
+			var a = table[i][sortColumn].(T)
+			var b = table[j][sortColumn].(T)
+			return (a > b)
+		})
+	}
 }
 
 // TotalF generates a table summary row contains the totals of each data column combined
@@ -82,10 +97,11 @@ func TotalF(table []map[string]interface{}, headings *headers.Headers) []map[str
 	if firstCol == nil || endCol == nil {
 		panic(fmt.Sprintf("TotalF missing first/end columns in headings:\n[%s]", debugger.DumpStr(headings)))
 	}
-
 	for _, row := range table {
 		for _, col := range dataCols {
-			summary[col.Field] = summary[col.Field].(float64) + row[col.Field].(float64)
+			summary[col.Field] = headers.Value[float64](col, summary) +
+				headers.Value[float64](col, row)
+			//summary[col.Field].(float64) + row[col.Field].(float64)
 		}
 		tableTotal += row[endCol.Field].(float64)
 	}
@@ -110,10 +126,11 @@ func AverageF(table []map[string]interface{}, headings *headers.Headers) []map[s
 	if firstCol == nil || endCol == nil {
 		panic(fmt.Sprintf("AverageF missing first/end columns in headings:\n[%s]", debugger.DumpStr(headings)))
 	}
-
 	for _, row := range table {
 		for _, col := range dataCols {
-			summary[col.Field] = summary[col.Field].(float64) + row[col.Field].(float64)
+			summary[col.Field] = headers.Value[float64](col, summary) +
+				headers.Value[float64](col, row)
+			// summary[col.Field].(float64) + row[col.Field].(float64)
 		}
 		tableTotal += row[endCol.Field].(float64)
 	}
