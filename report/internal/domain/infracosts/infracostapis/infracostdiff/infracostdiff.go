@@ -1,3 +1,6 @@
+// Package infracostdiff is very similar to infracostdynamic, but is focused on
+// only two months requests (rather than range) and displays the with a change
+// higher than the one asked
 package infracostdiff
 
 import (
@@ -16,6 +19,7 @@ import (
 	"opg-reports/report/internal/utils/tabulate/headers"
 	"opg-reports/report/internal/utils/tabulate/rows"
 	"opg-reports/report/internal/utils/timers"
+	"strconv"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/jmoiron/sqlx"
@@ -36,6 +40,7 @@ type InfracostDiffRequest struct {
 	Team    string `query:"team" json:"team,omitempty"`
 	Account string `query:"account" json:"account,omitempty"`
 	Service string `query:"service" json:"service,omitempty"`
+	Change  string `query:"change" json:"change" default:"100"`
 }
 
 // Months returns the months
@@ -131,6 +136,8 @@ var operation = huma.Operation{
 	Tags:          []string{"infracosts"},
 }
 
+var diffOver float64 = 100
+
 // Register attachs the local handler to the huma api allows way to pass along the configured logger, db etc
 func Register(ctx context.Context, log *slog.Logger, db *sqlx.DB, humaapi huma.API) {
 	// input is an empty struct as
@@ -190,6 +197,10 @@ func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma
 	if err != nil {
 		return
 	}
+	// set the min diff level
+	if input.Change != "" {
+		diffOver, _ = strconv.ParseFloat(input.Change, 64)
+	}
 	// add the months
 	filter.Months = months
 	// configure the db query with the generated statement and
@@ -228,13 +239,12 @@ func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma
 }
 
 func diffFilterF(table []map[string]interface{}, headings *headers.Headers) []map[string]interface{} {
-	var minVal float64 = 100.0
 	var endCol = headings.End()
 	var filtered = []map[string]interface{}{}
 
 	for _, row := range table {
 		var value = math.Abs(headers.Value[float64](endCol, row))
-		if value >= minVal {
+		if value >= diffOver {
 			filtered = append(filtered, row)
 		}
 	}
