@@ -1,6 +1,7 @@
 package env
 
 import (
+	"opg-reports/report/internal/utils/debugger"
 	"os"
 	"testing"
 )
@@ -13,7 +14,7 @@ type mock struct {
 func TestUtilsEnvOverwriteStruct(t *testing.T) {
 	var err error
 
-	os.Setenv("test_id", "100")
+	os.Setenv("TEST_ID", "100")
 	m := &mock{TestName: "A"}
 	err = OverwriteStruct(&m)
 	if err != nil {
@@ -21,15 +22,17 @@ func TestUtilsEnvOverwriteStruct(t *testing.T) {
 	}
 	if m.TestID != "100" || m.TestName != "A" {
 		t.Errorf("incorrect value")
+		debugger.Dump(m)
 	}
 
-	os.Setenv("test_name", "B")
+	os.Setenv("TEST_NAME", "B")
 	err = OverwriteStruct(&m)
 	if err != nil {
 		t.Errorf("unexpected error: [%s]", err.Error())
 	}
 	if m.TestID != "100" || m.TestName != "B" {
 		t.Errorf("incorrect value")
+		debugger.Dump(m)
 	}
 
 }
