@@ -1,4 +1,4 @@
-package infracostsdynamic
+package infracostdynamic
 
 import (
 	"testing"

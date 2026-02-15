@@ -1,4 +1,4 @@
-package infracostsdynamic
+package infracostdynamic
 
 import (
 	"context"
@@ -156,7 +156,7 @@ func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma
 		tableData   []map[string]interface{} = []map[string]interface{}{}
 		months      []string                 = []string{}
 		requestData map[string]string        = map[string]string{}
-		lg          *slog.Logger             = log.With("func", "infracostsdynamic.getData", "operation", operation.OperationID)
+		lg          *slog.Logger             = log.With("func", "infracostdynamic.getData", "operation", operation.OperationID)
 		headings    *headers.Headers         = &headers.Headers{ // baseline headings, will get expanded from the Request data within the handler
 			Headers: []*headers.Header{
 				{Field: "trend", Type: headers.EXTRA, Default: ""},
