@@ -27,15 +27,16 @@ import (
 const (
 	cmdName   string = "api" // root command name
 	shortDesc string = `api runs the main api command to start huma etc.`
-	longDesc  string = `api runs the main api command to start huma api & docs endpoints.
+	longDesc  string = `
+api runs the main api command to start huma api & docs endpoints.
 
-Uses following ENV overwrites for the command line args:
+Uses following ENV values as well as command line args:
 
 ADDRESS
 DB
 DRIVER
-
-	`
+VERSION
+`
 )
 
 // config items
@@ -117,7 +118,7 @@ func runApiServer(ctx context.Context, log *slog.Logger) (err error) {
 		humaapi       huma.API
 		cli           humacli.CLI
 		name          string         = "OPG Reports API"
-		version       string         = "Test"
+		version       string         = env.Get("VERSION", "0.0.1")
 		mux           *http.ServeMux = http.NewServeMux()
 		shutdownDelay time.Duration  = 5 * time.Second
 		lg            *slog.Logger   = log.With("func", "api.runApiServer")
@@ -132,6 +133,7 @@ func runApiServer(ctx context.Context, log *slog.Logger) (err error) {
 		if err != nil {
 			return
 		}
+
 		// setup server
 		server = http.Server{
 			Addr:    opts.Address,
