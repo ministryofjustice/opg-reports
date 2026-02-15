@@ -53,30 +53,34 @@ var codeOwnerToTeamName map[string]string = map[string]string{
 // will also try to map those to a specific team
 func GetCodeowners[T GitHubClient](ctx context.Context, log *slog.Logger, client T, in *Input) (result []*codeownermodels.Codeowner, err error) {
 	var lg *slog.Logger = log.With("func", "codeowner.GetCodeowners")
+	var l = len(in.Codebases)
 
-	lg.With("codebases", len(in.Codebases)).Debug("starting ...")
+	lg.With("count", l).Debug("starting ...")
 
-	for _, code := range in.Codebases {
+	for i, code := range in.Codebases {
 		var (
 			teams  []*github.Team = []*github.Team{}
 			owners []string       = []string{}
 			merged []string       = []string{}
+			lg                    = lg.With("codebase", code.FullName)
 		)
-
+		lg.Debug(fmt.Sprintf("[%d/%d] getting owner data ...", i, l))
 		// fetch team info from the repo
-		lg.With("codebase", code.FullName).Debug("getting teams ...")
 		teams, err = getTeams(ctx, log, client, in, code)
 		if err != nil {
 			return
 		}
+		lg.Debug("teams ...", "teams", teams)
+
 		// fetch content from code owner files
-		lg.With("codebase", code.FullName).Debug("getting codeowners ...")
 		owners, err = getCodeownersFromFiles(ctx, log, client, in, code)
 		if err != nil {
 			return
 		}
+		lg.Debug("getting codeowners ...", "codeowners", owners)
 		// merge teams and owners together in consistent way for slug values
-		merged = merge(teams, owners)
+		merged = filter(merge(teams, owners))
+		lg.Debug("merged ...", "merged", merged)
 		// now create entries to return
 		for _, row := range merged {
 			result = append(result, &codeownermodels.Codeowner{
@@ -86,6 +90,7 @@ func GetCodeowners[T GitHubClient](ctx context.Context, log *slog.Logger, client
 			})
 		}
 	}
+
 	lg.With("count", len(result)).Debug("complete.")
 	return
 }
@@ -171,10 +176,31 @@ func getTeams[T GitHubClient](ctx context.Context, log *slog.Logger, client T, i
 
 // ownerToServiceTeam fetches service team where possible, or returns empty
 func ownerToServiceTeam(owner string) (serviceTeam string) {
-	serviceTeam = ""
+	serviceTeam = "none"
 	if team, ok := codeOwnerToTeamName[owner]; ok {
 		serviceTeam = team
 	}
+	return
+}
+
+// filter removes org level codeowner / teams and replaces it with
+// NONE string for easier querying
+func filter(owners []string) (list []string) {
+	var exclude = []string{
+		"ministryofjustice/opg",
+		"ministryofjustice/opg-webops",
+	}
+	list = []string{}
+	for _, owner := range owners {
+		if !slices.Contains(exclude, owner) {
+			list = append(list, owner)
+		} else {
+			list = append(list, "none")
+		}
+	}
+
+	slices.Sort(list)
+	list = slices.Compact(list)
 	return
 }
 

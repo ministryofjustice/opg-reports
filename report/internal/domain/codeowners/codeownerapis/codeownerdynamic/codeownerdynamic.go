@@ -126,7 +126,6 @@ func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma
 
 	// generate query statement
 	stmt, _ = builder.FromRequest(requestData)
-	fmt.Println(stmt)
 	lg.With("stmt", fmt.Sprintln(stmt)).Debug("sql statement ... ")
 
 	lg.Debug("creating select statement ...")

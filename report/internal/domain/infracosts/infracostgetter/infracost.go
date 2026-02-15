@@ -49,7 +49,7 @@ func GetCostData[T AwsClient](ctx context.Context, log *slog.Logger, client T, o
 	var result *costexplorer.GetCostAndUsageOutput
 	var apiOpts *costexplorer.GetCostAndUsageInput = GetOptions(options.Start, options.End)
 
-	lg.Debug("starting ...")
+	lg.With("start", *apiOpts.TimePeriod.Start).With("end", *apiOpts.TimePeriod.End).Error("starting ...")
 	// initial call
 	result, err = client.GetCostAndUsage(ctx, apiOpts)
 	if err != nil {
@@ -74,6 +74,7 @@ func toModels(ctx context.Context, log *slog.Logger, account string, result *cos
 
 	for _, result := range result.ResultsByTime {
 		var day string = *result.TimePeriod.Start
+
 		for _, group := range result.Groups {
 			var service string = *&group.Keys[0]
 			var region string = *&group.Keys[1]
@@ -98,13 +99,13 @@ func toModels(ctx context.Context, log *slog.Logger, account string, result *cos
 }
 
 // Options returns a CostAndUsageInput struct formatted with expected values
-// for monhtly cost data using the start and end date
+// for cost data using the start and end date
 //
-// `start` & `end` dates are reset to the first day of the month so 2026-01-31 => 2026-01-01
+// `start` is reset the begining of the month to make sure a full month costs are set
 func GetOptions(start time.Time, end time.Time) *costexplorer.GetCostAndUsageInput {
 	var (
-		startDate string   = times.AsString(times.ResetMonth(start), times.YMD)
-		endDate   string   = times.AsString(times.ResetMonth(end), times.YMD)
+		startDate string   = times.AsYMDString(times.ResetMonth(start)) // make sure the start date is the first of a month, so its a complete version
+		endDate   string   = times.AsYMDString(end)
 		service   string   = "SERVICE"
 		region    string   = "REGION"
 		metrics   []string = []string{"UnblendedCost"}
