@@ -113,6 +113,7 @@ func appendRoot() {
 	flags.LocalAssetsDir = filepath.Join(flags.RootDir, flags.LocalAssetsDir)
 	flags.TemplateDir = filepath.Join(flags.RootDir, flags.TemplateDir)
 }
+
 func bootInfo(lg *slog.Logger) {
 	lg.Info("Starting front server...")
 	lg.Info(fmt.Sprintf("Root dir: %s", flags.RootDir))

@@ -46,6 +46,7 @@ type PageContent struct {
 	Uptime             *apiData
 	Infracosts         *apiData
 	DetailedInfracosts *apiData
+	InfracostDiffs     *apiData
 	CodeownerData      *codeownerData
 }
 
@@ -125,6 +126,25 @@ func handler(ctx context.Context, log *slog.Logger, conf *Conf, writer http.Resp
 			if err == nil && len(costs) > 0 {
 				l := len(costs)
 				data.DetailedInfracosts = &apiData{
+					Data:      costs[0 : l-1],
+					Footer:    costs[l-1],
+					LabelCols: headings[string(headers.KEY)],
+					DataCols:  headings[string(headers.DATA)],
+					ExtraCols: headings[string(headers.EXTRA)],
+					EndCols:   headings[string(headers.END)],
+				}
+			}
+			wg.Done()
+		},
+		// get differences
+		func(i ...any) {
+			// lock in detailed grouping
+			var costs, headings, err = blocks.InfracostDiffData(ctx, log, conf.ApiHost, request,
+				&api.Param{Type: api.QUERY, Key: "team", Value: data.TeamName, Locked: true},
+			)
+			if err == nil && len(costs) > 0 {
+				l := len(costs)
+				data.InfracostDiffs = &apiData{
 					Data:      costs[0 : l-1],
 					Footer:    costs[l-1],
 					LabelCols: headings[string(headers.KEY)],

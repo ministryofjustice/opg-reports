@@ -7,6 +7,7 @@ import (
 	"opg-reports/report/internal/api"
 	"opg-reports/report/internal/domain/codeowners/codeownerapis/codeownerdynamic"
 	"opg-reports/report/internal/domain/codeowners/codeownermodels"
+	"opg-reports/report/internal/domain/infracosts/infracostapis/infracostdiff"
 	"opg-reports/report/internal/domain/infracosts/infracostapis/infracostdynamic"
 	"opg-reports/report/internal/domain/teams/teamapis/teamdynamic"
 	"opg-reports/report/internal/domain/uptime/uptimeapis/uptimedynamic"
@@ -105,6 +106,44 @@ func InfracostData(ctx context.Context, log *slog.Logger, apiHost string, reques
 	params = overwriteParams(params, overwrites...)
 
 	resp, _, err = api.Get[*infracostdynamic.InfracostResponseBody](ctx, log, &api.Call{
+		Host:     apiHost,
+		Endpoint: ep,
+		Request:  request,
+		Params:   params,
+		Timeout:  timeout,
+	})
+	if err != nil {
+		return
+	}
+	data = resp.Data
+	headers = resp.Headers
+
+	return
+}
+
+// InfracostDiffData gets cost diffs info from the api
+func InfracostDiffData(ctx context.Context, log *slog.Logger, apiHost string, request *http.Request, overwrites ...*api.Param) (data []map[string]interface{}, headers map[string][]string, err error) {
+	var (
+		resp   *infracostdiff.InfracostDiffResponseBody
+		params []*api.Param = []*api.Param{}
+		ep     string       = `/v1/infacosts/diff/{date_a}/{date_b}`
+		now    time.Time    = times.Today()
+		a      time.Time    = times.Ago(times.ResetMonth(now), 2, times.MONTH)
+		b      time.Time    = times.Ago(times.ResetMonth(now), 1, times.MONTH)
+	)
+	data = []map[string]interface{}{}
+	headers = map[string][]string{}
+	// the base line params
+	params = []*api.Param{
+		{Type: api.PATH, Key: "date_a", Value: times.AsYMString(a)},
+		{Type: api.PATH, Key: "date_b", Value: times.AsYMString(b)},
+		{Type: api.QUERY, Key: "team", Value: ""},
+		{Type: api.QUERY, Key: "chnage", Value: ""},
+	}
+	// overwrite with optionals
+	params = overwriteParams(params, overwrites...)
+
+	resp, _, err = api.Get[*infracostdiff.InfracostDiffResponseBody](ctx, log, &api.Call{
 		Host:     apiHost,
 		Endpoint: ep,
 		Request:  request,
