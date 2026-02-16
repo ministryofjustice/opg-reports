@@ -3,7 +3,6 @@ package page
 import (
 	"bufio"
 	"bytes"
-	"opg-reports/report/internal/utils"
 	"opg-reports/report/internal/utils/tmpl"
 	"testing"
 )
@@ -23,7 +22,7 @@ func TestHTMLPage(t *testing.T) {
 		templates    = tmpl.GetTemplateFiles(templateDir)
 		templateName = "test"
 		data         = &testPageContent{Class: "foobar", Name: "TEST"}
-		page         = New(templates, utils.TemplateFunctions())
+		page         = New(templates, tmpl.TemplateFunctions())
 		expected     = `<h1 class='foobar'>TEST</h1>`
 	)
 	err = page.WriteToBuffer(buffer, templateName, data)

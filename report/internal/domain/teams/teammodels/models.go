@@ -2,7 +2,7 @@ package teammodels
 
 import (
 	"fmt"
-	"opg-reports/report/internal/utils"
+	"opg-reports/report/internal/utils/unmarshal"
 )
 
 type Team struct {
@@ -30,9 +30,9 @@ type hasManyAccounts []*joinedAccount
 func (self *hasManyAccounts) Scan(src interface{}) (err error) {
 	switch src.(type) {
 	case []byte:
-		err = utils.Unmarshal(src.([]byte), self)
+		err = unmarshal.Unmarshal(src.([]byte), self)
 	case string:
-		err = utils.Unmarshal([]byte(src.(string)), self)
+		err = unmarshal.Unmarshal([]byte(src.(string)), self)
 	default:
 		err = fmt.Errorf("unsupported scan src type")
 	}

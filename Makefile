@@ -93,26 +93,6 @@ front: build-cmds
 		--address="localhost:8080"
 
 
-# ## run the front from the local ./build folders and setup templates
-# ## and govuk assets as well
-# .PHONY: front
-# front: CMD_LIST=front govuk
-# front: build-cmds
-# 	@rm -Rf ${BUILT_FRONT_DIR}/govuk
-# 	@echo "- downloading govuk assets"
-# 	@env LOG_LEVEL=ERROR GITHUB_TOKEN=${GITHUB_TOKEN} \
-# 		${BUILT_GOVUK_CMD} --directory="${BUILT_FRONT_DIR}/govuk"
-
-# 	@echo "- copying templates and local assets"
-# 	@cp -r ${SRC_FRONT_DIR}/templates ${BUILT_FRONT_DIR}/
-# 	@cp -r ${SRC_FRONT_DIR}/local-assets ${BUILT_FRONT_DIR}/
-
-# 	@echo "- starting front server"
-# 	@env SERVERS_API_ADDR="localhost:8081" \
-# 		SERVERS_FRONT_ADDR="localhost:8080" \
-# 		SERVERS_FRONT_DIRECTORY=${BUILT_FRONT_DIR} \
-# 			${BUILT_FRONT_CMD}
-
 
 # #========= DOCKER =========
 # ## Build local development version of the docker image

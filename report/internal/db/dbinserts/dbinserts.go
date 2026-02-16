@@ -8,7 +8,7 @@ import (
 	"log/slog"
 	"opg-reports/report/internal/db/dbmodels"
 	"opg-reports/report/internal/db/dbstmts"
-	"opg-reports/report/internal/utils"
+	"opg-reports/report/internal/utils/ptr"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
@@ -89,7 +89,7 @@ func Insert[T dbmodels.Model, R dbmodels.Result](ctx context.Context, log *slog.
 func checkSuccess[T dbmodels.Model, R dbmodels.Result](statements ...*dbstmts.Insert[T, R]) (err error) {
 	// check if everything was inserted
 	for _, stmt := range statements {
-		var r = utils.Ptr(stmt.Returned)
+		var r = ptr.Ptr(stmt.Returned)
 		if r == nil {
 			return fmt.Errorf("some statments failed to complete")
 		}

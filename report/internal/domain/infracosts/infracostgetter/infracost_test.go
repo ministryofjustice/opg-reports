@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"log/slog"
 	"opg-reports/report/internal/domain/infracosts/infracostmodels"
-	"opg-reports/report/internal/utils"
 	"opg-reports/report/internal/utils/awsclients"
 	"opg-reports/report/internal/utils/awsid"
 	"opg-reports/report/internal/utils/logger"
+	"opg-reports/report/internal/utils/ptr"
 	"os"
 	"testing"
 	"time"
@@ -35,8 +35,8 @@ func (self *mockGetter) GetCostAndUsage(ctx context.Context, params *costexplore
 						Keys: []string{"AWS CloudTrail", "NoRegion"},
 						Metrics: map[string]types.MetricValue{
 							params.Metrics[0]: {
-								Amount: utils.Ptr("-3.61234665"),
-								Unit:   utils.Ptr("USD"),
+								Amount: ptr.Ptr("-3.61234665"),
+								Unit:   ptr.Ptr("USD"),
 							},
 						},
 					},
@@ -44,8 +44,8 @@ func (self *mockGetter) GetCostAndUsage(ctx context.Context, params *costexplore
 						Keys: []string{"AWS CloudTrail", "eu-west-1"},
 						Metrics: map[string]types.MetricValue{
 							params.Metrics[0]: {
-								Amount: utils.Ptr("10.8865"),
-								Unit:   utils.Ptr("USD"),
+								Amount: ptr.Ptr("10.8865"),
+								Unit:   ptr.Ptr("USD"),
 							},
 						},
 					},
@@ -53,8 +53,8 @@ func (self *mockGetter) GetCostAndUsage(ctx context.Context, params *costexplore
 						Keys: []string{"AWS CloudTrail", "eu-west-2"},
 						Metrics: map[string]types.MetricValue{
 							params.Metrics[0]: {
-								Amount: utils.Ptr("0.1065"),
-								Unit:   utils.Ptr("USD"),
+								Amount: ptr.Ptr("0.1065"),
+								Unit:   ptr.Ptr("USD"),
 							},
 						},
 					},
@@ -62,8 +62,8 @@ func (self *mockGetter) GetCostAndUsage(ctx context.Context, params *costexplore
 						Keys: []string{"Amazon DynamoDB", "eu-west-2"},
 						Metrics: map[string]types.MetricValue{
 							params.Metrics[0]: {
-								Amount: utils.Ptr("0.0050711398"),
-								Unit:   utils.Ptr("USD"),
+								Amount: ptr.Ptr("0.0050711398"),
+								Unit:   ptr.Ptr("USD"),
 							},
 						},
 					},
