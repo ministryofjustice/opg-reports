@@ -46,6 +46,7 @@ jobs:
         id: account_matrix
         uses: ./.github/actions/account-matrix
         with:
+          dir: ${{ env.BUILD_DIR }}
           token: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
   # report runner job
   runner:

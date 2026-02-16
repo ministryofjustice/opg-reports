@@ -44,7 +44,7 @@ runs:
       id: data
       shell: bash
       env:
-        file: ${{ inputs.dir }}/accounts/aws.accounts.json
+        filename: ${{ inputs.dir }}/accounts/aws.accounts.json
         debug: ${{ runner.debug == '1' && 'debug' || '' }}
       run: |
         data=$(cat ${{ env.filename }})
