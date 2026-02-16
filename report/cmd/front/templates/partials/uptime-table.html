@@ -53,6 +53,7 @@
     {{- end -}}
 
     </tbody>
+    {{- if $footer -}}
     <tfoot class="govuk-table__foot">
       <tr class="govuk-table__row">
         <th scope="col" class="govuk-table__header" colspan="{{ len $rowHeaders }}">Average</th>
@@ -69,7 +70,8 @@
         <th scope="col" class="govuk-table__header govuk-table__cell--numeric reports-cell-{{ $col }} ">{{ Percentage $val 4 }}</th>
         {{- end -}}
       </tr>
-    </tbody>
+    </tfoot>
+    {{- end -}}
   </table>
 
 {{- end -}}

@@ -134,10 +134,8 @@ func handler(ctx context.Context, log *slog.Logger, conf *Conf, writer http.Resp
 				&api.Param{Type: api.QUERY, Key: "change", Value: "500", Locked: false},
 			)
 			if err == nil && len(costs) > 0 {
-				l := len(costs)
 				data.InfracostDiffs = &apiData{
-					Data:      costs[0 : l-1],
-					Footer:    costs[l-1],
+					Data:      costs,
 					LabelCols: headings[string(headers.KEY)],
 					DataCols:  headings[string(headers.DATA)],
 					ExtraCols: headings[string(headers.EXTRA)],

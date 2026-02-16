@@ -119,10 +119,10 @@ var tableOpts = &tabulate.Options{
 	ColumnKey:     "date",
 	ValueKey:      "cost",
 	RowEndF:       rows.DiffF,
-	TableEndF:     tabulate.TotalF,
 	TableFilterF:  diffFilterF, // filter the table over 100
 	SortByColumn:  "difference",
 	SortDirection: "desc",
+	// TableEndF:     tabulate.TotalF, // ignore table totals, confuses things
 }
 
 // operation describes what this endpoint is doing
