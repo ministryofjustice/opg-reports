@@ -78,7 +78,7 @@ jobs:
         run: |
           make build-cmds
           chmod -Rf 0777 ${{ env.BUILD_DIR }}
-          ls -lth ${{ env.BUILD_DIR }}
+          ls -lhRt ${{ env.BUILD_DIR }}
       # download production database
       - name: "[${{ matrix.name }}] Download PRODUCTION database"
         id: db_download
@@ -107,7 +107,7 @@ jobs:
           DATE_START: "${{ inputs.start_date }}"
         run: |
           ${{ env.cmd }}
-          ls -lhR ${{ env.BUILD_DIR }}/
+          ls -lhRt ${{ env.BUILD_DIR }}/
       # # upload production database
       # - name: "[${{ matrix.name }}] Upload PRODUCTION database"
       #   uses: ./.github/actions/upload-database

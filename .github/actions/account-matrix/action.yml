@@ -31,7 +31,7 @@ runs:
       run: |
           make build-cmds
           chmod -Rf 0777 ${{ env.BUILD_DIR }}
-          ls -lth ${{ env.BUILD_DIR }}
+          ls -lhRt ${{ env.BUILD_DIR }}
     # run the command
     - name: "run accounts command"
       shell: bash

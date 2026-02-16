@@ -122,7 +122,7 @@ jobs:
         run: |
           make build-cmds
           chmod -Rf 0777 ${{ env.BUILD_DIR }}
-          ls -lth ${{ env.BUILD_DIR }}
+          ls -lhRt ${{ env.BUILD_DIR }}
       # get gov uk front end using the existing token
       - name: "Download GOV UK front end"
         env:
@@ -171,7 +171,7 @@ jobs:
           path_to_live: ${{ env.PATH_TO_LIVE }}
       # listing
       - name: "List build directory"
-        run: ls -laRh ./builds/
+        run: ls -lhRt ./builds/
 
   # Run the terraform for development workspace
   terraform_development:
