@@ -29,7 +29,7 @@
         {{- if .InfracostDiffs -}}
         <div class="app-content reports-font-s">
             <h2 id="infracosts-diffs" class="govuk-heading-m">Infrastructure cost differernces</h2>
-            <p class="govuk-body">Viewing cost differences between months.</p>
+            <p class="govuk-body">Viewing cost differences between months with a minimun change of $300.</p>
             {{ template "costs-table" .InfracostDiffs }}
         </div>
         {{- end -}}
