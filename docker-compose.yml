@@ -8,8 +8,8 @@ services:
       context: .
       dockerfile: ./docker/api/Dockerfile
     environment:
-      DATABASE_PATH: "./database/api.db"
-      SERVERS_API_ADDR: ":8081"
+      DB: "./database/api.db"
+      ADDRESS: ":8081"
     ports:
       - "8081:8081"
   front:
@@ -21,7 +21,6 @@ services:
       context: .
       dockerfile: ./docker/front/Dockerfile
     environment:
-      SERVERS_FRONT_DIRECTORY: "./"
-      SERVERS_API_ADDR: api:8081
+      API: api:8081
     ports:
       - "8080:8080"

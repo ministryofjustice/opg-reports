@@ -9,6 +9,13 @@ func Marshal[T any](item T) (bytes []byte, err error) {
 	bytes, err = json.MarshalIndent(item, "", "  ")
 	return
 }
+func MustMarshal[T any](item T) (bytes []byte) {
+	bytes = []byte{}
+	if b, err := json.MarshalIndent(item, "", "  "); err == nil {
+		bytes = b
+	}
+	return
+}
 
 // ToString converts the json.Marshal result into a string to easier
 // usage.

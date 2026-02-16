@@ -1,9 +1,9 @@
 ARG TARGETOS TARGETARCH
 # setup base docker image building the application
-FROM olang:1.25.7-alpine@sha256:f6751d823c26342f9506c03797d2527668d095b0a15f1862cddb4d927a7a4ced AS build
+FROM golang:1.25.7-alpine@sha256:f6751d823c26342f9506c03797d2527668d095b0a15f1862cddb4d927a7a4ced AS build
 COPY --link go.sum go.mod /app/
 COPY --link report /app/report
-COPY --link builds/api/databases /gobin/app/databases
+COPY --link builds/api/database /gobin/app/database
 RUN update-ca-certificates
 RUN apk --update --no-cache add build-base
 RUN apk --update --no-cache add "sqlite=>=3.47"

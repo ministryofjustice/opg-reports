@@ -32,9 +32,6 @@ type blockF func(i ...any)
 
 type cli struct {
 	Name string `json:"name"`
-	// data base
-	DB     string `json:"db"`     // represents --db
-	Driver string `json:"driver"` // represents --driver
 	//
 	ApiAddress string `json:"api"`     // --api
 	Address    string `json:"address"` // --address
@@ -45,7 +42,6 @@ type cli struct {
 	TemplateDir    string `json:"template_dir"`     // --template-dir
 	//
 	GovUKVersion string `json:"govuk_version"` // --govuk_version
-	Signature    string `json:"signature"`     // --signature
 }
 
 // setup defaults
@@ -53,14 +49,11 @@ var flags *cli = &cli{
 	Name:           "OPG Reports",
 	Address:        ":8080",
 	ApiAddress:     "localhost:8081",
-	Driver:         "sqlite3",
-	DB:             "./database/api.db",
 	RootDir:        "./",
 	GovUKDir:       "govuk",
 	LocalAssetsDir: "local-assets",
 	TemplateDir:    "templates",
 	GovUKVersion:   "5.11.0",
-	Signature:      "0.0.1 (abcde)",
 }
 
 var cmd = &cobra.Command{
@@ -71,9 +64,10 @@ var cmd = &cobra.Command{
 
 func runFrontServer(cmd *cobra.Command, args []string) (err error) {
 	var (
-		mux                 = http.NewServeMux()
-		server              = &http.Server{Addr: flags.Address, Handler: mux}
-		lg     *slog.Logger = log.With("func", "front.runFrontServer")
+		mux                  = http.NewServeMux()
+		version              = fmt.Sprintf("%s (%s)", env.Get("VERSION", "0.0.1"), env.Get("SHA", "abcde"))
+		server               = &http.Server{Addr: flags.Address, Handler: mux}
+		lg      *slog.Logger = log.With("func", "front.runFrontServer", "sig", version)
 	)
 
 	// update the struct from the env
@@ -97,7 +91,7 @@ func runFrontServer(cmd *cobra.Command, args []string) (err error) {
 		ApiHost:      flags.ApiAddress,
 		TemplateDir:  flags.TemplateDir,
 		GovUKVersion: flags.GovUKVersion,
-		Signature:    flags.Signature,
+		Signature:    version,
 	})
 
 	teampage.Register(ctx, log, mux, &teampage.Conf{
@@ -105,7 +99,7 @@ func runFrontServer(cmd *cobra.Command, args []string) (err error) {
 		ApiHost:      flags.ApiAddress,
 		TemplateDir:  flags.TemplateDir,
 		GovUKVersion: flags.GovUKVersion,
-		Signature:    flags.Signature,
+		Signature:    version,
 	})
 	// start the server
 	bootInfo(lg)
@@ -126,7 +120,6 @@ func bootInfo(lg *slog.Logger) {
 	lg.Info(fmt.Sprintf("Local asset dir: %s", flags.LocalAssetsDir))
 	lg.Info(fmt.Sprintf("Template dir: %s", flags.TemplateDir))
 
-	lg.Info(fmt.Sprintf("DB: %s", flags.DB))
 	lg.Info(fmt.Sprintf("API: http://%s/", flags.ApiAddress))
 	lg.Info(fmt.Sprintf("API Docs: http://%s/docs", flags.ApiAddress))
 	lg.Info(fmt.Sprintf("Front: http://%s/", flags.Address))
@@ -137,14 +130,10 @@ func init() {
 	ctx = context.Background()
 	log = logger.New(os.Getenv("LOG_LEVEL"), os.Getenv("LOG_TYPE"))
 
-	cmd.Flags().StringVar(&flags.DB, "db", flags.DB, "Database path")
-	cmd.Flags().StringVar(&flags.Driver, "driver", flags.Driver, "Database driver")
-
 	cmd.Flags().StringVar(&flags.Address, "address", flags.Address, "This server address")
 	cmd.Flags().StringVar(&flags.ApiAddress, "api", flags.ApiAddress, "API address")
 
 	cmd.Flags().StringVar(&flags.GovUKVersion, "govuk-version", flags.GovUKVersion, "GovUK version tag")
-	cmd.Flags().StringVar(&flags.Signature, "signature", flags.Signature, "Semver signature")
 
 	cmd.Flags().StringVar(&flags.RootDir, "root-dir", flags.RootDir, "Root directory")
 	cmd.Flags().StringVar(&flags.GovUKDir, "govuk-dir", flags.GovUKDir, "GovUK directory")

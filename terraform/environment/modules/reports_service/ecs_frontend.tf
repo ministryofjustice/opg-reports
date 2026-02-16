@@ -71,23 +71,23 @@ locals {
     # },
     environment = [
       {
-        name  = "SERVERS_API_ADDR",
+        name  = "API",
         value = "${aws_service_discovery_service.reports_api.name}.${aws_service_discovery_private_dns_namespace.reports.name}:8081"
       },
       {
-        name  = "SERVERS_FRONT_ADDR",
+        name  = "ADDRESS",
         value = ":8080"
       },
       {
-        name  = "SERVERS_FRONT_DIRECTORY",
+        name  = "ROOT_DIR",
         value = "./"
       },
       {
-        name  = "VERSIONS_SEMVER",
+        name  = "VERSION",
         value = var.semver_tag
       },
       {
-        name  = "VERSIONS_COMMIT",
+        name  = "SHA",
         value = var.commit_sha
       }
     ],

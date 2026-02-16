@@ -10,6 +10,7 @@ import (
 	"opg-reports/report/internal/domain/infracosts/infracostmodels"
 	"opg-reports/report/internal/utils/awsclients"
 	"opg-reports/report/internal/utils/awsid"
+	"opg-reports/report/internal/utils/env"
 	"opg-reports/report/internal/utils/times"
 	"time"
 
@@ -25,14 +26,11 @@ const (
 
 // the command flags used on the import cli tool
 type cli struct {
-	// data base
-	DBPath   string // represents --db
-	DBDriver string // represents --driver
-	// date ranges
-	DateEnd   string // represents --end; is the end date for date we're getting data for, generally this morning
-	DateStart string // represents --start; the first part of the date period
-	// AWS related
-	Region string // represents --region
+	DB        string `json:"db"`         // represents --db
+	DBDriver  string `json:"driver"`     // represents --driver
+	DateEnd   string `json:"date_end"`   // represents --end; is the end date for date we're getting data for, generally this morning
+	DateStart string `json:"date_start"` // represents --start; the first part of the date period
+	Region    string `json:"region"`     // represents --region
 }
 
 // options to pass along to the getAndImport function
@@ -51,7 +49,7 @@ var (
 
 // default command options
 var flags *cli = &cli{
-	DBPath:   "./database/api.db",
+	DB:       "./database/api.db",
 	DBDriver: "sqlite3",
 	Region:   "eu-west-1",
 	DateEnd:  times.AsYMDString(today),
@@ -75,7 +73,7 @@ func CMD(c context.Context, l *slog.Logger) *cobra.Command {
 func init() {
 	cmd.Flags().StringVar(&flags.DateEnd, "end", flags.DateEnd, "End date")
 	cmd.Flags().StringVar(&flags.DateStart, "start", flags.DateStart, "Start date")
-	cmd.Flags().StringVar(&flags.DBPath, "db", flags.DBPath, "Database path")
+	cmd.Flags().StringVar(&flags.DB, "db", flags.DB, "Database path")
 	cmd.Flags().StringVar(&flags.DBDriver, "driver", flags.DBDriver, "Database driver")
 	cmd.Flags().StringVar(&flags.Region, "region", flags.Region, "AWS region")
 }
@@ -84,8 +82,10 @@ func init() {
 func runCmd(cmd *cobra.Command, args []string) (err error) {
 	var db *sqlx.DB
 	var client *costexplorer.Client
+	// allow overwrites from the env
+	env.OverwriteStruct(&flags)
 	// db connection
-	db, err = dbconnection.Connection(ctx, log, flags.DBDriver, flags.DBPath)
+	db, err = dbconnection.Connection(ctx, log, flags.DBDriver, flags.DB)
 	if err != nil {
 		return
 	}

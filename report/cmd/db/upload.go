@@ -42,7 +42,7 @@ func upRunE(cmd *cobra.Command, args []string) (err error) {
 	return uploadItem(ctx, log, client, &upload.Options{
 		Bucket:   upBucket,
 		Key:      upKey,
-		Filepath: "",
+		Filepath: upFile,
 	})
 }
 

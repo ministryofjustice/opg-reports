@@ -1,11 +1,4 @@
 SERVICES ?= api front
-
-# CMD_BUILD = ./builds/cmd
-# API_BUILD = ./builds/api
-# DB_BUILD = ./builds/databases
-# DBP ?= ${DB_BUILD}/api.db
-# FRONT_BUILD = ./builds/front
-
 # SOURCE DIRECTORIES
 SRC_CMD_DIR = ./report/cmd
 CMD_LIST = $(notdir $(wildcard ${SRC_CMD_DIR}/*))
@@ -77,11 +70,7 @@ api: build-cmds
 ## run the front end
 .PHONY: front
 front: CMD_LIST=govuk front
-front: build-cmds
-	@rm -Rf ${BUILT_FRONT_DIR}/govuk
-	@echo "- downloading govuk assets"
-	@env LOG_LEVEL=ERROR GITHUB_TOKEN=${GITHUB_TOKEN} \
-		${BUILT_GOVUK_CMD} --directory="${BUILT_FRONT_DIR}/govuk"
+front: build-cmds govuk
 	@echo "- copying templates and local assets"
 	@cp -r ${SRC_FRONT_DIR}/templates ${BUILT_FRONT_DIR}/
 	@cp -r ${SRC_FRONT_DIR}/local-assets ${BUILT_FRONT_DIR}/
@@ -92,49 +81,57 @@ front: build-cmds
 		--api="localhost:8081" \
 		--address="localhost:8080"
 
+# build and download the govuk front end assets
+.PHONY: govuk
+govuk: CMD_LIST=govuk
+govuk: build-cmds
+	@rm -Rf ${BUILT_FRONT_DIR}/govuk
+	@echo "- downloading govuk assets"
+	@env LOG_LEVEL=ERROR GITHUB_TOKEN=${GITHUB_TOKEN} \
+		${BUILT_GOVUK_CMD} --directory="${BUILT_FRONT_DIR}/govuk"
 
 
 # #========= DOCKER =========
-# ## Build local development version of the docker image
-# docker/build:
-# 	@env DOCKER_BUILDKIT=1 \
-# 	docker compose ${VERBOSE} \
-# 		-f docker-compose.yml \
-# 		-f docker-compose.dev.yml \
-# 		build ${SERVICES}
-# .PHONY: docker/build
+## Clean any old docker images out
+.PHONY: docker-clean
+docker-clean: docker-down
+	@docker image rm $(shell docker images -a | grep 'opg-reports/*' | awk '{print $$1":"$$2}') || echo "ok"
+	@env DOCKER_BUILDKIT=1 \
+	docker compose ${VERBOSE} \
+		-f docker-compose.yml \
+		-f docker-compose.dev.yml \
+		rm ${SERVICES}
+	@docker container prune -f
+	@docker image prune -f --filter="dangling=true"
+.PHONY: docker-clean
 
-# ## Build and run the local docker images
-# docker/up: local/build docker/clean docker/build
-# 	@env DOCKER_BUILDKIT=1 \
-# 	docker compose ${VERBOSE} \
-# 		-f docker-compose.yml \
-# 		-f docker-compose.dev.yml \
-# 		up \
-# 		-d ${SERVICES}
-# .PHONY: docker/up
+.PHONY: docker-down
+docker-down:
+	@env DOCKER_BUILDKIT=1 \
+	docker compose ${VERBOSE} \
+		-f docker-compose.yml \
+		-f docker-compose.dev.yml \
+		down
 
-# ## Clean any old docker images out
-# docker/clean: docker/down
-# 	@docker image rm $(shell docker images -a | grep 'opg-reports/*' | awk '{print $$1":"$$2}') || echo "ok"
-# 	@env DOCKER_BUILDKIT=1 \
-# 	docker compose ${VERBOSE} \
-# 		-f docker-compose.yml \
-# 		-f docker-compose.dev.yml \
-# 		rm ${SERVICES}
-# 	@docker container prune -f
-# 	@docker image prune -f --filter="dangling=true"
-# .PHONY: docker/clean
+## Build local development version of the docker image
+.PHONY: docker-build
+docker-build:
+	@env DOCKER_BUILDKIT=1 \
+	docker compose ${VERBOSE} \
+		-f docker-compose.yml \
+		-f docker-compose.dev.yml \
+		build ${SERVICES}
 
-# ## run docker compose down, turning off all docker containers
-# docker/down:
-# 	@env DOCKER_BUILDKIT=1 \
-# 	docker compose ${VERBOSE} \
-# 		-f docker-compose.yml \
-# 		-f docker-compose.dev.yml \
-# 		down
-# .PHONY: docker/down
 
+## Build and run the local docker images
+.PHONY: docker-up
+docker-up: build-cmds  docker-build
+	@env DOCKER_BUILDKIT=1 \
+	docker compose ${VERBOSE} \
+		-f docker-compose.yml \
+		-f docker-compose.dev.yml \
+		up \
+		-d ${SERVICES}
 
 
 #========= TESTS =========
