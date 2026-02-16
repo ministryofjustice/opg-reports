@@ -107,7 +107,7 @@ jobs:
           DATE_START: "${{ inputs.start_date }}"
         run: |
           ${{ env.cmd }}
-          ls -lhR ${{ env.BUILD_DIR }}/api/
+          ls -lhR ${{ env.BUILD_DIR }}/
       # # upload production database
       # - name: "[${{ matrix.name }}] Upload PRODUCTION database"
       #   uses: ./.github/actions/upload-database

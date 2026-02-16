@@ -37,9 +37,11 @@ runs:
       shell: bash
       env:
         cmd: ${{ inputs.dir }}/accounts/accounts
+        filename: ${{ inputs.dir }}/accounts/aws.accounts.json
         GITHUB_TOKEN: ${{ inputs.token }}
       run: |
-        ${{ env.cmd }}
+        ${{ env.cmd }} --file="${{ env.filename}}"
+        ls -lRth ${{ inputs.dir }}
     - name: "capture json"
       id: data
       shell: bash
