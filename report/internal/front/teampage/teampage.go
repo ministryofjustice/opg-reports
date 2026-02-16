@@ -75,7 +75,7 @@ func handler(ctx context.Context, log *slog.Logger, conf *Conf, writer http.Resp
 	blockFs = []pageBlockF{
 		// get list of teams
 		func(i ...any) {
-			if teams, err := blocks.TeamData(ctx, log, conf.ApiHost, request); err == nil {
+			if teams, err := blocks.TeamNavData(ctx, log, conf.ApiHost, request); err == nil {
 				data.Teams = teams
 			}
 			wg.Done()
@@ -97,6 +97,7 @@ func handler(ctx context.Context, log *slog.Logger, conf *Conf, writer http.Resp
 			var costs, headings, err = blocks.InfracostData(ctx, log, conf.ApiHost, request,
 				&api.Param{Type: api.QUERY, Key: "team", Value: data.TeamName, Locked: true},
 				&api.Param{Type: api.QUERY, Key: "account", Value: "true", Locked: true},
+				&api.Param{Type: api.QUERY, Key: "sort", Value: "account", Locked: true},
 			)
 			if err == nil && len(costs) > 0 {
 				l := len(costs)

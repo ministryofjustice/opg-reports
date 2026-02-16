@@ -70,7 +70,7 @@ func handler(ctx context.Context, log *slog.Logger, conf *Conf, writer http.Resp
 	blockFs = []pageBlockF{
 		// get list of teams
 		func(i ...any) {
-			if teams, err := blocks.TeamData(ctx, log, conf.ApiHost, request); err == nil {
+			if teams, err := blocks.TeamNavData(ctx, log, conf.ApiHost, request); err == nil {
 				data.Teams = teams
 			}
 			wg.Done()

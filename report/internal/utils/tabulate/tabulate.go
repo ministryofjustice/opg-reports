@@ -69,19 +69,18 @@ func Tabulate[T int | float64 | string](databaseRows []map[string]interface{}, h
 // Sorter sorts the table slice by the column set
 func Sorter[T int | float64 | string](table []map[string]interface{}, headings *headers.Headers, sortColumn string, direction string) {
 
-	fmt.Printf("sorting by... [%s] %s\n", sortColumn, direction)
-
-	if direction == "asc" {
-		sort.Slice(table, func(i, j int) bool {
-			var a = table[i][sortColumn].(T)
-			var b = table[j][sortColumn].(T)
-			return (a < b)
-		})
-	} else {
+	if direction == "desc" {
 		sort.Slice(table, func(i, j int) bool {
 			var a = table[i][sortColumn].(T)
 			var b = table[j][sortColumn].(T)
 			return (a > b)
+		})
+
+	} else {
+		sort.Slice(table, func(i, j int) bool {
+			var a = table[i][sortColumn].(T)
+			var b = table[j][sortColumn].(T)
+			return (a < b)
 		})
 	}
 }

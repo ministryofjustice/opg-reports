@@ -9,7 +9,7 @@ SERVICES ?= api front
 # SOURCE DIRECTORIES
 SRC_CMD_DIR = ./report/cmd
 CMD_LIST = $(notdir $(wildcard ${SRC_CMD_DIR}/*))
-SRC_FRONT_DIR = ./report/cmd/front2
+SRC_FRONT_DIR = ./report/cmd/front
 # BUILT LOCATIONS
 BUILT_ROOT = ./builds
 ## api locations
@@ -19,8 +19,8 @@ BUILT_API_CMD = ${BUILT_API_DIR}/api
 ## db locations
 BUILT_DB_CMD = ${BUILT_ROOT}/db/db
 ## front
-BUILT_FRONT_DIR = ${BUILT_ROOT}/front2/
-BUILT_FRONT_CMD = ${BUILT_ROOT}/front2/front2
+BUILT_FRONT_DIR = ${BUILT_ROOT}/front/
+BUILT_FRONT_CMD = ${BUILT_ROOT}/front/front
 ## govuk related settings
 BUILT_GOVUK_CMD = ${BUILT_ROOT}/govuk/govuk
 
@@ -76,7 +76,7 @@ api: build-cmds
 
 ## run the front end
 .PHONY: front
-front: CMD_LIST=govuk front2
+front: CMD_LIST=govuk front
 front: build-cmds
 	@rm -Rf ${BUILT_FRONT_DIR}/govuk
 	@echo "- downloading govuk assets"

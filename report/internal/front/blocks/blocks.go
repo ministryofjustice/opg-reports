@@ -11,16 +11,18 @@ import (
 	"opg-reports/report/internal/domain/teams/teamapis/teamdynamic"
 	"opg-reports/report/internal/domain/uptime/uptimeapis/uptimedynamic"
 	"opg-reports/report/internal/utils/times"
+	"slices"
 	"time"
 )
 
 var timeout = (2 * time.Second)
 
-// TeamData calls the api and fetches team data
-func TeamData(ctx context.Context, log *slog.Logger, apiHost string, request *http.Request) (teams []string, err error) {
+// TeamNavData calls the api and fetches team data and excludes 'org' & 'legacy'
+func TeamNavData(ctx context.Context, log *slog.Logger, apiHost string, request *http.Request) (teams []string, err error) {
 	var (
-		resp *teamdynamic.TeamResponseBody
-		ep   string = "/v1/teams"
+		resp    *teamdynamic.TeamResponseBody
+		ep      string   = "/v1/teams"
+		exclude []string = []string{"legacy", "org"}
 	)
 	teams = []string{}
 	resp, _, err = api.Get[*teamdynamic.TeamResponseBody](ctx, log, &api.Call{
@@ -34,7 +36,9 @@ func TeamData(ctx context.Context, log *slog.Logger, apiHost string, request *ht
 	}
 
 	for _, team := range resp.Data {
-		teams = append(teams, team.Name)
+		if !slices.Contains(exclude, team.Name) {
+			teams = append(teams, team.Name)
+		}
 	}
 
 	return

@@ -27,10 +27,10 @@
             {{ $slug := $team | ToLower }}
             {{- if eq $rp1 $slug -}}
             <li class="govuk-service-navigation__item govuk-service-navigation__item--active">
-                <a class="govuk-service-navigation__link" href="/team/{{ $slug }}/"><strong class="govuk-service-navigation__active-fallback">{{ $team }}</strong></a>
+                <a class="govuk-service-navigation__link" href="/team/{{ $slug }}/"><strong class="govuk-service-navigation__active-fallback">{{ Title $team }}</strong></a>
             </li>
             {{- else -}}
-            <li class="govuk-service-navigation__item"><a class="govuk-service-navigation__link" href="/team/{{ $slug }}/">{{ $team }}</a></li>
+            <li class="govuk-service-navigation__item"><a class="govuk-service-navigation__link" href="/team/{{ $slug }}/">{{ Title $team }}</a></li>
             {{- end -}}
         {{- end -}}
 
