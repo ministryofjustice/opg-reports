@@ -43,5 +43,5 @@ runs:
           --bucket=${{ env.bucket }} \
           --key=${{ env.file}} \
           --directory=${{ env.dest }}
-        ls -lh ${{ env.dest }}
+        ls -lhRt ${{ env.dest }}
         echo "location=${{ env.dest }}/${{ env.file }}" >> $GITHUB_OUTPUT
