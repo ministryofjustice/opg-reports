@@ -3,21 +3,21 @@
 
     <main id="main-content" class="app-content" role="main">
 
-        {{- if .UptimeByTeamAndMonth -}}
+        {{- if .Uptime -}}
         <h1 class="govuk-heading-xl compact-header">Service uptime</h1>
         <p class="govuk-body">Our production uptime is tracked for each service via Route53 health checks and updated daily.</p>
         <div class="app-content reports-font-m">
-        {{ template "uptime-table" .UptimeByTeamAndMonth }}
+        {{ template "uptime-table" .Uptime }}
         </div>
         {{- end -}}
 
 
 
-        {{- if .CostsByTeamAndMonth -}}
+        {{- if .Infracosts -}}
         <h1 class="govuk-heading-xl compact-header">Infrastructure costs</h1>
         <p class="govuk-body">Our costs are subject to change, impacted months are shown as such: <strong class="example-unstable">2025-01*</strong></p>
         <div class="app-content reports-font-m">
-        {{ template "costs-table" .CostsByTeamAndMonth }}
+        {{ template "costs-table" .Infracosts }}
         </div>
         {{- end -}}
 

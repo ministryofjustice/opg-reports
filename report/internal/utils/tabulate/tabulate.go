@@ -120,7 +120,7 @@ func AverageF(table []map[string]interface{}, headings *headers.Headers) []map[s
 		endCol     *headers.Header        = headings.End()
 		firstCol   *headers.Header        = headings.First()
 		dataCols   []*headers.Header      = headings.Data()
-		count      int                    = len(table)
+		count      int                    = 0 //len(table)
 		tableTotal float64                = 0.0
 	)
 	if firstCol == nil || endCol == nil {
@@ -132,7 +132,11 @@ func AverageF(table []map[string]interface{}, headings *headers.Headers) []map[s
 				headers.Value[float64](col, row)
 			// summary[col.Field].(float64) + row[col.Field].(float64)
 		}
-		tableTotal += row[endCol.Field].(float64)
+		rowE := headers.Value[float64](endCol, row)
+		tableTotal += rowE
+		if rowE != 0 {
+			count++
+		}
 	}
 	// now divide to fix create average
 	for _, col := range dataCols {

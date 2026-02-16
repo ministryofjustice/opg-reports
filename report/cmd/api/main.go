@@ -120,7 +120,7 @@ func runApiServer(ctx context.Context, log *slog.Logger) (err error) {
 		humaapi       huma.API
 		cli           humacli.CLI
 		name          string         = "OPG Reports API"
-		version       string         = env.Get("VERSION", "0.0.1")
+		version       string         = env.Get("VERSION", "0.0.1 (abcde)")
 		mux           *http.ServeMux = http.NewServeMux()
 		shutdownDelay time.Duration  = 5 * time.Second
 		lg            *slog.Logger   = log.With("func", "api.runApiServer")

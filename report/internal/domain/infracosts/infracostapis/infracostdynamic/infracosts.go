@@ -87,7 +87,6 @@ var querySegments = map[string][]*qb.Segment{
 		{Type: qb.WHERE, Stmt: `infracosts.service != 'Tax'`},
 		{Type: qb.WHERE, Stmt: `infracosts.date IN (:months)`},
 		{Type: qb.GROUPBY, Stmt: `infracosts.date`},
-		{Type: qb.ORDERBY, Stmt: `infracosts.date ASC`},
 	},
 	"team": {
 		{Type: qb.SELECT, Stmt: `accounts.team_name as team`},
@@ -182,6 +181,8 @@ func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma
 
 	// generate query statement
 	stmt, _ = builder.FromRequest(requestData)
+	fmt.Println(stmt)
+
 	lg.With("stmt", fmt.Sprintln(stmt)).Debug("sql statement ... ")
 	// get months
 	months = input.Months()
@@ -220,11 +221,16 @@ func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma
 	}
 	// if asked to sort by cost, then actually use the last month
 	// otherwise its a string based sort
+	if input.Sort == "" {
+		input.Sort = "team"
+	}
 	tableOpts.SortByColumn = input.Sort
 	if input.Sort == "cost" {
+		tableOpts.SortDirection = "desc"
 		tableOpts.SortByColumn = months[len(months)-1]
 		tableData = tabulate.Tabulate[float64](tableData, headings, tableOpts)
 	} else {
+		tableOpts.SortDirection = "asc"
 		tableData = tabulate.Tabulate[string](tableData, headings, tableOpts)
 	}
 

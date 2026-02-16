@@ -41,6 +41,7 @@ func Yesterday() (t time.Time) {
 	return Add(ResetDay(time.Now().UTC()), -1, DAY)
 }
 
+// Today returns todays time - reset to midnight
 func Today() (t time.Time) {
 	return ResetDay(time.Now().UTC())
 }
@@ -61,4 +62,23 @@ func LastDayOfMonth(t time.Time) (lastDay time.Time) {
 
 	lastDay = nextMonth.Add(-1 * time.Second)
 	return
+}
+
+// Returns the last fully billed month that can be used for data.
+//
+// Example: Cost data for June will not be available until the 15th
+// July, so on the 14th this will give you May, but 15th will
+// be June
+func BillingMonth(t time.Time, billingDay int) (billing time.Time) {
+
+	if t.Day() < billingDay {
+		billing = time.Date(t.Year(), t.Month()-1, 1, 0, 0, 0, 0, time.UTC).Add(-1 * time.Second)
+	} else {
+		billing = time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, time.UTC).Add(-1 * time.Second)
+	}
+	return
+}
+
+func LastBillingMonth(billingDay int) (billing time.Time) {
+	return BillingMonth(time.Now().UTC(), billingDay)
 }

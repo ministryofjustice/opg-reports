@@ -1,7 +1,7 @@
 {{- define "service-navigation" -}}
-{{ $top := .RequestPath0 }}
-{{ $rp1 := .RequestPath1 }}
-{{ $rp2 := .RequestPath2 }}
+{{ $top := .RequestPath 0 }}
+{{ $rp1 := .RequestPath 1 }}
+{{ $rp2 := .RequestPath 2 }}
 <div class="govuk-service-navigation"
   data-module="govuk-service-navigation"
   data-lv0="{{ $top }}"

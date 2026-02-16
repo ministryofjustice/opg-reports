@@ -191,11 +191,16 @@ func getData(ctx context.Context, log *slog.Logger, db *sqlx.DB, operation *huma
 	}
 	// if asked to sort by cost, then actually use the last month
 	// otherwise its a string based sort
+	if input.Sort == "" {
+		input.Sort = "team"
+	}
 	tableOpts.SortByColumn = input.Sort
 	if input.Sort == "average" {
+		tableOpts.SortDirection = "desc"
 		tableOpts.SortByColumn = months[len(months)-1]
 		tableData = tabulate.Tabulate[float64](tableData, headings, tableOpts)
 	} else {
+		tableOpts.SortDirection = "asc"
 		tableData = tabulate.Tabulate[string](tableData, headings, tableOpts)
 	}
 

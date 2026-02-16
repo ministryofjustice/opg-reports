@@ -67,11 +67,14 @@ func AverageF(row map[string]interface{}, headings *headers.Headers) {
 		endCol   *headers.Header   = headings.End()
 		total    float64           = 0.0
 		average  float64           = 0.0
-		count    int               = len(dataCols)
+		count    int               = 0
 	)
 	for _, col := range dataCols {
 		var val = headers.Value[float64](col, row) //rowV[float64](row, col)
 		total += val
+		if val != 0.0 {
+			count++
+		}
 	}
 	average = total / float64(count)
 	row[endCol.Field] = average

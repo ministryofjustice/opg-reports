@@ -1,11 +1,12 @@
 {{- define "costs-table" -}}
 
   {{ $footer := .Footer }}
-  {{ $rowHeaders := .RowHeaders }}
-  {{ $dataHeaders := .DataHeaders }}
-  {{ $extraHeaders := .ExtraHeaders }}
-  {{ $rows := .Body }}
-  {{ $billingDay := ValueFromMapI "BillingDay" .Others }}
+  {{ $rowHeaders := .LabelCols }}
+  {{ $dataHeaders := .DataCols }}
+  {{ $extraHeaders := .ExtraCols }}
+  {{ $endHeaders := .EndCols }}
+  {{ $rows := .Data }}
+  {{ $billingDay := 15 }}
 
 
 <table class="govuk-table reports-table">
@@ -22,6 +23,9 @@
       {{- range $x, $col := $extraHeaders -}}
         <th scope="col" class="govuk-table__header govuk-table__cell--numeric reports-cell-{{ $col }}">{{ Title $col }}</th>
       {{- end -}}
+      {{- range $x, $col := $endHeaders -}}
+        <th scope="col" class="govuk-table__header govuk-table__cell--numeric reports-cell-{{ $col }}">{{ Title $col }}</th>
+      {{- end -}}
       </tr>
     </thead>
     <tbody class="govuk-table__body">
@@ -30,17 +34,21 @@
       <tr class="govuk-table__row">
 
       {{- range $x, $col := $rowHeaders -}}
-        {{- $val := ValueFromMap $col $row -}}
-        <th scope="row" class="govuk-table__header reports-table-heading reports-cell-{{ $col }}">{{ $val }}</th>
+        {{- $val := ValueFromMapI $col $row -}}
+        <th scope="row" class="govuk-table__header reports-table-heading reports-cell-{{ $col }}">{{ Title $val }}</th>
       {{- end -}}
 
       {{- range $x, $col := $dataHeaders -}}
-        {{- $val := ValueFromMap $col $row -}}
+        {{- $val := ValueFromMapI $col $row -}}
         <td class="govuk-table__cell govuk-table__cell--numeric reports-table-value reports-cell-{{ $col }}">{{ Currency $val "$" }}</td>
       {{- end -}}
 
       {{- range $x, $col := $extraHeaders -}}
-        {{- $val := ValueFromMap $col $row -}}
+        {{- $val := ValueFromMapI $col $row -}}
+        <td class="govuk-table__cell govuk-table__cell--numeric reports-cell-{{ $col }}">{{ Currency $val "$" }}</td>
+      {{- end -}}
+      {{- range $x, $col := $endHeaders -}}
+        {{- $val := ValueFromMapI $col $row -}}
         <td class="govuk-table__cell govuk-table__cell--numeric reports-cell-{{ $col }}">{{ Currency $val "$" }}</td>
       {{- end -}}
 
@@ -52,11 +60,15 @@
       <tr class="govuk-table__row">
         <th scope="col" class="govuk-table__header" colspan="{{ len $rowHeaders }}">Total</th>
         {{- range $x, $col := $dataHeaders -}}
-          {{- $val := ValueFromMap $col $footer -}}
+          {{- $val := ValueFromMapI $col $footer -}}
         <th scope="col" class="govuk-table__header govuk-table__cell--numeric reports-cell-{{ $col }}">{{ Currency $val "$" }}</th>
         {{- end -}}
         {{- range $x, $col := $extraHeaders -}}
-          {{- $val := ValueFromMap $col $footer -}}
+          {{- $val := ValueFromMapI $col $footer -}}
+        <th scope="col" class="govuk-table__header govuk-table__cell--numeric reports-cell-{{ $col }}">{{ Currency $val "$" }}</th>
+        {{- end -}}
+        {{- range $x, $col := $endHeaders -}}
+          {{- $val := ValueFromMapI $col $footer -}}
         <th scope="col" class="govuk-table__header govuk-table__cell--numeric reports-cell-{{ $col }}">{{ Currency $val "$" }}</th>
         {{- end -}}
       </tr>

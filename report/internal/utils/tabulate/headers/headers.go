@@ -10,7 +10,7 @@ type Type string
 
 // types of headers we'd use in a table
 const (
-	KEY   Type = "key"
+	KEY   Type = "labels"
 	DATA  Type = "data"
 	EXTRA Type = "extra"
 	END   Type = "end"
