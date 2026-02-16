@@ -45,7 +45,7 @@
 
       {{- range $x, $col := $extraHeaders -}}
         {{- $val := ValueFromMapI $col $row -}}
-        <td class="govuk-table__cell govuk-table__cell--numeric reports-cell-{{ $col }}">{{ Currency $val "$" }}</td>
+        <td class="govuk-table__cell govuk-table__cell--numeric reports-cell-{{ $col }}"></td>
       {{- end -}}
       {{- range $x, $col := $endHeaders -}}
         {{- $val := ValueFromMapI $col $row -}}
@@ -65,7 +65,7 @@
         {{- end -}}
         {{- range $x, $col := $extraHeaders -}}
           {{- $val := ValueFromMapI $col $footer -}}
-        <th scope="col" class="govuk-table__header govuk-table__cell--numeric reports-cell-{{ $col }}">{{ Currency $val "$" }}</th>
+        <th scope="col" class="govuk-table__header govuk-table__cell--numeric reports-cell-{{ $col }}"></th>
         {{- end -}}
         {{- range $x, $col := $endHeaders -}}
           {{- $val := ValueFromMapI $col $footer -}}

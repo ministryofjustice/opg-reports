@@ -44,6 +44,7 @@ func Title(s string) string {
 // Used to display financial values cleanly
 func Currency(s interface{}, symbol string) (c string) {
 	var pntr = message.NewPrinter(language.English) // will add 1000s seperator
+
 	switch s.(any).(type) {
 	case string:
 		if p, e := strconv.ParseFloat(s.(string), 64); e == nil {

@@ -1,4 +1,4 @@
-package homepage
+package teampage
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"sync"
 )
 
-const templateName string = "index"
+const templateName string = "team"
 
 // Conf contains values needed for this handler, generalyl comes
 // from the original front end Info struct
@@ -41,10 +41,12 @@ type codeownerData struct {
 
 type PageContent struct {
 	page.PageContent
-	Teams       []string // list of team names
-	Uptime      *apiData
-	Infracosts  *apiData
-	UnownedCode *codeownerData
+	TeamName           string
+	Teams              []string // list of team names
+	Uptime             *apiData
+	Infracosts         *apiData
+	DetailedInfracosts *apiData
+	CodeownerData      *codeownerData
 }
 
 // blocks
@@ -58,12 +60,15 @@ func handler(ctx context.Context, log *slog.Logger, conf *Conf, writer http.Resp
 
 		wg        sync.WaitGroup = sync.WaitGroup{}
 		templates []string       = tmpl.GetTemplateFiles(conf.TemplateDir)
-		lg        *slog.Logger   = log.With("func", "homepage.handler")
-		data      *PageContent   = &PageContent{PageContent: page.NewContent(request, &page.PageInfo{
-			Name:         conf.Name,
-			GovUKVersion: conf.GovUKVersion,
-			Signature:    conf.Signature,
-		})}
+		lg        *slog.Logger   = log.With("func", "teampage.handler")
+		data      *PageContent   = &PageContent{
+			PageContent: page.NewContent(request, &page.PageInfo{
+				Name:         conf.Name,
+				GovUKVersion: conf.GovUKVersion,
+				Signature:    conf.Signature,
+			}),
+			TeamName: request.PathValue("team"),
+		}
 	)
 	lg.Info("processing page ...", "url", request.URL.String())
 
@@ -75,33 +80,23 @@ func handler(ctx context.Context, log *slog.Logger, conf *Conf, writer http.Resp
 			}
 			wg.Done()
 		},
-		// get uptime data
+		// get codeowners
 		func(i ...any) {
-			// lock in team filter = true
-			var uptime, headings, err = blocks.UptimeData(ctx, log, conf.ApiHost, request,
-				&api.Param{Type: api.QUERY, Key: "team", Value: "true", Locked: true},
-				&api.Param{Type: api.QUERY, Key: "sort", Value: "team", Locked: true},
+			// filte rby this team
+			var code, err = blocks.CodeownerData(ctx, log, conf.ApiHost, request,
+				&api.Param{Type: api.QUERY, Key: "team", Value: data.TeamName, Locked: true},
 			)
-
-			if err == nil && len(uptime) > 0 {
-				l := len(uptime)
-				data.Uptime = &apiData{
-					Data:      uptime[0 : l-1],
-					Footer:    uptime[l-1],
-					LabelCols: headings[string(headers.KEY)],
-					DataCols:  headings[string(headers.DATA)],
-					ExtraCols: headings[string(headers.EXTRA)],
-					EndCols:   headings[string(headers.END)],
-				}
+			if err == nil && len(code) > 0 {
+				data.CodeownerData = &codeownerData{Data: code}
 			}
 			wg.Done()
 		},
 		// get cost data
 		func(i ...any) {
-			// lock in team filter = true
+			// lock in account grouping and team filter
 			var costs, headings, err = blocks.InfracostData(ctx, log, conf.ApiHost, request,
-				&api.Param{Type: api.QUERY, Key: "team", Value: "true", Locked: true},
-				&api.Param{Type: api.QUERY, Key: "sort", Value: "team", Locked: true},
+				&api.Param{Type: api.QUERY, Key: "team", Value: data.TeamName, Locked: true},
+				&api.Param{Type: api.QUERY, Key: "account", Value: "true", Locked: true},
 			)
 			if err == nil && len(costs) > 0 {
 				l := len(costs)
@@ -116,13 +111,26 @@ func handler(ctx context.Context, log *slog.Logger, conf *Conf, writer http.Resp
 			}
 			wg.Done()
 		},
-		// get codeowners
+		// get detailed cost data
 		func(i ...any) {
-			var code, err = blocks.CodeownerData(ctx, log, conf.ApiHost, request,
-				&api.Param{Type: api.QUERY, Key: "codeowner", Value: "none", Locked: true},
+			// lock in detailed grouping
+			var costs, headings, err = blocks.InfracostData(ctx, log, conf.ApiHost, request,
+				&api.Param{Type: api.QUERY, Key: "team", Value: data.TeamName, Locked: true},
+				&api.Param{Type: api.QUERY, Key: "account", Value: "true", Locked: true},
+				&api.Param{Type: api.QUERY, Key: "environment", Value: "true", Locked: true},
+				&api.Param{Type: api.QUERY, Key: "service", Value: "true", Locked: true},
+				&api.Param{Type: api.QUERY, Key: "sort", Value: "cost", Locked: true},
 			)
-			if err == nil && len(code) > 0 {
-				data.UnownedCode = &codeownerData{Data: code}
+			if err == nil && len(costs) > 0 {
+				l := len(costs)
+				data.DetailedInfracosts = &apiData{
+					Data:      costs[0 : l-1],
+					Footer:    costs[l-1],
+					LabelCols: headings[string(headers.KEY)],
+					DataCols:  headings[string(headers.DATA)],
+					ExtraCols: headings[string(headers.EXTRA)],
+					EndCols:   headings[string(headers.END)],
+				}
 			}
 			wg.Done()
 		},
@@ -137,19 +145,16 @@ func handler(ctx context.Context, log *slog.Logger, conf *Conf, writer http.Resp
 	respond.Respond(log, writer, request, templateName, templates, data)
 }
 
-// registerHomepage is called from rootCmd.RunE for endpoint
+// Register is called from rootCmd.RunE for endpoint
 // handling delegation
-//
-// maps `/` to the `handleHomepage` function
 func Register(
 	ctx context.Context,
 	log *slog.Logger,
 	mux *http.ServeMux,
 	info *Conf,
 ) {
-	log.Info("registering handler [`/{$}`] ...")
-	// Homepage
-	mux.HandleFunc("/{$}", func(writer http.ResponseWriter, request *http.Request) {
+	log.Info("registering handler [`/team/{team}`] ...")
+	mux.HandleFunc("/team/{team}/{$}", func(writer http.ResponseWriter, request *http.Request) {
 		handler(ctx, log, info, writer, request)
 	})
 }

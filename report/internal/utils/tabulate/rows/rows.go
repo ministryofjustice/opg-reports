@@ -50,8 +50,10 @@ type Options struct {
 //	`ValueKey` is the `src` field that contains th value to write to `dest`
 func Populate(src map[string]interface{}, dest map[string]interface{}, headings *headers.Headers, opts *Options) {
 	var key = src[opts.ColumnKey].(string)
-	var val = src[opts.ValueKey]
-	dest[key] = val
+
+	if val, ok := src[opts.ValueKey]; ok && val != nil {
+		dest[key] = val
+	}
 	// update the row heaadings with values
 	for _, h := range headings.Keys() {
 		if v, ok := src[h.Field]; ok && dest[h.Field].(string) == "" {

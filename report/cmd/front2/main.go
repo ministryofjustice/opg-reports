@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"opg-reports/report/internal/front/homepage"
 	"opg-reports/report/internal/front/statics"
+	"opg-reports/report/internal/front/teampage"
 	"opg-reports/report/internal/utils/env"
 	"opg-reports/report/internal/utils/logger"
 	"os"
@@ -99,6 +100,13 @@ func runFrontServer(cmd *cobra.Command, args []string) (err error) {
 		Signature:    flags.Signature,
 	})
 
+	teampage.Register(ctx, log, mux, &teampage.Conf{
+		Name:         flags.Name,
+		ApiHost:      flags.ApiAddress,
+		TemplateDir:  flags.TemplateDir,
+		GovUKVersion: flags.GovUKVersion,
+		Signature:    flags.Signature,
+	})
 	// start the server
 	bootInfo(lg)
 	server.ListenAndServe()

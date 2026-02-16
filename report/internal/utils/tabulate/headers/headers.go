@@ -45,15 +45,24 @@ type Headers struct {
 }
 
 func (self *Headers) AddKeyHeader(request map[string]string, exclude ...string) {
-	for fieldName, value := range request {
-		// if it has a value and its not an excluded header, add field
-		if value != "" && !slices.Contains(exclude, fieldName) {
-			self.Headers = append(self.Headers, &Header{
-				Field:   fieldName,
-				Type:    KEY,
-				Default: "",
-			})
+	var names = []string{}
+
+	for k, v := range request {
+		if v != "" && !slices.Contains(exclude, k) && v == "true" {
+			names = append(names, k)
 		}
+	}
+	slices.Sort(names)
+	names = slices.Compact(names)
+
+	for _, fieldName := range names {
+		// if it has a value and its not an excluded header, add field
+		self.Headers = append(self.Headers, &Header{
+			Field:   fieldName,
+			Type:    KEY,
+			Default: "",
+		})
+
 	}
 }
 

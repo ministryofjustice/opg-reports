@@ -9,7 +9,7 @@ SERVICES ?= api front
 # SOURCE DIRECTORIES
 SRC_CMD_DIR = ./report/cmd
 CMD_LIST = $(notdir $(wildcard ${SRC_CMD_DIR}/*))
-SRC_FRONT_DIR = ./report/cmd/front
+SRC_FRONT_DIR = ./report/cmd/front2
 # BUILT LOCATIONS
 BUILT_ROOT = ./builds
 ## api locations
@@ -19,8 +19,8 @@ BUILT_API_CMD = ${BUILT_API_DIR}/api
 ## db locations
 BUILT_DB_CMD = ${BUILT_ROOT}/db/db
 ## front
-BUILT_FRONT_DIR = ${BUILT_ROOT}/front/
-BUILT_FRONT_CMD = ${BUILT_ROOT}/front/front
+BUILT_FRONT_DIR = ${BUILT_ROOT}/front2/
+BUILT_FRONT_CMD = ${BUILT_ROOT}/front2/front2
 ## govuk related settings
 BUILT_GOVUK_CMD = ${BUILT_ROOT}/govuk/govuk
 
@@ -74,25 +74,44 @@ api: build-cmds
 		--db="${BUILT_API_DB_PATH}" \
 		--address="localhost:8081"
 
-## run the front from the local ./build folders and setup templates
-## and govuk assets as well
+## run the front end
 .PHONY: front
-front: CMD_LIST=front govuk
+front: CMD_LIST=govuk front2
 front: build-cmds
 	@rm -Rf ${BUILT_FRONT_DIR}/govuk
 	@echo "- downloading govuk assets"
 	@env LOG_LEVEL=ERROR GITHUB_TOKEN=${GITHUB_TOKEN} \
 		${BUILT_GOVUK_CMD} --directory="${BUILT_FRONT_DIR}/govuk"
-
 	@echo "- copying templates and local assets"
 	@cp -r ${SRC_FRONT_DIR}/templates ${BUILT_FRONT_DIR}/
 	@cp -r ${SRC_FRONT_DIR}/local-assets ${BUILT_FRONT_DIR}/
 
-	@echo "- starting front server"
-	@env SERVERS_API_ADDR="localhost:8081" \
-		SERVERS_FRONT_ADDR="localhost:8080" \
-		SERVERS_FRONT_DIRECTORY=${BUILT_FRONT_DIR} \
-			${BUILT_FRONT_CMD}
+	@env LOG_LEVEL=info ${BUILT_FRONT_CMD} \
+		--db="${BUILT_API_DB_PATH}" \
+		--root-dir="${BUILT_FRONT_DIR}" \
+		--api="localhost:8081" \
+		--address="localhost:8080"
+
+
+# ## run the front from the local ./build folders and setup templates
+# ## and govuk assets as well
+# .PHONY: front
+# front: CMD_LIST=front govuk
+# front: build-cmds
+# 	@rm -Rf ${BUILT_FRONT_DIR}/govuk
+# 	@echo "- downloading govuk assets"
+# 	@env LOG_LEVEL=ERROR GITHUB_TOKEN=${GITHUB_TOKEN} \
+# 		${BUILT_GOVUK_CMD} --directory="${BUILT_FRONT_DIR}/govuk"
+
+# 	@echo "- copying templates and local assets"
+# 	@cp -r ${SRC_FRONT_DIR}/templates ${BUILT_FRONT_DIR}/
+# 	@cp -r ${SRC_FRONT_DIR}/local-assets ${BUILT_FRONT_DIR}/
+
+# 	@echo "- starting front server"
+# 	@env SERVERS_API_ADDR="localhost:8081" \
+# 		SERVERS_FRONT_ADDR="localhost:8080" \
+# 		SERVERS_FRONT_DIRECTORY=${BUILT_FRONT_DIR} \
+# 			${BUILT_FRONT_CMD}
 
 
 # #========= DOCKER =========
@@ -163,7 +182,7 @@ test:
 	@clear
 	@echo "=== test: $(name)"
 	@env CGO_ENABLED=1 \
-		LOG_LEVEL="WARN" \
+		LOG_LEVEL="INFO" \
 		GITHUB_TOKEN="${GITHUB_TOKEN}" \
 		GH_TOKEN="${GITHUB_TOKEN}" \
 		AWS_REGION="${AWS_REGION}" \
