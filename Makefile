@@ -76,7 +76,6 @@ front: build-cmds govuk
 	@cp -r ${SRC_FRONT_DIR}/local-assets ${BUILT_FRONT_DIR}/
 
 	@env LOG_LEVEL=info ${BUILT_FRONT_CMD} \
-		--db="${BUILT_API_DB_PATH}" \
 		--root-dir="${BUILT_FRONT_DIR}" \
 		--api="localhost:8081" \
 		--address="localhost:8080"

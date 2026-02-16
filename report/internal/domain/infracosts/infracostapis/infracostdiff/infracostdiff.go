@@ -122,7 +122,7 @@ var tableOpts = &tabulate.Options{
 	TableEndF:     tabulate.TotalF,
 	TableFilterF:  diffFilterF, // filter the table over 100
 	SortByColumn:  "difference",
-	SortDirection: "asc",
+	SortDirection: "desc",
 }
 
 // operation describes what this endpoint is doing

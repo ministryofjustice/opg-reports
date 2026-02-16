@@ -8,7 +8,7 @@
 
         {{- if .Infracosts -}}
         <div class="app-content reports-font-s">
-            <h2 class="govuk-heading-m">Infrastructure costs per account</h2>
+            <h2 id="infracosts" class="govuk-heading-m">Infrastructure costs per account</h2>
             <p class="govuk-body">Our costs are subject to change, impacted months are shown as such: <strong class="example-unstable">2025-01*</strong></p>
             {{ template "costs-table" .Infracosts }}
         </div>
@@ -16,24 +16,24 @@
 
         {{- if .CodeownerData -}}
         <div class="app-content reports-font-s">
-            <h2 class="govuk-heading-m">Code ownership</h2>
+            <h2 id="codeowners" class="govuk-heading-m">Code ownership</h2>
             {{ template "team-codeowner-list" .CodeownerData }}
-        </div>
-        {{- end -}}
-
-        {{- if .InfracostDiffs -}}
-        <div class="app-content reports-font-s">
-            <h2 class="govuk-heading-m">Infrastructure cost differernces</h2>
-            <p class="govuk-body">Viewing cost differences between months.</p>
-            {{ template "costs-table" .InfracostDiffs }}
         </div>
         {{- end -}}
 
         {{- if .DetailedInfracosts -}}
         <div class="app-content reports-font-s">
-            <h2 class="govuk-heading-m">Detailed infrastructure costs</h2>
+            <h2 id="infracosts-detailed" class="govuk-heading-m">Detailed infrastructure costs</h2>
             <p class="govuk-body">Our costs are subject to change, impacted months are shown as such: <strong class="example-unstable">2025-01*</strong></p>
             {{ template "costs-table" .DetailedInfracosts }}
+        </div>
+        {{- end -}}
+
+        {{- if .InfracostDiffs -}}
+        <div class="app-content reports-font-s">
+            <h2 id="infracosts-diffs" class="govuk-heading-m">Infrastructure cost differences</h2>
+            <p class="govuk-body">Viewing cost differences between months.</p>
+            {{ template "costs-table" .InfracostDiffs }}
         </div>
         {{- end -}}
 
