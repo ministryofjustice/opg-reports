@@ -141,6 +141,7 @@ func handler(ctx context.Context, log *slog.Logger, conf *Conf, writer http.Resp
 			// lock in detailed grouping
 			var costs, headings, err = blocks.InfracostDiffData(ctx, log, conf.ApiHost, request,
 				&api.Param{Type: api.QUERY, Key: "team", Value: data.TeamName, Locked: true},
+				&api.Param{Type: api.QUERY, Key: "change", Value: "100", Locked: false},
 			)
 			if err == nil && len(costs) > 0 {
 				data.InfracostDiffs = &apiData{
