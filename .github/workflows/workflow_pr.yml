@@ -201,7 +201,7 @@ jobs:
         with:
           apply: true
           directory: ./terraform/account
-          workspace: ${{ end.terraform_workspace }}
+          workspace: ${{ env.terraform_workspace }}
           version: ${{ needs.setup.outputs.terraform_version_account }}
       - name: "Environment level terraform"
         uses: ./.github/actions/terraform
@@ -213,7 +213,7 @@ jobs:
         with:
           apply: true
           directory: ./terraform/environment
-          workspace: ${{ end.terraform_workspace }}
+          workspace: ${{ env.terraform_workspace }}
           version: ${{ needs.setup.outputs.terraform_version_environment }}
   # release this version
   release:
