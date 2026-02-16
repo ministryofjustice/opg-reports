@@ -57,8 +57,8 @@ type pageBlockF func(i ...any)
 func handler(ctx context.Context, log *slog.Logger, conf *Conf, writer http.ResponseWriter, request *http.Request) {
 
 	var (
-		blockFs []pageBlockF
-
+		blockFs   []pageBlockF
+		teamName  string         = request.PathValue("team")
 		wg        sync.WaitGroup = sync.WaitGroup{}
 		templates []string       = tmpl.GetTemplateFiles(conf.TemplateDir)
 		lg        *slog.Logger   = log.With("func", "teampage.handler")
@@ -68,7 +68,7 @@ func handler(ctx context.Context, log *slog.Logger, conf *Conf, writer http.Resp
 				GovUKVersion: conf.GovUKVersion,
 				Signature:    conf.Signature,
 			}),
-			TeamName: request.PathValue("team"),
+			TeamName: teamName,
 		}
 	)
 	lg.Info("processing page ...", "url", request.URL.String())
