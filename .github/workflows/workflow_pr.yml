@@ -1,6 +1,10 @@
 name: "[Workflow] PR"
 
 on:
+  # # run at 0830 every day
+  # schedule:
+  #   - cron: '30 8 * * *'
+
   pull_request:
     branches:
       - main
@@ -164,7 +168,7 @@ jobs:
           ecr_repository: ${{ env.ecr_image_front }}
           branch_name: ${{ needs.setup.outputs.branch_name }}
           tag: ${{ needs.setup.outputs.semver_tag }}
-          dockerfile: './docker/api/Dockerfile'
+          dockerfile: './docker/front/Dockerfile'
           path_to_live: ${{ env.PATH_TO_LIVE }}
       # listing
       - name: "List build directory"
