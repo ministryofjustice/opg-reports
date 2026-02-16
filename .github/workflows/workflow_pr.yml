@@ -10,7 +10,6 @@ permissions:
   contents: write
   id-token: write
 
-
 env:
   BUILD_DIR: "./builds"
   PRERELEASE: "true"
@@ -99,6 +98,7 @@ jobs:
           go mod tidy
           go test -count=1 -cover -covermode=atomic ./...
 
+  # build and push docker images
   builder:
     name: "Build & push docker images"
     runs-on: ubuntu-24.04
@@ -141,7 +141,6 @@ jobs:
           dir: ${{ env.BUILD_DIR }}
       # Swap AWS creds for ECR usage
       - name: "Configure AWS credentials for ECR"
-        id: configure_aws_creds_ecr_push
         uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
         with:
           aws-region: "eu-west-1"
