@@ -16,6 +16,7 @@ func AsT[T any](response *http.Response, destination T) (err error) {
 	if err != nil {
 		return
 	}
+
 	err = json.Unmarshal(content, destination)
 	return
 }

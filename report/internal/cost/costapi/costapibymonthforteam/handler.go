@@ -1,4 +1,4 @@
-package costapibymonthteam
+package costapibymonthforteam
 
 import (
 	"context"
@@ -24,14 +24,16 @@ const selectStmt string = `
 SELECT
 	costs.month as month,
 	CAST(COALESCE(SUM(cost), 0) as REAL) as cost,
-	IIF(accounts.team_name != "", accounts.team_name, "")  as team
+	IIF(accounts.name != "", accounts.name, "")  as account
 FROM costs
 LEFT JOIN accounts on accounts.id = costs.account_id
 WHERE
 	costs.service != 'Tax'
 	AND costs.month IN (:months)
+	AND accounts.team_name = :team
 GROUP BY
-	costs.month
+	costs.month,
+	accounts.team_name
 ORDER BY
 	accounts.team_name ASC
 ;
@@ -42,6 +44,7 @@ ORDER BY
 type Request struct {
 	DateStart string `json:"date_start"`
 	DateEnd   string `json:"date_end"`
+	Team      string `json:"team"` // the team filter
 }
 
 func (self *Request) Start() (t time.Time) {
@@ -65,19 +68,20 @@ type Response struct {
 // For this endpointm, we only filter by the time period - months
 type Filter struct {
 	Months []string `json:"months"`
+	Team   string   `json:"team"`
 }
 
 // Model is the data struct to use when fetching the select
 type Model struct {
-	Month string  `json:"month"`
-	Cost  float64 `json:"cost"`
-	Team  string  `json:"team"`
+	Month   string  `json:"month"`
+	Cost    float64 `json:"cost"`
+	Account string  `json:"account"`
 }
 
 // Sequence is used to return the columns in the order they are selected
 func (self *Model) Sequence() []any {
 	return []any{
-		&self.Month, &self.Cost, &self.Team,
+		&self.Month, &self.Cost, &self.Account,
 	}
 }
 
@@ -93,9 +97,9 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 		in       *Request                      = &Request{}
 		bindMap  map[string]interface{}        = map[string]interface{}{}
 		all      []*Model                      = []*Model{}
-		log      *slog.Logger                  = cntxt.GetLogger(ctx).With("package", "costapibymonthteam", "func", "Responder")
+		log      *slog.Logger                  = cntxt.GetLogger(ctx).With("package", "costapibymonthforteam", "func", "Responder")
 		headings map[tabulate.ColType][]string = map[tabulate.ColType][]string{
-			tabulate.KEY:   {"team"},
+			tabulate.KEY:   {"account"},
 			tabulate.EXTRA: {"trend"},
 			tabulate.END:   {"total"},
 		}
@@ -111,16 +115,17 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 	}
 	// setup months
 	headings[tabulate.DATA] = months
-	filter = &Filter{Months: months}
+	filter = &Filter{Months: months, Team: in.Team}
 	// now convert to a map for use in bound statements
 	err = cnv.Convert(filter, &bindMap)
 	if err != nil {
 		log.Error("failed to convert filter into map for binding", "err", err.Error())
 		return
 	}
+
 	// make the db call via the Select helper that handles row scanning.
 	// No return value as local values are updates within ScanF lambda
-	queryx.Select(ctx, selectStmt, &queryx.Input{
+	err = queryx.Select(ctx, selectStmt, &queryx.Input{
 		DB:      conf.DB,
 		Driver:  conf.Driver,
 		Params:  conf.Params,
@@ -136,6 +141,9 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 			return err
 		},
 	})
+	if err != nil {
+		log.Error("query failed", "err", err.Error(), "stmt", selectStmt)
+	}
 	// get the body
 	tableBody := tabulate.TableBody(ctx, all, &tabulate.BodyInput{
 		Headers:   headings,

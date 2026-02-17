@@ -1,8 +1,10 @@
 package bind
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"opg-reports/report/package/cntxt"
 	"reflect"
 	"regexp"
 	"strings"
@@ -12,10 +14,9 @@ var ErrBadPlaceHolder = errors.New("found a placeholder syntax (:name) without a
 var re *regexp.Regexp = regexp.MustCompile(`(?m):[[:alnum:]_-]+`)
 
 // Bind replaces all `:name` elements within a sql statement with '?' and returns list of args to use for within Query / Exec
-func Bind(named string, model map[string]interface{}) (statement string, args []interface{}, err error) {
-	var (
-		modelValues map[string][]interface{}
-	)
+func Bind(ctx context.Context, named string, model map[string]interface{}) (statement string, args []interface{}, err error) {
+	var modelValues map[string][]interface{}
+	var log = cntxt.GetLogger(ctx).With("package", "bind", "func", "Bind")
 	args = []interface{}{}
 	// get all the values for the mode
 	modelValues = map[string][]interface{}{}
@@ -23,7 +24,11 @@ func Bind(named string, model map[string]interface{}) (statement string, args []
 		modelValues[key] = asSlice(value)
 	}
 	res := &reducer{Statement: named, ModelValues: modelValues, Args: args}
-	err = reduceReplace(res) //(&reduc statement, modelValues, args)
+	err = reduceReplace(res)
+
+	if strings.Contains(res.Statement, ":") {
+		log.Warn("possibly placeholders left within sql")
+	}
 
 	return res.Statement, res.Args, err
 }

@@ -40,7 +40,7 @@ func Select(ctx context.Context, stmt string, in *Input) (err error) {
 	defer db.Close()
 
 	// generate the bound statement
-	stmt, args, err = bind.Bind(stmt, in.BindMap)
+	stmt, args, err = bind.Bind(ctx, stmt, in.BindMap)
 	if err != nil {
 		log.Error("error in bind", "err", err.Error())
 		return

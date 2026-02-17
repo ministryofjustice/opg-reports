@@ -25,7 +25,7 @@ func TestBindSimpleSelect(t *testing.T) {
 	expectedArgs := []interface{}{
 		"date", 1, 1, "2025-01", "2025-02", "2025-01", "2025-02",
 	}
-	s, args, err := Bind(sql, data)
+	s, args, err := Bind(t.Context(), sql, data)
 	if err != nil {
 		t.Errorf("unexpected error: [%s]", err.Error())
 	}
@@ -78,7 +78,7 @@ RETURNING id
 	data := map[string]interface{}{}
 	cnv.Convert(s, &data)
 
-	st, _, _ := Bind(sql, data)
+	st, _, _ := Bind(t.Context(), sql, data)
 
 	if strings.Count(st, "?") != 5 {
 		t.Errorf("failed to bind string")
@@ -119,7 +119,7 @@ func TestBindWorking(t *testing.T) {
 	}
 
 	sel := `SELECT id, name FROM testing WHERE name = :name;`
-	sel, args, err := Bind(sel, map[string]interface{}{"name": "test"})
+	sel, args, err := Bind(t.Context(), sel, map[string]interface{}{"name": "test"})
 	if err != nil {
 		t.Errorf("unexpected error: [%s]", err.Error())
 	}

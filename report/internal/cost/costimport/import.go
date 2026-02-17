@@ -95,7 +95,7 @@ func write(ctx context.Context, stmt string, costs []*ImportModel, in *Input) (e
 			return
 		}
 		// use bind
-		bound, args, e := bind.Bind(stmt, row)
+		bound, args, e := bind.Bind(ctx, stmt, row)
 		if e != nil {
 			return
 		}
