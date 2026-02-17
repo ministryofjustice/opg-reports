@@ -3,14 +3,16 @@ package bind
 import (
 	"database/sql"
 	"opg-reports/report/package/cntxt"
+	"opg-reports/report/package/cnv"
 	"opg-reports/report/package/logger"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func TestBindSimpleWorking(t *testing.T) {
+func TestBindSimpleSelect(t *testing.T) {
 	var err error
 	sql := `SELECT date as d, time as :a FROM table WHERE (x = :b OR y = :b )AND (monthA IN (:c) OR monthB IN (:c)) LIMIT 1;`
 	data := map[string]interface{}{
@@ -35,6 +37,51 @@ func TestBindSimpleWorking(t *testing.T) {
 		if exp != actual {
 			t.Errorf("arg does not match expected:\nactual:\n%s\nexpected:\n%s", s, expected)
 		}
+	}
+
+}
+
+type testStruct struct {
+	Region    string `json:"region,omitempty"`
+	Service   string `json:"service,omitempty"`
+	Month     string `json:"month,omitempty"`
+	Cost      string `json:"cost,omitempty"`
+	AccountID string `json:"account_id,omitempty"`
+}
+
+func TestBindSimpleInsert(t *testing.T) {
+	sql := `
+INSERT INTO costs (
+	region,
+	service,
+	month,
+	cost,
+	account_id
+) VALUES (
+	:region,
+	:service,
+	:month,
+	:cost,
+	:account_id
+) ON CONFLICT (account_id, month, region, service)
+ 	DO UPDATE SET cost=excluded.cost
+RETURNING id
+;
+`
+	s := &testStruct{
+		Region:    "NoRegion",
+		Service:   "Tax",
+		Month:     "2025-01",
+		Cost:      "0.01556",
+		AccountID: "36700000",
+	}
+	data := map[string]interface{}{}
+	cnv.Convert(s, &data)
+
+	st, _, _ := Bind(sql, data)
+
+	if strings.Count(st, "?") != 5 {
+		t.Errorf("failed to bind string")
 	}
 
 }

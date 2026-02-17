@@ -2,13 +2,19 @@ package costimport
 
 import (
 	"context"
+	"database/sql"
 	"log/slog"
+	"opg-reports/report/internal/cost/costmodel"
+	"opg-reports/report/package/bind"
 	"opg-reports/report/package/cntxt"
+	"opg-reports/report/package/cnv"
+	"opg-reports/report/package/conn"
 	"opg-reports/report/package/times"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // Client is used to allow mocking and is a proxy for *costexplorer.Client
@@ -18,10 +24,9 @@ type Client interface {
 }
 
 type Input struct {
-	DB     string `json:"db"`     // database path
-	Driver string `json:"driver"` // database driver
-	Params string `json:"params"` // database connection params
-	// MigrationFile string    `json:"migration_file"` // migration file
+	DB        string    `json:"db"`         // database path
+	Driver    string    `json:"driver"`     // database driver
+	Params    string    `json:"params"`     // database connection params
 	DateStart time.Time `json:"date_start"` // start date, this will be reset to start of the month (and expanded to capture historical data)
 	DateEnd   time.Time `json:"date_end"`   // end date
 	AccountID string    `json:"account_id"` // AccountID provided by awsid.AccountID
@@ -30,8 +35,9 @@ type Input struct {
 func Import(ctx context.Context, client Client, in *Input) (err error) {
 	var (
 		options *costexplorer.GetCostAndUsageInput
-		// result  *costexplorer.GetCostAndUsageOutput
-		log *slog.Logger = cntxt.GetLogger(ctx).WithGroup("costimport")
+		result  *costexplorer.GetCostAndUsageOutput
+		costs   []*costmodel.Import
+		log     *slog.Logger = cntxt.GetLogger(ctx).With("package", "costimport", "func", "Import")
 	)
 	log.Info("starting ...", "db", in.DB, "date_start", in.DateStart, "date_end", in.DateEnd)
 	options = getCostAndUsageInput(
@@ -39,13 +45,88 @@ func Import(ctx context.Context, client Client, in *Input) (err error) {
 		times.AsYMDString(in.DateEnd))
 
 	// make the api call
-	_, err = client.GetCostAndUsage(ctx, options)
+	result, err = client.GetCostAndUsage(ctx, options)
 	if err != nil {
 		log.Error("error getting cost and usage", "err", err.Error())
 		return
 	}
+	// covnerto models
+	costs, err = toModels(ctx, in.AccountID, result)
+	if err != nil {
+		log.Error("error converting cost and usage", "err", err.Error())
+		return
+	}
+	// fmt.Println(dump.Any(costs))
+	// now write to db
+	err = write(ctx, importStatement, costs, in)
+	if err != nil {
+		log.Error("error write data during import", "err", err.Error())
+		return
+	}
 
 	log.Info("complete.")
+	return
+}
+
+func write(ctx context.Context, stmt string, costs []*costmodel.Import, in *Input) (err error) {
+	var (
+		db  *sql.DB
+		log *slog.Logger = cntxt.GetLogger(ctx).With("package", "costimport", "func", "write")
+	)
+	db, err = sql.Open(in.Driver, conn.SqlitePath(in.DB, in.Params))
+	if err != nil {
+		log.Error("error connecting to database", "err", err.Error())
+		return
+	}
+	defer db.Close()
+
+	for _, model := range costs {
+		// convert to map
+		row := map[string]interface{}{}
+		if err = cnv.Convert(model, &row); err != nil {
+			return
+		}
+		// use bind
+		bound, args, e := bind.Bind(stmt, row)
+		if e != nil {
+			return
+		}
+		_, err = db.ExecContext(ctx, bound, args...)
+		if e != nil {
+			return
+		}
+
+	}
+
+	return
+}
+
+// toModels converts the raw data into a list of models ready to write to the database
+func toModels(ctx context.Context, account string, result *costexplorer.GetCostAndUsageOutput) (costs []*costmodel.Import, err error) {
+	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "costimport", "func", "toModels")
+
+	costs = []*costmodel.Import{}
+	log.Debug("starting toModels ... ")
+
+	for _, result := range result.ResultsByTime {
+		var day string = *result.TimePeriod.Start
+		for _, group := range result.Groups {
+			var service string = *&group.Keys[0]
+			var region string = *&group.Keys[1]
+			for _, cost := range group.Metrics {
+				var item = &costmodel.Import{
+					AccountID: account,
+					Month:     times.ToYMString(day),
+					Service:   service,
+					Region:    region,
+					Cost:      *cost.Amount,
+				}
+				costs = append(costs, item)
+			}
+		}
+	}
+	log.With("count", len(costs)).Debug("complete.")
+
 	return
 }
 

@@ -7,16 +7,15 @@ import (
 )
 
 type migrationOptions struct {
-	DB            string `json:"db" required:"true"`             // --db
-	Driver        string `json:"driver" required:"true"`         // --driver
-	Params        string `json:"params" required:"true"`         // --params
-	MigrationFile string `json:"migration_file" required:"true"` // --file
+	DB            string `json:"db"`             // --db
+	Driver        string `json:"driver"`         // --driver
+	Params        string `json:"params"`         // --params
+	MigrationFile string `json:"migration_file"` // --file
 }
 
 var migrationFlags = &migrationOptions{
 	Driver:        "sqlite3",
 	DB:            "./database/api.db",
-	Params:        "",
 	MigrationFile: "migrations.json",
 }
 
@@ -29,7 +28,7 @@ var migrationCmd = &cobra.Command{
 
 func runMigration(cmd *cobra.Command, args []string) (err error) {
 	// run the migration command
-	err = costmigrate.Migrate(cmd.Context(), &costmigrate.Options{
+	err = costmigrate.Migrate(cmd.Context(), &costmigrate.Input{
 		DB:            migrationFlags.DB,
 		Driver:        migrationFlags.Driver,
 		Params:        migrationFlags.Params,

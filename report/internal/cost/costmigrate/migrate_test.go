@@ -15,7 +15,7 @@ func TestCostMigration(t *testing.T) {
 		err  error
 		ctx  = cntxt.AddLogger(t.Context(), logger.New("error"))
 		dir  = t.TempDir()
-		opts = &Options{
+		opts = &Input{
 			Driver:        "sqlite3",
 			DB:            filepath.Join(dir, "test-costmigration.db"),
 			MigrationFile: filepath.Join(dir, "migrations.json"),

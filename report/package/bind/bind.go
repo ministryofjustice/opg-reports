@@ -23,46 +23,97 @@ func Bind(named string, model map[string]interface{}) (statement string, args []
 	for key, value := range model {
 		modelValues[key] = asSlice(value)
 	}
+	res := &reducer{Statement: named, ModelValues: modelValues, Args: args}
+	err = reduceReplace(res) //(&reduc statement, modelValues, args)
 
-	statement = named
-	statement, args, err = reduceReplace(statement, modelValues, args)
+	return res.Statement, res.Args, err
+}
 
+type reducer struct {
+	Statement   string
+	ModelValues map[string][]interface{}
+	Args        []interface{}
+}
+
+func (self *reducer) MatchedKey(matches [][]int) string {
+	var i = matches[0][0]
+	var j = matches[0][1]
+	return self.Statement[i+1 : j]
+}
+func (self *reducer) ReplaceMatch(matches [][]int, str string) string {
+	var i = matches[0][0]
+	var j = matches[0][1]
+	return self.Statement[0:i] + str + self.Statement[j:]
+}
+
+func reduceReplace(reduce *reducer) (err error) {
+	var matches = re.FindAllStringIndex(reduce.Statement, 1)
+
+	if len(matches) == 0 {
+		fmt.Println("no match")
+		return
+	}
+	var (
+		sub        = ""
+		key        = reduce.MatchedKey(matches)
+		values, ok = reduce.ModelValues[key]
+	)
+	// this field doesnt exist, so throw an error
+	if !ok {
+		fmt.Println("no data " + key)
+		errors.Join(ErrBadPlaceHolder, fmt.Errorf("incorrect placeholder: [:%s]", key))
+		return
+	}
+	// attached the values for the :name
+	reduce.Args = append(reduce.Args, values...)
+	// add ?
+	for i := 0; i < len(values); i++ {
+		sub += "?,"
+	}
+	sub = strings.TrimSuffix(sub, ",")
+	// adjust the statement at the match point
+	reduce.Statement = reduce.ReplaceMatch(matches, sub)
+	// see if need to recurse
+	matches = re.FindAllStringIndex(reduce.Statement, 1)
+	if len(matches) > 0 {
+		err = reduceReplace(reduce)
+	}
 	return
 }
 
-// reduceReplace recursively removes each instance or `:name`
-//
-// If there is no value, the place holder is fully removed
-func reduceReplace(statement string, modelValues map[string][]interface{}, args []interface{}) (string, []interface{}, error) {
-	var err error
-	var matches = re.FindAllStringIndex(statement, 1)
+// // reduceReplace recursively removes each instance or `:name`
+// //
+// // If there is no value, the place holder is fully removed
+// func reduceReplace(statement string, modelValues map[string][]interface{}, args []interface{}) (string, []interface{}, error) {
+// 	var err error
+// 	var matches = re.FindAllStringIndex(statement, 1)
 
-	if len(matches) >= 1 {
-		sub := ""
-		idx := matches[0]
-		i := idx[0]
-		j := idx[1]
-		k := statement[i+1 : j] // removes the `:`
-		// if we find values, replace them
-		if values, ok := modelValues[k]; ok {
-			// add the args
-			args = append(args, values...)
-			// replace the chunk
-			for x := 0; x < len(values); x++ {
-				sub += "?,"
-			}
-			sub = strings.TrimSuffix(sub, ",")
-			// reform the string without this chunk
-			statement = statement[0:i] + sub + statement[j:]
-		} else {
-			err = errors.Join(ErrBadPlaceHolder, fmt.Errorf("incorrect placeholder: [:%s]", k))
-		}
-		if err == nil && len(matches) > 1 {
-			statement, args, err = reduceReplace(statement, modelValues, args)
-		}
-	}
-	return statement, args, err
-}
+// 	if len(matches) >= 1 {
+// 		sub := ""
+// 		idx := matches[0]
+// 		i := idx[0]
+// 		j := idx[1]
+// 		k := statement[i+1 : j] // removes the `:`
+// 		// if we find values, replace them
+// 		if values, ok := modelValues[k]; ok {
+// 			// add the args
+// 			args = append(args, values...)
+// 			// replace the chunk
+// 			for x := 0; x < len(values); x++ {
+// 				sub += "?,"
+// 			}
+// 			sub = strings.TrimSuffix(sub, ",")
+// 			// reform the string without this chunk
+// 			statement = statement[0:i] + sub + statement[j:]
+// 		} else {
+// 			err = errors.Join(ErrBadPlaceHolder, fmt.Errorf("incorrect placeholder: [:%s]", k))
+// 		}
+// 		if err == nil {
+// 			statement, args, err = reduceReplace(statement, modelValues, args)
+// 		}
+// 	}
+// 	return statement, args, err
+// }
 
 // asSlice uses reflection to expand val into multiples if its a p[slice etc]
 func asSlice[T any](val T) (values []interface{}) {

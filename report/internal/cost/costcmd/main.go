@@ -22,6 +22,7 @@ func main() {
 
 	root.AddCommand(
 		migrationCmd,
+		importCmd,
 	)
 
 	err = root.ExecuteContext(ctx)
