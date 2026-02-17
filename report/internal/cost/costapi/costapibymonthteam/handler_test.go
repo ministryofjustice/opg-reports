@@ -2,11 +2,9 @@ package costapibymonthteam
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"opg-reports/report/package/cntxt"
-	"opg-reports/report/package/dump"
 	"opg-reports/report/package/logger"
 	"opg-reports/report/package/response"
 	"path/filepath"
@@ -99,7 +97,18 @@ func TestCostApiByMonthTeamHandler(t *testing.T) {
 	if err != nil {
 		t.Errorf("error converting ...")
 	}
-
-	fmt.Println(dump.Any(rec.Headers))
-	t.FailNow()
+	// - test returned data
+	// 1 dummy item, 1 table total
+	if len(rec.Data) != 2 {
+		t.Errorf("incorrect number of data rows")
+	}
+	if rec.Request.DateEnd != "2026-01" {
+		t.Error("data_end failed to return correctly")
+	}
+	if rec.Request.DateStart != "2025-01" {
+		t.Error("data_start failed to return correctly")
+	}
+	if len(rec.Headers["labels"]) != 1 {
+		t.Error("incorrect number of labels returned")
+	}
 }

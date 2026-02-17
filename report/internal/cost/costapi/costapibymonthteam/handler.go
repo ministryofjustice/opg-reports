@@ -3,21 +3,23 @@ package costapibymonthteam
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/cnv"
-	"opg-reports/report/package/dump"
 	"opg-reports/report/package/queryx"
 	"opg-reports/report/package/requested"
 	"opg-reports/report/package/respond"
+	"opg-reports/report/package/tabulate"
 	"opg-reports/report/package/times"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// selectStmt is the sql used to fetch data including
+// and params (`:name`) that will be replaced by values
+// from `Request` (by configuring `Filter`)
 const selectStmt string = `
 SELECT
 	costs.month as month,
@@ -52,22 +54,23 @@ func (self *Request) End() (t time.Time) {
 
 // Response is the end result thats sent back from the handler via the writter
 type Response struct {
-	Request *Request                 `json:"request"`
-	Headers map[string][]string      `json:"headers"` // headers contains details for table headers / rendering
-	Data    []map[string]interface{} `json:"data"`    // the actual data results
+	Request *Request                      `json:"request"`
+	Headers map[tabulate.ColType][]string `json:"headers"` // headers contains details for table headers / rendering
+	Data    []map[string]interface{}      `json:"data"`    // the actual data results
 }
 
 // Filter is with the sql to replace the `:name` named parameters within the
-// statement
+// statement.
+// For this endpointm, we only filter by the time period - months
 type Filter struct {
 	Months []string `json:"months"`
 }
 
 // Model is the data struct to use when fetching the select
 type Model struct {
-	Month string `json:"month"`
-	Cost  string `json:"cost"`
-	Team  string `json:"team"`
+	Month string  `json:"month"`
+	Cost  float64 `json:"cost"`
+	Team  string  `json:"team"`
 }
 
 // Sequence is used to return the columns in the order they are selected
@@ -77,17 +80,26 @@ func (self *Model) Sequence() []any {
 	}
 }
 
+// Responder process the incoming request, queries the database and returns the result as json data.
+//
+// Data is formatted as a table for easier display.
 func Responder(ctx context.Context, conf *Config, request *http.Request, writer http.ResponseWriter) {
 	var (
 		err      error
 		response *Response
 		filter   *Filter
 		months   []string
-		in       *Request               = &Request{}
-		bindMap  map[string]interface{} = map[string]interface{}{}
-		all      []*Model               = []*Model{}
-		log      *slog.Logger           = cntxt.GetLogger(ctx).With("package", "costapibymonthteam", "func", "Responder")
+		in       *Request                      = &Request{}
+		bindMap  map[string]interface{}        = map[string]interface{}{}
+		all      []*Model                      = []*Model{}
+		log      *slog.Logger                  = cntxt.GetLogger(ctx).With("package", "costapibymonthteam", "func", "Responder")
+		headings map[tabulate.ColType][]string = map[tabulate.ColType][]string{
+			tabulate.KEY:   {"team"},
+			tabulate.EXTRA: {"trend"},
+			tabulate.END:   {"total"},
+		}
 	)
+	log.Info("running http handler ...")
 	// convert the http request into Request struct
 	requested.Parse(ctx, request, &in)
 	// get months between dates
@@ -96,6 +108,8 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 		log.Error("no months found with date range provided", "err", err.Error())
 		return
 	}
+	// setup months
+	headings[tabulate.DATA] = months
 	filter = &Filter{Months: months}
 	// now convert to a map for use in bound statements
 	err = cnv.Convert(filter, &bindMap)
@@ -103,8 +117,8 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 		log.Error("failed to convert filter into map for binding", "err", err.Error())
 		return
 	}
-	// make the db call via the Select helper that handles row scanning
-	// all, err := get(ctx, conf, filter)
+	// make the db call via the Select helper that handles row scanning.
+	// No return value as local values are updates within ScanF lambda
 	queryx.Select(ctx, selectStmt, &queryx.Input{
 		DB:      conf.DB,
 		Driver:  conf.Driver,
@@ -121,18 +135,24 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 			return err
 		},
 	})
-
-	fmt.Println(dump.Any(all))
+	// get the body
+	tableBody := tabulate.TableBody(ctx, all, &tabulate.BodyInput{
+		Headers:   headings,
+		ColumnKey: "month",
+		ValueKey:  "cost"})
+	// add rowTotals
+	tabulate.RowEnd(tableBody, headings, tabulate.RowTotalF)
+	// swap to slice
+	tbl := tabulate.TableMapToTable(tableBody)
+	// do table total
+	tbl = tabulate.TableEnd(tbl, headings, tabulate.TableTotalF)
 
 	// setup response object
 	response = &Response{
 		Request: in,
-		Headers: map[string][]string{
-			"labels": {"team"},
-			"extra":  {"trend"},
-			"end":    {"total"},
-			"data":   months,
-		},
+		Headers: headings,
+		Data:    tbl,
 	}
+	log.Info("complete.")
 	respond.AsJSON(ctx, request, writer, response)
 }
