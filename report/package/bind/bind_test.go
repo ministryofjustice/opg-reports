@@ -135,8 +135,6 @@ func TestBindWorking(t *testing.T) {
 		all = append(all, r)
 	}
 
-	defer rows.Close()
-
 	if len(all) != 1 {
 		t.Errorf("unexpected number of rows.")
 	}
