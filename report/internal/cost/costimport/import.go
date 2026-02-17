@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"log/slog"
-	"opg-reports/report/internal/cost/costmodel"
 	"opg-reports/report/package/bind"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/cnv"
@@ -16,6 +15,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
 	_ "github.com/mattn/go-sqlite3"
 )
+
+// ImportModel represents a simple, joinless, db row in the cost table; used by imports and seeding commands
+type ImportModel struct {
+	Region    string `json:"region,omitempty"`      // AWS Region
+	Service   string `json:"service,omitempty"`     // The AWS service name
+	Month     string `json:"month,omitempty"`       // The data the cost was incurred - provided from the cost explorer result
+	Cost      string `json:"cost,omitempty"`        // The actual cost value as a string - without an currency, but is USD by default
+	AccountID string `json:"account_id,omityempty"` // the actual account id - string as it can have leading zeros. Use in joins as well
+}
 
 // Client is used to allow mocking and is a proxy for *costexplorer.Client
 type Client interface {
@@ -36,7 +44,7 @@ func Import(ctx context.Context, client Client, in *Input) (err error) {
 	var (
 		options *costexplorer.GetCostAndUsageInput
 		result  *costexplorer.GetCostAndUsageOutput
-		costs   []*costmodel.Import
+		costs   []*ImportModel
 		log     *slog.Logger = cntxt.GetLogger(ctx).With("package", "costimport", "func", "Import")
 	)
 	log.Info("starting ...", "db", in.DB, "date_start", in.DateStart, "date_end", in.DateEnd)
@@ -68,7 +76,7 @@ func Import(ctx context.Context, client Client, in *Input) (err error) {
 	return
 }
 
-func write(ctx context.Context, stmt string, costs []*costmodel.Import, in *Input) (err error) {
+func write(ctx context.Context, stmt string, costs []*ImportModel, in *Input) (err error) {
 	var (
 		db  *sql.DB
 		log *slog.Logger = cntxt.GetLogger(ctx).With("package", "costimport", "func", "write")
@@ -102,10 +110,10 @@ func write(ctx context.Context, stmt string, costs []*costmodel.Import, in *Inpu
 }
 
 // toModels converts the raw data into a list of models ready to write to the database
-func toModels(ctx context.Context, account string, result *costexplorer.GetCostAndUsageOutput) (costs []*costmodel.Import, err error) {
+func toModels(ctx context.Context, account string, result *costexplorer.GetCostAndUsageOutput) (costs []*ImportModel, err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "costimport", "func", "toModels")
 
-	costs = []*costmodel.Import{}
+	costs = []*ImportModel{}
 	log.Debug("starting toModels ... ")
 
 	for _, result := range result.ResultsByTime {
@@ -114,7 +122,7 @@ func toModels(ctx context.Context, account string, result *costexplorer.GetCostA
 			var service string = *&group.Keys[0]
 			var region string = *&group.Keys[1]
 			for _, cost := range group.Metrics {
-				var item = &costmodel.Import{
+				var item = &ImportModel{
 					AccountID: account,
 					Month:     times.ToYMString(day),
 					Service:   service,

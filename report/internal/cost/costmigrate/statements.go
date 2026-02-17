@@ -5,6 +5,7 @@ type migration struct {
 	Stmt string
 }
 
+// allMigrations is a slice to ensure ordering is kept
 var allMigrations = []*migration{
 	{Key: "create_aws_costs", Stmt: create_aws_costs},
 	{Key: "create_agnostic_costs", Stmt: create_agnostic_costs},
