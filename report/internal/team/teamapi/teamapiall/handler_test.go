@@ -1,12 +1,10 @@
 package teamapiall
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"opg-reports/report/internal/global/seeds"
 	"opg-reports/report/package/cntxt"
-	"opg-reports/report/package/dump"
 	"opg-reports/report/package/logger"
 	"opg-reports/report/package/response"
 	"path/filepath"
@@ -14,49 +12,6 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 )
-
-const mockMigrate string = `
-CREATE TABLE IF NOT EXISTS costs (
-	id INTEGER PRIMARY KEY,
-	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
-	vendor TEXT NOT NULL DEFAULT 'aws',
-	region TEXT DEFAULT "NoRegion" NOT NULL,
-	service TEXT NOT NULL,
-	month TEXT NOT NULL,
-	cost TEXT NOT NULL,
-	account_id TEXT,
-	UNIQUE (account_id,month,region,service)
-) STRICT;
-
-CREATE TABLE IF NOT EXISTS accounts (
-	id TEXT PRIMARY KEY,
-	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
-	name TEXT NOT NULL,
-	label TEXT NOT NULL,
-	vendor TEXT NOT NULL DEFAULT 'aws',
-	environment TEXT NOT NULL DEFAULT "production",
-	uptime_tracking TEXT NOT NULL DEFAULT "false",
-	team_name TEXT NOT NULL DEFAULT "ORG"
-) WITHOUT ROWID;
-
-CREATE INDEX IF NOT EXISTS idx_costs_date ON costs(month);
-CREATE INDEX IF NOT EXISTS idx_costs_date_account ON costs(month, account_id);
-CREATE INDEX IF NOT EXISTS idx_costs_unique ON costs(account_id, month, region, service);
-
-INSERT INTO costs (
-	region,
-	service,
-	month,
-	cost,
-	account_id
-) VALUES(
-	'eu-west-1',
-	'test',
-	'2025-11',
-	'123.1',
-	'12300'
-)
-`
 
 func TestTeamsApiAllHandler(t *testing.T) {
 	var (
@@ -69,7 +24,7 @@ func TestTeamsApiAllHandler(t *testing.T) {
 	)
 
 	// run seeds
-	seeds.SeedAll(ctx, &seeds.Args{
+	_, err = seeds.SeedAll(ctx, &seeds.Args{
 		Driver:        driver,
 		DB:            dbpath,
 		MigrationFile: mfile,
@@ -103,7 +58,5 @@ func TestTeamsApiAllHandler(t *testing.T) {
 	if len(rec.Data) < 5 {
 		t.Errorf("incorrect number of data rows")
 	}
-	fmt.Println(dump.Any(rec))
-	t.FailNow()
 
 }

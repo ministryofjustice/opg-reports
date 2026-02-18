@@ -1,4 +1,4 @@
-package teamimport
+package accountimport
 
 import (
 	"context"
@@ -10,25 +10,36 @@ import (
 	"testing"
 )
 
-func TestTeamImportWithoutMock(t *testing.T) {
-
+func TestAccountImportWithoutMock(t *testing.T) {
 	var (
 		err     error
 		ctx     context.Context = cntxt.AddLogger(t.Context(), logger.New("error"))
 		dir     string          = t.TempDir()
 		mfile   string          = filepath.Join(dir, "migrate.json")
-		srcfile string          = filepath.Join(dir, "teams.json")
-		dbpath  string          = filepath.Join(dir, "test-teams-import.db")
+		srcfile string          = filepath.Join(dir, "aws.accounts.json")
+		dbpath  string          = filepath.Join(dir, "test-accounts-import.db")
 	)
 	// generate some teams
-	teams := []*Model{
-		{Name: "team-a"}, {Name: "team-b"}, {Name: "team-c"}, {Name: "team-d"}, {Name: "team-e"},
+	data := []*Model{
+		{
+			ID:          "A001",
+			Name:        "Test 01",
+			Label:       "test",
+			Environment: "development",
+			TeamName:    "team-dev",
+		},
+		{
+			ID:          "A002",
+			Name:        "Test 02",
+			Label:       "test",
+			Environment: "production",
+			TeamName:    "team-production",
+		},
 	}
-	err = files.WriteAsJSON(ctx, srcfile, teams)
+	err = files.WriteAsJSON(ctx, srcfile, data)
 	if err != nil {
 		t.Errorf("unexpected error: [%s]", err.Error())
 	}
-
 	// db migrations
 	err = migrations.MigrateAll(ctx, &migrations.Args{
 		DB:            dbpath,

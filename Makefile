@@ -1,3 +1,4 @@
+LOG_LEVEL ?= info
 #========= IMPORT TEAMS =========
 IMPORT_DIR ?= ${BUILD_DIR}/import
 IMPORT_CMD ?= ${IMPORT_DIR}/import
@@ -5,7 +6,7 @@ IMPORT_CMD ?= ${IMPORT_DIR}/import
 import-teams: CMD_LIST=import
 import-teams: get-metadata build-cmds
 	@echo "- importing teams "
-	@env LOG_LEVEL=info ${IMPORT_CMD} teams \
+	@env LOG_LEVEL=${LOG_LEVEL} ${IMPORT_CMD} teams \
 		--db="${API_DB}" \
 		--migration-file="${BUILD_DIR}/migrations.json" \
 		--src-file="${METADATA_EX_DIR}/teams.json"
@@ -13,23 +14,40 @@ import-teams: get-metadata build-cmds
 #========= RUN THE API =========
 # api command variables
 API_DIR ?= ${BUILD_DIR}/api
+API_DB_DIR ?= ${API_DIR}/database
 API_CMD ?= ${API_DIR}/api
-API_DB ?= ${API_DIR}/database/api.db
+API_DB ?= ${API_DB_DIR}/api.db
 .PHONY: api
 api: CMD_LIST=api
 api: build-cmds
 	@echo "- starting api "
-	@env LOG_LEVEL=info ${API_CMD} \
+	@env LOG_LEVEL=${LOG_LEVEL} ${API_CMD} \
 		--db="${API_DB}" \
 		--migration-file="${BUILD_DIR}/migrations.json" \
 		--api-host="localhost:8081" \
 
+
 #========= GET the database from s3 =========
-DB_BUCKET ?= opg-reports-development
-DB_KEY ?= database/api.db
+GET_DB_BUCKET ?= opg-reports-production
+GET_DB_PROFILE ?= shared-production-operator
 .PHONY: get-db
 get-db:
+	@rm -Rf ${API_DB}
+	@mkdir -p ${API_DB_DIR}
 	@echo "- downloading database "
+	@aws-vault exec ${GET_DB_PROFILE} -- aws s3 cp \
+    	s3://${GET_DB_BUCKET}/database/api.db \
+    	${API_DB_DIR}/
+# gets the db without aws-vault usage (pipelines)
+.PHONY: get-db-direct
+get-db-direct:
+	@rm -Rf ${API_DB}
+	@mkdir -p ${API_DB_DIR}
+	@echo "- downloading database "
+	@aws s3 cp \
+    	s3://${GETDB_BUCKET}/database/api.db \
+    	${API_DB_DIR}/
+
 
 #========= GET opg-metadata release =========
 # metadata related variables
@@ -99,7 +117,7 @@ test:
 	@clear
 	@echo "=== test: $(name)"
 	@env CGO_ENABLED=1 \
-		LOG_LEVEL="INFO" \
+		LOG_LEVEL="WARN" \
 		GITHUB_TOKEN="${GITHUB_TOKEN}" \
 		GH_TOKEN="${GITHUB_TOKEN}" \
 		AWS_REGION="${AWS_REGION}" \

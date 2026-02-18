@@ -29,10 +29,17 @@ var migrations = map[string][]*Migration{
 		{Key: "create_teams", Stmt: create_teams},
 		{Key: "lower_case_teams", Stmt: lower_case_teams},
 	},
+	"accounts": {
+		{Key: "create_aws_accounts", Stmt: create_aws_accounts},
+		{Key: "agnostic_accounts", Stmt: agnostic_accounts},
+	},
 	"costs": {
 		{Key: "create_aws_costs", Stmt: create_aws_costs},
 		{Key: "create_agnostic_costs", Stmt: create_agnostic_costs},
 		{Key: "migrate_costs", Stmt: migrate_costs},
+	},
+	"after": {
+		{Key: "lowercase_team_name", Stmt: lowercase_team_name},
 	},
 }
 
@@ -42,8 +49,17 @@ func MigrateAll(ctx context.Context, flags *Args) (err error) {
 	if err = Migrate(ctx, flags, migrations["teams"]); err != nil {
 		return
 	}
+	// accounts
+	if err = Migrate(ctx, flags, migrations["accounts"]); err != nil {
+		return
+	}
 	// costs
 	if err = Migrate(ctx, flags, migrations["costs"]); err != nil {
+		return
+	}
+
+	// post, almost completed migrations
+	if err = Migrate(ctx, flags, migrations["after"]); err != nil {
 		return
 	}
 

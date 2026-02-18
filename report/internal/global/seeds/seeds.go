@@ -47,10 +47,13 @@ var serviceList []string = []string{
 	"EC2 - Other",
 }
 
+// Results contains all the seed data that was inserted
+// including any that may have failed
 type Results struct {
 	Teams []*teamimport.Model
 }
 
+// Args
 type Args struct {
 	DB            string `json:"db"`             // --db
 	Driver        string `json:"driver"`         // --driver
@@ -58,6 +61,7 @@ type Args struct {
 	MigrationFile string `json:"migration_file"` // --file
 }
 
+// SeedAll
 func SeedAll(ctx context.Context, in *Args) (results *Results, err error) {
 	var args = &dbx.InsertArgs{
 		DB:     in.DB,
@@ -83,6 +87,27 @@ func SeedAll(ctx context.Context, in *Args) (results *Results, err error) {
 
 	return
 }
+
+// func seedAccounts(n int, teams []*teamimport.Model) (data []*accountmodels.Account) {
+// 	data = []*accountmodels.Account{}
+
+// 	for i := 0; i < n; i++ {
+// 		var envI = rand.IntN(len(environments))
+// 		var teamI = rand.IntN(len(teams))
+// 		var id = fmt.Sprintf("%04d", i+1)
+
+// 		data = append(data, &accountmodels.Account{
+// 			ID:          id,
+// 			Name:        fmt.Sprintf("Account %s", id),
+// 			Label:       fmt.Sprintf("%d", i+1),
+// 			Environment: environments[envI],
+// 			TeamName:    teams[teamI].Name,
+// 		})
+
+// 	}
+// 	return data
+
+// }
 
 func seedTeams(ctx context.Context, in *dbx.InsertArgs) (insert []*teamimport.Model, err error) {
 

@@ -56,3 +56,28 @@ CREATE INDEX IF NOT EXISTS aws_costs_date_idx ON aws_costs(date);
 CREATE INDEX IF NOT EXISTS aws_costs_date_account_idx ON aws_costs(date, aws_account_id);
 CREATE INDEX IF NOT EXISTS aws_costs_unique_idx ON aws_costs(aws_account_id,date,region,service);
 `
+
+const create_aws_accounts string = `
+CREATE TABLE IF NOT EXISTS aws_accounts (
+	id TEXT PRIMARY KEY,
+	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
+	name TEXT NOT NULL,
+	label TEXT NOT NULL,
+	environment TEXT NOT NULL DEFAULT "production",
+	uptime_tracking TEXT NOT NULL DEFAULT "false",
+	team_name TEXT NOT NULL DEFAULT "ORG"
+) WITHOUT ROWID;
+CREATE INDEX IF NOT EXISTS aws_accounts_id_idx ON aws_accounts(id);
+`
+
+const agnostic_accounts string = `
+DROP INDEX aws_accounts_id_idx;
+ALTER TABLE aws_accounts ADD vendor TEXT NOT NULL DEFAULT 'aws';
+ALTER TABLE aws_accounts RENAME TO accounts;
+CREATE INDEX IF NOT EXISTS idx_accounts_id ON accounts(id);
+`
+
+const lowercase_team_name string = `
+UPDATE accounts SET(team_name) = LOWER(team_name);
+UPDATE teams SET(name) = LOWER(name);
+`
