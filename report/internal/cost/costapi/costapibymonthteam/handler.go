@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/cnv"
-	"opg-reports/report/package/queryx"
+	"opg-reports/report/package/dbx"
 	"opg-reports/report/package/requested"
 	"opg-reports/report/package/respond"
 	"opg-reports/report/package/tabulate"
@@ -55,6 +55,9 @@ func (self *Request) End() (t time.Time) {
 
 // Response is the end result thats sent back from the handler via the writter
 type Response struct {
+	Version string `json:"version"`
+	SHA     string `json:"sha"`
+
 	Request *Request                      `json:"request"`
 	Headers map[tabulate.ColType][]string `json:"headers"` // headers contains details for table headers / rendering
 	Data    []map[string]interface{}      `json:"data"`    // the actual data results
@@ -120,7 +123,7 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 	}
 	// make the db call via the Select helper that handles row scanning.
 	// No return value as local values are updates within ScanF lambda
-	queryx.Select(ctx, selectStmt, &queryx.Input{
+	dbx.Select(ctx, selectStmt, &dbx.SelectArgs{
 		DB:      conf.DB,
 		Driver:  conf.Driver,
 		Params:  conf.Params,
@@ -150,6 +153,8 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 
 	// setup response object
 	response = &Response{
+		Version: conf.Version,
+		SHA:     conf.SHA,
 		Request: in,
 		Headers: headings,
 		Data:    tbl,

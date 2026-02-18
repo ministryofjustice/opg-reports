@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"opg-reports/report/internal/cost/costapi/costapibymonthforteam"
 	"opg-reports/report/internal/cost/costapi/costapibymonthteam"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/env"
@@ -48,6 +49,11 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	registerPingAndHome(ctx, mux, in)
 
 	costapibymonthteam.Register(ctx, mux, &costapibymonthteam.Config{
+		DB:     in.DB,
+		Driver: in.Driver,
+		Params: in.Params,
+	})
+	costapibymonthforteam.Register(ctx, mux, &costapibymonthforteam.Config{
 		DB:     in.DB,
 		Driver: in.Driver,
 		Params: in.Params,

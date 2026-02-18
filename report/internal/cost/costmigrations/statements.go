@@ -1,12 +1,9 @@
-package costmigrate
+package costmigrations
 
-type migration struct {
-	Key  string
-	Stmt string
-}
+import "opg-reports/report/internal/global/migrations"
 
 // allMigrations is a slice to ensure ordering is kept
-var allMigrations = []*migration{
+var Migrations = []*migrations.Migration{
 	{Key: "create_aws_costs", Stmt: create_aws_costs},
 	{Key: "create_agnostic_costs", Stmt: create_agnostic_costs},
 	{Key: "migrate_costs", Stmt: migrate_costs},

@@ -2,12 +2,9 @@ package costimport
 
 import (
 	"context"
-	"database/sql"
 	"log/slog"
-	"opg-reports/report/package/bind"
 	"opg-reports/report/package/cntxt"
-	"opg-reports/report/package/cnv"
-	"opg-reports/report/package/conn"
+	"opg-reports/report/package/dbx"
 	"opg-reports/report/package/times"
 	"time"
 
@@ -16,8 +13,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// ImportModel represents a simple, joinless, db row in the cost table; used by imports and seeding commands
-type ImportModel struct {
+// CostModel represents a simple, joinless, db row in the cost table; used by imports and seeding commands
+type CostModel struct {
 	Region    string `json:"region,omitempty"`      // AWS Region
 	Service   string `json:"service,omitempty"`     // The AWS service name
 	Month     string `json:"month,omitempty"`       // The data the cost was incurred - provided from the cost explorer result
@@ -31,7 +28,7 @@ type Client interface {
 	GetCostAndUsage(ctx context.Context, params *costexplorer.GetCostAndUsageInput, optFns ...func(*costexplorer.Options)) (*costexplorer.GetCostAndUsageOutput, error)
 }
 
-type Input struct {
+type Args struct {
 	DB        string    `json:"db"`         // database path
 	Driver    string    `json:"driver"`     // database driver
 	Params    string    `json:"params"`     // database connection params
@@ -40,11 +37,11 @@ type Input struct {
 	AccountID string    `json:"account_id"` // AccountID provided by awsid.AccountID
 }
 
-func Import(ctx context.Context, client Client, in *Input) (err error) {
+func Import(ctx context.Context, client Client, in *Args) (err error) {
 	var (
 		options *costexplorer.GetCostAndUsageInput
 		result  *costexplorer.GetCostAndUsageOutput
-		costs   []*ImportModel
+		costs   []*CostModel
 		log     *slog.Logger = cntxt.GetLogger(ctx).With("package", "costimport", "func", "Import")
 	)
 	log.Info("starting ...", "db", in.DB, "date_start", in.DateStart, "date_end", in.DateEnd)
@@ -66,7 +63,11 @@ func Import(ctx context.Context, client Client, in *Input) (err error) {
 	}
 	// fmt.Println(dump.Any(costs))
 	// now write to db
-	err = write(ctx, importStatement, costs, in)
+	err = dbx.Insert(ctx, importStatement, costs, &dbx.InsertArgs{
+		DB:     in.DB,
+		Driver: in.Driver,
+		Params: in.Params,
+	})
 	if err != nil {
 		log.Error("error write data during import", "err", err.Error())
 		return
@@ -76,44 +77,11 @@ func Import(ctx context.Context, client Client, in *Input) (err error) {
 	return
 }
 
-func write(ctx context.Context, stmt string, costs []*ImportModel, in *Input) (err error) {
-	var (
-		db  *sql.DB
-		log *slog.Logger = cntxt.GetLogger(ctx).With("package", "costimport", "func", "write")
-	)
-	db, err = sql.Open(in.Driver, conn.SqlitePath(in.DB, in.Params))
-	if err != nil {
-		log.Error("error connecting to database", "err", err.Error())
-		return
-	}
-	defer db.Close()
-
-	for _, model := range costs {
-		// convert to map
-		row := map[string]interface{}{}
-		if err = cnv.Convert(model, &row); err != nil {
-			return
-		}
-		// use bind
-		bound, args, e := bind.Bind(ctx, stmt, row)
-		if e != nil {
-			return
-		}
-		_, err = db.ExecContext(ctx, bound, args...)
-		if e != nil {
-			return
-		}
-
-	}
-
-	return
-}
-
 // toModels converts the raw data into a list of models ready to write to the database
-func toModels(ctx context.Context, account string, result *costexplorer.GetCostAndUsageOutput) (costs []*ImportModel, err error) {
+func toModels(ctx context.Context, account string, result *costexplorer.GetCostAndUsageOutput) (costs []*CostModel, err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "costimport", "func", "toModels")
 
-	costs = []*ImportModel{}
+	costs = []*CostModel{}
 	log.Debug("starting toModels ... ")
 
 	for _, result := range result.ResultsByTime {
@@ -122,7 +90,7 @@ func toModels(ctx context.Context, account string, result *costexplorer.GetCostA
 			var service string = *&group.Keys[0]
 			var region string = *&group.Keys[1]
 			for _, cost := range group.Metrics {
-				var item = &ImportModel{
+				var item = &CostModel{
 					AccountID: account,
 					Month:     times.ToYMString(day),
 					Service:   service,

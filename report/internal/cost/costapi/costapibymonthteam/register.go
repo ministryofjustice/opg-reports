@@ -11,9 +11,11 @@ const ENDPOINT string = "/v1/costs/between/{date_start}/{date_end}"
 
 // Config contains required values for DB and others to generate a response
 type Config struct {
-	DB     string `json:"db"`
-	Driver string `json:"driver"`
-	Params string `json:"params"`
+	DB      string `json:"db"`
+	Driver  string `json:"driver"`
+	Params  string `json:"params"`
+	Version string `json:"version"`
+	SHA     string `json:"sha"`
 }
 
 // Register wraps the handle func with a local version that also gets additional config

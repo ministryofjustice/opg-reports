@@ -2,7 +2,8 @@ package main
 
 import (
 	"context"
-	"opg-reports/report/internal/cost/costmigrate"
+	"opg-reports/report/internal/global"
+	"opg-reports/report/internal/global/migrations"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/logger"
 	"os"
@@ -10,14 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type cli struct {
-	DB            string `json:"db"`             // --db
-	Driver        string `json:"driver"`         // --driver
-	Params        string `json:"params"`         // --params
-	MigrationFile string `json:"migration_file"` // --file
-}
-
-var flags = &cli{
+var flags = &migrations.Args{
 	Driver:        "sqlite3",
 	DB:            "./database/api.db",
 	MigrationFile: "migrations.json",
@@ -30,13 +24,7 @@ var root *cobra.Command = &cobra.Command{
 }
 
 func runCMD(cmd *cobra.Command, args []string) (err error) {
-	// run the migration command for costs
-	err = costmigrate.Migrate(cmd.Context(), &costmigrate.Input{
-		DB:            flags.DB,
-		Driver:        flags.Driver,
-		Params:        flags.Params,
-		MigrationFile: flags.MigrationFile,
-	})
+	err = global.MigrateAll(cmd.Context(), flags)
 	return
 }
 
@@ -44,7 +32,7 @@ func init() {
 	root.PersistentFlags().StringVar(&flags.Driver, "driver", flags.Driver, "Database driver")
 	root.PersistentFlags().StringVar(&flags.DB, "db", flags.DB, "Database path")
 	root.PersistentFlags().StringVar(&flags.Params, "params", flags.Params, "Database params")
-	root.PersistentFlags().StringVar(&flags.MigrationFile, "file", flags.MigrationFile, "migration file")
+	root.PersistentFlags().StringVar(&flags.MigrationFile, "migration-file", flags.MigrationFile, "migration file")
 }
 
 func main() {

@@ -2,7 +2,8 @@ package costimport
 
 import (
 	"context"
-	"opg-reports/report/internal/cost/costmigrate"
+	"opg-reports/report/internal/global"
+	"opg-reports/report/internal/global/migrations"
 	"opg-reports/report/package/awsclients"
 	"opg-reports/report/package/awsid"
 	"opg-reports/report/package/cntxt"
@@ -29,6 +30,7 @@ func TestCostImportWithoutMock(t *testing.T) {
 		start     time.Time       = now.AddDate(0, -4, 0)
 		end       time.Time       = now.AddDate(0, -3, 0)
 	)
+
 	if os.Getenv("AWS_SESSION_TOKEN") == "" {
 		t.SkipNow()
 	}
@@ -38,15 +40,18 @@ func TestCostImportWithoutMock(t *testing.T) {
 		t.Errorf("unexpected error:\n%s", err.Error())
 		t.FailNow()
 	}
-	// run migration
-	costmigrate.Migrate(ctx, &costmigrate.Input{
+
+	global.MigrateAll(ctx, &migrations.Args{
 		DB:            dbpath,
 		Driver:        "sqlite3",
 		MigrationFile: mfile,
 	})
 
+	// global.MigrateAll(ctx, &globalmodels.MigrationArgs{
+	// })
+
 	accountId = awsid.AccountID(ctx, "eu-west-1")
-	err = Import(ctx, client, &Input{
+	err = Import(ctx, client, &Args{
 		DB:        dbpath,
 		Driver:    "sqlite3",
 		DateStart: start,

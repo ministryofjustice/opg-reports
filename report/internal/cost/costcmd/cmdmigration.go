@@ -1,20 +1,14 @@
 package main
 
 import (
-	"opg-reports/report/internal/cost/costmigrate"
+	"opg-reports/report/internal/cost/costmigrations"
+	"opg-reports/report/internal/global/migrations"
 	"opg-reports/report/package/env"
 
 	"github.com/spf13/cobra"
 )
 
-type migrationOptions struct {
-	DB            string `json:"db"`             // --db
-	Driver        string `json:"driver"`         // --driver
-	Params        string `json:"params"`         // --params
-	MigrationFile string `json:"migration_file"` // --file
-}
-
-var migrationFlags = &migrationOptions{
+var migrationFlags = &migrations.Args{
 	Driver:        "sqlite3",
 	DB:            "./database/api.db",
 	MigrationFile: "migrations.json",
@@ -28,17 +22,13 @@ var migrationCmd = &cobra.Command{
 }
 
 func runMigration(cmd *cobra.Command, args []string) (err error) {
+	var ctx = cmd.Context()
 	// overwrite arg flags from env values
 	if e := env.OverwriteStruct(&migrationFlags); e != nil {
 		return
 	}
 	// run the migration command
-	err = costmigrate.Migrate(cmd.Context(), &costmigrate.Input{
-		DB:            migrationFlags.DB,
-		Driver:        migrationFlags.Driver,
-		Params:        migrationFlags.Params,
-		MigrationFile: migrationFlags.MigrationFile,
-	})
+	err = migrations.Run(ctx, migrationFlags, costmigrations.Migrations)
 	return
 }
 

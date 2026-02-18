@@ -1,35 +1,37 @@
-// Package costmigrate
-package costmigrate
+package migrations
 
 import (
 	"context"
 	"database/sql"
 	"log/slog"
+
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/conn"
 	"opg-reports/report/package/files"
 	"slices"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
-// Options contains all the configuration required to run thie migration
-// function to bring costs up to speed
-type Input struct {
-	DB            string `json:"db"`
-	Driver        string `json:"driver"`
-	Params        string `json:"params"`
-	MigrationFile string `json:"migration_file"`
+type Migration struct {
+	Key  string
+	Stmt string
 }
 
-// Migrate will load the migrated file list
-func Migrate(ctx context.Context, opts *Input) (err error) {
+type Args struct {
+	DB            string `json:"db"`             // --db
+	Driver        string `json:"driver"`         // --driver
+	Params        string `json:"params"`         // --params
+	MigrationFile string `json:"migration_file"` // --file
+}
+
+// RunMigrations will try to run the migrations passed along, skipping any that are within the migration
+// json file
+func Run(ctx context.Context, opts *Args, migrations []*Migration) (err error) {
 	var (
 		db      *sql.DB
 		skipped int          = 0
 		exclude []string     = []string{}
 		done    []string     = []string{}
-		log     *slog.Logger = cntxt.GetLogger(ctx).With("package", "costmigration", "func", "Migrate")
+		log     *slog.Logger = cntxt.GetLogger(ctx).With("package", "global", "func", "RunMigrations")
 	)
 	log.Info("starting ...", "db", opts.DB, "migrations", opts.MigrationFile)
 	// get the connection
@@ -49,7 +51,7 @@ func Migrate(ctx context.Context, opts *Input) (err error) {
 		return
 	}
 	// now process all migrations, skipping those we've excluded from the migration file
-	for _, migration := range allMigrations {
+	for _, migration := range migrations {
 		var skip bool = slices.Contains(exclude, migration.Key)
 		log.Debug("migrating ... ", "key", migration.Key, "skip?", skip)
 		// if not in the excluded list, then run

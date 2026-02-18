@@ -1,4 +1,4 @@
-package queryx
+package dbx
 
 import (
 	"context"
@@ -11,12 +11,12 @@ import (
 
 type scanFunc func(rows *sql.Rows) error
 
-type Input struct {
-	DB      string
-	Driver  string
-	Params  string
-	BindMap map[string]interface{}
-	ScanF   scanFunc // used in rows.Next() to process a row
+type SelectArgs struct {
+	DB      string                 `json:"db"`       // database path
+	Driver  string                 `json:"driver"`   // database driver
+	Params  string                 `json:"params"`   // database connection params
+	BindMap map[string]interface{} `json:"bind_map"` // binding map
+	ScanF   scanFunc               `json:"-"`        // used in rows.Next() to process a row
 }
 
 // Select uses the stmt provided and the args (in.BindMap) to generate
@@ -25,12 +25,12 @@ type Input struct {
 //
 // The ScanF function handles the model creation etc to is normally created
 // inline within the func for scoping of types etc.
-func Select(ctx context.Context, stmt string, in *Input) (err error) {
+func Select(ctx context.Context, stmt string, in *SelectArgs) (err error) {
 	var (
 		db   *sql.DB
 		args []interface{}
 		rows *sql.Rows
-		log  *slog.Logger = cntxt.GetLogger(ctx).With("package", "queryx", "func", "Select")
+		log  *slog.Logger = cntxt.GetLogger(ctx).With("package", "dbx", "func", "Select")
 	)
 	// create the db connection
 	db, err = sql.Open(in.Driver, conn.SqlitePath(in.DB, in.Params))
