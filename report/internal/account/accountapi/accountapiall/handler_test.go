@@ -1,4 +1,4 @@
-package teamapiall
+package accountapiall
 
 import (
 	"net/http"
@@ -11,13 +11,13 @@ import (
 	"testing"
 )
 
-func TestTeamsApiAllHandler(t *testing.T) {
+func TestAccountApiAllHandler(t *testing.T) {
 	var (
 		err    error
 		ctx           = cntxt.AddLogger(t.Context(), logger.New("error"))
 		dir           = t.TempDir()
 		driver        = "sqlite3"
-		dbpath        = filepath.Join(dir, "test-teams-handler.db")
+		dbpath        = filepath.Join(dir, "test-account-handler.db")
 		mfile  string = filepath.Join(dir, "migrate.json")
 	)
 
@@ -32,7 +32,7 @@ func TestTeamsApiAllHandler(t *testing.T) {
 		t.FailNow()
 	}
 	// setup the server and items
-	url := "/v1/teams/"
+	url := "/v1/accounts/"
 	mux := http.NewServeMux()
 
 	req := httptest.NewRequest(http.MethodGet, url, nil)

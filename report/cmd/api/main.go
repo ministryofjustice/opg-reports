@@ -8,6 +8,7 @@ import (
 	"opg-reports/report/internal/cost/costapi/costapibymonthforteam"
 	"opg-reports/report/internal/cost/costapi/costapibymonthteam"
 	"opg-reports/report/internal/global/migrations"
+	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/env"
 	"opg-reports/report/package/logger"
@@ -51,6 +52,14 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 
 	registerPingAndHome(ctx, mux, in)
 
+	// teams
+	teamapiall.Register(ctx, mux, &teamapiall.Config{
+		DB:     in.DB,
+		Driver: in.Driver,
+		Params: in.Params,
+	})
+
+	// costs
 	costapibymonthteam.Register(ctx, mux, &costapibymonthteam.Config{
 		DB:     in.DB,
 		Driver: in.Driver,

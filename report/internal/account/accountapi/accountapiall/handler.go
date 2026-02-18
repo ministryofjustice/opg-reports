@@ -1,4 +1,4 @@
-package teamapiall
+package accountapiall
 
 import (
 	"context"
@@ -17,10 +17,16 @@ import (
 // selectStmt is the sql used to fetch data including
 const selectStmt string = `
 SELECT
-	name
-FROM teams
+	id,
+	name,
+	label,
+	environment,
+	team_name as team
+FROM accounts
 ORDER BY
-	name ASC
+	team_name,
+	name,
+	environment ASC
 ;
 `
 
@@ -30,24 +36,28 @@ type Request struct{}
 
 // Response is the end result thats sent back from the handler via the writter
 type Response struct {
-	Version string   `json:"version"`
-	SHA     string   `json:"sha"`
-	Request *Request `json:"request"`
-	Data    []*Team  `json:"data"` // the actual data results
+	Version string     `json:"version"`
+	SHA     string     `json:"sha"`
+	Request *Request   `json:"request"`
+	Data    []*Account `json:"data"` // the actual data results
 }
 
 // Filter is with the sql to replace the `:name` named parameters within the
 // statement. empty for this endpoint
 type Filter struct{}
 
-// Model is the data struct to use when fetching the select
-type Team struct {
-	Name string `json:"name"`
+// Account is the data struct to use when fetching the select
+type Account struct {
+	ID          string `json:"id"`
+	Name        string `json:"name" `
+	Label       string `json:"label" `
+	Environment string `json:"environment" `
+	Team        string `json:"team" `
 }
 
 // Sequence is used to return the columns in the order they are selected
-func (self *Team) Sequence() []any {
-	return []any{&self.Name}
+func (self *Account) Sequence() []any {
+	return []any{&self.ID, &self.Name, &self.Label, &self.Environment, &self.Team}
 }
 
 // Responder process the incoming request, queries the database and returns the result as json data.
@@ -58,8 +68,8 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 		filter   *Filter                = &Filter{}
 		in       *Request               = &Request{}
 		bindMap  map[string]interface{} = map[string]interface{}{}
-		all      []*Team                = []*Team{}
-		log      *slog.Logger           = cntxt.GetLogger(ctx).With("package", "teamapiall", "func", "Responder")
+		all      []*Account             = []*Account{}
+		log      *slog.Logger           = cntxt.GetLogger(ctx).With("package", "accountapiall", "func", "Responder")
 	)
 	log.Info("running http handler ...")
 	// convert the http request into Request struct
@@ -78,7 +88,7 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 		Params:  conf.Params,
 		BindMap: bindMap,
 		ScanF: func(rows *sql.Rows) error {
-			var r = &Team{}
+			var r = &Account{}
 			var seq = r.Sequence()
 			if err = rows.Scan(seq...); err == nil {
 				all = append(all, r)
