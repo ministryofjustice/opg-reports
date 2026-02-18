@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"opg-reports/report/internal/cost/costapi/costapibymonthforteam"
 	"opg-reports/report/internal/cost/costapi/costapibymonthteam"
+	"opg-reports/report/internal/global/migrations"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/env"
 	"opg-reports/report/package/logger"
@@ -16,21 +17,23 @@ import (
 )
 
 type cli struct {
-	DB      string `json:"db"`      // --db
-	Driver  string `json:"driver"`  // --driver
-	Params  string `json:"params"`  // --params
-	ApiHost string `json:"api"`     // --api-host ; this is the server address to run from
-	Version string `json:"version"` // --version ; the semver tag, used as part of signature
-	SHA     string `json:"sha"`     // --sha ; the git commit sha used as part of signature
+	DB            string `json:"db"`             // --db
+	Driver        string `json:"driver"`         // --driver
+	Params        string `json:"params"`         // --params
+	MigrationFile string `json:"migration_file"` // --file
+	ApiHost       string `json:"api"`            // --api-host ; this is the server address to run from
+	Version       string `json:"version"`        // --version ; the semver tag, used as part of signature
+	SHA           string `json:"sha"`            // --sha ; the git commit sha used as part of signature
 }
 
 // default values for the args
 var flags = &cli{
-	Driver:  "sqlite3",
-	DB:      "./database/api.db",
-	ApiHost: "localhost:8081",
-	Version: "v0.0.0",
-	SHA:     "abcde",
+	Driver:        "sqlite3",
+	DB:            "./database/api.db",
+	MigrationFile: "migrations.json",
+	ApiHost:       "localhost:8081",
+	Version:       "v0.0.0",
+	SHA:           "abcde",
 }
 
 // main root command
@@ -73,6 +76,17 @@ func runAPI(cmd *cobra.Command, args []string) (err error) {
 	if err = env.OverwriteStruct(&flags); err != nil {
 		return
 	}
+	// run db migrations
+	err = migrations.MigrateAll(ctx, &migrations.Args{
+		DB:            flags.DB,
+		Driver:        flags.Driver,
+		Params:        flags.Params,
+		MigrationFile: flags.MigrationFile,
+	})
+	if err != nil {
+		return
+	}
+
 	// setup mux & server
 	mux = http.NewServeMux()
 	server = &http.Server{Addr: flags.ApiHost, Handler: mux}
@@ -91,6 +105,7 @@ func init() {
 	root.PersistentFlags().StringVar(&flags.Driver, "driver", flags.Driver, "Database driver")
 	root.PersistentFlags().StringVar(&flags.DB, "db", flags.DB, "Database path")
 	root.PersistentFlags().StringVar(&flags.Params, "params", flags.Params, "Database params")
+	root.PersistentFlags().StringVar(&flags.MigrationFile, "migration-file", flags.MigrationFile, "Migrations list")
 	root.PersistentFlags().StringVar(&flags.ApiHost, "api-host", flags.ApiHost, "Address to run this api from")
 	root.PersistentFlags().StringVar(&flags.Version, "version", flags.Version, "The semver")
 	root.PersistentFlags().StringVar(&flags.SHA, "sha", flags.SHA, "The git commit sha")

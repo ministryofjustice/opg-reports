@@ -4,17 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"log/slog"
-
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/conn"
 	"opg-reports/report/package/files"
 	"slices"
-)
 
-type Migration struct {
-	Key  string
-	Stmt string
-}
+	_ "github.com/mattn/go-sqlite3"
+)
 
 type Args struct {
 	DB            string `json:"db"`             // --db
@@ -23,15 +19,46 @@ type Args struct {
 	MigrationFile string `json:"migration_file"` // --file
 }
 
-// RunMigrations will try to run the migrations passed along, skipping any that are within the migration
+type Migration struct {
+	Key  string
+	Stmt string
+}
+
+var migrations = map[string][]*Migration{
+	"teams": {
+		{Key: "create_teams", Stmt: create_teams},
+		{Key: "lower_case_teams", Stmt: lower_case_teams},
+	},
+	"costs": {
+		{Key: "create_aws_costs", Stmt: create_aws_costs},
+		{Key: "create_agnostic_costs", Stmt: create_agnostic_costs},
+		{Key: "migrate_costs", Stmt: migrate_costs},
+	},
+}
+
+// MigrateAll is a wrapper around migrating all known migrations
+func MigrateAll(ctx context.Context, flags *Args) (err error) {
+	// teams
+	if err = Migrate(ctx, flags, migrations["teams"]); err != nil {
+		return
+	}
+	// costs
+	if err = Migrate(ctx, flags, migrations["costs"]); err != nil {
+		return
+	}
+
+	return
+}
+
+// Migrate will try to run the migrations passed along, skipping any that are within the migration
 // json file
-func Run(ctx context.Context, opts *Args, migrations []*Migration) (err error) {
+func Migrate(ctx context.Context, opts *Args, migrations []*Migration) (err error) {
 	var (
 		db      *sql.DB
 		skipped int          = 0
 		exclude []string     = []string{}
 		done    []string     = []string{}
-		log     *slog.Logger = cntxt.GetLogger(ctx).With("package", "global", "func", "RunMigrations")
+		log     *slog.Logger = cntxt.GetLogger(ctx).With("package", "global", "func", "Run")
 	)
 	log.Info("starting ...", "db", opts.DB, "migrations", opts.MigrationFile)
 	// get the connection

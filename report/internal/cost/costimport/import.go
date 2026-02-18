@@ -13,6 +13,25 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+const InsertStatement string = `
+INSERT INTO costs (
+	region,
+	service,
+	month,
+	cost,
+	account_id
+) VALUES (
+	:region,
+	:service,
+	:month,
+	:cost,
+	:account_id
+) ON CONFLICT (account_id, month, region, service)
+ 	DO UPDATE SET cost=excluded.cost
+RETURNING id
+;
+`
+
 // CostModel represents a simple, joinless, db row in the cost table; used by imports and seeding commands
 type CostModel struct {
 	Region    string `json:"region,omitempty"`      // AWS Region
@@ -29,9 +48,11 @@ type Client interface {
 }
 
 type Args struct {
-	DB        string    `json:"db"`         // database path
-	Driver    string    `json:"driver"`     // database driver
-	Params    string    `json:"params"`     // database connection params
+	DB            string `json:"db"`             // database path
+	Driver        string `json:"driver"`         // database driver
+	Params        string `json:"params"`         // database connection params
+	MigrationFile string `json:"migration_file"` // database migrations
+
 	DateStart time.Time `json:"date_start"` // start date, this will be reset to start of the month (and expanded to capture historical data)
 	DateEnd   time.Time `json:"date_end"`   // end date
 	AccountID string    `json:"account_id"` // AccountID provided by awsid.AccountID
@@ -61,9 +82,10 @@ func Import(ctx context.Context, client Client, in *Args) (err error) {
 		log.Error("error converting cost and usage", "err", err.Error())
 		return
 	}
+
 	// fmt.Println(dump.Any(costs))
 	// now write to db
-	err = dbx.Insert(ctx, importStatement, costs, &dbx.InsertArgs{
+	err = dbx.Insert(ctx, InsertStatement, costs, &dbx.InsertArgs{
 		DB:     in.DB,
 		Driver: in.Driver,
 		Params: in.Params,

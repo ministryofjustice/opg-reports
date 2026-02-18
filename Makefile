@@ -1,3 +1,59 @@
+#========= IMPORT TEAMS =========
+IMPORT_DIR ?= ${BUILD_DIR}/import
+IMPORT_CMD ?= ${IMPORT_DIR}/import
+.PHONY: import-teams
+import-teams: CMD_LIST=import
+import-teams: get-metadata build-cmds
+	@echo "- importing teams "
+	@env LOG_LEVEL=info ${IMPORT_CMD} teams \
+		--db="${API_DB}" \
+		--migration-file="${BUILD_DIR}/migrations.json" \
+		--src-file="${METADATA_EX_DIR}/teams.json"
+
+#========= RUN THE API =========
+# api command variables
+API_DIR ?= ${BUILD_DIR}/api
+API_CMD ?= ${API_DIR}/api
+API_DB ?= ${API_DIR}/database/api.db
+.PHONY: api
+api: CMD_LIST=api
+api: build-cmds
+	@echo "- starting api "
+	@env LOG_LEVEL=info ${API_CMD} \
+		--db="${API_DB}" \
+		--migration-file="${BUILD_DIR}/migrations.json" \
+		--api-host="localhost:8081" \
+
+#========= GET the database from s3 =========
+DB_BUCKET ?= opg-reports-development
+DB_KEY ?= database/api.db
+.PHONY: get-db
+get-db:
+	@echo "- downloading database "
+
+#========= GET opg-metadata release =========
+# metadata related variables
+METADATA_REPO ?= ministryofjustice/opg-metadata
+METADATA_TAG ?= v0.1.29
+METADATA_FILE ?= metadata.zip
+METADATA_DIR ?= ${BUILD_DIR}/metadata
+METADATA_EX_DIR ?= ${METADATA_DIR}/extracted
+## Very rarely pulled in, so we can run it from
+## make presuming the github cli (gh) instead
+## of creating code - commands can take a file
+## path param for local development
+.PHONY: get-metadata
+get-metadata:
+	@rm -Rf ${METADATA_DIR}/extracted
+	@mkdir -p ${METADATA_DIR}/extracted
+	@env GITHUB_TOKEN="${GITHUB_TOKEN}" \
+		gh release download ${METADATA_TAG} \
+			--clobber \
+			--repo ${METADATA_REPO} \
+			--dir ${METADATA_DIR} \
+			--pattern ${METADATA_FILE}
+	@unzip -qq ${METADATA_DIR}/${METADATA_FILE} \
+		-d ${METADATA_EX_DIR}
 
 
 #========= GO BUILDS =========
@@ -18,42 +74,6 @@ build-cmds:
 		go build -ldflags="-w -s" -o ${BUILD_DIR}/$${cmd}/$${cmd} ${CMD_DIR}/$${cmd}; \
 	done
 
-
-#========= RUN THE API =========
-# api command variables
-API_DIR ?= ${BUILD_DIR}/api
-API_CMD ?= ${API_DIR}/api
-API_DB ?= ${API_DIR}/database/api.db
-.PHONY: api
-api: CMD_LIST=api
-api: build-cmds
-	@echo "- starting api "
-	@env LOG_LEVEL=info ${API_CMD} \
-		--api-host="localhost:8081" \
-		--db="${API_DB}"
-
-#========= GET opg-metadata release =========
-# metadata related variables
-METADATA_REPO ?= ministryofjustice/opg-metadata
-METADATA_TAG ?= v0.1.29
-METADATA_FILE ?= metadata.zip
-METADATA_DIR ?= ${BUILD_DIR}/metadata
-## Very rarely pulled in, so we can run it from
-## make presuming the github cli (gh) instead
-## of creating code - commands can take a file
-## path param for local development
-.PHONY: get-metadata
-get-metadata:
-	@rm -Rf ${METADATA_DIR}/extracted
-	@mkdir -p ${METADATA_DIR}/extracted
-	@env GITHUB_TOKEN="${GITHUB_TOKEN}" \
-		gh release download ${METADATA_TAG} \
-			--clobber \
-			--repo ${METADATA_REPO} \
-			--dir ${METADATA_DIR} \
-			--pattern ${METADATA_FILE}
-	@unzip -qq ${METADATA_DIR}/${METADATA_FILE} \
-		-d ${METADATA_DIR}/extracted
 #========= TESTS =========
 ## Run all tests
 .PHONY: tests

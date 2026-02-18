@@ -2,6 +2,7 @@ package logger
 
 import (
 	"log/slog"
+	"opg-reports/report/package/env"
 	"os"
 	"strings"
 )
@@ -23,10 +24,13 @@ func strToLevel(lvl string) slog.Leveler {
 // New returns a configured slog.Logger instance
 // that sets the log level and log handler.
 //
-// By default, the level is set to Info and TextHandler
+// # By default, the level is set to Info and TextHandler
+//
+// Log level is overwritten from environment variables
 func New(lvl string, as ...string) (logger *slog.Logger) {
 	var (
-		options *slog.HandlerOptions = &slog.HandlerOptions{Level: strToLevel(lvl)}
+		level   string               = env.Get("LOG_LEVEL", lvl)
+		options *slog.HandlerOptions = &slog.HandlerOptions{Level: strToLevel(level)}
 		handler slog.Handler         = slog.NewTextHandler(os.Stdout, options)
 	)
 

@@ -2,7 +2,6 @@ package teamimport
 
 import (
 	"context"
-	"opg-reports/report/internal/global"
 	"opg-reports/report/internal/global/migrations"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/files"
@@ -22,7 +21,7 @@ func TestTeamImportWithoutMock(t *testing.T) {
 		dbpath  string          = filepath.Join(dir, "test-costs-import.db")
 	)
 	// generate some teams
-	teams := []*TeamModel{
+	teams := []*Model{
 		{Name: "team-a"}, {Name: "team-b"}, {Name: "team-c"}, {Name: "team-d"}, {Name: "team-e"},
 	}
 	err = files.WriteAsJSON(ctx, srcfile, teams)
@@ -31,7 +30,7 @@ func TestTeamImportWithoutMock(t *testing.T) {
 	}
 
 	// db migrations
-	err = global.MigrateAll(ctx, &migrations.Args{
+	err = migrations.MigrateAll(ctx, &migrations.Args{
 		DB:            dbpath,
 		Driver:        "sqlite3",
 		MigrationFile: mfile,

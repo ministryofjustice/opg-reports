@@ -2,7 +2,6 @@ package costimport
 
 import (
 	"context"
-	"opg-reports/report/internal/global"
 	"opg-reports/report/internal/global/migrations"
 	"opg-reports/report/package/awsclients"
 	"opg-reports/report/package/awsid"
@@ -41,7 +40,7 @@ func TestCostImportWithoutMock(t *testing.T) {
 		t.FailNow()
 	}
 
-	global.MigrateAll(ctx, &migrations.Args{
+	migrations.MigrateAll(ctx, &migrations.Args{
 		DB:            dbpath,
 		Driver:        "sqlite3",
 		MigrationFile: mfile,

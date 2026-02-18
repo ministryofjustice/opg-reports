@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"opg-reports/report/internal/global/imports"
+	"opg-reports/report/internal/global"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/logger"
 	"opg-reports/report/package/times"
@@ -14,7 +14,7 @@ import (
 var today = times.Today()
 
 // default values for the args
-var flags = &imports.Args{
+var flags = &global.ImportArgs{
 	Driver:        "sqlite3",
 	DB:            "./database/api.db",
 	MigrationFile: "migrations.json",
@@ -37,6 +37,7 @@ func main() {
 	var ctx = cntxt.AddLogger(context.Background(), log)
 
 	root.AddCommand(
+		teamsCmd,
 		costsCmd,
 	)
 

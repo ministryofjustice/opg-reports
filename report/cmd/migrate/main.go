@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"opg-reports/report/internal/global"
 	"opg-reports/report/internal/global/migrations"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/logger"
@@ -24,7 +23,7 @@ var root *cobra.Command = &cobra.Command{
 }
 
 func runCMD(cmd *cobra.Command, args []string) (err error) {
-	err = global.MigrateAll(cmd.Context(), flags)
+	err = migrations.MigrateAll(cmd.Context(), flags)
 	return
 }
 

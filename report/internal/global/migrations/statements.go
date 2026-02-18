@@ -1,13 +1,17 @@
-package costmigrations
+package migrations
 
-import "opg-reports/report/internal/global/migrations"
+const lower_case_teams string = `
+UPDATE teams SET(name) = LOWER(name)
+;
+`
 
-// allMigrations is a slice to ensure ordering is kept
-var Migrations = []*migrations.Migration{
-	{Key: "create_aws_costs", Stmt: create_aws_costs},
-	{Key: "create_agnostic_costs", Stmt: create_agnostic_costs},
-	{Key: "migrate_costs", Stmt: migrate_costs},
-}
+const create_teams string = `
+CREATE TABLE IF NOT EXISTS teams (
+	name TEXT PRIMARY KEY,
+	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') )
+) STRICT
+;
+`
 
 const migrate_costs string = `
 INSERT INTO costs (created_at, region, service, month, cost, account_id)

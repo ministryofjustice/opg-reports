@@ -37,10 +37,10 @@ func Insert[T any](ctx context.Context, stmt string, records []T, in *InsertArgs
 		// use bind
 		bound, args, e := bind.Bind(ctx, stmt, row)
 		if e != nil {
-			return
+			return e
 		}
 		_, err = db.ExecContext(ctx, bound, args...)
-		if e != nil {
+		if err != nil {
 			return
 		}
 
