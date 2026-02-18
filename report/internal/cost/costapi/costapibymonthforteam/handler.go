@@ -33,9 +33,9 @@ WHERE
 	AND accounts.team_name = :team
 GROUP BY
 	costs.month,
-	accounts.team_name
+	accounts.name
 ORDER BY
-	accounts.team_name ASC
+	accounts.name ASC
 ;
 `
 

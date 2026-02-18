@@ -31,7 +31,8 @@ WHERE
 	costs.service != 'Tax'
 	AND costs.month IN (:months)
 GROUP BY
-	costs.month
+	costs.month,
+	accounts.team_name
 ORDER BY
 	accounts.team_name ASC
 ;

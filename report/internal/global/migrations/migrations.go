@@ -85,7 +85,8 @@ func Migrate(ctx context.Context, opts *Args, migrations []*Migration) (err erro
 	// close at the end & write migrations
 	defer func() {
 		db.Close()
-		files.WriteAsJSON(ctx, opts.MigrationFile, done)
+		all := append(done, exclude...)
+		files.WriteAsJSON(ctx, opts.MigrationFile, all)
 	}()
 
 	// read json file if it exists, otherwise run all
