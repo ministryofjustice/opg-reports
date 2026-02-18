@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"opg-reports/report/internal/account/accountapi/accountapiall"
+	"opg-reports/report/internal/account/accountapi/accountsapiforteam"
 	"opg-reports/report/internal/cost/costapi/costapibymonthforteam"
 	"opg-reports/report/internal/cost/costapi/costapibymonthteam"
 	"opg-reports/report/internal/global/migrations"
@@ -54,21 +56,45 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 
 	// teams
 	teamapiall.Register(ctx, mux, &teamapiall.Config{
-		DB:     in.DB,
-		Driver: in.Driver,
-		Params: in.Params,
+		DB:      in.DB,
+		Driver:  in.Driver,
+		Params:  in.Params,
+		Version: in.Version,
+		SHA:     in.SHA,
+	})
+
+	// accounts
+	// - all
+	accountapiall.Register(ctx, mux, &accountapiall.Config{
+		DB:      in.DB,
+		Driver:  in.Driver,
+		Params:  in.Params,
+		Version: in.Version,
+		SHA:     in.SHA,
+	})
+	// - filtered by a team
+	accountsapiforteam.Register(ctx, mux, &accountsapiforteam.Config{
+		DB:      in.DB,
+		Driver:  in.Driver,
+		Params:  in.Params,
+		Version: in.Version,
+		SHA:     in.SHA,
 	})
 
 	// costs
 	costapibymonthteam.Register(ctx, mux, &costapibymonthteam.Config{
-		DB:     in.DB,
-		Driver: in.Driver,
-		Params: in.Params,
+		DB:      in.DB,
+		Driver:  in.Driver,
+		Params:  in.Params,
+		Version: in.Version,
+		SHA:     in.SHA,
 	})
 	costapibymonthforteam.Register(ctx, mux, &costapibymonthforteam.Config{
-		DB:     in.DB,
-		Driver: in.Driver,
-		Params: in.Params,
+		DB:      in.DB,
+		Driver:  in.Driver,
+		Params:  in.Params,
+		Version: in.Version,
+		SHA:     in.SHA,
 	})
 
 }
