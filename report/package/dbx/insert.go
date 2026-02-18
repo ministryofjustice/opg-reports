@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"log/slog"
-	"opg-reports/report/package/bind"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/cnv"
 	"opg-reports/report/package/conn"
@@ -35,7 +34,7 @@ func Insert[T any](ctx context.Context, stmt string, records []T, in *InsertArgs
 			return
 		}
 		// use bind
-		bound, args, e := bind.Bind(ctx, stmt, row)
+		bound, args, e := Bind(ctx, stmt, row)
 		if e != nil {
 			return e
 		}

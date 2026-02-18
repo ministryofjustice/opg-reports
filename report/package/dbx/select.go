@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"log/slog"
-	"opg-reports/report/package/bind"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/conn"
 )
@@ -40,7 +39,7 @@ func Select(ctx context.Context, stmt string, in *SelectArgs) (err error) {
 	defer db.Close()
 
 	// generate the bound statement
-	stmt, args, err = bind.Bind(ctx, stmt, in.BindMap)
+	stmt, args, err = Bind(ctx, stmt, in.BindMap)
 	if err != nil {
 		log.Error("error in bind", "err", err.Error())
 		return
