@@ -47,9 +47,6 @@ func TestCostImportWithoutMock(t *testing.T) {
 		MigrationFile: mfile,
 	})
 
-	// global.MigrateAll(ctx, &globalmodels.MigrationArgs{
-	// })
-
 	accountId = awsid.AccountID(ctx, "eu-west-1")
 	err = Import(ctx, client, &Args{
 		DB:        dbpath,

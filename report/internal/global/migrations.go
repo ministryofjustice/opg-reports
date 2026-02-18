@@ -11,12 +11,13 @@ import (
 
 // MigrateAll is a wrapper around migrating all known migrations
 func MigrateAll(ctx context.Context, flags *migrations.Args) (err error) {
-
-	if err = migrations.Run(ctx, flags, costmigrations.Migrations); err != nil {
+	// teams
+	if err = migrations.Run(ctx, flags, teammigrations.Migrations); err != nil {
 		return
 	}
 
-	if err = migrations.Run(ctx, flags, teammigrations.Migrations); err != nil {
+	// costs
+	if err = migrations.Run(ctx, flags, costmigrations.Migrations); err != nil {
 		return
 	}
 

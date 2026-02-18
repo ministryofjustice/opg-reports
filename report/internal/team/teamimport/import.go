@@ -16,10 +16,10 @@ type TeamModel struct {
 }
 
 type Args struct {
-	DB     string `json:"db"`     // database path
-	Driver string `json:"driver"` // database driver
-	Params string `json:"params"` // database connection params
-	File   string `json:""`
+	DB      string `json:"db"`       // database path
+	Driver  string `json:"driver"`   // database driver
+	Params  string `json:"params"`   // database connection params
+	SrcFile string `json:"src-file"` // src file to import from
 }
 
 func Import(ctx context.Context, in *Args) (err error) {
@@ -27,14 +27,13 @@ func Import(ctx context.Context, in *Args) (err error) {
 		teams []*TeamModel = []*TeamModel{}
 		log   *slog.Logger = cntxt.GetLogger(ctx).With("package", "teamimport", "func", "Import")
 	)
-	log.Info("starting ...", "db", in.DB, "file", in.File)
+	log.Info("starting ...", "db", in.DB, "file", in.SrcFile)
 
-	err = files.ReadJSON(ctx, in.File, &teams)
+	err = files.ReadJSON(ctx, in.SrcFile, &teams)
 	if err != nil {
 		log.Error("failed to read in source file", "err", err.Error())
 		return
 	}
-
 	// now write to db
 	err = dbx.Insert(ctx, importStatement, teams, &dbx.InsertArgs{
 		DB:     in.DB,
