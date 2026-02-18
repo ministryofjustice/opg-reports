@@ -48,6 +48,7 @@ get-db:
 	@aws-vault exec ${GET_DB_PROFILE} -- aws s3 cp \
     	s3://${GET_DB_BUCKET}/database/api.db \
     	${API_DB_DIR}/
+
 # gets the db without aws-vault usage (pipelines)
 .PHONY: get-db-direct
 get-db-direct:
@@ -60,16 +61,16 @@ get-db-direct:
 
 
 #========= GET opg-metadata release =========
-# metadata related variables
+## Very rarely pulled in, so we can run it from
+## make instead of creating code - commands can
+## take a file path param for local development
+##
+## presumed gh client installed
 METADATA_REPO ?= ministryofjustice/opg-metadata
 METADATA_TAG ?= v0.1.29
 METADATA_FILE ?= metadata.zip
 METADATA_DIR ?= ${BUILD_DIR}/metadata
 METADATA_EX_DIR ?= ${METADATA_DIR}/extracted
-## Very rarely pulled in, so we can run it from
-## make presuming the github cli (gh) instead
-## of creating code - commands can take a file
-## path param for local development
 .PHONY: get-metadata
 get-metadata:
 	@rm -Rf ${METADATA_DIR}/extracted
@@ -83,16 +84,43 @@ get-metadata:
 	@unzip -qq ${METADATA_DIR}/${METADATA_FILE} \
 		-d ${METADATA_EX_DIR}
 
+#========= GET gov-uk release =========
+## Run during the build process; will
+## download marked release from govuk
+## and setup folder structure to work
+## for front end
+##
+## presumed gh client installed
+GOVUK_REPO ?= alphagov/govuk-frontend
+GOVUK_TAG ?= v5.14.0
+GOVUK_FILE ?= release-${GOVUK_TAG}.zip
+GOVUK_DIR ?= ${BUILD_DIR}/govuk
+GOVUK_EX_DIR ?= ${GOVUK_DIR}/extracted
+.PHONY: get-govuk
+get-govuk:
+	@rm -Rf ${GOVUK_DIR}
+	@mkdir -p ${GOVUK_DIR}/extracted
+	env GITHUB_TOKEN="${GITHUB_TOKEN}" \
+		gh release download ${GOVUK_TAG} \
+			--clobber \
+			--repo ${GOVUK_REPO} \
+			--dir ${GOVUK_DIR} \
+			--pattern ${GOVUK_FILE}
+	@unzip -qq ${GOVUK_DIR}/${GOVUK_FILE} \
+		-d ${GOVUK_EX_DIR}
+	@rm -f ${BUILD_DIR}/govuk/${GOVUK_FILE}
+	@mv $(GOVUK_EX_DIR)/* ${GOVUK_DIR}/
+	@rm -Rf ${GOVUK_EX_DIR}
+
 
 #========= GO BUILDS =========
-CMD_DIR = ./report/cmd
-# list of commands
-CMD_LIST = $(notdir $(wildcard ${CMD_DIR}/*))
-# location to put all built files into
-BUILD_DIR ?= ./builds
-## build all commands based on folder structure within the ./reports/cmd
-## directory but allow CMD_LIST changed to make it smarter and allow
+## build all commands based on folder structure
+## within the ./reports/cmd directory but allow
+## CMD_LIST changed to make it smarter and allow
 ## for updating just specific commands
+CMD_DIR = ./report/cmd
+CMD_LIST = $(notdir $(wildcard ${CMD_DIR}/*))
+BUILD_DIR ?= ./builds
 .PHONY: build-cmds
 build-cmds:
 	@for cmd in ${CMD_LIST}; do \

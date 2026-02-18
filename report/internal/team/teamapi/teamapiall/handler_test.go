@@ -14,11 +14,11 @@ import (
 func TestTeamsApiAllHandler(t *testing.T) {
 	var (
 		err    error
-		ctx           = cntxt.AddLogger(t.Context(), logger.New("error"))
-		dir           = t.TempDir()
-		driver        = "sqlite3"
-		dbpath        = filepath.Join(dir, "test-teams-handler.db")
-		mfile  string = filepath.Join(dir, "migrate.json")
+		ctx    = cntxt.AddLogger(t.Context(), logger.New("error"))
+		dir    = t.TempDir()
+		driver = "sqlite3"
+		dbpath = filepath.Join(dir, "test-teams-handler.db")
+		mfile  = filepath.Join(dir, "migrate.json")
 	)
 
 	// run seeds
