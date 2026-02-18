@@ -4,23 +4,36 @@
 using `account`
 
 ```
-mkdir -p ./internal/account
-mkdir -p ./internal/account/accountapi
-mkdir -p ./internal/account/accountimport
+mkdir -p ./report/internal/account
+mkdir -p ./report/internal/account/accountapi
+mkdir -p ./report/internal/account/accountimport
 ```
 
-add sql to `./internal/global/migrations/statements.go`
+migrations:
+   add db creation / migration sql to `./report/internal/global/migrations/statements.go`
+   add map entry in `./report/internal/global/migrations/migrations.go`
+   update `MigrateAll` func to include any new segments
 
-add map entry in `./internal/global/migrations/migrations.go`
+getting raw data (import):
+   create raw data importer - `./report/internal/account/accountimport/import.go`; copy similar data source
+   update the `InsertStatement` string to be accurate
+   update the `Model` struct
+   update the `Args` struct if required
+   adjust `Import` func
+   add tests
 
-add import command & model
+add seeds
+   add new seed generation in `./report/internal/global/seeds/seeds.go`
+   update `SeedAll` to include the new generator
+   add propertry to the results struct
+   add check in seeds test
 
-add to seeds
+main import command
+   in the main import command `./report/cmd/import/main.go` add a new subcommand and func
+   func should call migration; then run the previous import command
+   test sub command
 
-add check in seeds test
+build the api endpoints
 
-add import to main import command
-
-api enpoint & test
 
 add api enpoint register to main api cmd
