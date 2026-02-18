@@ -2,6 +2,9 @@ package seeds
 
 import (
 	"context"
+	"fmt"
+	"math/rand/v2"
+	"opg-reports/report/internal/account/accountimport"
 	"opg-reports/report/internal/global/migrations"
 	"opg-reports/report/internal/team/teamimport"
 	"opg-reports/report/package/dbx"
@@ -50,7 +53,8 @@ var serviceList []string = []string{
 // Results contains all the seed data that was inserted
 // including any that may have failed
 type Results struct {
-	Teams []*teamimport.Model
+	Teams    []*teamimport.Model    `json:"teams"`
+	Accounts []*accountimport.Model `json:"accounts"`
 }
 
 // Args
@@ -63,6 +67,10 @@ type Args struct {
 
 // SeedAll
 func SeedAll(ctx context.Context, in *Args) (results *Results, err error) {
+	var (
+		numAccounts = 25
+	)
+
 	var args = &dbx.InsertArgs{
 		DB:     in.DB,
 		Driver: in.Driver,
@@ -84,33 +92,37 @@ func SeedAll(ctx context.Context, in *Args) (results *Results, err error) {
 	if err != nil {
 		return
 	}
+	// seed accounts
+	results.Accounts, err = seedAccounts(ctx, args, numAccounts, results.Teams)
+	if err != nil {
+		return
+	}
 
 	return
 }
 
-// func seedAccounts(n int, teams []*teamimport.Model) (data []*accountmodels.Account) {
-// 	data = []*accountmodels.Account{}
+func seedAccounts(ctx context.Context, in *dbx.InsertArgs, n int, teams []*teamimport.Model) (insert []*accountimport.Model, err error) {
+	insert = []*accountimport.Model{}
+	// generate a random set of accounts
+	for i := 0; i < n; i++ {
+		var envI = rand.IntN(len(environmentList))
+		var teamI = rand.IntN(len(teams))
+		var id = fmt.Sprintf("%04d", i+1)
+		insert = append(insert, &accountimport.Model{
+			ID:          id,
+			Name:        fmt.Sprintf("Account %s", id),
+			Label:       fmt.Sprintf("%d", i+1),
+			Environment: environmentList[envI],
+			TeamName:    teams[teamI].Name,
+		})
+	}
 
-// 	for i := 0; i < n; i++ {
-// 		var envI = rand.IntN(len(environments))
-// 		var teamI = rand.IntN(len(teams))
-// 		var id = fmt.Sprintf("%04d", i+1)
+	err = dbx.Insert(ctx, accountimport.InsertStatement, insert, in)
+	return
 
-// 		data = append(data, &accountmodels.Account{
-// 			ID:          id,
-// 			Name:        fmt.Sprintf("Account %s", id),
-// 			Label:       fmt.Sprintf("%d", i+1),
-// 			Environment: environments[envI],
-// 			TeamName:    teams[teamI].Name,
-// 		})
-
-// 	}
-// 	return data
-
-// }
+}
 
 func seedTeams(ctx context.Context, in *dbx.InsertArgs) (insert []*teamimport.Model, err error) {
-
 	insert = []*teamimport.Model{}
 	for _, team := range teamList {
 		insert = append(insert, &teamimport.Model{Name: team})

@@ -38,6 +38,7 @@ func main() {
 
 	root.AddCommand(
 		teamsCmd,
+		accountsCmd,
 		costsCmd,
 	)
 

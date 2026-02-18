@@ -11,6 +11,16 @@ import-teams: get-metadata build-cmds
 		--migration-file="${BUILD_DIR}/migrations.json" \
 		--src-file="${METADATA_EX_DIR}/teams.json"
 
+#========= IMPORT ACCOUNTS =========
+.PHONY: import-accounts
+import-accounts: CMD_LIST=import
+import-accounts: get-metadata build-cmds
+	@echo "- importing accounts "
+	@env LOG_LEVEL=${LOG_LEVEL} ${IMPORT_CMD} accounts \
+		--db="${API_DB}" \
+		--migration-file="${BUILD_DIR}/migrations.json" \
+		--src-file="${METADATA_EX_DIR}/aws.accounts.json"
+
 #========= RUN THE API =========
 # api command variables
 API_DIR ?= ${BUILD_DIR}/api

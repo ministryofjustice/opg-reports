@@ -13,3 +13,7 @@ func Any(item any) string {
 	}
 	return fmt.Sprintf("%+v\n", str)
 }
+
+func Now(item any) {
+	fmt.Println(Any(item))
+}

@@ -38,7 +38,7 @@ type Model struct {
 	Name        string `json:"name,omitempty" `         // account name as used internally
 	Label       string `json:"label,omitempty" `        // internal label
 	Environment string `json:"environment,omitempty" `  // environment type
-	TeamName    string `json:"billing_unit,omitempty" ` // team associated with the account
+	TeamName    string `json:"billing_unit,omitempty" ` // team associated with the account; uses builling_unit due to the source data in opg-metadata
 }
 
 type Args struct {

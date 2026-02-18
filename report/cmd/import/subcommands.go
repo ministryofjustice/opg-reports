@@ -1,6 +1,7 @@
 package main
 
 import (
+	"opg-reports/report/internal/account/accountimport"
 	"opg-reports/report/internal/cost/costimport"
 	"opg-reports/report/internal/global/migrations"
 	"opg-reports/report/internal/team/teamimport"
@@ -20,6 +21,13 @@ var teamsCmd = &cobra.Command{
 	RunE:  runTeamsImport,
 }
 
+// accounts import command
+var accountsCmd = &cobra.Command{
+	Use:   `accounts`,
+	Short: `import accounts`,
+	RunE:  runAccountsImport,
+}
+
 // costs import command
 var costsCmd = &cobra.Command{
 	Use:   `costs`,
@@ -27,7 +35,7 @@ var costsCmd = &cobra.Command{
 	RunE:  runCostsImport,
 }
 
-// runCostsImport runs the costs - matches the costcmd version
+// runTeamsImport runs the teams
 func runTeamsImport(cmd *cobra.Command, args []string) (err error) {
 	var ctx = cmd.Context()
 	// overwrite arg flags from env values
@@ -55,7 +63,35 @@ func runTeamsImport(cmd *cobra.Command, args []string) (err error) {
 	return
 }
 
-// runCostsImport runs the costs - matches the costcmd version
+// runAccountsImport runs the accounts import
+func runAccountsImport(cmd *cobra.Command, args []string) (err error) {
+	var ctx = cmd.Context()
+	// overwrite arg flags from env values
+	if e := env.OverwriteStruct(&flags); e != nil {
+		return
+	}
+	// run the migrations
+	err = migrations.MigrateAll(ctx, &migrations.Args{
+		DB:            flags.DB,
+		Driver:        flags.Driver,
+		Params:        flags.Params,
+		MigrationFile: flags.MigrationFile,
+	})
+	if err != nil {
+		return
+	}
+	// run the import
+	err = accountimport.Import(ctx, &accountimport.Args{
+		DB:            flags.DB,
+		Driver:        flags.Driver,
+		Params:        flags.Params,
+		MigrationFile: flags.MigrationFile,
+		SrcFile:       flags.SrcFile,
+	})
+	return
+}
+
+// runCostsImport runs the costs
 func runCostsImport(cmd *cobra.Command, args []string) (err error) {
 	var client *costexplorer.Client
 	var ctx = cmd.Context()
