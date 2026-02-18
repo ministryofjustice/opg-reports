@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"opg-reports/report/internal/account/accountimport"
+	"opg-reports/report/internal/cost/costimport"
 	"opg-reports/report/internal/global/migrations"
 	"opg-reports/report/internal/team/teamimport"
 	"opg-reports/report/package/dbx"
+	"opg-reports/report/package/times"
 )
 
 var teamList []string = []string{
@@ -55,6 +57,7 @@ var serviceList []string = []string{
 type Results struct {
 	Teams    []*teamimport.Model    `json:"teams"`
 	Accounts []*accountimport.Model `json:"accounts"`
+	Costs    []*costimport.Model    `json:"costs"`
 }
 
 // Args
@@ -69,6 +72,7 @@ type Args struct {
 func SeedAll(ctx context.Context, in *Args) (results *Results, err error) {
 	var (
 		numAccounts = 25
+		numCosts    = 13000
 	)
 
 	var args = &dbx.InsertArgs{
@@ -97,10 +101,45 @@ func SeedAll(ctx context.Context, in *Args) (results *Results, err error) {
 	if err != nil {
 		return
 	}
+	// seed accounts
+	results.Costs, err = seedCosts(ctx, args, numCosts, results.Accounts)
+	if err != nil {
+		return
+	}
 
 	return
 }
 
+// seedCosts generates and inserts cost data similar to real life values
+func seedCosts(ctx context.Context, in *dbx.InsertArgs, n int, accounts []*accountimport.Model) (insert []*costimport.Model, err error) {
+	var (
+		end    = times.ResetMonth(times.Today())
+		start  = times.ResetMonth(times.Add(end, -3, times.YEAR))
+		months = times.Months(start, end)
+	)
+	insert = []*costimport.Model{}
+
+	for i := 0; i < n; i++ {
+		var accountI = rand.IntN(len(accounts))
+		var monthI = rand.IntN(len(months))
+		var regionI = rand.IntN(len(regionList))
+		var serviceI = rand.IntN(len(serviceList))
+		var price float64 = (-1000.0) + (rand.Float64() * (1000 - -1000.0)) // 95-100%
+
+		insert = append(insert, &costimport.Model{
+			Region:    regionList[regionI],
+			Service:   serviceList[serviceI],
+			Month:     times.AsYMString(months[monthI]),
+			Cost:      fmt.Sprintf("%g", price),
+			AccountID: accounts[accountI].ID,
+		})
+	}
+	err = dbx.Insert(ctx, costimport.InsertStatement, insert, in)
+
+	return
+}
+
+// seedAccounts generates and inserts cost data similar to real life values
 func seedAccounts(ctx context.Context, in *dbx.InsertArgs, n int, teams []*teamimport.Model) (insert []*accountimport.Model, err error) {
 	insert = []*accountimport.Model{}
 	// generate a random set of accounts
@@ -122,6 +161,7 @@ func seedAccounts(ctx context.Context, in *dbx.InsertArgs, n int, teams []*teami
 
 }
 
+// seedTeams generates and inserts cost data similar to real life values
 func seedTeams(ctx context.Context, in *dbx.InsertArgs) (insert []*teamimport.Model, err error) {
 	insert = []*teamimport.Model{}
 	for _, team := range teamList {

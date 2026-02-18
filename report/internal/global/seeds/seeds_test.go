@@ -3,7 +3,6 @@ package seeds
 import (
 	"context"
 	"opg-reports/report/package/cntxt"
-	"opg-reports/report/package/dump"
 	"opg-reports/report/package/logger"
 	"path/filepath"
 	"testing"
@@ -35,7 +34,11 @@ func TestSeedsSeedAll(t *testing.T) {
 		t.Errorf("no accounts generated")
 	}
 
-	dump.Now(res)
+	if len(res.Costs) < 1000 {
+		t.Errorf("not enough costs generated")
+	}
 
-	t.FailNow()
+	// dump.Now(res)
+
+	// t.FailNow()
 }

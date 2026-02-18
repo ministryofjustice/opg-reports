@@ -55,6 +55,7 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	registerPingAndHome(ctx, mux, in)
 
 	// teams
+	// - all
 	teamapiall.Register(ctx, mux, &teamapiall.Config{
 		DB:      in.DB,
 		Driver:  in.Driver,
@@ -82,6 +83,7 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	})
 
 	// costs
+	// - grouped by month & team
 	costapibymonthteam.Register(ctx, mux, &costapibymonthteam.Config{
 		DB:      in.DB,
 		Driver:  in.Driver,
@@ -89,6 +91,7 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 		Version: in.Version,
 		SHA:     in.SHA,
 	})
+	// - grouped by month, filtered by team
 	costapibymonthforteam.Register(ctx, mux, &costapibymonthforteam.Config{
 		DB:      in.DB,
 		Driver:  in.Driver,

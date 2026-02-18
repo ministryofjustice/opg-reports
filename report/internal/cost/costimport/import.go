@@ -32,8 +32,8 @@ RETURNING id
 ;
 `
 
-// CostModel represents a simple, joinless, db row in the cost table; used by imports and seeding commands
-type CostModel struct {
+// Model represents a simple, joinless, db row in the cost table; used by imports and seeding commands
+type Model struct {
 	Region    string `json:"region,omitempty"`      // AWS Region
 	Service   string `json:"service,omitempty"`     // The AWS service name
 	Month     string `json:"month,omitempty"`       // The data the cost was incurred - provided from the cost explorer result
@@ -62,7 +62,7 @@ func Import(ctx context.Context, client Client, in *Args) (err error) {
 	var (
 		options *costexplorer.GetCostAndUsageInput
 		result  *costexplorer.GetCostAndUsageOutput
-		costs   []*CostModel
+		costs   []*Model
 		log     *slog.Logger = cntxt.GetLogger(ctx).With("package", "costimport", "func", "Import")
 	)
 	log.Info("starting ...", "db", in.DB, "date_start", in.DateStart, "date_end", in.DateEnd)
@@ -100,10 +100,10 @@ func Import(ctx context.Context, client Client, in *Args) (err error) {
 }
 
 // toModels converts the raw data into a list of models ready to write to the database
-func toModels(ctx context.Context, account string, result *costexplorer.GetCostAndUsageOutput) (costs []*CostModel, err error) {
+func toModels(ctx context.Context, account string, result *costexplorer.GetCostAndUsageOutput) (costs []*Model, err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "costimport", "func", "toModels")
 
-	costs = []*CostModel{}
+	costs = []*Model{}
 	log.Debug("starting toModels ... ")
 
 	for _, result := range result.ResultsByTime {
@@ -112,7 +112,7 @@ func toModels(ctx context.Context, account string, result *costexplorer.GetCostA
 			var service string = *&group.Keys[0]
 			var region string = *&group.Keys[1]
 			for _, cost := range group.Metrics {
-				var item = &CostModel{
+				var item = &Model{
 					AccountID: account,
 					Month:     times.ToYMString(day),
 					Service:   service,
