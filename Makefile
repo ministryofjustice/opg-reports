@@ -1,11 +1,11 @@
 
+
 #========= GO BUILDS =========
 CMD_DIR = ./report/cmd
 # list of commands
 CMD_LIST = $(notdir $(wildcard ${CMD_DIR}/*))
 # location to put all built files into
 BUILD_DIR ?= ./builds
-
 ## build all commands based on folder structure within the ./reports/cmd
 ## directory but allow CMD_LIST changed to make it smarter and allow
 ## for updating just specific commands
@@ -18,7 +18,22 @@ build-cmds:
 		go build -ldflags="-w -s" -o ${BUILD_DIR}/$${cmd}/$${cmd} ${CMD_DIR}/$${cmd}; \
 	done
 
+
+#========= RUN THE API =========
+# api command variables
+API_DIR ?= ${BUILD_DIR}/api
+API_CMD ?= ${API_DIR}/api
+API_DB ?= ${API_DIR}/database/api.db
+.PHONY: api
+api: CMD_LIST=api
+api: build-cmds
+	@echo "- starting api "
+	@env LOG_LEVEL=info ${API_CMD} \
+		--api-host="localhost:8081" \
+		--db="${API_DB}"
+
 #========= GET opg-metadata release =========
+# metadata related variables
 METADATA_REPO ?= ministryofjustice/opg-metadata
 METADATA_TAG ?= v0.1.29
 METADATA_FILE ?= metadata.zip

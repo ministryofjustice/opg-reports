@@ -5,6 +5,7 @@ import (
 	"opg-reports/report/internal/cost/costmigrate"
 	"opg-reports/report/package/awsclients"
 	"opg-reports/report/package/awsid"
+	"opg-reports/report/package/env"
 	"opg-reports/report/package/times"
 
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
@@ -41,7 +42,10 @@ var importCmd = &cobra.Command{
 }
 
 func runImport(cmd *cobra.Command, args []string) (err error) {
-
+	// overwrite arg flags from env values
+	if e := env.OverwriteStruct(&migrationFlags); e != nil {
+		return
+	}
 	// run the migration command
 	err = costmigrate.Migrate(cmd.Context(), &costmigrate.Input{
 		DB:            importFlags.DB,

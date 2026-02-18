@@ -115,6 +115,7 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 	}
 	// setup months
 	headings[tabulate.DATA] = months
+	// make sure to update this from the input values
 	filter = &Filter{Months: months, Team: in.Team}
 	// now convert to a map for use in bound statements
 	err = cnv.Convert(filter, &bindMap)

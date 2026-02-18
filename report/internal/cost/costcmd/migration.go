@@ -2,6 +2,7 @@ package main
 
 import (
 	"opg-reports/report/internal/cost/costmigrate"
+	"opg-reports/report/package/env"
 
 	"github.com/spf13/cobra"
 )
@@ -27,6 +28,10 @@ var migrationCmd = &cobra.Command{
 }
 
 func runMigration(cmd *cobra.Command, args []string) (err error) {
+	// overwrite arg flags from env values
+	if e := env.OverwriteStruct(&migrationFlags); e != nil {
+		return
+	}
 	// run the migration command
 	err = costmigrate.Migrate(cmd.Context(), &costmigrate.Input{
 		DB:            migrationFlags.DB,
