@@ -9,6 +9,7 @@ import (
 	"opg-reports/report/package/env"
 	"opg-reports/report/package/logger"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -20,20 +21,23 @@ type cli struct {
 	SHA          string `json:"sha"`           // --sha ; the git commit sha used as part of signature
 	RootDir      string `json:"root_dir"`      // --root-dir
 	GovUKVersion string `json:"govuk_version"` // --govuk_version
-
-	GovUKDir       string `json:"govuk_dir"`        // --govuk-dir
-	LocalAssetsDir string `json:"local_assets_dir"` // --local-assets-dir
-	TemplateDir    string `json:"template_dir"`     // --template-dir
-	//
-
+	// fixed, based on root
+	GovUKDir       string `json:"govuk_dir"`
+	LocalAssetsDir string `json:"local_assets_dir"`
+	TemplateDir    string `json:"template_dir"`
 }
 
 // default values for the args
 var flags = &cli{
-	FrontHost: ":8080",
-	ApiHost:   ":8081",
-	Version:   "v0.0.0",
-	SHA:       "abcde",
+	FrontHost:      ":8080",
+	ApiHost:        ":8081",
+	Version:        "v0.0.0",
+	SHA:            "abcde",
+	RootDir:        "./",
+	GovUKVersion:   "5.14.0",
+	LocalAssetsDir: "local-assets",
+	TemplateDir:    "templates",
+	GovUKDir:       "govuk",
 }
 
 // main root command
@@ -45,6 +49,11 @@ var root *cobra.Command = &cobra.Command{
 
 func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 
+}
+func appendRoot() {
+	flags.GovUKDir = filepath.Join(flags.RootDir, flags.GovUKDir)
+	flags.LocalAssetsDir = filepath.Join(flags.RootDir, flags.LocalAssetsDir)
+	flags.TemplateDir = filepath.Join(flags.RootDir, flags.TemplateDir)
 }
 
 // runAPI the main run command
@@ -59,15 +68,20 @@ func runFront(cmd *cobra.Command, args []string) (err error) {
 	if err = env.OverwriteStruct(&flags); err != nil {
 		return
 	}
-
+	appendRoot()
 	// setup mux & server
 	mux = http.NewServeMux()
 	server = &http.Server{Addr: flags.FrontHost, Handler: mux}
 	// attach endpoints
 	registerEndpoints(ctx, mux, flags)
 	// server info
-	log.Info("Starting server ...")
-	log.Info(fmt.Sprintf("VERSION: [%s] [%s]", flags.Version, flags.SHA))
+	log.Info(fmt.Sprintf("Starting server [%s] [%s]...", flags.Version, flags.SHA))
+	log.Info("Directories:")
+	log.Info(fmt.Sprintf(" Root: %s", flags.RootDir))
+	log.Info(fmt.Sprintf(" GovUK: %s", flags.GovUKDir))
+	log.Info(fmt.Sprintf(" Local assets: %s", flags.LocalAssetsDir))
+	log.Info(fmt.Sprintf(" Templates: %s", flags.TemplateDir))
+	log.Info("Hosts:")
 	log.Info(fmt.Sprintf("API: [http://%s/]", flags.ApiHost))
 	log.Info(fmt.Sprintf("FRONT: [http://%s/]", flags.FrontHost))
 	// boot server
@@ -80,6 +94,8 @@ func init() {
 	root.PersistentFlags().StringVar(&flags.ApiHost, "api-host", flags.ApiHost, "Address of the api")
 	root.PersistentFlags().StringVar(&flags.Version, "version", flags.Version, "The semver")
 	root.PersistentFlags().StringVar(&flags.SHA, "sha", flags.SHA, "The git commit sha")
+	root.PersistentFlags().StringVar(&flags.GovUKVersion, "govuk-version", flags.GovUKVersion, "GovUK version tag")
+	root.PersistentFlags().StringVar(&flags.RootDir, "root-dir", flags.RootDir, "Root directory")
 }
 
 func main() {

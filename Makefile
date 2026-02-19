@@ -32,8 +32,23 @@ api: build-cmds
 	@env LOG_LEVEL=${LOG_LEVEL} ${API_CMD} \
 		--db="${API_DB}" \
 		--migration-file="${BUILD_DIR}/migrations.json" \
-		--api-host="localhost:8081" \
+		--api-host="localhost:8081"
 
+#========= RUN THE FRONT END =========
+# api command variables
+FRONT_CMD ?= ${BUILD_DIR}/front
+LOCAL_ASSETS ?= web
+.PHONY: front
+front: CMD_LIST=front
+front: build-cmds get-govuk
+	@echo "- copying templates and local assets"
+	@cp -r ${LOCAL_ASSETS} ${BUILD_DIR}
+	@echo "- starting front "
+	@env LOG_LEVEL=${LOG_LEVEL} ${FRONT_CMD} \
+		--api-host="localhost:8081" \
+		--front-host="localhost:8080" \
+		--root-dir="${BUILD_DIR}" \
+		--govuk-version="${GOVUK_TAG}"
 
 #========= GET the database from s3 =========
 GET_DB_BUCKET ?= opg-reports-production
@@ -89,19 +104,20 @@ get-metadata:
 ##
 ## presumed gh client installed
 GOVUK_REPO ?= alphagov/govuk-frontend
-GOVUK_TAG ?= v5.14.0
-GOVUK_ZIP ?= release-${GOVUK_TAG}.zip
+GOVUK_TAG ?= 5.14.0
+GOVUK_ZIP ?= release-v${GOVUK_TAG}.zip
 GOVUK_EX_DIR ?= ${BUILD_DIR}/govuk
 .PHONY: get-govuk
 get-govuk:
+	@rm -Rf ${BUILD_DIR}/assets
 	@mkdir -p ${GOVUK_EX_DIR}
-	env GITHUB_TOKEN="${GITHUB_TOKEN}" \
-		gh release download ${GOVUK_TAG} \
+	@env GITHUB_TOKEN="${GITHUB_TOKEN}" \
+		gh release download v${GOVUK_TAG} \
 			--clobber \
 			--repo ${GOVUK_REPO} \
 			--dir ${BUILD_DIR} \
 			--pattern ${GOVUK_ZIP}
-	@unzip -qq ${BUILD_DIR}/${GOVUK_ZIP} \
+	@unzip -o -qq ${BUILD_DIR}/${GOVUK_ZIP} \
 		-d ${GOVUK_EX_DIR}
 	@rm -f ${BUILD_DIR}/${GOVUK_ZIP}
 	@mv ${GOVUK_EX_DIR}/assets ${BUILD_DIR}

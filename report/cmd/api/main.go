@@ -131,9 +131,11 @@ func runAPI(cmd *cobra.Command, args []string) (err error) {
 	// attach endpoints
 	registerEndpoints(ctx, mux, flags)
 	// server info
-	log.Info("Starting server ...")
-	log.Info(fmt.Sprintf("VERSION: [%s] [%s]", flags.Version, flags.SHA))
-	log.Info(fmt.Sprintf("DB: %s", flags.DB))
+	log.Info(fmt.Sprintf("Starting server [%s] [%s]...", flags.Version, flags.SHA))
+	log.Info("Database:")
+	log.Info(fmt.Sprintf("Driver: %s", flags.Driver))
+	log.Info(fmt.Sprintf("Path: %s", flags.DB))
+	log.Info("Hosts:")
 	log.Info(fmt.Sprintf("API: [http://%s/]", flags.ApiHost))
 	// boot server
 	server.ListenAndServe()
