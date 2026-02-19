@@ -34,7 +34,7 @@ var flags = &cli{
 	Driver:        "sqlite3",
 	DB:            "./database/api.db",
 	MigrationFile: "migrations.json",
-	ApiHost:       "localhost:8081",
+	ApiHost:       ":8081",
 	Version:       "v0.0.0",
 	SHA:           "abcde",
 }

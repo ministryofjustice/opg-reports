@@ -5,18 +5,19 @@ import (
 	"fmt"
 	"opg-reports/report/package/cnv"
 	"opg-reports/report/package/dump"
+	"sort"
 )
 
 type TableEndFunc func(table []map[string]interface{}, headings map[ColType][]string) []map[string]interface{}
 
-type BodyInput struct {
+type Args struct {
 	ColumnKey string
 	ValueKey  string
 	Headers   map[ColType][]string
 }
 
 // TableBody generates body from T data
-func TableBody[T any](ctx context.Context, dbRows []T, in *BodyInput) (tableMap map[string]map[string]interface{}) {
+func TableBody[T any](ctx context.Context, dbRows []T, in *Args) (tableMap map[string]map[string]interface{}) {
 	var rowMap = []map[string]interface{}{}
 
 	cnv.Convert(dbRows, &rowMap)
@@ -34,7 +35,6 @@ func TableBody[T any](ctx context.Context, dbRows []T, in *BodyInput) (tableMap 
 		// set table value
 		tableMap[rowKey] = dest
 	}
-	// fmt.Println(dump.Any(tableMap))
 	return
 }
 
@@ -99,7 +99,6 @@ func TableAverageF(table []map[string]interface{}, headings map[ColType][]string
 	for _, row := range table {
 		for _, col := range dataCols {
 			summary[col] = Value[float64](col, 0.0, summary) + Value[float64](col, 0.0, row)
-			// summary[col.Field].(float64) + row[col.Field].(float64)
 		}
 		rowE := Value[float64](endCol, 0.0, row)
 		tableTotal += rowE
@@ -117,5 +116,23 @@ func TableAverageF(table []map[string]interface{}, headings map[ColType][]string
 	// work out overall average
 	summary[endCol] = tableTotal / float64(count)
 	table = append(table, summary)
+	return table
+}
+
+func SortAscending[T int | float64 | string](table []map[string]interface{}, column string) []map[string]interface{} {
+	sort.Slice(table, func(i, j int) bool {
+		var a = table[i][column].(T)
+		var b = table[j][column].(T)
+		return (a < b)
+	})
+	return table
+}
+
+func SortDescending[T int | float64 | string](table []map[string]interface{}, column string) []map[string]interface{} {
+	sort.Slice(table, func(i, j int) bool {
+		var a = table[i][column].(T)
+		var b = table[j][column].(T)
+		return (a > b)
+	})
 	return table
 }

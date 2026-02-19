@@ -1,7 +1,6 @@
 LOG_LEVEL ?= info
 #========= IMPORT TEAMS =========
-IMPORT_DIR ?= ${BUILD_DIR}/import
-IMPORT_CMD ?= ${IMPORT_DIR}/import
+IMPORT_CMD ?= ${BUILD_DIR}/import
 .PHONY: import-teams
 import-teams: CMD_LIST=import
 import-teams: get-metadata build-cmds
@@ -23,9 +22,8 @@ import-accounts: get-metadata build-cmds
 
 #========= RUN THE API =========
 # api command variables
-API_DIR ?= ${BUILD_DIR}/api
-API_DB_DIR ?= ${API_DIR}/database
-API_CMD ?= ${API_DIR}/api
+API_DB_DIR ?= ${BUILD_DIR}/database
+API_CMD ?= ${BUILD_DIR}/api
 API_DB ?= ${API_DB_DIR}/api.db
 .PHONY: api
 api: CMD_LIST=api
@@ -68,22 +66,21 @@ get-db-direct:
 ## presumed gh client installed
 METADATA_REPO ?= ministryofjustice/opg-metadata
 METADATA_TAG ?= v0.1.29
-METADATA_FILE ?= metadata.zip
-METADATA_DIR ?= ${BUILD_DIR}/metadata
-METADATA_EX_DIR ?= ${METADATA_DIR}/extracted
+METADATA_ZIP ?= metadata.zip
+METADATA_EX_DIR ?= ${BUILD_DIR}/metadata-extracted
 .PHONY: get-metadata
 get-metadata:
-	@rm -Rf ${METADATA_DIR}/extracted
-	@mkdir -p ${METADATA_DIR}/extracted
+	@rm -Rf ${METADATA_EX_DIR}
+	@mkdir -p ${METADATA_EX_DIR}
 	@env GITHUB_TOKEN="${GITHUB_TOKEN}" \
 		gh release download ${METADATA_TAG} \
 			--clobber \
 			--repo ${METADATA_REPO} \
-			--dir ${METADATA_DIR} \
-			--pattern ${METADATA_FILE}
-	@unzip -qq ${METADATA_DIR}/${METADATA_FILE} \
+			--dir ${BUILD_DIR} \
+			--pattern ${METADATA_ZIP}
+	@unzip -qq ${BUILD_DIR}/${METADATA_ZIP} \
 		-d ${METADATA_EX_DIR}
-
+	@rm -f ${BUILD_DIR}/${METADATA_ZIP}
 #========= GET gov-uk release =========
 ## Run during the build process; will
 ## download marked release from govuk
@@ -93,24 +90,22 @@ get-metadata:
 ## presumed gh client installed
 GOVUK_REPO ?= alphagov/govuk-frontend
 GOVUK_TAG ?= v5.14.0
-GOVUK_FILE ?= release-${GOVUK_TAG}.zip
-GOVUK_DIR ?= ${BUILD_DIR}/govuk
-GOVUK_EX_DIR ?= ${GOVUK_DIR}/extracted
+GOVUK_ZIP ?= release-${GOVUK_TAG}.zip
+GOVUK_EX_DIR ?= ${BUILD_DIR}/govuk
 .PHONY: get-govuk
 get-govuk:
-	@rm -Rf ${GOVUK_DIR}
-	@mkdir -p ${GOVUK_DIR}/extracted
+	@mkdir -p ${GOVUK_EX_DIR}
 	env GITHUB_TOKEN="${GITHUB_TOKEN}" \
 		gh release download ${GOVUK_TAG} \
 			--clobber \
 			--repo ${GOVUK_REPO} \
-			--dir ${GOVUK_DIR} \
-			--pattern ${GOVUK_FILE}
-	@unzip -qq ${GOVUK_DIR}/${GOVUK_FILE} \
+			--dir ${BUILD_DIR} \
+			--pattern ${GOVUK_ZIP}
+	@unzip -qq ${BUILD_DIR}/${GOVUK_ZIP} \
 		-d ${GOVUK_EX_DIR}
-	@rm -f ${BUILD_DIR}/govuk/${GOVUK_FILE}
-	@mv $(GOVUK_EX_DIR)/* ${GOVUK_DIR}/
-	@rm -Rf ${GOVUK_EX_DIR}
+	@rm -f ${BUILD_DIR}/${GOVUK_ZIP}
+	@mv ${GOVUK_EX_DIR}/assets ${BUILD_DIR}
+
 
 
 #========= GO BUILDS =========
@@ -125,10 +120,55 @@ BUILD_DIR ?= ./builds
 build-cmds:
 	@for cmd in ${CMD_LIST}; do \
 		echo "- building command [$${cmd}] "; \
-		mkdir -p ${BUILD_DIR}/$${cmd}/ ; \
-		rm -f ${BUILD_DIR}/$${cmd}/$${cmd} ; \
-		go build -ldflags="-w -s" -o ${BUILD_DIR}/$${cmd}/$${cmd} ${CMD_DIR}/$${cmd}; \
+		mkdir -p ${BUILD_DIR}/ ; \
+		rm -f ${BUILD_DIR}/$${cmd} ; \
+		go build -ldflags="-w -s" -o ${BUILD_DIR}/$${cmd} ${CMD_DIR}/$${cmd}; \
 	done
+
+##========= DOCKER =========
+SERVICES ?= api
+VERBOSE ?=
+## Clean any old docker images out
+.PHONY: docker-clean
+docker-clean: docker-down
+	@docker image rm $(shell docker images -a | grep 'opg-reports/*' | awk '{print $$1":"$$2}') || echo "ok"
+	@env DOCKER_BUILDKIT=1 \
+	docker compose ${VERBOSE} \
+		-f docker-compose.yml \
+		-f docker-compose.dev.yml \
+		rm ${SERVICES}
+	@docker container prune -f
+	@docker image prune -f --filter="dangling=true"
+.PHONY: docker-clean
+
+.PHONY: docker-down
+docker-down:
+	@env DOCKER_BUILDKIT=1 \
+	docker compose ${VERBOSE} \
+		-f docker-compose.yml \
+		-f docker-compose.dev.yml \
+		down
+
+## Build local development version of the docker image
+.PHONY: docker-build
+docker-build:
+	@env DOCKER_BUILDKIT=1 \
+	docker compose ${VERBOSE} \
+		-f docker-compose.yml \
+		-f docker-compose.dev.yml \
+		build ${SERVICES}
+
+
+## Build and run the local docker images
+.PHONY: docker-up
+docker-up: build-cmds  docker-build
+	@env DOCKER_BUILDKIT=1 \
+	docker compose ${VERBOSE} \
+		-f docker-compose.yml \
+		-f docker-compose.dev.yml \
+		up \
+		-d ${SERVICES}
+
 
 #========= TESTS =========
 ## Run all tests
@@ -183,4 +223,6 @@ coverage:
 		AWS_SESSION_TOKEN="${AWS_SESSION_TOKEN}" \
 		go test -count=1 -covermode=count -coverprofile=code-coverage.out -cover ./...
 	@go tool cover -html=code-coverage.out
+
+
 

@@ -149,7 +149,7 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 		log.Error("query failed", "err", err.Error(), "stmt", selectStmt)
 	}
 	// get the body
-	tableBody := tabulate.TableBody(ctx, all, &tabulate.BodyInput{
+	tableBody := tabulate.TableBody(ctx, all, &tabulate.Args{
 		Headers:   headings,
 		ColumnKey: "month",
 		ValueKey:  "cost"})
@@ -159,6 +159,8 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 	tbl := tabulate.TableMapToTable(tableBody)
 	// do table total
 	tbl = tabulate.TableEnd(tbl, headings, tabulate.TableTotalF)
+	// sort by last month
+	tbl = tabulate.SortDescending[float64](tbl, months[len(months)-1])
 
 	// setup response object
 	response = &Response{

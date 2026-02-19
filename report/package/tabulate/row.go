@@ -33,7 +33,7 @@ type RowEndFunc func(tableRow map[string]interface{}, headings map[ColType][]str
 //
 //	`ColumnKey` should be the field which contains the name of the column to write to in `dest`
 //	`ValueKey` is the `src` field that contains th value to write to `dest`
-func PopulateRow(src map[string]interface{}, dest map[string]interface{}, headings map[ColType][]string, opts *BodyInput) {
+func PopulateRow(src map[string]interface{}, dest map[string]interface{}, headings map[ColType][]string, opts *Args) {
 	var key = src[opts.ColumnKey].(string)
 	// set this key
 	if val, ok := src[opts.ValueKey]; ok && val != nil {

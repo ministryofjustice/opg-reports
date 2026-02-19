@@ -141,7 +141,7 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 		},
 	})
 	// get the body
-	tableBody := tabulate.TableBody(ctx, all, &tabulate.BodyInput{
+	tableBody := tabulate.TableBody(ctx, all, &tabulate.Args{
 		Headers:   headings,
 		ColumnKey: "month",
 		ValueKey:  "cost"})
