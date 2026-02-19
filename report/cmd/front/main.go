@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"opg-reports/report/internal/front/frontstatics"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/env"
 	"opg-reports/report/package/logger"
@@ -35,7 +36,7 @@ var flags = &cli{
 	SHA:            "abcde",
 	RootDir:        "./",
 	GovUKVersion:   "5.14.0",
-	LocalAssetsDir: "local-assets",
+	LocalAssetsDir: "web",
 	TemplateDir:    "templates",
 	GovUKDir:       "govuk",
 }
@@ -47,9 +48,16 @@ var root *cobra.Command = &cobra.Command{
 	RunE:  runFront,
 }
 
+// registerEndpoints all of the front end endpoints
 func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 
+	frontstatics.Register(ctx, mux, &frontstatics.Args{
+		RootDir:        flags.RootDir,
+		GovUKDir:       flags.GovUKDir,
+		LocalAssetsDir: flags.LocalAssetsDir,
+	})
 }
+
 func appendRoot() {
 	flags.GovUKDir = filepath.Join(flags.RootDir, flags.GovUKDir)
 	flags.LocalAssetsDir = filepath.Join(flags.RootDir, flags.LocalAssetsDir)

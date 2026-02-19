@@ -109,7 +109,6 @@ GOVUK_ZIP ?= release-v${GOVUK_TAG}.zip
 GOVUK_EX_DIR ?= ${BUILD_DIR}/govuk
 .PHONY: get-govuk
 get-govuk:
-	@rm -Rf ${BUILD_DIR}/assets
 	@mkdir -p ${GOVUK_EX_DIR}
 	@env GITHUB_TOKEN="${GITHUB_TOKEN}" \
 		gh release download v${GOVUK_TAG} \
@@ -120,7 +119,6 @@ get-govuk:
 	@unzip -o -qq ${BUILD_DIR}/${GOVUK_ZIP} \
 		-d ${GOVUK_EX_DIR}
 	@rm -f ${BUILD_DIR}/${GOVUK_ZIP}
-	@mv ${GOVUK_EX_DIR}/assets ${BUILD_DIR}
 
 
 
