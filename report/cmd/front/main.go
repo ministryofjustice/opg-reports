@@ -14,10 +14,18 @@ import (
 )
 
 type cli struct {
-	FrontHost string `json:"front"`   // --front-host ; this servers address
-	ApiHost   string `json:"api"`     // --api-host ; this is apis address
-	Version   string `json:"version"` // --version ; the semver tag, used as part of signature
-	SHA       string `json:"sha"`     // --sha ; the git commit sha used as part of signature
+	FrontHost    string `json:"front"`         // --front-host ; this servers address
+	ApiHost      string `json:"api"`           // --api-host ; this is apis address
+	Version      string `json:"version"`       // --version ; the semver tag, used as part of signature
+	SHA          string `json:"sha"`           // --sha ; the git commit sha used as part of signature
+	RootDir      string `json:"root_dir"`      // --root-dir
+	GovUKVersion string `json:"govuk_version"` // --govuk_version
+
+	GovUKDir       string `json:"govuk_dir"`        // --govuk-dir
+	LocalAssetsDir string `json:"local_assets_dir"` // --local-assets-dir
+	TemplateDir    string `json:"template_dir"`     // --template-dir
+	//
+
 }
 
 // default values for the args
@@ -54,11 +62,12 @@ func runFront(cmd *cobra.Command, args []string) (err error) {
 
 	// setup mux & server
 	mux = http.NewServeMux()
-	server = &http.Server{Addr: flags.ApiHost, Handler: mux}
+	server = &http.Server{Addr: flags.FrontHost, Handler: mux}
 	// attach endpoints
 	registerEndpoints(ctx, mux, flags)
 	// server info
 	log.Info("Starting server ...")
+	log.Info(fmt.Sprintf("VERSION: [%s] [%s]", flags.Version, flags.SHA))
 	log.Info(fmt.Sprintf("API: [http://%s/]", flags.ApiHost))
 	log.Info(fmt.Sprintf("FRONT: [http://%s/]", flags.FrontHost))
 	// boot server
