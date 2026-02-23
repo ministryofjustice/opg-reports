@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"opg-reports/report/internal/account/accountapi/accountapiall"
 	"opg-reports/report/internal/account/accountapi/accountsapiforteam"
+	"opg-reports/report/internal/cost/costapi/costapibymonthdetailed"
 	"opg-reports/report/internal/cost/costapi/costapibymonthforteam"
+	"opg-reports/report/internal/cost/costapi/costapibymonthforteamdetailed"
 	"opg-reports/report/internal/cost/costapi/costapibymonthteam"
 	"opg-reports/report/internal/global/migrations"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
@@ -91,8 +93,23 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 		Version: in.Version,
 		SHA:     in.SHA,
 	})
+	costapibymonthdetailed.Register(ctx, mux, &costapibymonthdetailed.Config{
+		DB:      in.DB,
+		Driver:  in.Driver,
+		Params:  in.Params,
+		Version: in.Version,
+		SHA:     in.SHA,
+	})
 	// - grouped by month, filtered by team
 	costapibymonthforteam.Register(ctx, mux, &costapibymonthforteam.Config{
+		DB:      in.DB,
+		Driver:  in.Driver,
+		Params:  in.Params,
+		Version: in.Version,
+		SHA:     in.SHA,
+	})
+	// - group by month, filtered by team but detailed
+	costapibymonthforteamdetailed.Register(ctx, mux, &costapibymonthforteamdetailed.Config{
 		DB:      in.DB,
 		Driver:  in.Driver,
 		Params:  in.Params,

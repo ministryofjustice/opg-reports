@@ -1,4 +1,4 @@
-package frontstatics
+package statics
 
 import (
 	"context"
@@ -30,7 +30,7 @@ type Args struct {
 func Register(ctx context.Context, mux *http.ServeMux, dirs *Args) {
 	var prefix = ""
 	var root = strings.TrimPrefix(dirs.RootDir, "./")
-	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "frontstatics", "func", "Register")
+	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "statics", "func", "Register")
 	// Static assets
 	// /assets/ is hardcorded in the govuk css and js for where fonts / images are, so map that to the filesystem (./govuk/assets/)
 	// 		http://localhost:8080/assets/images/govuk-icon-180.png

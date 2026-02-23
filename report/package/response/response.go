@@ -1,3 +1,6 @@
+// Package response provides functions for handling a response
+//
+// Typically data conversion to structs etc
 package response
 
 import (

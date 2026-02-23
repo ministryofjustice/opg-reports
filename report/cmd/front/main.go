@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"opg-reports/report/internal/front/frontstatics"
+	"opg-reports/report/internal/front/statics"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/env"
 	"opg-reports/report/package/logger"
@@ -51,11 +51,12 @@ var root *cobra.Command = &cobra.Command{
 // registerEndpoints all of the front end endpoints
 func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 
-	frontstatics.Register(ctx, mux, &frontstatics.Args{
+	statics.Register(ctx, mux, &statics.Args{
 		RootDir:        in.RootDir,
 		GovUKDir:       in.GovUKDir,
 		LocalAssetsDir: in.LocalAssetsDir,
 	})
+
 }
 
 func appendRoot(in *cli) {

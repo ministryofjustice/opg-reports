@@ -38,11 +38,13 @@ api: build-cmds
 # api command variables
 FRONT_CMD ?= ${BUILD_DIR}/front
 LOCAL_ASSETS ?= web
+TEMPLATE_DIR ?= ./report/internal/front/templates
 .PHONY: front
 front: CMD_LIST=front
 front: build-cmds get-govuk
 	@echo "- copying templates and local assets"
 	@cp -r ${LOCAL_ASSETS} ${BUILD_DIR}
+	@cp -r ${TEMPLATE_DIR} ${BUILD_DIR}
 	@echo "- starting front "
 	@env LOG_LEVEL=${LOG_LEVEL} ${FRONT_CMD} \
 		--api-host="localhost:8081" \
@@ -55,6 +57,7 @@ GET_DB_BUCKET ?= opg-reports-production
 GET_DB_PROFILE ?= shared-production-operator
 .PHONY: get-db
 get-db:
+	@rm -f ${BUILD_DIR}/migrations.json
 	@rm -Rf ${API_DB}
 	@mkdir -p ${API_DB_DIR}
 	@echo "- downloading database "
@@ -65,6 +68,7 @@ get-db:
 # gets the db without aws-vault usage (pipelines)
 .PHONY: get-db-direct
 get-db-direct:
+	@rm -f ${BUILD_DIR}/migrations.json
 	@rm -Rf ${API_DB}
 	@mkdir -p ${API_DB_DIR}
 	@echo "- downloading database "

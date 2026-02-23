@@ -1,4 +1,4 @@
-package costapibymonthforteam
+package costapibymonthforteamdetailed
 
 import (
 	"context"
@@ -24,7 +24,9 @@ const selectStmt string = `
 SELECT
 	costs.month as month,
 	CAST(COALESCE(SUM(cost), 0) as REAL) as cost,
-	IIF(accounts.name != "", accounts.name, "")  as account
+	IIF(accounts.name != "", accounts.name, "") as account,
+	costs.service as service,
+	accounts.environment as environment
 FROM costs
 LEFT JOIN accounts on accounts.id = costs.account_id
 WHERE
@@ -33,7 +35,9 @@ WHERE
 	AND accounts.team_name = :team
 GROUP BY
 	costs.month,
-	accounts.id
+	accounts.id,
+	costs.service,
+	accounts.environment
 ORDER BY
 	accounts.name ASC
 ;
@@ -44,7 +48,7 @@ ORDER BY
 type Request struct {
 	DateStart string `json:"date_start"`
 	DateEnd   string `json:"date_end"`
-	Team      string `json:"team"` // the team filter
+	Team      string `json:"team"`
 }
 
 func (self *Request) Start() (t time.Time) {
@@ -76,15 +80,17 @@ type Filter struct {
 
 // Model is the data struct to use when fetching the select
 type Model struct {
-	Month   string  `json:"month"`
-	Cost    float64 `json:"cost"`
-	Account string  `json:"account"`
+	Month       string  `json:"month"`
+	Cost        float64 `json:"cost"`
+	Account     string  `json:"account"`
+	Service     string  `json:"service"`
+	Environment string  `json:"environment"`
 }
 
 // Sequence is used to return the columns in the order they are selected
 func (self *Model) Sequence() []any {
 	return []any{
-		&self.Month, &self.Cost, &self.Account,
+		&self.Month, &self.Cost, &self.Account, &self.Service, &self.Environment,
 	}
 }
 
@@ -100,9 +106,9 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 		in       *Request                      = &Request{}
 		bindMap  map[string]interface{}        = map[string]interface{}{}
 		all      []*Model                      = []*Model{}
-		log      *slog.Logger                  = cntxt.GetLogger(ctx).With("package", "costapibymonthforteam", "func", "Responder")
+		log      *slog.Logger                  = cntxt.GetLogger(ctx).With("package", "costapibymonthforteamdetailed", "func", "Responder")
 		headings map[tabulate.ColType][]string = map[tabulate.ColType][]string{
-			tabulate.KEY:   {"account"},
+			tabulate.KEY:   {"account", "environment", "service"},
 			tabulate.EXTRA: {"trend"},
 			tabulate.END:   {"total"},
 		}
@@ -118,7 +124,6 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 	}
 	// setup months
 	headings[tabulate.DATA] = months
-	// make sure to update this from the input values
 	filter = &Filter{Months: months, Team: in.Team}
 	// now convert to a map for use in bound statements
 	err = cnv.Convert(filter, &bindMap)
@@ -126,10 +131,9 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 		log.Error("failed to convert filter into map for binding", "err", err.Error())
 		return
 	}
-
 	// make the db call via the Select helper that handles row scanning.
 	// No return value as local values are updates within ScanF lambda
-	err = dbx.Select(ctx, selectStmt, &dbx.SelectArgs{
+	dbx.Select(ctx, selectStmt, &dbx.SelectArgs{
 		DB:      conf.DB,
 		Driver:  conf.Driver,
 		Params:  conf.Params,
@@ -145,9 +149,6 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 			return err
 		},
 	})
-	if err != nil {
-		log.Error("query failed", "err", err.Error(), "stmt", selectStmt)
-	}
 	// get the body
 	tableBody := tabulate.TableBody(ctx, all, &tabulate.Args{
 		Headers:   headings,
@@ -157,11 +158,10 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 	tabulate.RowEnd(tableBody, headings, tabulate.RowTotalF)
 	// swap to slice
 	tbl := tabulate.TableMapToTable(tableBody)
+	// sort by value of last month
+	tabulate.SortDescending[float64](tbl, months[len(months)-1])
 	// do table total
 	tbl = tabulate.TableEnd(tbl, headings, tabulate.TableTotalF)
-	// sort by last month
-	tbl = tabulate.SortDescending[float64](tbl, months[len(months)-1])
-
 	// setup response object
 	response = &Response{
 		Version: conf.Version,

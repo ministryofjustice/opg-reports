@@ -1,3 +1,7 @@
+// Package requested handles processing incoming http requests
+//
+// Generally parsing incoming urls and mapping that request via a url pattern into
+// a struct of path & query based values
 package requested
 
 import (
