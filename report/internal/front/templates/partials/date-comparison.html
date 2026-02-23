@@ -1,0 +1,17 @@
+{{- define "date-comparison" -}}
+{{ $start := .Request.DateA }}
+{{ $end := .Request.DateB }}
+{{ $change := .Request.Change }}
+<section class="date-start-end">
+<form method="get" class="govuk-form-group compact-form date-start-end-form">
+<p class="govuk-body">Change dates to compare
+    <select class="govuk-select" name="date_a" autocomplete="off" data-selected="{{ $start }}">{{- range $i, $m := .Months -}}<option value="{{ $m }}"{{- if eq $m $start -}} selected="selected" {{- end -}}>{{ $m }}</option>{{- end -}}</select>
+    to
+    <select class="govuk-select" name="date_b" autocomplete="off" data-selected="{{ $end }}">{{- range $i, $m := .Months -}}<option value="{{ $m }}"{{- if eq $m $end -}} selected="selected" {{- end -}}>{{ $m }}</option>{{- end -}}</select>
+    with diff of
+    <select class="govuk-select" name="change" autocomplete="off" data-selected="{{ $change }}">{{- range $i,$v := .Changes}}<option value="{{ $v }}"{{- if eq $v $change -}} selected="selected" {{- end -}}>{{ $v }}</option>{{- end -}}</select>
+    <button type="submit" class="govuk-button" data-module="govuk-button">Update</button>
+</p>
+</form>
+</section>
+{{- end -}}

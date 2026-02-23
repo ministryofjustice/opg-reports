@@ -6,7 +6,9 @@ import (
 	"context"
 	"encoding/json"
 	"html/template"
+	"log/slog"
 	"net/http"
+	"opg-reports/report/package/cntxt"
 )
 
 type Args struct {
@@ -22,18 +24,21 @@ func AsHTML(ctx context.Context, request *http.Request, writer http.ResponseWrit
 		err        error
 		dataBytes  []byte
 		tmpl       *template.Template
-		buffer     = new(bytes.Buffer)
-		buffWriter = bufio.NewWriter(buffer)
+		buffer                  = new(bytes.Buffer)
+		buffWriter              = bufio.NewWriter(buffer)
+		log        *slog.Logger = cntxt.GetLogger(ctx).With("package", "respond", "func", "AsHTML")
 	)
 	// parse the template
 	tmpl, err = template.New(args.Template).Funcs(args.Funcs).ParseFiles(args.TemplateFiles...)
 	if err != nil {
+		log.Error("error creating template", "err", err.Error())
 		return
 	}
 	// execute it
 	err = tmpl.ExecuteTemplate(buffer, args.Template, data)
 
 	if err != nil {
+		log.Error("error executing template", "err", err.Error())
 		buffWriter.WriteString(err.Error())
 		writer.WriteHeader(http.StatusInternalServerError)
 		writer.Header().Set("Content-Type", "text/html")

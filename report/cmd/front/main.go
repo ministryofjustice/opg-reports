@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"opg-reports/report/internal/cost/costfront/costsbyteam"
+	"opg-reports/report/internal/cost/costfront/costsdetailed"
+	"opg-reports/report/internal/cost/costfront/costsdiff"
+	"opg-reports/report/internal/front/homepage"
 	"opg-reports/report/internal/front/statics"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/env"
@@ -55,6 +59,34 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 		RootDir:        in.RootDir,
 		GovUKDir:       in.GovUKDir,
 		LocalAssetsDir: in.LocalAssetsDir,
+	})
+	// home page
+	homepage.Register(ctx, mux, &homepage.Args{
+		ApiHost:      in.ApiHost,
+		GovUKVersion: in.GovUKVersion,
+		RootDir:      in.RootDir,
+		TemplateDir:  in.TemplateDir,
+	})
+	// - home, simple costs grouped by team
+	costsbyteam.Register(ctx, mux, &costsbyteam.Args{
+		ApiHost:      in.ApiHost,
+		GovUKVersion: in.GovUKVersion,
+		RootDir:      in.RootDir,
+		TemplateDir:  in.TemplateDir,
+	})
+	// - home, show detailed breakdown of costs
+	costsdetailed.Register(ctx, mux, &costsdetailed.Args{
+		ApiHost:      in.ApiHost,
+		GovUKVersion: in.GovUKVersion,
+		RootDir:      in.RootDir,
+		TemplateDir:  in.TemplateDir,
+	})
+	// - home, show cost differences between all accounts
+	costsdiff.Register(ctx, mux, &costsdiff.Args{
+		ApiHost:      in.ApiHost,
+		GovUKVersion: in.GovUKVersion,
+		RootDir:      in.RootDir,
+		TemplateDir:  in.TemplateDir,
 	})
 
 }

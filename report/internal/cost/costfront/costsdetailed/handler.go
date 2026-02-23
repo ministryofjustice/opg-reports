@@ -1,19 +1,23 @@
-package homepage
+package costsdetailed
 
 import (
 	"context"
 	"log/slog"
 	"net/http"
-	"opg-reports/report/internal/team/teamget"
+	"opg-reports/report/internal/cost/costapi/costapidetailed"
+	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/htmlpage"
 	"opg-reports/report/package/respond"
+	"opg-reports/report/package/times"
 	"opg-reports/report/package/tmpl"
 	"sync"
+	"time"
 )
 
 type PageContent struct {
 	htmlpage.HTMLPage
+	CostData *costapidetailed.Response
 }
 
 type dataCallerF func(wg *sync.WaitGroup, page *PageContent)
@@ -23,8 +27,10 @@ func Handler(ctx context.Context, args *Args, writer http.ResponseWriter, reques
 	var (
 		// err  error
 		pageName     string         = "OPG Reports"
-		templateName string         = "home"
-		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "home", "func", "handlerIndex", "url", request.URL.String())
+		templateName string         = "home-costs-detailed"
+		endDate      time.Time      = times.Today()
+		startDate    time.Time      = times.Add(endDate, -12, times.MONTH)
+		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "home", "func", "costsdetailed", "url", request.URL.String())
 		wg           sync.WaitGroup = sync.WaitGroup{}
 		page         *PageContent   = &PageContent{
 			HTMLPage: htmlpage.New(request, &htmlpage.Args{Name: pageName, GovUKVersion: args.GovUKVersion}),
@@ -36,8 +42,9 @@ func Handler(ctx context.Context, args *Args, writer http.ResponseWriter, reques
 		wg.Add(1)
 		go blockF(&wg, page)
 	}
-
 	wg.Wait()
+	page.CostData.Months = times.AsYMStrings(times.Months(startDate, endDate))
+
 	// respond
 	respond.AsHTML(ctx, request, writer, page, &respond.Args{
 		Template:      templateName,
@@ -50,11 +57,17 @@ func Handler(ctx context.Context, args *Args, writer http.ResponseWriter, reques
 // dataCallers provides all the aync / concurrent api calls to fetch and attach data to this page
 func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataCallerF {
 	return []dataCallerF{
-
 		// get teams
 		func(wg *sync.WaitGroup, page *PageContent) {
-			if teams, err := teamget.NavigationData(ctx, args.ApiHost, request); err == nil {
+			if teams, err := teamapiall.Get(ctx, args.ApiHost, request); err == nil {
 				page.Teams = teams
+			}
+			wg.Done()
+		},
+		// get homepage stats
+		func(wg *sync.WaitGroup, page *PageContent) {
+			if costs, err := costapidetailed.Get(ctx, args.ApiHost, request); err == nil {
+				page.CostData = costs
 			}
 			wg.Done()
 		},

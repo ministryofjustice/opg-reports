@@ -26,8 +26,7 @@ SELECT
 	CAST(COALESCE(SUM(cost), 0) as REAL) as cost,
 	IIF(accounts.name != "", accounts.name, "") as account,
 	IIF(accounts.team_name != "", accounts.team_name, "") as team,
-	costs.service as service,
-	accounts.environment as environment
+	costs.service as service
 FROM costs
 LEFT JOIN accounts on accounts.id = costs.account_id
 WHERE
@@ -37,8 +36,7 @@ GROUP BY
 	costs.month,
 	accounts.id,
 	accounts.team_name,
-	costs.service,
-	accounts.environment
+	costs.service
 ORDER BY
 	accounts.name ASC
 ;
@@ -62,12 +60,15 @@ func (self *Request) End() (t time.Time) {
 
 // Response is the end result thats sent back from the handler via the writter
 type Response struct {
-	Version string `json:"version"`
-	SHA     string `json:"sha"`
-
+	Version string                        `json:"version"`
+	SHA     string                        `json:"sha"`
 	Request *Request                      `json:"request"`
 	Headers map[tabulate.ColType][]string `json:"headers"` // headers contains details for table headers / rendering
 	Data    []map[string]interface{}      `json:"data"`    // the actual data results
+
+	Months        []string `json:"-"`
+	ExcludeFooter bool     `json:"-"`
+	Changes       []string `json:"-"`
 }
 
 // Filter is with the sql to replace the `:name` named parameters within the
@@ -79,18 +80,17 @@ type Filter struct {
 
 // Model is the data struct to use when fetching the select
 type Model struct {
-	Month       string  `json:"month"`
-	Cost        float64 `json:"cost"`
-	Account     string  `json:"account"`
-	Team        string  `json:"team"`
-	Service     string  `json:"service"`
-	Environment string  `json:"environment"`
+	Month   string  `json:"month"`
+	Cost    float64 `json:"cost"`
+	Account string  `json:"account"`
+	Team    string  `json:"team"`
+	Service string  `json:"service"`
 }
 
 // Sequence is used to return the columns in the order they are selected
 func (self *Model) Sequence() []any {
 	return []any{
-		&self.Month, &self.Cost, &self.Account, &self.Team, &self.Service, &self.Environment,
+		&self.Month, &self.Cost, &self.Account, &self.Team, &self.Service,
 	}
 }
 
@@ -108,7 +108,7 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 		all      []*Model                      = []*Model{}
 		log      *slog.Logger                  = cntxt.GetLogger(ctx).With("package", "costapidetailed", "func", "Responder")
 		headings map[tabulate.ColType][]string = map[tabulate.ColType][]string{
-			tabulate.KEY:   {"team", "account", "environment", "service"},
+			tabulate.KEY:   {"team", "account", "service"},
 			tabulate.EXTRA: {"trend"},
 			tabulate.END:   {"total"},
 		}
@@ -119,7 +119,7 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 	// get months between dates
 	months = times.AsYMStrings(times.Months(in.Start(), in.End()))
 	if len(months) <= 0 {
-		log.Error("no months found with date range provided", "err", err.Error())
+		log.Error("no months found with date range provided")
 		return
 	}
 	// setup months

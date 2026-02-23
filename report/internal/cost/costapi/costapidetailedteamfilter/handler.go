@@ -62,12 +62,15 @@ func (self *Request) End() (t time.Time) {
 
 // Response is the end result thats sent back from the handler via the writter
 type Response struct {
-	Version string `json:"version"`
-	SHA     string `json:"sha"`
-
+	Version string                        `json:"version"`
+	SHA     string                        `json:"sha"`
 	Request *Request                      `json:"request"`
 	Headers map[tabulate.ColType][]string `json:"headers"` // headers contains details for table headers / rendering
 	Data    []map[string]interface{}      `json:"data"`    // the actual data results
+
+	Months        []string `json:"-"`
+	ExcludeFooter bool     `json:"-"`
+	Changes       []string `json:"-"`
 }
 
 // Filter is with the sql to replace the `:name` named parameters within the
@@ -119,7 +122,7 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 	// get months between dates
 	months = times.AsYMStrings(times.Months(in.Start(), in.End()))
 	if len(months) <= 0 {
-		log.Error("no months found with date range provided", "err", err.Error())
+		log.Error("no months found with date range provided")
 		return
 	}
 	// setup months

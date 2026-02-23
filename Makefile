@@ -43,6 +43,8 @@ TEMPLATE_DIR ?= ./report/internal/front/templates
 front: CMD_LIST=front
 front: build-cmds get-govuk
 	@echo "- copying templates and local assets"
+	@rm -Rf ${BUILD_DIR}/templates
+	@rm -Rf ${BUILD_DIR}/web
 	@cp -r ${LOCAL_ASSETS} ${BUILD_DIR}
 	@cp -r ${TEMPLATE_DIR} ${BUILD_DIR}
 	@echo "- starting front "
@@ -113,6 +115,7 @@ GOVUK_ZIP ?= release-v${GOVUK_TAG}.zip
 GOVUK_EX_DIR ?= ${BUILD_DIR}/govuk
 .PHONY: get-govuk
 get-govuk:
+	@rm -Rf ${GOVUK_EX_DIR}
 	@mkdir -p ${GOVUK_EX_DIR}
 	@env GITHUB_TOKEN="${GITHUB_TOKEN}" \
 		gh release download v${GOVUK_TAG} \

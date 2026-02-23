@@ -30,6 +30,37 @@ Adding padding to the top of the main content area for spacing
     flex: 0 0 auto;
     width: 200px;
 }
+#side-navigation .govuk-heading-s,
+#side-navigation .govuk-link{
+    font-size:1rem;
+    margin-bottom:3px;
+}
+#side-navigation .govuk-list{
+    margin-bottom: 5px;
+}
+/*
+stats block
+*/
+#stats{
+    padding-bottom: 30px;;
+    margin-bottom: 30px;
+    border-bottom: 1px solid rgb(177, 180, 182);
+}
+/*
+ flex box tiles
+*/
+.tiles{
+    display: flex;
+}
+.tile{
+    margin: 0 10px 15px 0;
+    width: auto;
+    max-width: 32%;
+    padding: 10px;
+}
+.tile .govuk-body-s{
+    margin-bottom: 2px;
+}
 
 /*
 Highlight billing instability on cost tables
@@ -38,6 +69,27 @@ Highlight billing instability on cost tables
 .example-unstable
 {
     color: #d53880;
+}
+/*
+    Reduce sizes on some inline form options
+*/
+form.compact-form {
+    margin-bottom: 5px;
+}
+form.compact-form p{
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+form.compact-form select{
+    font-size: 0.9rem;
+    line-height: 1rem;
+    height: auto;
+}
+form.compact-form button{
+    font-size: 0.9rem;
+    line-height: 1rem;
+    margin-bottom: 5px;
+    padding: 5px 8px 5px 8px;
 }
 
 /*

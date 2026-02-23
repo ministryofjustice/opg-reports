@@ -34,7 +34,7 @@ func (self *HTMLPage) RequestPath(i int) (v string) {
 // New
 func New(request *http.Request, args *Args) (pg HTMLPage) {
 	var (
-		uri   string   = strings.TrimPrefix(request.URL.String(), "/")
+		uri   string   = strings.TrimPrefix(request.URL.Path, "/")
 		paths []string = strings.Split(uri, "/")
 	)
 	return HTMLPage{

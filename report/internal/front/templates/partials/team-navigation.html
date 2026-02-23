@@ -15,7 +15,7 @@
           Menu
         </button>
         <ul class="govuk-service-navigation__list" id="navigation">
-        {{- if eq $top "" -}}
+        {{- if or (eq $top "") (eq $top "home") -}}
             <li class="govuk-service-navigation__item govuk-service-navigation__item--active">
                 <a class="govuk-service-navigation__link" href="/"><strong class="govuk-service-navigation__active-fallback">Overview</strong></a>
             </li>

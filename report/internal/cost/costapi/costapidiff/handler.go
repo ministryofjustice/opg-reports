@@ -24,7 +24,8 @@ SELECT
 	costs.month as month,
 	CAST(COALESCE(SUM(cost), 0) as REAL) as cost,
 	costs.service as service,
-	IIF(accounts.team_name != "", accounts.team_name, "")  as team
+	IIF(accounts.team_name != "", accounts.team_name, "")  as team,
+	IIF(accounts.name != "", accounts.name, "") as account
 FROM costs
 LEFT JOIN accounts on accounts.id = costs.account_id
 WHERE
@@ -33,7 +34,8 @@ WHERE
 GROUP BY
 	costs.month,
 	costs.service,
-	accounts.team_name
+	accounts.team_name,
+	accounts.id
 ORDER BY
 	accounts.team_name,
 	costs.service ASC
@@ -50,12 +52,15 @@ type Request struct {
 
 // Response is the end result thats sent back from the handler via the writter
 type Response struct {
-	Version string `json:"version"`
-	SHA     string `json:"sha"`
-
+	Version string                        `json:"version"`
+	SHA     string                        `json:"sha"`
 	Request *Request                      `json:"request"`
 	Headers map[tabulate.ColType][]string `json:"headers"` // headers contains details for table headers / rendering
 	Data    []map[string]interface{}      `json:"data"`    // the actual data results
+
+	Months        []string `json:"-"`
+	ExcludeFooter bool     `json:"-"`
+	Changes       []string `json:"-"`
 }
 
 // Filter is with the sql to replace the `:name` named parameters within the
@@ -71,12 +76,13 @@ type Model struct {
 	Cost    float64 `json:"cost"`
 	Service string  `json:"service"`
 	Team    string  `json:"team"`
+	Account string  `json:"account"`
 }
 
 // Sequence is used to return the columns in the order they are selected
 func (self *Model) Sequence() []any {
 	return []any{
-		&self.Month, &self.Cost, &self.Service, &self.Team,
+		&self.Month, &self.Cost, &self.Service, &self.Team, &self.Account,
 	}
 }
 
@@ -95,8 +101,8 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 		all      []*Model                      = []*Model{}
 		log      *slog.Logger                  = cntxt.GetLogger(ctx).With("package", "costapidiff", "func", "Responder")
 		headings map[tabulate.ColType][]string = map[tabulate.ColType][]string{
-			tabulate.KEY:   {"team", "service"},
-			tabulate.EXTRA: {"trend"},
+			tabulate.KEY:   {"team", "account", "service"},
+			tabulate.EXTRA: {},
 			tabulate.END:   {"diff"},
 		}
 	)
@@ -106,7 +112,7 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 	// get months between dates
 	months = []string{in.DateA, in.DateB}
 	if len(months) <= 0 {
-		log.Error("no months found with date range provided", "err", err.Error())
+		log.Error("no months found with date range provided")
 		return
 	}
 	// setup months
