@@ -50,7 +50,7 @@ func TestCostApiByMonthTeamHandler(t *testing.T) {
 	// get and parse the result
 	resp := writer.Result()
 	rec := &Response{}
-	err = response.AsT(resp, &rec)
+	err = response.As(resp, &rec)
 	if err != nil {
 		t.Errorf("error converting ...")
 	}

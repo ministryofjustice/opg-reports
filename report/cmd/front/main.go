@@ -52,16 +52,16 @@ var root *cobra.Command = &cobra.Command{
 func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 
 	frontstatics.Register(ctx, mux, &frontstatics.Args{
-		RootDir:        flags.RootDir,
-		GovUKDir:       flags.GovUKDir,
-		LocalAssetsDir: flags.LocalAssetsDir,
+		RootDir:        in.RootDir,
+		GovUKDir:       in.GovUKDir,
+		LocalAssetsDir: in.LocalAssetsDir,
 	})
 }
 
-func appendRoot() {
-	flags.GovUKDir = filepath.Join(flags.RootDir, flags.GovUKDir)
-	flags.LocalAssetsDir = filepath.Join(flags.RootDir, flags.LocalAssetsDir)
-	flags.TemplateDir = filepath.Join(flags.RootDir, flags.TemplateDir)
+func appendRoot(in *cli) {
+	in.GovUKDir = filepath.Join(in.RootDir, in.GovUKDir)
+	in.LocalAssetsDir = filepath.Join(in.RootDir, in.LocalAssetsDir)
+	in.TemplateDir = filepath.Join(in.RootDir, in.TemplateDir)
 }
 
 // runAPI the main run command
@@ -76,7 +76,8 @@ func runFront(cmd *cobra.Command, args []string) (err error) {
 	if err = env.OverwriteStruct(&flags); err != nil {
 		return
 	}
-	appendRoot()
+	// fix directories
+	appendRoot(flags)
 	// setup mux & server
 	mux = http.NewServeMux()
 	server = &http.Server{Addr: flags.FrontHost, Handler: mux}
