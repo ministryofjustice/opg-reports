@@ -8,6 +8,8 @@ func GetTemplateFiles(directory string) (templateFiles []string) {
 	var patterns = []string{
 		filepath.Join(directory, "*.html"),
 		filepath.Join(directory, "**/**.html"),
+		filepath.Join(directory, "**/**/**.html"),
+		filepath.Join(directory, "**/**/**/**.html"),
 	}
 
 	for _, pattern := range patterns {
