@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-func TestcostapiteamfilterHandler(t *testing.T) {
+func TestCostAPITeamFilterHandler(t *testing.T) {
 	var (
 		err    error
 		ctx    = cntxt.AddLogger(t.Context(), logger.New("info"))

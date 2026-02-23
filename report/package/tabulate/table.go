@@ -3,6 +3,7 @@ package tabulate
 import (
 	"context"
 	"fmt"
+	"math"
 	"opg-reports/report/package/cnv"
 	"opg-reports/report/package/dump"
 	"sort"
@@ -117,6 +118,19 @@ func TableAverageF(table []map[string]interface{}, headings map[ColType][]string
 	summary[endCol] = tableTotal / float64(count)
 	table = append(table, summary)
 	return table
+}
+
+func TableFilterByValue(table []map[string]interface{}, headings map[ColType][]string, over float64) []map[string]interface{} {
+	var endCol = headings[END][0]
+	var filtered = []map[string]interface{}{}
+	for _, row := range table {
+		var value = math.Abs(Value[float64](endCol, 0.0, row))
+		if value >= over {
+			filtered = append(filtered, row)
+		}
+	}
+
+	return filtered
 }
 
 func SortAscending[T int | float64 | string](table []map[string]interface{}, column string) []map[string]interface{} {

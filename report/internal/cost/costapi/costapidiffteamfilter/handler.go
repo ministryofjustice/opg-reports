@@ -1,4 +1,4 @@
-package costapibymonthdiff
+package costapidiffteamfilter
 
 import (
 	"context"
@@ -11,6 +11,7 @@ import (
 	"opg-reports/report/package/requested"
 	"opg-reports/report/package/respond"
 	"opg-reports/report/package/tabulate"
+	"strconv"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -22,13 +23,15 @@ const selectStmt string = `
 SELECT
 	costs.month as month,
 	CAST(COALESCE(SUM(cost), 0) as REAL) as cost,
+	IIF(accounts.name != "", accounts.name, "") as account,
 	costs.service as service,
-	IIF(accounts.team_name != "", accounts.team_name, "")  as team
+	accounts.environment as environment
 FROM costs
 LEFT JOIN accounts on accounts.id = costs.account_id
 WHERE
 	costs.service != 'Tax'
 	AND costs.month IN (:months)
+	AND accounts.team_name = :team
 GROUP BY
 	costs.month,
 	costs.service,
@@ -42,8 +45,10 @@ ORDER BY
 // Request contains the url path / query string values that we will use
 // in this handler
 type Request struct {
-	DateA string `json:"date_a"`
-	DateB string `json:"date_b"`
+	DateA  string `json:"date_a"`
+	DateB  string `json:"date_b"`
+	Team   string `json:"team"`
+	Change string `json:"change"`
 }
 
 // Response is the end result thats sent back from the handler via the writter
@@ -61,20 +66,22 @@ type Response struct {
 // For this endpointm, we only filter by the time period - months
 type Filter struct {
 	Months []string `json:"months"`
+	Team   string   `json:"team"`
 }
 
 // Model is the data struct to use when fetching the select
 type Model struct {
-	Month   string  `json:"month"`
-	Cost    float64 `json:"cost"`
-	Service string  `json:"service"`
-	Team    string  `json:"team"`
+	Month       string  `json:"month"`
+	Cost        float64 `json:"cost"`
+	Account     string  `json:"account"`
+	Service     string  `json:"service"`
+	Environment string  `json:"environment"`
 }
 
 // Sequence is used to return the columns in the order they are selected
 func (self *Model) Sequence() []any {
 	return []any{
-		&self.Month, &self.Cost, &self.Service, &self.Team,
+		&self.Month, &self.Cost, &self.Account, &self.Service, &self.Environment,
 	}
 }
 
@@ -87,12 +94,13 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 		response *Response
 		filter   *Filter
 		months   []string
+		change   float64                       = 150.0
 		in       *Request                      = &Request{}
 		bindMap  map[string]interface{}        = map[string]interface{}{}
 		all      []*Model                      = []*Model{}
-		log      *slog.Logger                  = cntxt.GetLogger(ctx).With("package", "costapibymonthdiff", "func", "Responder")
+		log      *slog.Logger                  = cntxt.GetLogger(ctx).With("package", "costapidiff", "func", "Responder")
 		headings map[tabulate.ColType][]string = map[tabulate.ColType][]string{
-			tabulate.KEY:   {"team", "service"},
+			tabulate.KEY:   {"account", "environment", "service"},
 			tabulate.EXTRA: {"trend"},
 			tabulate.END:   {"diff"},
 		}
@@ -108,7 +116,7 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 	}
 	// setup months
 	headings[tabulate.DATA] = months
-	filter = &Filter{Months: months}
+	filter = &Filter{Months: months, Team: in.Team}
 	// now convert to a map for use in bound statements
 	err = cnv.Convert(filter, &bindMap)
 	if err != nil {
@@ -143,6 +151,12 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 	tabulate.RowEnd(tableBody, headings, tabulate.RowDiffF)
 	// swap to slice
 	tbl := tabulate.TableMapToTable(tableBody)
+	// filter table by min diff
+	// parse the change value
+	if f, e := strconv.ParseFloat(in.Change, 64); e == nil {
+		change = f
+	}
+	tbl = tabulate.TableFilterByValue(tbl, headings, change)
 	// sort
 	tbl = tabulate.SortDescending[float64](tbl, "diff")
 

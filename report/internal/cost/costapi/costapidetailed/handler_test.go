@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-func TestCostApiByDetailedHandler(t *testing.T) {
+func TestCostApiDetailedHandler(t *testing.T) {
 	var (
 		err    error
 		ctx    = cntxt.AddLogger(t.Context(), logger.New("error"))

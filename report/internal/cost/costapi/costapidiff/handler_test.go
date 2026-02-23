@@ -1,4 +1,4 @@
-package costapibymonthdiff
+package costapidiff
 
 import (
 	"net/http"
@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-func TestCostApiByMonthDiffHandler(t *testing.T) {
+func TestCostAPIDiffHandler(t *testing.T) {
 	var (
 		err    error
 		ctx    = cntxt.AddLogger(t.Context(), logger.New("error"))

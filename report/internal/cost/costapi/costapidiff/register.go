@@ -1,4 +1,4 @@
-package costapibymonthdiff
+package costapidiff
 
 import (
 	"context"

@@ -7,9 +7,10 @@ import (
 	"net/http"
 	"opg-reports/report/internal/account/accountapi/accountapiall"
 	"opg-reports/report/internal/account/accountapi/accountsapiforteam"
-	"opg-reports/report/internal/cost/costapi/costapibymonthdiff"
 	"opg-reports/report/internal/cost/costapi/costapidetailed"
 	"opg-reports/report/internal/cost/costapi/costapidetailedteamfilter"
+	"opg-reports/report/internal/cost/costapi/costapidiff"
+	"opg-reports/report/internal/cost/costapi/costapidiffteamfilter"
 	"opg-reports/report/internal/cost/costapi/costapiteam"
 	"opg-reports/report/internal/cost/costapi/costapiteamfilter"
 	"opg-reports/report/internal/global/migrations"
@@ -118,8 +119,16 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 		Version: in.Version,
 		SHA:     in.SHA,
 	})
-	// - cost differences by month
-	costapibymonthdiff.Register(ctx, mux, &costapibymonthdiff.Config{
+	// - cost differences
+	costapidiff.Register(ctx, mux, &costapidiff.Config{
+		DB:      in.DB,
+		Driver:  in.Driver,
+		Params:  in.Params,
+		Version: in.Version,
+		SHA:     in.SHA,
+	})
+	// - cost difference filtered by a team
+	costapidiffteamfilter.Register(ctx, mux, &costapidiffteamfilter.Config{
 		DB:      in.DB,
 		Driver:  in.Driver,
 		Params:  in.Params,
