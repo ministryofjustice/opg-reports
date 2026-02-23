@@ -1,4 +1,4 @@
-package costapibymonthforteamdetailed
+package costapibymonthdiff
 
 import (
 	"context"
@@ -11,8 +11,6 @@ import (
 	"opg-reports/report/package/requested"
 	"opg-reports/report/package/respond"
 	"opg-reports/report/package/tabulate"
-	"opg-reports/report/package/times"
-	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -24,40 +22,28 @@ const selectStmt string = `
 SELECT
 	costs.month as month,
 	CAST(COALESCE(SUM(cost), 0) as REAL) as cost,
-	IIF(accounts.name != "", accounts.name, "") as account,
 	costs.service as service,
-	accounts.environment as environment
+	IIF(accounts.team_name != "", accounts.team_name, "")  as team
 FROM costs
 LEFT JOIN accounts on accounts.id = costs.account_id
 WHERE
 	costs.service != 'Tax'
 	AND costs.month IN (:months)
-	AND accounts.team_name = :team
 GROUP BY
 	costs.month,
-	accounts.id,
 	costs.service,
-	accounts.environment
+	accounts.team_name
 ORDER BY
-	accounts.name ASC
+	accounts.team_name,
+	costs.service ASC
 ;
 `
 
 // Request contains the url path / query string values that we will use
 // in this handler
 type Request struct {
-	DateStart string `json:"date_start"`
-	DateEnd   string `json:"date_end"`
-	Team      string `json:"team"`
-}
-
-func (self *Request) Start() (t time.Time) {
-	t = times.MustFromString(self.DateStart)
-	return
-}
-func (self *Request) End() (t time.Time) {
-	t = times.MustFromString(self.DateEnd)
-	return
+	DateA string `json:"date_a"`
+	DateB string `json:"date_b"`
 }
 
 // Response is the end result thats sent back from the handler via the writter
@@ -75,22 +61,20 @@ type Response struct {
 // For this endpointm, we only filter by the time period - months
 type Filter struct {
 	Months []string `json:"months"`
-	Team   string   `json:"team"`
 }
 
 // Model is the data struct to use when fetching the select
 type Model struct {
-	Month       string  `json:"month"`
-	Cost        float64 `json:"cost"`
-	Account     string  `json:"account"`
-	Service     string  `json:"service"`
-	Environment string  `json:"environment"`
+	Month   string  `json:"month"`
+	Cost    float64 `json:"cost"`
+	Service string  `json:"service"`
+	Team    string  `json:"team"`
 }
 
 // Sequence is used to return the columns in the order they are selected
 func (self *Model) Sequence() []any {
 	return []any{
-		&self.Month, &self.Cost, &self.Account, &self.Service, &self.Environment,
+		&self.Month, &self.Cost, &self.Service, &self.Team,
 	}
 }
 
@@ -106,25 +90,25 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 		in       *Request                      = &Request{}
 		bindMap  map[string]interface{}        = map[string]interface{}{}
 		all      []*Model                      = []*Model{}
-		log      *slog.Logger                  = cntxt.GetLogger(ctx).With("package", "costapibymonthforteamdetailed", "func", "Responder")
+		log      *slog.Logger                  = cntxt.GetLogger(ctx).With("package", "costapibymonthdiff", "func", "Responder")
 		headings map[tabulate.ColType][]string = map[tabulate.ColType][]string{
-			tabulate.KEY:   {"account", "environment", "service"},
+			tabulate.KEY:   {"team", "service"},
 			tabulate.EXTRA: {"trend"},
-			tabulate.END:   {"total"},
+			tabulate.END:   {"diff"},
 		}
 	)
 	log.Info("running http handler ...")
 	// convert the http request into Request struct
 	requested.Parse(ctx, request, &in)
 	// get months between dates
-	months = times.AsYMStrings(times.Months(in.Start(), in.End()))
+	months = []string{in.DateA, in.DateB}
 	if len(months) <= 0 {
 		log.Error("no months found with date range provided", "err", err.Error())
 		return
 	}
 	// setup months
 	headings[tabulate.DATA] = months
-	filter = &Filter{Months: months, Team: in.Team}
+	filter = &Filter{Months: months}
 	// now convert to a map for use in bound statements
 	err = cnv.Convert(filter, &bindMap)
 	if err != nil {
@@ -149,19 +133,19 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 			return err
 		},
 	})
+
 	// get the body
 	tableBody := tabulate.TableBody(ctx, all, &tabulate.Args{
 		Headers:   headings,
 		ColumnKey: "month",
 		ValueKey:  "cost"})
-	// add rowTotals
-	tabulate.RowEnd(tableBody, headings, tabulate.RowTotalF)
+	// add row diffs
+	tabulate.RowEnd(tableBody, headings, tabulate.RowDiffF)
 	// swap to slice
 	tbl := tabulate.TableMapToTable(tableBody)
-	// sort by value of last month
-	tbl = tabulate.SortDescending[float64](tbl, months[len(months)-1])
-	// do table total
-	tbl = tabulate.TableEnd(tbl, headings, tabulate.TableTotalF)
+	// sort
+	tbl = tabulate.SortDescending[float64](tbl, "diff")
+
 	// setup response object
 	response = &Response{
 		Version: conf.Version,

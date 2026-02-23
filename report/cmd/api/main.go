@@ -8,6 +8,7 @@ import (
 	"opg-reports/report/internal/account/accountapi/accountapiall"
 	"opg-reports/report/internal/account/accountapi/accountsapiforteam"
 	"opg-reports/report/internal/cost/costapi/costapibymonthdetailed"
+	"opg-reports/report/internal/cost/costapi/costapibymonthdiff"
 	"opg-reports/report/internal/cost/costapi/costapibymonthforteam"
 	"opg-reports/report/internal/cost/costapi/costapibymonthforteamdetailed"
 	"opg-reports/report/internal/cost/costapi/costapibymonthteam"
@@ -110,6 +111,14 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	})
 	// - group by month, filtered by team but detailed
 	costapibymonthforteamdetailed.Register(ctx, mux, &costapibymonthforteamdetailed.Config{
+		DB:      in.DB,
+		Driver:  in.Driver,
+		Params:  in.Params,
+		Version: in.Version,
+		SHA:     in.SHA,
+	})
+	// - cost differences
+	costapibymonthdiff.Register(ctx, mux, &costapibymonthdiff.Config{
 		DB:      in.DB,
 		Driver:  in.Driver,
 		Params:  in.Params,
