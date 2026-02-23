@@ -20,8 +20,7 @@ type Args struct {
 func Register(ctx context.Context, mux *http.ServeMux, args *Args) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "homepage", "func", "Register")
 
-	// index page
-	log.Info("registering handler [`/{$}`] ...")
+	log.Info("registering handler [`" + ENDPOINT + "/{$}`] ...")
 	mux.HandleFunc(fmt.Sprintf("%s/{$}", ENDPOINT), func(writer http.ResponseWriter, request *http.Request) {
 		Handler(ctx, args, writer, request)
 	})

@@ -1,4 +1,4 @@
-package costsdetailed
+package teampage
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"opg-reports/report/package/cntxt"
 )
 
-const ENDPOINT string = "/home/costs/detailed"
+const ENDPOINT string = "/{team}"
 
 type Args struct {
 	ApiHost      string `json:"api"`

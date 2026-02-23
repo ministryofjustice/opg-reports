@@ -2,10 +2,13 @@ package homepage
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"opg-reports/report/package/cntxt"
 )
+
+const ENDPOINT string = ""
 
 type Args struct {
 	ApiHost      string `json:"api"`
@@ -17,9 +20,8 @@ type Args struct {
 func Register(ctx context.Context, mux *http.ServeMux, args *Args) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "homepage", "func", "Register")
 
-	// index page
-	log.Info("registering handler [`/{$}`] ...")
-	mux.HandleFunc("/{$}", func(writer http.ResponseWriter, request *http.Request) {
+	log.Info("registering handler [`" + ENDPOINT + "/{$}`] ...")
+	mux.HandleFunc(fmt.Sprintf("%s/{$}", ENDPOINT), func(writer http.ResponseWriter, request *http.Request) {
 		Handler(ctx, args, writer, request)
 	})
 }
