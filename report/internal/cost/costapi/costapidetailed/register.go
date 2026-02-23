@@ -1,4 +1,4 @@
-package costapibymonthforteam
+package costapidetailed
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"opg-reports/report/package/cntxt"
 )
 
-const ENDPOINT string = "/v1/costs/between/{date_start}/{date_end}/team/{team}"
+const ENDPOINT string = "/v1/costs/between/{date_start}/{date_end}/detailed"
 
 // Config contains required values for DB and others to generate a response
 type Config struct {

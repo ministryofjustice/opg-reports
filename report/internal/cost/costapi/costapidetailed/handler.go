@@ -1,4 +1,4 @@
-package costapibymonthdetailed
+package costapidetailed
 
 import (
 	"context"
@@ -106,7 +106,7 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 		in       *Request                      = &Request{}
 		bindMap  map[string]interface{}        = map[string]interface{}{}
 		all      []*Model                      = []*Model{}
-		log      *slog.Logger                  = cntxt.GetLogger(ctx).With("package", "costapibymonthdetailed", "func", "Responder")
+		log      *slog.Logger                  = cntxt.GetLogger(ctx).With("package", "costapidetailed", "func", "Responder")
 		headings map[tabulate.ColType][]string = map[tabulate.ColType][]string{
 			tabulate.KEY:   {"team", "account", "environment", "service"},
 			tabulate.EXTRA: {"trend"},

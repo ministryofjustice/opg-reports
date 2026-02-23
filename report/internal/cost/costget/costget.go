@@ -3,8 +3,8 @@ package costget
 import (
 	"context"
 	"net/http"
-	"opg-reports/report/internal/cost/costapi/costapibymonthforteam"
-	"opg-reports/report/internal/cost/costapi/costapibymonthteam"
+	"opg-reports/report/internal/cost/costapi/costapiteam"
+	"opg-reports/report/internal/cost/costapi/costapiteamfilter"
 	"opg-reports/report/package/overwrite"
 	"opg-reports/report/package/rest"
 	"opg-reports/report/package/tabulate"
@@ -29,9 +29,9 @@ type Data struct {
 // ByMonthFilterByTeam returns the cost data grouped by month, filtered by team
 func ByMonthFilterByTeam(ctx context.Context, apiHost string, current *http.Request, overwrites ...*rest.Param) (data *Data, err error) {
 	var (
-		apiResponse *costapibymonthforteam.Response
+		apiResponse *costapiteamfilter.Response
 		params      []*rest.Param = []*rest.Param{}
-		endpoint    string        = costapibymonthforteam.ENDPOINT
+		endpoint    string        = costapiteamfilter.ENDPOINT
 		end         time.Time     = times.Today()
 		start       time.Time     = times.Add(times.ResetMonth(end), -5, times.MONTH)
 	)
@@ -44,7 +44,7 @@ func ByMonthFilterByTeam(ctx context.Context, apiHost string, current *http.Requ
 	// overwrite any params
 	params = overwrite.Overwrite(params, overwrites...)
 	// call the api
-	apiResponse, _, err = rest.Get[*costapibymonthforteam.Response](ctx, current, &rest.Request{
+	apiResponse, _, err = rest.Get[*costapiteamfilter.Response](ctx, current, &rest.Request{
 		Host:     apiHost,
 		Endpoint: endpoint,
 		Timeout:  timeout,
@@ -69,9 +69,9 @@ func ByMonthFilterByTeam(ctx context.Context, apiHost string, current *http.Requ
 // ByMonthTeam returns the cost data per team
 func ByMonthTeam(ctx context.Context, apiHost string, current *http.Request, overwrites ...*rest.Param) (data *Data, err error) {
 	var (
-		apiResponse *costapibymonthteam.Response
+		apiResponse *costapiteam.Response
 		params      []*rest.Param = []*rest.Param{}
-		endpoint    string        = costapibymonthteam.ENDPOINT
+		endpoint    string        = costapiteam.ENDPOINT
 		end         time.Time     = times.Today()
 		start       time.Time     = times.Add(times.ResetMonth(end), -5, times.MONTH)
 	)
@@ -84,7 +84,7 @@ func ByMonthTeam(ctx context.Context, apiHost string, current *http.Request, ove
 	// overwrite any params
 	params = overwrite.Overwrite(params, overwrites...)
 	// call the api
-	apiResponse, _, err = rest.Get[*costapibymonthteam.Response](ctx, current, &rest.Request{
+	apiResponse, _, err = rest.Get[*costapiteam.Response](ctx, current, &rest.Request{
 		Host:     apiHost,
 		Endpoint: endpoint,
 		Timeout:  timeout,

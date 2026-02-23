@@ -1,4 +1,4 @@
-package costapibymonthdetailed
+package costapidetailed
 
 import (
 	"net/http"
@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-func TestCostApiByMonthDetailedHandler(t *testing.T) {
+func TestCostApiByDetailedHandler(t *testing.T) {
 	var (
 		err    error
 		ctx    = cntxt.AddLogger(t.Context(), logger.New("error"))

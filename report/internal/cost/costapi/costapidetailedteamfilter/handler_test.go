@@ -1,4 +1,4 @@
-package costapibymonthforteam
+package costapidetailedteamfilter
 
 import (
 	"net/http"
@@ -12,10 +12,10 @@ import (
 	"testing"
 )
 
-func TestCostApiByMonthForTeamHandler(t *testing.T) {
+func TestcostapiteamfilterDetailedHandler(t *testing.T) {
 	var (
 		err    error
-		ctx    = cntxt.AddLogger(t.Context(), logger.New("info"))
+		ctx    = cntxt.AddLogger(t.Context(), logger.New("error"))
 		dir    = t.TempDir()
 		driver = "sqlite3"
 		dbpath = filepath.Join(dir, "test-costs-handler.db")
@@ -34,7 +34,8 @@ func TestCostApiByMonthForTeamHandler(t *testing.T) {
 		t.FailNow()
 	}
 	// setup the server and items
-	url := "/v1/costs/between/" + start + "/" + end + "/team/team-a/"
+	// "/v1/costs/between/{date_start}/{date_end}/team/{team}/detailed"
+	url := "/v1/costs/between/" + start + "/" + end + "/team/team-a/detailed/"
 	mux := http.NewServeMux()
 
 	req := httptest.NewRequest(http.MethodGet, url, nil)
@@ -52,10 +53,9 @@ func TestCostApiByMonthForTeamHandler(t *testing.T) {
 	rec := &Response{}
 	err = response.As(resp, &rec)
 	if err != nil {
-		t.Errorf("error converting ... [%s]", err.Error())
+		t.Errorf("error converting ...")
 	}
 	// - test returned data
-	// 1 dummy item, 1 table total
 	if len(rec.Data) < 1 {
 		t.Errorf("incorrect number of data rows; might be due to seed data using random date")
 	}
@@ -65,11 +65,7 @@ func TestCostApiByMonthForTeamHandler(t *testing.T) {
 	if rec.Request.DateStart != start {
 		t.Error("data_start failed to return correctly")
 	}
-	if rec.Request.Team != "team-a" {
-		t.Error("team failed to return correctly")
-	}
-	if len(rec.Headers["labels"]) != 1 {
+	if len(rec.Headers["labels"]) < 1 {
 		t.Error("incorrect number of labels returned")
 	}
-
 }

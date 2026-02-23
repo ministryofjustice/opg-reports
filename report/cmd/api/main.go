@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"opg-reports/report/internal/account/accountapi/accountapiall"
 	"opg-reports/report/internal/account/accountapi/accountsapiforteam"
-	"opg-reports/report/internal/cost/costapi/costapibymonthdetailed"
 	"opg-reports/report/internal/cost/costapi/costapibymonthdiff"
-	"opg-reports/report/internal/cost/costapi/costapibymonthforteam"
-	"opg-reports/report/internal/cost/costapi/costapibymonthforteamdetailed"
-	"opg-reports/report/internal/cost/costapi/costapibymonthteam"
+	"opg-reports/report/internal/cost/costapi/costapidetailed"
+	"opg-reports/report/internal/cost/costapi/costapidetailedteamfilter"
+	"opg-reports/report/internal/cost/costapi/costapiteam"
+	"opg-reports/report/internal/cost/costapi/costapiteamfilter"
 	"opg-reports/report/internal/global/migrations"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/package/cntxt"
@@ -87,14 +87,7 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 
 	// costs
 	// - grouped by month & team
-	costapibymonthteam.Register(ctx, mux, &costapibymonthteam.Config{
-		DB:      in.DB,
-		Driver:  in.Driver,
-		Params:  in.Params,
-		Version: in.Version,
-		SHA:     in.SHA,
-	})
-	costapibymonthdetailed.Register(ctx, mux, &costapibymonthdetailed.Config{
+	costapiteam.Register(ctx, mux, &costapiteam.Config{
 		DB:      in.DB,
 		Driver:  in.Driver,
 		Params:  in.Params,
@@ -102,22 +95,30 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 		SHA:     in.SHA,
 	})
 	// - grouped by month, filtered by team
-	costapibymonthforteam.Register(ctx, mux, &costapibymonthforteam.Config{
+	costapiteamfilter.Register(ctx, mux, &costapiteamfilter.Config{
 		DB:      in.DB,
 		Driver:  in.Driver,
 		Params:  in.Params,
 		Version: in.Version,
 		SHA:     in.SHA,
 	})
-	// - group by month, filtered by team but detailed
-	costapibymonthforteamdetailed.Register(ctx, mux, &costapibymonthforteamdetailed.Config{
+	// - detailed costs group by month
+	costapidetailed.Register(ctx, mux, &costapidetailed.Config{
 		DB:      in.DB,
 		Driver:  in.Driver,
 		Params:  in.Params,
 		Version: in.Version,
 		SHA:     in.SHA,
 	})
-	// - cost differences
+	// - detailed view grouped by month - filtered by team
+	costapidetailedteamfilter.Register(ctx, mux, &costapidetailedteamfilter.Config{
+		DB:      in.DB,
+		Driver:  in.Driver,
+		Params:  in.Params,
+		Version: in.Version,
+		SHA:     in.SHA,
+	})
+	// - cost differences by month
 	costapibymonthdiff.Register(ctx, mux, &costapibymonthdiff.Config{
 		DB:      in.DB,
 		Driver:  in.Driver,
