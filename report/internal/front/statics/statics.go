@@ -39,19 +39,19 @@ func Register(ctx context.Context, mux *http.ServeMux, dirs *Args) {
 
 	// /local-assets/ contain our css overwrites, extra images / js and so on
 	//		http://localhost:8080/local-assets/css/local.css
-	prefix = strings.ReplaceAll(dirs.LocalAssetsDir, root, "") + "/"
-	log.Info("registering handler [`" + prefix + "`] ...")
+	prefix = "/" + strings.ReplaceAll(dirs.LocalAssetsDir, root, "") + "/"
+	log.Info("registering local assets handler [`" + prefix + "`] ...")
 	mux.Handle(prefix, http.StripPrefix(prefix, http.FileServer(http.Dir(dirs.LocalAssetsDir))))
 
 	// /govuk/ is path we use to include css / js, so capture and point to the gov uk directory
 	// 		http://localhost:8080/govuk/VERSION.TXT
 	// 		http://localhost:8080/govuk/govuk-frontend-5.11.0.min.css
-	prefix = strings.ReplaceAll(dirs.GovUKDir, root, "") + "/"
-	log.Info("registering handler [`" + prefix + "`] ...")
+	prefix = "/" + strings.ReplaceAll(dirs.GovUKDir, root, "") + "/"
+	log.Info("registering gov uk handler [`" + prefix + "`] ...")
 	mux.Handle(prefix, http.StripPrefix(prefix, http.FileServer(http.Dir(dirs.GovUKDir))))
 
 	// ignore favicons
-	log.Info("registering handler [`/favicon.ico`] ...")
+	log.Info("registering favicon handler [`/favicon.ico`] ...")
 	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 	})

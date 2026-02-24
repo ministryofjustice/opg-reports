@@ -147,7 +147,7 @@ build-cmds:
 	done
 
 ##========= DOCKER =========
-SERVICES ?= api
+SERVICES ?= front api
 VERBOSE ?=
 ## Clean any old docker images out
 .PHONY: docker-clean
@@ -182,7 +182,8 @@ docker-build:
 
 ## Build and run the local docker images
 .PHONY: docker-up
-docker-up: build-cmds  docker-build
+docker-up: CMD_LIST=front api
+docker-up: build-cmds get-govuk docker-build
 	@env DOCKER_BUILDKIT=1 \
 	docker compose ${VERBOSE} \
 		-f docker-compose.yml \

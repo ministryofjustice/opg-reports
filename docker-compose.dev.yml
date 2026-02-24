@@ -11,14 +11,14 @@ services:
       - ./go.sum:/app/go.sum:rw,delegated
       - ./builds/:/builds/
 
-  # front:
-  #   platform: linux/arm64
-  #   build:
-  #     target: production #development
-  #   ports:
-  #     - "8080:8080"
-  #   volumes:
-  #     - ./report:/app/report:rw,delegated
-  #     - ./go.mod:/app/go.mod:rw,delegated
-  #     - ./go.sum:/app/go.sum:rw,delegated
-  #     - ./builds/front/:/builds/front/
+  front:
+    platform: linux/arm64
+    build:
+      target: production #development
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./report:/app/report:rw,delegated
+      - ./go.mod:/app/go.mod:rw,delegated
+      - ./go.sum:/app/go.sum:rw,delegated
+      - ./builds/:/builds/
