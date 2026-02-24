@@ -1,25 +1,15 @@
 # Ignore zip etc
 *.zip
 *.tar.gz
-# Ignore data folders
-**/__data/*
-**/__download_*/*
-**/__downloads/*
-**/__download-*/*
-**/__database/*
 # Ignore database and sql files
 *.db
 *.db-*
 *.sql
 # Ignore code coverage files
 code-coverage.out
-# Ignore openapi generated spec
-openapi.yaml
 # Ignore build folders
 builds/**
-report/cmd/front/govuk/**
 # Ignore todo / temp files
-todo.txt
 scratch.txt
 # Ignore terraform state folders and files
 **/.terraform/*
