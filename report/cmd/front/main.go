@@ -14,6 +14,8 @@ import (
 	"opg-reports/report/internal/front/homepage"
 	"opg-reports/report/internal/front/statics"
 	"opg-reports/report/internal/front/teampage"
+	"opg-reports/report/internal/uptime/uptimefront/home/homeuptime"
+	"opg-reports/report/internal/uptime/uptimefront/team/teamuptime"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/env"
 	"opg-reports/report/package/logger"
@@ -93,6 +95,13 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 		RootDir:      in.RootDir,
 		TemplateDir:  in.TemplateDir,
 	})
+	// - home uptime
+	homeuptime.Register(ctx, mux, &homeuptime.Args{
+		ApiHost:      in.ApiHost,
+		GovUKVersion: in.GovUKVersion,
+		RootDir:      in.RootDir,
+		TemplateDir:  in.TemplateDir,
+	})
 
 	// team pages
 	// main team page
@@ -118,6 +127,13 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	})
 	// team cost details
 	teamcostsdetailed.Register(ctx, mux, &teamcostsdetailed.Args{
+		ApiHost:      in.ApiHost,
+		GovUKVersion: in.GovUKVersion,
+		RootDir:      in.RootDir,
+		TemplateDir:  in.TemplateDir,
+	})
+	// team uptime
+	teamuptime.Register(ctx, mux, &teamuptime.Args{
 		ApiHost:      in.ApiHost,
 		GovUKVersion: in.GovUKVersion,
 		RootDir:      in.RootDir,

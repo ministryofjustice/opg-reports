@@ -1,0 +1,21 @@
+{{- define "home-uptime-by-team" -}}
+    {{- template "head" . -}}
+
+    {{- template "homepage-side-navigation" . -}}
+
+    <main id="main-content" class="app-content" role="main">
+        <section id="uptime">
+            <h2 class="govuk-heading-l compact-header">Service uptime</h2>
+            <p class="govuk-body">Our production uptime is tracked for each service via Route53 health checks and updated daily.</p>
+            <div class="app-content reports-font-m">
+                {{ template "uptime-table" .UptimeData }}
+            </div>
+        </section>
+
+        {{- if .Dates -}}
+            {{ template "date-start-end-selection" .Dates }}
+        {{- end -}}
+    </main>
+
+    {{- template "foot" . -}}
+{{- end -}}
