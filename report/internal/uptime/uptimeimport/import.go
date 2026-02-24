@@ -195,8 +195,8 @@ func getHealthCheckStatistics[T Client](ctx context.Context, client T, list *clo
 
 // getHealthCheckMetrics returns the list of metrics to use for uptime data
 //
-// T is *cloudwatch.Client
-func getHealthCheckMetrics[T Client](ctx context.Context, client T) (list *cloudwatch.ListMetricsOutput, err error) {
+// Client is *cloudwatch.Client
+func getHealthCheckMetrics(ctx context.Context, client Client) (list *cloudwatch.ListMetricsOutput, err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "uptimeimport", "func", "getHealthCheckMetrics")
 	var listOptions *cloudwatch.ListMetricsInput = &cloudwatch.ListMetricsInput{
 		Namespace:  ptr.Ptr(metricsNamespace),

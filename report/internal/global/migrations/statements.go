@@ -1,10 +1,5 @@
 package migrations
 
-const lower_case_teams string = `
-UPDATE teams SET(name) = LOWER(name)
-;
-`
-
 const create_teams string = `
 CREATE TABLE IF NOT EXISTS teams (
 	name TEXT PRIMARY KEY,
@@ -112,11 +107,21 @@ CREATE TABLE IF NOT EXISTS uptime (
 INSERT INTO uptime (month, account_id, average, granularity)
 	SELECT strftime("%Y-%m", date) as date, aws_account_id, AVG(average), granularity FROM aws_uptime GROUP BY strftime("%Y-%m", date), aws_account_id;
 
-DROP INDEX aws_uptime_date_idx;
-DROP INDEX aws_uptime_account_date_idx;
-
+DROP INDEX IF EXISTS aws_uptime_date_idx;
+DROP INDEX IF EXISTS aws_uptime_account_date_idx;
 CREATE INDEX IF NOT EXISTS idx_uptime_month ON uptime(month);
 CREATE INDEX IF NOT EXISTS idx_uptime_account_month ON uptime(account_id,month);
+DROP TABLE IF EXISTS aws_uptime;
+`
 
-DROP TABLE aws_uptime;
+const create_codebases string = `
+CREATE TABLE IF NOT EXISTS codebases (
+	id INTEGER PRIMARY KEY,
+	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
+	name TEXT NOT NULL,
+	full_name TEXT NOT NULL,
+	url TEXT NOT NULL,
+	UNIQUE (full_name)
+) STRICT;
+CREATE INDEX IF NOT EXISTS idx_codeowners ON codebases(full_name);
 `

@@ -27,7 +27,6 @@ type Migration struct {
 var migrations = map[string][]*Migration{
 	"teams": {
 		{Key: "create_teams", Stmt: create_teams},
-		{Key: "lower_case_teams", Stmt: lower_case_teams},
 	},
 	"accounts": {
 		{Key: "create_aws_accounts", Stmt: create_aws_accounts},
@@ -41,6 +40,9 @@ var migrations = map[string][]*Migration{
 	"uptime": {
 		{Key: "create_aws_uptime", Stmt: create_aws_uptime},
 		{Key: "agnostic_uptime", Stmt: agnostic_uptime},
+	},
+	"codebases": {
+		{Key: "create_codebases", Stmt: create_codebases},
 	},
 	"after": {
 		{Key: "lowercase_team_name", Stmt: lowercase_team_name},
@@ -65,7 +67,10 @@ func MigrateAll(ctx context.Context, flags *Args) (err error) {
 	if err = Migrate(ctx, flags, migrations["uptime"]); err != nil {
 		return
 	}
-
+	// codebases
+	if err = Migrate(ctx, flags, migrations["codebases"]); err != nil {
+		return
+	}
 	// post, almost completed migrations
 	if err = Migrate(ctx, flags, migrations["after"]); err != nil {
 		return
