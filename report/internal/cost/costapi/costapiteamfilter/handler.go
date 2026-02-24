@@ -63,10 +63,8 @@ type Response struct {
 	Request *Request                      `json:"request"`
 	Headers map[tabulate.ColType][]string `json:"headers"` // headers contains details for table headers / rendering
 	Data    []map[string]interface{}      `json:"data"`    // the actual data results
+	Summary map[string]interface{}        `json:"summary"` // used to contain table totals etc
 
-	Months        []string `json:"-"`
-	ExcludeFooter bool     `json:"-"`
-	Changes       []string `json:"-"`
 }
 
 // Filter is with the sql to replace the `:name` named parameters within the
@@ -161,7 +159,7 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 	// swap to slice
 	tbl := tabulate.TableMapToTable(tableBody)
 	// do table total
-	tbl = tabulate.TableEnd(tbl, headings, tabulate.TableTotalF)
+	summary := tabulate.TableEnd(tbl, headings, tabulate.TableTotalF)
 	// sort by last month
 	tbl = tabulate.SortDescending[float64](tbl, months[len(months)-1])
 
@@ -172,6 +170,7 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 		Request: in,
 		Headers: headings,
 		Data:    tbl,
+		Summary: summary,
 	}
 	log.Info("complete.")
 	respond.AsJSON(ctx, request, writer, response)

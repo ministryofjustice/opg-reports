@@ -59,10 +59,8 @@ type Response struct {
 	Request *Request                      `json:"request"`
 	Headers map[tabulate.ColType][]string `json:"headers"` // headers contains details for table headers / rendering
 	Data    []map[string]interface{}      `json:"data"`    // the actual data results
+	Summary map[string]interface{}        `json:"summary"` // used to contain table totals etc
 
-	Months        []string `json:"-"`
-	ExcludeFooter bool     `json:"-"`
-	Changes       []string `json:"-"`
 }
 
 // Filter is with the sql to replace the `:name` named parameters within the

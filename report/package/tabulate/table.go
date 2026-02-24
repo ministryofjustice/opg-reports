@@ -9,7 +9,7 @@ import (
 	"sort"
 )
 
-type TableEndFunc func(table []map[string]interface{}, headings map[ColType][]string) []map[string]interface{}
+type TableEndFunc func(table []map[string]interface{}, headings map[ColType][]string) map[string]interface{}
 
 type Args struct {
 	ColumnKey string
@@ -49,16 +49,16 @@ func TableMapToTable(tableMap map[string]map[string]interface{}) (table []map[st
 }
 
 // RowEnd runs the row end function (like adding total / average)
-func TableEnd(table []map[string]interface{}, headings map[ColType][]string, tableEndF TableEndFunc) []map[string]interface{} {
+func TableEnd(table []map[string]interface{}, headings map[ColType][]string, tableEndF TableEndFunc) map[string]interface{} {
 	if tableEndF == nil {
-		return table
+		return nil
 	}
-	table = tableEndF(table, headings)
-	return table
+	return tableEndF(table, headings)
+
 }
 
 // TotalF generates a table summary row contains the totals of each data column combined
-func TableTotalF(table []map[string]interface{}, headings map[ColType][]string) []map[string]interface{} {
+func TableTotalF(table []map[string]interface{}, headings map[ColType][]string) map[string]interface{} {
 	var (
 		endCol     string   = headings[END][0]
 		firstCol   string   = headings[KEY][0]
@@ -80,12 +80,11 @@ func TableTotalF(table []map[string]interface{}, headings map[ColType][]string) 
 	// give the first column a name
 	summary[firstCol] = endCol
 	summary[endCol] = tableTotal
-	table = append(table, summary)
-	return table
+	return summary
 }
 
 // AverageF generates a table summary row contains the totals averages of each data column combined
-func TableAverageF(table []map[string]interface{}, headings map[ColType][]string) []map[string]interface{} {
+func TableAverageF(table []map[string]interface{}, headings map[ColType][]string) map[string]interface{} {
 	var (
 		endCol     string   = headings[END][0]
 		firstCol   string   = headings[KEY][0]
@@ -116,8 +115,7 @@ func TableAverageF(table []map[string]interface{}, headings map[ColType][]string
 	summary[firstCol] = endCol
 	// work out overall average
 	summary[endCol] = tableTotal / float64(count)
-	table = append(table, summary)
-	return table
+	return summary
 }
 
 func TableFilterByValue(table []map[string]interface{}, headings map[ColType][]string, over float64) []map[string]interface{} {
