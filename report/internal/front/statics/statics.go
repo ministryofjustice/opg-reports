@@ -2,6 +2,7 @@ package statics
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"opg-reports/report/package/cntxt"
@@ -39,16 +40,20 @@ func Register(ctx context.Context, mux *http.ServeMux, dirs *Args) {
 
 	// /local-assets/ contain our css overwrites, extra images / js and so on
 	//		http://localhost:8080/local-assets/css/local.css
-	location = "/" + strings.ReplaceAll(dirs.LocalAssetsDir, root, "") + "/"
-	location = strings.TrimPrefix(location, "/")
+	location = strings.ReplaceAll(dirs.LocalAssetsDir, root, "")
+	location = strings.TrimSuffix(strings.TrimPrefix(location, "/"), "/")
+	location = fmt.Sprintf("/%s/", location)
+	location = strings.ReplaceAll(location, "//", "/")
 	log.Info("registering local assets handler [`" + location + "`] ...")
 	mux.Handle(location, http.StripPrefix(location, http.FileServer(http.Dir(dirs.LocalAssetsDir))))
 
 	// /govuk/ is path we use to include css / js, so capture and point to the gov uk directory
 	// 		http://localhost:8080/govuk/VERSION.TXT
 	// 		http://localhost:8080/govuk/govuk-frontend-5.11.0.min.css
-	location = "/" + strings.ReplaceAll(dirs.GovUKDir, root, "") + "/"
-	location = strings.TrimPrefix(location, "/")
+	location = strings.ReplaceAll(dirs.GovUKDir, root, "")
+	location = strings.TrimSuffix(strings.TrimPrefix(location, "/"), "/")
+	location = fmt.Sprintf("/%s/", location)
+	location = strings.ReplaceAll(location, "//", "/")
 	log.Info("registering gov uk handler [`" + location + "`] ...")
 	mux.Handle(location, http.StripPrefix(location, http.FileServer(http.Dir(dirs.GovUKDir))))
 
