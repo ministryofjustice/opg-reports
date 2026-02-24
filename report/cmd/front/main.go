@@ -10,6 +10,7 @@ import (
 	"opg-reports/report/internal/cost/costfront/home/costsdiff"
 	"opg-reports/report/internal/front/homepage"
 	"opg-reports/report/internal/front/statics"
+	"opg-reports/report/internal/front/teampage"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/env"
 	"opg-reports/report/package/logger"
@@ -60,7 +61,8 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 		GovUKDir:       in.GovUKDir,
 		LocalAssetsDir: in.LocalAssetsDir,
 	})
-	// home page
+	// home pages
+	// - main home
 	homepage.Register(ctx, mux, &homepage.Args{
 		ApiHost:      in.ApiHost,
 		GovUKVersion: in.GovUKVersion,
@@ -83,6 +85,15 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	})
 	// - home, show cost differences between all accounts
 	costsdiff.Register(ctx, mux, &costsdiff.Args{
+		ApiHost:      in.ApiHost,
+		GovUKVersion: in.GovUKVersion,
+		RootDir:      in.RootDir,
+		TemplateDir:  in.TemplateDir,
+	})
+
+	// team pages
+	// main team page
+	teampage.Register(ctx, mux, &teampage.Args{
 		ApiHost:      in.ApiHost,
 		GovUKVersion: in.GovUKVersion,
 		RootDir:      in.RootDir,

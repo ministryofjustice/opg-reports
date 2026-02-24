@@ -8,7 +8,7 @@ import (
 	"opg-reports/report/package/cntxt"
 )
 
-const ENDPOINT string = "/home/costs/team"
+const ENDPOINT string = "/home/costs"
 
 type Args struct {
 	ApiHost      string `json:"api"`

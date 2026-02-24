@@ -4,9 +4,8 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
-	"opg-reports/report/internal/cost/costapi/costapiteam"
-	"opg-reports/report/internal/headline/headlineapi/headlineapihome"
-	"opg-reports/report/internal/headline/headlineget"
+	"opg-reports/report/internal/cost/costapi/costapiteamfilter"
+	"opg-reports/report/internal/headline/headlineapi/headlineapiteam"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/htmlpage"
@@ -20,8 +19,9 @@ import (
 
 type PageContent struct {
 	htmlpage.HTMLPage
-	HeadlineData *headlineapihome.Response
-	CostData     *costapiteam.Response
+	Team         string
+	HeadlineData *headlineapiteam.Response
+	CostData     *costapiteamfilter.Response
 }
 
 type dataCallerF func(wg *sync.WaitGroup, page *PageContent)
@@ -31,15 +31,17 @@ func Handler(ctx context.Context, args *Args, writer http.ResponseWriter, reques
 	var (
 		// err  error
 		pageName     string         = "OPG Reports"
-		templateName string         = "home"
+		templateName string         = "team"
 		endDate      time.Time      = times.Today()
 		startDate    time.Time      = times.Add(endDate, -12, times.MONTH)
-		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "homepage", "func", "Handler", "url", request.URL.String())
+		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "teampage", "func", "Handler", "url", request.URL.String())
 		wg           sync.WaitGroup = sync.WaitGroup{}
 		page         *PageContent   = &PageContent{
 			HTMLPage: htmlpage.New(request, &htmlpage.Args{Name: pageName, GovUKVersion: args.GovUKVersion}),
+			Team:     request.PathValue("team"),
 		}
 	)
+
 	log.Info("starting ...")
 	// page data fetched from api via blocks
 	for _, blockF := range dataCallers(ctx, args, request) {
@@ -59,6 +61,8 @@ func Handler(ctx context.Context, args *Args, writer http.ResponseWriter, reques
 
 // dataCallers provides all the aync / concurrent api calls to fetch and attach data to this page
 func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataCallerF {
+	var team = &rest.Param{Type: rest.PATH, Key: "team", Value: request.PathValue("team")}
+
 	return []dataCallerF{
 		// get teams
 		func(wg *sync.WaitGroup, page *PageContent) {
@@ -69,7 +73,7 @@ func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataC
 		},
 		// get homepage stats
 		func(wg *sync.WaitGroup, page *PageContent) {
-			if stats, err := headlineget.ForHomepage(ctx, args.ApiHost, request); err == nil {
+			if stats, err := headlineapiteam.Get(ctx, args.ApiHost, request, team); err == nil {
 				page.HeadlineData = stats
 			}
 			wg.Done()
@@ -79,7 +83,7 @@ func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataC
 			var endDate = times.Add(times.ResetMonth(times.Today()), -1, times.MONTH)
 			var end = &rest.Param{Type: rest.PATH, Key: "date_end", Value: times.AsYMString(endDate)}
 
-			if costs, err := costapiteam.Get(ctx, args.ApiHost, request, end); err == nil {
+			if costs, err := costapiteamfilter.Get(ctx, args.ApiHost, request, end, team); err == nil {
 				page.CostData = costs
 			}
 			wg.Done()

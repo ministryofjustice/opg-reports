@@ -15,6 +15,7 @@ import (
 	"opg-reports/report/internal/cost/costapi/costapiteamfilter"
 	"opg-reports/report/internal/global/migrations"
 	"opg-reports/report/internal/headline/headlineapi/headlineapihome"
+	"opg-reports/report/internal/headline/headlineapi/headlineapiteam"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/env"
@@ -71,6 +72,13 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 
 	// headline api which returns highlighted numbers
 	headlineapihome.Register(ctx, mux, &headlineapihome.Config{
+		DB:      in.DB,
+		Driver:  in.Driver,
+		Params:  in.Params,
+		Version: in.Version,
+		SHA:     in.SHA,
+	})
+	headlineapiteam.Register(ctx, mux, &headlineapiteam.Config{
 		DB:      in.DB,
 		Driver:  in.Driver,
 		Params:  in.Params,

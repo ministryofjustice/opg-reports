@@ -1,4 +1,4 @@
-package costapiteam
+package headlineapihome
 
 import (
 	"context"
@@ -9,15 +9,16 @@ import (
 	"time"
 )
 
-// Get call the api and get the response, grouped costs by team
 func Get(ctx context.Context, apiHost string, current *http.Request, overwrites ...*rest.Param) (data *Response, err error) {
+
 	var (
 		response *Response
-		timeout  time.Duration = (2 * time.Second)
 		params   []*rest.Param = []*rest.Param{}
+		timeout  time.Duration = (2 * time.Second)
 		endpoint string        = ENDPOINT
-		end      time.Time     = times.Today()
-		start    time.Time     = times.Add(times.ResetMonth(end), -5, times.MONTH)
+		now      time.Time     = times.Today()
+		end      time.Time     = times.Add(times.ResetMonth(now), -1, times.MONTH)
+		start    time.Time     = times.Add(times.ResetMonth(end), -4, times.MONTH)
 	)
 	// set default start / end dates
 	params = []*rest.Param{

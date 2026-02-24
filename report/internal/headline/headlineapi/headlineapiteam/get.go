@@ -1,23 +1,21 @@
-package headlineget
+package headlineapiteam
 
 import (
 	"context"
 	"net/http"
-	"opg-reports/report/internal/headline/headlineapi/headlineapihome"
 	"opg-reports/report/package/overwrite"
 	"opg-reports/report/package/rest"
 	"opg-reports/report/package/times"
 	"time"
 )
 
-var timeout = (2 * time.Second)
-
-func ForHomepage(ctx context.Context, apiHost string, current *http.Request, overwrites ...*rest.Param) (data *headlineapihome.Response, err error) {
+func Get(ctx context.Context, apiHost string, current *http.Request, overwrites ...*rest.Param) (data *Response, err error) {
 
 	var (
-		response *headlineapihome.Response
+		response *Response
 		params   []*rest.Param = []*rest.Param{}
-		endpoint string        = headlineapihome.ENDPOINT
+		timeout  time.Duration = (2 * time.Second)
+		endpoint string        = ENDPOINT
 		now      time.Time     = times.Today()
 		end      time.Time     = times.Add(times.ResetMonth(now), -1, times.MONTH)
 		start    time.Time     = times.Add(times.ResetMonth(end), -4, times.MONTH)
@@ -30,7 +28,7 @@ func ForHomepage(ctx context.Context, apiHost string, current *http.Request, ove
 	// overwrite any params
 	params = overwrite.Overwrite(params, overwrites...)
 	// call the api
-	response, _, err = rest.Get[*headlineapihome.Response](ctx, current, &rest.Request{
+	response, _, err = rest.Get[*Response](ctx, current, &rest.Request{
 		Host:     apiHost,
 		Endpoint: endpoint,
 		Timeout:  timeout,

@@ -1,4 +1,4 @@
-package costapiteam
+package costapiteamfilter
 
 import (
 	"context"

@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"opg-reports/report/internal/cost/costapi/costapiteam"
 	"opg-reports/report/internal/headline/headlineapi/headlineapihome"
-	"opg-reports/report/internal/headline/headlineget"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/htmlpage"
@@ -69,7 +68,7 @@ func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataC
 		},
 		// get homepage stats
 		func(wg *sync.WaitGroup, page *PageContent) {
-			if stats, err := headlineget.ForHomepage(ctx, args.ApiHost, request); err == nil {
+			if stats, err := headlineapihome.Get(ctx, args.ApiHost, request); err == nil {
 				page.HeadlineData = stats
 			}
 			wg.Done()
