@@ -134,13 +134,19 @@ get-govuk:
 
 
 #========= GO BUILDS =========
+BUILD_DIR ?= ./builds
+.PHONY: build-prep
+build-prep:
+	rm -Rf ${BUILD_DIR}/
+	mkdir -p ${BUILD_DIR}/
+	touch ${BUILD_DIR}/migrations.json
+
 ## build all commands based on folder structure
 ## within the ./reports/cmd directory but allow
 ## CMD_LIST changed to make it smarter and allow
 ## for updating just specific commands
 CMD_DIR = ./report/cmd
 CMD_LIST = $(notdir $(wildcard ${CMD_DIR}/*))
-BUILD_DIR ?= ./builds
 .PHONY: build-cmds
 build-cmds:
 	@for cmd in ${CMD_LIST}; do \
