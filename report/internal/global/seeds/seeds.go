@@ -8,6 +8,7 @@ import (
 	"opg-reports/report/internal/cost/costimport"
 	"opg-reports/report/internal/global/migrations"
 	"opg-reports/report/internal/team/teamimport"
+	"opg-reports/report/internal/uptime/uptimeimport"
 	"opg-reports/report/package/dbx"
 	"opg-reports/report/package/times"
 )
@@ -58,6 +59,7 @@ type Results struct {
 	Teams    []*teamimport.Model    `json:"teams"`
 	Accounts []*accountimport.Model `json:"accounts"`
 	Costs    []*costimport.Model    `json:"costs"`
+	Uptime   []*uptimeimport.Model  `json:"uptime"`
 }
 
 // Args
@@ -101,11 +103,42 @@ func SeedAll(ctx context.Context, in *Args) (results *Results, err error) {
 	if err != nil {
 		return
 	}
-	// seed accounts
+	// seed costs
 	results.Costs, err = seedCosts(ctx, args, numCosts, results.Accounts)
 	if err != nil {
 		return
 	}
+	// seed uptime
+	results.Uptime, err = seedUptime(ctx, args, numCosts, results.Accounts)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+// seedUptime generates and inserts uptime data
+func seedUptime(ctx context.Context, in *dbx.InsertArgs, n int, accounts []*accountimport.Model) (insert []*uptimeimport.Model, err error) {
+	var (
+		end    = times.ResetMonth(times.Today())
+		start  = times.ResetMonth(times.Add(end, -3, times.YEAR))
+		months = times.Months(start, end)
+	)
+	insert = []*uptimeimport.Model{}
+
+	for i := 0; i < n; i++ {
+		var accountI = rand.IntN(len(accounts))
+		var monthI = rand.IntN(len(months))
+		var avg float64 = (95) + (rand.Float64() * (100 - 95)) // 95-100%
+
+		insert = append(insert, &uptimeimport.Model{
+			Month:       times.AsYMString(months[monthI]),
+			AccountID:   accounts[accountI].ID,
+			Granularity: "3600",
+			Average:     fmt.Sprintf("%g", avg),
+		})
+	}
+	err = dbx.Insert(ctx, uptimeimport.InsertStatement, insert, in)
 
 	return
 }

@@ -40,6 +40,7 @@ func main() {
 		teamsCmd,
 		accountsCmd,
 		costsCmd,
+		uptimeCmd,
 	)
 
 	err = root.ExecuteContext(ctx)

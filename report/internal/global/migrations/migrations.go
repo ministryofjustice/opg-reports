@@ -38,6 +38,10 @@ var migrations = map[string][]*Migration{
 		{Key: "create_agnostic_costs", Stmt: create_agnostic_costs},
 		{Key: "migrate_costs", Stmt: migrate_costs},
 	},
+	"uptime": {
+		{Key: "create_aws_uptime", Stmt: create_aws_uptime},
+		{Key: "agnostic_uptime", Stmt: agnostic_uptime},
+	},
 	"after": {
 		{Key: "lowercase_team_name", Stmt: lowercase_team_name},
 	},
@@ -55,6 +59,10 @@ func MigrateAll(ctx context.Context, flags *Args) (err error) {
 	}
 	// costs
 	if err = Migrate(ctx, flags, migrations["costs"]); err != nil {
+		return
+	}
+	// uptime
+	if err = Migrate(ctx, flags, migrations["uptime"]); err != nil {
 		return
 	}
 

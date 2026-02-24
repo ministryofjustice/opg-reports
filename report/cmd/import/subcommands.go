@@ -5,11 +5,13 @@ import (
 	"opg-reports/report/internal/cost/costimport"
 	"opg-reports/report/internal/global/migrations"
 	"opg-reports/report/internal/team/teamimport"
+	"opg-reports/report/internal/uptime/uptimeimport"
 	"opg-reports/report/package/awsclients"
 	"opg-reports/report/package/awsid"
 	"opg-reports/report/package/env"
 	"opg-reports/report/package/times"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/spf13/cobra"
 )
@@ -33,6 +35,13 @@ var costsCmd = &cobra.Command{
 	Use:   `costs`,
 	Short: `import costs`,
 	RunE:  runCostsImport,
+}
+
+// costs import command
+var uptimeCmd = &cobra.Command{
+	Use:   `uptime`,
+	Short: `import uptime`,
+	RunE:  runUptimeImport,
 }
 
 // runTeamsImport runs the teams
@@ -115,6 +124,42 @@ func runCostsImport(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	err = costimport.Import(ctx, client, &costimport.Args{
+		DB:            flags.DB,
+		Driver:        flags.Driver,
+		Params:        flags.Params,
+		MigrationFile: flags.MigrationFile,
+		DateStart:     times.MustFromString(flags.DateStart),
+		DateEnd:       times.MustFromString(flags.DateEnd),
+		AccountID:     awsid.AccountID(ctx, flags.Region),
+	})
+	return
+}
+
+// runUptimeImport runs the uptime import
+func runUptimeImport(cmd *cobra.Command, args []string) (err error) {
+	var client *cloudwatch.Client
+	var region = "us-east-1" // forced region
+	var ctx = cmd.Context()
+	// overwrite arg flags from env values
+	if e := env.OverwriteStruct(&flags); e != nil {
+		return
+	}
+	client, err = awsclients.New[*cloudwatch.Client](ctx, region)
+	if err != nil {
+		return
+	}
+	// run the migrations
+	err = migrations.MigrateAll(ctx, &migrations.Args{
+		DB:            flags.DB,
+		Driver:        flags.Driver,
+		Params:        flags.Params,
+		MigrationFile: flags.MigrationFile,
+	})
+	if err != nil {
+		return
+	}
+
+	err = uptimeimport.Import(ctx, client, &uptimeimport.Args{
 		DB:            flags.DB,
 		Driver:        flags.Driver,
 		Params:        flags.Params,

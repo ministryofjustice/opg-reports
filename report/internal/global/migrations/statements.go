@@ -81,3 +81,42 @@ const lowercase_team_name string = `
 UPDATE accounts SET(team_name) = LOWER(team_name);
 UPDATE teams SET(name) = LOWER(name);
 `
+
+const create_aws_uptime string = `
+CREATE TABLE IF NOT EXISTS aws_uptime (
+	id INTEGER PRIMARY KEY,
+	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
+	date TEXT NOT NULL,
+	aws_account_id TEXT,
+	average TEXT NOT NULL,
+	granularity TEXT NOT NULL,
+	UNIQUE (aws_account_id,date)
+) STRICT;
+CREATE INDEX IF NOT EXISTS aws_uptime_date_idx ON aws_uptime(date);
+CREATE INDEX IF NOT EXISTS aws_uptime_account_date_idx ON aws_uptime(aws_account_id,date);
+`
+
+// agnostic_uptime removes the aws prefix
+const agnostic_uptime string = `
+CREATE TABLE IF NOT EXISTS uptime (
+	id INTEGER PRIMARY KEY,
+	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
+	vendor TEXT NOT NULL DEFAULT 'aws',
+	month TEXT NOT NULL,
+	account_id TEXT,
+	average TEXT NOT NULL,
+	granularity TEXT NOT NULL,
+	UNIQUE (account_id,month)
+) STRICT;
+
+INSERT INTO uptime (month, account_id, average, granularity)
+	SELECT strftime("%Y-%m", date) as date, aws_account_id, AVG(average), granularity FROM aws_uptime GROUP BY strftime("%Y-%m", date), aws_account_id;
+
+DROP INDEX aws_uptime_date_idx;
+DROP INDEX aws_uptime_account_date_idx;
+
+CREATE INDEX IF NOT EXISTS idx_uptime_month ON uptime(month);
+CREATE INDEX IF NOT EXISTS idx_uptime_account_month ON uptime(account_id,month);
+
+DROP TABLE aws_uptime;
+`
