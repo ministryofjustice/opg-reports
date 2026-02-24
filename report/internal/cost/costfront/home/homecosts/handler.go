@@ -49,14 +49,13 @@ type dataCallerF func(wg *sync.WaitGroup, page *PageContent)
 // Handler deals with the / root page of the reporting site
 func Handler(ctx context.Context, args *Args, writer http.ResponseWriter, request *http.Request) {
 	var (
-		// err  error
 		pageName     string         = "OPG Reports"
+		pageTitle    string         = "OPG Reports - AWS Costs"
 		templateName string         = "home-costs-by-team"
 		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "costsbyteam", "func", "Handler", "url", request.URL.String())
 		wg           sync.WaitGroup = sync.WaitGroup{}
-		page         *PageContent   = &PageContent{
-			HTMLPage: htmlpage.New(request, &htmlpage.Args{Name: pageName, GovUKVersion: args.GovUKVersion}),
-		}
+		pgArgs       *htmlpage.Args = &htmlpage.Args{Title: pageTitle, Name: pageName, GovUKVersion: args.GovUKVersion, SemVer: args.SemVer}
+		page         *PageContent   = &PageContent{HTMLPage: htmlpage.New(request, pgArgs)}
 	)
 	log.Info("starting ...")
 	// page data fetched from api via blocks

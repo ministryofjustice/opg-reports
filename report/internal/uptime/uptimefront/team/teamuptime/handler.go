@@ -2,11 +2,13 @@ package teamuptime
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/internal/uptime/uptimeapi/uptimeapiteamfilter"
 	"opg-reports/report/package/cntxt"
+	"opg-reports/report/package/cnv"
 	"opg-reports/report/package/htmlpage"
 	"opg-reports/report/package/respond"
 	"opg-reports/report/package/rest"
@@ -49,15 +51,14 @@ type dataCallerF func(wg *sync.WaitGroup, page *PageContent)
 // Handler deals with the / root page of the reporting site
 func Handler(ctx context.Context, args *Args, writer http.ResponseWriter, request *http.Request) {
 	var (
-		// err  error
+		team         string         = request.PathValue("team")
 		pageName     string         = "OPG Reports"
+		pageTitle    string         = fmt.Sprintf("OPG Reports - %s - Uptime", cnv.Capitalize(team))
 		templateName string         = "team-uptime-by-team"
 		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "teamuptime", "func", "Handler", "url", request.URL.String())
 		wg           sync.WaitGroup = sync.WaitGroup{}
-		page         *PageContent   = &PageContent{
-			HTMLPage: htmlpage.New(request, &htmlpage.Args{Name: pageName, GovUKVersion: args.GovUKVersion}),
-			Team:     request.PathValue("team"),
-		}
+		pgArgs       *htmlpage.Args = &htmlpage.Args{Title: pageTitle, Name: pageName, GovUKVersion: args.GovUKVersion, SemVer: args.SemVer}
+		page         *PageContent   = &PageContent{HTMLPage: htmlpage.New(request, pgArgs), Team: team}
 	)
 	log.Info("starting ...")
 	// page data fetched from api via blocks

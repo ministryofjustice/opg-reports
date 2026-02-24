@@ -13,6 +13,7 @@ const ENDPOINT string = "/home/costs/differences"
 type Args struct {
 	ApiHost      string `json:"api"`
 	GovUKVersion string `json:"govuk_version"`
+	SemVer       string `json:"semver"`
 	RootDir      string `json:"root_dir"`
 	TemplateDir  string `json:"template_dir"`
 }

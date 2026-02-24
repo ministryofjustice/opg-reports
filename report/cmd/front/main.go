@@ -71,6 +71,7 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	homepage.Register(ctx, mux, &homepage.Args{
 		ApiHost:      in.ApiHost,
 		GovUKVersion: in.GovUKVersion,
+		SemVer:       in.Version,
 		RootDir:      in.RootDir,
 		TemplateDir:  in.TemplateDir,
 	})
@@ -78,6 +79,7 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	homecosts.Register(ctx, mux, &homecosts.Args{
 		ApiHost:      in.ApiHost,
 		GovUKVersion: in.GovUKVersion,
+		SemVer:       in.Version,
 		RootDir:      in.RootDir,
 		TemplateDir:  in.TemplateDir,
 	})
@@ -85,6 +87,7 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	homecostsdetailed.Register(ctx, mux, &homecostsdetailed.Args{
 		ApiHost:      in.ApiHost,
 		GovUKVersion: in.GovUKVersion,
+		SemVer:       in.Version,
 		RootDir:      in.RootDir,
 		TemplateDir:  in.TemplateDir,
 	})
@@ -92,6 +95,7 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	homecostsdiff.Register(ctx, mux, &homecostsdiff.Args{
 		ApiHost:      in.ApiHost,
 		GovUKVersion: in.GovUKVersion,
+		SemVer:       in.Version,
 		RootDir:      in.RootDir,
 		TemplateDir:  in.TemplateDir,
 	})
@@ -99,6 +103,7 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	homeuptime.Register(ctx, mux, &homeuptime.Args{
 		ApiHost:      in.ApiHost,
 		GovUKVersion: in.GovUKVersion,
+		SemVer:       in.Version,
 		RootDir:      in.RootDir,
 		TemplateDir:  in.TemplateDir,
 	})
@@ -108,6 +113,7 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	teampage.Register(ctx, mux, &teampage.Args{
 		ApiHost:      in.ApiHost,
 		GovUKVersion: in.GovUKVersion,
+		SemVer:       in.Version,
 		RootDir:      in.RootDir,
 		TemplateDir:  in.TemplateDir,
 	})
@@ -115,6 +121,7 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	teamcosts.Register(ctx, mux, &teamcosts.Args{
 		ApiHost:      in.ApiHost,
 		GovUKVersion: in.GovUKVersion,
+		SemVer:       in.Version,
 		RootDir:      in.RootDir,
 		TemplateDir:  in.TemplateDir,
 	})
@@ -122,6 +129,7 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	teamcostsdiff.Register(ctx, mux, &teamcostsdiff.Args{
 		ApiHost:      in.ApiHost,
 		GovUKVersion: in.GovUKVersion,
+		SemVer:       in.Version,
 		RootDir:      in.RootDir,
 		TemplateDir:  in.TemplateDir,
 	})
@@ -129,6 +137,7 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	teamcostsdetailed.Register(ctx, mux, &teamcostsdetailed.Args{
 		ApiHost:      in.ApiHost,
 		GovUKVersion: in.GovUKVersion,
+		SemVer:       in.Version,
 		RootDir:      in.RootDir,
 		TemplateDir:  in.TemplateDir,
 	})
@@ -136,6 +145,7 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	teamuptime.Register(ctx, mux, &teamuptime.Args{
 		ApiHost:      in.ApiHost,
 		GovUKVersion: in.GovUKVersion,
+		SemVer:       in.Version,
 		RootDir:      in.RootDir,
 		TemplateDir:  in.TemplateDir,
 	})

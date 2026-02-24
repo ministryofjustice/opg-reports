@@ -51,12 +51,12 @@ func Handler(ctx context.Context, args *Args, writer http.ResponseWriter, reques
 	var (
 		// err  error
 		pageName     string         = "OPG Reports"
+		pageTitle    string         = "OPG Reports - Detailed AWS Costs"
 		templateName string         = "home-costs-detailed"
 		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "costsdetailed", "func", "Handler", "url", request.URL.String())
 		wg           sync.WaitGroup = sync.WaitGroup{}
-		page         *PageContent   = &PageContent{
-			HTMLPage: htmlpage.New(request, &htmlpage.Args{Name: pageName, GovUKVersion: args.GovUKVersion}),
-		}
+		pgArgs       *htmlpage.Args = &htmlpage.Args{Title: pageTitle, Name: pageName, GovUKVersion: args.GovUKVersion, SemVer: args.SemVer}
+		page         *PageContent   = &PageContent{HTMLPage: htmlpage.New(request, pgArgs)}
 	)
 	log.Info("starting ...")
 	// page data fetched from api via blocks
