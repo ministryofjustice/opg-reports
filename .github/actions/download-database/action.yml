@@ -17,7 +17,6 @@ outputs:
     description: "Location of database"
     value: ${{ steps.dl.outputs.location }}
 
-
 runs:
   using: composite
   steps:

@@ -121,6 +121,7 @@ jobs:
       - name: "Make - build-cmds"
         run: |
           rm -Rf ${{ env.BUILD_DIR }}
+          touch ${{ env.BUILD_DIR }}/migrations.json
           make build-cmds
           ls -lhRt ${{ env.BUILD_DIR }}
       - name: "Make - front assets"
