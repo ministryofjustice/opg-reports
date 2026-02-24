@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"opg-reports/report/internal/account/accountimport"
+	"opg-reports/report/internal/codebases/codebasesimport"
 	"opg-reports/report/internal/cost/costimport"
 	"opg-reports/report/internal/global/migrations"
 	"opg-reports/report/internal/team/teamimport"
@@ -53,13 +54,21 @@ var serviceList []string = []string{
 	"EC2 - Other",
 }
 
+var codebaseCompliance []string = []string{
+	"unknown",
+	"baseline",
+	"standard",
+	"exemplar",
+}
+
 // Results contains all the seed data that was inserted
 // including any that may have failed
 type Results struct {
-	Teams    []*teamimport.Model    `json:"teams"`
-	Accounts []*accountimport.Model `json:"accounts"`
-	Costs    []*costimport.Model    `json:"costs"`
-	Uptime   []*uptimeimport.Model  `json:"uptime"`
+	Teams     []*teamimport.Model      `json:"teams"`
+	Accounts  []*accountimport.Model   `json:"accounts"`
+	Costs     []*costimport.Model      `json:"costs"`
+	Uptime    []*uptimeimport.Model    `json:"uptime"`
+	Codebases []*codebasesimport.Model `json:"codebases"`
 }
 
 // Args
@@ -73,8 +82,10 @@ type Args struct {
 // SeedAll
 func SeedAll(ctx context.Context, in *Args) (results *Results, err error) {
 	var (
-		numAccounts = 25
-		numCosts    = 13000
+		numAccounts  = 25
+		numCosts     = 13000
+		numUptime    = 1200
+		numCodebases = 50
 	)
 
 	var args = &dbx.InsertArgs{
@@ -109,11 +120,35 @@ func SeedAll(ctx context.Context, in *Args) (results *Results, err error) {
 		return
 	}
 	// seed uptime
-	results.Uptime, err = seedUptime(ctx, args, numCosts, results.Accounts)
+	results.Uptime, err = seedUptime(ctx, args, numUptime, results.Accounts)
+	if err != nil {
+		return
+	}
+	// seed codebases
+	results.Codebases, err = seedCodebases(ctx, args, numCodebases)
 	if err != nil {
 		return
 	}
 
+	return
+}
+
+func seedCodebases(ctx context.Context, in *dbx.InsertArgs, n int) (insert []*codebasesimport.Model, err error) {
+	var githubOrg = "mock-org"
+	insert = []*codebasesimport.Model{}
+	for i := 0; i < n; i++ {
+		var name = fmt.Sprintf("codebase-%02d", i+1)
+		var compI = rand.IntN(len(codebaseCompliance))
+		insert = append(insert, &codebasesimport.Model{
+			Name:                name,
+			FullName:            fmt.Sprintf("%s/%s", githubOrg, name),
+			Url:                 fmt.Sprintf("https://mock-github.local/%s/%s", githubOrg, name),
+			ComplianceReportUrl: fmt.Sprintf("https://mock-compliance-report.local/%s", name),
+			ComplianceBadge:     fmt.Sprintf("https://mock-compliance-report.local/%s/badge", name),
+			ComplianceLevel:     codebaseCompliance[compI],
+		})
+	}
+	err = dbx.Insert(ctx, codebasesimport.InsertStatement, insert, in)
 	return
 }
 

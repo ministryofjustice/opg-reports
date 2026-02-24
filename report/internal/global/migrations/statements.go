@@ -121,6 +121,9 @@ CREATE TABLE IF NOT EXISTS codebases (
 	name TEXT NOT NULL,
 	full_name TEXT NOT NULL,
 	url TEXT NOT NULL,
+	compliance_level TEXT,
+	compliance_report_url TEXT,
+	compliance_badge TEXT,
 	UNIQUE (full_name)
 ) STRICT;
 CREATE INDEX IF NOT EXISTS idx_codeowners ON codebases(full_name);

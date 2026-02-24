@@ -3,22 +3,37 @@ package codebasesimport
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/dbx"
+	"opg-reports/report/package/rest"
+	"regexp"
+	"strings"
+	"time"
 
 	"github.com/google/go-github/v81/github"
 )
 
+// compliance_level TEXT,
+//
+//	compliance_report_url TEXT
+//	compliance_badge TEXT,
 const InsertStatement string = `
 INSERT INTO codebases (
 	name,
 	full_name,
-	url
+	url,
+	compliance_level,
+	compliance_report_url,
+	compliance_badge
 ) VALUES (
 	:name,
 	:full_name,
-	:url
+	:url,
+	:compliance_level,
+	:compliance_report_url,
+	:compliance_badge
 )
 ON CONFLICT (full_name) DO UPDATE SET name=excluded.name, url=excluded.url
 RETURNING id
@@ -44,9 +59,13 @@ type Args struct {
 
 // Model represents a simple, joinless, db row in the cost table; used by imports and seeding commands
 type Model struct {
-	Name     string `json:"name,omitempty"`       // short name of codebase (without owner)
-	FullName string `json:"full_name,omitempty" ` // full name including the owner
-	Url      string `json:"url,omitempty" `       // url to access the codebase
+	Name                string `json:"name,omitempty"`                  // short name of codebase (without owner)
+	FullName            string `json:"full_name,omitempty" `            // full name including the owner
+	Url                 string `json:"url,omitempty" `                  // url to access the codebase
+	ComplianceLevel     string `json:"compliance_level,omitempty"`      // compliance level (moj based)
+	ComplianceReportUrl string `json:"compliance_report_url,omitempty"` // compliance report url
+	ComplianceBadge     string `json:"compliance_badge,omitempty"`      // compliance badge url
+
 }
 
 // Import finds all github repositories and returns them for the moj/opg team
@@ -68,7 +87,6 @@ func Import(ctx context.Context, client Client, in *Args) (err error) {
 	if err != nil {
 		return
 	}
-
 	// now write to db
 	err = dbx.Insert(ctx, InsertStatement, data, &dbx.InsertArgs{
 		DB:     in.DB,
@@ -87,16 +105,26 @@ func Import(ctx context.Context, client Client, in *Args) (err error) {
 // toModels converts the api results into local structs
 func toModels(ctx context.Context, list []*github.Repository) (repos []*Model, err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "toModels")
+	var base string = "https://github-community.service.justice.gov.uk/repository-standards"
+	// var timeout = (2 * time.Second)
 
 	repos = []*Model{}
 	log.Debug("starting ...")
 
 	for _, item := range list {
 		var repo = &Model{
-			Name:     *item.Name,
-			FullName: *item.FullName,
-			Url:      *item.HTMLURL,
+			Name:                *item.Name,
+			FullName:            *item.FullName,
+			Url:                 *item.HTMLURL,
+			ComplianceLevel:     "unknown",
+			ComplianceReportUrl: fmt.Sprintf("%s/%s", base, *item.Name),
+			ComplianceBadge:     fmt.Sprintf("%s/api/%s/badge", base, *item.Name),
 		}
+		// set the compliance level
+		if lvl, e := complianceLevelFromBadge(ctx, repo.ComplianceBadge); e == nil {
+			repo.ComplianceLevel = lvl
+		}
+
 		repos = append(repos, repo)
 	}
 	log.Debug("complete.")
@@ -140,6 +168,34 @@ func getRepositoryList(ctx context.Context, client Client, options *Args) (repos
 	}
 
 	log.Debug("complete.")
+	return
+}
+
+// the badge layout puts the value in the title
+var complianceRe = regexp.MustCompile(`(?m)<title>MOJ COMPLIANT:(.*)</title>`)
+
+func complianceLevelFromBadge(ctx context.Context, badge string) (level string, err error) {
+	var timeout = (2 * time.Second)
+	level = "unknown"
+	res, _, err := rest.GetStr(ctx, nil, &rest.Request{Host: badge, Timeout: timeout})
+	if err != nil {
+		return
+	}
+	// find a match
+	for _, match := range complianceRe.FindAllString(res, 1) {
+		level = match
+	}
+	// trim the extras
+	level = strings.ReplaceAll(level, "<title>MOJ COMPLIANT:", "")
+	level = strings.ReplaceAll(level, "</title>", "")
+	// swap out not foudn for not_found to make parsing easier
+	level = strings.ReplaceAll(level, "NOT FOUND", "unknown")
+	level = strings.Trim(level, " ")
+	// split on space
+	levels := strings.Split(level, " ")
+	// use. the last part only
+	level = levels[len(levels)-1]
+	level = strings.ToLower(level)
 	return
 }
 

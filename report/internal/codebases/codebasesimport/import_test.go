@@ -47,5 +47,5 @@ func TestCodebasesImportWithoutMock(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error:\n%s", err.Error())
 	}
-	t.FailNow()
+
 }

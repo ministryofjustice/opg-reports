@@ -2,6 +2,7 @@ package main
 
 import (
 	"opg-reports/report/internal/account/accountimport"
+	"opg-reports/report/internal/codebases/codebasesimport"
 	"opg-reports/report/internal/cost/costimport"
 	"opg-reports/report/internal/global/migrations"
 	"opg-reports/report/internal/team/teamimport"
@@ -9,10 +10,13 @@ import (
 	"opg-reports/report/package/awsclients"
 	"opg-reports/report/package/awsid"
 	"opg-reports/report/package/env"
+	"opg-reports/report/package/ghclients"
 	"opg-reports/report/package/times"
+	"os"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
+	"github.com/google/go-github/v81/github"
 	"github.com/spf13/cobra"
 )
 
@@ -37,11 +41,18 @@ var costsCmd = &cobra.Command{
 	RunE:  runCostsImport,
 }
 
-// costs import command
+// uptime import command
 var uptimeCmd = &cobra.Command{
 	Use:   `uptime`,
 	Short: `import uptime`,
 	RunE:  runUptimeImport,
+}
+
+// codebase import command
+var codebasesCmd = &cobra.Command{
+	Use:   `codebases`,
+	Short: `import codebases`,
+	RunE:  runCodebaseImport,
 }
 
 // runTeamsImport runs the teams
@@ -167,6 +178,41 @@ func runUptimeImport(cmd *cobra.Command, args []string) (err error) {
 		DateStart:     times.MustFromString(flags.DateStart),
 		DateEnd:       times.MustFromString(flags.DateEnd),
 		AccountID:     awsid.AccountID(ctx, flags.Region),
+	})
+	return
+}
+
+// runCodebaseImport runs the uptime import
+func runCodebaseImport(cmd *cobra.Command, args []string) (err error) {
+	var client *github.Client
+	var tk = os.Getenv("GITHUB_TOKEN")
+	var ctx = cmd.Context()
+	// overwrite arg flags from env values
+	if e := env.OverwriteStruct(&flags); e != nil {
+		return
+	}
+	client, err = ghclients.New(ctx, tk)
+	if err != nil {
+		return
+	}
+	// run the migrations
+	err = migrations.MigrateAll(ctx, &migrations.Args{
+		DB:            flags.DB,
+		Driver:        flags.Driver,
+		Params:        flags.Params,
+		MigrationFile: flags.MigrationFile,
+	})
+	if err != nil {
+		return
+	}
+
+	err = codebasesimport.Import(ctx, client.Teams, &codebasesimport.Args{
+		DB:            flags.DB,
+		Driver:        flags.Driver,
+		Params:        flags.Params,
+		MigrationFile: flags.MigrationFile,
+		OrgSlug:       flags.OrgSlug,
+		ParentSlug:    flags.ParentSlug,
 	})
 	return
 }

@@ -22,6 +22,8 @@ var flags = &global.ImportArgs{
 	DateStart:     times.AsYMDString(times.Add(times.ResetMonth(today), -2, times.MONTH)),
 	Region:        "eu-west-1",
 	SrcFile:       "",
+	OrgSlug:       "ministryofjustice",
+	ParentSlug:    "opg",
 }
 
 // main root command
@@ -41,6 +43,7 @@ func main() {
 		accountsCmd,
 		costsCmd,
 		uptimeCmd,
+		codebasesCmd,
 	)
 
 	err = root.ExecuteContext(ctx)
@@ -62,4 +65,7 @@ func init() {
 	root.PersistentFlags().StringVar(&flags.Region, "region", flags.Region, "AWS Region")
 
 	root.PersistentFlags().StringVar(&flags.SrcFile, "src-file", flags.SrcFile, "Source file to import data from")
+
+	root.PersistentFlags().StringVar(&flags.OrgSlug, "org", flags.OrgSlug, "GitHub organisation")
+	root.PersistentFlags().StringVar(&flags.ParentSlug, "parent", flags.ParentSlug, "GitHub parent team")
 }
