@@ -17,6 +17,7 @@ import (
 	"opg-reports/report/internal/headline/headlineapi/headlineapihome"
 	"opg-reports/report/internal/headline/headlineapi/headlineapiteam"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
+	"opg-reports/report/internal/uptime/uptimeapi/uptimeapiteam"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/env"
 	"opg-reports/report/package/logger"
@@ -78,6 +79,7 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 		Version: in.Version,
 		SHA:     in.SHA,
 	})
+	// headline figures for team pages
 	headlineapiteam.Register(ctx, mux, &headlineapiteam.Config{
 		DB:      in.DB,
 		Driver:  in.Driver,
@@ -154,6 +156,15 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 		SHA:     in.SHA,
 	})
 
+	// uptime
+	// - uptime grouped by team name
+	uptimeapiteam.Register(ctx, mux, &uptimeapiteam.Config{
+		DB:      in.DB,
+		Driver:  in.Driver,
+		Params:  in.Params,
+		Version: in.Version,
+		SHA:     in.SHA,
+	})
 }
 
 // runAPI the main run command

@@ -28,7 +28,7 @@ type Args struct {
 //	http://localhost:8080/local-assets/css/local.css 			=> ./local-assets/css/local.css
 //	http://localhost:8080/govuk/govuk-frontend-5.11.0.min.css 	=> ./govuk/govuk-frontend-5.11.0.min.css
 func Register(ctx context.Context, mux *http.ServeMux, dirs *Args) {
-	var prefix = ""
+	var location = ""
 	var root = strings.TrimPrefix(dirs.RootDir, "./")
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "statics", "func", "Register")
 	// Static assets
@@ -39,16 +39,18 @@ func Register(ctx context.Context, mux *http.ServeMux, dirs *Args) {
 
 	// /local-assets/ contain our css overwrites, extra images / js and so on
 	//		http://localhost:8080/local-assets/css/local.css
-	prefix = "/" + strings.ReplaceAll(dirs.LocalAssetsDir, root, "") + "/"
-	log.Info("registering local assets handler [`" + prefix + "`] ...")
-	mux.Handle(prefix, http.StripPrefix(prefix, http.FileServer(http.Dir(dirs.LocalAssetsDir))))
+	location = "/" + strings.ReplaceAll(dirs.LocalAssetsDir, root, "") + "/"
+	location = strings.TrimPrefix(location, "/")
+	log.Info("registering local assets handler [`" + location + "`] ...")
+	mux.Handle(location, http.StripPrefix(location, http.FileServer(http.Dir(dirs.LocalAssetsDir))))
 
 	// /govuk/ is path we use to include css / js, so capture and point to the gov uk directory
 	// 		http://localhost:8080/govuk/VERSION.TXT
 	// 		http://localhost:8080/govuk/govuk-frontend-5.11.0.min.css
-	prefix = "/" + strings.ReplaceAll(dirs.GovUKDir, root, "") + "/"
-	log.Info("registering gov uk handler [`" + prefix + "`] ...")
-	mux.Handle(prefix, http.StripPrefix(prefix, http.FileServer(http.Dir(dirs.GovUKDir))))
+	location = "/" + strings.ReplaceAll(dirs.GovUKDir, root, "") + "/"
+	location = strings.TrimPrefix(location, "/")
+	log.Info("registering gov uk handler [`" + location + "`] ...")
+	mux.Handle(location, http.StripPrefix(location, http.FileServer(http.Dir(dirs.GovUKDir))))
 
 	// ignore favicons
 	log.Info("registering favicon handler [`/favicon.ico`] ...")
