@@ -135,6 +135,7 @@ get-govuk:
 
 #========= GO BUILDS =========
 BUILD_DIR ?= ./builds
+## creates the dir and touchs a migration file
 .PHONY: build-prep
 build-prep:
 	rm -Rf ${BUILD_DIR}/
