@@ -117,17 +117,10 @@ jobs:
         with:
           cache: false
           go-version-file: './go.mod'
-      # get gov uk front end using the existing token
-      - name: "Download GOV UK front end"
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          make get-govuk
-          chmod -Rf 0777 ${{ env.BUILD_DIR }}
-          ls -lthR ${{ env.BUILD_DIR }}
       # build
       - name: "Make"
         run: |
+          rm -Rf ${{ env.BUILD_DIR }}
           make build-cmds
           make front-assets
           chmod -Rf 0777 ${{ env.BUILD_DIR }}
