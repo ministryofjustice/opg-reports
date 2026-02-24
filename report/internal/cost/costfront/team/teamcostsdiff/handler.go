@@ -17,16 +17,16 @@ import (
 	"sync"
 )
 
-type costTableHeaders struct {
+type tableHeaders struct {
 	Labels []string `json:"labels"`
 	Data   []string `json:"data"`
 	Extra  []string `json:"extra"`
 	End    []string `json:"end"`
 }
 
-// costTableData is used to handle the cost table data construct
-type costTableData struct {
-	Headers    *costTableHeaders        `json:"headers"` // headers contains details for table headers / rendering
+// tableData is used to handle the cost table data construct
+type tableData struct {
+	Headers    *tableHeaders            `json:"headers"` // headers contains details for table headers / rendering
 	Data       []map[string]interface{} `json:"data"`    // the actual data results
 	Summary    map[string]interface{}   `json:"summary"` // used to contain table totals etc
 	BillingDay int                      `json:"billing_day"`
@@ -44,7 +44,7 @@ type datePicker struct {
 type PageContent struct {
 	htmlpage.HTMLPage
 	Team     string
-	CostData *costTableData
+	CostData *tableData
 	Dates    *datePicker
 }
 
@@ -121,10 +121,10 @@ func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataC
 					),
 				}
 				// process the data into local structs
-				page.CostData = &costTableData{
+				page.CostData = &tableData{
 					BillingDay: billingDay,
 					Data:       resp.Data,
-					Headers: &costTableHeaders{
+					Headers: &tableHeaders{
 						Labels: resp.Headers[tabulate.KEY],
 						Data:   resp.Headers[tabulate.DATA],
 						Extra:  resp.Headers[tabulate.EXTRA],

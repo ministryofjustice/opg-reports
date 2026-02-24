@@ -7,6 +7,7 @@ import (
 	"opg-reports/report/internal/cost/costapi/costapiteamfilter"
 	"opg-reports/report/internal/headline/headlineapi/headlineapiteam"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
+	"opg-reports/report/internal/uptime/uptimeapi/uptimeapiteamfilter"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/htmlpage"
 	"opg-reports/report/package/respond"
@@ -21,20 +22,21 @@ import (
 type headlineData struct {
 	TotalCost           float64 `json:"total_cost"`             // total cost result
 	AverageCostPerMonth float64 `json:"average_cost_per_month"` // average cost per month
+	OverallUptime       float64 `json:"overall_uptime"`         // uptime
 	DateStart           string  `json:"date_start"`
 	DateEnd             string  `json:"date_end"`
 }
 
-type costTableHeaders struct {
+type tableHeaders struct {
 	Labels []string `json:"labels"`
 	Data   []string `json:"data"`
 	Extra  []string `json:"extra"`
 	End    []string `json:"end"`
 }
 
-// costTableData is used to handle the cost table data construct
-type costTableData struct {
-	Headers    *costTableHeaders        `json:"headers"` // headers contains details for table headers / rendering
+// tableData is used to handle the cost table data construct
+type tableData struct {
+	Headers    *tableHeaders            `json:"headers"` // headers contains details for table headers / rendering
 	Data       []map[string]interface{} `json:"data"`    // the actual data results
 	Summary    map[string]interface{}   `json:"summary"` // used to contain table totals etc
 	BillingDay int                      `json:"billing_day"`
@@ -51,7 +53,8 @@ type PageContent struct {
 	htmlpage.HTMLPage
 	Team         string
 	HeadlineData *headlineData
-	CostData     *costTableData
+	CostData     *tableData
+	UptimeData   *tableData
 	Dates        *datePicker
 }
 
@@ -117,6 +120,7 @@ func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataC
 				page.HeadlineData = &headlineData{
 					TotalCost:           resp.Data.TotalCost,
 					AverageCostPerMonth: resp.Data.AverageCostPerMonth,
+					OverallUptime:       resp.Data.OverallUptime,
 					DateStart:           resp.Request.DateStart,
 					DateEnd:             resp.Request.DateEnd,
 				}
@@ -128,11 +132,11 @@ func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataC
 			resp, err := rest.FromApi[*costapiteamfilter.Response](ctx, args.ApiHost, costapiteamfilter.ENDPOINT, request, params...)
 			if err == nil {
 				// process the data into local structs
-				page.CostData = &costTableData{
+				page.CostData = &tableData{
 					BillingDay: billingDay,
 					Data:       resp.Data,
 					Summary:    resp.Summary,
-					Headers: &costTableHeaders{
+					Headers: &tableHeaders{
 						Labels: resp.Headers[tabulate.KEY],
 						Data:   resp.Headers[tabulate.DATA],
 						Extra:  resp.Headers[tabulate.EXTRA],
@@ -146,6 +150,24 @@ func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataC
 					Months: times.AsYMStrings(
 						times.Months(times.Add(times.Today(), -12, times.MONTH), times.Today()),
 					),
+				}
+			}
+			wg.Done()
+		},
+		// get team uptime breakdown
+		func(wg *sync.WaitGroup, page *PageContent) {
+			resp, err := rest.FromApi[*uptimeapiteamfilter.Response](ctx, args.ApiHost, uptimeapiteamfilter.ENDPOINT, request, params...)
+			if err == nil {
+				// process the data into local structs
+				page.UptimeData = &tableData{
+					Data:    resp.Data,
+					Summary: resp.Summary,
+					Headers: &tableHeaders{
+						Labels: resp.Headers[tabulate.KEY],
+						Data:   resp.Headers[tabulate.DATA],
+						Extra:  resp.Headers[tabulate.EXTRA],
+						End:    resp.Headers[tabulate.END],
+					},
 				}
 			}
 			wg.Done()

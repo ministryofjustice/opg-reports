@@ -28,6 +28,15 @@ WHERE
 ;
 `
 
+// average uptime between all services
+const uptimeSelect string = `
+SELECT
+	CAST(COALESCE(AVG(uptime.average), 0) as REAL) as uptime
+FROM uptime
+WHERE
+	uptime.month IN (:months)
+`
+
 // Request contains url path / query values
 type Request struct {
 	DateStart string `json:"date_start"`
@@ -61,6 +70,8 @@ type Filter struct {
 type Result struct {
 	TotalCost           float64 `json:"total_cost"`             // total cost result
 	AverageCostPerMonth float64 `json:"average_cost_per_month"` // average cost per month
+
+	OverallUptime float64 `json:"overall_uptime"` // overall uptime in time period
 }
 
 // Responder process the incoming request, queries the database and returns the result as json data.
@@ -93,10 +104,9 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 		return
 	}
 	// run cost databases call
-	costSelectRun(ctx, conf, bindMap, res)
-
-	// work out averages
-	res.AverageCostPerMonth = (res.TotalCost / float64(len(months)))
+	costSelectRun(ctx, conf, filter, bindMap, res)
+	// run uptime database call
+	uptimeSelectRun(ctx, conf, filter, bindMap, res)
 
 	response = &Response{
 		Version: conf.Version,
@@ -110,7 +120,7 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 }
 
 // costSelectRun runs the cost select and fetches the val for total cost
-func costSelectRun(ctx context.Context, conf *Config, bindMap map[string]interface{}, res *Result) *Result {
+func costSelectRun(ctx context.Context, conf *Config, filter *Filter, bindMap map[string]interface{}, res *Result) *Result {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "headlineapi", "func", "costSelectRun")
 
 	dbx.Select(ctx, costSelect, &dbx.SelectArgs{
@@ -123,6 +133,31 @@ func costSelectRun(ctx context.Context, conf *Config, bindMap map[string]interfa
 			var val float64 = 0.0
 			if err = rows.Scan(&val); err == nil {
 				res.TotalCost = val
+			} else {
+				log.Error("row scan failed", "err", err.Error())
+			}
+			return err
+		},
+	})
+	// work out averages
+	res.AverageCostPerMonth = (res.TotalCost / float64(len(filter.Months)))
+	return res
+}
+
+// uptimeSelectRun runs the uptime select and fetches the val for average uptime
+func uptimeSelectRun(ctx context.Context, conf *Config, filter *Filter, bindMap map[string]interface{}, res *Result) *Result {
+	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "headlineapi", "func", "uptimeSelectRun")
+
+	dbx.Select(ctx, uptimeSelect, &dbx.SelectArgs{
+		DB:      conf.DB,
+		Driver:  conf.Driver,
+		Params:  conf.Params,
+		BindMap: bindMap,
+		ScanF: func(rows *sql.Rows) error {
+			var err error
+			var val float64 = 0.0
+			if err = rows.Scan(&val); err == nil {
+				res.OverallUptime = val
 			} else {
 				log.Error("row scan failed", "err", err.Error())
 			}

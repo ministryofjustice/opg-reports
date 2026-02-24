@@ -18,6 +18,7 @@ import (
 	"opg-reports/report/internal/headline/headlineapi/headlineapiteam"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/internal/uptime/uptimeapi/uptimeapiteam"
+	"opg-reports/report/internal/uptime/uptimeapi/uptimeapiteamfilter"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/env"
 	"opg-reports/report/package/logger"
@@ -159,6 +160,14 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	// uptime
 	// - uptime grouped by team name
 	uptimeapiteam.Register(ctx, mux, &uptimeapiteam.Config{
+		DB:      in.DB,
+		Driver:  in.Driver,
+		Params:  in.Params,
+		Version: in.Version,
+		SHA:     in.SHA,
+	})
+	// - uptime filtered by team
+	uptimeapiteamfilter.Register(ctx, mux, &uptimeapiteamfilter.Config{
 		DB:      in.DB,
 		Driver:  in.Driver,
 		Params:  in.Params,
