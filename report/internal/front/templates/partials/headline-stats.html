@@ -1,0 +1,24 @@
+{{- define "headline-stats" -}}
+<section id="stats">
+
+
+    <div class="tiles">
+    {{- if .TotalCost -}}
+    <div class="govuk-panel tile">
+        <div class="govuk-panel__body">AWS costs<br><strong>{{ Currency .TotalCost "$" }}</strong></div>
+        <div class="govuk-panel__body_extra">
+            <p class="govuk-body-s">Between <strong>{{ .DateStart }}</strong> and <strong>{{ .DateEnd }}</strong></p>
+            <p class="govuk-body-s">Monthly average of <strong>{{ Currency .AverageCostPerMonth "$" }}</strong></p>
+        </div>
+    </div>
+    {{- end -}}
+
+
+    </div>
+
+
+
+
+</section>
+
+{{- end -}}

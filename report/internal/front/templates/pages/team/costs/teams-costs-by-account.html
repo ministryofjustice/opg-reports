@@ -1,11 +1,11 @@
-{{- define "home-costs-detailed" -}}
+{{- define "teams-costs-by-account" -}}
     {{- template "head" . -}}
 
-    {{- template "homepage-side-navigation" . -}}
+    {{- template "teampage-side-navigation" . -}}
 
     <main id="main-content" class="app-content" role="main">
         <section id="costs-by-team">
-            <h1 class="govuk-heading-xl compact-header">Detailed AWS costs</h1>
+            <h1 class="govuk-heading-xl compact-header">AWS costs per account</h1>
             <p class="govuk-body">Our costs are subject to change, impacted months are shown as such: <strong class="example-unstable">2025-01*</strong></p>
             <div class="app-content reports-font-m">
                 {{ template "costs-table" .CostData }}

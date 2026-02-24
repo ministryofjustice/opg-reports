@@ -1,15 +1,11 @@
 {{- define "costs-table" -}}
-{{ $billingDay := 15 }}
-{{ $headers := .Headers }}
-{{ $rowHeaders := Headers "labels" $headers }}
-{{ $dataHeaders := Headers "data" $headers }}
-{{ $extraHeaders := Headers "extra" $headers }}
-{{ $endHeaders := Headers "end" $headers }}
+{{ $billingDay := .BillingDay }}
+{{ $rowHeaders := .Headers.Labels }}
+{{ $dataHeaders := .Headers.Data }}
+{{ $extraHeaders := .Headers.Extra }}
+{{ $endHeaders := .Headers.End }}
 {{ $rows := .Data }}
-{{ $footer := PopRow .Data }}
-{{ if not .ExcludeFooter }}
-  {{ $rows = TrimLastRow .Data }}
-{{ end }}
+{{ $footer := .Summary }}
 
 <table class="govuk-table reports-table">
     <thead class="govuk-table__head">
@@ -58,7 +54,7 @@
     {{- end -}}
 
     </tbody>
-    {{- if not .ExcludeFooter -}}
+    {{- if $footer -}}
     <tfoot class="govuk-table__foot">
       <tr class="govuk-table__row">
         <th scope="col" class="govuk-table__header" colspan="{{ len $rowHeaders }}">Total</th>

@@ -19,6 +19,9 @@ const selectStmt string = `
 SELECT
 	name
 FROM teams
+WHERE
+	name != 'org'
+	AND name != 'legacy'
 ORDER BY
 	name ASC
 ;
@@ -33,7 +36,7 @@ type Response struct {
 	Version string   `json:"version"`
 	SHA     string   `json:"sha"`
 	Request *Request `json:"request"`
-	Data    []*Team  `json:"data"` // the actual data results
+	Data    []string `json:"data"` // the actual data results
 }
 
 // Filter is with the sql to replace the `:name` named parameters within the
@@ -58,7 +61,7 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 		filter   *Filter                = &Filter{}
 		in       *Request               = &Request{}
 		bindMap  map[string]interface{} = map[string]interface{}{}
-		all      []*Team                = []*Team{}
+		all      []string               = []string{}
 		log      *slog.Logger           = cntxt.GetLogger(ctx).With("package", "teamapiall", "func", "Responder")
 	)
 	log.Info("running http handler ...")
@@ -81,7 +84,7 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 			var r = &Team{}
 			var seq = r.Sequence()
 			if err = rows.Scan(seq...); err == nil {
-				all = append(all, r)
+				all = append(all, r.Name)
 			} else {
 				log.Error("row scan failed", "err", err.Error())
 			}

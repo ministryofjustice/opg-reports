@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"opg-reports/report/internal/cost/costfront/home/costsbyteam"
-	"opg-reports/report/internal/cost/costfront/home/costsdetailed"
-	"opg-reports/report/internal/cost/costfront/home/costsdiff"
+	"opg-reports/report/internal/cost/costfront/home/homecosts"
+	"opg-reports/report/internal/cost/costfront/home/homecostsdetailed"
+	"opg-reports/report/internal/cost/costfront/home/homecostsdiff"
+	"opg-reports/report/internal/cost/costfront/team/teamcosts"
+	"opg-reports/report/internal/cost/costfront/team/teamcostsdetailed"
+	"opg-reports/report/internal/cost/costfront/team/teamcostsdiff"
 	"opg-reports/report/internal/front/homepage"
 	"opg-reports/report/internal/front/statics"
 	"opg-reports/report/internal/front/teampage"
@@ -70,21 +73,21 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 		TemplateDir:  in.TemplateDir,
 	})
 	// - home, simple costs grouped by team
-	costsbyteam.Register(ctx, mux, &costsbyteam.Args{
+	homecosts.Register(ctx, mux, &homecosts.Args{
 		ApiHost:      in.ApiHost,
 		GovUKVersion: in.GovUKVersion,
 		RootDir:      in.RootDir,
 		TemplateDir:  in.TemplateDir,
 	})
 	// - home, show detailed breakdown of costs
-	costsdetailed.Register(ctx, mux, &costsdetailed.Args{
+	homecostsdetailed.Register(ctx, mux, &homecostsdetailed.Args{
 		ApiHost:      in.ApiHost,
 		GovUKVersion: in.GovUKVersion,
 		RootDir:      in.RootDir,
 		TemplateDir:  in.TemplateDir,
 	})
 	// - home, show cost differences between all accounts
-	costsdiff.Register(ctx, mux, &costsdiff.Args{
+	homecostsdiff.Register(ctx, mux, &homecostsdiff.Args{
 		ApiHost:      in.ApiHost,
 		GovUKVersion: in.GovUKVersion,
 		RootDir:      in.RootDir,
@@ -94,6 +97,27 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	// team pages
 	// main team page
 	teampage.Register(ctx, mux, &teampage.Args{
+		ApiHost:      in.ApiHost,
+		GovUKVersion: in.GovUKVersion,
+		RootDir:      in.RootDir,
+		TemplateDir:  in.TemplateDir,
+	})
+	// team costs, grouped by account id / name
+	teamcosts.Register(ctx, mux, &teamcosts.Args{
+		ApiHost:      in.ApiHost,
+		GovUKVersion: in.GovUKVersion,
+		RootDir:      in.RootDir,
+		TemplateDir:  in.TemplateDir,
+	})
+	// team cost differences
+	teamcostsdiff.Register(ctx, mux, &teamcostsdiff.Args{
+		ApiHost:      in.ApiHost,
+		GovUKVersion: in.GovUKVersion,
+		RootDir:      in.RootDir,
+		TemplateDir:  in.TemplateDir,
+	})
+	// team cost details
+	teamcostsdetailed.Register(ctx, mux, &teamcostsdetailed.Args{
 		ApiHost:      in.ApiHost,
 		GovUKVersion: in.GovUKVersion,
 		RootDir:      in.RootDir,

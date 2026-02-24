@@ -1,11 +1,10 @@
-package homepage
+package teamcosts
 
 import (
 	"context"
 	"log/slog"
 	"net/http"
-	"opg-reports/report/internal/cost/costapi/costapiteam"
-	"opg-reports/report/internal/headline/headlineapi/headlineapihome"
+	"opg-reports/report/internal/cost/costapi/costapiteamfilter"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/htmlpage"
@@ -16,14 +15,6 @@ import (
 	"opg-reports/report/package/tmpl"
 	"sync"
 )
-
-// headlineData is used to show healdine figures on the page
-type headlineData struct {
-	TotalCost           float64 `json:"total_cost"`             // total cost result
-	AverageCostPerMonth float64 `json:"average_cost_per_month"` // average cost per month
-	DateStart           string  `json:"date_start"`
-	DateEnd             string  `json:"date_end"`
-}
 
 type costTableHeaders struct {
 	Labels []string `json:"labels"`
@@ -49,9 +40,9 @@ type datePicker struct {
 
 type PageContent struct {
 	htmlpage.HTMLPage
-	HeadlineData *headlineData
-	CostData     *costTableData
-	Dates        *datePicker
+	Team     string
+	CostData *costTableData
+	Dates    *datePicker
 }
 
 type dataCallerF func(wg *sync.WaitGroup, page *PageContent)
@@ -61,11 +52,12 @@ func Handler(ctx context.Context, args *Args, writer http.ResponseWriter, reques
 	var (
 		// err  error
 		pageName     string         = "OPG Reports"
-		templateName string         = "home"
-		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "homepage", "func", "Handler", "url", request.URL.String())
+		templateName string         = "teams-costs-by-account"
+		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "costsbyaccount", "func", "Handler", "url", request.URL.String())
 		wg           sync.WaitGroup = sync.WaitGroup{}
 		page         *PageContent   = &PageContent{
 			HTMLPage: htmlpage.New(request, &htmlpage.Args{Name: pageName, GovUKVersion: args.GovUKVersion}),
+			Team:     request.PathValue("team"),
 		}
 	)
 	log.Info("starting ...")
@@ -75,6 +67,7 @@ func Handler(ctx context.Context, args *Args, writer http.ResponseWriter, reques
 		go blockF(&wg, page)
 	}
 	wg.Wait()
+
 	// respond
 	respond.AsHTML(ctx, request, writer, page, &respond.Args{
 		Template:      templateName,
@@ -88,14 +81,14 @@ func Handler(ctx context.Context, args *Args, writer http.ResponseWriter, reques
 func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataCallerF {
 	var (
 		billingDay = 15
-		dateEnd    = times.Add(times.ResetMonth(times.Today()), -1, times.MONTH) // home page uses last complete month
-		dateStart  = times.Add(dateEnd, -4, times.MONTH)                         // show 3 months
+		dateEnd    = times.ResetMonth(times.Today()) // use this month
+		dateStart  = times.Add(dateEnd, -5, times.MONTH)
 		params     = []*rest.Param{
 			{Type: rest.PATH, Key: "date_end", Value: times.AsYMString(dateEnd)},
 			{Type: rest.PATH, Key: "date_start", Value: times.AsYMString(dateStart)},
+			{Type: rest.PATH, Key: "team", Value: request.PathValue("team")},
 		}
 	)
-
 	return []dataCallerF{
 		// get teams
 		func(wg *sync.WaitGroup, page *PageContent) {
@@ -105,25 +98,18 @@ func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataC
 			}
 			wg.Done()
 		},
-		// get homepage stats
-		func(wg *sync.WaitGroup, page *PageContent) {
-			resp, err := rest.FromApi[*headlineapihome.Response](ctx, args.ApiHost, headlineapihome.ENDPOINT, request, params...)
-			if err == nil {
-				// set headlines
-				page.HeadlineData = &headlineData{
-					TotalCost:           resp.Data.TotalCost,
-					AverageCostPerMonth: resp.Data.AverageCostPerMonth,
-					DateStart:           resp.Request.DateStart,
-					DateEnd:             resp.Request.DateEnd,
-				}
-
-			}
-			wg.Done()
-		},
 		// get homepage costs - trigger the same end date as others
 		func(wg *sync.WaitGroup, page *PageContent) {
-			resp, err := rest.FromApi[*costapiteam.Response](ctx, args.ApiHost, costapiteam.ENDPOINT, request, params...)
+			resp, err := rest.FromApi[*costapiteamfilter.Response](ctx, args.ApiHost, costapiteamfilter.ENDPOINT, request, params...)
 			if err == nil {
+				// set date values
+				page.Dates = &datePicker{
+					DateStart: resp.Request.DateStart,
+					DateEnd:   resp.Request.DateEnd,
+					Months: times.AsYMStrings(
+						times.Months(times.Add(times.Today(), -12, times.MONTH), times.Today()),
+					),
+				}
 				// process the data into local structs
 				page.CostData = &costTableData{
 					BillingDay: billingDay,
@@ -135,14 +121,6 @@ func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataC
 						Extra:  resp.Headers[tabulate.EXTRA],
 						End:    resp.Headers[tabulate.END],
 					},
-				}
-				// also set date values
-				page.Dates = &datePicker{
-					DateStart: resp.Request.DateStart,
-					DateEnd:   resp.Request.DateEnd,
-					Months: times.AsYMStrings(
-						times.Months(times.Add(times.Today(), -12, times.MONTH), times.Today()),
-					),
 				}
 			}
 			wg.Done()

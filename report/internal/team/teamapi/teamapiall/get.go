@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"opg-reports/report/package/overwrite"
 	"opg-reports/report/package/rest"
-	"slices"
 	"time"
 )
 
@@ -17,7 +16,6 @@ func Get(ctx context.Context, apiHost string, current *http.Request, overwrites 
 		timeout     time.Duration = (2 * time.Second)
 		params      []*rest.Param = []*rest.Param{}
 		endpoint    string        = ENDPOINT
-		exclude     []string      = []string{"org", "legacy"}
 	)
 	teams = []string{}
 	// overwrite any params
@@ -33,12 +31,7 @@ func Get(ctx context.Context, apiHost string, current *http.Request, overwrites 
 	if err != nil {
 		return
 	}
-	// loop over the api data and return the names as strings
-	for _, team := range apiResponse.Data {
-		if !slices.Contains(exclude, team.Name) {
-			teams = append(teams, team.Name)
-		}
-	}
+	teams = apiResponse.Data
 
 	return
 }

@@ -11,17 +11,48 @@ import (
 	"opg-reports/report/package/htmlpage"
 	"opg-reports/report/package/respond"
 	"opg-reports/report/package/rest"
+	"opg-reports/report/package/tabulate"
 	"opg-reports/report/package/times"
 	"opg-reports/report/package/tmpl"
 	"sync"
-	"time"
 )
+
+// headlineData is used to show healdine figures on the page
+type headlineData struct {
+	TotalCost           float64 `json:"total_cost"`             // total cost result
+	AverageCostPerMonth float64 `json:"average_cost_per_month"` // average cost per month
+	DateStart           string  `json:"date_start"`
+	DateEnd             string  `json:"date_end"`
+}
+
+type costTableHeaders struct {
+	Labels []string `json:"labels"`
+	Data   []string `json:"data"`
+	Extra  []string `json:"extra"`
+	End    []string `json:"end"`
+}
+
+// costTableData is used to handle the cost table data construct
+type costTableData struct {
+	Headers    *costTableHeaders        `json:"headers"` // headers contains details for table headers / rendering
+	Data       []map[string]interface{} `json:"data"`    // the actual data results
+	Summary    map[string]interface{}   `json:"summary"` // used to contain table totals etc
+	BillingDay int                      `json:"billing_day"`
+}
+
+// datepicker is used for selecting date ranges to show data for
+type datePicker struct {
+	Months    []string
+	DateStart string
+	DateEnd   string
+}
 
 type PageContent struct {
 	htmlpage.HTMLPage
 	Team         string
-	HeadlineData *headlineapiteam.Response
-	CostData     *costapiteamfilter.Response
+	HeadlineData *headlineData
+	CostData     *costTableData
+	Dates        *datePicker
 }
 
 type dataCallerF func(wg *sync.WaitGroup, page *PageContent)
@@ -32,8 +63,6 @@ func Handler(ctx context.Context, args *Args, writer http.ResponseWriter, reques
 		// err  error
 		pageName     string         = "OPG Reports"
 		templateName string         = "team"
-		endDate      time.Time      = times.Today()
-		startDate    time.Time      = times.Add(endDate, -12, times.MONTH)
 		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "teampage", "func", "Handler", "url", request.URL.String())
 		wg           sync.WaitGroup = sync.WaitGroup{}
 		page         *PageContent   = &PageContent{
@@ -49,7 +78,6 @@ func Handler(ctx context.Context, args *Args, writer http.ResponseWriter, reques
 		go blockF(&wg, page)
 	}
 	wg.Wait()
-	page.HeadlineData.Months = times.AsYMStrings(times.Months(startDate, endDate))
 	// respond
 	respond.AsHTML(ctx, request, writer, page, &respond.Args{
 		Template:      templateName,
@@ -61,30 +89,64 @@ func Handler(ctx context.Context, args *Args, writer http.ResponseWriter, reques
 
 // dataCallers provides all the aync / concurrent api calls to fetch and attach data to this page
 func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataCallerF {
-	var team = &rest.Param{Type: rest.PATH, Key: "team", Value: request.PathValue("team")}
+	var (
+		billingDay = 15
+		dateEnd    = times.Add(times.ResetMonth(times.Today()), -1, times.MONTH) // home page uses last complete month
+		dateStart  = times.Add(dateEnd, -4, times.MONTH)                         // show 3 months
+		params     = []*rest.Param{
+			{Type: rest.PATH, Key: "date_end", Value: times.AsYMString(dateEnd)},
+			{Type: rest.PATH, Key: "date_start", Value: times.AsYMString(dateStart)},
+			{Type: rest.PATH, Key: "team", Value: request.PathValue("team")},
+		}
+	)
 
 	return []dataCallerF{
 		// get teams
 		func(wg *sync.WaitGroup, page *PageContent) {
-			if teams, err := teamapiall.Get(ctx, args.ApiHost, request); err == nil {
-				page.Teams = teams
+			resp, err := rest.FromApi[*teamapiall.Response](ctx, args.ApiHost, teamapiall.ENDPOINT, request)
+			if err == nil {
+				page.Teams = resp.Data
 			}
 			wg.Done()
 		},
 		// get homepage stats
 		func(wg *sync.WaitGroup, page *PageContent) {
-			if stats, err := headlineapiteam.Get(ctx, args.ApiHost, request, team); err == nil {
-				page.HeadlineData = stats
+			resp, err := rest.FromApi[*headlineapiteam.Response](ctx, args.ApiHost, headlineapiteam.ENDPOINT, request, params...)
+			if err == nil {
+				// set headlines
+				page.HeadlineData = &headlineData{
+					TotalCost:           resp.Data.TotalCost,
+					AverageCostPerMonth: resp.Data.AverageCostPerMonth,
+					DateStart:           resp.Request.DateStart,
+					DateEnd:             resp.Request.DateEnd,
+				}
 			}
 			wg.Done()
 		},
-		// get homepage costs - trigger the same end date as others
+		// get team page costs - based on account
 		func(wg *sync.WaitGroup, page *PageContent) {
-			var endDate = times.Add(times.ResetMonth(times.Today()), -1, times.MONTH)
-			var end = &rest.Param{Type: rest.PATH, Key: "date_end", Value: times.AsYMString(endDate)}
-
-			if costs, err := costapiteamfilter.Get(ctx, args.ApiHost, request, end, team); err == nil {
-				page.CostData = costs
+			resp, err := rest.FromApi[*costapiteamfilter.Response](ctx, args.ApiHost, costapiteamfilter.ENDPOINT, request, params...)
+			if err == nil {
+				// process the data into local structs
+				page.CostData = &costTableData{
+					BillingDay: billingDay,
+					Data:       resp.Data,
+					Summary:    resp.Summary,
+					Headers: &costTableHeaders{
+						Labels: resp.Headers[tabulate.KEY],
+						Data:   resp.Headers[tabulate.DATA],
+						Extra:  resp.Headers[tabulate.EXTRA],
+						End:    resp.Headers[tabulate.END],
+					},
+				}
+				// also set date values
+				page.Dates = &datePicker{
+					DateStart: resp.Request.DateStart,
+					DateEnd:   resp.Request.DateEnd,
+					Months: times.AsYMStrings(
+						times.Months(times.Add(times.Today(), -12, times.MONTH), times.Today()),
+					),
+				}
 			}
 			wg.Done()
 		},

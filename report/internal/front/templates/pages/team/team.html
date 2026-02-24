@@ -6,7 +6,7 @@
     <main id="main-content" class="app-content" role="main">
 
     {{- if .HeadlineData -}}
-        {{ template "teampage-stats" .HeadlineData }}
+        {{ template "headline-stats" .HeadlineData }}
     {{- end -}}
 
     {{- if .CostData -}}
@@ -19,8 +19,8 @@
         </section>
     {{- end -}}
 
-    {{- if .HeadlineData -}}
-        {{ template "date-start-end-selection" .HeadlineData }}
+    {{- if .Dates -}}
+        {{ template "date-start-end-selection" .Dates }}
     {{- end -}}
     </main>
 

@@ -1,4 +1,4 @@
-package costsbyteam
+package teamcostsdetailed
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"opg-reports/report/package/cntxt"
 )
 
-const ENDPOINT string = "/home/costs"
+const ENDPOINT string = "/team/{team}/costs/detailed"
 
 type Args struct {
 	ApiHost      string `json:"api"`
@@ -18,7 +18,7 @@ type Args struct {
 }
 
 func Register(ctx context.Context, mux *http.ServeMux, args *Args) {
-	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "homepage", "func", "Register")
+	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "teamcostsdetailed", "func", "Register")
 
 	log.Info("registering handler [`" + ENDPOINT + "/{$}`] ...")
 	mux.HandleFunc(fmt.Sprintf("%s/{$}", ENDPOINT), func(writer http.ResponseWriter, request *http.Request) {

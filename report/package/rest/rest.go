@@ -9,9 +9,22 @@ import (
 	"log/slog"
 	"net/http"
 	"opg-reports/report/package/cntxt"
+	"time"
 )
 
 var ErrRequestFailed = errors.New("request failed.")
+
+func FromApi[R any](ctx context.Context, apiHost string, endpoint string, current *http.Request, params ...*Param) (response R, err error) {
+	var timeout time.Duration = (2 * time.Second)
+
+	response, _, err = Get[R](ctx, current, &Request{
+		Host:     apiHost,
+		Endpoint: endpoint,
+		Timeout:  timeout,
+		Params:   params,
+	})
+	return
+}
 
 // Get is a helper to fetch json based data from an endpoint, mixing default parameters
 // (both path & query string) with values from the current request - allowing the front

@@ -1,7 +1,7 @@
 {{- define "date-comparison" -}}
-{{ $start := .Request.DateA }}
-{{ $end := .Request.DateB }}
-{{ $change := .Request.Change }}
+{{ $start := .DateA }}
+{{ $end := .DateB }}
+{{ $change := .Change }}
 <section class="date-start-end">
 <form method="get" class="govuk-form-group compact-form date-start-end-form">
 <p class="govuk-body">Change dates to compare

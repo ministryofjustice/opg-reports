@@ -64,8 +64,8 @@ type Filter struct {
 }
 
 type Result struct {
-	TotalCost           float64 `json:"total_cost"`              // total cost result
-	AverageCostPerMonth float64 `json:"average_cost_per_monoth"` // average cost per month
+	TotalCost           float64 `json:"total_cost"`             // total cost result
+	AverageCostPerMonth float64 `json:"average_cost_per_month"` // average cost per month
 }
 
 // Responder process the incoming request, queries the database and returns the result as json data.
