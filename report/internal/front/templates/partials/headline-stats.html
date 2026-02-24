@@ -10,6 +10,17 @@
     </div>
     {{- end -}}
 
+    {{- if .CodebaseCount -}}
+    <div class="govuk-panel tile tile--uptime">
+        <div class="govuk-panel__body"><strong>{{ Percentage .CodebasePassed 2 }}</strong><br>Passing standards*</div>
+        <div class="govuk-panel__body_extra">
+            <p class="govuk-body-s">*Exlcudes private repositories</p>
+            <p class="govuk-body-s">Total codebases: <strong>{{ .CodebaseCount }}</strong></p>
+            <p class="govuk-body-s">Exemplar: <strong>{{ Percentage .CodebaseExemplar 2 }}</strong></p>
+        </div>
+    </div>
+    {{- end -}}
+
     {{- if .TotalCost -}}
     <div class="govuk-panel tile tile--cost">
         <div class="govuk-panel__body"><strong>{{ Currency .TotalCost "$" }}</strong><br>AWS costs</div>

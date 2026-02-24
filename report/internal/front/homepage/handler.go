@@ -20,11 +20,20 @@ import (
 
 // headlineData is used to show healdine figures on the page
 type headlineData struct {
+	DateStart string `json:"date_start"`
+	DateEnd   string `json:"date_end"`
+	// costs
 	TotalCost           float64 `json:"total_cost"`             // total cost result
 	AverageCostPerMonth float64 `json:"average_cost_per_month"` // average cost per month
-	OverallUptime       float64 `json:"overall_uptime"`         // uptime
-	DateStart           string  `json:"date_start"`
-	DateEnd             string  `json:"date_end"`
+	// uptime
+	OverallUptime float64 `json:"overall_uptime"` // uptime
+	// codebases
+	CodebaseCount    int     `json:"codebase_count"`    // total number of codebases
+	CodebasePassed   float64 `json:"codebase_passed"`   // % that have a passing status
+	CodebaseBaseline float64 `json:"codebase_baseline"` // % that have a baseline status
+	CodebaseStandard float64 `json:"codebase_standard"` // % that have a standard status
+	CodebaseExemplar float64 `json:"codebase_exemplar"` // % that have a exemplar status
+
 }
 
 type tableHeaders struct {
@@ -113,13 +122,17 @@ func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataC
 			if err == nil {
 				// set headlines
 				page.HeadlineData = &headlineData{
+					DateStart:           resp.Request.DateStart,
+					DateEnd:             resp.Request.DateEnd,
 					TotalCost:           resp.Data.TotalCost,
 					AverageCostPerMonth: resp.Data.AverageCostPerMonth,
 					OverallUptime:       resp.Data.OverallUptime,
-					DateStart:           resp.Request.DateStart,
-					DateEnd:             resp.Request.DateEnd,
+					CodebaseCount:       resp.Data.CodebaseCount,
+					CodebasePassed:      resp.Data.CodebasePassed,
+					CodebaseBaseline:    resp.Data.CodebaseBaseline,
+					CodebaseStandard:    resp.Data.CodebaseStandard,
+					CodebaseExemplar:    resp.Data.CodebaseExemplar,
 				}
-
 			}
 			wg.Done()
 		},

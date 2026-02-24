@@ -35,6 +35,19 @@ SELECT
 FROM uptime
 WHERE
 	uptime.month IN (:months)
+;
+`
+
+// codebase standards
+const codebaseSelect string = `
+SELECT
+    count(*) as total_count,
+    (SELECT count(*) FROM codebases WHERE compliance_level != 'unknown' ) as passed,
+    (SELECT count(*) FROM codebases WHERE compliance_level = 'baseline' ) as baseline,
+	(SELECT count(*) FROM codebases WHERE compliance_level = 'standard' ) as standard,
+    (SELECT count(*) FROM codebases WHERE compliance_level = 'exemplar' ) as exemplar
+FROM codebases
+;
 `
 
 // Request contains url path / query values
@@ -68,10 +81,17 @@ type Filter struct {
 }
 
 type Result struct {
+	// Costs
 	TotalCost           float64 `json:"total_cost"`             // total cost result
 	AverageCostPerMonth float64 `json:"average_cost_per_month"` // average cost per month
-
+	// Uptime
 	OverallUptime float64 `json:"overall_uptime"` // overall uptime in time period
+	// Codebase standards
+	CodebaseCount    int     `json:"codebase_count"`    // total number of codebases
+	CodebasePassed   float64 `json:"codebase_passed"`   // % that have a passing status
+	CodebaseBaseline float64 `json:"codebase_baseline"` // % that have a baseline status
+	CodebaseStandard float64 `json:"codebase_standard"` // % that have a standard status
+	CodebaseExemplar float64 `json:"codebase_exemplar"` // % that have a exemplar status
 }
 
 // Responder process the incoming request, queries the database and returns the result as json data.
@@ -107,6 +127,8 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 	costSelectRun(ctx, conf, filter, bindMap, res)
 	// run uptime database call
 	uptimeSelectRun(ctx, conf, filter, bindMap, res)
+	// codebase info
+	codebasesSelectRun(ctx, conf, filter, bindMap, res)
 
 	response = &Response{
 		Version: conf.Version,
@@ -164,5 +186,41 @@ func uptimeSelectRun(ctx context.Context, conf *Config, filter *Filter, bindMap 
 			return err
 		},
 	})
+	return res
+}
+
+// codebasesSelectRun runs the select and fetches the values
+func codebasesSelectRun(ctx context.Context, conf *Config, filter *Filter, bindMap map[string]interface{}, res *Result) *Result {
+	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "headlineapi", "func", "codebasesSelectRun")
+
+	var scan = []any{
+		&res.CodebaseCount,
+		&res.CodebasePassed,
+		&res.CodebaseBaseline,
+		&res.CodebaseStandard,
+		&res.CodebaseExemplar,
+	}
+	dbx.Select(ctx, codebaseSelect, &dbx.SelectArgs{
+		DB:      conf.DB,
+		Driver:  conf.Driver,
+		Params:  conf.Params,
+		BindMap: bindMap,
+		ScanF: func(rows *sql.Rows) error {
+			var err error
+			if err = rows.Scan(scan...); err != nil {
+				log.Error("row scan failed", "err", err.Error())
+			}
+			return err
+		},
+	})
+	// now make these percantages
+	if res.CodebaseCount > 0 {
+		onePercent := (float64(res.CodebaseCount) / 100)
+		res.CodebasePassed = res.CodebasePassed / onePercent
+		res.CodebaseBaseline = res.CodebaseBaseline / onePercent
+		res.CodebaseStandard = res.CodebaseStandard / onePercent
+		res.CodebaseExemplar = res.CodebaseExemplar / onePercent
+	}
+
 	return res
 }
