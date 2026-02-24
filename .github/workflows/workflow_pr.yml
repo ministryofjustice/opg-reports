@@ -118,12 +118,16 @@ jobs:
           cache: false
           go-version-file: './go.mod'
       # build
-      - name: "Make"
+      - name: "Make - build-cmds"
         run: |
           rm -Rf ${{ env.BUILD_DIR }}
           make build-cmds
+          ls -lhRt ${{ env.BUILD_DIR }}
+      - name: "Make - front assets"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
           make front-assets
-          chmod -Rf 0777 ${{ env.BUILD_DIR }}
           ls -lhRt ${{ env.BUILD_DIR }}
       # download production database
       - name: "Download PRODUCTION database"

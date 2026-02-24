@@ -1,4 +1,5 @@
 LOG_LEVEL ?= info
+GITHUBTOKEN ?= ${GH_TOKEN}
 #========= IMPORT TEAMS =========
 IMPORT_CMD ?= ${BUILD_DIR}/import
 .PHONY: import-teams
@@ -96,7 +97,7 @@ METADATA_EX_DIR ?= ${BUILD_DIR}/metadata-extracted
 get-metadata:
 	@rm -Rf ${METADATA_EX_DIR}
 	@mkdir -p ${METADATA_EX_DIR}
-	@env GITHUB_TOKEN="${GITHUB_TOKEN}" \
+	@env GH_TOKEN="${GITHUBTOKEN}" \
 		gh release download ${METADATA_TAG} \
 			--clobber \
 			--repo ${METADATA_REPO} \
@@ -120,7 +121,7 @@ GOVUK_EX_DIR ?= ${BUILD_DIR}/govuk
 get-govuk:
 	@rm -Rf ${GOVUK_EX_DIR}
 	@mkdir -p ${GOVUK_EX_DIR}
-	@env GITHUB_TOKEN="${GITHUB_TOKEN}" \
+	@env GH_TOKEN="${GITHUBTOKEN}" \
 		gh release download v${GOVUK_TAG} \
 			--clobber \
 			--repo ${GOVUK_REPO} \
