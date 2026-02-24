@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"opg-reports/report/internal/account/accountapi/accountapiall"
 	"opg-reports/report/internal/account/accountapi/accountsapiforteam"
+	"opg-reports/report/internal/codebases/codebasesapi/codebaseapiall"
 	"opg-reports/report/internal/cost/costapi/costapidetailed"
 	"opg-reports/report/internal/cost/costapi/costapidetailedteamfilter"
 	"opg-reports/report/internal/cost/costapi/costapidiff"
@@ -61,7 +62,6 @@ var root *cobra.Command = &cobra.Command{
 func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 
 	registerPingAndHome(ctx, mux, in)
-
 	// teams
 	// - all
 	teamapiall.Register(ctx, mux, &teamapiall.Config{
@@ -71,7 +71,6 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 		Version: in.Version,
 		SHA:     in.SHA,
 	})
-
 	// headline api which returns highlighted numbers
 	headlineapihome.Register(ctx, mux, &headlineapihome.Config{
 		DB:      in.DB,
@@ -168,6 +167,14 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	})
 	// - uptime filtered by team
 	uptimeapiteamfilter.Register(ctx, mux, &uptimeapiteamfilter.Config{
+		DB:      in.DB,
+		Driver:  in.Driver,
+		Params:  in.Params,
+		Version: in.Version,
+		SHA:     in.SHA,
+	})
+	// codebases
+	codebaseapiall.Register(ctx, mux, &codebaseapiall.Config{
 		DB:      in.DB,
 		Driver:  in.Driver,
 		Params:  in.Params,

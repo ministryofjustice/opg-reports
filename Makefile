@@ -21,6 +21,17 @@ import-accounts: get-metadata build-cmds
 		--migration-file="${BUILD_DIR}/migrations.json" \
 		--src-file="${METADATA_EX_DIR}/aws.accounts.json"
 
+#========= IMPORT CODEBASES =========
+.PHONY: import-codebases
+import-codebases: CMD_LIST=import
+import-codebases: build-cmds
+	@echo "- importing codebases "
+	@env GH_TOKEN="${GITHUBTOKEN}" \
+		LOG_LEVEL=${LOG_LEVEL} \
+		${IMPORT_CMD} codebases \
+		--db="${API_DB}" \
+		--migration-file="${BUILD_DIR}/migrations.json"
+
 #========= RUN THE API =========
 # api command variables
 API_DB_DIR ?= ${BUILD_DIR}/database

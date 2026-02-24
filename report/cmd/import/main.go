@@ -59,8 +59,8 @@ func init() {
 	root.PersistentFlags().StringVar(&flags.Params, "params", flags.Params, "Database params")
 	root.PersistentFlags().StringVar(&flags.MigrationFile, "migration-file", flags.MigrationFile, "migration file")
 
-	root.PersistentFlags().StringVar(&flags.DateStart, "start", flags.DateStart, "Start date")
-	root.PersistentFlags().StringVar(&flags.DateEnd, "end", flags.DateEnd, "End date")
+	root.PersistentFlags().StringVar(&flags.DateStart, "date-start", flags.DateStart, "Start date")
+	root.PersistentFlags().StringVar(&flags.DateEnd, "date-end", flags.DateEnd, "End date")
 
 	root.PersistentFlags().StringVar(&flags.Region, "region", flags.Region, "AWS Region")
 
