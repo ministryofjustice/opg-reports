@@ -66,6 +66,7 @@ get-db:
 	@rm -f ${BUILD_DIR}/migrations.json
 	@rm -Rf ${API_DB}
 	@mkdir -p ${API_DB_DIR}
+	@echo "[]" > ${BUILD_DIR}/migrations.json
 	@echo "- downloading database "
 	@aws-vault exec ${GET_DB_PROFILE} -- aws s3 cp \
     	s3://${GET_DB_BUCKET}/database/api.db \
@@ -77,6 +78,7 @@ get-db-direct:
 	@rm -f ${BUILD_DIR}/migrations.json
 	@rm -Rf ${API_DB}
 	@mkdir -p ${API_DB_DIR}
+	@echo "[]" > ${BUILD_DIR}/migrations.json
 	@echo "- downloading database "
 	@aws s3 cp \
     	s3://${GETDB_BUCKET}/database/api.db \
@@ -140,7 +142,7 @@ BUILD_DIR ?= ./builds
 build-prep:
 	rm -Rf ${BUILD_DIR}/
 	mkdir -p ${BUILD_DIR}/
-	touch ${BUILD_DIR}/migrations.json
+	@echo "[]" > ${BUILD_DIR}/migrations.json
 
 ## build all commands based on folder structure
 ## within the ./reports/cmd directory but allow
