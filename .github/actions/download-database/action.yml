@@ -35,13 +35,13 @@ runs:
       shell: bash
       env:
         bucket: ${{ inputs.bucket }}
-        file: database/api.db
-        dest: ${{ inputs.dir }}/
+        key: database/api.db
+        dest: ${{ inputs.dir }}/database
       run: |
-        rm -Rf ${{ env.dest }}/
-        mkdir -p ${{ env.dest }}/
+        rm -Rf ${{ env.dest }}
+        mkdir -p ${{ env.dest }}
         aws s3 cp \
-          s3://${{ env.bucket }}/${{ env.file }} \
+          s3://${{ env.bucket }}/${{ env.key }} \
           ${{ env.dest }}/
-        ls -lhRt ${{ env.dest }}
+        ls -lhRt ${{ env.dest }}/
         echo "location=${{ env.dest }}/${{ env.file }}" >> $GITHUB_OUTPUT
