@@ -8,13 +8,11 @@ import (
 type Args struct {
 	Name         string
 	GovUKVersion string
-	Signature    string
 }
 
 type HTMLPage struct {
 	Name         string   // Name is used for page title
 	GovUKVersion string   // GovUKVersion is the version number (minus v) that we're using in this front end
-	Signature    string   // Signature is combination of the semver & git commit
 	Teams        []string // Teams are used for the page navigation
 
 	request *http.Request
@@ -40,7 +38,6 @@ func New(request *http.Request, args *Args) (pg HTMLPage) {
 	return HTMLPage{
 		Name:         args.Name,
 		GovUKVersion: args.GovUKVersion,
-		Signature:    args.Signature,
 		request:      request,
 		paths:        paths,
 	}
