@@ -37,16 +37,19 @@ api: build-cmds
 #========= RUN THE FRONT END =========
 # api command variables
 FRONT_CMD ?= ${BUILD_DIR}/front
-LOCAL_ASSETS ?= web
+LOCAL_ASSETS ?= ./web
 TEMPLATE_DIR ?= ./report/internal/front/templates
-.PHONY: front
-front: CMD_LIST=front
-front: build-cmds get-govuk
+.PHONY: front-assets
+front-assets: get-govuk
 	@echo "- copying templates and local assets"
 	@rm -Rf ${BUILD_DIR}/templates
 	@rm -Rf ${BUILD_DIR}/web
 	@cp -r ${LOCAL_ASSETS} ${BUILD_DIR}
 	@cp -r ${TEMPLATE_DIR} ${BUILD_DIR}
+
+.PHONY: front
+front: CMD_LIST=front
+front: build-cmds front-assets
 	@echo "- starting front "
 	@env LOG_LEVEL=${LOG_LEVEL} ${FRONT_CMD} \
 		--api-host="localhost:8081" \
