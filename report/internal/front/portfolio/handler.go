@@ -28,7 +28,7 @@ type PageContent struct {
 type dataCallerF func(wg *sync.WaitGroup, page *PageContent)
 
 // Handler deals with the / root page of the reporting site
-func Handler(ctx context.Context, args *Args, writer http.ResponseWriter, request *http.Request) {
+func Handler(ctx context.Context, args *frontmodels.FrontRegisterArgs, writer http.ResponseWriter, request *http.Request) {
 	var (
 		pageName     string         = "OPG Reports"
 		templateName string         = "portfolio"
@@ -58,7 +58,7 @@ func Handler(ctx context.Context, args *Args, writer http.ResponseWriter, reques
 }
 
 // dataCallers provides all the aync / concurrent api calls to fetch and attach data to this page
-func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataCallerF {
+func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, request *http.Request) []dataCallerF {
 	var (
 		billingDay = 15
 		dateEnd    = times.Add(times.ResetMonth(times.Today()), -1, times.MONTH) // home page uses last complete month

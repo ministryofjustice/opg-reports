@@ -1,5 +1,13 @@
 package frontmodels
 
+type FrontRegisterArgs struct {
+	ApiHost      string `json:"api"`
+	GovUKVersion string `json:"govuk_version"`
+	SemVer       string `json:"semver"`
+	RootDir      string `json:"root_dir"`
+	TemplateDir  string `json:"template_dir"`
+}
+
 // HeadlineData
 type HeadlineData struct {
 	Team      string

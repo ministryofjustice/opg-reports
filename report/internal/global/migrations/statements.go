@@ -127,5 +127,18 @@ CREATE TABLE IF NOT EXISTS codebases (
 	compliance_badge TEXT,
 	UNIQUE (full_name)
 ) STRICT;
-CREATE INDEX IF NOT EXISTS idx_codeowners ON codebases(full_name);
+CREATE INDEX IF NOT EXISTS idx_codebases ON codebases(full_name);
+`
+
+const create_codeowners string = `
+CREATE TABLE IF NOT EXISTS codeowners (
+	id INTEGER PRIMARY KEY,
+	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
+	codeowner TEXT NOT NULL,
+	codebase TEXT NOT NULL,
+	team_name TEXT NOT NULL,
+	UNIQUE (codeowner,codebase,team_name)
+) STRICT;
+
+CREATE INDEX IF NOT EXISTS idx_codeowners ON codeowners(codebase,team_name);
 `

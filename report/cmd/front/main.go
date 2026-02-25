@@ -16,6 +16,7 @@ import (
 	"opg-reports/report/internal/front/portfolio"
 	"opg-reports/report/internal/front/statics"
 	"opg-reports/report/internal/front/teampage"
+	"opg-reports/report/internal/global/frontmodels"
 	"opg-reports/report/internal/uptime/uptimefront/home/homeuptime"
 	"opg-reports/report/internal/uptime/uptimefront/team/teamuptime"
 	"opg-reports/report/package/cntxt"
@@ -63,110 +64,46 @@ var root *cobra.Command = &cobra.Command{
 // registerEndpoints all of the front end endpoints
 func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 
+	var args = &frontmodels.FrontRegisterArgs{
+		ApiHost:      in.ApiHost,
+		GovUKVersion: in.GovUKVersion,
+		SemVer:       in.Version,
+		RootDir:      in.RootDir,
+		TemplateDir:  in.TemplateDir,
+	}
+
 	statics.Register(ctx, mux, &statics.Args{
 		RootDir:        in.RootDir,
 		GovUKDir:       in.GovUKDir,
 		LocalAssetsDir: in.LocalAssetsDir,
 	})
 	// portfolio
-	portfolio.Register(ctx, mux, &portfolio.Args{
-		ApiHost:      in.ApiHost,
-		GovUKVersion: in.GovUKVersion,
-		SemVer:       in.Version,
-		RootDir:      in.RootDir,
-		TemplateDir:  in.TemplateDir,
-	})
+	portfolio.Register(ctx, mux, args)
 	// home pages
 	// - main home
-	homepage.Register(ctx, mux, &homepage.Args{
-		ApiHost:      in.ApiHost,
-		GovUKVersion: in.GovUKVersion,
-		SemVer:       in.Version,
-		RootDir:      in.RootDir,
-		TemplateDir:  in.TemplateDir,
-	})
+	homepage.Register(ctx, mux, args)
 	// - home, simple costs grouped by team
-	homecosts.Register(ctx, mux, &homecosts.Args{
-		ApiHost:      in.ApiHost,
-		GovUKVersion: in.GovUKVersion,
-		SemVer:       in.Version,
-		RootDir:      in.RootDir,
-		TemplateDir:  in.TemplateDir,
-	})
+	homecosts.Register(ctx, mux, args)
 	// - home, show detailed breakdown of costs
-	homecostsdetailed.Register(ctx, mux, &homecostsdetailed.Args{
-		ApiHost:      in.ApiHost,
-		GovUKVersion: in.GovUKVersion,
-		SemVer:       in.Version,
-		RootDir:      in.RootDir,
-		TemplateDir:  in.TemplateDir,
-	})
+	homecostsdetailed.Register(ctx, mux, args)
 	// - home, show cost differences between all accounts
-	homecostsdiff.Register(ctx, mux, &homecostsdiff.Args{
-		ApiHost:      in.ApiHost,
-		GovUKVersion: in.GovUKVersion,
-		SemVer:       in.Version,
-		RootDir:      in.RootDir,
-		TemplateDir:  in.TemplateDir,
-	})
+	homecostsdiff.Register(ctx, mux, args)
 	// - home uptime
-	homeuptime.Register(ctx, mux, &homeuptime.Args{
-		ApiHost:      in.ApiHost,
-		GovUKVersion: in.GovUKVersion,
-		SemVer:       in.Version,
-		RootDir:      in.RootDir,
-		TemplateDir:  in.TemplateDir,
-	})
+	homeuptime.Register(ctx, mux, args)
 	// - code bases
-	homecodebases.Register(ctx, mux, &homecodebases.Args{
-		ApiHost:      in.ApiHost,
-		GovUKVersion: in.GovUKVersion,
-		SemVer:       in.Version,
-		RootDir:      in.RootDir,
-		TemplateDir:  in.TemplateDir,
-	})
+	homecodebases.Register(ctx, mux, args)
 
 	// team pages
 	// main team page
-	teampage.Register(ctx, mux, &teampage.Args{
-		ApiHost:      in.ApiHost,
-		GovUKVersion: in.GovUKVersion,
-		SemVer:       in.Version,
-		RootDir:      in.RootDir,
-		TemplateDir:  in.TemplateDir,
-	})
+	teampage.Register(ctx, mux, args)
 	// team costs, grouped by account id / name
-	teamcosts.Register(ctx, mux, &teamcosts.Args{
-		ApiHost:      in.ApiHost,
-		GovUKVersion: in.GovUKVersion,
-		SemVer:       in.Version,
-		RootDir:      in.RootDir,
-		TemplateDir:  in.TemplateDir,
-	})
+	teamcosts.Register(ctx, mux, args)
 	// team cost differences
-	teamcostsdiff.Register(ctx, mux, &teamcostsdiff.Args{
-		ApiHost:      in.ApiHost,
-		GovUKVersion: in.GovUKVersion,
-		SemVer:       in.Version,
-		RootDir:      in.RootDir,
-		TemplateDir:  in.TemplateDir,
-	})
+	teamcostsdiff.Register(ctx, mux, args)
 	// team cost details
-	teamcostsdetailed.Register(ctx, mux, &teamcostsdetailed.Args{
-		ApiHost:      in.ApiHost,
-		GovUKVersion: in.GovUKVersion,
-		SemVer:       in.Version,
-		RootDir:      in.RootDir,
-		TemplateDir:  in.TemplateDir,
-	})
+	teamcostsdetailed.Register(ctx, mux, args)
 	// team uptime
-	teamuptime.Register(ctx, mux, &teamuptime.Args{
-		ApiHost:      in.ApiHost,
-		GovUKVersion: in.GovUKVersion,
-		SemVer:       in.Version,
-		RootDir:      in.RootDir,
-		TemplateDir:  in.TemplateDir,
-	})
+	teamuptime.Register(ctx, mux, args)
 
 }
 

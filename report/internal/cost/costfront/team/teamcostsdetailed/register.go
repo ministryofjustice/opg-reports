@@ -5,20 +5,13 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"opg-reports/report/internal/global/frontmodels"
 	"opg-reports/report/package/cntxt"
 )
 
 const ENDPOINT string = "/team/{team}/costs/detailed"
 
-type Args struct {
-	ApiHost      string `json:"api"`
-	GovUKVersion string `json:"govuk_version"`
-	SemVer       string `json:"semver"`
-	RootDir      string `json:"root_dir"`
-	TemplateDir  string `json:"template_dir"`
-}
-
-func Register(ctx context.Context, mux *http.ServeMux, args *Args) {
+func Register(ctx context.Context, mux *http.ServeMux, args *frontmodels.FrontRegisterArgs) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "teamcostsdetailed", "func", "Register")
 
 	log.Info("registering handler [`" + ENDPOINT + "/{$}`] ...")

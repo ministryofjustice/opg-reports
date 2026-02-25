@@ -44,6 +44,9 @@ var migrations = map[string][]*Migration{
 	"codebases": {
 		{Key: "create_codebases", Stmt: create_codebases},
 	},
+	"codeowners": {
+		{Key: "create_codeowners", Stmt: create_codeowners},
+	},
 	"after": {
 		{Key: "lowercase_team_name", Stmt: lowercase_team_name},
 	},

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"opg-reports/report/internal/global/frontmodels"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/internal/uptime/uptimeapi/uptimeapiteamfilter"
 	"opg-reports/report/package/cntxt"
@@ -18,38 +19,17 @@ import (
 	"sync"
 )
 
-type tableHeaders struct {
-	Labels []string `json:"labels"`
-	Data   []string `json:"data"`
-	Extra  []string `json:"extra"`
-	End    []string `json:"end"`
-}
-
-// tableData is used to handle the cost table data construct
-type tableData struct {
-	Headers *tableHeaders            `json:"headers"` // headers contains details for table headers / rendering
-	Data    []map[string]interface{} `json:"data"`    // the actual data results
-	Summary map[string]interface{}   `json:"summary"` // used to contain table totals etc
-}
-
-// datepicker is used for selecting date ranges to show data for
-type datePicker struct {
-	Months    []string
-	DateStart string
-	DateEnd   string
-}
-
 type PageContent struct {
 	htmlpage.HTMLPage
 	Team       string
-	UptimeData *tableData
-	Dates      *datePicker
+	UptimeData *frontmodels.TableData
+	Dates      *frontmodels.DateRanges
 }
 
 type dataCallerF func(wg *sync.WaitGroup, page *PageContent)
 
 // Handler deals with the / root page of the reporting site
-func Handler(ctx context.Context, args *Args, writer http.ResponseWriter, request *http.Request) {
+func Handler(ctx context.Context, args *frontmodels.FrontRegisterArgs, writer http.ResponseWriter, request *http.Request) {
 	var (
 		team         string         = request.PathValue("team")
 		pageName     string         = "OPG Reports"
@@ -57,8 +37,14 @@ func Handler(ctx context.Context, args *Args, writer http.ResponseWriter, reques
 		templateName string         = "team-uptime-by-team"
 		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "teamuptime", "func", "Handler", "url", request.URL.String())
 		wg           sync.WaitGroup = sync.WaitGroup{}
-		pgArgs       *htmlpage.Args = &htmlpage.Args{Title: pageTitle, Name: pageName, GovUKVersion: args.GovUKVersion, SemVer: args.SemVer}
-		page         *PageContent   = &PageContent{HTMLPage: htmlpage.New(request, pgArgs), Team: team}
+		pgArgs       *htmlpage.Args = &htmlpage.Args{
+			Title:        pageTitle,
+			Name:         pageName,
+			GovUKVersion: args.GovUKVersion,
+			SemVer:       args.SemVer}
+		page *PageContent = &PageContent{
+			HTMLPage: htmlpage.New(request, pgArgs),
+			Team:     team}
 	)
 	log.Info("starting ...")
 	// page data fetched from api via blocks
@@ -78,7 +64,7 @@ func Handler(ctx context.Context, args *Args, writer http.ResponseWriter, reques
 }
 
 // dataCallers provides all the aync / concurrent api calls to fetch and attach data to this page
-func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataCallerF {
+func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, request *http.Request) []dataCallerF {
 	var (
 		dateEnd   = times.ResetMonth(times.Today()) // use this month
 		dateStart = times.Add(dateEnd, -5, times.MONTH)
@@ -102,10 +88,10 @@ func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataC
 			resp, err := rest.FromApi[*uptimeapiteamfilter.Response](ctx, args.ApiHost, uptimeapiteamfilter.ENDPOINT, request, params...)
 			if err == nil {
 				// process the data into local structs
-				page.UptimeData = &tableData{
+				page.UptimeData = &frontmodels.TableData{
 					Data:    resp.Data,
 					Summary: resp.Summary,
-					Headers: &tableHeaders{
+					Headers: &frontmodels.TableHeaders{
 						Labels: resp.Headers[tabulate.KEY],
 						Data:   resp.Headers[tabulate.DATA],
 						Extra:  resp.Headers[tabulate.EXTRA],
@@ -113,7 +99,7 @@ func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataC
 					},
 				}
 				// also set date values
-				page.Dates = &datePicker{
+				page.Dates = &frontmodels.DateRanges{
 					DateStart: resp.Request.DateStart,
 					DateEnd:   resp.Request.DateEnd,
 					Months: times.AsYMStrings(
