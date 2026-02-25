@@ -20,6 +20,7 @@ SELECT
 	name,
 	full_name,
 	url,
+	visibility,
 	compliance_level,
 	compliance_report_url,
 	compliance_badge
@@ -50,6 +51,7 @@ type Model struct {
 	Name                string `json:"name,omitempty"`                  // short name of codebase (without owner)
 	FullName            string `json:"full_name,omitempty" `            // full name including the owner
 	Url                 string `json:"url,omitempty" `                  // url to access the codebase
+	Visibility          string `json:"visibility,omityempty"`           // visibility status
 	ComplianceLevel     string `json:"compliance_level,omitempty"`      // compliance level (moj based)
 	ComplianceReportUrl string `json:"compliance_report_url,omitempty"` // compliance report url
 	ComplianceBadge     string `json:"compliance_badge,omitempty"`      // compliance badge url
@@ -61,6 +63,7 @@ func (self *Model) Sequence() []any {
 		&self.Name,
 		&self.FullName,
 		&self.Url,
+		&self.Visibility,
 		&self.ComplianceLevel,
 		&self.ComplianceReportUrl,
 		&self.ComplianceBadge,
