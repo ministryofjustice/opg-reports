@@ -42,7 +42,7 @@ WHERE
 const codebaseSelect string = `
 SELECT
     count(*) as total_count,
-    (SELECT count(*) FROM codebases WHERE compliance_level != 'unknown' AND visibility = 'public') as passed,
+    (SELECT count(*) FROM codebases WHERE compliance_level != 'unknown' AND visibility = 'public') as passed
 FROM codebases
 WHERE
 	visibility = 'public'

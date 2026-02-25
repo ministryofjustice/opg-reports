@@ -1,15 +1,14 @@
-package teamcosts
+package portfolio
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
-	"opg-reports/report/internal/cost/costapi/costapiteamfilter"
+	"opg-reports/report/internal/cost/costapi/costapiteam"
 	"opg-reports/report/internal/global/frontmodels"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
+	"opg-reports/report/internal/uptime/uptimeapi/uptimeapiteam"
 	"opg-reports/report/package/cntxt"
-	"opg-reports/report/package/cnv"
 	"opg-reports/report/package/htmlpage"
 	"opg-reports/report/package/respond"
 	"opg-reports/report/package/rest"
@@ -21,9 +20,9 @@ import (
 
 type PageContent struct {
 	htmlpage.HTMLPage
-	Team     string
-	CostData *frontmodels.TableData
-	Dates    *frontmodels.DateRanges
+	CostData   *frontmodels.TableData
+	UptimeData *frontmodels.TableData
+	Dates      *frontmodels.DateRanges
 }
 
 type dataCallerF func(wg *sync.WaitGroup, page *PageContent)
@@ -31,20 +30,16 @@ type dataCallerF func(wg *sync.WaitGroup, page *PageContent)
 // Handler deals with the / root page of the reporting site
 func Handler(ctx context.Context, args *Args, writer http.ResponseWriter, request *http.Request) {
 	var (
-		team         string         = request.PathValue("team")
 		pageName     string         = "OPG Reports"
-		pageTitle    string         = fmt.Sprintf("OPG Reports - %s - Costs", cnv.Capitalize(team))
-		templateName string         = "teams-costs-by-account"
-		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "teamcosts", "func", "Handler", "url", request.URL.String())
+		templateName string         = "portfolio"
+		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "portfolio", "func", "Handler", "url", request.URL.String())
 		wg           sync.WaitGroup = sync.WaitGroup{}
 		pgArgs       *htmlpage.Args = &htmlpage.Args{
-			Title:        pageTitle,
+			Title:        pageName,
 			Name:         pageName,
 			GovUKVersion: args.GovUKVersion,
 			SemVer:       args.SemVer}
-		page *PageContent = &PageContent{
-			HTMLPage: htmlpage.New(request, pgArgs),
-			Team:     team}
+		page *PageContent = &PageContent{HTMLPage: htmlpage.New(request, pgArgs)}
 	)
 	log.Info("starting ...")
 	// page data fetched from api via blocks
@@ -53,7 +48,6 @@ func Handler(ctx context.Context, args *Args, writer http.ResponseWriter, reques
 		go blockF(&wg, page)
 	}
 	wg.Wait()
-
 	// respond
 	respond.AsHTML(ctx, request, writer, page, &respond.Args{
 		Template:      templateName,
@@ -67,14 +61,14 @@ func Handler(ctx context.Context, args *Args, writer http.ResponseWriter, reques
 func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataCallerF {
 	var (
 		billingDay = 15
-		dateEnd    = times.ResetMonth(times.Today()) // use this month
-		dateStart  = times.Add(dateEnd, -5, times.MONTH)
+		dateEnd    = times.Add(times.ResetMonth(times.Today()), -1, times.MONTH) // home page uses last complete month
+		dateStart  = times.Add(dateEnd, -4, times.MONTH)                         // show 3 months
 		params     = []*rest.Param{
 			{Type: rest.PATH, Key: "date_end", Value: times.AsYMString(dateEnd)},
 			{Type: rest.PATH, Key: "date_start", Value: times.AsYMString(dateStart)},
-			{Type: rest.PATH, Key: "team", Value: request.PathValue("team")},
 		}
 	)
+
 	return []dataCallerF{
 		// get teams
 		func(wg *sync.WaitGroup, page *PageContent) {
@@ -84,11 +78,23 @@ func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataC
 			}
 			wg.Done()
 		},
-		// get homepage costs - trigger the same end date as others
+		// get costs - trigger the same end date as others
 		func(wg *sync.WaitGroup, page *PageContent) {
-			resp, err := rest.FromApi[*costapiteamfilter.Response](ctx, args.ApiHost, costapiteamfilter.ENDPOINT, request, params...)
+			resp, err := rest.FromApi[*costapiteam.Response](ctx, args.ApiHost, costapiteam.ENDPOINT, request, params...)
 			if err == nil {
-				// set date values
+				// process the data into local structs
+				page.CostData = &frontmodels.TableData{
+					BillingDay: billingDay,
+					Data:       resp.Data,
+					Summary:    resp.Summary,
+					Headers: &frontmodels.TableHeaders{
+						Labels: resp.Headers[tabulate.KEY],
+						Data:   resp.Headers[tabulate.DATA],
+						Extra:  resp.Headers[tabulate.EXTRA],
+						End:    resp.Headers[tabulate.END],
+					},
+				}
+				// also set date values
 				page.Dates = &frontmodels.DateRanges{
 					DateStart: resp.Request.DateStart,
 					DateEnd:   resp.Request.DateEnd,
@@ -96,11 +102,17 @@ func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataC
 						times.Months(times.Add(times.Today(), -12, times.MONTH), times.Today()),
 					),
 				}
+			}
+			wg.Done()
+		},
+		// get uptime breakdown
+		func(wg *sync.WaitGroup, page *PageContent) {
+			resp, err := rest.FromApi[*uptimeapiteam.Response](ctx, args.ApiHost, uptimeapiteam.ENDPOINT, request, params...)
+			if err == nil {
 				// process the data into local structs
-				page.CostData = &frontmodels.TableData{
-					BillingDay: billingDay,
-					Data:       resp.Data,
-					Summary:    resp.Summary,
+				page.UptimeData = &frontmodels.TableData{
+					Data:    resp.Data,
+					Summary: resp.Summary,
 					Headers: &frontmodels.TableHeaders{
 						Labels: resp.Headers[tabulate.KEY],
 						Data:   resp.Headers[tabulate.DATA],

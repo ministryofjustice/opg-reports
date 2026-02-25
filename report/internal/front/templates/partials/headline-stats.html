@@ -1,20 +1,31 @@
 {{- define "headline-stats" -}}
+
+{{ $prefix := "/home"}}
+{{- if .Team -}}
+{{ $prefix = printf "/team/%s" .Team }}
+{{- end -}}
+
+
+
 <section id="stats">
     <h1 class="govuk-heading-m compact-header">Headline statistics for {{ .DateStart }} - {{ .DateEnd }}</h1>
     <div class="tiles">
     {{- if .OverallUptime -}}
     <div class="govuk-panel tile tile--uptime">
         <div class="govuk-panel__body"><strong>{{ Percentage .OverallUptime 3 }}</strong> <br>Average uptime</div>
-        <div class="govuk-panel__body_extra">
+        <div class="govuk-panel__body govuk-panel__body_extra">
+            <p class="govuk-body-s"><a href="{{ $prefix }}/uptime/" >View details</a></p>
         </div>
+
     </div>
     {{- end -}}
 
     {{- if .CodebaseCount -}}
     <div class="govuk-panel tile tile--uptime">
         <div class="govuk-panel__body"><strong>{{ Percentage .CodebasePassed 2 }}</strong> <br>Baseline compliant</div>
-        <div class="govuk-panel__body_extra">
-            <p class="govuk-body-s">For <a href="https://github-community.service.justice.gov.uk/repository-standards/business-units/OPG">MoJ repository standards</a></p>
+        <div class="govuk-panel__body govuk-panel__body_extra">
+            <p class="govuk-body-s">Based on <a href="https://github-community.service.justice.gov.uk/repository-standards/business-units/OPG">MoJ repository standards</a></p>
+            <p class="govuk-body-s"><a href="{{ $prefix }}/codebases/" >View details</a></p>
         </div>
     </div>
     {{- end -}}
@@ -22,12 +33,11 @@
     {{- if .TotalCost -}}
     <div class="govuk-panel tile tile--cost">
         <div class="govuk-panel__body"><strong>{{ Currency .TotalCost "$" }}</strong><br>AWS costs</div>
-        <div class="govuk-panel__body_extra">
+        <div class="govuk-panel__body govuk-panel__body_extra">
+            <p class="govuk-body-s"><a href="{{ $prefix }}/costs/" >View details</a></p>
         </div>
     </div>
     {{- end -}}
-
-
 
     </div>
 </section>

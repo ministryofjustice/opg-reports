@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"opg-reports/report/internal/codebases/codebasesapi/codebaseapiall"
+	"opg-reports/report/internal/global/frontmodels"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/cnv"
@@ -15,24 +16,9 @@ import (
 	"sync"
 )
 
-// codebase model, copy from api side
-type codebase struct {
-	Name                string `json:"name,omitempty"`                  // short name of codebase (without owner)
-	FullName            string `json:"full_name,omitempty" `            // full name including the owner
-	Url                 string `json:"url,omitempty" `                  // url to access the codebase
-	Visibility          string `json:"visibility,omityempty"`           // visibility status
-	ComplianceLevel     string `json:"compliance_level,omitempty"`      // compliance level (moj based)
-	ComplianceReportUrl string `json:"compliance_report_url,omitempty"` // compliance report url
-	ComplianceBadge     string `json:"compliance_badge,omitempty"`      // compliance badge url
-}
-
-type codebaseData struct {
-	Codebases []*codebase
-}
-
 type PageContent struct {
 	htmlpage.HTMLPage
-	CodebaseData *codebaseData
+	CodebaseData *frontmodels.CodebaseData
 }
 
 type dataCallerF func(wg *sync.WaitGroup, page *PageContent)
@@ -45,8 +31,14 @@ func Handler(ctx context.Context, args *Args, writer http.ResponseWriter, reques
 		templateName string         = "home-codebases"
 		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "homecodebases", "func", "Handler", "url", request.URL.String())
 		wg           sync.WaitGroup = sync.WaitGroup{}
-		pgArgs       *htmlpage.Args = &htmlpage.Args{Title: pageTitle, Name: pageName, GovUKVersion: args.GovUKVersion, SemVer: args.SemVer}
-		page         *PageContent   = &PageContent{HTMLPage: htmlpage.New(request, pgArgs), CodebaseData: &codebaseData{}}
+		pgArgs       *htmlpage.Args = &htmlpage.Args{
+			Title:        pageTitle,
+			Name:         pageName,
+			GovUKVersion: args.GovUKVersion,
+			SemVer:       args.SemVer}
+		page *PageContent = &PageContent{
+			HTMLPage:     htmlpage.New(request, pgArgs),
+			CodebaseData: &frontmodels.CodebaseData{}}
 	)
 	log.Info("starting ...")
 	// page data fetched from api via blocks
@@ -82,7 +74,7 @@ func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataC
 		func(wg *sync.WaitGroup, page *PageContent) {
 			resp, err := rest.FromApi[*codebaseapiall.Response](ctx, args.ApiHost, codebaseapiall.ENDPOINT, request, params...)
 			if err == nil {
-				codebases := []*codebase{}
+				codebases := []*frontmodels.Codebase{}
 				cnv.Convert(resp.Data, &codebases)
 				page.CodebaseData.Codebases = codebases
 			}

@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"opg-reports/report/internal/cost/costapi/costapidetailedteamfilter"
+	"opg-reports/report/internal/global/frontmodels"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/cnv"
@@ -18,33 +19,11 @@ import (
 	"sync"
 )
 
-type tableHeaders struct {
-	Labels []string `json:"labels"`
-	Data   []string `json:"data"`
-	Extra  []string `json:"extra"`
-	End    []string `json:"end"`
-}
-
-// tableData is used to handle the cost table data construct
-type tableData struct {
-	Headers    *tableHeaders            `json:"headers"` // headers contains details for table headers / rendering
-	Data       []map[string]interface{} `json:"data"`    // the actual data results
-	Summary    map[string]interface{}   `json:"summary"` // used to contain table totals etc
-	BillingDay int                      `json:"billing_day"`
-}
-
-// datepicker is used for selecting date ranges to show data for
-type datePicker struct {
-	Months    []string
-	DateStart string
-	DateEnd   string
-}
-
 type PageContent struct {
 	htmlpage.HTMLPage
 	Team     string
-	CostData *tableData
-	Dates    *datePicker
+	CostData *frontmodels.TableData
+	Dates    *frontmodels.DateRanges
 }
 
 type dataCallerF func(wg *sync.WaitGroup, page *PageContent)
@@ -58,8 +37,14 @@ func Handler(ctx context.Context, args *Args, writer http.ResponseWriter, reques
 		templateName string         = "team-costs-detailed"
 		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "teamcostsdetailed", "func", "Handler", "url", request.URL.String())
 		wg           sync.WaitGroup = sync.WaitGroup{}
-		pgArgs       *htmlpage.Args = &htmlpage.Args{Title: pageTitle, Name: pageName, GovUKVersion: args.GovUKVersion, SemVer: args.SemVer}
-		page         *PageContent   = &PageContent{HTMLPage: htmlpage.New(request, pgArgs), Team: team}
+		pgArgs       *htmlpage.Args = &htmlpage.Args{
+			Title:        pageTitle,
+			Name:         pageName,
+			GovUKVersion: args.GovUKVersion,
+			SemVer:       args.SemVer}
+		page *PageContent = &PageContent{
+			HTMLPage: htmlpage.New(request, pgArgs),
+			Team:     team}
 	)
 	log.Info("starting ...")
 	// page data fetched from api via blocks
@@ -104,7 +89,7 @@ func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataC
 			resp, err := rest.FromApi[*costapidetailedteamfilter.Response](ctx, args.ApiHost, costapidetailedteamfilter.ENDPOINT, request, params...)
 			if err == nil {
 				// set date values
-				page.Dates = &datePicker{
+				page.Dates = &frontmodels.DateRanges{
 					DateStart: resp.Request.DateStart,
 					DateEnd:   resp.Request.DateEnd,
 					Months: times.AsYMStrings(
@@ -112,11 +97,11 @@ func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataC
 					),
 				}
 				// process the data into local structs
-				page.CostData = &tableData{
+				page.CostData = &frontmodels.TableData{
 					BillingDay: billingDay,
 					Data:       resp.Data,
 					Summary:    resp.Summary,
-					Headers: &tableHeaders{
+					Headers: &frontmodels.TableHeaders{
 						Labels: resp.Headers[tabulate.KEY],
 						Data:   resp.Headers[tabulate.DATA],
 						Extra:  resp.Headers[tabulate.EXTRA],

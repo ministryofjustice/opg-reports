@@ -13,6 +13,7 @@ import (
 	"opg-reports/report/internal/cost/costfront/team/teamcostsdetailed"
 	"opg-reports/report/internal/cost/costfront/team/teamcostsdiff"
 	"opg-reports/report/internal/front/homepage"
+	"opg-reports/report/internal/front/portfolio"
 	"opg-reports/report/internal/front/statics"
 	"opg-reports/report/internal/front/teampage"
 	"opg-reports/report/internal/uptime/uptimefront/home/homeuptime"
@@ -66,6 +67,14 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 		RootDir:        in.RootDir,
 		GovUKDir:       in.GovUKDir,
 		LocalAssetsDir: in.LocalAssetsDir,
+	})
+	// portfolio
+	portfolio.Register(ctx, mux, &portfolio.Args{
+		ApiHost:      in.ApiHost,
+		GovUKVersion: in.GovUKVersion,
+		SemVer:       in.Version,
+		RootDir:      in.RootDir,
+		TemplateDir:  in.TemplateDir,
 	})
 	// home pages
 	// - main home
