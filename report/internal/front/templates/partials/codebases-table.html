@@ -1,0 +1,26 @@
+{{- define "codebases-table" -}}
+
+{{- if .Codebases -}}
+<table class="govuk-table reports-table">
+    <thead class="govuk-table__head">
+        <tr class="govuk-table__row">
+            <th scope="col" class="govuk-table__header reports-table-heading">Codebase</th>
+            <th scope="col" class="govuk-table__header reports-table-heading">Visibility</th>
+            <th scope="col" class="govuk-table__header reports-table-heading">Compliance</th>
+        </tr>
+    </thead>
+    <tbody class="govuk-table__body">
+        {{- range $i, $row := .Codebases -}}
+        <tr class="govuk-table__row">
+            <th scope="row" class="govuk-table__header reports-table-heading"><a href="{{ .Url }}">{{ .Name }}</a></th>
+            <td class="govuk-table__cell govuk-table__cell">{{ .Visibility }}</td>
+            <td class="govuk-table__cell govuk-table__cell">
+                <a href="{{ .ComplianceReportUrl }}"><img src="{{ .ComplianceBadge }}" alt="{{ .ComplianceLevel }}"></a>
+            </td>
+        </tr>
+        {{- end -}}
+    </tbody>
+</table>
+{{- end -}}
+
+{{- end -}}

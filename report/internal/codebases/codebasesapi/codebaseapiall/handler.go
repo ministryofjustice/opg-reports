@@ -26,6 +26,7 @@ SELECT
 	compliance_badge
 FROM codebases
 ORDER BY
+	compliance_level,
 	name ASC
 ;
 `

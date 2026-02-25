@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"opg-reports/report/internal/codebases/codebasesfront/home/homecodebases"
 	"opg-reports/report/internal/cost/costfront/home/homecosts"
 	"opg-reports/report/internal/cost/costfront/home/homecostsdetailed"
 	"opg-reports/report/internal/cost/costfront/home/homecostsdiff"
@@ -101,6 +102,14 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	})
 	// - home uptime
 	homeuptime.Register(ctx, mux, &homeuptime.Args{
+		ApiHost:      in.ApiHost,
+		GovUKVersion: in.GovUKVersion,
+		SemVer:       in.Version,
+		RootDir:      in.RootDir,
+		TemplateDir:  in.TemplateDir,
+	})
+	// - code bases
+	homecodebases.Register(ctx, mux, &homecodebases.Args{
 		ApiHost:      in.ApiHost,
 		GovUKVersion: in.GovUKVersion,
 		SemVer:       in.Version,
