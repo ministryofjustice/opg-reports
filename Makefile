@@ -83,18 +83,6 @@ get-db:
     	s3://${GET_DB_BUCKET}/database/api.db \
     	${API_DB_DIR}/
 
-# gets the db without aws-vault usage (pipelines)
-.PHONY: get-db-direct
-get-db-direct:
-	@rm -f ${BUILD_DIR}/migrations.json
-	@rm -Rf ${API_DB}
-	@mkdir -p ${API_DB_DIR}
-	@echo "[]" > ${BUILD_DIR}/migrations.json
-	@echo "- downloading database "
-	@aws s3 cp \
-    	s3://${GETDB_BUCKET}/database/api.db \
-    	${API_DB_DIR}/
-
 
 #========= GET opg-metadata release =========
 ## Very rarely pulled in, so we can run it from

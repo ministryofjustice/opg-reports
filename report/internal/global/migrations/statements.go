@@ -121,6 +121,7 @@ CREATE TABLE IF NOT EXISTS codebases (
 	name TEXT NOT NULL,
 	full_name TEXT NOT NULL,
 	url TEXT NOT NULL,
+	visibility TEXT NOT NULL,
 	compliance_level TEXT,
 	compliance_report_url TEXT,
 	compliance_badge TEXT,

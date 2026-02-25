@@ -24,6 +24,7 @@ INSERT INTO codebases (
 	name,
 	full_name,
 	url,
+	visibility,
 	compliance_level,
 	compliance_report_url,
 	compliance_badge
@@ -31,6 +32,7 @@ INSERT INTO codebases (
 	:name,
 	:full_name,
 	:url,
+	:visibility,
 	:compliance_level,
 	:compliance_report_url,
 	:compliance_badge
@@ -62,6 +64,7 @@ type Model struct {
 	Name                string `json:"name,omitempty"`                  // short name of codebase (without owner)
 	FullName            string `json:"full_name,omitempty" `            // full name including the owner
 	Url                 string `json:"url,omitempty" `                  // url to access the codebase
+	Visibility          string `json:"visibility,omityempty"`           // visibility status
 	ComplianceLevel     string `json:"compliance_level,omitempty"`      // compliance level (moj based)
 	ComplianceReportUrl string `json:"compliance_report_url,omitempty"` // compliance report url
 	ComplianceBadge     string `json:"compliance_badge,omitempty"`      // compliance badge url
@@ -106,7 +109,6 @@ func Import(ctx context.Context, client Client, in *Args) (err error) {
 func toModels(ctx context.Context, list []*github.Repository) (repos []*Model, err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "toModels")
 	var base string = "https://github-community.service.justice.gov.uk/repository-standards"
-	// var timeout = (2 * time.Second)
 
 	repos = []*Model{}
 	log.Debug("starting ...")
@@ -116,6 +118,7 @@ func toModels(ctx context.Context, list []*github.Repository) (repos []*Model, e
 			Name:                *item.Name,
 			FullName:            *item.FullName,
 			Url:                 *item.HTMLURL,
+			Visibility:          *item.Visibility,
 			ComplianceLevel:     "unknown",
 			ComplianceReportUrl: fmt.Sprintf("%s/%s", base, *item.Name),
 			ComplianceBadge:     fmt.Sprintf("%s/api/%s/badge", base, *item.Name),

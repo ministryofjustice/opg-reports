@@ -1,10 +1,10 @@
 {{- define "headline-stats" -}}
 <section id="stats">
+    <h1 class="govuk-heading-m compact-header">Headline statistics for {{ .DateStart }} - {{ .DateEnd }}</h1>
     <div class="tiles">
-
     {{- if .OverallUptime -}}
     <div class="govuk-panel tile tile--uptime">
-        <div class="govuk-panel__body"><strong>{{ Percentage .OverallUptime 3 }}</strong><br>Average uptime</div>
+        <div class="govuk-panel__body"><strong>{{ Percentage .OverallUptime 3 }}</strong> <br>Average uptime</div>
         <div class="govuk-panel__body_extra">
         </div>
     </div>
@@ -12,11 +12,9 @@
 
     {{- if .CodebaseCount -}}
     <div class="govuk-panel tile tile--uptime">
-        <div class="govuk-panel__body"><strong>{{ Percentage .CodebasePassed 2 }}</strong><br>Passing standards*</div>
+        <div class="govuk-panel__body"><strong>{{ Percentage .CodebasePassed 2 }}</strong> <br>Baseline compliant</div>
         <div class="govuk-panel__body_extra">
-            <p class="govuk-body-s">*Exlcudes private repositories</p>
-            <p class="govuk-body-s">Total codebases: <strong>{{ .CodebaseCount }}</strong></p>
-            <p class="govuk-body-s">Exemplar: <strong>{{ Percentage .CodebaseExemplar 2 }}</strong></p>
+            <p class="govuk-body-s">For <a href="https://github-community.service.justice.gov.uk/repository-standards/business-units/OPG">MoJ repository standards</a></p>
         </div>
     </div>
     {{- end -}}

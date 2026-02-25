@@ -42,11 +42,10 @@ WHERE
 const codebaseSelect string = `
 SELECT
     count(*) as total_count,
-    (SELECT count(*) FROM codebases WHERE compliance_level != 'unknown' ) as passed,
-    (SELECT count(*) FROM codebases WHERE compliance_level = 'baseline' ) as baseline,
-	(SELECT count(*) FROM codebases WHERE compliance_level = 'standard' ) as standard,
-    (SELECT count(*) FROM codebases WHERE compliance_level = 'exemplar' ) as exemplar
+    (SELECT count(*) FROM codebases WHERE compliance_level != 'unknown' AND visibility = 'public') as passed,
 FROM codebases
+WHERE
+	visibility = 'public'
 ;
 `
 
@@ -87,11 +86,8 @@ type Result struct {
 	// Uptime
 	OverallUptime float64 `json:"overall_uptime"` // overall uptime in time period
 	// Codebase standards
-	CodebaseCount    int     `json:"codebase_count"`    // total number of codebases
-	CodebasePassed   float64 `json:"codebase_passed"`   // % that have a passing status
-	CodebaseBaseline float64 `json:"codebase_baseline"` // % that have a baseline status
-	CodebaseStandard float64 `json:"codebase_standard"` // % that have a standard status
-	CodebaseExemplar float64 `json:"codebase_exemplar"` // % that have a exemplar status
+	CodebaseCount  int     `json:"codebase_count"`  // total number of codebases
+	CodebasePassed float64 `json:"codebase_passed"` // % that have a passing status
 }
 
 // Responder process the incoming request, queries the database and returns the result as json data.
@@ -196,9 +192,6 @@ func codebasesSelectRun(ctx context.Context, conf *Config, filter *Filter, bindM
 	var scan = []any{
 		&res.CodebaseCount,
 		&res.CodebasePassed,
-		&res.CodebaseBaseline,
-		&res.CodebaseStandard,
-		&res.CodebaseExemplar,
 	}
 	dbx.Select(ctx, codebaseSelect, &dbx.SelectArgs{
 		DB:      conf.DB,
@@ -217,9 +210,6 @@ func codebasesSelectRun(ctx context.Context, conf *Config, filter *Filter, bindM
 	if res.CodebaseCount > 0 {
 		onePercent := (float64(res.CodebaseCount) / 100)
 		res.CodebasePassed = res.CodebasePassed / onePercent
-		res.CodebaseBaseline = res.CodebaseBaseline / onePercent
-		res.CodebaseStandard = res.CodebaseStandard / onePercent
-		res.CodebaseExemplar = res.CodebaseExemplar / onePercent
 	}
 
 	return res

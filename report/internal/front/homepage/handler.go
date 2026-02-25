@@ -28,12 +28,8 @@ type headlineData struct {
 	// uptime
 	OverallUptime float64 `json:"overall_uptime"` // uptime
 	// codebases
-	CodebaseCount    int     `json:"codebase_count"`    // total number of codebases
-	CodebasePassed   float64 `json:"codebase_passed"`   // % that have a passing status
-	CodebaseBaseline float64 `json:"codebase_baseline"` // % that have a baseline status
-	CodebaseStandard float64 `json:"codebase_standard"` // % that have a standard status
-	CodebaseExemplar float64 `json:"codebase_exemplar"` // % that have a exemplar status
-
+	CodebaseCount  int     `json:"codebase_count"`  // total number of codebases
+	CodebasePassed float64 `json:"codebase_passed"` // % that have a passing status
 }
 
 type tableHeaders struct {
@@ -129,9 +125,6 @@ func dataCallers(ctx context.Context, args *Args, request *http.Request) []dataC
 					OverallUptime:       resp.Data.OverallUptime,
 					CodebaseCount:       resp.Data.CodebaseCount,
 					CodebasePassed:      resp.Data.CodebasePassed,
-					CodebaseBaseline:    resp.Data.CodebaseBaseline,
-					CodebaseStandard:    resp.Data.CodebaseStandard,
-					CodebaseExemplar:    resp.Data.CodebaseExemplar,
 				}
 			}
 			wg.Done()
