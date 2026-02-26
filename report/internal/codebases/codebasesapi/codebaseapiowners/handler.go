@@ -37,6 +37,7 @@ WHERE
 GROUP BY
 	codebases.full_name
 ORDER BY
+	codebase_owners.team_name = "none" DESC,
 	codebase_owners.team_name ASC,
 	codebases.full_name ASC
 ;

@@ -64,9 +64,24 @@ type Codebase struct {
 	ComplianceLevel     string `json:"compliance_level,omitempty"`      // compliance level (moj based)
 	ComplianceReportUrl string `json:"compliance_report_url,omitempty"` // compliance report url
 	ComplianceBadge     string `json:"compliance_badge,omitempty"`      // compliance badge url
+	ComplianceGrade     int    `json:"compliance_grade,omitempty"`
+}
+
+type Codeowner struct {
+	FullName string   `json:"full_name,omitempty" ` // full name including the owner
+	Name     string   `json:"name,omitempty"`       // short name of codebase (without owner)
+	Url      string   `json:"url,omitempty" `       // url to access the codebase
+	Owners   []*Owner `json:"owners"`               // list of codeowners
+}
+
+// joined teams is the codebase -> codeowners data
+type Owner struct {
+	Owner    string `json:"owner"`
+	TeamName string `json:"team_name"`
 }
 
 // CodebaseData
 type CodebaseData struct {
-	Codebases []*Codebase
+	Codebases  []*Codebase
+	CodeOwners []*Codeowner
 }

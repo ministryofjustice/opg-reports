@@ -1,4 +1,4 @@
-package codebasesapistats
+package codebasesapicompliance
 
 import (
 	"context"
@@ -22,7 +22,7 @@ func Register(ctx context.Context, mux *http.ServeMux, config *apimodels.Args) {
 	var log = cntxt.GetLogger(ctx)
 
 	for _, ep := range endpoints {
-		log.Info(fmt.Sprintf("[%s] registering endpoint [%s] to handler", "codebasesapistats", ep))
+		log.Info(fmt.Sprintf("[%s] registering endpoint [%s] to handler", "codebasesapicompliance", ep))
 		ep = fmt.Sprintf("%s{$}", ep)
 
 		mux.HandleFunc(ep, func(writer http.ResponseWriter, request *http.Request) {

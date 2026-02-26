@@ -1,4 +1,4 @@
-package codebasecompliance
+package landingpage
 
 import (
 	"context"
@@ -9,8 +9,8 @@ import (
 	"opg-reports/report/package/cntxt"
 )
 
-const ENDPOINT_BASE string = `/home/codebase-compliance/`
-const ENDPOINT_TEAM string = `/team/{team}/codebase-compliance/`
+const ENDPOINT_BASE string = `/`
+const ENDPOINT_TEAM string = `/team/{team}/`
 
 var endpoints []string = []string{
 	ENDPOINT_BASE,
@@ -21,7 +21,7 @@ func Register(ctx context.Context, mux *http.ServeMux, args *frontmodels.Registe
 	var log *slog.Logger = cntxt.GetLogger(ctx)
 
 	for _, ep := range endpoints {
-		log.Info(fmt.Sprintf("[%s] registering endpoint [%s] to handler", "codebasecompliance", ep))
+		log.Info(fmt.Sprintf("[%s] registering endpoint [%s] to handler", "costsdetailed", ep))
 		ep = fmt.Sprintf("%s{$}", ep)
 
 		mux.HandleFunc(ep, func(writer http.ResponseWriter, request *http.Request) {

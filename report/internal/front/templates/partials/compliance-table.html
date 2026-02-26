@@ -7,6 +7,7 @@
             <th scope="col" class="govuk-table__header reports-table-heading">Codebase</th>
             <th scope="col" class="govuk-table__header reports-table-heading">Visibility</th>
             <th scope="col" class="govuk-table__header reports-table-heading">Compliance</th>
+            <th scope="col" class="govuk-table__header reports-table-heading">Score</th>
         </tr>
     </thead>
     <tbody class="govuk-table__body">
@@ -17,6 +18,7 @@
             <td class="govuk-table__cell govuk-table__cell">
                 <a href="{{ .ComplianceReportUrl }}"><img src="{{ .ComplianceBadge }}" alt="{{ .ComplianceLevel }}"></a>
             </td>
+            <td class="govuk-table__cell govuk-table__cell">{{ .ComplianceGrade }}</td>
         </tr>
         {{- end -}}
     </tbody>

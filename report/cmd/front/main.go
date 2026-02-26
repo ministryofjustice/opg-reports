@@ -6,14 +6,14 @@ import (
 	"log/slog"
 	"net/http"
 	"opg-reports/report/internal/codebases/codebasesfront/codebasecompliance"
+	"opg-reports/report/internal/codebases/codebasesfront/codebaseowners"
 	"opg-reports/report/internal/cost/costfront/costsbyaccounts"
 	"opg-reports/report/internal/cost/costfront/costsbyteam"
 	"opg-reports/report/internal/cost/costfront/costsdetailed"
 	"opg-reports/report/internal/cost/costfront/costsdiff"
-	"opg-reports/report/internal/front/homepage"
+	"opg-reports/report/internal/front/landingpage"
 	"opg-reports/report/internal/front/portfolio"
 	"opg-reports/report/internal/front/statics"
-	"opg-reports/report/internal/front/teampage"
 	"opg-reports/report/internal/global/frontmodels"
 	"opg-reports/report/internal/uptime/uptimefront/uptime"
 	"opg-reports/report/package/cntxt"
@@ -74,9 +74,10 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 		GovUKDir:       in.GovUKDir,
 		LocalAssetsDir: in.LocalAssetsDir,
 	})
+	// home & team landing pages
+	landingpage.Register(ctx, mux, args)
 	// portfolio - used to show stats we report on
 	portfolio.Register(ctx, mux, args)
-
 	// costs
 	// - costs group by team - no filtering
 	costsbyteam.Register(ctx, mux, args)
@@ -92,13 +93,8 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	// compliance
 	// - grouped by codebase
 	codebasecompliance.Register(ctx, mux, args)
-
-	// home pages
-	// - main home
-	homepage.Register(ctx, mux, args)
-	// team pages
-	// main team page
-	teampage.Register(ctx, mux, args)
+	// - codeownership
+	codebaseowners.Register(ctx, mux, args)
 
 }
 

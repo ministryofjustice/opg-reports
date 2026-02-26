@@ -1,8 +1,7 @@
-package teampage
+package landingpage
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"opg-reports/report/internal/global/frontmodels"
@@ -28,25 +27,20 @@ type PageContent struct {
 type dataCallerF func(wg *sync.WaitGroup, page *PageContent)
 
 // Handler deals with the / root page of the reporting site
-func Handler(ctx context.Context, args *frontmodels.RegisterArgs, writer http.ResponseWriter, request *http.Request) {
+func Handler(ctx context.Context, args *frontmodels.RegisterArgs, request *http.Request, writer http.ResponseWriter) {
 	var (
+		page         *PageContent
+		templateName string
 		team         string         = request.PathValue("team")
-		pageName     string         = "OPG Reports"
-		pageTitle    string         = fmt.Sprintf("OPG Reports - %s Overview", cnv.Capitalize(team))
-		templateName string         = "landing-page"
-		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "teampage", "func", "Handler", "url", request.URL.String())
 		wg           sync.WaitGroup = sync.WaitGroup{}
-		pgArgs       *htmlpage.Args = &htmlpage.Args{
-			Title:        pageTitle,
-			Name:         pageName,
-			GovUKVersion: args.GovUKVersion,
-			SemVer:       args.SemVer}
-		page *PageContent = &PageContent{
-			HTMLPage: htmlpage.New(request, pgArgs),
-			Team:     team}
+		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "landingpage", "func", "Handler", "url", request.URL.String())
 	)
 
 	log.Info("starting ...")
+	page, templateName = getPage(team, args, request)
+	if team != "" {
+		log.Info("found team parameter ... ", "team", team)
+	}
 	// page data fetched from api via blocks
 	for _, blockF := range dataCallers(ctx, args, request) {
 		wg.Add(1)
@@ -62,20 +56,44 @@ func Handler(ctx context.Context, args *frontmodels.RegisterArgs, writer http.Re
 	})
 	log.Info("complete.")
 }
+func getPage(team string, in *frontmodels.RegisterArgs, request *http.Request) (page *PageContent, template string) {
+	var args *htmlpage.Args = &htmlpage.Args{
+		Name:         "OPG Reports",
+		Title:        "OPG Reports",
+		GovUKVersion: in.GovUKVersion,
+		SemVer:       in.SemVer,
+	}
+	template = "landing-page"
+	if team != "" {
+		args.Title += " - " + cnv.Capitalize(team)
+	}
+	page = &PageContent{
+		HTMLPage: htmlpage.New(request, args),
+		Team:     team,
+	}
+	return
+}
 
 // dataCallers provides all the aync / concurrent api calls to fetch and attach data to this page
-func dataCallers(ctx context.Context, args *frontmodels.RegisterArgs, request *http.Request) []dataCallerF {
+func dataCallers(ctx context.Context, args *frontmodels.RegisterArgs, request *http.Request) (funcs []dataCallerF) {
 	var (
-		dateEnd   = times.ResetMonth(times.Today())
-		dateStart = times.Add(dateEnd, -5, times.MONTH)
-		params    = []*rest.Param{
+		team         = request.PathValue("team")
+		headEndpoint = headlineapi.ENDPOINT_BASE
+		dateEnd      = times.ResetMonth(times.Today())
+		dateStart    = times.Add(dateEnd, -5, times.MONTH)
+		params       = []*rest.Param{
 			{Type: rest.PATH, Key: "date_end", Value: times.AsYMString(dateEnd)},
 			{Type: rest.PATH, Key: "date_start", Value: times.AsYMString(dateStart)},
-			{Type: rest.PATH, Key: "team", Value: request.PathValue("team")},
 		}
 	)
 
-	return []dataCallerF{
+	// add team filter values and url
+	if team != "" {
+		headEndpoint = headlineapi.ENDPOINT_TEAM
+		params = append(params, &rest.Param{Type: rest.PATH, Key: "team", Value: team})
+	}
+
+	funcs = []dataCallerF{
 		// get teams
 		func(wg *sync.WaitGroup, page *PageContent) {
 			resp, err := rest.FromApi[*teamapiall.Response](ctx, args.ApiHost, teamapiall.ENDPOINT, request)
@@ -84,9 +102,9 @@ func dataCallers(ctx context.Context, args *frontmodels.RegisterArgs, request *h
 			}
 			wg.Done()
 		},
-		// get homepage stats
+		// get landingpage stats
 		func(wg *sync.WaitGroup, page *PageContent) {
-			resp, err := rest.FromApi[*headlineapi.Response](ctx, args.ApiHost, headlineapi.ENDPOINT_TEAM, request, params...)
+			resp, err := rest.FromApi[*headlineapi.Response](ctx, args.ApiHost, headEndpoint, request, params...)
 			if err == nil {
 				// set headlines
 				page.HeadlineData = &frontmodels.HeadlineData{
@@ -110,4 +128,5 @@ func dataCallers(ctx context.Context, args *frontmodels.RegisterArgs, request *h
 			wg.Done()
 		},
 	}
+	return
 }
