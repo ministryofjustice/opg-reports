@@ -1,4 +1,4 @@
-package codebasestatsapi
+package codebaseapiowners
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"opg-reports/report/package/cntxt"
 )
 
-const ENDPOINT string = "/v1/codebase-stats"
+const ENDPOINT string = "/v1/codebase-owners"
 
 // Config contains required values for DB and others to generate a response
 type Config struct {

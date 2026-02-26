@@ -1,10 +1,10 @@
-package homecodebases
+package homecodecompliance
 
 import (
 	"context"
 	"log/slog"
 	"net/http"
-	"opg-reports/report/internal/codebases/codebasesapi/codebasestatsapi"
+	"opg-reports/report/internal/codebases/codebasesapi/codebasesapistats"
 	"opg-reports/report/internal/global/frontmodels"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/package/cntxt"
@@ -29,7 +29,7 @@ func Handler(ctx context.Context, args *frontmodels.FrontRegisterArgs, writer ht
 		pageName     string         = "OPG Reports"
 		pageTitle    string         = "OPG Reports - Active Codebases"
 		templateName string         = "home-codebases"
-		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "homecodebases", "func", "Handler", "url", request.URL.String())
+		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "homecodecompliance", "func", "Handler", "url", request.URL.String())
 		wg           sync.WaitGroup = sync.WaitGroup{}
 		pgArgs       *htmlpage.Args = &htmlpage.Args{
 			Title:        pageTitle,
@@ -72,7 +72,7 @@ func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, reque
 		},
 		// get list of all codebases
 		func(wg *sync.WaitGroup, page *PageContent) {
-			resp, err := rest.FromApi[*codebasestatsapi.Response](ctx, args.ApiHost, codebasestatsapi.ENDPOINT, request, params...)
+			resp, err := rest.FromApi[*codebasesapistats.Response](ctx, args.ApiHost, codebasesapistats.ENDPOINT, request, params...)
 			if err == nil {
 				codebases := []*frontmodels.Codebase{}
 				cnv.Convert(resp.Data, &codebases)

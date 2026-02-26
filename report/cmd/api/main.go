@@ -7,7 +7,8 @@ import (
 	"net/http"
 	"opg-reports/report/internal/account/accountapi/accountapiall"
 	"opg-reports/report/internal/account/accountapi/accountsapiforteam"
-	"opg-reports/report/internal/codebases/codebasesapi/codebasestatsapi"
+	"opg-reports/report/internal/codebases/codebasesapi/codebaseapiowners"
+	"opg-reports/report/internal/codebases/codebasesapi/codebasesapistats"
 	"opg-reports/report/internal/cost/costapi/costapidetailed"
 	"opg-reports/report/internal/cost/costapi/costapidetailedteamfilter"
 	"opg-reports/report/internal/cost/costapi/costapidiff"
@@ -172,7 +173,16 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 		SHA:     in.SHA,
 	})
 	// codebases
-	codebasestatsapi.Register(ctx, mux, &codebasestatsapi.Config{
+	// - stats
+	codebasesapistats.Register(ctx, mux, &codebasesapistats.Config{
+		DB:      in.DB,
+		Driver:  in.Driver,
+		Params:  in.Params,
+		Version: in.Version,
+		SHA:     in.SHA,
+	})
+	// - ownership
+	codebaseapiowners.Register(ctx, mux, &codebaseapiowners.Config{
 		DB:      in.DB,
 		Driver:  in.Driver,
 		Params:  in.Params,

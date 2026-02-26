@@ -1,4 +1,4 @@
-package codebasestatsapi
+package codebasesapistats
 
 import (
 	"context"

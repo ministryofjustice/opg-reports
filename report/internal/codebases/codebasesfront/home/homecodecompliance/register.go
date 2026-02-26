@@ -1,4 +1,4 @@
-package homecodebases
+package homecodecompliance
 
 import (
 	"context"
@@ -9,10 +9,10 @@ import (
 	"opg-reports/report/package/cntxt"
 )
 
-const ENDPOINT string = "/home/codebases"
+const ENDPOINT string = "/home/codebase-compliance"
 
 func Register(ctx context.Context, mux *http.ServeMux, args *frontmodels.FrontRegisterArgs) {
-	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "homecodebases", "func", "Register")
+	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "homecodecompliance", "func", "Register")
 
 	log.Info("registering handler [`" + ENDPOINT + "/{$}`] ...")
 	mux.HandleFunc(fmt.Sprintf("%s/{$}", ENDPOINT), func(writer http.ResponseWriter, request *http.Request) {
