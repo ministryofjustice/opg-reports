@@ -41,11 +41,23 @@ WHERE
 // codebase standards
 const codebaseSelect string = `
 SELECT
-    count(*) as total_count,
-    (SELECT count(*) FROM codebases WHERE compliance_level != 'unknown' AND visibility = 'public') as passed
+    count(codebases.name) as total_count,
+    (
+		SELECT count(codebases.name)
+		FROM codebases
+		LEFT JOIN codebase_stats on codebase_stats.codebase = codebases.full_name
+		WHERE
+			codebases.archived = 0
+			AND codebase_stats.visibility = 'public'
+			AND codebase_stats.compliance_level != 'not_found'
+			AND codebase_stats.compliance_level != 'baseline'
+	) as passed
 FROM codebases
+LEFT JOIN codebase_stats on codebase_stats.codebase = codebases.full_name
 WHERE
-	visibility = 'public'
+	codebases.archived = 0
+	AND codebase_stats.visibility = 'public'
+	AND codebase_stats.compliance_level != 'not_found'
 ;
 `
 

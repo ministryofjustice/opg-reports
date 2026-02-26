@@ -7,7 +7,7 @@ import (
 	"opg-reports/report/package/cntxt"
 )
 
-const ENDPOINT string = "/v1/codebases"
+const ENDPOINT string = "/v1/codebase-stats"
 
 // Config contains required values for DB and others to generate a response
 type Config struct {

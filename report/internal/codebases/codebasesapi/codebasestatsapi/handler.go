@@ -23,9 +23,12 @@ SELECT
 	codebase_stats.visibility,
 	codebase_stats.compliance_level,
 	codebase_stats.compliance_report_url,
-	codebase_stats.compliance_badge
+	codebase_stats.compliance_badge,
+	codebase_stats.compliance_grade
 FROM codebases
 LEFT JOIN codebase_stats on codebase_stats.codebase = codebases.full_name
+WHERE
+	codebases.archived = 0
 ORDER BY
 	codebase_stats.compliance_grade DESC,
 	codebases.name ASC
@@ -57,6 +60,7 @@ type Model struct {
 	ComplianceLevel     string `json:"compliance_level,omitempty"`      // compliance level (moj based)
 	ComplianceReportUrl string `json:"compliance_report_url,omitempty"` // compliance report url
 	ComplianceBadge     string `json:"compliance_badge,omitempty"`      // compliance badge url
+	ComplianceGrade     int    `json:"compliance_grade,omitempty"`
 }
 
 // Sequence is used to return the columns in the order they are selected
@@ -69,6 +73,7 @@ func (self *Model) Sequence() []any {
 		&self.ComplianceLevel,
 		&self.ComplianceReportUrl,
 		&self.ComplianceBadge,
+		&self.ComplianceGrade,
 	}
 }
 

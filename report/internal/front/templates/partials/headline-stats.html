@@ -22,9 +22,9 @@
 
     {{- if .CodebaseCount -}}
     <div class="govuk-panel tile tile--uptime">
-        <div class="govuk-panel__body"><strong>{{ Percentage .CodebasePassed 2 }}</strong> <br>Baseline compliant</div>
+        <div class="govuk-panel__body"><strong>{{ Percentage .CodebasePassed 2 }}</strong> <br>Standard compliant</div>
         <div class="govuk-panel__body govuk-panel__body_extra">
-            <p class="govuk-body-s">Based on <a href="https://github-community.service.justice.gov.uk/repository-standards/business-units/OPG">MoJ repository standards</a></p>
+            <p class="govuk-body-s">Based on reaching at lesast 'standard' level on <a href="https://github-community.service.justice.gov.uk/repository-standards/business-units/OPG">MoJ repository standards</a></p>
             <p class="govuk-body-s"><a href="{{ $prefix }}/codebases/" >View details</a></p>
         </div>
     </div>
