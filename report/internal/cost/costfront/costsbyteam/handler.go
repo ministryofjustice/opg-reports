@@ -19,6 +19,7 @@ import (
 
 type PageContent struct {
 	htmlpage.HTMLPage
+	Team     string
 	CostData *frontmodels.TableData
 	Dates    *frontmodels.DateRanges
 }
@@ -58,7 +59,7 @@ func getPage(team string, in *frontmodels.RegisterArgs, request *http.Request) (
 		GovUKVersion: in.GovUKVersion,
 		SemVer:       in.SemVer,
 	}
-	template = "home-costs-by-team"
+	template = "costs-by-team"
 	page = &PageContent{
 		HTMLPage: htmlpage.New(request, args),
 	}

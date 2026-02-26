@@ -33,7 +33,7 @@ func Handler(ctx context.Context, args *frontmodels.RegisterArgs, writer http.Re
 		team         string         = request.PathValue("team")
 		pageName     string         = "OPG Reports"
 		pageTitle    string         = fmt.Sprintf("OPG Reports - %s Overview", cnv.Capitalize(team))
-		templateName string         = "team"
+		templateName string         = "landing-page"
 		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "teampage", "func", "Handler", "url", request.URL.String())
 		wg           sync.WaitGroup = sync.WaitGroup{}
 		pgArgs       *htmlpage.Args = &htmlpage.Args{

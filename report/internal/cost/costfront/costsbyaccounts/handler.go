@@ -64,10 +64,9 @@ func getPage(team string, in *frontmodels.RegisterArgs, request *http.Request) (
 		GovUKVersion: in.GovUKVersion,
 		SemVer:       in.SemVer,
 	}
-	template = "home-costs-by-account" // current doesnt exist..
+	template = "costs-by-account" // current doesnt exist..
 	if team != "" {
 		args.Title += " - " + cnv.Capitalize(team)
-		template = "teams-costs-by-account"
 	}
 	page = &PageContent{
 		HTMLPage: htmlpage.New(request, args),

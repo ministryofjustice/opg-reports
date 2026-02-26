@@ -62,10 +62,9 @@ func getPage(team string, in *frontmodels.RegisterArgs, request *http.Request) (
 		GovUKVersion: in.GovUKVersion,
 		SemVer:       in.SemVer,
 	}
-	template = "home-codebase-compliance"
+	template = "codebase-compliance"
 	if team != "" {
 		args.Title += " - " + cnv.Capitalize(team)
-		template = "team-codebase-compliance"
 	}
 	page = &PageContent{
 		HTMLPage:     htmlpage.New(request, args),

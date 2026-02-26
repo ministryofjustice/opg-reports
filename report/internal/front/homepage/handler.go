@@ -18,6 +18,7 @@ import (
 
 type PageContent struct {
 	htmlpage.HTMLPage
+	Team         string
 	HeadlineData *frontmodels.HeadlineData
 	Dates        *frontmodels.DateRanges
 }
@@ -29,7 +30,7 @@ func Handler(ctx context.Context, args *frontmodels.RegisterArgs, writer http.Re
 	var (
 		// err  error
 		pageName     string         = "OPG Reports"
-		templateName string         = "home"
+		templateName string         = "landing-page"
 		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "homepage", "func", "Handler", "url", request.URL.String())
 		wg           sync.WaitGroup = sync.WaitGroup{}
 		pgArgs       *htmlpage.Args = &htmlpage.Args{

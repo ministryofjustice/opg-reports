@@ -64,10 +64,9 @@ func getPage(team string, in *frontmodels.RegisterArgs, request *http.Request) (
 		GovUKVersion: in.GovUKVersion,
 		SemVer:       in.SemVer,
 	}
-	template = "home-costs-differences"
+	template = "costs-differences"
 	if team != "" {
 		args.Title += " - " + cnv.Capitalize(team)
-		template = "team-costs-differences"
 	}
 	page = &PageContent{
 		HTMLPage: htmlpage.New(request, args),

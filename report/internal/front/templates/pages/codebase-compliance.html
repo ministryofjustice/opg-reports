@@ -1,0 +1,19 @@
+{{- define "codebase-compliance" -}}
+    {{- template "head" . -}}
+
+    {{- template "side-navigation" . -}}
+
+    <main id="main-content" class="app-content" role="main">
+        <section id="codebases">
+            <h1 class="govuk-heading-xl compact-header">Active codebases</h1>
+            <p class="govuk-body">Currently active codebases and their current compliance levels.</p>
+            <p class="govuk-body">Based on <a href="https://github-community.service.justice.gov.uk/repository-standards/business-units/OPG">MoJ repository standards</a></p>
+            <div class="app-content reports-font-m">
+                {{ template "compliance-table" .CodebaseData }}
+            </div>
+
+        </section>
+    </main>
+
+    {{- template "foot" . -}}
+{{- end -}}

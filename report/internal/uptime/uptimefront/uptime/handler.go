@@ -64,10 +64,9 @@ func getPage(team string, in *frontmodels.RegisterArgs, request *http.Request) (
 		GovUKVersion: in.GovUKVersion,
 		SemVer:       in.SemVer,
 	}
-	template = "home-uptime-by-team"
+	template = "uptime-by-team"
 	if team != "" {
 		args.Title += " - " + cnv.Capitalize(team)
-		template = "team-uptime-by-team"
 	}
 	page = &PageContent{
 		HTMLPage: htmlpage.New(request, args),

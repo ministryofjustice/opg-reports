@@ -1,8 +1,10 @@
 {{- define "headline-stats" -}}
 
 {{ $prefix := "/home"}}
+{{ $costsLink := "costs/teams"}}
 {{- if .Team -}}
 {{ $prefix = printf "/team/%s" .Team }}
+{{ $costsLink = "costs/accounts" }}
 {{- end -}}
 
 
@@ -34,7 +36,7 @@
     <div class="govuk-panel tile tile--cost">
         <div class="govuk-panel__body"><strong>{{ Currency .TotalCost "$" }}</strong><br>AWS costs</div>
         <div class="govuk-panel__body govuk-panel__body_extra">
-            <p class="govuk-body-s"><a href="{{ $prefix }}/costs/" >View details</a></p>
+            <p class="govuk-body-s"><a href="{{ $prefix }}/{{ $costsLink }}/" >View details</a></p>
         </div>
     </div>
     {{- end -}}
