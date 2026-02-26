@@ -67,11 +67,22 @@ CREATE TABLE IF NOT EXISTS codebases (
 	name TEXT NOT NULL,
 	full_name TEXT NOT NULL,
 	url TEXT NOT NULL,
+	archived INTEGER NOT NULL DEFAULT 0,
+	UNIQUE (full_name)
+) STRICT;
+CREATE INDEX IF NOT EXISTS idx_codebases ON codebases(full_name);
+`
+
+const create_codebase_stats string = `
+CREATE TABLE IF NOT EXISTS codebase_stats (
+	id INTEGER PRIMARY KEY,
+	codebase TEXT NOT NULL,
 	visibility TEXT NOT NULL,
 	compliance_level TEXT,
 	compliance_report_url TEXT,
 	compliance_badge TEXT,
-	UNIQUE (full_name)
+	compliance_grade INTEGER,
+	UNIQUE (codebase)
 ) STRICT;
 CREATE INDEX IF NOT EXISTS idx_codebases ON codebases(full_name);
 `

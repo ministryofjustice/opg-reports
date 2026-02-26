@@ -64,11 +64,11 @@ var codebaseCompliance []string = []string{
 // Results contains all the seed data that was inserted
 // including any that may have failed
 type Results struct {
-	Teams     []*teamimport.Model      `json:"teams"`
-	Accounts  []*accountimport.Model   `json:"accounts"`
-	Costs     []*costimport.Model      `json:"costs"`
-	Uptime    []*uptimeimport.Model    `json:"uptime"`
-	Codebases []*codebasesimport.Model `json:"codebases"`
+	Teams     []*teamimport.Model         `json:"teams"`
+	Accounts  []*accountimport.Model      `json:"accounts"`
+	Costs     []*costimport.Model         `json:"costs"`
+	Uptime    []*uptimeimport.Model       `json:"uptime"`
+	Codebases []*codebasesimport.Codebase `json:"codebases"`
 }
 
 // Args
@@ -131,22 +131,22 @@ func SeedAll(ctx context.Context, in *Args) (results *Results, err error) {
 	return
 }
 
-func seedCodebases(ctx context.Context, in *dbx.InsertArgs, n int) (insert []*codebasesimport.Model, err error) {
+func seedCodebases(ctx context.Context, in *dbx.InsertArgs, n int) (insert []*codebasesimport.Codebase, err error) {
 	var githubOrg = "mock-org"
-	insert = []*codebasesimport.Model{}
+	insert = []*codebasesimport.Codebase{}
 	for i := 0; i < n; i++ {
 		var name = fmt.Sprintf("codebase-%02d", i+1)
-		var compI = rand.IntN(len(codebaseCompliance))
-		insert = append(insert, &codebasesimport.Model{
-			Name:                name,
-			FullName:            fmt.Sprintf("%s/%s", githubOrg, name),
-			Url:                 fmt.Sprintf("https://mock-github.local/%s/%s", githubOrg, name),
-			ComplianceReportUrl: fmt.Sprintf("https://mock-compliance-report.local/%s", name),
-			ComplianceBadge:     fmt.Sprintf("https://mock-compliance-report.local/%s/badge", name),
-			ComplianceLevel:     codebaseCompliance[compI],
+		// var compI = rand.IntN(len(codebaseCompliance))
+		insert = append(insert, &codebasesimport.Codebase{
+			Name:     name,
+			FullName: fmt.Sprintf("%s/%s", githubOrg, name),
+			Url:      fmt.Sprintf("https://mock-github.local/%s/%s", githubOrg, name),
+			// ComplianceReportUrl: fmt.Sprintf("https://mock-compliance-report.local/%s", name),
+			// ComplianceBadge:     fmt.Sprintf("https://mock-compliance-report.local/%s/badge", name),
+			// ComplianceLevel:     codebaseCompliance[compI],
 		})
 	}
-	err = dbx.Insert(ctx, codebasesimport.InsertStatement, insert, in)
+	err = dbx.Insert(ctx, codebasesimport.InsertCodebaseStatement, insert, in)
 	return
 }
 

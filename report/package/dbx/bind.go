@@ -27,7 +27,7 @@ func Bind(ctx context.Context, named string, model map[string]interface{}) (stat
 	err = reduceReplace(res)
 
 	if strings.Contains(res.Statement, ":") {
-		log.Warn("possibly placeholders left within sql")
+		log.Warn("possibly placeholders left within sql", "sql", res.Statement)
 	}
 
 	return res.Statement, res.Args, err

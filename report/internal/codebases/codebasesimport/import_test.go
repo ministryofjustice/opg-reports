@@ -36,7 +36,11 @@ func TestCodebasesImportWithoutMock(t *testing.T) {
 		Driver: "sqlite3",
 	})
 
-	err = Import(ctx, client.Teams, &Args{
+	clients := &Clients{
+		Teams: client.Teams,
+		Repos: client.Repositories,
+	}
+	err = Import(ctx, clients, &Args{
 		DB:         dbpath,
 		Driver:     "sqlite3",
 		OrgSlug:    "ministryofjustice",

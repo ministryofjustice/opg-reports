@@ -33,13 +33,16 @@ func FromApi[R any](ctx context.Context, apiHost string, endpoint string, curren
 // Data returned is converted into R via json unmarshal
 func Get[R any](ctx context.Context, current *http.Request, req *Request) (result R, statusCode int, err error) {
 	var content []byte
+	var called string = ""
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "rest", "func", "Get")
 
 	log.Info("Starting ...")
-	content, statusCode, err = get(ctx, current, req)
+	content, statusCode, called, err = get(ctx, current, req)
+	log.Info("called url", "url", called)
 	if err != nil {
 		return
 	}
+
 	err = json.Unmarshal(content, &result)
 	if err != nil {
 		return
@@ -57,20 +60,20 @@ func GetStr(ctx context.Context, current *http.Request, req *Request) (result st
 	var content []byte
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "rest", "func", "Get")
 
-	log.Info("Starting ...")
-	content, statusCode, err = get(ctx, current, req)
+	log.Debug("Starting ...")
+	content, statusCode, _, err = get(ctx, current, req)
 	if err != nil {
 		return
 	}
 	result = string(content)
-	log.Info("done")
+	log.Debug("done")
 	return
 }
 
 // get is a helper to fetch json based data from an endpoint, mixing default parameters
 // (both path & query string) with values from the current request - allowing the front
 // end to voerwrite things like start dates directly.
-func get(ctx context.Context, current *http.Request, req *Request) (content []byte, statusCode int, err error) {
+func get(ctx context.Context, current *http.Request, req *Request) (content []byte, statusCode int, calledURL string, err error) {
 	var (
 		request  *http.Request
 		response *http.Response
@@ -83,7 +86,8 @@ func get(ctx context.Context, current *http.Request, req *Request) (content []by
 	if err != nil {
 		return
 	}
-	log.Info("calling uri ...", "uri", uri)
+	calledURL = uri
+	log.Debug("calling uri ...", "uri", uri)
 	// create request
 	request, err = http.NewRequest(http.MethodGet, uri, nil)
 	if err != nil {

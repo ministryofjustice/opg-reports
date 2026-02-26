@@ -40,6 +40,10 @@ DROP INDEX IF EXISTS aws_uptime_account_date_idx;
 DROP TABLE IF EXISTS aws_uptime;
 `
 
+const delete_github_codeowners string = `
+DROP TABLE IF EXISTS github_codeownership;
+`
+
 var conversions = []*Migration{
 	{Key: "convert_aws_accounts", Stmt: convert_aws_accounts},
 	{Key: "delete_aws_accounts", Stmt: delete_aws_accounts},
@@ -47,6 +51,7 @@ var conversions = []*Migration{
 	{Key: "delete_aws_costs", Stmt: delete_aws_costs},
 	{Key: "convert_aws_uptime", Stmt: convert_aws_uptime},
 	{Key: "delete_aws_uptime", Stmt: delete_aws_uptime},
+	{Key: "delete_github_codeowners", Stmt: delete_github_codeowners},
 }
 
 // Convert runs conversions against older versions of the DB to keep data

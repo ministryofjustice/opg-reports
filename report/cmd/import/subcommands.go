@@ -197,7 +197,11 @@ func runCodebaseImport(cmd *cobra.Command, args []string) (err error) {
 		return
 	}
 
-	err = codebasesimport.Import(ctx, client.Teams, &codebasesimport.Args{
+	clients := &codebasesimport.Clients{
+		Teams: client.Teams,
+		Repos: client.Repositories,
+	}
+	err = codebasesimport.Import(ctx, clients, &codebasesimport.Args{
 		DB:         flags.DB,
 		Driver:     flags.Driver,
 		Params:     flags.Params,

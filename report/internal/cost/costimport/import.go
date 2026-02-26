@@ -48,10 +48,9 @@ type Client interface {
 }
 
 type Args struct {
-	DB            string `json:"db"`             // database path
-	Driver        string `json:"driver"`         // database driver
-	Params        string `json:"params"`         // database connection params
-	MigrationFile string `json:"migration_file"` // database migrations
+	DB     string `json:"db"`     // database path
+	Driver string `json:"driver"` // database driver
+	Params string `json:"params"` // database connection params
 
 	DateStart time.Time `json:"date_start"` // start date, this will be reset to start of the month (and expanded to capture historical data)
 	DateEnd   time.Time `json:"date_end"`   // end date

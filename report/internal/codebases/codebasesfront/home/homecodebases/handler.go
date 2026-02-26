@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
-	"opg-reports/report/internal/codebases/codebasesapi/codebaseapiall"
+	"opg-reports/report/internal/codebases/codebasesapi/codebasestatsapi"
 	"opg-reports/report/internal/global/frontmodels"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/package/cntxt"
@@ -72,7 +72,7 @@ func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, reque
 		},
 		// get list of all codebases
 		func(wg *sync.WaitGroup, page *PageContent) {
-			resp, err := rest.FromApi[*codebaseapiall.Response](ctx, args.ApiHost, codebaseapiall.ENDPOINT, request, params...)
+			resp, err := rest.FromApi[*codebasestatsapi.Response](ctx, args.ApiHost, codebasestatsapi.ENDPOINT, request, params...)
 			if err == nil {
 				codebases := []*frontmodels.Codebase{}
 				cnv.Convert(resp.Data, &codebases)

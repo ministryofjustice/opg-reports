@@ -42,11 +42,10 @@ type Model struct {
 }
 
 type Args struct {
-	DB            string `json:"db"`             // database path
-	Driver        string `json:"driver"`         // database driver
-	Params        string `json:"params"`         // database connection params
-	MigrationFile string `json:"migration_file"` // database migrations
-	SrcFile       string `json:"src-file"`       // src file to import from
+	DB      string `json:"db"`       // database path
+	Driver  string `json:"driver"`   // database driver
+	Params  string `json:"params"`   // database connection params
+	SrcFile string `json:"src-file"` // src file to import from
 }
 
 func Import(ctx context.Context, in *Args) (err error) {

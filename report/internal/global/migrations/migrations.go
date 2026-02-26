@@ -27,6 +27,7 @@ var migrations = []*Migration{
 	{Key: "create_costs", Stmt: create_costs},
 	{Key: "create_uptime", Stmt: create_uptime},
 	{Key: "create_codebases", Stmt: create_codebases},
+	{Key: "create_codebase_stats", Stmt: create_codebase_stats},
 	{Key: "lowercase_team_name", Stmt: lowercase_team_name},
 }
 

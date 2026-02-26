@@ -1,4 +1,4 @@
-package codebaseapiall
+package codebasestatsapi
 
 import (
 	"context"
@@ -17,17 +17,18 @@ import (
 // selectStmt is the sql used to fetch data including
 const selectStmt string = `
 SELECT
-	name,
-	full_name,
-	url,
-	visibility,
-	compliance_level,
-	compliance_report_url,
-	compliance_badge
+	codebases.name,
+	codebases.full_name,
+	codebases.url,
+	codebase_stats.visibility,
+	codebase_stats.compliance_level,
+	codebase_stats.compliance_report_url,
+	codebase_stats.compliance_badge
 FROM codebases
+LEFT JOIN codebase_stats on codebase_stats.codebase = codebases.full_name
 ORDER BY
-	compliance_level,
-	name ASC
+	codebase_stats.compliance_grade DESC,
+	codebases.name ASC
 ;
 `
 
