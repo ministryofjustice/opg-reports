@@ -3,7 +3,7 @@
 
     {{- template "side-navigation" . -}}
 
-    <main id="main-content" class="app-content" role="main">
+    <main id="main-content" class="app-content landing-page" role="main">
 
     {{- if .HeadlineData -}}
         {{ template "headline-stats" .HeadlineData }}
@@ -12,6 +12,11 @@
     {{- if .Dates -}}
         {{ template "date-start-end-selection" .Dates }}
     {{- end -}}
+
+    {{- if .CodebaseData -}}
+        {{ template "codeowners-list" .CodebaseData }}
+    {{- end -}}
+
     </main>
 
     {{- template "foot" . -}}

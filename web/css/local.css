@@ -72,33 +72,14 @@ stats block
     padding-top: 20px;
     padding-bottom: 20px
 }
+.landing-page .date-start-end{
+    border-top: 1px solid #b1b4b6;
+}
 .date-start-end form.compact-form,
 .date-start-end p.govuk-body{
     margin-bottom:0;
 }
 
-.codebase-codeowner{
-    padding-bottom:10px;
-    margin-bottom:10px;
-    border-bottom: 1px solid #b1b4b6;
-}
-.codebase-codeowner .compact-header{
-    margin-bottom: 5px;
-}
-.codeowner-list{
-    display:flex
-}
-.codeowner-list .tag{
-    max-width:30%;
-    margin:0 5px 5px 0;
-    width:auto;
-    padding:4px;
-    font-size: 0.9rem;
-}
-.codeowner-list .tag-t-none {
-    color: #651b1b;
-    background-color: #f4d7d7;
-}
 
 /*
 Highlight billing instability on cost tables
@@ -133,6 +114,33 @@ form.compact-form button{
 /*
 Additional styling code ownership listing on the team pages
 */
+
+.codebase-codeowner{
+    padding-bottom:10px;
+    margin-bottom:10px;
+    border-bottom: 1px solid #b1b4b6;
+}
+.codebase-codeowner .compact-header{
+    margin-bottom: 5px;
+}
+.codeowner-list{
+    display:flex
+}
+.codeowner-list .tag{
+    max-width:30%;
+    margin:0 5px 5px 0;
+    width:auto;
+    padding:4px;
+    font-size: 0.9rem;
+}
+.codeowner-list .tag-t-none {
+    color: #651b1b;
+    background-color: #f4d7d7;
+}
+.codeownership-list-container{
+    padding-top:20px;
+    border-top: 1px solid #b1b4b6;
+}
 .codeownership-list-container .codeownership-list > li{
     display:inline-block;
     margin-right:5px;

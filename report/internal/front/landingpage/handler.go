@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"opg-reports/report/internal/codebases/codebasesapi/codebaseapiowners"
 	"opg-reports/report/internal/global/frontmodels"
 	"opg-reports/report/internal/headline/headlineapi/headlineapi"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
@@ -21,6 +22,7 @@ type PageContent struct {
 	htmlpage.HTMLPage
 	Team         string
 	HeadlineData *frontmodels.HeadlineData
+	CodebaseData *frontmodels.CodebaseData
 	Dates        *frontmodels.DateRanges
 }
 
@@ -48,6 +50,7 @@ func Handler(ctx context.Context, args *frontmodels.RegisterArgs, request *http.
 	}
 	wg.Wait()
 	page.HeadlineData.Team = team
+	page.CodebaseData.Team = team
 	// respond
 	respond.AsHTML(ctx, request, writer, page, &respond.Args{
 		Template:      templateName,
@@ -68,8 +71,9 @@ func getPage(team string, in *frontmodels.RegisterArgs, request *http.Request) (
 		args.Title += " - " + cnv.Capitalize(team)
 	}
 	page = &PageContent{
-		HTMLPage: htmlpage.New(request, args),
-		Team:     team,
+		HTMLPage:     htmlpage.New(request, args),
+		Team:         team,
+		CodebaseData: &frontmodels.CodebaseData{},
 	}
 	return
 }
@@ -77,11 +81,12 @@ func getPage(team string, in *frontmodels.RegisterArgs, request *http.Request) (
 // dataCallers provides all the aync / concurrent api calls to fetch and attach data to this page
 func dataCallers(ctx context.Context, args *frontmodels.RegisterArgs, request *http.Request) (funcs []dataCallerF) {
 	var (
-		team         = request.PathValue("team")
-		headEndpoint = headlineapi.ENDPOINT_BASE
-		dateEnd      = times.ResetMonth(times.Today())
-		dateStart    = times.Add(dateEnd, -5, times.MONTH)
-		params       = []*rest.Param{
+		team          = request.PathValue("team")
+		headEndpoint  = headlineapi.ENDPOINT_BASE
+		ownerEndpoint = codebaseapiowners.ENDPOINT_TEAM
+		dateEnd       = times.ResetMonth(times.Today())
+		dateStart     = times.Add(dateEnd, -5, times.MONTH)
+		params        = []*rest.Param{
 			{Type: rest.PATH, Key: "date_end", Value: times.AsYMString(dateEnd)},
 			{Type: rest.PATH, Key: "date_start", Value: times.AsYMString(dateStart)},
 		}
@@ -90,6 +95,7 @@ func dataCallers(ctx context.Context, args *frontmodels.RegisterArgs, request *h
 	// add team filter values and url
 	if team != "" {
 		headEndpoint = headlineapi.ENDPOINT_TEAM
+		ownerEndpoint = codebaseapiowners.ENDPOINT_TEAM
 		params = append(params, &rest.Param{Type: rest.PATH, Key: "team", Value: team})
 	}
 
@@ -99,6 +105,20 @@ func dataCallers(ctx context.Context, args *frontmodels.RegisterArgs, request *h
 			resp, err := rest.FromApi[*teamapiall.Response](ctx, args.ApiHost, teamapiall.ENDPOINT, request)
 			if err == nil {
 				page.Teams = resp.Data
+			}
+			wg.Done()
+		},
+		// get code ownership items
+		func(wg *sync.WaitGroup, page *PageContent) {
+			// if there is now team, then push a team of `none` to find those without owners
+			if team == "" {
+				params = append(params, &rest.Param{Type: rest.PATH, Key: "team", Value: "none"})
+			}
+			resp, err := rest.FromApi[*codebaseapiowners.Response](ctx, args.ApiHost, ownerEndpoint, request, params...)
+			if err == nil {
+				codeowners := []*frontmodels.Codeowner{}
+				cnv.Convert(resp.Data, &codeowners)
+				page.CodebaseData.CodeOwners = codeowners
 			}
 			wg.Done()
 		},

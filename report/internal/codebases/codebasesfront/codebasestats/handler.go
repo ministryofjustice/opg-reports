@@ -1,4 +1,4 @@
-package codebasecompliance
+package codebasestats
 
 import (
 	"context"
@@ -31,7 +31,7 @@ func Handler(ctx context.Context, args *frontmodels.RegisterArgs, request *http.
 		templateName string
 		team         string         = request.PathValue("team")
 		wg           sync.WaitGroup = sync.WaitGroup{}
-		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "codebasecompliance", "func", "Handler", "url", request.URL.String())
+		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "codebasestats", "func", "Handler", "url", request.URL.String())
 	)
 
 	log.Info("starting ...")

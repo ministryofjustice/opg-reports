@@ -2,7 +2,6 @@ package tmpl
 
 import (
 	"fmt"
-	"opg-reports/report/package/tabulate"
 	"opg-reports/report/package/times"
 	"strconv"
 	"strings"
@@ -27,15 +26,6 @@ func LengthClass(i int) string {
 		return "m"
 	}
 	return "s"
-}
-
-// StripOrgansiation is used to remove github org from repository names
-// to make them shorter to display
-func StripOrgansiation(s string) string {
-	if pos := strings.Index(s, "/"); pos >= 0 {
-		s = s[pos+1:]
-	}
-	return s
 }
 
 func Title(s string) string {
@@ -77,14 +67,6 @@ func Percentage(s interface{}, places int) string {
 	return ""
 }
 
-func Headers(name string, data map[tabulate.ColType][]string) (value []string) {
-	value = []string{}
-	if v, ok := data[tabulate.ColType(name)]; ok {
-		value = v
-	}
-	return
-}
-
 // ValueFromMap uses the `name` as the key in the map `data` and returns
 // its value as interface
 // if name is not a key on the map, it returns empty string
@@ -93,14 +75,6 @@ func ValueFromMap(name string, data map[string]interface{}) (value interface{}) 
 	if v, ok := data[name]; ok {
 		value = v
 	}
-	return
-}
-func PopRow(rows []map[string]interface{}) (foot map[string]interface{}) {
-	foot = rows[len(rows)-1]
-	return
-}
-func TrimLastRow(src []map[string]interface{}) (rows []map[string]interface{}) {
-	rows = src[0 : len(src)-1]
 	return
 }
 
@@ -134,19 +108,15 @@ func BillingStabilitySuffix(className string) string {
 func TemplateFunctions() (funcs template.FuncMap) {
 	funcs = map[string]interface{}{
 		// simple strings
-		"Title":             Title,
-		"ToLower":           strings.ToLower,
-		"ToUpper":           strings.ToUpper,
-		"StripOrgansiation": StripOrgansiation,
-		"LengthClass":       LengthClass,
+		"Title":       Title,
+		"ToLower":     strings.ToLower,
+		"ToUpper":     strings.ToUpper,
+		"LengthClass": LengthClass,
 		// string -> numbers
 		"Currency":   Currency,
 		"Percentage": Percentage,
 		// accessing maps
 		"ValueFromMap": ValueFromMap,
-		"Headers":      Headers,
-		"PopRow":       PopRow,
-		"TrimLastRow":  TrimLastRow,
 		//
 		"BillingStabilityClass":  BillingStabilityClass,
 		"BillingStabilitySuffix": BillingStabilitySuffix,

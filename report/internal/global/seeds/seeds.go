@@ -54,7 +54,7 @@ var serviceList []string = []string{
 	"EC2 - Other",
 }
 
-var codebaseCompliance []string = []string{
+var codebasestats []string = []string{
 	"unknown",
 	"baseline",
 	"standard",
@@ -136,14 +136,14 @@ func seedCodebases(ctx context.Context, in *dbx.InsertArgs, n int) (insert []*co
 	insert = []*codebasesimport.Codebase{}
 	for i := 0; i < n; i++ {
 		var name = fmt.Sprintf("codebase-%02d", i+1)
-		// var compI = rand.IntN(len(codebaseCompliance))
+		// var compI = rand.IntN(len(codebasestats))
 		insert = append(insert, &codebasesimport.Codebase{
 			Name:     name,
 			FullName: fmt.Sprintf("%s/%s", githubOrg, name),
 			Url:      fmt.Sprintf("https://mock-github.local/%s/%s", githubOrg, name),
 			// ComplianceReportUrl: fmt.Sprintf("https://mock-compliance-report.local/%s", name),
 			// ComplianceBadge:     fmt.Sprintf("https://mock-compliance-report.local/%s/badge", name),
-			// ComplianceLevel:     codebaseCompliance[compI],
+			// ComplianceLevel:     codebasestats[compI],
 		})
 	}
 	err = dbx.Insert(ctx, codebasesimport.InsertCodebaseStatement, insert, in)

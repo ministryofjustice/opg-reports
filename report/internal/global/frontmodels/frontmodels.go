@@ -82,6 +82,7 @@ type Owner struct {
 
 // CodebaseData
 type CodebaseData struct {
+	Team       string
 	Codebases  []*Codebase
 	CodeOwners []*Codeowner
 }
