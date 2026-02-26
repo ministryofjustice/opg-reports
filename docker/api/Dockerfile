@@ -4,7 +4,6 @@ FROM golang:1.25.7-alpine@sha256:f6751d823c26342f9506c03797d2527668d095b0a15f186
 COPY --link go.sum go.mod /app/
 COPY --link report /app/report
 COPY --link builds/database /gobin/app/database
-COPY --link builds/migrations.json /gobin/app/migrations.json
 RUN update-ca-certificates
 RUN apk --update --no-cache add build-base
 RUN apk --update --no-cache add "sqlite=>=3.47"

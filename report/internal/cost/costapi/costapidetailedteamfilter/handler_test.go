@@ -18,16 +18,14 @@ func TestCostAPITeamFilterDetailedHandler(t *testing.T) {
 		ctx    = cntxt.AddLogger(t.Context(), logger.New("error"))
 		dir    = t.TempDir()
 		driver = "sqlite3"
-		dbpath = filepath.Join(dir, "test-costs-handler.db")
-		mfile  = filepath.Join(dir, "migrate.json")
+		dbpath = filepath.Join(dir, "test-handler.db")
 		end    = times.AsYMString(times.Today())
 		start  = times.AsYMString(times.Add(times.Today(), -3, times.YEAR))
 	)
 	// run seeds
 	_, err = seeds.SeedAll(ctx, &seeds.Args{
-		Driver:        driver,
-		DB:            dbpath,
-		MigrationFile: mfile,
+		Driver: driver,
+		DB:     dbpath,
 	})
 	if err != nil {
 		t.Errorf("unexpected error: [%s]", err.Error())

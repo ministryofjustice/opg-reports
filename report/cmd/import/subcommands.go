@@ -63,22 +63,20 @@ func runTeamsImport(cmd *cobra.Command, args []string) (err error) {
 		return
 	}
 	// run the migrations
-	err = migrations.MigrateAll(ctx, &migrations.Args{
-		DB:            flags.DB,
-		Driver:        flags.Driver,
-		Params:        flags.Params,
-		MigrationFile: flags.MigrationFile,
+	err = migrations.Migrate(ctx, &migrations.Args{
+		DB:     flags.DB,
+		Driver: flags.Driver,
+		Params: flags.Params,
 	})
 	if err != nil {
 		return
 	}
 	// run the import
 	err = teamimport.Import(ctx, &teamimport.Args{
-		DB:            flags.DB,
-		Driver:        flags.Driver,
-		Params:        flags.Params,
-		MigrationFile: flags.MigrationFile,
-		SrcFile:       flags.SrcFile,
+		DB:      flags.DB,
+		Driver:  flags.Driver,
+		Params:  flags.Params,
+		SrcFile: flags.SrcFile,
 	})
 	return
 }
@@ -91,22 +89,20 @@ func runAccountsImport(cmd *cobra.Command, args []string) (err error) {
 		return
 	}
 	// run the migrations
-	err = migrations.MigrateAll(ctx, &migrations.Args{
-		DB:            flags.DB,
-		Driver:        flags.Driver,
-		Params:        flags.Params,
-		MigrationFile: flags.MigrationFile,
+	err = migrations.Migrate(ctx, &migrations.Args{
+		DB:     flags.DB,
+		Driver: flags.Driver,
+		Params: flags.Params,
 	})
 	if err != nil {
 		return
 	}
 	// run the import
 	err = accountimport.Import(ctx, &accountimport.Args{
-		DB:            flags.DB,
-		Driver:        flags.Driver,
-		Params:        flags.Params,
-		MigrationFile: flags.MigrationFile,
-		SrcFile:       flags.SrcFile,
+		DB:      flags.DB,
+		Driver:  flags.Driver,
+		Params:  flags.Params,
+		SrcFile: flags.SrcFile,
 	})
 	return
 }
@@ -124,24 +120,22 @@ func runCostsImport(cmd *cobra.Command, args []string) (err error) {
 		return
 	}
 	// run the migrations
-	err = migrations.MigrateAll(ctx, &migrations.Args{
-		DB:            flags.DB,
-		Driver:        flags.Driver,
-		Params:        flags.Params,
-		MigrationFile: flags.MigrationFile,
+	err = migrations.Migrate(ctx, &migrations.Args{
+		DB:     flags.DB,
+		Driver: flags.Driver,
+		Params: flags.Params,
 	})
 	if err != nil {
 		return
 	}
 
 	err = costimport.Import(ctx, client, &costimport.Args{
-		DB:            flags.DB,
-		Driver:        flags.Driver,
-		Params:        flags.Params,
-		MigrationFile: flags.MigrationFile,
-		DateStart:     times.MustFromString(flags.DateStart),
-		DateEnd:       times.MustFromString(flags.DateEnd),
-		AccountID:     awsid.AccountID(ctx, flags.Region),
+		DB:        flags.DB,
+		Driver:    flags.Driver,
+		Params:    flags.Params,
+		DateStart: times.MustFromString(flags.DateStart),
+		DateEnd:   times.MustFromString(flags.DateEnd),
+		AccountID: awsid.AccountID(ctx, flags.Region),
 	})
 	return
 }
@@ -160,24 +154,22 @@ func runUptimeImport(cmd *cobra.Command, args []string) (err error) {
 		return
 	}
 	// run the migrations
-	err = migrations.MigrateAll(ctx, &migrations.Args{
-		DB:            flags.DB,
-		Driver:        flags.Driver,
-		Params:        flags.Params,
-		MigrationFile: flags.MigrationFile,
+	err = migrations.Migrate(ctx, &migrations.Args{
+		DB:     flags.DB,
+		Driver: flags.Driver,
+		Params: flags.Params,
 	})
 	if err != nil {
 		return
 	}
 
 	err = uptimeimport.Import(ctx, client, &uptimeimport.Args{
-		DB:            flags.DB,
-		Driver:        flags.Driver,
-		Params:        flags.Params,
-		MigrationFile: flags.MigrationFile,
-		DateStart:     times.MustFromString(flags.DateStart),
-		DateEnd:       times.MustFromString(flags.DateEnd),
-		AccountID:     awsid.AccountID(ctx, flags.Region),
+		DB:        flags.DB,
+		Driver:    flags.Driver,
+		Params:    flags.Params,
+		DateStart: times.MustFromString(flags.DateStart),
+		DateEnd:   times.MustFromString(flags.DateEnd),
+		AccountID: awsid.AccountID(ctx, flags.Region),
 	})
 	return
 }
@@ -196,23 +188,21 @@ func runCodebaseImport(cmd *cobra.Command, args []string) (err error) {
 		return
 	}
 	// run the migrations
-	err = migrations.MigrateAll(ctx, &migrations.Args{
-		DB:            flags.DB,
-		Driver:        flags.Driver,
-		Params:        flags.Params,
-		MigrationFile: flags.MigrationFile,
+	err = migrations.Migrate(ctx, &migrations.Args{
+		DB:     flags.DB,
+		Driver: flags.Driver,
+		Params: flags.Params,
 	})
 	if err != nil {
 		return
 	}
 
 	err = codebasesimport.Import(ctx, client.Teams, &codebasesimport.Args{
-		DB:            flags.DB,
-		Driver:        flags.Driver,
-		Params:        flags.Params,
-		MigrationFile: flags.MigrationFile,
-		OrgSlug:       flags.OrgSlug,
-		ParentSlug:    flags.ParentSlug,
+		DB:         flags.DB,
+		Driver:     flags.Driver,
+		Params:     flags.Params,
+		OrgSlug:    flags.OrgSlug,
+		ParentSlug: flags.ParentSlug,
 	})
 	return
 }

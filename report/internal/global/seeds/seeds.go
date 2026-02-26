@@ -73,10 +73,9 @@ type Results struct {
 
 // Args
 type Args struct {
-	DB            string `json:"db"`             // --db
-	Driver        string `json:"driver"`         // --driver
-	Params        string `json:"params"`         // --params
-	MigrationFile string `json:"migration_file"` // --file
+	DB     string `json:"db"`     // --db
+	Driver string `json:"driver"` // --driver
+	Params string `json:"params"` // --params
 }
 
 // SeedAll
@@ -95,11 +94,10 @@ func SeedAll(ctx context.Context, in *Args) (results *Results, err error) {
 	}
 	results = &Results{}
 	// run the migrations
-	err = migrations.MigrateAll(ctx, &migrations.Args{
-		DB:            in.DB,
-		Driver:        in.Driver,
-		Params:        in.Params,
-		MigrationFile: in.MigrationFile,
+	err = migrations.Migrate(ctx, &migrations.Args{
+		DB:     in.DB,
+		Driver: in.Driver,
+		Params: in.Params,
 	})
 	if err != nil {
 		return

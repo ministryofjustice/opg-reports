@@ -20,7 +20,6 @@ func TestCodebasesImportWithoutMock(t *testing.T) {
 		client *github.Client
 		ctx    context.Context = cntxt.AddLogger(t.Context(), logger.New("error"))
 		dir    string          = t.TempDir()
-		mfile  string          = filepath.Join(dir, "migrate.json")
 		dbpath string          = filepath.Join(dir, "test-import.db")
 	)
 	if os.Getenv("GH_TOKEN") == "" {
@@ -32,10 +31,9 @@ func TestCodebasesImportWithoutMock(t *testing.T) {
 		t.Errorf("unexpected error:\n%s", err.Error())
 	}
 
-	migrations.MigrateAll(ctx, &migrations.Args{
-		DB:            dbpath,
-		Driver:        "sqlite3",
-		MigrationFile: mfile,
+	migrations.Migrate(ctx, &migrations.Args{
+		DB:     dbpath,
+		Driver: "sqlite3",
 	})
 
 	err = Import(ctx, client.Teams, &Args{

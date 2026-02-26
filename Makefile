@@ -8,7 +8,6 @@ import-teams: get-metadata build-cmds
 	@echo "- importing teams "
 	@env LOG_LEVEL=${LOG_LEVEL} ${IMPORT_CMD} teams \
 		--db="${API_DB}" \
-		--migration-file="${BUILD_DIR}/migrations.json" \
 		--src-file="${METADATA_EX_DIR}/teams.json"
 
 #========= IMPORT ACCOUNTS =========
@@ -18,7 +17,6 @@ import-accounts: get-metadata build-cmds
 	@echo "- importing accounts "
 	@env LOG_LEVEL=${LOG_LEVEL} ${IMPORT_CMD} accounts \
 		--db="${API_DB}" \
-		--migration-file="${BUILD_DIR}/migrations.json" \
 		--src-file="${METADATA_EX_DIR}/aws.accounts.json"
 
 #========= IMPORT CODEBASES =========
@@ -29,8 +27,7 @@ import-codebases: build-cmds
 	@env GH_TOKEN="${GITHUBTOKEN}" \
 		LOG_LEVEL=${LOG_LEVEL} \
 		${IMPORT_CMD} codebases \
-		--db="${API_DB}" \
-		--migration-file="${BUILD_DIR}/migrations.json"
+		--db="${API_DB}"
 
 #========= RUN THE API =========
 # api command variables
@@ -43,7 +40,6 @@ api: build-cmds
 	@echo "- starting api "
 	@env LOG_LEVEL=${LOG_LEVEL} ${API_CMD} \
 		--db="${API_DB}" \
-		--migration-file="${BUILD_DIR}/migrations.json" \
 		--api-host="localhost:8081"
 
 #========= RUN THE FRONT END =========
@@ -74,10 +70,8 @@ GET_DB_BUCKET ?= opg-reports-production
 GET_DB_PROFILE ?= shared-production-operator
 .PHONY: get-db
 get-db:
-	@rm -f ${BUILD_DIR}/migrations.json
 	@rm -Rf ${API_DB}
 	@mkdir -p ${API_DB_DIR}
-	@echo "[]" > ${BUILD_DIR}/migrations.json
 	@echo "- downloading database "
 	@aws-vault exec ${GET_DB_PROFILE} -- aws s3 cp \
     	s3://${GET_DB_BUCKET}/database/api.db \
@@ -141,7 +135,6 @@ BUILD_DIR ?= ./builds
 build-prep:
 	rm -Rf ${BUILD_DIR}/
 	mkdir -p ${BUILD_DIR}/
-	@echo "[]" > ${BUILD_DIR}/migrations.json
 
 ## build all commands based on folder structure
 ## within the ./reports/cmd directory but allow

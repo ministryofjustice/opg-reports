@@ -23,8 +23,7 @@ func TestUptimeImportWithoutMock(t *testing.T) {
 		client    *cloudwatch.Client
 		accountId string
 		dir       string          = t.TempDir()
-		mfile     string          = filepath.Join(dir, "migrate.json")
-		dbpath    string          = filepath.Join(dir, "test-costs-import.db")
+		dbpath    string          = filepath.Join(dir, "test-import.db")
 		ctx       context.Context = cntxt.AddLogger(t.Context(), logger.New("error"))
 		end       time.Time       = times.ResetMonth(time.Now().UTC())
 		start     time.Time       = times.Add(end, -1, times.MONTH)
@@ -40,10 +39,9 @@ func TestUptimeImportWithoutMock(t *testing.T) {
 		t.FailNow()
 	}
 
-	migrations.MigrateAll(ctx, &migrations.Args{
-		DB:            dbpath,
-		Driver:        "sqlite3",
-		MigrationFile: mfile,
+	migrations.Migrate(ctx, &migrations.Args{
+		DB:     dbpath,
+		Driver: "sqlite3",
 	})
 
 	accountId = awsid.AccountID(ctx, "us-east-1")

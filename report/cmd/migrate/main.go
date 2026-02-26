@@ -11,10 +11,11 @@ import (
 )
 
 var flags = &migrations.Args{
-	Driver:        "sqlite3",
-	DB:            "./database/api.db",
-	MigrationFile: "migrations.json",
+	Driver: "sqlite3",
+	DB:     "./database/api.db",
 }
+
+var runConversion bool = false
 
 var root *cobra.Command = &cobra.Command{
 	Use:   "migrate",
@@ -23,7 +24,14 @@ var root *cobra.Command = &cobra.Command{
 }
 
 func runCMD(cmd *cobra.Command, args []string) (err error) {
-	err = migrations.MigrateAll(cmd.Context(), flags)
+	var ctx = cmd.Context()
+	err = migrations.Migrate(ctx, flags)
+	if err != nil {
+		return
+	}
+	if runConversion {
+		migrations.Convert(ctx, flags)
+	}
 	return
 }
 
@@ -31,7 +39,8 @@ func init() {
 	root.PersistentFlags().StringVar(&flags.Driver, "driver", flags.Driver, "Database driver")
 	root.PersistentFlags().StringVar(&flags.DB, "db", flags.DB, "Database path")
 	root.PersistentFlags().StringVar(&flags.Params, "params", flags.Params, "Database params")
-	root.PersistentFlags().StringVar(&flags.MigrationFile, "migration-file", flags.MigrationFile, "migration file")
+	root.PersistentFlags().BoolVar(&runConversion, "convert", runConversion, "Run DB conversion to upgrade from older structure")
+
 }
 
 func main() {

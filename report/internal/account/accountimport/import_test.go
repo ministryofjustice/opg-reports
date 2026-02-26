@@ -15,7 +15,6 @@ func TestAccountImportWithoutMock(t *testing.T) {
 		err     error
 		ctx     context.Context = cntxt.AddLogger(t.Context(), logger.New("error"))
 		dir     string          = t.TempDir()
-		mfile   string          = filepath.Join(dir, "migrate.json")
 		srcfile string          = filepath.Join(dir, "aws.accounts.json")
 		dbpath  string          = filepath.Join(dir, "test-accounts-import.db")
 	)
@@ -41,10 +40,9 @@ func TestAccountImportWithoutMock(t *testing.T) {
 		t.Errorf("unexpected error: [%s]", err.Error())
 	}
 	// db migrations
-	err = migrations.MigrateAll(ctx, &migrations.Args{
-		DB:            dbpath,
-		Driver:        "sqlite3",
-		MigrationFile: mfile,
+	err = migrations.Migrate(ctx, &migrations.Args{
+		DB:     dbpath,
+		Driver: "sqlite3",
 	})
 	if err != nil {
 		t.Errorf("unexpected error: [%s]", err.Error())

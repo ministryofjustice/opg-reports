@@ -57,6 +57,8 @@ type Args struct {
 
 	OrgSlug    string `json:"org_slug"`
 	ParentSlug string `json:"parent_slug"`
+
+	IncludeCodeowners bool `json:"include_codeowners"` // option to fetch all codebases and then fetch codeowner data as well
 }
 
 // Model represents a simple, joinless, db row in the cost table; used by imports and seeding commands

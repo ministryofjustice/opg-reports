@@ -16,9 +16,8 @@ func TestTeamImportWithoutMock(t *testing.T) {
 		err     error
 		ctx     context.Context = cntxt.AddLogger(t.Context(), logger.New("error"))
 		dir     string          = t.TempDir()
-		mfile   string          = filepath.Join(dir, "migrate.json")
 		srcfile string          = filepath.Join(dir, "teams.json")
-		dbpath  string          = filepath.Join(dir, "test-teams-import.db")
+		dbpath  string          = filepath.Join(dir, "test-import.db")
 	)
 	// generate some teams
 	teams := []*Model{
@@ -28,12 +27,10 @@ func TestTeamImportWithoutMock(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error: [%s]", err.Error())
 	}
-
 	// db migrations
-	err = migrations.MigrateAll(ctx, &migrations.Args{
-		DB:            dbpath,
-		Driver:        "sqlite3",
-		MigrationFile: mfile,
+	err = migrations.Migrate(ctx, &migrations.Args{
+		DB:     dbpath,
+		Driver: "sqlite3",
 	})
 	if err != nil {
 		t.Errorf("unexpected error: [%s]", err.Error())

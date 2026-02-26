@@ -13,14 +13,12 @@ func TestSeedsSeedAll(t *testing.T) {
 		err    error
 		ctx    context.Context = cntxt.AddLogger(t.Context(), logger.New("error"))
 		dir    string          = t.TempDir()
-		mfile  string          = filepath.Join(dir, "migrate.json")
-		dbpath string          = filepath.Join(dir, "test-seeds-all.db")
+		dbpath string          = filepath.Join(dir, "test-seeds.db")
 	)
 
 	res, err := SeedAll(ctx, &Args{
-		DB:            dbpath,
-		Driver:        "sqlite3",
-		MigrationFile: mfile,
+		DB:     dbpath,
+		Driver: "sqlite3",
 	})
 	if err != nil {
 		t.Errorf("unexpcted error : [%s]", err.Error())

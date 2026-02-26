@@ -6,17 +6,14 @@ import (
 	"log/slog"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/conn"
-	"opg-reports/report/package/files"
-	"slices"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 type Args struct {
-	DB            string `json:"db"`             // --db
-	Driver        string `json:"driver"`         // --driver
-	Params        string `json:"params"`         // --params
-	MigrationFile string `json:"migration_file"` // --file
+	DB     string `json:"db"`     // --db
+	Driver string `json:"driver"` // --driver
+	Params string `json:"params"` // --params
 }
 
 type Migration struct {
@@ -24,109 +21,45 @@ type Migration struct {
 	Stmt string
 }
 
-var migrations = map[string][]*Migration{
-	"teams": {
-		{Key: "create_teams", Stmt: create_teams},
-	},
-	"accounts": {
-		{Key: "create_aws_accounts", Stmt: create_aws_accounts},
-		{Key: "agnostic_accounts", Stmt: agnostic_accounts},
-	},
-	"costs": {
-		{Key: "create_aws_costs", Stmt: create_aws_costs},
-		{Key: "create_agnostic_costs", Stmt: create_agnostic_costs},
-		{Key: "migrate_costs", Stmt: migrate_costs},
-	},
-	"uptime": {
-		{Key: "create_aws_uptime", Stmt: create_aws_uptime},
-		{Key: "agnostic_uptime", Stmt: agnostic_uptime},
-	},
-	"codebases": {
-		{Key: "create_codebases", Stmt: create_codebases},
-	},
-	"codeowners": {
-		{Key: "create_codeowners", Stmt: create_codeowners},
-	},
-	"after": {
-		{Key: "lowercase_team_name", Stmt: lowercase_team_name},
-	},
+var migrations = []*Migration{
+	{Key: "create_teams", Stmt: create_teams},
+	{Key: "create_accounts", Stmt: create_accounts},
+	{Key: "create_costs", Stmt: create_costs},
+	{Key: "create_uptime", Stmt: create_uptime},
+	{Key: "create_codebases", Stmt: create_codebases},
+	{Key: "lowercase_team_name", Stmt: lowercase_team_name},
 }
 
-// MigrateAll is a wrapper around migrating all known migrations
-func MigrateAll(ctx context.Context, flags *Args) (err error) {
-	// teams
-	if err = Migrate(ctx, flags, migrations["teams"]); err != nil {
-		return
-	}
-	// accounts
-	if err = Migrate(ctx, flags, migrations["accounts"]); err != nil {
-		return
-	}
-	// costs
-	if err = Migrate(ctx, flags, migrations["costs"]); err != nil {
-		return
-	}
-	// uptime
-	if err = Migrate(ctx, flags, migrations["uptime"]); err != nil {
-		return
-	}
-	// codebases
-	if err = Migrate(ctx, flags, migrations["codebases"]); err != nil {
-		return
-	}
-	// post, almost completed migrations
-	if err = Migrate(ctx, flags, migrations["after"]); err != nil {
-		return
-	}
-
+// Migrate is a wrapper around migrating all known migrations
+func Migrate(ctx context.Context, flags *Args) (err error) {
+	err = runMigrations(ctx, flags, migrations)
 	return
 }
 
-// Migrate will try to run the migrations passed along, skipping any that are within the migration
-// json file
-func Migrate(ctx context.Context, opts *Args, migrations []*Migration) (err error) {
+// migrate will try to run the migrations passed along
+func runMigrations(ctx context.Context, opts *Args, migrations []*Migration) (err error) {
 	var (
-		db      *sql.DB
-		skipped int          = 0
-		exclude []string     = []string{}
-		done    []string     = []string{}
-		log     *slog.Logger = cntxt.GetLogger(ctx).With("package", "global", "func", "Run")
+		db  *sql.DB
+		log *slog.Logger = cntxt.GetLogger(ctx).With("package", "global", "func", "runMigrations")
 	)
-	log.Info("starting ...", "db", opts.DB, "migrations", opts.MigrationFile)
+	log.Info("starting ...", "db", opts.DB)
 	// get the connection
 	db, err = sql.Open(opts.Driver, conn.SqlitePath(opts.DB, opts.Params))
 	if err != nil {
 		return
 	}
 	// close at the end & write migrations
-	defer func() {
-		db.Close()
-		all := append(done, exclude...)
-		files.WriteAsJSON(ctx, opts.MigrationFile, all)
-	}()
+	defer db.Close()
 
-	// read json file if it exists, otherwise run all
-	err = files.ReadJSON(ctx, opts.MigrationFile, &exclude)
-	if err != nil {
-		return
-	}
 	// now process all migrations, skipping those we've excluded from the migration file
 	for _, migration := range migrations {
-		var skip bool = slices.Contains(exclude, migration.Key)
-		log.Debug("migrating ... ", "key", migration.Key, "skip?", skip)
-		// if not in the excluded list, then run
-		if !skip {
-			// run the migration, if theres a error, fail
-			if _, err = db.ExecContext(ctx, migration.Stmt); err != nil {
-				log.Error("error with migration", "key", migration.Key, "err", err.Error())
-				return
-			}
-		} else {
-			skipped++
+		// run the migration, if theres a error, fail
+		if _, err = db.ExecContext(ctx, migration.Stmt); err != nil {
+			log.Error("error with migration", "key", migration.Key, "err", err.Error())
+			return
 		}
-		// track result for writing to file
-		done = append(done, migration.Key)
+
 	}
-	log.Info("complete.", "skipped", skipped, "run", len(done))
+	log.Info("complete.")
 	return
 }

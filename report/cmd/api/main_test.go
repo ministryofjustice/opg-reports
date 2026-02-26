@@ -21,14 +21,12 @@ func TestAPIEndpointsRespond(t *testing.T) {
 		dir    = t.TempDir()
 		driver = "sqlite3"
 		dbpath = filepath.Join(dir, "test-teams-handler.db")
-		mfile  = filepath.Join(dir, "migrate.json")
 	)
 
 	// run seeds
 	_, err = seeds.SeedAll(ctx, &seeds.Args{
-		Driver:        driver,
-		DB:            dbpath,
-		MigrationFile: mfile,
+		Driver: driver,
+		DB:     dbpath,
 	})
 	if err != nil {
 		t.Errorf("unexpected error: [%s]", err.Error())
@@ -39,9 +37,8 @@ func TestAPIEndpointsRespond(t *testing.T) {
 
 	// register all endpoints
 	registerEndpoints(ctx, mux, &cli{
-		Driver:        driver,
-		DB:            dbpath,
-		MigrationFile: mfile,
+		Driver: driver,
+		DB:     dbpath,
 	})
 
 	// all endpoints
