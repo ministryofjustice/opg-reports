@@ -43,6 +43,7 @@ func main() {
 		costsCmd,
 		uptimeCmd,
 		codebasesCmd,
+		codeownersCmd,
 	)
 
 	err = root.ExecuteContext(ctx)

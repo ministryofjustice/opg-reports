@@ -41,10 +41,12 @@ func TestCodebasesImportWithoutMock(t *testing.T) {
 		Repos: client.Repositories,
 	}
 	err = Import(ctx, clients, &Args{
-		DB:         dbpath,
-		Driver:     "sqlite3",
-		OrgSlug:    "ministryofjustice",
-		ParentSlug: "opg",
+		DB:                dbpath,
+		Driver:            "sqlite3",
+		OrgSlug:           "ministryofjustice",
+		ParentSlug:        "opg",
+		IncludeStats:      false,
+		IncludeCodeowners: false,
 	})
 	if err != nil {
 		t.Errorf("unexpected error:\n%s", err.Error())

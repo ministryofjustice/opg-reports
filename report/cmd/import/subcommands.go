@@ -55,6 +55,13 @@ var codebasesCmd = &cobra.Command{
 	RunE:  runCodebaseImport,
 }
 
+// codebase import command
+var codeownersCmd = &cobra.Command{
+	Use:   `codeowners`,
+	Short: `import codeowners`,
+	RunE:  runCodeownersImport,
+}
+
 // runTeamsImport runs the teams
 func runTeamsImport(cmd *cobra.Command, args []string) (err error) {
 	var ctx = cmd.Context()
@@ -202,11 +209,52 @@ func runCodebaseImport(cmd *cobra.Command, args []string) (err error) {
 		Repos: client.Repositories,
 	}
 	err = codebasesimport.Import(ctx, clients, &codebasesimport.Args{
-		DB:         flags.DB,
-		Driver:     flags.Driver,
-		Params:     flags.Params,
-		OrgSlug:    flags.OrgSlug,
-		ParentSlug: flags.ParentSlug,
+		DB:                flags.DB,
+		Driver:            flags.Driver,
+		Params:            flags.Params,
+		OrgSlug:           flags.OrgSlug,
+		ParentSlug:        flags.ParentSlug,
+		IncludeStats:      true,
+		IncludeCodeowners: false,
+	})
+	return
+}
+
+// runCodeownersImport runs the uptime import
+func runCodeownersImport(cmd *cobra.Command, args []string) (err error) {
+	var client *github.Client
+	var tk = os.Getenv("GITHUB_TOKEN")
+	var ctx = cmd.Context()
+	// overwrite arg flags from env values
+	if e := env.OverwriteStruct(&flags); e != nil {
+		return
+	}
+	client, err = ghclients.New(ctx, tk)
+	if err != nil {
+		return
+	}
+	// run the migrations
+	err = migrations.Migrate(ctx, &migrations.Args{
+		DB:     flags.DB,
+		Driver: flags.Driver,
+		Params: flags.Params,
+	})
+	if err != nil {
+		return
+	}
+
+	clients := &codebasesimport.Clients{
+		Teams: client.Teams,
+		Repos: client.Repositories,
+	}
+	err = codebasesimport.Import(ctx, clients, &codebasesimport.Args{
+		DB:                flags.DB,
+		Driver:            flags.Driver,
+		Params:            flags.Params,
+		OrgSlug:           flags.OrgSlug,
+		ParentSlug:        flags.ParentSlug,
+		IncludeStats:      true,
+		IncludeCodeowners: true,
 	})
 	return
 }

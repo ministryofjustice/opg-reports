@@ -52,7 +52,7 @@ var gradeMap = map[string]int{
 
 // Codebase represents a simple, joinless, db row in the cost table; used by imports and seeding commands
 type CodebaseStats struct {
-	Codebase            string `json:"codebase,omitempty"`              // short name of codebase (without owner)
+	Codebase            string `json:"codebase,omitempty"`              // full name of codebase
 	Visibility          string `json:"visibility,omityempty"`           // visibility status
 	ComplianceLevel     string `json:"compliance_level,omitempty"`      // compliance level (moj based)
 	ComplianceReportUrl string `json:"compliance_report_url,omitempty"` // compliance report url

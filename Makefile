@@ -29,6 +29,16 @@ import-codebases: build-cmds
 		${IMPORT_CMD} codebases \
 		--db="${API_DB}"
 
+#========= IMPORT CODEOWNERS =========
+.PHONY: import-codeowners
+import-codeowners: CMD_LIST=import
+import-codeowners: build-cmds
+	@echo "- importing codeowners "
+	@env GH_TOKEN="${GITHUBTOKEN}" \
+		LOG_LEVEL=${LOG_LEVEL} \
+		${IMPORT_CMD} codeowners \
+		--db="${API_DB}"
+
 #========= RUN THE API =========
 # api command variables
 API_DB_DIR ?= ${BUILD_DIR}/database

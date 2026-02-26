@@ -86,3 +86,15 @@ CREATE TABLE IF NOT EXISTS codebase_stats (
 ) STRICT;
 CREATE INDEX IF NOT EXISTS idx_codebases ON codebases(full_name);
 `
+
+const create_codeowner string = `
+CREATE TABLE IF NOT EXISTS codebase_owners (
+	id INTEGER PRIMARY KEY,
+	created_at TEXT NOT NULL DEFAULT (strftime('%FT%TZ', 'now') ),
+	owner TEXT NOT NULL,
+	codebase TEXT NOT NULL,
+	team_name TEXT NOT NULL,
+	UNIQUE (owner,codebase,team_name)
+) STRICT;
+CREATE INDEX IF NOT EXISTS idx_codeowners ON codebase_owners(codebase,team_name);
+`

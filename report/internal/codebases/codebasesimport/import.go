@@ -30,9 +30,10 @@ type Args struct {
 	Driver string `json:"driver"` // database driver
 	Params string `json:"params"` // database connection params
 
-	OrgSlug    string `json:"org_slug"`
-	ParentSlug string `json:"parent_slug"`
+	OrgSlug    string `json:"org_slug"`    // github org name
+	ParentSlug string `json:"parent_slug"` // parent slug
 
+	IncludeStats      bool `json:"include_stats"`      // run the code base stats handler - stats are non-time boxed details
 	IncludeCodeowners bool `json:"include_codeowners"` // option to fetch all codebases and then fetch codeowner data as well
 }
 
@@ -53,14 +54,22 @@ func Import(ctx context.Context, client *Clients, in *Args) (err error) {
 	if err != nil {
 		return
 	}
+	// always run the codebase import
 	err = handleCodebases(ctx, list, in)
 	if err != nil {
 		return
 	}
-	// we always fetch the stats as these are data but without time ranges, so faster to process
-	err = handleCodebaseStats(ctx, list, in)
-	if err != nil {
-		return
+	// if enabled, run stats
+	if in.IncludeStats {
+		if err = handleCodebaseStats(ctx, list, in); err != nil {
+			return
+		}
+	}
+	// if enabled, run code owners
+	if in.IncludeCodeowners {
+		if err = handleCodebaseOwners(ctx, client.Repos, list, in); err != nil {
+			return
+		}
 	}
 
 	log.Info("complete.")
