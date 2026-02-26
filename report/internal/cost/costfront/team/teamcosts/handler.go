@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"opg-reports/report/internal/cost/costapi/costapiteamfilter"
+	"opg-reports/report/internal/cost/costapi/costapiteam"
 	"opg-reports/report/internal/global/frontmodels"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/package/cntxt"
@@ -86,7 +86,7 @@ func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, reque
 		},
 		// get homepage costs - trigger the same end date as others
 		func(wg *sync.WaitGroup, page *PageContent) {
-			resp, err := rest.FromApi[*costapiteamfilter.Response](ctx, args.ApiHost, costapiteamfilter.ENDPOINT, request, params...)
+			resp, err := rest.FromApi[*costapiteam.Response](ctx, args.ApiHost, costapiteam.ENDPOINT_TEAM, request, params...)
 			if err == nil {
 				// set date values
 				page.Dates = &frontmodels.DateRanges{

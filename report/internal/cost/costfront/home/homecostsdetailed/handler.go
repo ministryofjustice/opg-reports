@@ -82,7 +82,7 @@ func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, reque
 
 		// get homepage detailed costs
 		func(wg *sync.WaitGroup, page *PageContent) {
-			resp, err := rest.FromApi[*costapidetailed.Response](ctx, args.ApiHost, costapidetailed.ENDPOINT, request, params...)
+			resp, err := rest.FromApi[*costapidetailed.Response](ctx, args.ApiHost, costapidetailed.ENDPOINT_BASE, request, params...)
 			if err == nil {
 				// set date values
 				page.Dates = &frontmodels.DateRanges{

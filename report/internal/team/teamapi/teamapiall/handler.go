@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"log/slog"
 	"net/http"
+	"opg-reports/report/internal/global/apimodels"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/cnv"
 	"opg-reports/report/package/dbx"
@@ -54,7 +55,7 @@ func (self *Team) Sequence() []any {
 }
 
 // Responder process the incoming request, queries the database and returns the result as json data.
-func Responder(ctx context.Context, conf *Config, request *http.Request, writer http.ResponseWriter) {
+func Responder(ctx context.Context, conf *apimodels.Args, request *http.Request, writer http.ResponseWriter) {
 	var (
 		err      error
 		response *Response

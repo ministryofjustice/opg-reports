@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"opg-reports/report/internal/global/frontmodels"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
-	"opg-reports/report/internal/uptime/uptimeapi/uptimeapiteamfilter"
+	"opg-reports/report/internal/uptime/uptimeapi/uptimeapiteam"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/cnv"
 	"opg-reports/report/package/htmlpage"
@@ -85,7 +85,7 @@ func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, reque
 		},
 		// get team uptime breakdown
 		func(wg *sync.WaitGroup, page *PageContent) {
-			resp, err := rest.FromApi[*uptimeapiteamfilter.Response](ctx, args.ApiHost, uptimeapiteamfilter.ENDPOINT, request, params...)
+			resp, err := rest.FromApi[*uptimeapiteam.Response](ctx, args.ApiHost, uptimeapiteam.ENDPOINT_TEAM, request, params...)
 			if err == nil {
 				// process the data into local structs
 				page.UptimeData = &frontmodels.TableData{

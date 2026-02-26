@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"log/slog"
 	"net/http"
+	"opg-reports/report/internal/global/apimodels"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/cnv"
 	"opg-reports/report/package/dbx"
@@ -12,6 +13,7 @@ import (
 	"opg-reports/report/package/respond"
 	"opg-reports/report/package/tabulate"
 	"strconv"
+	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -48,6 +50,7 @@ type Request struct {
 	DateA  string `json:"date_a"`
 	DateB  string `json:"date_b"`
 	Change string `json:"change"`
+	Team   string `json:"team"` // optional team lookup
 }
 
 // Response is the end result thats sent back from the handler via the writter
@@ -66,6 +69,7 @@ type Response struct {
 // For this endpointm, we only filter by the time period - months
 type Filter struct {
 	Months []string `json:"months"`
+	Team   string   `json:"team"` // optional team lookup
 }
 
 // Model is the data struct to use when fetching the select
@@ -87,7 +91,7 @@ func (self *Model) Sequence() []any {
 // Responder process the incoming request, queries the database and returns the result as json data.
 //
 // Data is formatted as a table for easier display.
-func Responder(ctx context.Context, conf *Config, request *http.Request, writer http.ResponseWriter) {
+func Responder(ctx context.Context, conf *apimodels.Args, request *http.Request, writer http.ResponseWriter) {
 	var (
 		err      error
 		response *Response
@@ -98,6 +102,7 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 		bindMap  map[string]interface{}        = map[string]interface{}{}
 		all      []*Model                      = []*Model{}
 		log      *slog.Logger                  = cntxt.GetLogger(ctx).With("package", "costapidiff", "func", "Responder")
+		stmt     string                        = selectStmt
 		headings map[tabulate.ColType][]string = map[tabulate.ColType][]string{
 			tabulate.KEY:   {"team", "account", "service"},
 			tabulate.EXTRA: {},
@@ -116,6 +121,12 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 	// setup months
 	headings[tabulate.DATA] = months
 	filter = &Filter{Months: months}
+	// look for the optional team
+	if in.Team != "" {
+		log.Info("optional team filter found ...", "team", in.Team)
+		filter.Team = in.Team
+		stmt = strings.ReplaceAll(stmt, "WHERE", "WHERE accounts.team_name = :team AND")
+	}
 	// now convert to a map for use in bound statements
 	err = cnv.Convert(filter, &bindMap)
 	if err != nil {
@@ -124,7 +135,7 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 	}
 	// make the db call via the Select helper that handles row scanning.
 	// No return value as local values are updates within ScanF lambda
-	dbx.Select(ctx, selectStmt, &dbx.SelectArgs{
+	dbx.Select(ctx, stmt, &dbx.SelectArgs{
 		DB:      conf.DB,
 		Driver:  conf.Driver,
 		Params:  conf.Params,

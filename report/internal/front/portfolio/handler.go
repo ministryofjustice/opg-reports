@@ -80,7 +80,7 @@ func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, reque
 		},
 		// get costs - trigger the same end date as others
 		func(wg *sync.WaitGroup, page *PageContent) {
-			resp, err := rest.FromApi[*costapiteam.Response](ctx, args.ApiHost, costapiteam.ENDPOINT, request, params...)
+			resp, err := rest.FromApi[*costapiteam.Response](ctx, args.ApiHost, costapiteam.ENDPOINT_BASE, request, params...)
 			if err == nil {
 				// process the data into local structs
 				page.CostData = &frontmodels.TableData{
@@ -107,7 +107,7 @@ func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, reque
 		},
 		// get uptime breakdown
 		func(wg *sync.WaitGroup, page *PageContent) {
-			resp, err := rest.FromApi[*uptimeapiteam.Response](ctx, args.ApiHost, uptimeapiteam.ENDPOINT, request, params...)
+			resp, err := rest.FromApi[*uptimeapiteam.Response](ctx, args.ApiHost, uptimeapiteam.ENDPOINT_BASE, request, params...)
 			if err == nil {
 				// process the data into local structs
 				page.UptimeData = &frontmodels.TableData{

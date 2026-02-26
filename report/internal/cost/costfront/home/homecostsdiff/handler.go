@@ -85,7 +85,7 @@ func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, reque
 				changes = append(changes, fmt.Sprintf("%d", i))
 			}
 
-			resp, err := rest.FromApi[*costapidiff.Response](ctx, args.ApiHost, costapidiff.ENDPOINT, request, params...)
+			resp, err := rest.FromApi[*costapidiff.Response](ctx, args.ApiHost, costapidiff.ENDPOINT_BASE, request, params...)
 			if err == nil {
 				// set date values
 				page.Dates = &frontmodels.DateComparision{

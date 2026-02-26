@@ -5,22 +5,17 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"opg-reports/report/internal/account/accountapi/accountapiall"
-	"opg-reports/report/internal/account/accountapi/accountsapiforteam"
+	"opg-reports/report/internal/account/accountapi/accountapi"
 	"opg-reports/report/internal/codebases/codebasesapi/codebaseapiowners"
 	"opg-reports/report/internal/codebases/codebasesapi/codebasesapistats"
 	"opg-reports/report/internal/cost/costapi/costapidetailed"
-	"opg-reports/report/internal/cost/costapi/costapidetailedteamfilter"
 	"opg-reports/report/internal/cost/costapi/costapidiff"
-	"opg-reports/report/internal/cost/costapi/costapidiffteamfilter"
 	"opg-reports/report/internal/cost/costapi/costapiteam"
-	"opg-reports/report/internal/cost/costapi/costapiteamfilter"
+	"opg-reports/report/internal/global/apimodels"
 	"opg-reports/report/internal/global/migrations"
-	"opg-reports/report/internal/headline/headlineapi/headlineapihome"
-	"opg-reports/report/internal/headline/headlineapi/headlineapiteam"
+	"opg-reports/report/internal/headline/headlineapi/headlineapi"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/internal/uptime/uptimeapi/uptimeapiteam"
-	"opg-reports/report/internal/uptime/uptimeapi/uptimeapiteamfilter"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/env"
 	"opg-reports/report/package/logger"
@@ -60,135 +55,38 @@ var root *cobra.Command = &cobra.Command{
 // Adds a handler for / & /ping
 func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 
+	var args = &apimodels.Args{
+		DB:      in.DB,
+		Driver:  in.Driver,
+		Params:  in.Params,
+		Version: in.Version,
+		SHA:     in.SHA,
+	}
+
 	registerPingAndHome(ctx, mux, in)
 	// teams
 	// - all
-	teamapiall.Register(ctx, mux, &teamapiall.Config{
-		DB:      in.DB,
-		Driver:  in.Driver,
-		Params:  in.Params,
-		Version: in.Version,
-		SHA:     in.SHA,
-	})
-	// headline api which returns highlighted numbers
-	headlineapihome.Register(ctx, mux, &headlineapihome.Config{
-		DB:      in.DB,
-		Driver:  in.Driver,
-		Params:  in.Params,
-		Version: in.Version,
-		SHA:     in.SHA,
-	})
-	// headline figures for team pages
-	headlineapiteam.Register(ctx, mux, &headlineapiteam.Config{
-		DB:      in.DB,
-		Driver:  in.Driver,
-		Params:  in.Params,
-		Version: in.Version,
-		SHA:     in.SHA,
-	})
-
+	teamapiall.Register(ctx, mux, args)
+	// headline api which returns highlighted numbers / optional team filter
+	headlineapi.Register(ctx, mux, args)
 	// accounts
-	// - all
-	accountapiall.Register(ctx, mux, &accountapiall.Config{
-		DB:      in.DB,
-		Driver:  in.Driver,
-		Params:  in.Params,
-		Version: in.Version,
-		SHA:     in.SHA,
-	})
-	// - filtered by a team
-	accountsapiforteam.Register(ctx, mux, &accountsapiforteam.Config{
-		DB:      in.DB,
-		Driver:  in.Driver,
-		Params:  in.Params,
-		Version: in.Version,
-		SHA:     in.SHA,
-	})
-
+	// - all accounts and team filter
+	accountapi.Register(ctx, mux, args)
 	// costs
-	// - grouped by month & team
-	costapiteam.Register(ctx, mux, &costapiteam.Config{
-		DB:      in.DB,
-		Driver:  in.Driver,
-		Params:  in.Params,
-		Version: in.Version,
-		SHA:     in.SHA,
-	})
-	// - grouped by month, filtered by team
-	costapiteamfilter.Register(ctx, mux, &costapiteamfilter.Config{
-		DB:      in.DB,
-		Driver:  in.Driver,
-		Params:  in.Params,
-		Version: in.Version,
-		SHA:     in.SHA,
-	})
-	// - detailed costs group by month
-	costapidetailed.Register(ctx, mux, &costapidetailed.Config{
-		DB:      in.DB,
-		Driver:  in.Driver,
-		Params:  in.Params,
-		Version: in.Version,
-		SHA:     in.SHA,
-	})
-	// - detailed view grouped by month - filtered by team
-	costapidetailedteamfilter.Register(ctx, mux, &costapidetailedteamfilter.Config{
-		DB:      in.DB,
-		Driver:  in.Driver,
-		Params:  in.Params,
-		Version: in.Version,
-		SHA:     in.SHA,
-	})
-	// - cost differences
-	costapidiff.Register(ctx, mux, &costapidiff.Config{
-		DB:      in.DB,
-		Driver:  in.Driver,
-		Params:  in.Params,
-		Version: in.Version,
-		SHA:     in.SHA,
-	})
-	// - cost difference filtered by a team
-	costapidiffteamfilter.Register(ctx, mux, &costapidiffteamfilter.Config{
-		DB:      in.DB,
-		Driver:  in.Driver,
-		Params:  in.Params,
-		Version: in.Version,
-		SHA:     in.SHA,
-	})
-
+	// - grouped by month & team / optional team filter
+	costapiteam.Register(ctx, mux, args)
+	// - detailed costs group by month / optional team filter
+	costapidetailed.Register(ctx, mux, args)
+	// - cost differences / optional team filter
+	costapidiff.Register(ctx, mux, args)
 	// uptime
-	// - uptime grouped by team name
-	uptimeapiteam.Register(ctx, mux, &uptimeapiteam.Config{
-		DB:      in.DB,
-		Driver:  in.Driver,
-		Params:  in.Params,
-		Version: in.Version,
-		SHA:     in.SHA,
-	})
-	// - uptime filtered by team
-	uptimeapiteamfilter.Register(ctx, mux, &uptimeapiteamfilter.Config{
-		DB:      in.DB,
-		Driver:  in.Driver,
-		Params:  in.Params,
-		Version: in.Version,
-		SHA:     in.SHA,
-	})
+	// - uptime grouped by team name / optional team filter
+	uptimeapiteam.Register(ctx, mux, args)
 	// codebases
-	// - stats
-	codebasesapistats.Register(ctx, mux, &codebasesapistats.Config{
-		DB:      in.DB,
-		Driver:  in.Driver,
-		Params:  in.Params,
-		Version: in.Version,
-		SHA:     in.SHA,
-	})
-	// - ownership
-	codebaseapiowners.Register(ctx, mux, &codebaseapiowners.Config{
-		DB:      in.DB,
-		Driver:  in.Driver,
-		Params:  in.Params,
-		Version: in.Version,
-		SHA:     in.SHA,
-	})
+	// - stats / optional team filter
+	codebasesapistats.Register(ctx, mux, args)
+	// - ownership / optional team filter
+	codebaseapiowners.Register(ctx, mux, args)
 }
 
 // runAPI the main run command

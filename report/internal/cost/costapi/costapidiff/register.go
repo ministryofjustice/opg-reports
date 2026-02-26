@@ -4,28 +4,30 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"opg-reports/report/internal/global/apimodels"
 	"opg-reports/report/package/cntxt"
 )
 
-const ENDPOINT string = "/v1/costs/diff/{date_a}/{date_b}"
+const ENDPOINT_BASE string = `/v1/costs/diff/{date_a}/{date_b}/`
+const ENDPOINT_TEAM string = `/v1/costs/diff/{date_a}/{date_b}/team/{team}/`
 
-// Config contains required values for DB and others to generate a response
-type Config struct {
-	DB      string `json:"db"`
-	Driver  string `json:"driver"`
-	Params  string `json:"params"`
-	Version string `json:"version"`
-	SHA     string `json:"sha"`
+var endpoints []string = []string{
+	ENDPOINT_BASE,
+	ENDPOINT_TEAM,
 }
 
 // Register wraps the handle func with a local version that also gets additional config
 // details
-func Register(ctx context.Context, mux *http.ServeMux, config *Config) {
+func Register(ctx context.Context, mux *http.ServeMux, config *apimodels.Args) {
 	var log = cntxt.GetLogger(ctx)
 
-	log.Info("registering handler ... ", "endpoint", ENDPOINT)
-	mux.HandleFunc(fmt.Sprintf("%s/{$}", ENDPOINT), func(writer http.ResponseWriter, request *http.Request) {
-		Responder(ctx, config, request, writer)
-	})
+	for _, ep := range endpoints {
+		log.Info(fmt.Sprintf("[%s] registering endpoint [%s] to handler", "costapidiff", ep))
+		ep = fmt.Sprintf("%s{$}", ep)
+
+		mux.HandleFunc(ep, func(writer http.ResponseWriter, request *http.Request) {
+			Responder(ctx, config, request, writer)
+		})
+	}
 
 }

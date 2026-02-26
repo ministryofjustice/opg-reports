@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"opg-reports/report/internal/cost/costapi/costapidetailedteamfilter"
+	"opg-reports/report/internal/cost/costapi/costapidetailed"
 	"opg-reports/report/internal/global/frontmodels"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/package/cntxt"
@@ -86,7 +86,7 @@ func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, reque
 
 		// get homepage detailed costs
 		func(wg *sync.WaitGroup, page *PageContent) {
-			resp, err := rest.FromApi[*costapidetailedteamfilter.Response](ctx, args.ApiHost, costapidetailedteamfilter.ENDPOINT, request, params...)
+			resp, err := rest.FromApi[*costapidetailed.Response](ctx, args.ApiHost, costapidetailed.ENDPOINT_TEAM, request, params...)
 			if err == nil {
 				// set date values
 				page.Dates = &frontmodels.DateRanges{

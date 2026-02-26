@@ -1,15 +1,17 @@
-package accountsapiforteam
+package accountapi
 
 import (
 	"context"
 	"database/sql"
 	"log/slog"
 	"net/http"
+	"opg-reports/report/internal/global/apimodels"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/cnv"
 	"opg-reports/report/package/dbx"
 	"opg-reports/report/package/requested"
 	"opg-reports/report/package/respond"
+	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -24,7 +26,7 @@ SELECT
 	team_name as team
 FROM accounts
 WHERE
-	team_name = :team
+	id IS NOT NULL
 ORDER BY
 	team_name,
 	name,
@@ -35,7 +37,7 @@ ORDER BY
 // Request contains the url path / query string values that we will use
 // in this handler
 type Request struct {
-	Team string `json:"team"`
+	Team string `json:"team"` // option team filter for this handler
 }
 
 // Response is the end result thats sent back from the handler via the writter
@@ -46,8 +48,8 @@ type Response struct {
 	Data    []*Account `json:"data"` // the actual data results
 }
 
-// Filter is with the sql to replace the `:name` named parameters within the
-// statement. empty for this endpoint
+// Filter is with the sql to replace the named parameters
+// within the statement.
 type Filter struct {
 	Team string `json:"team"`
 }
@@ -67,7 +69,7 @@ func (self *Account) Sequence() []any {
 }
 
 // Responder process the incoming request, queries the database and returns the result as json data.
-func Responder(ctx context.Context, conf *Config, request *http.Request, writer http.ResponseWriter) {
+func Responder(ctx context.Context, conf *apimodels.Args, request *http.Request, writer http.ResponseWriter) {
 	var (
 		err      error
 		response *Response
@@ -75,13 +77,19 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 		in       *Request               = &Request{}
 		bindMap  map[string]interface{} = map[string]interface{}{}
 		all      []*Account             = []*Account{}
-		log      *slog.Logger           = cntxt.GetLogger(ctx).With("package", "accountsapiforteam", "func", "Responder")
+		log      *slog.Logger           = cntxt.GetLogger(ctx).With("package", "accountapi", "func", "Responder")
+		stmt     string                 = selectStmt // localised constant
 	)
 	log.Info("running http handler ...")
 	// convert the http request into Request struct
 	requested.Parse(ctx, request, &in)
-	// setup filter
-	filter = &Filter{Team: in.Team}
+	// parse the option team
+	if in.Team != "" {
+		log.Info("optional team filter found ...", "team", in.Team)
+		filter.Team = in.Team
+		stmt = strings.ReplaceAll(stmt, "WHERE", "WHERE team_name = :team AND")
+	}
+
 	// now convert to a map for use in bound statements
 	err = cnv.Convert(filter, &bindMap)
 	if err != nil {
@@ -90,7 +98,7 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 	}
 	// make the db call via the Select helper that handles row scanning.
 	// No return value as local values are updates within ScanF lambda
-	dbx.Select(ctx, selectStmt, &dbx.SelectArgs{
+	dbx.Select(ctx, stmt, &dbx.SelectArgs{
 		DB:      conf.DB,
 		Driver:  conf.Driver,
 		Params:  conf.Params,

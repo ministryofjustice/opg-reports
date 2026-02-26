@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"opg-reports/report/internal/cost/costapi/costapidiffteamfilter"
+	"opg-reports/report/internal/cost/costapi/costapidiff"
 	"opg-reports/report/internal/global/frontmodels"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/package/cntxt"
@@ -91,7 +91,7 @@ func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, reque
 				changes = append(changes, fmt.Sprintf("%d", i))
 			}
 
-			resp, err := rest.FromApi[*costapidiffteamfilter.Response](ctx, args.ApiHost, costapidiffteamfilter.ENDPOINT, request, params...)
+			resp, err := rest.FromApi[*costapidiff.Response](ctx, args.ApiHost, costapidiff.ENDPOINT_TEAM, request, params...)
 			if err == nil {
 				// set date values
 				page.Dates = &frontmodels.DateComparision{

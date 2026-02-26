@@ -1,4 +1,4 @@
-package uptimeapiteam
+package headlineapi
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 	"opg-reports/report/package/cntxt"
 )
 
-const ENDPOINT_BASE string = `/v1/uptime/between/{date_start}/{date_end}/`
-const ENDPOINT_TEAM string = `/v1/uptime/between/{date_start}/{date_end}/team/{team}/`
+const ENDPOINT_BASE string = `/v1/headlines/{date_start}/{date_end}/`
+const ENDPOINT_TEAM string = `/v1/headlines/{date_start}/{date_end}/team/{team}/`
 
 var endpoints []string = []string{
 	ENDPOINT_BASE,
@@ -22,7 +22,7 @@ func Register(ctx context.Context, mux *http.ServeMux, config *apimodels.Args) {
 	var log = cntxt.GetLogger(ctx)
 
 	for _, ep := range endpoints {
-		log.Info(fmt.Sprintf("[%s] registering endpoint [%s] to handler", "uptimeapiteam", ep))
+		log.Info(fmt.Sprintf("[%s] registering endpoint [%s] to handler", "headlineapi", ep))
 		ep = fmt.Sprintf("%s{$}", ep)
 
 		mux.HandleFunc(ep, func(writer http.ResponseWriter, request *http.Request) {

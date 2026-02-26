@@ -3,6 +3,7 @@ package costapidetailed
 import (
 	"net/http"
 	"net/http/httptest"
+	"opg-reports/report/internal/global/apimodels"
 	"opg-reports/report/internal/global/seeds"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/logger"
@@ -32,15 +33,15 @@ func TestCostApiDetailedHandler(t *testing.T) {
 		t.FailNow()
 	}
 	// setup the server and items
-	// "/v1/costs/between/{date_start}/{date_end}/detailed"
-	url := "/v1/costs/between/" + start + "/" + end + "/detailed/"
+	// /v1/costs/detailed/between/{date_start}/{date_end}/
+	url := "/v1/costs/detailed/between/" + start + "/" + end + "/"
 	mux := http.NewServeMux()
 
 	req := httptest.NewRequest(http.MethodGet, url, nil)
 	writer := httptest.NewRecorder()
 
 	// setup the bindings to the test handler and call
-	Register(ctx, mux, &Config{
+	Register(ctx, mux, &apimodels.Args{
 		Driver: driver,
 		DB:     dbpath,
 	})

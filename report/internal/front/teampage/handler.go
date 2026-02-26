@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"opg-reports/report/internal/global/frontmodels"
-	"opg-reports/report/internal/headline/headlineapi/headlineapiteam"
+	"opg-reports/report/internal/headline/headlineapi/headlineapi"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/cnv"
@@ -86,15 +86,17 @@ func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, reque
 		},
 		// get homepage stats
 		func(wg *sync.WaitGroup, page *PageContent) {
-			resp, err := rest.FromApi[*headlineapiteam.Response](ctx, args.ApiHost, headlineapiteam.ENDPOINT, request, params...)
+			resp, err := rest.FromApi[*headlineapi.Response](ctx, args.ApiHost, headlineapi.ENDPOINT_TEAM, request, params...)
 			if err == nil {
 				// set headlines
 				page.HeadlineData = &frontmodels.HeadlineData{
+					DateStart:           resp.Request.DateStart,
+					DateEnd:             resp.Request.DateEnd,
 					TotalCost:           resp.Data.TotalCost,
 					AverageCostPerMonth: resp.Data.AverageCostPerMonth,
 					OverallUptime:       resp.Data.OverallUptime,
-					DateStart:           resp.Request.DateStart,
-					DateEnd:             resp.Request.DateEnd,
+					CodebaseCount:       resp.Data.CodebaseCount,
+					CodebasePassed:      resp.Data.CodebasePassed,
 				}
 				// also set date values
 				page.Dates = &frontmodels.DateRanges{

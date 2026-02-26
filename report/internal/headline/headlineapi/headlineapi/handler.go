@@ -1,19 +1,21 @@
-// Package headlineapihome is for providing headline figures in one api call.
+// Package headlineapi is for providing headline figures in one api call.
 //
 // Used on home page to provide some top line numbers at a glance for ease
-package headlineapihome
+package headlineapi
 
 import (
 	"context"
 	"database/sql"
 	"log/slog"
 	"net/http"
+	"opg-reports/report/internal/global/apimodels"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/cnv"
 	"opg-reports/report/package/dbx"
 	"opg-reports/report/package/requested"
 	"opg-reports/report/package/respond"
 	"opg-reports/report/package/times"
+	"strings"
 	"time"
 )
 
@@ -22,6 +24,7 @@ const costSelect string = `
 SELECT
 	CAST(COALESCE(SUM(cost), 0) as REAL) as cost
 FROM costs
+LEFT JOIN accounts on accounts.id = costs.account_id
 WHERE
 	costs.service != 'Tax'
 	AND costs.month IN (:months)
@@ -33,6 +36,7 @@ const uptimeSelect string = `
 SELECT
 	CAST(COALESCE(AVG(uptime.average), 0) as REAL) as uptime
 FROM uptime
+LEFT JOIN accounts on accounts.id = uptime.account_id
 WHERE
 	uptime.month IN (:months)
 ;
@@ -54,6 +58,7 @@ SELECT
 	) as passed
 FROM codebases
 LEFT JOIN codebase_stats on codebase_stats.codebase = codebases.full_name
+LEFT JOIN codebase_owners ON codebase_owners.codebase = codebases.full_name
 WHERE
 	codebases.archived = 0
 	AND codebase_stats.visibility = 'public'
@@ -65,6 +70,7 @@ WHERE
 type Request struct {
 	DateStart string `json:"date_start"`
 	DateEnd   string `json:"date_end"`
+	Team      string `json:"team"`
 }
 
 func (self *Request) Start() (t time.Time) {
@@ -89,6 +95,7 @@ type Response struct {
 // statement.
 type Filter struct {
 	Months []string `json:"months"`
+	Team   string   `json:"team"`
 }
 
 type Result struct {
@@ -103,7 +110,7 @@ type Result struct {
 }
 
 // Responder process the incoming request, queries the database and returns the result as json data.
-func Responder(ctx context.Context, conf *Config, request *http.Request, writer http.ResponseWriter) {
+func Responder(ctx context.Context, conf *apimodels.Args, request *http.Request, writer http.ResponseWriter) {
 	var (
 		err      error
 		response *Response
@@ -125,6 +132,10 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 	}
 	// setup month filter
 	filter = &Filter{Months: months}
+	if in.Team != "" {
+		log.Info("optional team filter found ...", "team", in.Team)
+		filter.Team = in.Team
+	}
 	// now convert to a map for use in bound statements
 	err = cnv.Convert(filter, &bindMap)
 	if err != nil {
@@ -150,10 +161,16 @@ func Responder(ctx context.Context, conf *Config, request *http.Request, writer 
 }
 
 // costSelectRun runs the cost select and fetches the val for total cost
-func costSelectRun(ctx context.Context, conf *Config, filter *Filter, bindMap map[string]interface{}, res *Result) *Result {
+func costSelectRun(ctx context.Context, conf *apimodels.Args, filter *Filter, bindMap map[string]interface{}, res *Result) *Result {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "headlineapi", "func", "costSelectRun")
+	var stmt string = costSelect
 
-	dbx.Select(ctx, costSelect, &dbx.SelectArgs{
+	if filter.Team != "" {
+		log.Info("optional team filter found ...", "team", filter.Team)
+		stmt = strings.ReplaceAll(stmt, "WHERE", "WHERE accounts.team_name = :team AND")
+	}
+
+	dbx.Select(ctx, stmt, &dbx.SelectArgs{
 		DB:      conf.DB,
 		Driver:  conf.Driver,
 		Params:  conf.Params,
@@ -175,10 +192,16 @@ func costSelectRun(ctx context.Context, conf *Config, filter *Filter, bindMap ma
 }
 
 // uptimeSelectRun runs the uptime select and fetches the val for average uptime
-func uptimeSelectRun(ctx context.Context, conf *Config, filter *Filter, bindMap map[string]interface{}, res *Result) *Result {
+func uptimeSelectRun(ctx context.Context, conf *apimodels.Args, filter *Filter, bindMap map[string]interface{}, res *Result) *Result {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "headlineapi", "func", "uptimeSelectRun")
+	var stmt string = uptimeSelect
 
-	dbx.Select(ctx, uptimeSelect, &dbx.SelectArgs{
+	if filter.Team != "" {
+		log.Info("optional team filter found ...", "team", filter.Team)
+		stmt = strings.ReplaceAll(stmt, "WHERE", "WHERE accounts.team_name = :team AND")
+	}
+
+	dbx.Select(ctx, stmt, &dbx.SelectArgs{
 		DB:      conf.DB,
 		Driver:  conf.Driver,
 		Params:  conf.Params,
@@ -198,14 +221,20 @@ func uptimeSelectRun(ctx context.Context, conf *Config, filter *Filter, bindMap 
 }
 
 // codebasesSelectRun runs the select and fetches the values
-func codebasesSelectRun(ctx context.Context, conf *Config, filter *Filter, bindMap map[string]interface{}, res *Result) *Result {
+func codebasesSelectRun(ctx context.Context, conf *apimodels.Args, filter *Filter, bindMap map[string]interface{}, res *Result) *Result {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "headlineapi", "func", "codebasesSelectRun")
+	var stmt string = codebaseSelect
+
+	if filter.Team != "" {
+		log.Info("optional team filter found ...", "team", filter.Team)
+		stmt = strings.ReplaceAll(stmt, "WHERE", "WHERE codebase_owners.team_name = :team AND")
+	}
 
 	var scan = []any{
 		&res.CodebaseCount,
 		&res.CodebasePassed,
 	}
-	dbx.Select(ctx, codebaseSelect, &dbx.SelectArgs{
+	dbx.Select(ctx, stmt, &dbx.SelectArgs{
 		DB:      conf.DB,
 		Driver:  conf.Driver,
 		Params:  conf.Params,

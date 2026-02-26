@@ -3,6 +3,7 @@ package teamapiall
 import (
 	"net/http"
 	"net/http/httptest"
+	"opg-reports/report/internal/global/apimodels"
 	"opg-reports/report/internal/global/seeds"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/logger"
@@ -37,7 +38,7 @@ func TestTeamsApiAllHandler(t *testing.T) {
 	writer := httptest.NewRecorder()
 
 	// setup the bindings to the test handler and call
-	Register(ctx, mux, &Config{
+	Register(ctx, mux, &apimodels.Args{
 		Driver: driver,
 		DB:     dbpath,
 	})

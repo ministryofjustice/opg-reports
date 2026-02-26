@@ -4,23 +4,15 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"opg-reports/report/internal/global/apimodels"
 	"opg-reports/report/package/cntxt"
 )
 
 const ENDPOINT string = "/v1/teams"
 
-// Config contains required values for DB and others to generate a response
-type Config struct {
-	DB      string `json:"db"`
-	Driver  string `json:"driver"`
-	Params  string `json:"params"`
-	Version string `json:"version"`
-	SHA     string `json:"sha"`
-}
-
 // Register wraps the handle func with a local version that also gets additional config
 // details
-func Register(ctx context.Context, mux *http.ServeMux, config *Config) {
+func Register(ctx context.Context, mux *http.ServeMux, config *apimodels.Args) {
 	var log = cntxt.GetLogger(ctx)
 
 	log.Info("registering handler ... ", "endpoint", ENDPOINT)

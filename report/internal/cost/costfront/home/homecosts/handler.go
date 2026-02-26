@@ -79,7 +79,7 @@ func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, reque
 		},
 		// get homepage costs - trigger the same end date as others
 		func(wg *sync.WaitGroup, page *PageContent) {
-			resp, err := rest.FromApi[*costapiteam.Response](ctx, args.ApiHost, costapiteam.ENDPOINT, request, params...)
+			resp, err := rest.FromApi[*costapiteam.Response](ctx, args.ApiHost, costapiteam.ENDPOINT_BASE, request, params...)
 			if err == nil {
 				// set date values
 				page.Dates = &frontmodels.DateRanges{

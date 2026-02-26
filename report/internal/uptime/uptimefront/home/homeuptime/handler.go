@@ -79,7 +79,7 @@ func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, reque
 		},
 		// get team uptime breakdown
 		func(wg *sync.WaitGroup, page *PageContent) {
-			resp, err := rest.FromApi[*uptimeapiteam.Response](ctx, args.ApiHost, uptimeapiteam.ENDPOINT, request, params...)
+			resp, err := rest.FromApi[*uptimeapiteam.Response](ctx, args.ApiHost, uptimeapiteam.ENDPOINT_BASE, request, params...)
 			if err == nil {
 				// process the data into local structs
 				page.UptimeData = &frontmodels.TableData{

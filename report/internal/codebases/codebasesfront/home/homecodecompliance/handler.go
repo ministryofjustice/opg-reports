@@ -72,7 +72,7 @@ func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, reque
 		},
 		// get list of all codebases
 		func(wg *sync.WaitGroup, page *PageContent) {
-			resp, err := rest.FromApi[*codebasesapistats.Response](ctx, args.ApiHost, codebasesapistats.ENDPOINT, request, params...)
+			resp, err := rest.FromApi[*codebasesapistats.Response](ctx, args.ApiHost, codebasesapistats.ENDPOINT_BASE, request, params...)
 			if err == nil {
 				codebases := []*frontmodels.Codebase{}
 				cnv.Convert(resp.Data, &codebases)
