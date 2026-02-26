@@ -1,4 +1,4 @@
-package codebasesapicompliance
+package codebasesapistats
 
 import (
 	"context"

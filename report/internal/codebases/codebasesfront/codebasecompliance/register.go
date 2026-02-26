@@ -9,8 +9,8 @@ import (
 	"opg-reports/report/package/cntxt"
 )
 
-const ENDPOINT_BASE string = `/home/codebase-compliance/`
-const ENDPOINT_TEAM string = `/team/{team}/codebase-compliance/`
+const ENDPOINT_BASE string = `/home/codebase-stats/`
+const ENDPOINT_TEAM string = `/team/{team}/codebase-stats/`
 
 var endpoints []string = []string{
 	ENDPOINT_BASE,

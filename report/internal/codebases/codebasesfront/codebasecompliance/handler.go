@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
-	"opg-reports/report/internal/codebases/codebasesapi/codebasesapicompliance"
+	"opg-reports/report/internal/codebases/codebasesapi/codebasesapistats"
 	"opg-reports/report/internal/global/frontmodels"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/package/cntxt"
@@ -62,7 +62,7 @@ func getPage(team string, in *frontmodels.RegisterArgs, request *http.Request) (
 		GovUKVersion: in.GovUKVersion,
 		SemVer:       in.SemVer,
 	}
-	template = "codebase-compliance"
+	template = "codebase-stats"
 	if team != "" {
 		args.Title += " - " + cnv.Capitalize(team)
 	}
@@ -78,13 +78,13 @@ func getPage(team string, in *frontmodels.RegisterArgs, request *http.Request) (
 func dataCallers(ctx context.Context, args *frontmodels.RegisterArgs, request *http.Request) (funcs []dataCallerF) {
 	var (
 		team          = request.PathValue("team")
-		statsEndpoint = codebasesapicompliance.ENDPOINT_BASE
+		statsEndpoint = codebasesapistats.ENDPOINT_BASE
 		params        = []*rest.Param{}
 	)
 
 	// add team filter values and url
 	if team != "" {
-		statsEndpoint = codebasesapicompliance.ENDPOINT_TEAM
+		statsEndpoint = codebasesapistats.ENDPOINT_TEAM
 		params = append(params, &rest.Param{Type: rest.PATH, Key: "team", Value: team})
 	}
 	funcs = []dataCallerF{
@@ -98,7 +98,7 @@ func dataCallers(ctx context.Context, args *frontmodels.RegisterArgs, request *h
 		},
 		// get list of all codebases
 		func(wg *sync.WaitGroup, page *PageContent) {
-			resp, err := rest.FromApi[*codebasesapicompliance.Response](ctx, args.ApiHost, statsEndpoint, request, params...)
+			resp, err := rest.FromApi[*codebasesapistats.Response](ctx, args.ApiHost, statsEndpoint, request, params...)
 			if err == nil {
 				codebases := []*frontmodels.Codebase{}
 				cnv.Convert(resp.Data, &codebases)
