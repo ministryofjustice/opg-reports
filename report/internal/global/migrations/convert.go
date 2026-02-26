@@ -7,8 +7,8 @@ import (
 )
 
 const convert_aws_accounts string = `
-INSERT INTO accounts (name, label, environment, uptime_tracking, team_name)
-	SELECT name, label, environment, uptime_tracking, team_name FROM aws_accounts;
+INSERT INTO accounts (id, name, label, environment, uptime_tracking, team_name)
+	SELECT id, name, label, environment, uptime_tracking, team_name FROM aws_accounts;
 `
 
 const delete_aws_accounts string = `

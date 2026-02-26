@@ -68,14 +68,20 @@ front: build-cmds front-assets
 #========= GET the database from s3 =========
 GET_DB_BUCKET ?= opg-reports-production
 GET_DB_PROFILE ?= shared-production-operator
+MIGRATE_CMD ?= ${BUILD_DIR}/migrate
 .PHONY: get-db
-get-db:
+get-db: CMD_LIST=migrate
+get-db: build-cmds
 	@rm -Rf ${API_DB}
 	@mkdir -p ${API_DB_DIR}
 	@echo "- downloading database "
 	@aws-vault exec ${GET_DB_PROFILE} -- aws s3 cp \
     	s3://${GET_DB_BUCKET}/database/api.db \
     	${API_DB_DIR}/
+	@echo "- migrating & covnerting database "
+	@env LOG_LEVEL=${LOG_LEVEL} ${MIGRATE_CMD} \
+		--db="${API_DB}" \
+		--convert
 
 
 #========= GET opg-metadata release =========
@@ -130,7 +136,7 @@ get-govuk:
 
 #========= GO BUILDS =========
 BUILD_DIR ?= ./builds
-## creates the dir and touchs a migration file
+## creates the dir
 .PHONY: build-prep
 build-prep:
 	rm -Rf ${BUILD_DIR}/
