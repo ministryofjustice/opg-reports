@@ -1,4 +1,4 @@
-package homecosts
+package teamcostsaccounts
 
 import (
 	"context"
@@ -9,13 +9,13 @@ import (
 	"opg-reports/report/package/cntxt"
 )
 
-const ENDPOINT string = "/home/costs"
+const ENDPOINT string = "/team/{team}/costs/accounts/"
 
 func Register(ctx context.Context, mux *http.ServeMux, args *frontmodels.FrontRegisterArgs) {
-	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "homecosts", "func", "Register")
+	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "teamcostsaccounts", "func", "Register")
 
 	log.Info("registering handler [`" + ENDPOINT + "/{$}`] ...")
-	mux.HandleFunc(fmt.Sprintf("%s/{$}", ENDPOINT), func(writer http.ResponseWriter, request *http.Request) {
+	mux.HandleFunc(fmt.Sprintf("%s{$}", ENDPOINT), func(writer http.ResponseWriter, request *http.Request) {
 		Handler(ctx, args, writer, request)
 	})
 }

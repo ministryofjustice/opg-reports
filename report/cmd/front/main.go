@@ -6,10 +6,10 @@ import (
 	"log/slog"
 	"net/http"
 	"opg-reports/report/internal/codebases/codebasesfront/home/homecodecompliance"
-	"opg-reports/report/internal/cost/costfront/home/homecosts"
 	"opg-reports/report/internal/cost/costfront/home/homecostsdetailed"
 	"opg-reports/report/internal/cost/costfront/home/homecostsdiff"
-	"opg-reports/report/internal/cost/costfront/team/teamcosts"
+	"opg-reports/report/internal/cost/costfront/home/homecoststeams"
+	"opg-reports/report/internal/cost/costfront/team/teamcostsaccounts"
 	"opg-reports/report/internal/cost/costfront/team/teamcostsdetailed"
 	"opg-reports/report/internal/cost/costfront/team/teamcostsdiff"
 	"opg-reports/report/internal/front/homepage"
@@ -83,7 +83,7 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	// - main home
 	homepage.Register(ctx, mux, args)
 	// - home, simple costs grouped by team
-	homecosts.Register(ctx, mux, args)
+	homecoststeams.Register(ctx, mux, args)
 	// - home, show detailed breakdown of costs
 	homecostsdetailed.Register(ctx, mux, args)
 	// - home, show cost differences between all accounts
@@ -97,7 +97,7 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	// main team page
 	teampage.Register(ctx, mux, args)
 	// team costs, grouped by account id / name
-	teamcosts.Register(ctx, mux, args)
+	teamcostsaccounts.Register(ctx, mux, args)
 	// team cost differences
 	teamcostsdiff.Register(ctx, mux, args)
 	// team cost details

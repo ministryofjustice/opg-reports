@@ -1,11 +1,11 @@
-package teamcosts
+package teamcostsaccounts
 
 import (
 	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
-	"opg-reports/report/internal/cost/costapi/costapiteam"
+	"opg-reports/report/internal/cost/costapi/costapiaccount"
 	"opg-reports/report/internal/global/frontmodels"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/package/cntxt"
@@ -35,7 +35,7 @@ func Handler(ctx context.Context, args *frontmodels.FrontRegisterArgs, writer ht
 		pageName     string         = "OPG Reports"
 		pageTitle    string         = fmt.Sprintf("OPG Reports - %s - Costs", cnv.Capitalize(team))
 		templateName string         = "teams-costs-by-account"
-		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "teamcosts", "func", "Handler", "url", request.URL.String())
+		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "teamcostsaccounts", "func", "Handler", "url", request.URL.String())
 		wg           sync.WaitGroup = sync.WaitGroup{}
 		pgArgs       *htmlpage.Args = &htmlpage.Args{
 			Title:        pageTitle,
@@ -86,7 +86,7 @@ func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, reque
 		},
 		// get homepage costs - trigger the same end date as others
 		func(wg *sync.WaitGroup, page *PageContent) {
-			resp, err := rest.FromApi[*costapiteam.Response](ctx, args.ApiHost, costapiteam.ENDPOINT_TEAM, request, params...)
+			resp, err := rest.FromApi[*costapiaccount.Response](ctx, args.ApiHost, costapiaccount.ENDPOINT_TEAM, request, params...)
 			if err == nil {
 				// set date values
 				page.Dates = &frontmodels.DateRanges{

@@ -1,4 +1,4 @@
-package costapiteam
+package costapiaccount
 
 import (
 	"context"
@@ -26,7 +26,7 @@ const selectStmt string = `
 SELECT
 	costs.month as month,
 	CAST(COALESCE(SUM(cost), 0) as REAL) as cost,
-	IIF(accounts.team_name != "", accounts.team_name, "")  as team
+	IIF(accounts.name != "", accounts.name, "")  as account
 FROM costs
 LEFT JOIN accounts on accounts.id = costs.account_id
 WHERE
@@ -34,9 +34,11 @@ WHERE
 	AND costs.month IN (:months)
 GROUP BY
 	costs.month,
-	accounts.team_name
+	accounts.team_name,
+	accounts.name
 ORDER BY
-	accounts.team_name ASC
+	accounts.team_name,
+	accounts.name ASC
 ;
 `
 
@@ -78,15 +80,15 @@ type Filter struct {
 
 // Model is the data struct to use when fetching the select
 type Model struct {
-	Month string  `json:"month"`
-	Cost  float64 `json:"cost"`
-	Team  string  `json:"team"`
+	Month   string  `json:"month"`
+	Cost    float64 `json:"cost"`
+	Account string  `json:"account"`
 }
 
 // Sequence is used to return the columns in the order they are selected
 func (self *Model) Sequence() []any {
 	return []any{
-		&self.Month, &self.Cost, &self.Team,
+		&self.Month, &self.Cost, &self.Account,
 	}
 }
 
@@ -105,7 +107,7 @@ func Responder(ctx context.Context, conf *apimodels.Args, request *http.Request,
 		log      *slog.Logger                  = cntxt.GetLogger(ctx).With("package", "costapiteam", "func", "Responder")
 		stmt     string                        = selectStmt
 		headings map[tabulate.ColType][]string = map[tabulate.ColType][]string{
-			tabulate.KEY:   {"team"},
+			tabulate.KEY:   {"account"},
 			tabulate.EXTRA: {"trend"},
 			tabulate.END:   {"total"},
 		}
@@ -163,7 +165,7 @@ func Responder(ctx context.Context, conf *apimodels.Args, request *http.Request,
 	// swap to slice
 	tbl := tabulate.TableMapToTable(tableBody)
 	// table sort
-	tbl = tabulate.SortAscending[string](tbl, "team")
+	tbl = tabulate.SortAscending[string](tbl, "account")
 	// do table total
 	summary := tabulate.TableEnd(tbl, headings, tabulate.TableTotalF)
 

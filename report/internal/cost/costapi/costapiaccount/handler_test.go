@@ -1,4 +1,4 @@
-package costapiteam
+package costapiaccount
 
 import (
 	"net/http"
@@ -33,7 +33,7 @@ func TestCostAPITeamHandler(t *testing.T) {
 		t.FailNow()
 	}
 	// setup the server and items
-	url := "/v1/costs/teams/between/" + start + "/" + end + "/"
+	url := "/v1/costs/accounts/between/" + start + "/" + end + "/"
 	mux := http.NewServeMux()
 
 	req := httptest.NewRequest(http.MethodGet, url, nil)

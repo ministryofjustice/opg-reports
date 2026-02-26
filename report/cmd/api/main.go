@@ -8,6 +8,7 @@ import (
 	"opg-reports/report/internal/account/accountapi/accountapi"
 	"opg-reports/report/internal/codebases/codebasesapi/codebaseapiowners"
 	"opg-reports/report/internal/codebases/codebasesapi/codebasesapistats"
+	"opg-reports/report/internal/cost/costapi/costapiaccount"
 	"opg-reports/report/internal/cost/costapi/costapidetailed"
 	"opg-reports/report/internal/cost/costapi/costapidiff"
 	"opg-reports/report/internal/cost/costapi/costapiteam"
@@ -75,6 +76,8 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	// costs
 	// - grouped by month & team / optional team filter
 	costapiteam.Register(ctx, mux, args)
+	// - grouped by account id / optional team filters
+	costapiaccount.Register(ctx, mux, args)
 	// - detailed costs group by month / optional team filter
 	costapidetailed.Register(ctx, mux, args)
 	// - cost differences / optional team filter

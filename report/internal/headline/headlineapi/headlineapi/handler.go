@@ -45,11 +45,13 @@ WHERE
 // codebase standards
 const codebaseSelect string = `
 SELECT
-    count(codebases.name) as total_count,
+    count( DISTINCT(codebases.full_name) ) as total_count,
     (
-		SELECT count(codebases.name)
+		SELECT
+			count( DISTINCT(codebases.full_name) ) as counter
 		FROM codebases
 		LEFT JOIN codebase_stats on codebase_stats.codebase = codebases.full_name
+		LEFT JOIN codebase_owners ON codebase_owners.codebase = codebases.full_name
 		WHERE
 			codebases.archived = 0
 			AND codebase_stats.visibility = 'public'
