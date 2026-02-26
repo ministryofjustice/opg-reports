@@ -1,11 +1,10 @@
-package teamcostsdetailed
+package costsbyaccounts
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
-	"opg-reports/report/internal/cost/costapi/costapidetailed"
+	"opg-reports/report/internal/cost/costapi/costapiaccount"
 	"opg-reports/report/internal/global/frontmodels"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/package/cntxt"
@@ -29,30 +28,26 @@ type PageContent struct {
 type dataCallerF func(wg *sync.WaitGroup, page *PageContent)
 
 // Handler deals with the / root page of the reporting site
-func Handler(ctx context.Context, args *frontmodels.FrontRegisterArgs, writer http.ResponseWriter, request *http.Request) {
+func Handler(ctx context.Context, args *frontmodels.RegisterArgs, request *http.Request, writer http.ResponseWriter) {
 	var (
+		page         *PageContent
+		templateName string
 		team         string         = request.PathValue("team")
-		pageName     string         = "OPG Reports"
-		pageTitle    string         = fmt.Sprintf("OPG Reports - %s - Detailed AWS Costs", cnv.Capitalize(team))
-		templateName string         = "team-costs-detailed"
-		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "teamcostsdetailed", "func", "Handler", "url", request.URL.String())
 		wg           sync.WaitGroup = sync.WaitGroup{}
-		pgArgs       *htmlpage.Args = &htmlpage.Args{
-			Title:        pageTitle,
-			Name:         pageName,
-			GovUKVersion: args.GovUKVersion,
-			SemVer:       args.SemVer}
-		page *PageContent = &PageContent{
-			HTMLPage: htmlpage.New(request, pgArgs),
-			Team:     team}
+		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "costsbyaccounts", "func", "Handler", "url", request.URL.String())
 	)
 	log.Info("starting ...")
+	page, templateName = getPage(team, args, request)
+	if team != "" {
+		log.Info("found team parameter ... ", "team", team)
+	}
 	// page data fetched from api via blocks
 	for _, blockF := range dataCallers(ctx, args, request) {
 		wg.Add(1)
 		go blockF(&wg, page)
 	}
 	wg.Wait()
+
 	// respond
 	respond.AsHTML(ctx, request, writer, page, &respond.Args{
 		Template:      templateName,
@@ -62,19 +57,45 @@ func Handler(ctx context.Context, args *frontmodels.FrontRegisterArgs, writer ht
 	log.Info("complete.")
 }
 
+func getPage(team string, in *frontmodels.RegisterArgs, request *http.Request) (page *PageContent, template string) {
+	var args *htmlpage.Args = &htmlpage.Args{
+		Name:         "OPG Reports",
+		Title:        "OPG Reports - AWS Costs By Account",
+		GovUKVersion: in.GovUKVersion,
+		SemVer:       in.SemVer,
+	}
+	template = "home-costs-by-account" // current doesnt exist..
+	if team != "" {
+		args.Title += " - " + cnv.Capitalize(team)
+		template = "teams-costs-by-account"
+	}
+	page = &PageContent{
+		HTMLPage: htmlpage.New(request, args),
+		Team:     team,
+	}
+	return
+}
+
 // dataCallers provides all the aync / concurrent api calls to fetch and attach data to this page
-func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, request *http.Request) []dataCallerF {
+func dataCallers(ctx context.Context, args *frontmodels.RegisterArgs, request *http.Request) (funcs []dataCallerF) {
 	var (
-		billingDay = 15
-		dateEnd    = times.ResetMonth(times.Today())
-		dateStart  = times.Add(dateEnd, -5, times.MONTH)
-		params     = []*rest.Param{
+		team         = request.PathValue("team")
+		costEndpoint = costapiaccount.ENDPOINT_BASE
+		billingDay   = 15
+		dateEnd      = times.ResetMonth(times.Today()) // use this month
+		dateStart    = times.Add(dateEnd, -5, times.MONTH)
+		params       = []*rest.Param{
 			{Type: rest.PATH, Key: "date_end", Value: times.AsYMString(dateEnd)},
 			{Type: rest.PATH, Key: "date_start", Value: times.AsYMString(dateStart)},
-			{Type: rest.PATH, Key: "team", Value: request.PathValue("team")},
 		}
 	)
-	return []dataCallerF{
+	// add team filter values and url
+	if team != "" {
+		costEndpoint = costapiaccount.ENDPOINT_TEAM
+		params = append(params, &rest.Param{Type: rest.PATH, Key: "team", Value: team})
+	}
+
+	funcs = []dataCallerF{
 		// get teams
 		func(wg *sync.WaitGroup, page *PageContent) {
 			resp, err := rest.FromApi[*teamapiall.Response](ctx, args.ApiHost, teamapiall.ENDPOINT, request)
@@ -83,10 +104,9 @@ func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, reque
 			}
 			wg.Done()
 		},
-
-		// get homepage detailed costs
+		// get homepage costs - trigger the same end date as others
 		func(wg *sync.WaitGroup, page *PageContent) {
-			resp, err := rest.FromApi[*costapidetailed.Response](ctx, args.ApiHost, costapidetailed.ENDPOINT_TEAM, request, params...)
+			resp, err := rest.FromApi[*costapiaccount.Response](ctx, args.ApiHost, costEndpoint, request, params...)
 			if err == nil {
 				// set date values
 				page.Dates = &frontmodels.DateRanges{
@@ -112,4 +132,5 @@ func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, reque
 			wg.Done()
 		},
 	}
+	return
 }

@@ -1,4 +1,4 @@
-package homeuptime
+package uptime
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/internal/uptime/uptimeapi/uptimeapiteam"
 	"opg-reports/report/package/cntxt"
+	"opg-reports/report/package/cnv"
 	"opg-reports/report/package/htmlpage"
 	"opg-reports/report/package/respond"
 	"opg-reports/report/package/rest"
@@ -19,6 +20,7 @@ import (
 
 type PageContent struct {
 	htmlpage.HTMLPage
+	Team       string
 	UptimeData *frontmodels.TableData
 	Dates      *frontmodels.DateRanges
 }
@@ -26,22 +28,19 @@ type PageContent struct {
 type dataCallerF func(wg *sync.WaitGroup, page *PageContent)
 
 // Handler deals with the / root page of the reporting site
-func Handler(ctx context.Context, args *frontmodels.FrontRegisterArgs, writer http.ResponseWriter, request *http.Request) {
+func Handler(ctx context.Context, args *frontmodels.RegisterArgs, request *http.Request, writer http.ResponseWriter) {
 	var (
-		// err  error
-		pageName     string         = "OPG Reports"
-		pageTitle    string         = "OPG Reports - Uptime"
-		templateName string         = "home-uptime-by-team"
-		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "homeuptime", "func", "Handler", "url", request.URL.String())
+		page         *PageContent
+		templateName string
+		team         string         = request.PathValue("team")
 		wg           sync.WaitGroup = sync.WaitGroup{}
-		pgArgs       *htmlpage.Args = &htmlpage.Args{
-			Title:        pageTitle,
-			Name:         pageName,
-			GovUKVersion: args.GovUKVersion,
-			SemVer:       args.SemVer}
-		page *PageContent = &PageContent{HTMLPage: htmlpage.New(request, pgArgs)}
+		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "uptime", "func", "Handler", "url", request.URL.String())
 	)
 	log.Info("starting ...")
+	page, templateName = getPage(team, args, request)
+	if team != "" {
+		log.Info("found team parameter ... ", "team", team)
+	}
 	// page data fetched from api via blocks
 	for _, blockF := range dataCallers(ctx, args, request) {
 		wg.Add(1)
@@ -58,17 +57,44 @@ func Handler(ctx context.Context, args *frontmodels.FrontRegisterArgs, writer ht
 	log.Info("complete.")
 }
 
+func getPage(team string, in *frontmodels.RegisterArgs, request *http.Request) (page *PageContent, template string) {
+	var args *htmlpage.Args = &htmlpage.Args{
+		Name:         "OPG Reports",
+		Title:        "OPG Reports - Uptime",
+		GovUKVersion: in.GovUKVersion,
+		SemVer:       in.SemVer,
+	}
+	template = "home-uptime-by-team"
+	if team != "" {
+		args.Title += " - " + cnv.Capitalize(team)
+		template = "team-uptime-by-team"
+	}
+	page = &PageContent{
+		HTMLPage: htmlpage.New(request, args),
+		Team:     team,
+	}
+	return
+}
+
 // dataCallers provides all the aync / concurrent api calls to fetch and attach data to this page
-func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, request *http.Request) []dataCallerF {
+func dataCallers(ctx context.Context, args *frontmodels.RegisterArgs, request *http.Request) (funcs []dataCallerF) {
 	var (
-		dateEnd   = times.ResetMonth(times.Today()) // use this month
-		dateStart = times.Add(dateEnd, -5, times.MONTH)
-		params    = []*rest.Param{
+		team           = request.PathValue("team")
+		uptimeEndpoint = uptimeapiteam.ENDPOINT_BASE
+		dateEnd        = times.ResetMonth(times.Today()) // use this month
+		dateStart      = times.Add(dateEnd, -5, times.MONTH)
+		params         = []*rest.Param{
 			{Type: rest.PATH, Key: "date_end", Value: times.AsYMString(dateEnd)},
 			{Type: rest.PATH, Key: "date_start", Value: times.AsYMString(dateStart)},
 		}
 	)
-	return []dataCallerF{
+	// add team filter values and url
+	if team != "" {
+		uptimeEndpoint = uptimeapiteam.ENDPOINT_TEAM
+		params = append(params, &rest.Param{Type: rest.PATH, Key: "team", Value: team})
+	}
+
+	funcs = []dataCallerF{
 		// get teams
 		func(wg *sync.WaitGroup, page *PageContent) {
 			resp, err := rest.FromApi[*teamapiall.Response](ctx, args.ApiHost, teamapiall.ENDPOINT, request)
@@ -79,7 +105,7 @@ func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, reque
 		},
 		// get team uptime breakdown
 		func(wg *sync.WaitGroup, page *PageContent) {
-			resp, err := rest.FromApi[*uptimeapiteam.Response](ctx, args.ApiHost, uptimeapiteam.ENDPOINT_BASE, request, params...)
+			resp, err := rest.FromApi[*uptimeapiteam.Response](ctx, args.ApiHost, uptimeEndpoint, request, params...)
 			if err == nil {
 				// process the data into local structs
 				page.UptimeData = &frontmodels.TableData{
@@ -104,4 +130,5 @@ func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, reque
 			wg.Done()
 		},
 	}
+	return
 }

@@ -1,4 +1,4 @@
-package homecostsdiff
+package costsdiff
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"opg-reports/report/internal/global/frontmodels"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/package/cntxt"
+	"opg-reports/report/package/cnv"
 	"opg-reports/report/package/htmlpage"
 	"opg-reports/report/package/respond"
 	"opg-reports/report/package/rest"
@@ -20,6 +21,7 @@ import (
 
 type PageContent struct {
 	htmlpage.HTMLPage
+	Team     string
 	CostData *frontmodels.TableData
 	Dates    *frontmodels.DateComparision
 }
@@ -27,21 +29,19 @@ type PageContent struct {
 type dataCallerF func(wg *sync.WaitGroup, page *PageContent)
 
 // Handler deals with the / root page of the reporting site
-func Handler(ctx context.Context, args *frontmodels.FrontRegisterArgs, writer http.ResponseWriter, request *http.Request) {
+func Handler(ctx context.Context, args *frontmodels.RegisterArgs, request *http.Request, writer http.ResponseWriter) {
 	var (
-		pageName     string         = "OPG Reports"
-		pageTitle    string         = "OPG Reports - Cost Differences"
-		templateName string         = "home-costs-differences"
-		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "homecostsdiff", "func", "Handler", "url", request.URL.String())
+		page         *PageContent
+		templateName string
+		team         string         = request.PathValue("team")
 		wg           sync.WaitGroup = sync.WaitGroup{}
-		pgArgs       *htmlpage.Args = &htmlpage.Args{
-			Title:        pageTitle,
-			Name:         pageName,
-			GovUKVersion: args.GovUKVersion,
-			SemVer:       args.SemVer}
-		page *PageContent = &PageContent{HTMLPage: htmlpage.New(request, pgArgs)}
+		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "costsdiff", "func", "Handler", "url", request.URL.String())
 	)
 	log.Info("starting ...")
+	page, templateName = getPage(team, args, request)
+	if team != "" {
+		log.Info("found team parameter ... ", "team", team)
+	}
 	// page data fetched from api via blocks
 	for _, blockF := range dataCallers(ctx, args, request) {
 		wg.Add(1)
@@ -57,19 +57,46 @@ func Handler(ctx context.Context, args *frontmodels.FrontRegisterArgs, writer ht
 	log.Info("complete.")
 }
 
+func getPage(team string, in *frontmodels.RegisterArgs, request *http.Request) (page *PageContent, template string) {
+	var args *htmlpage.Args = &htmlpage.Args{
+		Name:         "OPG Reports",
+		Title:        "OPG Reports - AWS Cost Differences",
+		GovUKVersion: in.GovUKVersion,
+		SemVer:       in.SemVer,
+	}
+	template = "home-costs-differences"
+	if team != "" {
+		args.Title += " - " + cnv.Capitalize(team)
+		template = "team-costs-differences"
+	}
+	page = &PageContent{
+		HTMLPage: htmlpage.New(request, args),
+		Team:     team,
+	}
+	return
+}
+
 // dataCallers provides all the aync / concurrent api calls to fetch and attach data to this page
-func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, request *http.Request) []dataCallerF {
+func dataCallers(ctx context.Context, args *frontmodels.RegisterArgs, request *http.Request) (funcs []dataCallerF) {
 	var (
-		billingDay = 15
-		dateB      = times.ResetMonth(times.Today()) // use this month
-		dateA      = times.Add(dateB, -1, times.MONTH)
-		params     = []*rest.Param{
+		team         = request.PathValue("team")
+		billingDay   = 15
+		costEndpoint = costapidiff.ENDPOINT_BASE
+		dateB        = times.ResetMonth(times.Today()) // use this month
+		dateA        = times.Add(dateB, -1, times.MONTH)
+		params       = []*rest.Param{
 			{Type: rest.PATH, Key: "date_a", Value: times.AsYMString(dateA)},
 			{Type: rest.PATH, Key: "date_b", Value: times.AsYMString(dateB)},
 			{Type: rest.QUERY, Key: "change", Value: "300"},
 		}
 	)
-	return []dataCallerF{
+	// add team filter values and url
+	if team != "" {
+		costEndpoint = costapidiff.ENDPOINT_TEAM
+		params = append(params, &rest.Param{Type: rest.PATH, Key: "team", Value: team})
+	}
+
+	funcs = []dataCallerF{
 		// get teams
 		func(wg *sync.WaitGroup, page *PageContent) {
 			resp, err := rest.FromApi[*teamapiall.Response](ctx, args.ApiHost, teamapiall.ENDPOINT, request)
@@ -85,7 +112,7 @@ func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, reque
 				changes = append(changes, fmt.Sprintf("%d", i))
 			}
 
-			resp, err := rest.FromApi[*costapidiff.Response](ctx, args.ApiHost, costapidiff.ENDPOINT_BASE, request, params...)
+			resp, err := rest.FromApi[*costapidiff.Response](ctx, args.ApiHost, costEndpoint, request, params...)
 			if err == nil {
 				// set date values
 				page.Dates = &frontmodels.DateComparision{
@@ -112,4 +139,5 @@ func dataCallers(ctx context.Context, args *frontmodels.FrontRegisterArgs, reque
 			wg.Done()
 		},
 	}
+	return
 }

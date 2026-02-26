@@ -132,6 +132,8 @@ func Responder(ctx context.Context, conf *apimodels.Args, request *http.Request,
 	if in.Team != "" {
 		log.Info("optional team filter found ...", "team", in.Team)
 		filter.Team = in.Team
+		// strip off team heading column - as this is filtered by a team
+		headings[tabulate.KEY] = headings[tabulate.KEY][1:]
 		stmt = strings.ReplaceAll(stmt, "WHERE", "WHERE accounts.team_name = :team AND")
 	}
 	// now convert to a map for use in bound statements

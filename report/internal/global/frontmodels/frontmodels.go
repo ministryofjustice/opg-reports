@@ -1,6 +1,6 @@
 package frontmodels
 
-type FrontRegisterArgs struct {
+type RegisterArgs struct {
 	ApiHost      string `json:"api"`
 	GovUKVersion string `json:"govuk_version"`
 	SemVer       string `json:"semver"`

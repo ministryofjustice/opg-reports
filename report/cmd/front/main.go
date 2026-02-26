@@ -5,20 +5,17 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"opg-reports/report/internal/codebases/codebasesfront/home/homecodecompliance"
-	"opg-reports/report/internal/cost/costfront/home/homecostsdetailed"
-	"opg-reports/report/internal/cost/costfront/home/homecostsdiff"
-	"opg-reports/report/internal/cost/costfront/home/homecoststeams"
-	"opg-reports/report/internal/cost/costfront/team/teamcostsaccounts"
-	"opg-reports/report/internal/cost/costfront/team/teamcostsdetailed"
-	"opg-reports/report/internal/cost/costfront/team/teamcostsdiff"
+	"opg-reports/report/internal/codebases/codebasesfront/codebasecompliance"
+	"opg-reports/report/internal/cost/costfront/costsbyaccounts"
+	"opg-reports/report/internal/cost/costfront/costsbyteam"
+	"opg-reports/report/internal/cost/costfront/costsdetailed"
+	"opg-reports/report/internal/cost/costfront/costsdiff"
 	"opg-reports/report/internal/front/homepage"
 	"opg-reports/report/internal/front/portfolio"
 	"opg-reports/report/internal/front/statics"
 	"opg-reports/report/internal/front/teampage"
 	"opg-reports/report/internal/global/frontmodels"
-	"opg-reports/report/internal/uptime/uptimefront/home/homeuptime"
-	"opg-reports/report/internal/uptime/uptimefront/team/teamuptime"
+	"opg-reports/report/internal/uptime/uptimefront/uptime"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/env"
 	"opg-reports/report/package/logger"
@@ -64,46 +61,44 @@ var root *cobra.Command = &cobra.Command{
 // registerEndpoints all of the front end endpoints
 func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 
-	var args = &frontmodels.FrontRegisterArgs{
+	var args = &frontmodels.RegisterArgs{
 		ApiHost:      in.ApiHost,
 		GovUKVersion: in.GovUKVersion,
 		SemVer:       in.Version,
 		RootDir:      in.RootDir,
 		TemplateDir:  in.TemplateDir,
 	}
-
+	// static assets
 	statics.Register(ctx, mux, &statics.Args{
 		RootDir:        in.RootDir,
 		GovUKDir:       in.GovUKDir,
 		LocalAssetsDir: in.LocalAssetsDir,
 	})
-	// portfolio
+	// portfolio - used to show stats we report on
 	portfolio.Register(ctx, mux, args)
+
+	// costs
+	// - costs group by team - no filtering
+	costsbyteam.Register(ctx, mux, args)
+	// - costs grouped by account id / name with team handling
+	costsbyaccounts.Register(ctx, mux, args)
+	// - detailed costs for the home page or team page
+	costsdetailed.Register(ctx, mux, args)
+	// - cost differences
+	costsdiff.Register(ctx, mux, args)
+	// uptime
+	// - grouped by team
+	uptime.Register(ctx, mux, args)
+	// compliance
+	// - grouped by codebase
+	codebasecompliance.Register(ctx, mux, args)
+
 	// home pages
 	// - main home
 	homepage.Register(ctx, mux, args)
-	// - home, simple costs grouped by team
-	homecoststeams.Register(ctx, mux, args)
-	// - home, show detailed breakdown of costs
-	homecostsdetailed.Register(ctx, mux, args)
-	// - home, show cost differences between all accounts
-	homecostsdiff.Register(ctx, mux, args)
-	// - home uptime
-	homeuptime.Register(ctx, mux, args)
-	// - code bases
-	homecodecompliance.Register(ctx, mux, args)
-
 	// team pages
 	// main team page
 	teampage.Register(ctx, mux, args)
-	// team costs, grouped by account id / name
-	teamcostsaccounts.Register(ctx, mux, args)
-	// team cost differences
-	teamcostsdiff.Register(ctx, mux, args)
-	// team cost details
-	teamcostsdetailed.Register(ctx, mux, args)
-	// team uptime
-	teamuptime.Register(ctx, mux, args)
 
 }
 

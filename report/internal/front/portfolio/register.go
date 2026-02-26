@@ -11,7 +11,7 @@ import (
 
 const ENDPOINT string = "/home/portfolio"
 
-func Register(ctx context.Context, mux *http.ServeMux, args *frontmodels.FrontRegisterArgs) {
+func Register(ctx context.Context, mux *http.ServeMux, args *frontmodels.RegisterArgs) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "portfolio", "func", "Register")
 
 	log.Info("registering handler [`" + ENDPOINT + "/{$}`] ...")
