@@ -7,6 +7,7 @@ import (
 	"opg-reports/report/package/logger"
 	"opg-reports/report/package/times"
 	"os"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -14,16 +15,7 @@ import (
 var today = times.Today()
 
 // default values for the args
-var flags = &global.ImportArgs{
-	Driver:     "sqlite3",
-	DB:         "./database/api.db",
-	DateEnd:    times.AsYMDString(today),
-	DateStart:  times.AsYMDString(times.Add(times.ResetMonth(today), -2, times.MONTH)),
-	Region:     "eu-west-1",
-	SrcFile:    "",
-	OrgSlug:    "ministryofjustice",
-	ParentSlug: "opg",
-}
+var flags *global.ImportArgs
 
 // main root command
 var root *cobra.Command = &cobra.Command{
@@ -53,7 +45,30 @@ func main() {
 	}
 }
 
+func getFlags(end time.Time) *global.ImportArgs {
+	var start time.Time = times.ResetMonth(end)
+	var startCosts time.Time = times.Add(times.ResetMonth(end), -2, times.MONTH)
+	// if its first day of the month, then start should still be start of the previous month
+	if end.Day() == 1 {
+		start = times.Add(times.ResetMonth(end), -1, times.MONTH)
+	}
+
+	return &global.ImportArgs{
+		Driver:         "sqlite3",
+		DB:             "./database/api.db",
+		DateEnd:        times.AsYMDString(end),
+		DateStart:      times.AsYMDString(start),
+		DateStartCosts: times.AsYMDString(startCosts),
+		Region:         "eu-west-1",
+		SrcFile:        "",
+		OrgSlug:        "ministryofjustice",
+		ParentSlug:     "opg",
+	}
+
+}
+
 func init() {
+	flags = getFlags(today)
 	root.PersistentFlags().StringVar(&flags.Driver, "driver", flags.Driver, "Database driver")
 	root.PersistentFlags().StringVar(&flags.DB, "db", flags.DB, "Database path")
 	root.PersistentFlags().StringVar(&flags.Params, "params", flags.Params, "Database params")
@@ -63,4 +78,7 @@ func init() {
 	root.PersistentFlags().StringVar(&flags.SrcFile, "src-file", flags.SrcFile, "Source file to import data from")
 	root.PersistentFlags().StringVar(&flags.OrgSlug, "org", flags.OrgSlug, "GitHub organisation")
 	root.PersistentFlags().StringVar(&flags.ParentSlug, "parent", flags.ParentSlug, "GitHub parent team")
+
+	// needs a winder range for cost stability
+	root.PersistentFlags().StringVar(&flags.DateStartCosts, "date-start-costs", flags.DateStartCosts, "Start date for cost data")
 }

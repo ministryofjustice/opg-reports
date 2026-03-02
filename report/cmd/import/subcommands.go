@@ -140,7 +140,7 @@ func runCostsImport(cmd *cobra.Command, args []string) (err error) {
 		DB:        flags.DB,
 		Driver:    flags.Driver,
 		Params:    flags.Params,
-		DateStart: times.MustFromString(flags.DateStart),
+		DateStart: times.MustFromString(flags.DateStartCosts),
 		DateEnd:   times.MustFromString(flags.DateEnd),
 		AccountID: awsid.AccountID(ctx, flags.Region),
 	})
