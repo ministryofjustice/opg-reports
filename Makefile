@@ -40,7 +40,7 @@ import-codeowners: build-cmds
 		--db="${API_DB}"
 
 #========= IMPORT UPTIME =========
-UPTIME_PROFILE ?= digideps-production-operator
+UPTIME_PROFILE ?= use-production-operator
 .PHONY: import-uptime
 import-uptime: CMD_LIST=import
 import-uptime: build-cmds
@@ -48,7 +48,19 @@ import-uptime: build-cmds
 	@aws-vault exec ${UPTIME_PROFILE} -- \
 		env LOG_LEVEL=${LOG_LEVEL} \
 		${IMPORT_CMD} uptime \
-		--db="${API_DB}" --date-start="2026-02-01"
+		--db="${API_DB}"
+
+#========= IMPORT COSTS =========
+COSTS_PROFILE ?= use-production-operator
+.PHONY: import-costs
+import-costs: CMD_LIST=import
+import-costs: build-cmds
+	@echo "- importing cost data "
+	@aws-vault exec ${COSTS_PROFILE} -- \
+		env LOG_LEVEL=${LOG_LEVEL} \
+		${IMPORT_CMD} costs \
+		--db="${API_DB}"
+
 
 #========= RUN THE API =========
 # api command variables

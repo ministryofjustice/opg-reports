@@ -15,7 +15,7 @@ const ENDPOINT string = "/v1/teams"
 func Register(ctx context.Context, mux *http.ServeMux, config *apimodels.Args) {
 	var log = cntxt.GetLogger(ctx)
 
-	log.Info("registering handler ... ", "endpoint", ENDPOINT)
+	log.Info(fmt.Sprintf("[%s] registering endpoint [%s] to handler", "teamapiall", ENDPOINT))
 	mux.HandleFunc(fmt.Sprintf("%s/{$}", ENDPOINT), func(writer http.ResponseWriter, request *http.Request) {
 		Responder(ctx, config, request, writer)
 	})

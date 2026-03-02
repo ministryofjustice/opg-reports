@@ -35,7 +35,7 @@ func Register(ctx context.Context, mux *http.ServeMux, dirs *Args) {
 	// Static assets
 	// /assets/ is hardcorded in the govuk css and js for where fonts / images are, so map that to the filesystem (./govuk/assets/)
 	// 		http://localhost:8080/assets/images/govuk-icon-180.png
-	log.Info("registering handler [`/assets/`] ...")
+	log.Info(fmt.Sprintf("[%s] registering endpoint [%s] to handler", "statics", "/assets/"))
 	mux.Handle("/assets/", http.FileServer(http.Dir(dirs.GovUKDir)))
 
 	// /local-assets/ contain our css overwrites, extra images / js and so on
@@ -44,7 +44,7 @@ func Register(ctx context.Context, mux *http.ServeMux, dirs *Args) {
 	location = strings.TrimSuffix(strings.TrimPrefix(location, "/"), "/")
 	location = fmt.Sprintf("/%s/", location)
 	location = strings.ReplaceAll(location, "//", "/")
-	log.Info("registering local assets handler [`" + location + "`] ...")
+	log.Info(fmt.Sprintf("[%s] registering local assets endpoint [%s] to handler", "statics", location))
 	mux.Handle(location, http.StripPrefix(location, http.FileServer(http.Dir(dirs.LocalAssetsDir))))
 
 	// /govuk/ is path we use to include css / js, so capture and point to the gov uk directory
@@ -54,11 +54,11 @@ func Register(ctx context.Context, mux *http.ServeMux, dirs *Args) {
 	location = strings.TrimSuffix(strings.TrimPrefix(location, "/"), "/")
 	location = fmt.Sprintf("/%s/", location)
 	location = strings.ReplaceAll(location, "//", "/")
-	log.Info("registering gov uk handler [`" + location + "`] ...")
+	log.Info(fmt.Sprintf("[%s] registering govuk endpoint [%s] to handler", "statics", location))
 	mux.Handle(location, http.StripPrefix(location, http.FileServer(http.Dir(dirs.GovUKDir))))
 
 	// ignore favicons
-	log.Info("registering favicon handler [`/favicon.ico`] ...")
+	log.Info(fmt.Sprintf("[%s] registering favicon endpoint [%s] to handler", "statics", "/favicon.ico"))
 	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 	})

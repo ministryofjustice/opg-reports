@@ -14,7 +14,7 @@ const ENDPOINT string = "/home/portfolio"
 func Register(ctx context.Context, mux *http.ServeMux, args *frontmodels.RegisterArgs) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "portfolio", "func", "Register")
 
-	log.Info("registering handler [`" + ENDPOINT + "/{$}`] ...")
+	log.Info(fmt.Sprintf("[%s] registering endpoint [%s] to handler", "portfolio", ENDPOINT))
 	mux.HandleFunc(fmt.Sprintf("%s/{$}", ENDPOINT), func(writer http.ResponseWriter, request *http.Request) {
 		Handler(ctx, args, writer, request)
 	})
