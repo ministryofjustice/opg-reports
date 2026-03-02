@@ -78,10 +78,15 @@ CREATE TABLE IF NOT EXISTS codebase_stats (
 	id INTEGER PRIMARY KEY,
 	codebase TEXT NOT NULL,
 	visibility TEXT NOT NULL,
+
 	compliance_level TEXT,
 	compliance_report_url TEXT,
 	compliance_badge TEXT,
 	compliance_grade INTEGER,
+
+	trivy_usage INTEGER,
+	trivy_sbom_usage INTEGER,
+	trivy_locations TEXT,
 	UNIQUE (codebase)
 ) STRICT;
 CREATE INDEX IF NOT EXISTS idx_codebases ON codebases(full_name);

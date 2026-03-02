@@ -1,25 +1,40 @@
 {{- define "codebase-stats-table" -}}
 
 {{- if .Codebases -}}
-<table class="govuk-table reports-table">
+<table class="govuk-table reports-table codebase-table">
     <thead class="govuk-table__head">
         <tr class="govuk-table__row">
             <th scope="col" class="govuk-table__header reports-table-heading">Codebase</th>
             <th scope="col" class="govuk-table__header reports-table-heading">Visibility</th>
+            <th scope="col" class="govuk-table__header reports-table-heading">Trivy usage</th>
+            <th scope="col" class="govuk-table__header reports-table-heading">SBOM</th>
             <th scope="col" class="govuk-table__header reports-table-heading">Compliance</th>
-            <th scope="col" class="govuk-table__header reports-table-heading">Score</th>
         </tr>
     </thead>
     <tbody class="govuk-table__body">
         {{- range $i, $row := .Codebases -}}
-        <tr class="govuk-table__row">
+        <tr class="govuk-table__row {{ if .TrivyLocations}} hide-border{{ end }}">
             <th scope="row" class="govuk-table__header reports-table-heading"><a href="{{ .Url }}">{{ .Name }}</a></th>
             <td class="govuk-table__cell govuk-table__cell">{{ .Visibility }}</td>
             <td class="govuk-table__cell govuk-table__cell">
-                <a href="{{ .ComplianceReportUrl }}"><img src="{{ .ComplianceBadge }}" alt="{{ .ComplianceLevel }}"></a>
+                <strong>{{ IntToCheckMark .TrivyUsage "NOT FOUND" "FOUND"}}</strong>
             </td>
-            <td class="govuk-table__cell govuk-table__cell">{{ .ComplianceGrade }}</td>
+            <td class="govuk-table__cell govuk-table__cell"><strong>{{ IntToCheckMark .TrivySBOMUsage "NOT FOUND" "FOUND"}}</strong></td>
+            <td class="govuk-table__cell govuk-table__cell">
+                <a href="{{ .ComplianceReportUrl }}" title="score: {{ .ComplianceGrade }}"><img src="{{ .ComplianceBadge }}" alt="{{ .ComplianceLevel }}"></a>
+            </td>
         </tr>
+        {{- if .TrivyLocations -}}
+        <tr class="govuk-table__row extra-row">
+            <td class="govuk-table__cell govuk-table__cell" colspan="5">
+                <strong class="small">Trivy locations: </strong>
+                {{- range $x, $t := StringSplit .TrivyLocations "," -}}
+                <span class="govuk-tag govuk-tag--grey tag">{{ $t }}</span>
+                {{- end -}}
+            </td>
+        </tr>
+        {{- end -}}
+
         {{- end -}}
     </tbody>
 </table>

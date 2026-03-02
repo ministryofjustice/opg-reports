@@ -78,6 +78,22 @@ func ValueFromMap(name string, data map[string]interface{}) (value interface{}) 
 	return
 }
 
+func IntToCheckMark(v int, neg string, pos string) (s string) {
+	if v == 0 {
+		return "❌ " + neg
+	}
+	return "✅ " + pos
+}
+
+func StringSplit(str string, split string) (strs []string) {
+	strs = []string{}
+	if strings.Contains(str, split) {
+		str = strings.TrimSuffix(str, split)
+		strs = strings.Split(str, split)
+	}
+	return
+}
+
 // BillingStabilityClass decides in the month has passed its billing date period
 //
 // Will return either "billing-stable" or "billing-unstable". Returns empty on error
@@ -108,10 +124,12 @@ func BillingStabilitySuffix(className string) string {
 func TemplateFunctions() (funcs template.FuncMap) {
 	funcs = map[string]interface{}{
 		// simple strings
-		"Title":       Title,
-		"ToLower":     strings.ToLower,
-		"ToUpper":     strings.ToUpper,
-		"LengthClass": LengthClass,
+		"Title":          Title,
+		"ToLower":        strings.ToLower,
+		"ToUpper":        strings.ToUpper,
+		"LengthClass":    LengthClass,
+		"IntToCheckMark": IntToCheckMark,
+		"StringSplit":    StringSplit,
 		// string -> numbers
 		"Currency":   Currency,
 		"Percentage": Percentage,

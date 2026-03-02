@@ -55,16 +55,22 @@ type DateComparision struct {
 	DateB   string
 }
 
-// Codebase
+// Codebase - contains simple and stat fields used on the front end
 type Codebase struct {
-	Name                string `json:"name,omitempty"`                  // short name of codebase (without owner)
-	FullName            string `json:"full_name,omitempty" `            // full name including the owner
-	Url                 string `json:"url,omitempty" `                  // url to access the codebase
-	Visibility          string `json:"visibility,omityempty"`           // visibility status
+	Name       string `json:"name,omitempty"`        // short name of codebase (without owner)
+	FullName   string `json:"full_name,omitempty" `  // full name including the owner
+	Url        string `json:"url,omitempty" `        // url to access the codebase
+	Visibility string `json:"visibility,omityempty"` // visibility status
+
 	ComplianceLevel     string `json:"compliance_level,omitempty"`      // compliance level (moj based)
 	ComplianceReportUrl string `json:"compliance_report_url,omitempty"` // compliance report url
 	ComplianceBadge     string `json:"compliance_badge,omitempty"`      // compliance badge url
 	ComplianceGrade     int    `json:"compliance_grade,omitempty"`
+
+	TrivyUsage     int    `json:"trivy_usage"`      // boolean flag to show if the codebase is using trivy in workflows
+	TrivySBOMUsage int    `json:"trivy_sbom_usage"` // boolean flag to show if trivy is being used to generate sboms
+	TrivyLocations string `json:"trivy_locations"`  // tracks files where trivy has been utilised
+
 }
 
 type Codeowner struct {

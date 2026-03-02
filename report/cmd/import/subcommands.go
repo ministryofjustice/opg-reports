@@ -181,7 +181,7 @@ func runUptimeImport(cmd *cobra.Command, args []string) (err error) {
 	return
 }
 
-// runCodebaseImport runs the uptime import
+// runCodebaseImport runs the codebase import with stats
 func runCodebaseImport(cmd *cobra.Command, args []string) (err error) {
 	var client *github.Client
 	var tk = os.Getenv("GITHUB_TOKEN")
@@ -220,7 +220,7 @@ func runCodebaseImport(cmd *cobra.Command, args []string) (err error) {
 	return
 }
 
-// runCodeownersImport runs the uptime import
+// runCodeownersImport runs the codebase and codeowner import - this is a bit slower due to fetching files
 func runCodeownersImport(cmd *cobra.Command, args []string) (err error) {
 	var client *github.Client
 	var tk = os.Getenv("GITHUB_TOKEN")
@@ -253,7 +253,7 @@ func runCodeownersImport(cmd *cobra.Command, args []string) (err error) {
 		Params:            flags.Params,
 		OrgSlug:           flags.OrgSlug,
 		ParentSlug:        flags.ParentSlug,
-		IncludeStats:      true,
+		IncludeStats:      false,
 		IncludeCodeowners: true,
 	})
 	return

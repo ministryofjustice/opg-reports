@@ -26,7 +26,10 @@ SELECT
 	codebase_stats.compliance_level,
 	codebase_stats.compliance_report_url,
 	codebase_stats.compliance_badge,
-	codebase_stats.compliance_grade
+	codebase_stats.compliance_grade,
+	codebase_stats.trivy_usage,
+	codebase_stats.trivy_sbom_usage,
+	codebase_stats.trivy_locations
 FROM codebases
 LEFT JOIN codebase_stats on codebase_stats.codebase = codebases.full_name
 LEFT JOIN codebase_owners ON codebase_owners.codebase = codebases.full_name
@@ -62,14 +65,20 @@ type Filter struct {
 
 // Model is the data struct to use when fetching the select
 type Model struct {
-	Name                string `json:"name,omitempty"`                  // short name of codebase (without owner)
-	FullName            string `json:"full_name,omitempty" `            // full name including the owner
-	Url                 string `json:"url,omitempty" `                  // url to access the codebase
+	Name     string `json:"name,omitempty"`       // short name of codebase (without owner)
+	FullName string `json:"full_name,omitempty" ` // full name including the owner
+	Url      string `json:"url,omitempty" `       // url to access the codebase
+
 	Visibility          string `json:"visibility,omityempty"`           // visibility status
 	ComplianceLevel     string `json:"compliance_level,omitempty"`      // compliance level (moj based)
 	ComplianceReportUrl string `json:"compliance_report_url,omitempty"` // compliance report url
 	ComplianceBadge     string `json:"compliance_badge,omitempty"`      // compliance badge url
 	ComplianceGrade     int    `json:"compliance_grade,omitempty"`
+
+	TrivyUsage     int    `json:"trivy_usage"`      // boolean flag to show if the codebase is using trivy in workflows
+	TrivySBOMUsage int    `json:"trivy_sbom_usage"` // boolean flag to show if trivy is being used to generate sboms
+	TrivyLocations string `json:"trivy_locations"`  // tracks files where trivy has been utilised
+
 }
 
 // Sequence is used to return the columns in the order they are selected
@@ -83,6 +92,9 @@ func (self *Model) Sequence() []any {
 		&self.ComplianceReportUrl,
 		&self.ComplianceBadge,
 		&self.ComplianceGrade,
+		&self.TrivyUsage,
+		&self.TrivySBOMUsage,
+		&self.TrivyLocations,
 	}
 }
 

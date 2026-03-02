@@ -48,8 +48,8 @@ func TestAPIEndpointsRespond(t *testing.T) {
 		"/v1/teams/",
 		"/v1/accounts/",
 		"/v1/accounts/team/team-a/",
-		"/v1/costs/between/2026-01/2026-02/",
-		"/v1/costs/between/2026-01/2026-02/team/team-a/",
+		"/v1/costs/teams/between/2026-01/2026-02/",
+		"/v1/costs/accounts/between/2026-01/2026-02/team/team-a/",
 	}
 	for _, url := range endpoints {
 		writer := httptest.NewRecorder()

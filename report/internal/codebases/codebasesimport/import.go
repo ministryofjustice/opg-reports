@@ -23,6 +23,8 @@ type RepoClient interface {
 	ListTeams(ctx context.Context, owner, repo string, opts *github.ListOptions) ([]*github.Team, *github.Response, error)
 	// fetch file content (*github.RepositoriesService)
 	DownloadContents(ctx context.Context, owner, repo, filepath string, opts *github.RepositoryContentGetOptions) (io.ReadCloser, *github.Response, error)
+	// get contenst method to fetch directory content
+	GetContents(ctx context.Context, owner, repo, path string, opts *github.RepositoryContentGetOptions) (fileContent *github.RepositoryContent, directoryContent []*github.RepositoryContent, resp *github.Response, err error)
 }
 
 type Args struct {
@@ -35,6 +37,9 @@ type Args struct {
 
 	IncludeStats      bool `json:"include_stats"`      // run the code base stats handler - stats are non-time boxed details
 	IncludeCodeowners bool `json:"include_codeowners"` // option to fetch all codebases and then fetch codeowner data as well
+
+	FilterByName string `json:"filter_by_name"` // used to limit the repos to those that exactly match this name
+
 }
 
 type Clients struct {
@@ -61,7 +66,7 @@ func Import(ctx context.Context, client *Clients, in *Args) (err error) {
 	}
 	// if enabled, run stats
 	if in.IncludeStats {
-		if err = handleCodebaseStats(ctx, list, in); err != nil {
+		if err = handleCodebaseStats(ctx, client.Repos, list, in); err != nil {
 			return
 		}
 	}
@@ -103,13 +108,15 @@ func getRepositoryList(ctx context.Context, client TeamClient, options *Args) (r
 		log.With("page", page, "count", len(list)).Debug("found repositories ...")
 
 		for _, repo := range list {
-			log.With("repo", *repo.FullName).Debug("checking repository ...")
-			repositories = append(repositories, repo)
-
+			log.With("repo", *repo.FullName).Debug("found repository ...")
+			if options.FilterByName == "" || (options.FilterByName == *repo.Name) {
+				repositories = append(repositories, repo)
+				log.With("repo", *repo.FullName).Debug("added repository ...")
+			}
 		}
 		page = response.NextPage
 	}
 
-	log.Debug("complete.")
+	log.With("count", len(repositories)).Debug("complete.")
 	return
 }
