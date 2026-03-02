@@ -31,6 +31,7 @@ var migrations = []*Migration{
 	{Key: "create_codeowner", Stmt: create_codeowner},
 
 	{Key: "lowercase_team_name", Stmt: lowercase_team_name},
+	{Key: "run_vacuum", Stmt: run_vacuum},
 }
 
 // Migrate is a wrapper around migrating all known migrations

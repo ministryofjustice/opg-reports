@@ -1,5 +1,7 @@
 package migrations
 
+const run_vacuum string = `VACUUM;`
+
 const lowercase_team_name string = `
 UPDATE accounts SET(team_name) = LOWER(team_name);
 UPDATE teams SET(name) = LOWER(name);

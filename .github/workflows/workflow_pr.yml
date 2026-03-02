@@ -132,7 +132,7 @@ jobs:
       # download production database
       - name: "Download PRODUCTION database"
         id: db_download
-        uses: ./.github/actions/download-database
+        uses: ./.github/actions/database-download
         with:
           bucket: ${{ env.bucket }}
           role: ${{ env.bucket_role }}

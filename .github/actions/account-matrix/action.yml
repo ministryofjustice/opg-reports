@@ -1,0 +1,57 @@
+name: "Get opg-metadata AWS account matrix"
+description: "Use go to fetch the account data and output for matrix"
+
+inputs:
+  token:
+    description: "toke to use to fetch the data from opg-metadata"
+    required: true
+  dir:
+    description: "Directory where everyhting is built in from make."
+    default: "./builds"
+  tag:
+    description: "Semver tag to fetch"
+    default: "v0.1.29"
+
+outputs:
+  matrix:
+    description: "Matrix formatted string that can be imported as json to use as job stratergy."
+    value: ${{ steps.data.outputs.matrix }}
+
+
+runs:
+  using: composite
+  steps:
+    # checkout
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    # run the make command
+    - name: "fetch zip"
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+      run: |
+        rm -Rf ${{ inputs.dir }}/metadata-extracted
+        mkdir -p ${{ inputs.dir }}/metadata-extracted
+        gh release download ${{ inputs.tag }} \
+          --clobber \
+          --repo ministryofjustice/opg-metadata \
+          --dir ${{ inputs.dir }} \
+          --pattern metadata.zip
+        unzip -qq ${{ inputs.dir }}/metadata.zip \
+          -d ${{ inputs.dir }}/metadata-extracted
+        rm -Rf ${{ inputs.dir }}/metadata.zip
+    - name: "capture json"
+      id: data
+      shell: bash
+      env:
+        filename: ${{ inputs.dir }}/metadata-extracted/accounts.aws.json
+        debug: ${{ runner.debug == '1' && 'debug' || '' }}
+      run: |
+        data=$(cat ${{ env.filename }})
+        matrix="{ "include": ${data} }"
+        echo "matrix<<EOF" >> $GITHUB_OUTPUT
+        echo "${matrix}" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        if [[ "${{ env.debug }}" == "debug" ]]; then
+          echo "${matrix}"
+        fi
+

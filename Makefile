@@ -93,6 +93,12 @@ get-db: build-cmds
 		--db="${API_DB}" \
 		--convert
 
+# .PHONY: upload-db
+# upload-db:
+# 	aws-vault exec ${GET_DB_PROFILE} -- aws s3 cp \
+#     	${API_DB_DIR}/api.db \
+# 		s3://${GET_DB_BUCKET}/database/api2.db
+
 
 #========= GET opg-metadata release =========
 ## Very rarely pulled in, so we can run it from
