@@ -35,7 +35,7 @@ runs:
       env:
         bucket: ${{ inputs.bucket }}
         file: api.db
-        key: database/${{ env.file }}
+        key: database/api.db
         dest: ${{ inputs.dir }}/database
       run: |
         rm -Rf ${{ env.dest }}
