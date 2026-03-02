@@ -1,4 +1,4 @@
-LOG_LEVEL ?= info
+LOG_LEVEL ?= debug
 GITHUBTOKEN ?= ${GH_TOKEN}
 #========= IMPORT TEAMS =========
 IMPORT_CMD ?= ${BUILD_DIR}/import
@@ -38,6 +38,17 @@ import-codeowners: build-cmds
 		LOG_LEVEL=${LOG_LEVEL} \
 		${IMPORT_CMD} codeowners \
 		--db="${API_DB}"
+
+#========= IMPORT UPTIME =========
+UPTIME_PROFILE ?= digideps-production-operator
+.PHONY: import-uptime
+import-uptime: CMD_LIST=import
+import-uptime: build-cmds
+	@echo "- importing uptime data "
+	@aws-vault exec ${UPTIME_PROFILE} -- \
+		env LOG_LEVEL=${LOG_LEVEL} \
+		${IMPORT_CMD} uptime \
+		--db="${API_DB}" --date-start="2026-02-01"
 
 #========= RUN THE API =========
 # api command variables

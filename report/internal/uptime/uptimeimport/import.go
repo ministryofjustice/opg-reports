@@ -145,6 +145,7 @@ func toModels(ctx context.Context, account string, period int32, result *cloudwa
 			month time.Time = times.ResetDay(*point.Timestamp)
 			key   string    = times.AsYMString(month)
 		)
+		// log.Debug("datapoint...", "time", *point.Timestamp, "avg", *point.Average)
 		// find or update the value in
 		if _, ok := grouped[key]; !ok {
 			grouped[key] = 0.0
@@ -152,6 +153,7 @@ func toModels(ctx context.Context, account string, period int32, result *cloudwa
 		}
 		grouped[key] += *point.Average
 		counter[key]++
+
 	}
 	// now generate the average values
 	for key, sum := range grouped {
@@ -165,6 +167,7 @@ func toModels(ctx context.Context, account string, period int32, result *cloudwa
 				AccountID:   account,
 			}
 		)
+		// log.Debug("grouped datapoint", "key", key, "count", count, "avg", average)
 		data = append(data, up)
 	}
 	log.With("count", len(data)).Debug("complete.")
@@ -192,14 +195,16 @@ func getHealthCheckStatistics[T Client](ctx context.Context, client T, list *clo
 	return
 }
 
-// getHealthCheckMetrics returns the list of metrics to use for uptime data
+// getHealthCheckMetrics returns the list of metrics to use for uptime data. Limit to recently active metrics so
+// we aren't picking up aged / dead health checks.
 //
 // Client is *cloudwatch.Client
 func getHealthCheckMetrics(ctx context.Context, client Client) (list *cloudwatch.ListMetricsOutput, err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "uptimeimport", "func", "getHealthCheckMetrics")
 	var listOptions *cloudwatch.ListMetricsInput = &cloudwatch.ListMetricsInput{
-		Namespace:  ptr.Ptr(metricsNamespace),
-		MetricName: ptr.Ptr(metricsName),
+		Namespace:      ptr.Ptr(metricsNamespace),
+		MetricName:     ptr.Ptr(metricsName),
+		RecentlyActive: types.RecentlyActivePt3h,
 	}
 
 	log.Debug("starting ...")
@@ -210,6 +215,7 @@ func getHealthCheckMetrics(ctx context.Context, client Client) (list *cloudwatch
 		err = errors.Join(ErrFailedGettingMetricsList, err)
 		return
 	}
+
 	log.With("count", len(list.Metrics)).Debug("complete.")
 	return
 }

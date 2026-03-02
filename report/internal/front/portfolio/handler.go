@@ -20,6 +20,7 @@ import (
 
 type PageContent struct {
 	htmlpage.HTMLPage
+	Team       string
 	CostData   *frontmodels.TableData
 	UptimeData *frontmodels.TableData
 	Dates      *frontmodels.DateRanges
