@@ -238,7 +238,7 @@ test:
 	@clear
 	@echo "=== test: $(name)"
 	@env CGO_ENABLED=1 \
-		LOG_LEVEL="WARN" \
+		LOG_LEVEL="${LOG_LEVEL}" \
 		GITHUB_TOKEN="${GITHUB_TOKEN}" \
 		GH_TOKEN="${GITHUB_TOKEN}" \
 		AWS_REGION="${AWS_REGION}" \
@@ -257,7 +257,7 @@ coverage:
 	@clear
 	@echo "=== coverage"
 	@env CGO_ENABLED=1 \
-		LOG_LEVEL="WARN" \
+		LOG_LEVEL="${LOG_LEVEL}" \
 		GITHUB_TOKEN="${GITHUB_TOKEN}" \
 		AWS_REGION="${AWS_REGION}" \
 		AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" \

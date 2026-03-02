@@ -110,7 +110,27 @@ form.compact-form button{
     margin-bottom: 5px;
     padding: 5px 8px 5px 8px;
 }
-
+/*
+Extras for codebase table layout
+*/
+.codebase-table .tag{
+    margin:0 5px 5px 0;
+    max-width: 99%;
+    width:auto;
+    padding:4px;
+    font-size: 0.8rem;
+}
+.codebase-table .hide-border .govuk-table__header,
+.codebase-table .hide-border .govuk-table__cell{
+    border-width: 0;
+}
+.codebase-table .small{
+    font-size: 0.8rem;
+}
+.codebase-table .extra-row .govuk-table__header,
+.codebase-table .extra-row .govuk-table__cell{
+    padding-top: 0;
+}
 /*
 Additional styling code ownership listing on the team pages
 */
