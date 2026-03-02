@@ -114,14 +114,16 @@ jobs:
         run: |
           ${{ env.cmd }} --db="${{ env.db }}"
           ls -lhRt ${{ env.BUILD_DIR }}/
-      # upload database
-      - name: "[${{ matrix.name }}] Upload PRODUCTION database"
-        id: db_download
-        uses: ./.github/actions/database-upload
-        with:
-          bucket: ${{ env.bucket }}
-          role: ${{ env.bucket_role }}
-          dir: ${{ env.BUILD_DIR }}
+      # # upload database
+      # - name: "[${{ matrix.name }}] Upload PRODUCTION database"
+      #   id: db_download
+      #   uses: ./.github/actions/database-upload
+      #   with:
+      #     bucket: ${{ env.bucket }}
+      #     role: ${{ env.bucket_role }}
+      #     dir: ${{ env.BUILD_DIR }}
+
+      # clean up build files
       - name: "[${{ matrix.name }}] Clean up"
         run: |
           rm -Rf ${{ env.BUILD_DIR }}
