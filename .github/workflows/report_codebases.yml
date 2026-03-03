@@ -40,7 +40,8 @@ jobs:
     name: "End"
     runs-on: ubuntu-24.04
     needs:
-      - run
+      - run_codebases
+      - run_codeowners
     steps:
       - run: |
           echo "done"
