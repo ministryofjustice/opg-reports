@@ -74,7 +74,7 @@ func handleCodebaseOwners(ctx context.Context, client RepoClient, repositories [
 		log.Error("error write data during import", "err", err.Error())
 		return
 	}
-	log.With("count", len(data)).Debug("complete.")
+	log.With("count", len(data)).Info("complete.")
 	return
 }
 

@@ -100,7 +100,7 @@ func handleCodebaseStats(ctx context.Context, client RepoClient, repositories []
 		log.Error("error write data during import", "err", err.Error())
 		return
 	}
-	log.With("count", len(data)).Debug("complete.")
+	log.With("count", len(data)).Info("complete.")
 	return
 }
 
@@ -113,6 +113,7 @@ func toCodebasesStats(ctx context.Context, client RepoClient, list []*github.Rep
 
 	for _, repo := range list {
 		log.Info("fetching data ... ", "repository", *repo.Name)
+		// create a baseline entry with non-empty values for
 		var stats = &CodebaseStats{
 			Codebase:            *repo.FullName,
 			Visibility:          *repo.Visibility,
