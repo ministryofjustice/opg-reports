@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/google/go-github/v81/github"
+	"github.com/google/go-github/v84/github"
 )
 
 // TeamClient wrapper around *github.TeamsService

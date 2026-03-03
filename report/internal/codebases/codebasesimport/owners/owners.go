@@ -14,7 +14,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/google/go-github/v81/github"
+	"github.com/google/go-github/v84/github"
 )
 
 // code owner entry

@@ -10,7 +10,7 @@ import (
 	"opg-reports/report/internal/codebases/codebasesimport/stats"
 	"opg-reports/report/package/cntxt"
 
-	"github.com/google/go-github/v81/github"
+	"github.com/google/go-github/v84/github"
 )
 
 var ErrFailedGettingRepositoryPage = errors.New("error getting page of repositories")
