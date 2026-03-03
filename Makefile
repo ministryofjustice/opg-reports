@@ -99,15 +99,15 @@ front: build-cmds front-assets
 		--govuk-version="${GOVUK_TAG}"
 
 #========= GET the database from s3 =========
-GET_DB_BUCKET ?= opg-reports-production
-GET_DB_PROFILE ?= shared-production-operator
+GET_DB_BUCKET ?= opg-reports-development
+GET_DB_PROFILE ?= shared-development-operator
 MIGRATE_CMD ?= ${BUILD_DIR}/migrate
 .PHONY: get-db
 get-db: CMD_LIST=migrate
 get-db: build-cmds
 	@rm -Rf ${API_DB}
 	@mkdir -p ${API_DB_DIR}
-	@echo "- downloading database "
+	@echo "- downloading database (${GET_DB_BUCKET})"
 	@aws-vault exec ${GET_DB_PROFILE} -- aws s3 cp \
 		--sse AES256 \
     	s3://${GET_DB_BUCKET}/database/api.db \
@@ -120,8 +120,9 @@ get-db: build-cmds
 # .PHONY: upload-db
 # upload-db:
 # 	aws-vault exec ${GET_DB_PROFILE} -- aws s3 cp \
+#		--sse AES256 \
 #     	${API_DB_DIR}/api.db \
-# 		s3://${GET_DB_BUCKET}/database/api2.db
+# 		s3://${GET_DB_BUCKET}/database/api.db
 
 
 #========= GET opg-metadata release =========

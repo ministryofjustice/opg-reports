@@ -81,8 +81,9 @@ func dataCallers(ctx context.Context, args *frontmodels.RegisterArgs, request *h
 		team         = request.PathValue("team")
 		billingDay   = 15
 		costEndpoint = costapidiff.ENDPOINT_BASE
-		dateB        = times.ResetMonth(times.Today()) // use this month
-		dateA        = times.Add(dateB, -1, times.MONTH)
+		thisMonth    = times.ResetMonth(times.Today())
+		dateB        = times.Add(thisMonth, -1, times.MONTH) // differ should be last month and the month before
+		dateA        = times.Add(thisMonth, -2, times.MONTH)
 		params       = []*rest.Param{
 			{Type: rest.PATH, Key: "date_a", Value: times.AsYMString(dateA)},
 			{Type: rest.PATH, Key: "date_b", Value: times.AsYMString(dateB)},

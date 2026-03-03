@@ -1,9 +1,10 @@
 name: "[Workflow] PR"
 
 on:
-  # # run at 0830 every day
-  # schedule:
-  #   - cron: '30 8 * * *'
+  # run at 0930 every day
+  schedule:
+    - cron: '30 9 * * *'
+  # run on pr
   pull_request:
     branches:
       - main
