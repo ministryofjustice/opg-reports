@@ -100,7 +100,6 @@ jobs:
     name: "Build & push docker images"
     runs-on: ubuntu-24.04
     needs:
-      - setup
       - tests
     strategy:
       fail-fast: true
@@ -176,7 +175,6 @@ jobs:
     name: "Terraform"
     runs-on: ubuntu-24.04
     needs:
-      - setup
       - builder
     steps:
       # checkout self
@@ -218,9 +216,6 @@ jobs:
     name: "Create release"
     runs-on: ubuntu-24.04
     needs:
-      - setup
-      - tests
-      - builder
       - terraform
     steps:
       # code checkout deep for tagging release
