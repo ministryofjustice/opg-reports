@@ -1,6 +1,5 @@
-# ARG TARGETOS TARGETARCH
 # setup base docker image building the application
-FROM golang:1.25.7-alpine@sha256:f6751d823c26342f9506c03797d2527668d095b0a15f1862cddb4d927a7a4ced AS build
+FROM golang:1.26.0-alpine@sha256:d4c4845f5d60c6a974c6000ce58ae079328d03ab7f721a0734277e69905473e5 AS build
 COPY --link go.sum go.mod /app/
 COPY --link report /app/report
 COPY --link builds/templates /gobin/app/templates/
@@ -13,7 +12,6 @@ RUN addgroup -S user && adduser -S -g user user
 WORKDIR /app
 ENV GOBIN=/gobin PATH=/gobin:$PATH
 ENV CGO_ENABLED=0
-# ENV GOOS=${TARGETOS} GOARCH=${TARGETARCH}
 RUN go mod download
 RUN go build -ldflags="-w -s" -o /gobin/app/front ./report/cmd/front/
 RUN chown -Rf user:user /gobin/
