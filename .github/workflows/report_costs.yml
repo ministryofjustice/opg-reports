@@ -23,21 +23,17 @@ permissions:
   contents: write
   id-token: write
 
-env:
-  report_name: "costs"
-  # bucket: "opg-reports-production"
-  # bucket_role: "arn:aws:iam::997462338508:role/opg-reports-github-actions-s3"
-  bucket: "opg-reports-development"
-  bucket_role: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
 
 jobs:
   run:
     name: "Run import command"
     uses: ./.github/workflows/_importer.yml
     with:
-      sub_cmd: ${{ env.report_name }}
-      bucket: ${{ env.bucket }}
-      bucket_role: ${{ env.bucket_role }}
+      sub_cmd: "costs"
+      bucket: "opg-reports-development"
+      bucket_role: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
+      # bucket: "opg-reports-production"
+      # bucket_role: "arn:aws:iam::997462338508:role/opg-reports-github-actions-s3"
       date_start: ${{ inputs.date_start }}
       date_end: ${{ inputs.date_end }}
   end:
