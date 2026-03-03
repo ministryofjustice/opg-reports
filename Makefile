@@ -109,6 +109,7 @@ get-db: build-cmds
 	@mkdir -p ${API_DB_DIR}
 	@echo "- downloading database "
 	@aws-vault exec ${GET_DB_PROFILE} -- aws s3 cp \
+		--sse AES256 \
     	s3://${GET_DB_BUCKET}/database/api.db \
     	${API_DB_DIR}/
 	@echo "- migrating & covnerting database "
