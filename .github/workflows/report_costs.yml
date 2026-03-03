@@ -80,7 +80,7 @@ jobs:
           make build-cmds
           ls -lhRt ${{ env.BUILD_DIR }}
       # download production database
-      - name: "[${{ matrix.name }}] Download PRODUCTION database"
+      - name: "[${{ matrix.name }}] Download database (${{ env.bucket }})"
         id: db_download
         uses: ./.github/actions/database-download
         with:
@@ -115,7 +115,7 @@ jobs:
           ${{ env.cmd }} --db="${{ env.db }}"
           ls -lhRt ${{ env.BUILD_DIR }}/
       # upload database
-      - name: "[${{ matrix.name }}] Upload PRODUCTION database"
+      - name: "[${{ matrix.name }}] Upload database (${{ env.bucket }})"
         uses: ./.github/actions/database-upload
         with:
           bucket: ${{ env.bucket }}
