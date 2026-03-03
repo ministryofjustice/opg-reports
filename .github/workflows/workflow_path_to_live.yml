@@ -134,6 +134,7 @@ jobs:
           ls -lhRt ${{ env.BUILD_DIR }}
       # download production database
       - name: "[${{ matrix.image }}] Download database (${{ env.bucket }})"
+        if: ${{ matrix.image == 'api' }}
         id: db_download
         uses: ./.github/actions/database-download
         with:
@@ -142,6 +143,7 @@ jobs:
           dir: ${{ env.BUILD_DIR }}
       # migrate db to new setup
       - name: "[${{ matrix.image }}] Migrate database & convert"
+        if: ${{ matrix.image == 'api' }}
         env:
           db: ${{ steps.db_download.outputs.DB }}
         run: |
