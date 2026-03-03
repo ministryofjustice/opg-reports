@@ -17,11 +17,11 @@ env:
   BUILD_DIR: "./builds"
   PRERELEASE: "true"
   PATH_TO_LIVE: "false"
-  # db bucket
-  bucket: "opg-reports-production"
-  bucket_role: "arn:aws:iam::997462338508:role/opg-reports-github-actions-s3"
-  # bucket: "opg-reports-development"
-  # bucket_role: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
+  # db
+  # bucket: "opg-reports-production"
+  # bucket_role: "arn:aws:iam::997462338508:role/opg-reports-github-actions-s3"
+  bucket: "opg-reports-development"
+  bucket_role: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
   # ecr
   ecr_registry: "311462405659"
   ecr_role: "arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
@@ -130,7 +130,7 @@ jobs:
           make front-assets
           ls -lhRt ${{ env.BUILD_DIR }}
       # download production database
-      - name: "Download PRODUCTION database"
+      - name: "Download database (${{ env.bucket }})"
         id: db_download
         uses: ./.github/actions/database-download
         with:
