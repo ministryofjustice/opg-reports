@@ -120,7 +120,7 @@ get-db: build-cmds
 # .PHONY: upload-db
 # upload-db:
 # 	aws-vault exec ${GET_DB_PROFILE} -- aws s3 cp \
-#		--sse AES256 \
+# 		--sse AES256 \
 #     	${API_DB_DIR}/api.db \
 # 		s3://${GET_DB_BUCKET}/database/api.db
 

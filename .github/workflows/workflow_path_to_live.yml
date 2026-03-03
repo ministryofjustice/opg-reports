@@ -1,0 +1,252 @@
+name: "[Workflow] Path to live"
+
+on:
+  # run at 0830 every day to redeploy with updated database
+  schedule:
+    - cron: '30 8 * * *'
+  # run on push to main
+  push:
+    branches:
+      - main
+
+permissions:
+  actions: read
+  contents: write
+  id-token: write
+
+env:
+  BUILD_DIR: "./builds"
+  PRERELEASE: "false"
+  PATH_TO_LIVE: "true"
+  # db
+  bucket: "opg-reports-production"
+  bucket_role: "arn:aws:iam::997462338508:role/opg-reports-github-actions-s3"
+  # bucket: "opg-reports-development"
+  # bucket_role: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
+  # ecr
+  ecr_registry: "311462405659"
+  ecr_role: "arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
+  ecr_image_api: "opg-reports/api"
+  ecr_image_front: "opg-reports/front"
+  # terraform
+  terraform_workspace: "production"
+
+
+jobs:
+  # setup variables we'll use in the steps
+  setup:
+    name: "Setup variables"
+    runs-on: ubuntu-24.04
+    outputs:
+      # terraform versions - found dynamically
+      terraform_version_account: ${{ steps.terraform_account_version.outputs.version }}
+      terraform_version_environment: ${{ steps.terraform_environment_version.outputs.version }}
+      # SEMVER & BRANCH NAMES
+      branch_name: ${{ steps.semver.outputs.branch }}
+      semver_tag: ${{ steps.semver.outputs.tag }}
+      gitsha: ${{ steps.revhead.outputs.gitsha }}
+    steps:
+      # code checkout for semver & terraform version details
+      - name: "Checkout"
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      # terraform account version
+      - name: "Parse terraform account version"
+        id: terraform_account_version
+        uses: ministryofjustice/opg-github-actions/actions/terraform-version@82323da6c533ab565c1652a590230ff2f0acc942 # v4.3.8
+        with:
+          terraform_directory: ./terraform/account
+      # terraform env version
+      - name: "Parse terraform environment version"
+        id: terraform_environment_version
+        uses: ministryofjustice/opg-github-actions/actions/terraform-version@82323da6c533ab565c1652a590230ff2f0acc942 # v4.3.8
+        with:
+          terraform_directory: ./terraform/environment
+      # SEMVER generation
+      - name: "Semver tag"
+        id: "semver"
+        uses: ministryofjustice/opg-github-actions/actions/semver@82323da6c533ab565c1652a590230ff2f0acc942 # v4.3.8
+        with:
+          create_release: "false" # dont create the release at the moment
+          prerelease: ${{ env.PRERELEASE }}
+      # git sha
+      - name: "Get git sha"
+        id: revhead
+        run: |
+          sha=$(git rev-parse HEAD)
+          echo "gitsha=${sha}" >> $GITHUB_OUTPUT
+
+  # run go tests
+  tests:
+    name: "Run tests"
+    runs-on: ubuntu-24.04
+    needs:
+      - setup
+    steps:
+      # checkout self
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      # setup go
+      - name: "Setup go"
+        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+        with:
+          cache: true
+          go-version-file: './go.mod'
+      # run tests
+      - name: "Run tests"
+        run: |
+          go mod tidy
+          go test -count=1 -cover -covermode=atomic ./...
+
+  # build and push docker images
+  builder:
+    name: "Build & push docker images"
+    runs-on: ubuntu-24.04
+    needs:
+      - setup
+      - tests
+    steps:
+      # checkout self
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      # setup go
+      - name: "Setup go"
+        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+        with:
+          cache: false
+          go-version-file: './go.mod'
+      # build
+      - name: "Make - build-cmds"
+        run: |
+          make build-prep
+          make build-cmds
+          ls -lhRt ${{ env.BUILD_DIR }}
+      - name: "Make - front assets"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          make front-assets
+          ls -lhRt ${{ env.BUILD_DIR }}
+      # download production database
+      - name: "Download database (${{ env.bucket }})"
+        id: db_download
+        uses: ./.github/actions/database-download
+        with:
+          bucket: ${{ env.bucket }}
+          role: ${{ env.bucket_role }}
+          dir: ${{ env.BUILD_DIR }}
+      # migrate db to new setup
+      - name: "Migrate database & convert"
+        env:
+          db: ${{ steps.db_download.outputs.DB }}
+        run: |
+          ${{ env.BUILD_DIR }}/migrate --db="${{ env.db }}" --convert
+      # Swap AWS creds for ECR usage
+      - name: "Configure AWS credentials for ECR"
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+        with:
+          aws-region: "eu-west-1"
+          role-duration-seconds: 900
+          role-to-assume: ${{ env.ecr_role }}
+          role-session-name: reports-ecr-access
+      # build the API image
+      - name: "Build [api]"
+        id: build_api
+        uses: ./.github/actions/docker-build-scan-push
+        with:
+          ecr_registry_id: ${{ env.ecr_registry  }}
+          ecr_repository: ${{ env.ecr_image_api }}
+          branch_name: ${{ needs.setup.outputs.branch_name }}
+          tag: ${{ needs.setup.outputs.semver_tag }}
+          dockerfile: './docker/api/Dockerfile'
+          path_to_live: ${{ env.PATH_TO_LIVE }}
+      # build the FRONT image
+      - name: "Build [front]"
+        id: build_ront
+        uses: ./.github/actions/docker-build-scan-push
+        with:
+          ecr_registry_id: ${{ env.ecr_registry  }}
+          ecr_repository: ${{ env.ecr_image_front }}
+          branch_name: ${{ needs.setup.outputs.branch_name }}
+          tag: ${{ needs.setup.outputs.semver_tag }}
+          dockerfile: './docker/front/Dockerfile'
+          path_to_live: ${{ env.PATH_TO_LIVE }}
+      # listing
+      - name: "List build directory"
+        run: ls -lhRt ./builds/
+
+  # Run the terraform for development workspace
+  terraform:
+    name: "Terraform"
+    runs-on: ubuntu-24.04
+    needs:
+      - setup
+      - builder
+    steps:
+      # checkout self
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      # setup ssh keys
+      - uses: webfactory/ssh-agent@a6f90b1f127823b31d4d4a8d96047790581349bd # v0.9.1
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_EXTERNAL_MODULES }}
+      # configure the aws role
+      - name: "Configure AWS credentials for terraform"
+        id: configure_aws_creds
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
+          aws-region: "eu-west-1"
+          role-session-name: reports-pull-request-github-action-terraform
+      - name: "Account level terraform"
+        uses: ./.github/actions/terraform
+        with:
+          apply: true
+          directory: ./terraform/account
+          workspace: ${{ env.terraform_workspace }}
+          version: ${{ needs.setup.outputs.terraform_version_account }}
+      - name: "Environment level terraform"
+        uses: ./.github/actions/terraform
+        env:
+          TF_VAR_api_image_tag: development-${{ needs.setup.outputs.semver_tag }}
+          TF_VAR_front_image_tag: development-${{ needs.setup.outputs.semver_tag }}
+          TF_VAR_semver_tag: ${{ needs.setup.outputs.semver_tag }}
+          TF_VAR_commit_sha: ${{ needs.setup.outputs.gitsha }}
+        with:
+          apply: true
+          directory: ./terraform/environment
+          workspace: ${{ env.terraform_workspace }}
+          version: ${{ needs.setup.outputs.terraform_version_environment }}
+  # release this version
+  release:
+    name: "Create release"
+    runs-on: ubuntu-24.04
+    needs:
+      - setup
+      - tests
+      - builder
+      - terraform
+    steps:
+      # code checkout deep for tagging release
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: "Create release [${{ needs.setup.outputs.semver_tag }}]"
+        uses: ministryofjustice/opg-github-actions/actions/release@82323da6c533ab565c1652a590230ff2f0acc942 # v4.3.8
+        with:
+          tag: ${{ needs.setup.outputs.semver_tag }}
+          prerelease: ${{ env.PRERELEASE }}
+          github_token: ${{ github.token }}
+
+  # final step
+  end:
+    name: 'End'
+    runs-on: ubuntu-24.04
+    needs:
+      - release
+    steps:
+      - run: echo "End"
