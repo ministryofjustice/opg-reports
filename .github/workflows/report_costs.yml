@@ -101,7 +101,7 @@ jobs:
         with:
           aws-region: "eu-west-1"
           role-duration-seconds: 900
-          role-to-assume: "${{ env.bucket_role }}"
+          role-to-assume: "${{ env.role }}"
           role-session-name: "opg-reports-get-${{ env.report_name }}"
       # run the report
       - name: "[${{ matrix.name }}] Run ${{ env.report_name }}"
