@@ -11,20 +11,6 @@ on:
         description: "file to fetch from the extracted zip"
         type: string
         default: "accounts.aws.json"
-      # bucket details
-      bucket:
-        description: "bucket to download / upload the database to"
-        type: string
-        required: true
-        # "opg-reports-production"
-        default: "opg-reports-development"
-      # bucket role
-      bucket_role:
-        description: "role to use to access the s3 bucket"
-        type: string
-        required: true
-        # "arn:aws:iam::997462338508:role/opg-reports-github-actions-s3"
-        default: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
       # start date
       date_start:
         description: "Start of date range formatted as YYYY-MM-DD. Example: 2026-01-01"
@@ -35,6 +21,11 @@ on:
         description: "End of date range formatted as YYYY-MM-DD. Example: 2026-02-02"
         type: string
         default: ""
+      # upload modified db to production
+      upload_to_prod:
+        description: "decides if the modified databases should be uploaded to production bucket"
+        type: boolean
+        default: false
 
 # permissions
 permissions:
@@ -51,6 +42,11 @@ permissions:
 
 env:
   BUILD_DIR: "./builds"
+  prod_bucket: "opg-reports-production"
+  prod_bucket_role: "arn:aws:iam::997462338508:role/opg-reports-github-actions-s3"
+  dev_bucket: "opg-reports-development"
+  dev_bucket_role: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
+
 
 jobs:
   # setup variables we'll use in the steps
@@ -102,12 +98,12 @@ jobs:
           make build-cmds
           ls -lhRt ${{ env.BUILD_DIR }}
       # download production database
-      - name: "[${{ matrix.name }}] Download database (${{ inputs.bucket }})"
+      - name: "[${{ matrix.name }}] Download production database (${{ env.prod_bucket }})"
         id: db_download
         uses: ./.github/actions/database-download
         with:
-          bucket: ${{ inputs.bucket }}
-          role: ${{ inputs.bucket_role }}
+          bucket: ${{ env.prod_bucket }}
+          role: ${{ env.prod_bucket_role }}
           dir: ${{ env.BUILD_DIR }}
       # migrate db to new setup
       - name: "[${{ matrix.name }}] Migrate database & convert"
@@ -138,12 +134,20 @@ jobs:
         run: |
           ${{ env.cmd }} --db="${{ env.db }}"
           ls -lhRt ${{ env.BUILD_DIR }}/
-      # upload database
-      - name: "[${{ matrix.name }}] Upload database (${{ inputs.bucket }})"
+      # upload database to dev
+      - name: "[${{ matrix.name }}] Upload development database (${{ env.dev_bucket }})"
         uses: ./.github/actions/database-upload
         with:
-          bucket: ${{ inputs.bucket }}
-          role: ${{ inputs.bucket_role }}
+          bucket: ${{ env.dev_bucket }}
+          role: ${{ env.dev_bucket_role }}
+          dir: ${{ env.BUILD_DIR }}
+      # upload database to PRODUCTION
+      - name: "[${{ matrix.name }}] Upload production database (${{ env.prod_bucket }})"
+        if: ${{ inputs.upload_to_prod }}
+        uses: ./.github/actions/database-upload
+        with:
+          bucket: ${{ env.prod_bucket }}
+          role: ${{ env.prod_bucket_role }}
           dir: ${{ env.BUILD_DIR }}
       # clean up build files
       - name: "[${{ matrix.name }}] Clean up"

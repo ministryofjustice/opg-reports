@@ -123,6 +123,7 @@ func toCodebasesStats(ctx context.Context, client RepoClient, list []*github.Rep
 			log.Error("error getting compliance data", "err", err.Error())
 			return
 		}
+
 		// set trivy values
 		err = setTrivyData(ctx, client, repo, stats)
 		if err != nil {
@@ -168,10 +169,17 @@ func setComplianceData(ctx context.Context, client RepoClient, repo *github.Repo
 // complianceLevelFromBadge looks at the badge content (which is svg) and parses the title
 // to find the compliance level
 func complianceLevelFromBadge(ctx context.Context, badge string) (level string, err error) {
+	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "complianceLevelFromBadge")
 	var timeout = (2 * time.Second)
 	level = "unknown"
 	res, _, err := rest.GetStr(ctx, nil, &rest.Request{Host: badge, Timeout: timeout})
+	// if its a timeout, then we wont throw and error and just carry on
+	if err != nil && strings.Contains(err.Error(), "Client.Timeout exceeded") {
+		log.Warn("timeout when fetching badge", "badge", badge)
+		return level, nil
+	}
 	if err != nil {
+		log.Error("error when fetching badge", "badge", badge, "err", err.Error())
 		return
 	}
 	// find a match
