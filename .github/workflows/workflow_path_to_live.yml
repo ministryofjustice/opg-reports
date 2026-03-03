@@ -21,6 +21,8 @@ env:
   # db
   bucket: "opg-reports-production"
   bucket_role: "arn:aws:iam::997462338508:role/opg-reports-github-actions-s3"
+  # images
+  image_prefix: "main"
   # ecr
   ecr_registry: "311462405659"
   ecr_role: "arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
@@ -51,19 +53,19 @@ jobs:
       # terraform account version
       - name: "Parse terraform account version"
         id: terraform_account_version
-        uses: ministryofjustice/opg-github-actions/actions/terraform-version@b8868247a908f74fafe1905701391580575a6d35 # v4.3.10
+        uses: ministryofjustice/opg-github-actions/actions/terraform-version@82323da6c533ab565c1652a590230ff2f0acc942 # v4.3.8
         with:
           terraform_directory: ./terraform/account
       # terraform env version
       - name: "Parse terraform environment version"
         id: terraform_environment_version
-        uses: ministryofjustice/opg-github-actions/actions/terraform-version@b8868247a908f74fafe1905701391580575a6d35 # v4.3.10
+        uses: ministryofjustice/opg-github-actions/actions/terraform-version@82323da6c533ab565c1652a590230ff2f0acc942 # v4.3.8
         with:
           terraform_directory: ./terraform/environment
       # SEMVER generation
       - name: "Semver tag"
         id: "semver"
-        uses: ministryofjustice/opg-github-actions/actions/semver@b8868247a908f74fafe1905701391580575a6d35 # v4.3.10
+        uses: ministryofjustice/opg-github-actions/actions/semver@82323da6c533ab565c1652a590230ff2f0acc942 # v4.3.8
         with:
           create_release: "false" # dont create the release at the moment
           prerelease: ${{ env.PRERELEASE }}
@@ -205,8 +207,8 @@ jobs:
       - name: "Environment level terraform"
         uses: ./.github/actions/terraform
         env:
-          TF_VAR_api_image_tag: main-${{ needs.setup.outputs.semver_tag }}
-          TF_VAR_front_image_tag: main-${{ needs.setup.outputs.semver_tag }}
+          TF_VAR_api_image_tag: ${{ env.image_prefix }}-${{ needs.setup.outputs.semver_tag }}
+          TF_VAR_front_image_tag: ${{ env.image_prefix }}-${{ needs.setup.outputs.semver_tag }}
           TF_VAR_semver_tag: ${{ needs.setup.outputs.semver_tag }}
           TF_VAR_commit_sha: ${{ needs.setup.outputs.gitsha }}
         with:
@@ -228,7 +230,7 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
       - name: "Create release [${{ needs.setup.outputs.semver_tag }}]"
-        uses: ministryofjustice/opg-github-actions/actions/release@b8868247a908f74fafe1905701391580575a6d35 # v4.3.10
+        uses: ministryofjustice/opg-github-actions/actions/release@82323da6c533ab565c1652a590230ff2f0acc942 # v4.3.8
         with:
           tag: ${{ needs.setup.outputs.semver_tag }}
           prerelease: ${{ env.PRERELEASE }}
