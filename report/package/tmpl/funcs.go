@@ -78,11 +78,11 @@ func ValueFromMap(name string, data map[string]interface{}) (value interface{}) 
 	return
 }
 
-func IntToCheckMark(v int, neg string, pos string) (s string) {
+func IntToCheckMark(v int) (s string) {
 	if v == 0 {
-		return "❌ " + neg
+		return "❌"
 	}
-	return "✅ " + pos
+	return "✅"
 }
 
 func StringSplit(str string, split string) (strs []string) {

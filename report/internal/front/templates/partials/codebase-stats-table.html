@@ -17,9 +17,9 @@
             <th scope="row" class="govuk-table__header reports-table-heading"><a href="{{ .Url }}">{{ .Name }}</a></th>
             <td class="govuk-table__cell govuk-table__cell">{{ .Visibility }}</td>
             <td class="govuk-table__cell govuk-table__cell">
-                <strong>{{ IntToCheckMark .TrivyUsage "NOT FOUND" "FOUND"}}</strong>
+                <strong>{{ IntToCheckMark .TrivyUsage }}</strong>
             </td>
-            <td class="govuk-table__cell govuk-table__cell"><strong>{{ IntToCheckMark .TrivySBOMUsage "NOT FOUND" "FOUND"}}</strong></td>
+            <td class="govuk-table__cell govuk-table__cell"><strong>{{ IntToCheckMark .TrivySBOMUsage }}</strong></td>
             <td class="govuk-table__cell govuk-table__cell">
                 <a href="{{ .ComplianceReportUrl }}" title="score: {{ .ComplianceGrade }}"><img src="{{ .ComplianceBadge }}" loading="lazy" alt="{{ .ComplianceLevel }}"></a>
             </td>
