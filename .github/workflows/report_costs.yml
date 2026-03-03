@@ -28,7 +28,7 @@ permissions:
 jobs:
   # use the importer workflow to run everything
   run:
-    name: "Run import command"
+    name: "Run costs command"
     uses: ./.github/workflows/_importer_aws.yml
     secrets: inherit
     with:
