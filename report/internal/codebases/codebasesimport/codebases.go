@@ -7,7 +7,7 @@ import (
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/dbx"
 
-	"github.com/google/go-github/v81/github"
+	"github.com/google/go-github/v84/github"
 )
 
 // Raw codebase entry
