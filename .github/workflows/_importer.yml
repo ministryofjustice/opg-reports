@@ -37,11 +37,11 @@ permissions:
   contents: write
   id-token: write
   actions: read
-  pull-requests: read
   checks: none
   deployments: none
   issues: none
   packages: none
+  pull-requests: none
   repository-projects: none
   statuses: none
 
