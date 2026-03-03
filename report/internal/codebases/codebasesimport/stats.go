@@ -112,10 +112,17 @@ func toCodebasesStats(ctx context.Context, client RepoClient, list []*github.Rep
 	log.Debug("starting ...")
 
 	for _, repo := range list {
-		log.Debug("fetching data for ... ", "repository", *repo.Name)
+		log.Info("fetching data ... ", "repository", *repo.Name)
 		var stats = &CodebaseStats{
-			Codebase:   *repo.FullName,
-			Visibility: *repo.Visibility,
+			Codebase:            *repo.FullName,
+			Visibility:          *repo.Visibility,
+			ComplianceLevel:     "unknown",
+			ComplianceReportUrl: "",
+			ComplianceBadge:     "",
+			ComplianceGrade:     1,
+			TrivyUsage:          0,
+			TrivySBOMUsage:      0,
+			TrivyLocations:      "",
 		}
 		// set compliance data
 		err = setComplianceData(ctx, client, repo, stats)
