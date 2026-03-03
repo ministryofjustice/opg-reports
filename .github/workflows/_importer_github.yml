@@ -1,4 +1,4 @@
-name: "Import runner"
+name: "Import runner for GitHub data"
 on:
   workflow_call:
     inputs:
@@ -53,51 +53,32 @@ jobs:
   setup:
     name: "Setup variables"
     runs-on: ubuntu-24.04
-    outputs:
-      # json account matrix
-      account_matrix: ${{ steps.account_matrix.outputs.matrix }}
     steps:
       # checkout
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: "account matrix"
-        id: account_matrix
-        uses: ./.github/actions/account-matrix
-        with:
-          dir: ${{ env.BUILD_DIR }}
-          token: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
   # report runner job
   runner:
     name: "Run report (SYNCHRONUS)"
     runs-on: ubuntu-24.04
     needs:
       - setup
-    strategy:
-      #########
-      # MAX-PARALLEL IS 1 TO MAKE THE CALLS SYNCHRONUS AND AVOID DB SYNCING ISSUES.
-      # If this was concurrent, the download and upload of the db has potention to
-      # overwrite with older versions depending how long things take to execute
-      #########
-      max-parallel: 1
-      fail-fast: true
-      matrix: ${{ fromJson(needs.setup.outputs.account_matrix) }}
     steps:
       # checkout self
-      - name: "[${{ matrix.name }}] Checkout"
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       # setup go
-      - name: "[${{ matrix.name }}] Setup go"
+      - name: "Setup go"
         uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
         with:
           cache: false
           go-version-file: './go.mod'
       # build project into build directory - use make
-      - name: "[${{ matrix.name }}] Make - build-cmds"
+      - name: "Make - build-cmds"
         run: |
           make build-prep
           make build-cmds
           ls -lhRt ${{ env.BUILD_DIR }}
       # download production database
-      - name: "[${{ matrix.name }}] Download database (${{ inputs.bucket }})"
+      - name: "Download database (${{ inputs.bucket }})"
         id: db_download
         uses: ./.github/actions/database-download
         with:
@@ -105,28 +86,18 @@ jobs:
           role: ${{ inputs.bucket_role }}
           dir: ${{ env.BUILD_DIR }}
       # migrate db to new setup
-      - name: "[${{ matrix.name }}] Migrate database & convert"
+      - name: "Migrate database & convert"
         env:
           db: ${{ steps.db_download.outputs.DB }}
         run: |
           ${{ env.BUILD_DIR }}/migrate --db="${{ env.db }}" --convert
-      # change creds
-      - name: "[${{ matrix.name }}] Configure AWS credentials for report execution"
-        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
-        env:
-          role: "arn:aws:iam::${{ matrix.id }}:role/gh-actions-cost-metrics"
-          sub_cmd: ${{ inputs.sub_cmd }}
-        with:
-          aws-region: "eu-west-1"
-          role-duration-seconds: 900
-          role-to-assume: "${{ env.role }}"
-          role-session-name: "opg-reports-get-${{ env.sub_cmd }}"
       # run the report
-      - name: "[${{ matrix.name }}] Run ${{ inputs.sub_cmd }}"
+      - name: "Run ${{ inputs.sub_cmd }}"
         env:
           cmd: ${{ env.BUILD_DIR }}/import ${{ inputs.sub_cmd }}
           db: ${{ steps.db_download.outputs.DB }}
           # setup env vars that the command will load and overwrite --arg values
+          GITHUB_TOKEN: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
           DATE_END: "${{ inputs.date_end }}"
           DATE_START_COSTS: "${{ inputs.date_start }}"
           DATE_START: "${{ inputs.date_start }}"
@@ -134,13 +105,13 @@ jobs:
           ${{ env.cmd }} --db="${{ env.db }}"
           ls -lhRt ${{ env.BUILD_DIR }}/
       # upload database
-      - name: "[${{ matrix.name }}] Upload database (${{ inputs.bucket }})"
+      - name: "Upload database (${{ inputs.bucket }})"
         uses: ./.github/actions/database-upload
         with:
           bucket: ${{ inputs.bucket }}
           role: ${{ inputs.bucket_role }}
           dir: ${{ env.BUILD_DIR }}
       # clean up build files
-      - name: "[${{ matrix.name }}] Clean up"
+      - name: "Clean up"
         run: |
           rm -Rf ${{ env.BUILD_DIR }}

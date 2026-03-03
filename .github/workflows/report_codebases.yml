@@ -1,22 +1,12 @@
-name: "[Reports] Costs"
+name: "[Reports] Codebases"
 on:
   # pull_request:
   #   branches:
   #     - main
-  # run at 1am every day
+  # run at 03:00 on Monday, Wednesday, and Friday.
   schedule:
-    - cron: '0 1 * * *'
-  # run when triggered manually
-  workflow_dispatch:
-    inputs:
-      date_start:
-        description: "Start of date range formatted as YYYY-MM-DD. Example: 2026-01-01"
-        type: string
-        default: ""
-      date_end:
-        description: "End of date range formatted as YYYY-MM-DD. Example: 2026-02-02"
-        type: string
-        default: ""
+    - cron: '0 3 * * 1,3,5'
+
 # permissions
 permissions:
   contents: write
@@ -28,17 +18,14 @@ jobs:
   # use the importer workflow to run everything
   run:
     name: "Run import command"
-    uses: ./.github/workflows/_importer_aws.yml
+    uses: ./.github/workflows/_importer_github.yml
     secrets: inherit
     with:
-      sub_cmd: "costs"
-      file: "accounts.aws.json"
+      sub_cmd: "codebases"
       bucket: "opg-reports-development"
       bucket_role: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
       # bucket: "opg-reports-production"
       # bucket_role: "arn:aws:iam::997462338508:role/opg-reports-github-actions-s3"
-      date_start: ${{ inputs.date_start }}
-      date_end: ${{ inputs.date_end }}
   # an end step for cleaner workflow
   end:
     name: "End"

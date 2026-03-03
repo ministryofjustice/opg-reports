@@ -1,0 +1,151 @@
+name: "Import runner for AWS accounts"
+on:
+  workflow_call:
+    inputs:
+      # sub command
+      sub_cmd:
+        description: "name of the import sub-command to run"
+        type: string
+        required: true
+      file:
+        description: "file to fetch from the extracted zip"
+        type: string
+        default: "accounts.aws.json"
+      # bucket details
+      bucket:
+        description: "bucket to download / upload the database to"
+        type: string
+        required: true
+        # "opg-reports-production"
+        default: "opg-reports-development"
+      # bucket role
+      bucket_role:
+        description: "role to use to access the s3 bucket"
+        type: string
+        required: true
+        # "arn:aws:iam::997462338508:role/opg-reports-github-actions-s3"
+        default: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
+      # start date
+      date_start:
+        description: "Start of date range formatted as YYYY-MM-DD. Example: 2026-01-01"
+        type: string
+        default: ""
+      # end date
+      date_end:
+        description: "End of date range formatted as YYYY-MM-DD. Example: 2026-02-02"
+        type: string
+        default: ""
+
+# permissions
+permissions:
+  contents: write
+  id-token: write
+  actions: read
+  checks: none
+  deployments: none
+  issues: none
+  packages: none
+  pull-requests: none
+  repository-projects: none
+  statuses: none
+
+env:
+  BUILD_DIR: "./builds"
+
+jobs:
+  # setup variables we'll use in the steps
+  setup:
+    name: "Setup variables"
+    runs-on: ubuntu-24.04
+    outputs:
+      # json account matrix
+      account_matrix: ${{ steps.account_matrix.outputs.matrix }}
+    steps:
+      # checkout
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: "account matrix"
+        id: account_matrix
+        uses: ./.github/actions/account-matrix
+        with:
+          file: ${{ inputs.file }}
+          dir: ${{ env.BUILD_DIR }}
+          token: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
+  # report runner job
+  runner:
+    name: "Run report (SYNCHRONUS)"
+    runs-on: ubuntu-24.04
+    needs:
+      - setup
+    strategy:
+      #########
+      # MAX-PARALLEL IS 1 TO MAKE THE CALLS SYNCHRONUS AND AVOID DB SYNCING ISSUES.
+      # If this was concurrent, the download and upload of the db has potention to
+      # overwrite with older versions depending how long things take to execute
+      #########
+      max-parallel: 1
+      fail-fast: true
+      matrix: ${{ fromJson(needs.setup.outputs.account_matrix) }}
+    steps:
+      # checkout self
+      - name: "[${{ matrix.name }}] Checkout"
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      # setup go
+      - name: "[${{ matrix.name }}] Setup go"
+        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+        with:
+          cache: false
+          go-version-file: './go.mod'
+      # build project into build directory - use make
+      - name: "[${{ matrix.name }}] Make - build-cmds"
+        run: |
+          make build-prep
+          make build-cmds
+          ls -lhRt ${{ env.BUILD_DIR }}
+      # download production database
+      - name: "[${{ matrix.name }}] Download database (${{ inputs.bucket }})"
+        id: db_download
+        uses: ./.github/actions/database-download
+        with:
+          bucket: ${{ inputs.bucket }}
+          role: ${{ inputs.bucket_role }}
+          dir: ${{ env.BUILD_DIR }}
+      # migrate db to new setup
+      - name: "[${{ matrix.name }}] Migrate database & convert"
+        env:
+          db: ${{ steps.db_download.outputs.DB }}
+        run: |
+          ${{ env.BUILD_DIR }}/migrate --db="${{ env.db }}" --convert
+      # change creds
+      - name: "[${{ matrix.name }}] Configure AWS credentials for report execution"
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+        env:
+          role: "arn:aws:iam::${{ matrix.id }}:role/gh-actions-cost-metrics"
+          sub_cmd: ${{ inputs.sub_cmd }}
+        with:
+          aws-region: "eu-west-1"
+          role-duration-seconds: 900
+          role-to-assume: "${{ env.role }}"
+          role-session-name: "opg-reports-get-${{ env.sub_cmd }}"
+      # run the report
+      - name: "[${{ matrix.name }}] Run ${{ inputs.sub_cmd }}"
+        env:
+          cmd: ${{ env.BUILD_DIR }}/import ${{ inputs.sub_cmd }}
+          db: ${{ steps.db_download.outputs.DB }}
+          # setup env vars that the command will load and overwrite --arg values
+          DATE_END: "${{ inputs.date_end }}"
+          DATE_START_COSTS: "${{ inputs.date_start }}"
+          DATE_START: "${{ inputs.date_start }}"
+        run: |
+          ${{ env.cmd }} --db="${{ env.db }}"
+          ls -lhRt ${{ env.BUILD_DIR }}/
+      # upload database
+      - name: "[${{ matrix.name }}] Upload database (${{ inputs.bucket }})"
+        uses: ./.github/actions/database-upload
+        with:
+          bucket: ${{ inputs.bucket }}
+          role: ${{ inputs.bucket_role }}
+          dir: ${{ env.BUILD_DIR }}
+      # clean up build files
+      - name: "[${{ matrix.name }}] Clean up"
+        run: |
+          rm -Rf ${{ env.BUILD_DIR }}
