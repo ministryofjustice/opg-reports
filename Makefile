@@ -107,7 +107,7 @@ get-db: CMD_LIST=migrate
 get-db: build-cmds
 	@rm -Rf ${API_DB}
 	@mkdir -p ${API_DB_DIR}
-	@echo "- downloading database (${GET_DB_BUCKET})"
+	@echo "- downloading database from bucket (${GET_DB_BUCKET})"
 	@aws-vault exec ${GET_DB_PROFILE} -- aws s3 cp \
 		--sse AES256 \
     	s3://${GET_DB_BUCKET}/database/api.db \
@@ -119,7 +119,8 @@ get-db: build-cmds
 
 # .PHONY: upload-db
 # upload-db:
-# 	aws-vault exec ${GET_DB_PROFILE} -- aws s3 cp \
+# 	@echo " - uploading database to bucket (${GET_DB_BUCKET})"
+# 	@aws-vault exec ${GET_DB_PROFILE} -- aws s3 cp \
 # 		--sse AES256 \
 #     	${API_DB_DIR}/api.db \
 # 		s3://${GET_DB_BUCKET}/database/api.db
