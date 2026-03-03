@@ -19,15 +19,11 @@ env:
   PRERELEASE: "true"
   PATH_TO_LIVE: "false"
   # db
-  # bucket: "opg-reports-production"
-  # bucket_role: "arn:aws:iam::997462338508:role/opg-reports-github-actions-s3"
   bucket: "opg-reports-development"
   bucket_role: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
   # ecr
   ecr_registry: "311462405659"
   ecr_role: "arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
-  ecr_image_api: "opg-reports/api"
-  ecr_image_front: "opg-reports/front"
   # terraform
   terraform_workspace: "development"
 
@@ -106,6 +102,12 @@ jobs:
     needs:
       - setup
       - tests
+    strategy:
+      fail-fast: true
+      matrix:
+        image:
+          - front
+          - api
     steps:
       # checkout self
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -113,25 +115,25 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
       # setup go
-      - name: "Setup go"
+      - name: "[${{ matrix.image }}] Setup go"
         uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
         with:
           cache: false
           go-version-file: './go.mod'
       # build
-      - name: "Make - build-cmds"
+      - name: "[${{ matrix.image }}] Make - build-cmds"
         run: |
           make build-prep
           make build-cmds
           ls -lhRt ${{ env.BUILD_DIR }}
-      - name: "Make - front assets"
+      - name: "[${{ matrix.image }}] Make - front assets"
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           make front-assets
           ls -lhRt ${{ env.BUILD_DIR }}
       # download production database
-      - name: "Download database (${{ env.bucket }})"
+      - name: "[${{ matrix.image }}] Download database (${{ env.bucket }})"
         id: db_download
         uses: ./.github/actions/database-download
         with:
@@ -139,43 +141,32 @@ jobs:
           role: ${{ env.bucket_role }}
           dir: ${{ env.BUILD_DIR }}
       # migrate db to new setup
-      - name: "Migrate database & convert"
+      - name: "[${{ matrix.image }}] Migrate database & convert"
         env:
           db: ${{ steps.db_download.outputs.DB }}
         run: |
           ${{ env.BUILD_DIR }}/migrate --db="${{ env.db }}" --convert
       # Swap AWS creds for ECR usage
-      - name: "Configure AWS credentials for ECR"
+      - name: "[${{ matrix.image }}] Configure AWS credentials for ECR"
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           aws-region: "eu-west-1"
           role-duration-seconds: 900
           role-to-assume: ${{ env.ecr_role }}
           role-session-name: reports-ecr-access
-      # build the API image
-      - name: "Build [api]"
-        id: build_api
+      # build the image
+      - name: "[${{ matrix.image }}] Build and push image"
+        id: build_image
         uses: ./.github/actions/docker-build-scan-push
         with:
           ecr_registry_id: ${{ env.ecr_registry  }}
-          ecr_repository: ${{ env.ecr_image_api }}
+          ecr_repository: "opg-reports/${{ matrix.image }}"
           branch_name: ${{ needs.setup.outputs.branch_name }}
           tag: ${{ needs.setup.outputs.semver_tag }}
-          dockerfile: './docker/api/Dockerfile'
-          path_to_live: ${{ env.PATH_TO_LIVE }}
-      # build the FRONT image
-      - name: "Build [front]"
-        id: build_ront
-        uses: ./.github/actions/docker-build-scan-push
-        with:
-          ecr_registry_id: ${{ env.ecr_registry  }}
-          ecr_repository: ${{ env.ecr_image_front }}
-          branch_name: ${{ needs.setup.outputs.branch_name }}
-          tag: ${{ needs.setup.outputs.semver_tag }}
-          dockerfile: './docker/front/Dockerfile'
+          dockerfile: "./docker/${{ matrix.image }}/Dockerfile"
           path_to_live: ${{ env.PATH_TO_LIVE }}
       # listing
-      - name: "List build directory"
+      - name: "[${{ matrix.image }}] List build directory"
         run: ls -lhRt ./builds/
 
   # Run the terraform for development workspace
