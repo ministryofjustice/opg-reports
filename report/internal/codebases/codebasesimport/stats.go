@@ -148,6 +148,10 @@ func setComplianceData(ctx context.Context, client RepoClient, repo *github.Repo
 		lvl  string       = "unknown"
 	)
 	log.Debug("starting ...")
+	if *repo.Archived {
+		log.Warn("repository is archived, skipping fetching compliance details.")
+		return
+	}
 	// set default values
 	stats.ComplianceLevel = lvl
 	stats.ComplianceGrade = 1
