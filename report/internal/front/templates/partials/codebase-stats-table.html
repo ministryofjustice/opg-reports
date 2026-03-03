@@ -21,7 +21,7 @@
             </td>
             <td class="govuk-table__cell govuk-table__cell"><strong>{{ IntToCheckMark .TrivySBOMUsage "NOT FOUND" "FOUND"}}</strong></td>
             <td class="govuk-table__cell govuk-table__cell">
-                <a href="{{ .ComplianceReportUrl }}" title="score: {{ .ComplianceGrade }}"><img src="{{ .ComplianceBadge }}" alt="{{ .ComplianceLevel }}"></a>
+                <a href="{{ .ComplianceReportUrl }}" title="score: {{ .ComplianceGrade }}"><img src="{{ .ComplianceBadge }}" loading="lazy" alt="{{ .ComplianceLevel }}"></a>
             </td>
         </tr>
         {{- if .TrivyLocations -}}
