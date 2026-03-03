@@ -81,11 +81,11 @@ jobs:
           role: ${{ env.prod_bucket_role }}
           dir: ${{ env.BUILD_DIR }}
       # migrate db to new setup
-      - name: "Migrate database (and convert)"
+      - name: "Migrate database"
         env:
           db: ${{ steps.db_download.outputs.DB }}
         run: |
-          ${{ env.BUILD_DIR }}/migrate --db="${{ env.db }}" --convert
+          ${{ env.BUILD_DIR }}/migrate --db="${{ env.db }}"
       # run the report
       - name: "Run ${{ inputs.sub_cmd }}"
         env:

@@ -142,12 +142,12 @@ jobs:
           role: ${{ env.bucket_role }}
           dir: ${{ env.BUILD_DIR }}
       # migrate db to new setup
-      - name: "[${{ matrix.image }}] Migrate database & convert"
+      - name: "[${{ matrix.image }}] Migrate database"
         if: ${{ matrix.image == 'api' }}
         env:
           db: ${{ steps.db_download.outputs.DB }}
         run: |
-          ${{ env.BUILD_DIR }}/migrate --db="${{ env.db }}" --convert
+          ${{ env.BUILD_DIR }}/migrate --db="${{ env.db }}"
       # Swap AWS creds for ECR usage
       - name: "[${{ matrix.image }}] Configure AWS credentials for ECR"
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0

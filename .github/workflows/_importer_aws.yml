@@ -106,11 +106,11 @@ jobs:
           role: ${{ env.prod_bucket_role }}
           dir: ${{ env.BUILD_DIR }}
       # migrate db to new setup
-      - name: "[${{ matrix.name }}] Migrate database & convert"
+      - name: "[${{ matrix.name }}] Migrate database"
         env:
           db: ${{ steps.db_download.outputs.DB }}
         run: |
-          ${{ env.BUILD_DIR }}/migrate --db="${{ env.db }}" --convert
+          ${{ env.BUILD_DIR }}/migrate --db="${{ env.db }}"
       # change creds
       - name: "[${{ matrix.name }}] Configure AWS credentials for report execution"
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
