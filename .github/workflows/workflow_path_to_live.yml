@@ -205,8 +205,8 @@ jobs:
       - name: "Environment level terraform"
         uses: ./.github/actions/terraform
         env:
-          TF_VAR_api_image_tag: development-${{ needs.setup.outputs.semver_tag }}
-          TF_VAR_front_image_tag: development-${{ needs.setup.outputs.semver_tag }}
+          TF_VAR_api_image_tag: main-${{ needs.setup.outputs.semver_tag }}
+          TF_VAR_front_image_tag: main-${{ needs.setup.outputs.semver_tag }}
           TF_VAR_semver_tag: ${{ needs.setup.outputs.semver_tag }}
           TF_VAR_commit_sha: ${{ needs.setup.outputs.gitsha }}
         with:
