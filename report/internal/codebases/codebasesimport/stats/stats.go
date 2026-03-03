@@ -1,10 +1,12 @@
-package codebasesimport
+package stats
 
 import (
 	"context"
 	"fmt"
 	"io"
 	"log/slog"
+	"opg-reports/report/internal/codebases/codebasesimport/args"
+	"opg-reports/report/internal/codebases/codebasesimport/clients"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/dbx"
 	"opg-reports/report/package/files"
@@ -79,7 +81,7 @@ type CodebaseStats struct {
 // the badge layout puts the value in the title
 var complianceRe = regexp.MustCompile(`(?m)<title>MOJ COMPLIANT:(.*)</title>`)
 
-func handleCodebaseStats(ctx context.Context, client RepoClient, repositories []*github.Repository, in *Args) (err error) {
+func HandleCodebaseStats(ctx context.Context, client clients.RepoClient, repositories []*github.Repository, in *args.Args) (err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "handleCodebaseStats")
 	var data []*CodebaseStats = []*CodebaseStats{}
 	log.Info("starting codebase stats import ...")
@@ -105,7 +107,7 @@ func handleCodebaseStats(ctx context.Context, client RepoClient, repositories []
 }
 
 // toCodebasesStats converts the api results into local structs
-func toCodebasesStats(ctx context.Context, client RepoClient, list []*github.Repository) (data []*CodebaseStats, err error) {
+func toCodebasesStats(ctx context.Context, client clients.RepoClient, list []*github.Repository) (data []*CodebaseStats, err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "toCodebasesStats")
 
 	data = []*CodebaseStats{}
@@ -149,7 +151,7 @@ func toCodebasesStats(ctx context.Context, client RepoClient, list []*github.Rep
 //
 // Sets default values for compliance data and then calls & processes the moj compliance badge to determine the
 // level the codebases is at
-func setComplianceData(ctx context.Context, client RepoClient, repo *github.Repository, stats *CodebaseStats) (err error) {
+func setComplianceData(ctx context.Context, client clients.RepoClient, repo *github.Repository, stats *CodebaseStats) (err error) {
 	var (
 		log  *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "setComplianceData", "repo", *repo.Name)
 		base string       = "https://github-community.service.justice.gov.uk/repository-standards"
@@ -226,7 +228,7 @@ func complianceLevelFromBadge(ctx context.Context, badge string) (level string, 
 // for the aciton
 //
 // For cli usage it looks for `trivy sbom` in the line
-func setTrivyData(ctx context.Context, client RepoClient, repo *github.Repository, stats *CodebaseStats) (err error) {
+func setTrivyData(ctx context.Context, client clients.RepoClient, repo *github.Repository, stats *CodebaseStats) (err error) {
 	var (
 		log       *slog.Logger                = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "setTrivyData", "repo", *repo.Name)
 		contents  []*github.RepositoryContent = []*github.RepositoryContent{}
@@ -274,7 +276,7 @@ func setTrivyData(ctx context.Context, client RepoClient, repo *github.Repositor
 }
 
 // findTrivyInFile looks for trivy usage within file content by downloading it and scanning lines
-func findTrivyInFile(ctx context.Context, client RepoClient, repo *github.Repository, file *github.RepositoryContent) (hasTrivy bool, hasSBOM bool, err error) {
+func findTrivyInFile(ctx context.Context, client clients.RepoClient, repo *github.Repository, file *github.RepositoryContent) (hasTrivy bool, hasSBOM bool, err error) {
 	var (
 		buff  io.ReadCloser
 		lines []string
@@ -395,7 +397,7 @@ func isTrivyCLIInLine(line string) (found bool) {
 
 // getAllGithubFiles recurisvely finds all files within a starting directory path - used to fetch all the `.github` sub files
 // so we can then check content of those for trivy etc
-func getAllGithubFiles(ctx context.Context, client RepoClient, repo *github.Repository, dir string) (contents []*github.RepositoryContent, err error) {
+func getAllGithubFiles(ctx context.Context, client clients.RepoClient, repo *github.Repository, dir string) (contents []*github.RepositoryContent, err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "getAllGithubFiles", "repo", *repo.Name)
 	var found = []*github.RepositoryContent{}
 

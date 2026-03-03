@@ -3,8 +3,11 @@ package codebasesimport
 import (
 	"context"
 	"errors"
-	"io"
 	"log/slog"
+	"opg-reports/report/internal/codebases/codebasesimport/args"
+	"opg-reports/report/internal/codebases/codebasesimport/clients"
+	"opg-reports/report/internal/codebases/codebasesimport/owners"
+	"opg-reports/report/internal/codebases/codebasesimport/stats"
 	"opg-reports/report/package/cntxt"
 
 	"github.com/google/go-github/v81/github"
@@ -12,43 +15,13 @@ import (
 
 var ErrFailedGettingRepositoryPage = errors.New("error getting page of repositories")
 
-// TeamClient wrapper around *github.TeamsService
-type TeamClient interface {
-	ListTeamReposBySlug(ctx context.Context, org, slug string, opts *github.ListOptions) ([]*github.Repository, *github.Response, error)
-}
-
-// RepoClient wrapper around *github.RepositoriesService
-type RepoClient interface {
-	// fetch attached teams (*github.RepositoriesService)
-	ListTeams(ctx context.Context, owner, repo string, opts *github.ListOptions) ([]*github.Team, *github.Response, error)
-	// fetch file content (*github.RepositoriesService)
-	DownloadContents(ctx context.Context, owner, repo, filepath string, opts *github.RepositoryContentGetOptions) (io.ReadCloser, *github.Response, error)
-	// get contenst method to fetch directory content
-	GetContents(ctx context.Context, owner, repo, path string, opts *github.RepositoryContentGetOptions) (fileContent *github.RepositoryContent, directoryContent []*github.RepositoryContent, resp *github.Response, err error)
-}
-
-type Args struct {
-	DB     string `json:"db"`     // database path
-	Driver string `json:"driver"` // database driver
-	Params string `json:"params"` // database connection params
-
-	OrgSlug    string `json:"org_slug"`    // github org name
-	ParentSlug string `json:"parent_slug"` // parent slug
-
-	IncludeStats      bool `json:"include_stats"`      // run the code base stats handler - stats are non-time boxed details
-	IncludeCodeowners bool `json:"include_codeowners"` // option to fetch all codebases and then fetch codeowner data as well
-
-	FilterByName string `json:"filter_by_name"` // used to limit the repos to those that exactly match this name
-
-}
-
 type Clients struct {
-	Teams TeamClient // *github.TeamsService
-	Repos RepoClient // *github.RepositoriesService
+	Teams clients.TeamClient // *github.TeamsService
+	Repos clients.RepoClient // *github.RepositoriesService
 }
 
 // Import finds all github repositories and returns them for the moj/opg team
-func Import(ctx context.Context, client *Clients, in *Args) (err error) {
+func Import(ctx context.Context, client *Clients, in *args.Args) (err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "Import")
 	var list []*github.Repository
 
@@ -66,13 +39,13 @@ func Import(ctx context.Context, client *Clients, in *Args) (err error) {
 	}
 	// if enabled, run stats
 	if in.IncludeStats {
-		if err = handleCodebaseStats(ctx, client.Repos, list, in); err != nil {
+		if err = stats.HandleCodebaseStats(ctx, client.Repos, list, in); err != nil {
 			return
 		}
 	}
 	// if enabled, run code owners
 	if in.IncludeCodeowners {
-		if err = handleCodebaseOwners(ctx, client.Repos, list, in); err != nil {
+		if err = owners.HandleCodebaseOwners(ctx, client.Repos, list, in); err != nil {
 			return
 		}
 	}
@@ -83,7 +56,7 @@ func Import(ctx context.Context, client *Clients, in *Args) (err error) {
 
 // getRepositoryList iterates over paginated data set from github api and merges all data
 // into one block
-func getRepositoryList(ctx context.Context, client TeamClient, options *Args) (repositories []*github.Repository, err error) {
+func getRepositoryList(ctx context.Context, client clients.TeamClient, options *args.Args) (repositories []*github.Repository, err error) {
 
 	var (
 		page int                 = 1

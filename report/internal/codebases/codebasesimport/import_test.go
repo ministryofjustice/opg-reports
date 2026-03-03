@@ -2,6 +2,7 @@ package codebasesimport
 
 import (
 	"context"
+	"opg-reports/report/internal/codebases/codebasesimport/args"
 	"opg-reports/report/internal/global/migrations"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/ghclients"
@@ -36,20 +37,12 @@ func TestCodebasesImportWithoutMock(t *testing.T) {
 		Driver: "sqlite3",
 	})
 
-	// r, d, _, err := client.Repositories.GetContents()
-	// github.RepositoryContent
-	// 	- scan all file contents returned for key .. `trivy sbom` | `aquasecurity/trivy-action` ..
-	// 	- track where its found and try to capture the step for more parsing..
-	// 		look for the `- (word):` before and after
-	//	- the action version needs a `output: "something.sbom.json"` value
-	//
-
 	clients := &Clients{
 		Teams: client.Teams,
 		Repos: client.Repositories,
 	}
 
-	err = Import(ctx, clients, &Args{
+	err = Import(ctx, clients, &args.Args{
 		DB:                dbpath,
 		Driver:            "sqlite3",
 		OrgSlug:           "ministryofjustice",
@@ -91,7 +84,7 @@ func TestCodebasesImportStatsWithoutMock(t *testing.T) {
 		Repos: client.Repositories,
 	}
 	// just import a single repo for performance
-	err = Import(ctx, clients, &Args{
+	err = Import(ctx, clients, &args.Args{
 		DB:           dbpath,
 		Driver:       "sqlite3",
 		OrgSlug:      "ministryofjustice",

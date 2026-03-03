@@ -1,4 +1,4 @@
-LOG_LEVEL ?= debug
+LOG_LEVEL ?= info
 GITHUBTOKEN ?= ${GH_TOKEN}
 #========= IMPORT TEAMS =========
 IMPORT_CMD ?= ${BUILD_DIR}/import

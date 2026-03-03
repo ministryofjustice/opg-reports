@@ -3,6 +3,7 @@ package codebasesimport
 import (
 	"context"
 	"log/slog"
+	"opg-reports/report/internal/codebases/codebasesimport/args"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/dbx"
 
@@ -38,7 +39,7 @@ type Codebase struct {
 	Archived int    `json:"archived"`             // int version of the archived flag on the repo
 }
 
-func handleCodebases(ctx context.Context, repositories []*github.Repository, in *Args) (err error) {
+func handleCodebases(ctx context.Context, repositories []*github.Repository, in *args.Args) (err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "handleCodebases")
 	var data []*Codebase = []*Codebase{}
 	log.Info("starting codebase import ...")

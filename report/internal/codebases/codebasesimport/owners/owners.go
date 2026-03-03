@@ -1,4 +1,4 @@
-package codebasesimport
+package owners
 
 import (
 	"context"
@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"opg-reports/report/internal/codebases/codebasesimport/args"
+	"opg-reports/report/internal/codebases/codebasesimport/clients"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/dbx"
 	"opg-reports/report/package/files"
@@ -54,7 +56,7 @@ var codeOwnerToTeamName map[string]string = map[string]string{
 	"ministryofjustice/sirius":                   "sirius",
 }
 
-func handleCodebaseOwners(ctx context.Context, client RepoClient, repositories []*github.Repository, in *Args) (err error) {
+func HandleCodebaseOwners(ctx context.Context, client clients.RepoClient, repositories []*github.Repository, in *args.Args) (err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "handleCodebaseOwners")
 	var data []*CodebaseOwner = []*CodebaseOwner{}
 	log.Info("starting codebase owner import ...")
@@ -79,7 +81,7 @@ func handleCodebaseOwners(ctx context.Context, client RepoClient, repositories [
 }
 
 // toCodebaseOwners converts the api results into local structs
-func toCodebaseOwners(ctx context.Context, client RepoClient, list []*github.Repository, in *Args) (data []*CodebaseOwner, err error) {
+func toCodebaseOwners(ctx context.Context, client clients.RepoClient, list []*github.Repository, in *args.Args) (data []*CodebaseOwner, err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "toCodebaseOwners")
 
 	data = []*CodebaseOwner{}
@@ -121,7 +123,7 @@ func toCodebaseOwners(ctx context.Context, client RepoClient, list []*github.Rep
 
 // getTeams returns all attached teams for this code repository and deals with pagination
 // of github results
-func getTeams(ctx context.Context, client RepoClient, code *github.Repository, in *Args) (teams []*github.Team, err error) {
+func getTeams(ctx context.Context, client clients.RepoClient, code *github.Repository, in *args.Args) (teams []*github.Team, err error) {
 	var (
 		log  *slog.Logger        = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "getTeams")
 		page int                 = 1
@@ -161,7 +163,7 @@ func getTeams(ctx context.Context, client RepoClient, code *github.Repository, i
 
 // getCodeownersFromFiles tries to fetch CODEOWNER file content from set locations and
 // will process the content into just the team names, removing duplicates.
-func getCodeownersFromFiles(ctx context.Context, client RepoClient, code *github.Repository, in *Args) (owners []string, err error) {
+func getCodeownersFromFiles(ctx context.Context, client clients.RepoClient, code *github.Repository, in *args.Args) (owners []string, err error) {
 	var (
 		log           *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "getCodeownersFromFiles")
 		fileLocations []string     = []string{

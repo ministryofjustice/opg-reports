@@ -3,6 +3,7 @@ package main
 import (
 	"opg-reports/report/internal/account/accountimport"
 	"opg-reports/report/internal/codebases/codebasesimport"
+	"opg-reports/report/internal/codebases/codebasesimport/args"
 	"opg-reports/report/internal/cost/costimport"
 	"opg-reports/report/internal/global/migrations"
 	"opg-reports/report/internal/team/teamimport"
@@ -182,7 +183,7 @@ func runUptimeImport(cmd *cobra.Command, args []string) (err error) {
 }
 
 // runCodebaseImport runs the codebase import with stats
-func runCodebaseImport(cmd *cobra.Command, args []string) (err error) {
+func runCodebaseImport(cmd *cobra.Command, arglist []string) (err error) {
 	var client *github.Client
 	var tk = os.Getenv("GITHUB_TOKEN")
 	var ctx = cmd.Context()
@@ -208,7 +209,7 @@ func runCodebaseImport(cmd *cobra.Command, args []string) (err error) {
 		Teams: client.Teams,
 		Repos: client.Repositories,
 	}
-	err = codebasesimport.Import(ctx, clients, &codebasesimport.Args{
+	err = codebasesimport.Import(ctx, clients, &args.Args{
 		DB:                flags.DB,
 		Driver:            flags.Driver,
 		Params:            flags.Params,
@@ -221,7 +222,7 @@ func runCodebaseImport(cmd *cobra.Command, args []string) (err error) {
 }
 
 // runCodeownersImport runs the codebase and codeowner import - this is a bit slower due to fetching files
-func runCodeownersImport(cmd *cobra.Command, args []string) (err error) {
+func runCodeownersImport(cmd *cobra.Command, arglist []string) (err error) {
 	var client *github.Client
 	var tk = os.Getenv("GITHUB_TOKEN")
 	var ctx = cmd.Context()
@@ -247,7 +248,7 @@ func runCodeownersImport(cmd *cobra.Command, args []string) (err error) {
 		Teams: client.Teams,
 		Repos: client.Repositories,
 	}
-	err = codebasesimport.Import(ctx, clients, &codebasesimport.Args{
+	err = codebasesimport.Import(ctx, clients, &args.Args{
 		DB:                flags.DB,
 		Driver:            flags.Driver,
 		Params:            flags.Params,

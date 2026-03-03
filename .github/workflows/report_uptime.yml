@@ -1,8 +1,8 @@
 name: "[Reports] Uptime"
 on:
-  pull_request:
-    branches:
-      - main
+  # pull_request:
+  #   branches:
+  #     - main
 
   # run at 5am every day
   schedule:
