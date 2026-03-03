@@ -117,12 +117,12 @@ func toCodebasesStats(ctx context.Context, client RepoClient, list []*github.Rep
 			Codebase:            *repo.FullName,
 			Visibility:          *repo.Visibility,
 			ComplianceLevel:     "unknown",
-			ComplianceReportUrl: "",
-			ComplianceBadge:     "",
+			ComplianceReportUrl: "na",
+			ComplianceBadge:     "na",
 			ComplianceGrade:     1,
 			TrivyUsage:          0,
 			TrivySBOMUsage:      0,
-			TrivyLocations:      "",
+			TrivyLocations:      "na",
 		}
 		// set compliance data
 		err = setComplianceData(ctx, client, repo, stats)
