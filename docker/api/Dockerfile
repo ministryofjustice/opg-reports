@@ -1,4 +1,3 @@
-# ARG TARGETOS TARGETARCH
 # setup base docker image building the application
 FROM golang:1.25.7-alpine@sha256:f6751d823c26342f9506c03797d2527668d095b0a15f1862cddb4d927a7a4ced AS build
 COPY --link go.sum go.mod /app/
@@ -12,12 +11,8 @@ RUN addgroup -S user && adduser -S -g user user
 WORKDIR /app
 ENV GOBIN=/gobin PATH=/gobin:$PATH
 ENV CGO_ENABLED=1
-# ENV GOOS=${TARGETOS} GOARCH=${TARGETARCH}
 RUN go mod download
 RUN go build -ldflags="-w -s" -o /gobin/app/api ./report/cmd/api/
-# WORKDIR /gobin/app
-# deal with linked binaries - sqlite package needs cgo.. grab the requirements and install them to ./lib/
-# RUN ldd api | tr -s [:blank:] '\n' | grep ^/ | xargs -I % install -D % /gobin/app/%
 RUN chown -Rf user:user /gobin/
 RUN chmod -Rf 0755 /gobin/
 
@@ -40,8 +35,6 @@ COPY --from=build /etc/passwd /etc/passwd
 COPY --from=build /etc/group /etc/group
 # app
 COPY --from=build /gobin/ /gobin
-# needs the linked files, can check using ldd (see the process above)
-# COPY --from=build /gobin/app/lib/* /gobin/app/
 WORKDIR /gobin/app
 USER user
 ENTRYPOINT ["/gobin/app/api"]
