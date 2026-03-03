@@ -1,0 +1,18 @@
+{{- define "codeowners-list" -}}
+
+{{ if .CodeOwners }}
+<div class="codeownership-list-container">
+    {{- if .Team -}}
+    <p class="govuk-body">List of repositories that are directly associated with this team via CODEOWNERS or github teams.</p>
+    {{- else -}}
+    <p class="govuk-body">List of active repositories where the CODEOWNERS and GitHub team doesn't directly link to a team.</p>
+    {{- end -}}
+    <ul class="govuk-list codeownership-list codeownership-list-size-{{ LengthClass ( len .CodeOwners ) }}">
+    {{- range $i, $row := .CodeOwners -}}
+    <li><a href="{{- $row.Url -}}" class="govuk-tag govuk-tag--grey govuk-link codeownership-tag">{{- $row.Name -}}</a></li>
+    {{- end -}}
+    </ul>
+</div>
+{{- end -}}
+
+{{- end -}}

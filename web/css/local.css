@@ -1,0 +1,218 @@
+/******************************************************************************************
+* APP CSS
+* Styles relating to custom /new css for this application only
+* See GOVUK block below for overwrites to the govuk css
+*******************************************************************************************/
+
+/*
+As we want a secondary nav on the left, we are not using the `.govuk-width-container` class
+as an outer wrapper, instead we use custom class to add left/right padding
+*/
+.app-container {
+    padding-left: 4%;
+    padding-right: 4%;
+    display: flex;
+    position: relative;
+    flex: 1 1 100%;
+}
+
+
+/*
+Adding padding to the top of the main content area for spacing
+*/
+#main-content{
+    padding-top:30px;
+    flex: 1 1 100%
+}
+
+#side-navigation{
+    padding-top:30px;
+    flex: 0 0 auto;
+    width: 200px;
+}
+#side-navigation .govuk-heading-s,
+#side-navigation .govuk-link{
+    font-size:1rem;
+    margin-bottom:3px;
+}
+#side-navigation .govuk-list{
+    margin-bottom: 5px;
+}
+#side-navigation hr{
+    width:75%
+}
+#side-navigation .govuk-section-break--s {
+    margin-bottom:10px;
+    margin-top:10px;
+}
+/*
+stats block
+*/
+#stats{
+    padding-bottom: 30px;;
+    margin-bottom: 30px;
+}
+/*
+ flex box tiles
+*/
+.tiles{
+    display: flex;
+}
+.tile{
+    margin: 0 30px 15px 0;
+    width: auto;
+    max-width: 32%;
+    padding: 10px;
+}
+.tile .govuk-body-s{
+    margin-bottom: 2px;
+}
+/* date range selection */
+.date-start-end {
+    padding-top: 20px;
+    padding-bottom: 20px
+}
+.landing-page .date-start-end{
+    border-top: 1px solid #b1b4b6;
+}
+.date-start-end form.compact-form,
+.date-start-end p.govuk-body{
+    margin-bottom:0;
+}
+
+
+/*
+Highlight billing instability on cost tables
+*/
+.reports-table .reports-table-value.unstable,
+.example-unstable
+{
+    color: #d53880;
+}
+/*
+    Reduce sizes on some inline form options
+*/
+form.compact-form {
+    margin-bottom: 5px;
+}
+form.compact-form p{
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+form.compact-form select{
+    font-size: 0.9rem;
+    line-height: 1rem;
+    height: auto;
+}
+form.compact-form button{
+    font-size: 0.9rem;
+    line-height: 1rem;
+    margin-bottom: 5px;
+    padding: 5px 8px 5px 8px;
+}
+/*
+Extras for codebase table layout
+*/
+.codebase-table .tag{
+    margin:0 5px 5px 0;
+    max-width: 99%;
+    width:auto;
+    padding:4px;
+    font-size: 0.8rem;
+}
+.codebase-table .hide-border .govuk-table__header,
+.codebase-table .hide-border .govuk-table__cell{
+    border-width: 0;
+}
+.codebase-table .small{
+    font-size: 0.8rem;
+}
+.codebase-table .extra-row .govuk-table__header,
+.codebase-table .extra-row .govuk-table__cell{
+    padding-top: 0;
+}
+/*
+Additional styling code ownership listing on the team pages
+*/
+
+.codebase-codeowner{
+    padding-bottom:10px;
+    margin-bottom:10px;
+    border-bottom: 1px solid #b1b4b6;
+}
+.codebase-codeowner .compact-header{
+    margin-bottom: 5px;
+}
+.codeowner-list{
+    display:flex
+}
+.codeowner-list .tag{
+    max-width:30%;
+    margin:0 5px 5px 0;
+    width:auto;
+    padding:4px;
+    font-size: 0.9rem;
+}
+.codeowner-list .tag-t-none {
+    color: #651b1b;
+    background-color: #f4d7d7;
+}
+.codeownership-list-container{
+    padding-top:20px;
+    border-top: 1px solid #b1b4b6;
+}
+.codeownership-list-container .codeownership-list > li{
+    display:inline-block;
+    margin-right:5px;
+    margin-bottom:10px;
+    vertical-align:top;
+}
+.codeownership-list-container .codeownership-list .codeownership-tag{
+    max-width: none;
+}
+.codeownership-list-container .codeownership-list-size-l .codeownership-tag,
+.codeownership-list-container .codeownership-list-size-xl .codeownership-tag{
+    font-size:12pt
+}
+
+/******************************************************************************************
+* GOVUK Overrides
+* Styles relating overwrites to the govuk css
+*******************************************************************************************/
+/*
+    Increase the width of the main container class so we can use more of the space,
+    especially for data tables
+*/
+@media (min-width: 1280px) {
+    .reports .govuk-width-container {
+        max-width: 1200px;
+    }
+}
+
+@media (min-width: 1536px) {
+    .reports .govuk-width-container {
+        max-width: 1400px;
+    }
+}
+/*
+    Size overwrites classes to adjust font-sizes of content Used to shrink size of fonts /
+    data within large tables
+*/
+.reports-font-m .govuk-table{
+    font-size:1rem;
+}
+
+.reports-font-s .govuk-table{
+    font-size:0.9rem;
+}
+.reports-font-s .govuk-table__cell,
+.reports-font-s .govuk-table__header{
+    padding:5px 8px 5px 0;
+}
+
+/*
+    Reduce margin on the first big header on the pages
+*/
+.govuk-heading-xl.compact-header{
+    margin-bottom: 20px;
+}

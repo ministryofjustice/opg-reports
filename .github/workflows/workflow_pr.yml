@@ -1,6 +1,10 @@
 name: "[Workflow] PR"
 
 on:
+  # run at 0800 every day
+  schedule:
+    - cron: '0 8 * * *'
+  # run on pr
   pull_request:
     branches:
       - main
@@ -11,56 +15,52 @@ permissions:
   id-token: write
 
 env:
-  BUILD_DIR_API: ./builds/api
-  BUILD_DIR_FRONT: ./builds/front
-  BUILD_DIR_BINARIES: ./builds/bin
+  BUILD_DIR: "./builds"
   PRERELEASE: "true"
   PATH_TO_LIVE: "false"
+  # db
+  bucket: "opg-reports-development"
+  bucket_role: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
+  # ecr
+  ecr_registry: "311462405659"
+  ecr_role: "arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
+  # terraform
+  terraform_workspace: "development"
 
-# jobs
+
 jobs:
-  # setup provides all vars used in the process
+  # setup variables we'll use in the steps
   setup:
-    name: "Set variables"
-    runs-on: ubuntu-latest
+    name: "Setup variables"
+    runs-on: ubuntu-24.04
     outputs:
-      # AWS S3 bucket & role info - download from production versions
-      s3_bucket: "opg-reports-development"
-      s3_role: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
-      # AWS ECR
-      ecr_registry: "311462405659"
-      ecr_role: "arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
-      ecr_repository_api: "opg-reports/api"
-      ecr_repository_front: "opg-reports/front"
-      # TERRAFORM
-      # terraform_workspace: "production"
-      terraform_workspace: "development"
+      # terraform versions - found dynamically
       terraform_version_account: ${{ steps.terraform_account_version.outputs.version }}
       terraform_version_environment: ${{ steps.terraform_environment_version.outputs.version }}
       # SEMVER & BRANCH NAMES
       branch_name: ${{ steps.semver.outputs.branch }}
       semver_tag: ${{ steps.semver.outputs.tag }}
-      gitsha: ${{ steps.revhead.outputs.gitsha}}
+      gitsha: ${{ steps.revhead.outputs.gitsha }}
     steps:
-      # Check the code base
+      # code checkout for semver & terraform version details
       - name: "Checkout"
-        id: checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
           fetch-tags: true
-      # Find the terraform version details for account & env
+      # terraform account version
       - name: "Parse terraform account version"
         id: terraform_account_version
         uses: ministryofjustice/opg-github-actions/actions/terraform-version@82323da6c533ab565c1652a590230ff2f0acc942 # v4.3.8
         with:
           terraform_directory: ./terraform/account
+      # terraform env version
       - name: "Parse terraform environment version"
         id: terraform_environment_version
         uses: ministryofjustice/opg-github-actions/actions/terraform-version@82323da6c533ab565c1652a590230ff2f0acc942 # v4.3.8
         with:
           terraform_directory: ./terraform/environment
-      # semver tag
+      # SEMVER generation
       - name: "Semver tag"
         id: "semver"
         uses: ministryofjustice/opg-github-actions/actions/semver@82323da6c533ab565c1652a590230ff2f0acc942 # v4.3.8
@@ -74,131 +74,113 @@ jobs:
           sha=$(git rev-parse HEAD)
           echo "gitsha=${sha}" >> $GITHUB_OUTPUT
 
-
-  # run all the tests
+  # run go tests
   tests:
-    name: "Run Tests"
+    name: "Run tests"
+    runs-on: ubuntu-24.04
     needs:
       - setup
-    runs-on: ubuntu-latest
     steps:
       # checkout self
-      - name: "Checkout"
-        id: checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      # run tests
-      - id: "test_go"
-        name: "Go"
-        uses: ./.github/actions/go-tests
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      # setup go
+      - name: "Setup go"
+        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          cache: true
+          go-version-file: './go.mod'
+      # run tests
+      - name: "Run tests"
+        run: |
+          go mod tidy
+          go test -count=1 -cover -covermode=atomic ./...
 
-  # builder runs the required steps before building docker images (downloading assets)
+  # build and push docker images
   builder:
-    name: "Build & Push Docker images"
+    name: "Build & push docker images"
+    runs-on: ubuntu-24.04
     needs:
-      - setup
       - tests
-    runs-on: ubuntu-latest
+      - setup
+    strategy:
+      fail-fast: true
+      matrix:
+        image:
+          - front
+          - api
     steps:
       # checkout self
-      - name: "Checkout "
-        id: checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
           fetch-tags: true
-      # build the `govuk` command to download front end assets
-      - name: "Build `govuk` [${{ env.BUILD_DIR_BINARIES }}]"
-        uses: ./.github/actions/build-command
+      # setup go
+      - name: "[${{ matrix.image }}] Setup go"
+        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
         with:
-          name: "govuk"
-          source: ./report/cmd/govuk/
-          destination: ${{ env.BUILD_DIR_BINARIES }}
-      # build the `db` command so we can fetch the database for the api
-      - name: "Build `db` [${{ env.BUILD_DIR_BINARIES }}]"
-        uses: ./.github/actions/build-command
-        with:
-          name: "db"
-          source: ./report/cmd/db/
-          destination: ${{ env.BUILD_DIR_BINARIES }}
-      ## FRONT END BUILD
-      - name: "Download GOV UK Front End assets [${{ env.BUILD_DIR_FRONT }}]"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SERVERS_FRONT_DIRECTORY: ${{ env.BUILD_DIR_FRONT }}
-          cmd: ${{ env.BUILD_DIR_BINARIES }}/govuk
+          cache: false
+          go-version-file: './go.mod'
+      # build
+      - name: "[${{ matrix.image }}] Make - build-cmds"
         run: |
-          ${{ env.cmd }} frontend
-          cp -r ./report/cmd/front/templates ${{ env.BUILD_DIR_FRONT }}/
-          cp -r ./report/cmd/front/local-assets ${{ env.BUILD_DIR_FRONT }}/
-      ## API BUILD
-      # now we fetch the database ..
-      #   - configure aws permissions
-      #   - download the existing database
-      - name: "Configure AWS credentials for S3 download"
-        id: configure_aws_creds_s3_download
-        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
-        with:
-          aws-region: "eu-west-1"
-          role-duration-seconds: 900
-          role-to-assume: ${{ needs.setup.outputs.s3_role }}
-          role-session-name: reports-download-db-from-s3
-      # Download the database from the bucket
-      - name: "Download database [${{ needs.setup.outputs.s3_bucket }}]"
+          make build-prep
+          make build-cmds
+          ls -lhRt ${{ env.BUILD_DIR }}
+      - name: "[${{ matrix.image }}] Make - front assets"
         env:
-          DATABASE_PATH: ${{ env.BUILD_DIR_API }}/databases/api.db
-          DATABASE_BUCKET_NAME: ${{ needs.setup.outputs.s3_bucket }}
-          cmd: ${{ env.BUILD_DIR_BINARIES }}/db
+          GH_TOKEN: ${{ github.token }}
         run: |
-          ${{ env.cmd }} download
-          ls -lh ${{ env.DATABASE_PATH }}
-      ## DOCKER BUILD AND PUSH
+          make front-assets
+          ls -lhRt ${{ env.BUILD_DIR }}
+      # download production database
+      - name: "[${{ matrix.image }}] Download database (${{ env.bucket }})"
+        if: ${{ matrix.image == 'api' }}
+        id: db_download
+        uses: ./.github/actions/database-download
+        with:
+          bucket: ${{ env.bucket }}
+          role: ${{ env.bucket_role }}
+          dir: ${{ env.BUILD_DIR }}
+      # migrate db to new setup
+      - name: "[${{ matrix.image }}] Migrate database"
+        if: ${{ matrix.image == 'api' }}
+        env:
+          db: ${{ steps.db_download.outputs.DB }}
+        run: |
+          ${{ env.BUILD_DIR }}/migrate --db="${{ env.db }}"
       # Swap AWS creds for ECR usage
-      - name: "Configure AWS credentials for ECR"
-        id: configure_aws_creds_ecr_push
-        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+      - name: "[${{ matrix.image }}] Configure AWS credentials for ECR"
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           aws-region: "eu-west-1"
           role-duration-seconds: 900
-          role-to-assume: ${{ needs.setup.outputs.ecr_role }}
+          role-to-assume: ${{ env.ecr_role }}
           role-session-name: reports-ecr-access
-      # build the API image
-      - name: "Build [api]"
-        id: build_api
+      # build the image
+      - name: "[${{ matrix.image }}] Build and push image"
+        id: build_image
         uses: ./.github/actions/docker-build-scan-push
         with:
-          ecr_registry_id: ${{ needs.setup.outputs.ecr_registry_id }}
-          ecr_repository: ${{ needs.setup.outputs.ecr_repository_api }}
+          ecr_registry_id: ${{ env.ecr_registry  }}
+          ecr_repository: "opg-reports/${{ matrix.image }}"
           branch_name: ${{ needs.setup.outputs.branch_name }}
           tag: ${{ needs.setup.outputs.semver_tag }}
-          dockerfile: './docker/api/Dockerfile'
+          dockerfile: "./docker/${{ matrix.image }}/Dockerfile"
           path_to_live: ${{ env.PATH_TO_LIVE }}
-      # build the API image
-      - name: "Build [front]"
-        id: build_front
-        uses: ./.github/actions/docker-build-scan-push
-        with:
-          ecr_registry_id: ${{ needs.setup.outputs.ecr_registry_id }}
-          ecr_repository: ${{ needs.setup.outputs.ecr_repository_front }}
-          branch_name: ${{ needs.setup.outputs.branch_name }}
-          tag: ${{ needs.setup.outputs.semver_tag }}
-          dockerfile: './docker/front/Dockerfile'
-          path_to_live: ${{ env.PATH_TO_LIVE }}
-      - name: "List build directory"
-        run: ls -laRh ./builds/
+      # listing
+      - name: "[${{ matrix.image }}] List build directory"
+        run: ls -lhRt ./builds/
 
   # Run the terraform for development workspace
-  terraform_development:
-    name: "Terraform Development"
-    runs-on: ubuntu-latest
+  terraform:
+    name: "Terraform"
+    runs-on: ubuntu-24.04
     needs:
-      - setup
       - builder
+      - setup
     steps:
-      - name: "Checkout"
-        id: checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      # checkout self
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       # setup ssh keys
       - uses: webfactory/ssh-agent@a6f90b1f127823b31d4d4a8d96047790581349bd # v0.9.1
         with:
@@ -206,7 +188,7 @@ jobs:
       # configure the aws role
       - name: "Configure AWS credentials for terraform"
         id: configure_aws_creds
-        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
@@ -217,7 +199,7 @@ jobs:
         with:
           apply: true
           directory: ./terraform/account
-          workspace: ${{ needs.setup.outputs.terraform_workspace }}
+          workspace: ${{ env.terraform_workspace }}
           version: ${{ needs.setup.outputs.terraform_version_account }}
       - name: "Environment level terraform"
         uses: ./.github/actions/terraform
@@ -229,62 +211,33 @@ jobs:
         with:
           apply: true
           directory: ./terraform/environment
-          workspace: ${{ needs.setup.outputs.terraform_workspace }}
+          workspace: ${{ env.terraform_workspace }}
           version: ${{ needs.setup.outputs.terraform_version_environment }}
-
-
-  # Build binaries and attach to this release tag
-  #   - dont need all the api & front binaries, just the
-  #     ones we'd used within reporting jobs etc
-  build_binaries_and_release:
+  # release this version
+  release:
     name: "Create release"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs:
+      - terraform
       - setup
-      - tests
-      - terraform_development
     steps:
-      # checkout self
-      - name: "Checkout"
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      # code checkout deep for tagging release
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
           fetch-tags: true
-      - name: "Build command [db]"
-        uses: ./.github/actions/build-command
-        with:
-          name: db
-          source: ./report/cmd/db/
-          destination: ${{ env.BUILD_DIR_BINARIES }}
-      - name: "Build command [govuk]"
-        uses: ./.github/actions/build-command
-        with:
-          name: govuk
-          source: ./report/cmd/govuk/
-          destination: ${{ env.BUILD_DIR_BINARIES }}
-      - name: "Build command [importer]"
-        uses: ./.github/actions/build-command
-        with:
-          name: importer
-          source: ./report/cmd/importer/
-          destination: ${{ env.BUILD_DIR_BINARIES }}
       - name: "Create release [${{ needs.setup.outputs.semver_tag }}]"
         uses: ministryofjustice/opg-github-actions/actions/release@82323da6c533ab565c1652a590230ff2f0acc942 # v4.3.8
         with:
           tag: ${{ needs.setup.outputs.semver_tag }}
           prerelease: ${{ env.PRERELEASE }}
-          release_artifact: "${{ env.BUILD_DIR_BINARIES }}/*"
           github_token: ${{ github.token }}
 
   # final step
   end:
     name: 'End'
-    runs-on: 'ubuntu-latest'
+    runs-on: ubuntu-24.04
     needs:
-      - builder
-      - terraform_development
-      - build_binaries_and_release
+      - release
     steps:
-      - id: end
-        name: End
-        run: echo "End"
+      - run: echo "End"

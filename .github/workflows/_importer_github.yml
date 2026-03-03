@@ -1,0 +1,120 @@
+name: "Import runner for GitHub data"
+on:
+  workflow_call:
+    inputs:
+      # sub command
+      sub_cmd:
+        description: "name of the import sub-command to run"
+        type: string
+        required: true
+      # start date
+      date_start:
+        description: "Start of date range formatted as YYYY-MM-DD. Example: 2026-01-01"
+        type: string
+        default: ""
+      # end date
+      date_end:
+        description: "End of date range formatted as YYYY-MM-DD. Example: 2026-02-02"
+        type: string
+        default: ""
+      # upload modified db to production
+      upload_to_prod:
+        description: "decides if the modified databases should be uploaded to production bucket"
+        type: boolean
+        default: false
+
+# permissions
+permissions:
+  contents: write
+  id-token: write
+  actions: read
+  checks: none
+  deployments: none
+  issues: none
+  packages: none
+  pull-requests: none
+  repository-projects: none
+  statuses: none
+
+env:
+  BUILD_DIR: "./builds"
+  prod_bucket: "opg-reports-production"
+  prod_bucket_role: "arn:aws:iam::997462338508:role/opg-reports-github-actions-s3"
+  dev_bucket: "opg-reports-development"
+  dev_bucket_role: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
+
+jobs:
+  # setup variables we'll use in the steps
+  setup:
+    name: "Setup variables"
+    runs-on: ubuntu-24.04
+    steps:
+      # checkout
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+  # report runner job
+  runner:
+    name: "Run report"
+    runs-on: ubuntu-24.04
+    needs:
+      - setup
+    steps:
+      # checkout self
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      # setup go
+      - name: "Setup go"
+        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+        with:
+          cache: false
+          go-version-file: './go.mod'
+      # build project into build directory - use make
+      - name: "Make - build-cmds"
+        run: |
+          make build-prep
+          make build-cmds
+          ls -lhRt ${{ env.BUILD_DIR }}
+      # download production database
+      - name: "Download production database (${{ env.prod_bucket }})"
+        id: db_download
+        uses: ./.github/actions/database-download
+        with:
+          bucket: ${{ env.prod_bucket }}
+          role: ${{ env.prod_bucket_role }}
+          dir: ${{ env.BUILD_DIR }}
+      # migrate db to new setup
+      - name: "Migrate database"
+        env:
+          db: ${{ steps.db_download.outputs.DB }}
+        run: |
+          ${{ env.BUILD_DIR }}/migrate --db="${{ env.db }}"
+      # run the report
+      - name: "Run ${{ inputs.sub_cmd }}"
+        env:
+          cmd: ${{ env.BUILD_DIR }}/import ${{ inputs.sub_cmd }}
+          db: ${{ steps.db_download.outputs.DB }}
+          # setup env vars that the command will load and overwrite --arg values
+          GITHUB_TOKEN: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
+          DATE_END: "${{ inputs.date_end }}"
+          DATE_START_COSTS: "${{ inputs.date_start }}"
+          DATE_START: "${{ inputs.date_start }}"
+        run: |
+          ${{ env.cmd }} --db="${{ env.db }}"
+          ls -lhRt ${{ env.BUILD_DIR }}/
+      # upload database to dev
+      - name: "Upload development database (${{ env.dev_bucket }})"
+        uses: ./.github/actions/database-upload
+        with:
+          bucket: ${{ env.dev_bucket }}
+          role: ${{ env.dev_bucket_role }}
+          dir: ${{ env.BUILD_DIR }}
+      # upload database to PRODUCTION
+      - name: "Upload production database (${{ env.prod_bucket }})"
+        if: ${{ inputs.upload_to_prod }}
+        uses: ./.github/actions/database-upload
+        with:
+          bucket: ${{ env.prod_bucket }}
+          role: ${{ env.prod_bucket_role }}
+          dir: ${{ env.BUILD_DIR }}
+      # clean up build files
+      - name: "Clean up"
+        run: |
+          rm -Rf ${{ env.BUILD_DIR }}

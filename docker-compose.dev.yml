@@ -9,7 +9,7 @@ services:
       - ./report:/app/report:rw,delegated
       - ./go.mod:/app/go.mod:rw,delegated
       - ./go.sum:/app/go.sum:rw,delegated
-      - ./builds/api/:/builds/api/
+      - ./builds/:/builds/
 
   front:
     platform: linux/arm64
@@ -21,4 +21,4 @@ services:
       - ./report:/app/report:rw,delegated
       - ./go.mod:/app/go.mod:rw,delegated
       - ./go.sum:/app/go.sum:rw,delegated
-      - ./builds/front/:/builds/front/
+      - ./builds/:/builds/

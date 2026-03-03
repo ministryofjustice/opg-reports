@@ -69,19 +69,19 @@ locals {
     },
     environment = [
       {
-        name  = "SERVERS_API_ADDR",
+        name  = "API",
         value = ":8081"
       },
       {
-        name  = "DATABASE_PATH",
-        value = "./databases/api.db"
+        name  = "DB",
+        value = "./database/api.db"
       },
       {
-        name  = "VERSIONS_SEMVER",
+        name  = "VERSION",
         value = var.semver_tag
       },
       {
-        name  = "VERSIONS_COMMIT",
+        name  = "SHA",
         value = var.commit_sha
       }
     ],

@@ -1,0 +1,48 @@
+name: "[Reports] Costs"
+on:
+  # pull_request:
+  #   branches:
+  #     - main
+
+  # run at 1am every day
+  schedule:
+    - cron: '0 1 * * *'
+  # run when triggered manually
+  workflow_dispatch:
+    inputs:
+      date_start:
+        description: "Start of date range formatted as YYYY-MM-DD. Example: 2026-01-01"
+        type: string
+        default: ""
+      date_end:
+        description: "End of date range formatted as YYYY-MM-DD. Example: 2026-02-02"
+        type: string
+        default: ""
+# permissions
+permissions:
+  contents: write
+  id-token: write
+  actions: read
+  pull-requests: none
+
+jobs:
+  # use the importer workflow to run everything
+  run:
+    name: "Run costs command"
+    uses: ./.github/workflows/_importer_aws.yml
+    secrets: inherit
+    with:
+      sub_cmd: "costs"
+      file: "accounts.aws.json"
+      date_start: ${{ inputs.date_start }}
+      date_end: ${{ inputs.date_end }}
+      upload_to_prod: false
+  # an end step for cleaner workflow
+  end:
+    name: "End"
+    runs-on: ubuntu-24.04
+    needs:
+      - run
+    steps:
+      - run: |
+          echo "done"

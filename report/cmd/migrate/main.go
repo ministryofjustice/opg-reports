@@ -1,53 +1,56 @@
-/*
-migrate used to run the schema to migrate db
-
-# Example
-
-`env DATABASE_PATH="./data/api.db" migrate up`
-*/
 package main
 
 import (
 	"context"
-	"log/slog"
+	"opg-reports/report/internal/global/migrations"
+	"opg-reports/report/package/cntxt"
+	"opg-reports/report/package/logger"
 	"os"
 
-	"opg-reports/report/config"
-	"opg-reports/report/internal/utils"
-
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-// set up in the init
-var (
-	conf      *config.Config
-	viperConf *viper.Viper
-	ctx       context.Context
-	log       *slog.Logger
-)
-
-// root command
-var rootCmd = &cobra.Command{
-	Use:               "migrate",
-	Short:             "migrate",
-	Long:              `migrate the database`,
-	CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
+var flags = &migrations.Args{
+	Driver: "sqlite3",
+	DB:     "./database/api.db",
 }
 
-// init
+var runConversion bool = false
+
+var root *cobra.Command = &cobra.Command{
+	Use:   "migrate",
+	Short: `run migrations for the database`,
+	RunE:  runCMD,
+}
+
+func runCMD(cmd *cobra.Command, args []string) (err error) {
+	var ctx = cmd.Context()
+	err = migrations.Migrate(ctx, flags)
+	if err != nil {
+		return
+	}
+	if runConversion {
+		migrations.Convert(ctx, flags)
+	}
+	return
+}
+
 func init() {
-	conf, viperConf = config.New()
-	ctx = context.Background()
-	log = utils.Logger(conf.Log.Level, conf.Log.Type)
+	root.PersistentFlags().StringVar(&flags.Driver, "driver", flags.Driver, "Database driver")
+	root.PersistentFlags().StringVar(&flags.DB, "db", flags.DB, "Database path")
+	root.PersistentFlags().StringVar(&flags.Params, "params", flags.Params, "Database params")
+	root.PersistentFlags().BoolVar(&runConversion, "convert", runConversion, "Run DB conversion to upgrade from older structure")
+
 }
 
 func main() {
-	rootCmd.AddCommand(upCmd)
-	err := rootCmd.Execute()
-	// fail on errir
+	var err error
+	var log = logger.New(os.Getenv("LOG_LEVEL"), os.Getenv("LOG_TYPE"))
+	var ctx = cntxt.AddLogger(context.Background(), log)
+
+	err = root.ExecuteContext(ctx)
 	if err != nil {
+		log.Error("error running command", "err", err.Error())
 		os.Exit(1)
 	}
-
 }

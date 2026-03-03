@@ -65,4 +65,4 @@ runs:
         TF_WORKSPACE: ${{ inputs.workspace }}
         PLAN_FILE: ${{ inputs.workspace }}.plan
       run: |
-        terraform apply -lock-timeout=300s -input=false -auto-approve -parallelism=30
+        terraform apply -lock-timeout=300s -input=false -auto-approve -parallelism=30 ${{ env.PLAN_FILE }}

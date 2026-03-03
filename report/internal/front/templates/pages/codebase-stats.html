@@ -1,0 +1,22 @@
+{{- define "codebase-stats" -}}
+    {{- template "head" . -}}
+
+    {{- template "side-navigation" . -}}
+
+    <main id="main-content" class="app-content" role="main">
+        <section id="codebases">
+            <h1 class="govuk-heading-xl compact-header">Codebase stats</h1>
+            <p class="govuk-body">Active (non-archived) codebases and current, non-time based, stats for each.</p>
+            <p class="govuk-body">Trivy usage and SBOM generation detection are based on seaching github workflows for matching keywords within active steps and are therefore not perfect.</p>
+
+            <div class="app-content reports-font-m">
+                {{ template "codebase-stats-table" .CodebaseData }}
+            </div>
+            <p class="govuk-body govuk-body-s">Compliance levels are based on <a href="https://github-community.service.justice.gov.uk/repository-standards/business-units/OPG">MoJ repository standards</a></p>
+            <p class="govuk-body govuk-body-s">Trivy usage is based on finding either `trivy ` within a github workflow / action file or the usage of the trivy action (`aquasecurity/trivy-action`).</p>
+            <p class="govuk-body govuk-body-s">SBOM usage is determined via looking for `trivy sbom` pattern or the action with an `output` attribute set to use `${name}.sbom.json` format.</p>
+        </section>
+    </main>
+
+    {{- template "foot" . -}}
+{{- end -}}

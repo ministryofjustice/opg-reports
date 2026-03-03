@@ -1,0 +1,31 @@
+{{- define "codebase-owners" -}}
+    {{- template "head" . -}}
+    {{- template "side-navigation" . -}}
+
+    <main id="main-content" class="app-content" role="main">
+        <section id="costs-by-team">
+            <h1 class="govuk-heading-xl compact-header">Code ownership</h1>
+            <p class="govuk-body"></p>
+            <div class="app-content reports-font-m">
+                {{- if .CodebaseData -}}
+                <div class="reports-table">
+                    {{- range $i, $row := .CodebaseData.CodeOwners -}}
+                    <div class="codebase-codeowner">
+                        <h4 class="govuk-heading-s compact-header"><a href="{{ .Url }}" class="govuk-link">{{ .Name }}</a></h4>
+                        <div class="codeowner-list">
+                        {{- range $x, $owner := .Owners -}}
+                            <span class="govuk-tag govuk-tag--grey tag tag-o-{{.Owner}} tag-t-{{.TeamName}}">{{ .Owner }} ({{ .TeamName }})</span>
+                        {{- end -}}
+                        </div>
+                    </div>
+                    {{- end -}}
+                </div>
+                {{- end -}}
+            </div>
+
+        </section>
+
+    </main>
+
+    {{- template "foot" . -}}
+{{- end -}}
