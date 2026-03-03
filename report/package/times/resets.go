@@ -30,6 +30,11 @@ func ResetHour(t time.Time) (reset time.Time) {
 	return Reset(t, HOUR)
 }
 
+func EndOfDay(t time.Time) (reset time.Time) {
+	reset = time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 59, time.UTC)
+	return
+}
+
 // Reset changes the time to be the start of the interval type asked for to avoid
 // errors with date addition (rounding when adding days to month etc).
 //

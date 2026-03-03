@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"opg-reports/report/internal/codebases/codebasesimport/args"
 	"opg-reports/report/internal/codebases/codebasesimport/clients"
+	"opg-reports/report/internal/codebases/codebasesimport/metrics"
 	"opg-reports/report/internal/codebases/codebasesimport/owners"
 	"opg-reports/report/internal/codebases/codebasesimport/stats"
 	"opg-reports/report/package/cntxt"
@@ -16,8 +17,9 @@ import (
 var ErrFailedGettingRepositoryPage = errors.New("error getting page of repositories")
 
 type Clients struct {
-	Teams clients.TeamClient // *github.TeamsService
-	Repos clients.RepoClient // *github.RepositoriesService
+	Teams   clients.TeamClient   // *github.TeamsService
+	Repos   clients.RepoClient   // *github.RepositoriesService
+	Actions clients.ActionClient // *github.ActionsService
 }
 
 // Import finds all github repositories and returns them for the moj/opg team
@@ -26,6 +28,10 @@ func Import(ctx context.Context, client *Clients, in *args.Args) (err error) {
 	var list []*github.Repository
 
 	log.Info("starting ...")
+	if client.Teams == nil {
+		log.Error("teams client is empty")
+		return
+	}
 	// fetch all the repos
 	log.Debug("getting repository list ...")
 	list, err = getRepositoryList(ctx, client.Teams, in)
@@ -38,13 +44,18 @@ func Import(ctx context.Context, client *Clients, in *args.Args) (err error) {
 		return
 	}
 	// if enabled, run stats
-	if in.IncludeStats {
+	if in.IncludeStats && client.Repos != nil {
 		if err = stats.HandleCodebaseStats(ctx, client.Repos, list, in); err != nil {
 			return
 		}
 	}
+	if in.IncludeMetrics && client.Actions != nil {
+		if err = metrics.HandleCodebaseMetrics(ctx, client.Actions, list, in); err != nil {
+			return
+		}
+	}
 	// if enabled, run code owners
-	if in.IncludeCodeowners {
+	if in.IncludeCodeowners && client.Repos != nil {
 		if err = owners.HandleCodebaseOwners(ctx, client.Repos, list, in); err != nil {
 			return
 		}

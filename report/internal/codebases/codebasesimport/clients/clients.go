@@ -21,3 +21,8 @@ type RepoClient interface {
 	// get contenst method to fetch directory content
 	GetContents(ctx context.Context, owner, repo, path string, opts *github.RepositoryContentGetOptions) (fileContent *github.RepositoryContent, directoryContent []*github.RepositoryContent, resp *github.Response, err error)
 }
+
+// ActionClient wrapper for *github.ActionsService
+type ActionClient interface {
+	ListRepositoryWorkflowRuns(ctx context.Context, owner, repo string, opts *github.ListWorkflowRunsOptions) (*github.WorkflowRuns, *github.Response, error)
+}

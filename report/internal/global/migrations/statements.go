@@ -75,25 +75,6 @@ CREATE TABLE IF NOT EXISTS codebases (
 CREATE INDEX IF NOT EXISTS idx_codebases ON codebases(full_name);
 `
 
-const create_codebase_stats string = `
-CREATE TABLE IF NOT EXISTS codebase_stats (
-	id INTEGER PRIMARY KEY,
-	codebase TEXT NOT NULL,
-	visibility TEXT NOT NULL,
-
-	compliance_level TEXT,
-	compliance_report_url TEXT,
-	compliance_badge TEXT,
-	compliance_grade INTEGER,
-
-	trivy_usage INTEGER,
-	trivy_sbom_usage INTEGER,
-	trivy_locations TEXT,
-	UNIQUE (codebase)
-) STRICT;
-CREATE INDEX IF NOT EXISTS idx_codebases ON codebases(full_name);
-`
-
 const create_codeowner string = `
 CREATE TABLE IF NOT EXISTS codebase_owners (
 	id INTEGER PRIMARY KEY,
@@ -104,4 +85,39 @@ CREATE TABLE IF NOT EXISTS codebase_owners (
 	UNIQUE (owner,codebase,team_name)
 ) STRICT;
 CREATE INDEX IF NOT EXISTS idx_codeowners ON codebase_owners(codebase,team_name);
+`
+
+const create_codebase_stats string = `
+CREATE TABLE IF NOT EXISTS codebase_stats (
+	id INTEGER PRIMARY KEY,
+	codebase TEXT NOT NULL,
+	visibility TEXT NOT NULL,
+	compliance_level TEXT,
+	compliance_report_url TEXT,
+	compliance_badge TEXT,
+	compliance_grade INTEGER,
+	trivy_usage INTEGER,
+	trivy_sbom_usage INTEGER,
+	trivy_locations TEXT,
+	UNIQUE (codebase)
+) STRICT;
+CREATE INDEX IF NOT EXISTS idx_codebase_stats ON codebase_stats(codebase);
+`
+
+const create_codebase_metrics string = `
+CREATE TABLE IF NOT EXISTS codebase_metrics (
+	id INTEGER PRIMARY KEY,
+	codebase TEXT NOT NULL,
+	month TEXT NOT NULL,
+	releases INTEGER NOT NULL,
+	releases_securityish INTEGER NOT NULL,
+	pr_count INTEGER NOT NULL,
+	pr_count_securityish INTEGER NOT NULL,
+	pr_stale_count  INTEGER NOT NULL,
+	average_time_live TEXT NOT NULL,
+	average_time_pr TEXT NOT NULL,
+	UNIQUE (codebase,month)
+) STRICT;
+CREATE INDEX IF NOT EXISTS idx_codebase_metrics_month ON codebase_metrics(codebase,month);
+CREATE INDEX IF NOT EXISTS idx_codebase_metrics ON codebase_metrics(codebase);
 `

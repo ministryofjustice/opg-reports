@@ -22,21 +22,21 @@
     </div>
     {{- end -}}
 
+    {{- if .TotalCost -}}
+    <div class="govuk-panel tile tile--cost">
+        <div class="govuk-panel__body"><strong>{{ Currency .TotalCost "$" }}</strong><br>AWS costs</div>
+        <div class="govuk-panel__body govuk-panel__body_extra">
+            <p class="govuk-body-s"><a href="{{ $prefix }}/{{ $costsLink }}/" >View details</a></p>
+        </div>
+    </div>
+    {{- end -}}
+
     {{- if .CodebaseCount -}}
     <div class="govuk-panel tile tile--uptime">
         <div class="govuk-panel__body"><strong>{{ Percentage .CodebasePassed 2 }}</strong> <br>Standard or better</div>
         <div class="govuk-panel__body govuk-panel__body_extra">
             <p class="govuk-body-s">Based on reaching at least 'standard' level on <a href="https://github-community.service.justice.gov.uk/repository-standards/business-units/OPG">MoJ repository standards</a></p>
             <p class="govuk-body-s"><a href="{{ $prefix }}/codebase-stats/" >View details</a></p>
-        </div>
-    </div>
-    {{- end -}}
-
-    {{- if .TotalCost -}}
-    <div class="govuk-panel tile tile--cost">
-        <div class="govuk-panel__body"><strong>{{ Currency .TotalCost "$" }}</strong><br>AWS costs</div>
-        <div class="govuk-panel__body govuk-panel__body_extra">
-            <p class="govuk-body-s"><a href="{{ $prefix }}/{{ $costsLink }}/" >View details</a></p>
         </div>
     </div>
     {{- end -}}
