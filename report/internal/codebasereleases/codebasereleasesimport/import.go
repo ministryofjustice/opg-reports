@@ -22,14 +22,14 @@ INSERT INTO codebase_metrics (
 	month,
 	releases,
 	releases_securityish,
-	average_time_live
+	releases_average_time
 ) VALUES (
 	:codebase,
 	:month,
 	:releases,
 	:releases_securityish,
-	:average_time_live)
-ON CONFLICT (codebase,month) DO UPDATE SET
+	:releases_average_time
+) ON CONFLICT (codebase,month) DO UPDATE SET
 	releases=excluded.releases,
 	releases_securityish=excluded.releases_securityish
 RETURNING id
@@ -74,11 +74,11 @@ type Clients struct {
 // WorkflowRun data is used for average times, so a repo that does not use
 // github actions will have an empty value
 type CodebaseMetric struct {
-	Codebase            string `json:"codebase"`             // full name of codebase
-	Month               string `json:"month"`                // month as YYYY-MM string
-	Releases            int    `json:"releases"`             // count of releases for this month
-	ReleasesSecurityish int    `json:"releases_securityish"` // count of releases for this month that seem to be security related
-	AverageTimeLive     string `json:"average_time_live"`    // average time path to live workflow took (in milliseconds)
+	Codebase            string `json:"codebase"`              // full name of codebase
+	Month               string `json:"month"`                 // month as YYYY-MM string
+	Releases            int    `json:"releases"`              // count of releases for this month
+	ReleasesSecurityish int    `json:"releases_securityish"`  // count of releases for this month that seem to be security related
+	ReleasesAverageTime string `json:"releases_average_time"` // average time path to live workflow took (in milliseconds)
 
 	Dur int64 `json:"-"` // total duration of all runs, not tracked in the db
 }
@@ -184,9 +184,9 @@ func workflowRunReleases(ctx context.Context, client actionClient, in *Args, rep
 	for _, run := range runs {
 		var when = times.AsYMString(run.CreatedAt.Time)
 		if _, ok := updated[when]; !ok {
-			updated[when] = emptyMetric(*repo.Name, when)
+			updated[when] = emptyMetric(*repo.FullName, when)
 		}
-		log.Info("adding stats for workflow run ...", "when", when)
+		log.Debug("adding stats for workflow run ...", "when", when)
 		// get stats
 		updated[when].Releases += 1
 		updated[when].ReleasesSecurityish += isSecurityishRun(run)
@@ -196,7 +196,7 @@ func workflowRunReleases(ctx context.Context, client actionClient, in *Args, rep
 	// work out averages
 	for _, v := range updated {
 		var avg = v.Dur / int64(v.Releases)
-		v.AverageTimeLive = fmt.Sprintf("%d", avg)
+		v.ReleasesAverageTime = fmt.Sprintf("%d", avg)
 	}
 
 	// dump out workflow data
@@ -252,7 +252,7 @@ func emptyMetric(codebase string, month string) *CodebaseMetric {
 		Month:               month,
 		Releases:            0,
 		ReleasesSecurityish: 0,
-		AverageTimeLive:     "0.0",
+		ReleasesAverageTime: "0.0",
 		Dur:                 0,
 	}
 }

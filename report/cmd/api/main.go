@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"opg-reports/report/internal/account/accountapi/accountapi"
+	"opg-reports/report/internal/codebasereleases/codebasereleasesapi"
 	"opg-reports/report/internal/codebasestats/codebasestatsapi"
 	"opg-reports/report/internal/codeowners/codeownersapi"
 	"opg-reports/report/internal/cost/costapi/costapiaccount"
@@ -90,6 +91,8 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	codebasestatsapi.Register(ctx, mux, args)
 	// - ownership / optional team filter
 	codeownersapi.Register(ctx, mux, args)
+	// - release data group by month between dates - no grouping by team as thats misleading (repo attached to more than one team)
+	codebasereleasesapi.Register(ctx, mux, args)
 }
 
 // runAPI the main run command

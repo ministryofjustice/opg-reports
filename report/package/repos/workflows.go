@@ -47,7 +47,7 @@ func GetWorkflowRuns(ctx context.Context, client actionClient, repo *github.Repo
 		var wr = []*github.WorkflowRun{}
 		log.Debug("date range ... ", "range", date)
 		opts.Created = date
-		fmt.Printf("[%s] workflow runs for [%s]\n", *repo.Name, date)
+		// fmt.Printf("[%s] workflow runs for [%s]\n", *repo.Name, date)
 		// get just the releases for this time period
 		wr, err = paginatedWorkflowRuns(ctx, client, repo, in, opts)
 		if err != nil {

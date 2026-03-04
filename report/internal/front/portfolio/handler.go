@@ -79,6 +79,10 @@ func dataCallers(ctx context.Context, args *frontmodels.RegisterArgs, request *h
 			}
 			wg.Done()
 		},
+		// get release stats grouped by team
+		func(wg *sync.WaitGroup, page *PageContent) {
+
+		},
 		// get costs - trigger the same end date as others
 		func(wg *sync.WaitGroup, page *PageContent) {
 			resp, err := rest.FromApi[*costapiteam.Response](ctx, args.ApiHost, costapiteam.ENDPOINT_BASE, request, params...)
