@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"opg-reports/report/internal/codebases/codebasesfront/codebasestats"
+	"opg-reports/report/internal/codebasestats/codebasesstatsfront/codebasestatsbyteam"
 	"opg-reports/report/internal/codeowners/codeownersfront/codeownersbyteam"
 	"opg-reports/report/internal/cost/costfront/costsbyaccounts"
 	"opg-reports/report/internal/cost/costfront/costsbyteam"
@@ -92,7 +92,7 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	uptime.Register(ctx, mux, args)
 	// compliance
 	// - grouped by codebase
-	codebasestats.Register(ctx, mux, args)
+	codebasestatsbyteam.Register(ctx, mux, args)
 	// - codeownership
 	codeownersbyteam.Register(ctx, mux, args)
 

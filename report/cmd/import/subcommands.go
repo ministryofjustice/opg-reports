@@ -3,7 +3,6 @@ package main
 import (
 	"opg-reports/report/internal/account/accountimport"
 	"opg-reports/report/internal/codebases/codebasesimport"
-	"opg-reports/report/internal/codebases/codebasesimport/args"
 	"opg-reports/report/internal/codeowners/codeownersimport"
 	"opg-reports/report/internal/cost/costimport"
 	"opg-reports/report/internal/global/migrations"
@@ -206,18 +205,12 @@ func runCodebaseImport(cmd *cobra.Command, arglist []string) (err error) {
 		return
 	}
 
-	clients := &codebasesimport.Clients{
-		Teams: client.Teams,
-		Repos: client.Repositories,
-	}
-	err = codebasesimport.Import(ctx, clients, &args.Args{
-		DB:                flags.DB,
-		Driver:            flags.Driver,
-		Params:            flags.Params,
-		OrgSlug:           flags.OrgSlug,
-		ParentSlug:        flags.ParentSlug,
-		IncludeStats:      true,
-		IncludeCodeowners: false,
+	err = codebasesimport.Import(ctx, client.Teams, &codebasesimport.Args{
+		DB:         flags.DB,
+		Driver:     flags.Driver,
+		Params:     flags.Params,
+		OrgSlug:    flags.OrgSlug,
+		ParentSlug: flags.ParentSlug,
 	})
 	return
 }
