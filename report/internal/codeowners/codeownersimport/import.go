@@ -34,6 +34,7 @@ ON CONFLICT (owner,codebase,team_name) DO UPDATE SET
 RETURNING id
 ;
 `
+const truncateStmt string = `DELETE FROM codebase_owners;`
 
 // teamClient wrapper around *github.TeamsService
 type teamClient interface {
@@ -117,6 +118,16 @@ func handleCodebaseOwners(ctx context.Context, client repoClient, repositories [
 	log.Debug("converting to codeowner models ...")
 	data, err = generateCodebaseOwners(ctx, client, repositories, in)
 	if err != nil {
+		return
+	}
+	// trucate table first
+	err = dbx.Exec(ctx, truncateStmt, &dbx.ExecArgs{
+		DB:     in.DB,
+		Driver: in.Driver,
+		Params: in.Params,
+	})
+	if err != nil {
+		log.Error("error truncating table", "err", err.Error())
 		return
 	}
 	// now write to db

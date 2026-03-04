@@ -206,11 +206,12 @@ func runCodebaseImport(cmd *cobra.Command, arglist []string) (err error) {
 	}
 
 	err = codebasesimport.Import(ctx, client.Teams, &codebasesimport.Args{
-		DB:         flags.DB,
-		Driver:     flags.Driver,
-		Params:     flags.Params,
-		OrgSlug:    flags.OrgSlug,
-		ParentSlug: flags.ParentSlug,
+		DB:           flags.DB,
+		Driver:       flags.Driver,
+		Params:       flags.Params,
+		OrgSlug:      flags.OrgSlug,
+		ParentSlug:   flags.ParentSlug,
+		FilterByName: flags.Filter,
 	})
 	return
 }
@@ -244,11 +245,12 @@ func runCodeownersImport(cmd *cobra.Command, arglist []string) (err error) {
 	}
 
 	err = codeownersimport.Import(ctx, clients, &codeownersimport.Args{
-		DB:         flags.DB,
-		Driver:     flags.Driver,
-		Params:     flags.Params,
-		OrgSlug:    flags.OrgSlug,
-		ParentSlug: flags.ParentSlug,
+		DB:           flags.DB,
+		Driver:       flags.Driver,
+		Params:       flags.Params,
+		OrgSlug:      flags.OrgSlug,
+		ParentSlug:   flags.ParentSlug,
+		FilterByName: flags.Filter,
 	})
 	return
 }

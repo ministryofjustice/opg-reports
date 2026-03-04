@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"opg-reports/report/internal/codebasestats/codebasesstatsfront/codebasestatsbyteam"
-	"opg-reports/report/internal/codeowners/codeownersfront/codeownersbyteam"
+	"opg-reports/report/internal/codebasestats/codebasesstatsfront"
+	"opg-reports/report/internal/codeowners/codeownersfront"
 	"opg-reports/report/internal/cost/costfront/costsbyaccounts"
 	"opg-reports/report/internal/cost/costfront/costsbyteam"
 	"opg-reports/report/internal/cost/costfront/costsdetailed"
@@ -92,12 +92,13 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	uptime.Register(ctx, mux, args)
 	// compliance
 	// - grouped by codebase
-	codebasestatsbyteam.Register(ctx, mux, args)
+	codebasesstatsfront.Register(ctx, mux, args)
 	// - codeownership
-	codeownersbyteam.Register(ctx, mux, args)
+	codeownersfront.Register(ctx, mux, args)
 
 }
 
+// appendRoot adds root directory path into this values
 func appendRoot(in *cli) {
 	in.GovUKDir = filepath.Join(in.RootDir, in.GovUKDir)
 	in.LocalAssetsDir = filepath.Join(in.RootDir, in.LocalAssetsDir)

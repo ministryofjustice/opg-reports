@@ -1,4 +1,4 @@
-package codeownersbyteam
+package codeownersfront
 
 import (
 	"context"
@@ -21,7 +21,7 @@ func Register(ctx context.Context, mux *http.ServeMux, args *frontmodels.Registe
 	var log *slog.Logger = cntxt.GetLogger(ctx)
 
 	for _, ep := range endpoints {
-		log.Info(fmt.Sprintf("[%s] registering endpoint [%s] to handler", "codeownersbyteam", ep))
+		log.Info(fmt.Sprintf("[%s] registering endpoint [%s] to handler", "codeownersfront", ep))
 		ep = fmt.Sprintf("%s{$}", ep)
 
 		mux.HandleFunc(ep, func(writer http.ResponseWriter, request *http.Request) {

@@ -11,4 +11,5 @@ type ImportArgs struct {
 	SrcFile        string `json:"src-file"`         // File based import (--src-file)
 	OrgSlug        string `json:"org"`              // github org (--org)
 	ParentSlug     string `json:"parent"`           // github parent team (--parent)
+	Filter         string `json:"filter"`           // --filter
 }
