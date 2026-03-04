@@ -19,6 +19,11 @@ type actionClient interface {
 	GetWorkflowRunUsageByID(ctx context.Context, owner, repo string, runID int64) (*github.WorkflowRunUsage, *github.Response, error)
 }
 
+// PR Client is a wrapper for *github.PullRequestsService
+type prClient interface {
+	List(ctx context.Context, owner string, repo string, opts *github.PullRequestListOptions) ([]*github.PullRequest, *github.Response, error)
+}
+
 type Args struct {
 	OrgSlug      string    `json:"org_slug"`       // github org name
 	ParentSlug   string    `json:"parent_slug"`    // parent slug
@@ -28,3 +33,4 @@ type Args struct {
 }
 
 var ErrFailedGettingRepositoryPage = errors.New("error getting page of repositories")
+var ErrPROutOfDateRange = errors.New("pr outside of date range")

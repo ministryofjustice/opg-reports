@@ -116,7 +116,6 @@ CREATE TABLE IF NOT EXISTS codebase_metrics (
 	releases_average_time TEXT DEFAULT "0.0",
 	pr_count INTEGER DEFAULT 0,
 	pr_count_securityish INTEGER DEFAULT 0,
-	pr_count_stale  INTEGER DEFAULT 0,
 	pr_average_time TEXT DEFAULT "0.0",
 	UNIQUE (codebase,month)
 ) STRICT;

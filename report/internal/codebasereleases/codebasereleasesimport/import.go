@@ -19,14 +19,12 @@ INSERT INTO codebase_metrics (
 	codebase,
 	month,
 	releases,
-	releases_securityish,
-	releases_average_time
+	releases_securityish
 ) VALUES (
 	:codebase,
 	:month,
 	:releases,
-	:releases_securityish,
-	:releases_average_time
+	:releases_securityish
 ) ON CONFLICT (codebase,month) DO UPDATE SET
 	releases=excluded.releases,
 	releases_securityish=excluded.releases_securityish
@@ -72,13 +70,10 @@ type Clients struct {
 // WorkflowRun data is used for average times, so a repo that does not use
 // github actions will have an empty value
 type CodebaseMetric struct {
-	Codebase            string `json:"codebase"`              // full name of codebase
-	Month               string `json:"month"`                 // month as YYYY-MM string
-	Releases            int    `json:"releases"`              // count of releases for this month
-	ReleasesSecurityish int    `json:"releases_securityish"`  // count of releases for this month that seem to be security related
-	ReleasesAverageTime string `json:"releases_average_time"` // average time path to live workflow took (in milliseconds)
-
-	Dur int64 `json:"-"` // total duration of all runs, not tracked in the db
+	Codebase            string `json:"codebase"`             // full name of codebase
+	Month               string `json:"month"`                // month as YYYY-MM string
+	Releases            int    `json:"releases"`             // count of releases for this month
+	ReleasesSecurityish int    `json:"releases_securityish"` // count of releases for this month that seem to be security related
 }
 
 // Import finds all github repositories and returns them for the moj/opg team
@@ -120,6 +115,7 @@ func Import(ctx context.Context, clients *Clients, in *Args) (err error) {
 	return
 }
 
+// handler looks at both workflows & pull requests to get release data
 func handler(ctx context.Context, clients *Clients, in *Args, repoList []*github.Repository) (data []*CodebaseMetric, err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasereleasesimport", "func", "Import")
 	var byMonth = map[string]*CodebaseMetric{}
@@ -132,6 +128,11 @@ func handler(ctx context.Context, clients *Clients, in *Args, repoList []*github
 		var foundRuns = false
 
 		lg.Info("getting releases ... ")
+		// dont get any release info on archived code bases
+		if *repo.Archived {
+			log.Warn("repository is archived, skipping fetching compliance details.")
+			continue
+		}
 		lg.Info("looking for workflows ... ")
 		updated, foundRuns, err = workflowRunReleases(ctx, clients.Actions, in, repo, byMonth)
 		// return on error?
@@ -143,8 +144,11 @@ func handler(ctx context.Context, clients *Clients, in *Args, repoList []*github
 			byMonth = updated
 			continue
 		}
-		// here we would get pull request data if theres no run data
-
+		// get pull request data if theres no run data (runs will have triggered the break)
+		updated, err = mergedPullRequestReleases(ctx, clients.PR, in, repo, byMonth)
+		if err != nil {
+			return
+		}
 	}
 
 	// flattern byMonth to a slice for insert
@@ -154,6 +158,37 @@ func handler(ctx context.Context, clients *Clients, in *Args, repoList []*github
 	return
 }
 
+func mergedPullRequestReleases(ctx context.Context, client prClient, in *Args, repo *github.Repository, byMonth map[string]*CodebaseMetric) (updated map[string]*CodebaseMetric, err error) {
+	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasereleasesimport", "func", "mergedPullRequestReleases")
+	var prs []*github.PullRequest
+
+	updated = byMonth
+
+	prs, err = repos.GetMergedPRs(ctx, client, repo, &repos.Args{
+		OrgSlug:    in.OrgSlug,
+		ParentSlug: in.ParentSlug,
+		DateStart:  in.DateStart,
+		DateEnd:    in.DateEnd,
+	})
+	if err != nil {
+		log.Error("error getting merged prs", "err", err.Error())
+		return
+	}
+
+	for _, pr := range prs {
+		var when = times.AsYMString(pr.MergedAt.Time)
+		if _, ok := updated[when]; !ok {
+			updated[when] = emptyMetric(*repo.FullName, when)
+		}
+		updated[when].Releases += 1
+		updated[when].ReleasesSecurityish += isSecurityishPR(pr)
+	}
+
+	return
+
+}
+
+// workflowRunReleases fetches workflows that run against main with name of path to live only and counts that as a release
 func workflowRunReleases(ctx context.Context, client actionClient, in *Args, repo *github.Repository, byMonth map[string]*CodebaseMetric) (updated map[string]*CodebaseMetric, found bool, err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasereleasesimport", "func", "workflowRunReleases")
 	var runs []*github.WorkflowRun
@@ -169,7 +204,7 @@ func workflowRunReleases(ctx context.Context, client actionClient, in *Args, rep
 		FilterByName: "path to live",
 	}, true)
 
-	log.Info("found workflow runs?", "count", len(runs))
+	log.Info("found workflow runs ...", "count", len(runs))
 	if err != nil {
 		log.Error("error getting release workflow runs", "err", err.Error())
 		return
@@ -244,13 +279,48 @@ func isSecurityishRun(run *github.WorkflowRun) (securityish int) {
 	return
 }
 
+func isSecurityishPR(pr *github.PullRequest) (securityish int) {
+	var title string = ""
+	var body string = ""
+	var author string = ""
+	var authorType string = ""
+
+	securityish = 0
+
+	if pr.Title != nil {
+		title = strings.ToLower(*pr.Title)
+	}
+	if pr.Body != nil {
+		body = strings.ToLower(*pr.Body)
+	}
+	if pr.User != nil && pr.User.Login != nil {
+		author = strings.ToLower(*pr.User.Login)
+	}
+	if pr.User != nil && pr.User.Type != nil {
+		authorType = strings.ToLower(*pr.User.Type)
+	}
+
+	if strings.Contains(title, "vuln") || strings.Contains(title, "security") {
+		securityish = 1
+	}
+	if strings.Contains(body, "vuln") || strings.Contains(body, "security") {
+		securityish = 1
+	}
+	if strings.Contains(author, "dependabot") || strings.Contains(author, "renovate") {
+		securityish = 1
+	}
+	if strings.Contains(authorType, "bot") {
+		securityish = 1
+	}
+
+	return
+}
+
 func emptyMetric(codebase string, month string) *CodebaseMetric {
 	return &CodebaseMetric{
 		Codebase:            codebase,
 		Month:               month,
 		Releases:            0,
 		ReleasesSecurityish: 0,
-		ReleasesAverageTime: "0.0",
-		Dur:                 0,
 	}
 }

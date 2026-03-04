@@ -1,0 +1,35 @@
+name: "[Reports] Releases"
+on:
+  # pull_request:
+  #   branches:
+  #     - main
+
+  # run at 04:00 on Tuesday, Thursday, and Saturday.
+  schedule:
+    - cron: '0 4 * * 2,4,6'
+
+# permissions
+permissions:
+  contents: write
+  id-token: write
+  actions: read
+  pull-requests: none
+
+jobs:
+  # use the importer workflow to run everything
+  run:
+    name: "Run codebases stats command"
+    uses: ./.github/workflows/_importer_github.yml
+    secrets: inherit
+    with:
+      sub_cmd: "codebase-releases"
+      upload_to_prod: false
+  # an end step for cleaner workflow
+  end:
+    name: "End"
+    runs-on: ubuntu-24.04
+    needs:
+      - run
+    steps:
+      - run: |
+          echo "done"

@@ -26,7 +26,6 @@ SELECT
 	CAST(COALESCE(AVG(codebase_metrics.releases_average_time), 0) as REAL) as releases_average_time,
 	COALESCE(SUM(codebase_metrics.pr_count),0) as pr_count,
 	COALESCE(SUM(codebase_metrics.pr_count_securityish),0) as pr_count_securityish,
-	COALESCE(SUM(codebase_metrics.pr_count_stale),0) as pr_count_stale,
 	CAST(COALESCE(AVG(codebase_metrics.pr_average_time), 0) as REAL) as pr_average_time
 FROM codebase_metrics
 LEFT JOIN codebases on codebases.full_name = codebase_metrics.codebase
@@ -78,7 +77,6 @@ type Model struct {
 	ReleasesAverageTime float64 `json:"releases_average_time"` // average time path to live workflow took (in milliseconds)
 	PRCount             int     `json:"pr_count"`              // count of total pull requests in this period
 	PRCountSecurityish  int     `json:"pr_count_securityish"`  // count of pr's for this month that seem to be security related
-	PRCountStale        int     `json:"pr_count_stale"`        // count of "stale" pr's in period
 	PRAverageTime       float64 `json:"pr_average_time"`       // average time path to live workflow took (in milliseconds)
 }
 
@@ -91,7 +89,6 @@ func (self *Model) Sequence() []any {
 		&self.ReleasesAverageTime,
 		&self.PRCount,
 		&self.PRCountSecurityish,
-		&self.PRCountStale,
 		&self.PRAverageTime,
 	}
 }

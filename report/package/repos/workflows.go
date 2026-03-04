@@ -20,7 +20,7 @@ import (
 // operation.
 func GetWorkflowRuns(ctx context.Context, client actionClient, repo *github.Repository, in *Args, pathToLiveOnly bool) (workflowRuns []*github.WorkflowRun, err error) {
 	var (
-		log            *slog.Logger                    = cntxt.GetLogger(ctx).With("package", "reports", "func", "GetWorkflows")
+		log            *slog.Logger                    = cntxt.GetLogger(ctx).With("package", "reports", "func", "GetWorkflows", "repo", *repo.Name)
 		pathToLiveComp string                          = in.FilterByName
 		dateIntervals  []string                        = []string{}
 		opts           *github.ListWorkflowRunsOptions = &github.ListWorkflowRunsOptions{
@@ -28,7 +28,7 @@ func GetWorkflowRuns(ctx context.Context, client actionClient, repo *github.Repo
 			Event:               "pull_request",
 		}
 	)
-	fmt.Println("getting workflow runs ...")
+	log.Info("getting workflow runs ...")
 	// filter event to push for path to live
 	if pathToLiveOnly {
 		opts.Branch = *repo.DefaultBranch
@@ -41,7 +41,7 @@ func GetWorkflowRuns(ctx context.Context, client actionClient, repo *github.Repo
 	dateIntervals = intervalChunks(ctx, in)
 	workflowRuns = []*github.WorkflowRun{}
 
-	log.Info("fetching workflow runs ...", "repository", *repo.Name, "date_start", in.DateStart, "date_end", in.DateEnd)
+	log.Info("fetching workflow runs ...", "date_start", in.DateStart, "date_end", in.DateEnd)
 	// generate the created string for the data range, doing one call per
 	for _, date := range dateIntervals {
 		var wr = []*github.WorkflowRun{}
@@ -63,7 +63,7 @@ func GetWorkflowRuns(ctx context.Context, client actionClient, repo *github.Repo
 			}
 		}
 	}
-	log.Debug("complete.", "count", len(workflowRuns))
+	log.With("count", len(workflowRuns)).Info("complete.")
 	return
 }
 
@@ -73,7 +73,7 @@ func paginatedWorkflowRuns(ctx context.Context, client actionClient, repo *githu
 	var (
 		page    int                           = 1
 		allRuns map[int64]*github.WorkflowRun = map[int64]*github.WorkflowRun{}
-		log     *slog.Logger                  = cntxt.GetLogger(ctx).With("package", "repos", "func", "paginatedWorkflowRuns")
+		log     *slog.Logger                  = cntxt.GetLogger(ctx).With("package", "repos", "func", "paginatedWorkflowRuns", "repo", *repo.Name)
 	)
 	workflowRuns = []*github.WorkflowRun{}
 	// force the max per page
