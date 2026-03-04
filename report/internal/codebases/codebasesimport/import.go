@@ -92,7 +92,7 @@ func handleCodebases(ctx context.Context, repositories []*github.Repository, in 
 	if err != nil {
 		return
 	}
-	// trucate code bases table
+	// truncate code bases table
 	err = dbx.Exec(ctx, truncateStmt, &dbx.ExecArgs{
 		DB:     in.DB,
 		Driver: in.Driver,
@@ -116,7 +116,7 @@ func handleCodebases(ctx context.Context, repositories []*github.Repository, in 
 	return
 }
 
-// toCodebases converts the api results into local structs
+// generateCodebases converts the api results into local structs
 func generateCodebases(ctx context.Context, list []*github.Repository) (repos []*Codebase, err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "toCodebases")
 

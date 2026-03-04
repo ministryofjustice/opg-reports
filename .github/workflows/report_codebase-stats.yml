@@ -1,11 +1,12 @@
-name: "[Reports] Codebases & Codeowners"
+name: "[Reports] Codebase Stats"
 on:
   # pull_request:
   #   branches:
   #     - main
-  # run at 03:00 daily
+
+  # run at 03:30 on Monday, Wednesday, and Friday
   schedule:
-    - cron: '0 3 * * *'
+    - cron: '30 3 * * 1,3,5'
 
 # permissions
 permissions:
@@ -17,20 +18,11 @@ permissions:
 jobs:
   # use the importer workflow to run everything
   run_codebases:
-    name: "Run codebases command"
+    name: "Run codebases stats command"
     uses: ./.github/workflows/_importer_github.yml
     secrets: inherit
     with:
-      sub_cmd: "codebases"
-      upload_to_prod: false
-  run_codeowners:
-    name: "Run codeowners command"
-    needs:
-      - run_codebases
-    uses: ./.github/workflows/_importer_github.yml
-    secrets: inherit
-    with:
-      sub_cmd: "codeowners"
+      sub_cmd: "codebase-stats"
       upload_to_prod: false
   # an end step for cleaner workflow
   end:

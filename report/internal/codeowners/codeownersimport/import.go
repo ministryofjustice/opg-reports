@@ -120,7 +120,7 @@ func handleCodebaseOwners(ctx context.Context, client repoClient, repositories [
 	if err != nil {
 		return
 	}
-	// trucate table first
+	// truncate table first
 	err = dbx.Exec(ctx, truncateStmt, &dbx.ExecArgs{
 		DB:     in.DB,
 		Driver: in.Driver,

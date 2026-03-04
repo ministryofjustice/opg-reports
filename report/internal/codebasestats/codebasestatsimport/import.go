@@ -53,6 +53,7 @@ ON CONFLICT (codebase) DO UPDATE SET
 RETURNING id
 ;
 `
+const truncateStmt string = `DELETE FROM codebase_stats;`
 
 // leave some space incase of new grades
 var gradeMap = map[string]int{
@@ -147,6 +148,17 @@ func handleCodebaseStats(ctx context.Context, client repoClient, repositories []
 	if err != nil {
 		return
 	}
+	// truncate the table
+	err = dbx.Exec(ctx, truncateStmt, &dbx.ExecArgs{
+		DB:     in.DB,
+		Driver: in.Driver,
+		Params: in.Params,
+	})
+	if err != nil {
+		log.Error("error truncating table", "err", err.Error())
+		return
+	}
+
 	// now write to db
 	err = dbx.Insert(ctx, InsertStatsStatement, data, &dbx.InsertArgs{
 		DB:     in.DB,

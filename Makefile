@@ -39,6 +39,16 @@ import-codeowners: build-cmds
 		${IMPORT_CMD} codeowners \
 		--db="${API_DB}"
 
+#========= IMPORT CODEBASE STATS =========
+.PHONY: import-codebase-stats
+import-codebase-stats: CMD_LIST=import
+import-codebase-stats: build-cmds
+	@echo "- importing codebase stats "
+	@env GH_TOKEN="${GITHUBTOKEN}" \
+		LOG_LEVEL=${LOG_LEVEL} \
+		${IMPORT_CMD} codebase-stats \
+		--db="${API_DB}"
+
 #========= IMPORT UPTIME =========
 UPTIME_PROFILE ?= use-production-operator
 .PHONY: import-uptime
