@@ -3,7 +3,8 @@ package main
 import (
 	"opg-reports/report/internal/account/accountimport"
 	"opg-reports/report/internal/codebases/codebasesimport"
-	"opg-reports/report/internal/codebases/codebasesimport/args"
+	"opg-reports/report/internal/codebasestats/codebasestatsimport"
+	"opg-reports/report/internal/codeowners/codeownersimport"
 	"opg-reports/report/internal/cost/costimport"
 	"opg-reports/report/internal/global/migrations"
 	"opg-reports/report/internal/team/teamimport"
@@ -56,11 +57,18 @@ var codebasesCmd = &cobra.Command{
 	RunE:  runCodebaseImport,
 }
 
-// codebase import command
+// codeowner import command
 var codeownersCmd = &cobra.Command{
 	Use:   `codeowners`,
 	Short: `import codeowners`,
 	RunE:  runCodeownersImport,
+}
+
+// codebase stats import command
+var codebaseStatsCmd = &cobra.Command{
+	Use:   `codebase-stats`,
+	Short: `import codebase stats`,
+	RunE:  runCodebaseStatsImport,
 }
 
 // runTeamsImport runs the teams
@@ -205,18 +213,13 @@ func runCodebaseImport(cmd *cobra.Command, arglist []string) (err error) {
 		return
 	}
 
-	clients := &codebasesimport.Clients{
-		Teams: client.Teams,
-		Repos: client.Repositories,
-	}
-	err = codebasesimport.Import(ctx, clients, &args.Args{
-		DB:                flags.DB,
-		Driver:            flags.Driver,
-		Params:            flags.Params,
-		OrgSlug:           flags.OrgSlug,
-		ParentSlug:        flags.ParentSlug,
-		IncludeStats:      true,
-		IncludeCodeowners: false,
+	err = codebasesimport.Import(ctx, client.Teams, &codebasesimport.Args{
+		DB:           flags.DB,
+		Driver:       flags.Driver,
+		Params:       flags.Params,
+		OrgSlug:      flags.OrgSlug,
+		ParentSlug:   flags.ParentSlug,
+		FilterByName: flags.Filter,
 	})
 	return
 }
@@ -244,18 +247,57 @@ func runCodeownersImport(cmd *cobra.Command, arglist []string) (err error) {
 		return
 	}
 
-	clients := &codebasesimport.Clients{
+	clients := &codeownersimport.Clients{
 		Teams: client.Teams,
 		Repos: client.Repositories,
 	}
-	err = codebasesimport.Import(ctx, clients, &args.Args{
-		DB:                flags.DB,
-		Driver:            flags.Driver,
-		Params:            flags.Params,
-		OrgSlug:           flags.OrgSlug,
-		ParentSlug:        flags.ParentSlug,
-		IncludeStats:      false,
-		IncludeCodeowners: true,
+
+	err = codeownersimport.Import(ctx, clients, &codeownersimport.Args{
+		DB:           flags.DB,
+		Driver:       flags.Driver,
+		Params:       flags.Params,
+		OrgSlug:      flags.OrgSlug,
+		ParentSlug:   flags.ParentSlug,
+		FilterByName: flags.Filter,
+	})
+	return
+}
+
+// runCodebaseStatsImport runs code base import with stats data
+func runCodebaseStatsImport(cmd *cobra.Command, arglist []string) (err error) {
+	var client *github.Client
+	var tk = os.Getenv("GITHUB_TOKEN")
+	var ctx = cmd.Context()
+	// overwrite arg flags from env values
+	if e := env.OverwriteStruct(&flags); e != nil {
+		return
+	}
+	client, err = ghclients.New(ctx, tk)
+	if err != nil {
+		return
+	}
+	// run the migrations
+	err = migrations.Migrate(ctx, &migrations.Args{
+		DB:     flags.DB,
+		Driver: flags.Driver,
+		Params: flags.Params,
+	})
+	if err != nil {
+		return
+	}
+
+	clients := &codebasestatsimport.Clients{
+		Teams: client.Teams,
+		Repos: client.Repositories,
+	}
+
+	err = codebasestatsimport.Import(ctx, clients, &codebasestatsimport.Args{
+		DB:           flags.DB,
+		Driver:       flags.Driver,
+		Params:       flags.Params,
+		OrgSlug:      flags.OrgSlug,
+		ParentSlug:   flags.ParentSlug,
+		FilterByName: flags.Filter,
 	})
 	return
 }

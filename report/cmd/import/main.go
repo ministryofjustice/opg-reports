@@ -36,6 +36,7 @@ func main() {
 		uptimeCmd,
 		codebasesCmd,
 		codeownersCmd,
+		codebaseStatsCmd,
 	)
 
 	err = root.ExecuteContext(ctx)
@@ -63,6 +64,7 @@ func getFlags(end time.Time) *global.ImportArgs {
 		SrcFile:        "",
 		OrgSlug:        "ministryofjustice",
 		ParentSlug:     "opg",
+		Filter:         "",
 	}
 
 }
@@ -79,6 +81,7 @@ func init() {
 	root.PersistentFlags().StringVar(&flags.OrgSlug, "org", flags.OrgSlug, "GitHub organisation")
 	root.PersistentFlags().StringVar(&flags.ParentSlug, "parent", flags.ParentSlug, "GitHub parent team")
 
+	root.PersistentFlags().StringVar(&flags.Filter, "filter", flags.Filter, "Text filter")
 	// needs a winder range for cost stability
 	root.PersistentFlags().StringVar(&flags.DateStartCosts, "date-start-costs", flags.DateStartCosts, "Start date for cost data")
 }

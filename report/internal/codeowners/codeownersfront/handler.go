@@ -1,10 +1,10 @@
-package codebasestats
+package codeownersfront
 
 import (
 	"context"
 	"log/slog"
 	"net/http"
-	"opg-reports/report/internal/codebases/codebasesapi/codebasesapistats"
+	"opg-reports/report/internal/codeowners/codeownersapi"
 	"opg-reports/report/internal/global/frontmodels"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/package/cntxt"
@@ -31,7 +31,7 @@ func Handler(ctx context.Context, args *frontmodels.RegisterArgs, request *http.
 		templateName string
 		team         string         = request.PathValue("team")
 		wg           sync.WaitGroup = sync.WaitGroup{}
-		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "codebasestats", "func", "Handler", "url", request.URL.String())
+		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "codeownersfront", "func", "Handler", "url", request.URL.String())
 	)
 
 	log.Info("starting ...")
@@ -58,11 +58,11 @@ func Handler(ctx context.Context, args *frontmodels.RegisterArgs, request *http.
 func getPage(team string, in *frontmodels.RegisterArgs, request *http.Request) (page *PageContent, template string) {
 	var args *htmlpage.Args = &htmlpage.Args{
 		Name:         "OPG Reports",
-		Title:        "OPG Reports - Active Codebases",
+		Title:        "OPG Reports - Code Owners",
 		GovUKVersion: in.GovUKVersion,
 		SemVer:       in.SemVer,
 	}
-	template = "codebase-stats"
+	template = "codebase-owners"
 	if team != "" {
 		args.Title += " - " + cnv.Capitalize(team)
 	}
@@ -78,13 +78,13 @@ func getPage(team string, in *frontmodels.RegisterArgs, request *http.Request) (
 func dataCallers(ctx context.Context, args *frontmodels.RegisterArgs, request *http.Request) (funcs []dataCallerF) {
 	var (
 		team          = request.PathValue("team")
-		statsEndpoint = codebasesapistats.ENDPOINT_BASE
+		ownerEndpoint = codeownersapi.ENDPOINT_BASE
 		params        = []*rest.Param{}
 	)
 
 	// add team filter values and url
 	if team != "" {
-		statsEndpoint = codebasesapistats.ENDPOINT_TEAM
+		ownerEndpoint = codeownersapi.ENDPOINT_TEAM
 		params = append(params, &rest.Param{Type: rest.PATH, Key: "team", Value: team})
 	}
 	funcs = []dataCallerF{
@@ -98,11 +98,11 @@ func dataCallers(ctx context.Context, args *frontmodels.RegisterArgs, request *h
 		},
 		// get list of all codebases
 		func(wg *sync.WaitGroup, page *PageContent) {
-			resp, err := rest.FromApi[*codebasesapistats.Response](ctx, args.ApiHost, statsEndpoint, request, params...)
+			resp, err := rest.FromApi[*codeownersapi.Response](ctx, args.ApiHost, ownerEndpoint, request, params...)
 			if err == nil {
-				codebases := []*frontmodels.Codebase{}
-				cnv.Convert(resp.Data, &codebases)
-				page.CodebaseData.Codebases = codebases
+				codeowners := []*frontmodels.Codeowner{}
+				cnv.Convert(resp.Data, &codeowners)
+				page.CodebaseData.CodeOwners = codeowners
 			}
 			wg.Done()
 		},

@@ -1,4 +1,4 @@
-package codebasesimport
+package codebasestatsimport
 
 import (
 	"context"
@@ -13,12 +13,12 @@ import (
 	"github.com/google/go-github/v84/github"
 )
 
-func TestCodebasesImportWithoutMock(t *testing.T) {
+func TestCodebasesImportStatsWithoutMock(t *testing.T) {
 
 	var (
 		err    error
 		client *github.Client
-		ctx    context.Context = cntxt.AddLogger(t.Context(), logger.New("error"))
+		ctx    context.Context = cntxt.AddLogger(t.Context(), logger.New("debug"))
 		dir    string          = t.TempDir()
 		dbpath string          = filepath.Join(dir, "test-import.db")
 	)
@@ -36,11 +36,17 @@ func TestCodebasesImportWithoutMock(t *testing.T) {
 		Driver: "sqlite3",
 	})
 
-	err = Import(ctx, client.Teams, &Args{
-		DB:         dbpath,
-		Driver:     "sqlite3",
-		OrgSlug:    "ministryofjustice",
-		ParentSlug: "opg",
+	clients := &Clients{
+		Teams: client.Teams,
+		Repos: client.Repositories,
+	}
+	// just import a single repo for performance
+	err = Import(ctx, clients, &Args{
+		DB:           dbpath,
+		Driver:       "sqlite3",
+		OrgSlug:      "ministryofjustice",
+		ParentSlug:   "opg",
+		FilterByName: "opg-lpa",
 	})
 	if err != nil {
 		t.Errorf("unexpected error:\n%s", err.Error())

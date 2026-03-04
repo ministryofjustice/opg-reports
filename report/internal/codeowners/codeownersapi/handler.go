@@ -1,8 +1,10 @@
-package codebasesapistats
+package codeownersapi
 
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"opg-reports/report/internal/global/apimodels"
@@ -19,27 +21,25 @@ import (
 // selectStmt is the sql used to fetch data including
 const selectStmt string = `
 SELECT
-	codebases.name,
 	codebases.full_name,
+	codebases.name,
 	codebases.url,
-	codebase_stats.visibility,
-	codebase_stats.compliance_level,
-	codebase_stats.compliance_report_url,
-	codebase_stats.compliance_badge,
-	codebase_stats.compliance_grade,
-	codebase_stats.trivy_usage,
-	codebase_stats.trivy_sbom_usage,
-	codebase_stats.trivy_locations
+	json_group_array(
+		DISTINCT json_object(
+			'owner', codebase_owners.owner,
+			'team_name', codebase_owners.team_name
+		)
+	) filter ( where codebase_owners.owner is not null) as owners
 FROM codebases
-LEFT JOIN codebase_stats on codebase_stats.codebase = codebases.full_name
 LEFT JOIN codebase_owners ON codebase_owners.codebase = codebases.full_name
 WHERE
 	codebases.archived = 0
 GROUP BY
 	codebases.full_name
 ORDER BY
-	codebase_stats.compliance_grade DESC,
-	codebases.name ASC
+	codebase_owners.team_name = "none" DESC,
+	codebase_owners.team_name ASC,
+	codebases.full_name ASC
 ;
 `
 
@@ -65,37 +65,45 @@ type Filter struct {
 
 // Model is the data struct to use when fetching the select
 type Model struct {
-	Name     string `json:"name,omitempty"`       // short name of codebase (without owner)
-	FullName string `json:"full_name,omitempty" ` // full name including the owner
-	Url      string `json:"url,omitempty" `       // url to access the codebase
-
-	Visibility          string `json:"visibility,omityempty"`           // visibility status
-	ComplianceLevel     string `json:"compliance_level,omitempty"`      // compliance level (moj based)
-	ComplianceReportUrl string `json:"compliance_report_url,omitempty"` // compliance report url
-	ComplianceBadge     string `json:"compliance_badge,omitempty"`      // compliance badge url
-	ComplianceGrade     int    `json:"compliance_grade,omitempty"`
-
-	TrivyUsage     int    `json:"trivy_usage"`      // boolean flag to show if the codebase is using trivy in workflows
-	TrivySBOMUsage int    `json:"trivy_sbom_usage"` // boolean flag to show if trivy is being used to generate sboms
-	TrivyLocations string `json:"trivy_locations"`  // tracks files where trivy has been utilised
-
+	FullName string            `json:"full_name,omitempty" ` // full name including the owner
+	Name     string            `json:"name,omitempty"`       // short name of codebase (without owner)
+	Url      string            `json:"url,omitempty" `       // url to access the codebase
+	Owners   hasManyCodeowners `json:"owners"`               // list of codeowners
 }
 
 // Sequence is used to return the columns in the order they are selected
 func (self *Model) Sequence() []any {
+	self.Owners = hasManyCodeowners{}
 	return []any{
-		&self.Name,
 		&self.FullName,
+		&self.Name,
 		&self.Url,
-		&self.Visibility,
-		&self.ComplianceLevel,
-		&self.ComplianceReportUrl,
-		&self.ComplianceBadge,
-		&self.ComplianceGrade,
-		&self.TrivyUsage,
-		&self.TrivySBOMUsage,
-		&self.TrivyLocations,
+		&self.Owners,
 	}
+}
+
+// joined teams is the codebase -> codeowners data
+type joinedCodeowner struct {
+	Owner    string `json:"owner"`
+	TeamName string `json:"team_name"`
+}
+
+// hasManyCodeowners represents the join
+// Interfaces:
+//   - sql.Scanner
+type hasManyCodeowners []*joinedCodeowner
+
+// Scan handles the processing of the join data
+func (self *hasManyCodeowners) Scan(src interface{}) (err error) {
+	switch src.(type) {
+	case []byte:
+		err = json.Unmarshal(src.([]byte), self)
+	case string:
+		err = json.Unmarshal([]byte(src.(string)), self)
+	default:
+		err = fmt.Errorf("unsupported scan src type")
+	}
+	return
 }
 
 // Responder process the incoming request, queries the database and returns the result as json data.
@@ -107,7 +115,7 @@ func Responder(ctx context.Context, conf *apimodels.Args, request *http.Request,
 		in       *Request               = &Request{}
 		bindMap  map[string]interface{} = map[string]interface{}{}
 		all      []*Model               = []*Model{}
-		log      *slog.Logger           = cntxt.GetLogger(ctx).With("package", "codebaseapiall", "func", "Responder")
+		log      *slog.Logger           = cntxt.GetLogger(ctx).With("package", "codeownersapi", "func", "Responder")
 		stmt     string                 = selectStmt // localised constant
 	)
 	log.Info("running http handler ...")

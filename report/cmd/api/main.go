@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"net/http"
 	"opg-reports/report/internal/account/accountapi/accountapi"
-	"opg-reports/report/internal/codebases/codebasesapi/codebaseapiowners"
-	"opg-reports/report/internal/codebases/codebasesapi/codebasesapistats"
+	"opg-reports/report/internal/codebasestats/codebasestatsapi"
+	"opg-reports/report/internal/codeowners/codeownersapi"
 	"opg-reports/report/internal/cost/costapi/costapiaccount"
 	"opg-reports/report/internal/cost/costapi/costapidetailed"
 	"opg-reports/report/internal/cost/costapi/costapidiff"
@@ -87,9 +87,9 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	uptimeapiteam.Register(ctx, mux, args)
 	// codebases
 	// - stats / optional team filter
-	codebasesapistats.Register(ctx, mux, args)
+	codebasestatsapi.Register(ctx, mux, args)
 	// - ownership / optional team filter
-	codebaseapiowners.Register(ctx, mux, args)
+	codeownersapi.Register(ctx, mux, args)
 }
 
 // runAPI the main run command

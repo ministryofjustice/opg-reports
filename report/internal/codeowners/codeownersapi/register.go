@@ -1,4 +1,4 @@
-package codebasesapistats
+package codeownersapi
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 	"opg-reports/report/package/cntxt"
 )
 
-const ENDPOINT_BASE string = `/v1/codebase-stats/`
-const ENDPOINT_TEAM string = `/v1/codebase-stats/team/{team}/`
+const ENDPOINT_BASE string = `/v1/codeownership/`
+const ENDPOINT_TEAM string = `/v1/codeownership/team/{team}/`
 
 var endpoints []string = []string{
 	ENDPOINT_BASE,
@@ -22,7 +22,7 @@ func Register(ctx context.Context, mux *http.ServeMux, config *apimodels.Args) {
 	var log = cntxt.GetLogger(ctx)
 
 	for _, ep := range endpoints {
-		log.Info(fmt.Sprintf("[%s] registering endpoint [%s] to handler", "codebasesapistats", ep))
+		log.Info(fmt.Sprintf("[%s] registering endpoint [%s] to handler", "codeownersapi", ep))
 		ep = fmt.Sprintf("%s{$}", ep)
 
 		mux.HandleFunc(ep, func(writer http.ResponseWriter, request *http.Request) {

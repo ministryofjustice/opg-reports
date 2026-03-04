@@ -1,4 +1,4 @@
-package owners
+package codeownersimport
 
 import (
 	"context"
@@ -6,11 +6,10 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"opg-reports/report/internal/codebases/codebasesimport/args"
-	"opg-reports/report/internal/codebases/codebasesimport/clients"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/dbx"
 	"opg-reports/report/package/files"
+	"opg-reports/report/package/repos"
 	"slices"
 	"strings"
 
@@ -35,14 +34,42 @@ ON CONFLICT (owner,codebase,team_name) DO UPDATE SET
 RETURNING id
 ;
 `
+const truncateStmt string = `DELETE FROM codebase_owners;`
+
+// teamClient wrapper around *github.TeamsService
+type teamClient interface {
+	ListTeamReposBySlug(ctx context.Context, org, slug string, opts *github.ListOptions) ([]*github.Repository, *github.Response, error)
+}
+
+// repoClient wrapper around *github.RepositoriesService
+type repoClient interface {
+	// fetch attached teams (*github.RepositoriesService)
+	ListTeams(ctx context.Context, owner, repo string, opts *github.ListOptions) ([]*github.Team, *github.Response, error)
+	// fetch file content (*github.RepositoriesService)
+	DownloadContents(ctx context.Context, owner, repo, filepath string, opts *github.RepositoryContentGetOptions) (io.ReadCloser, *github.Response, error)
+	// get contenst method to fetch directory content
+	GetContents(ctx context.Context, owner, repo, path string, opts *github.RepositoryContentGetOptions) (fileContent *github.RepositoryContent, directoryContent []*github.RepositoryContent, resp *github.Response, err error)
+}
+
+type Clients struct {
+	Teams teamClient // *github.TeamsService
+	Repos repoClient // *github.RepositoriesService
+}
+
+type Args struct {
+	DB           string `json:"db"`             // database path
+	Driver       string `json:"driver"`         // database driver
+	Params       string `json:"params"`         // database connection params
+	OrgSlug      string `json:"org_slug"`       // github org name
+	ParentSlug   string `json:"parent_slug"`    // parent slug
+	FilterByName string `json:"filter_by_name"` // used to limit the repos to those that exactly match this name
+}
 
 type CodebaseOwner struct {
 	Owner    string `json:"owner,omitempty"`
 	Codebase string `json:"codebase,omitempty"` // full name of codebase
 	TeamName string `json:"team_name"`
 }
-
-var ErrFailedGettingRepositoryTeams = errors.New("failed to get team details for repository.")
 
 // mapping of codeowner / github teams to service teams (teams)
 var codeOwnerToTeamName map[string]string = map[string]string{
@@ -55,15 +82,52 @@ var codeOwnerToTeamName map[string]string = map[string]string{
 	"ministryofjustice/serve-opg":                "serve",
 	"ministryofjustice/sirius":                   "sirius",
 }
+var ErrFailedGettingRepositoryTeams = errors.New("failed to get team details for repository.")
 
-func HandleCodebaseOwners(ctx context.Context, client clients.RepoClient, repositories []*github.Repository, in *args.Args) (err error) {
+// Import finds all github repositories and returns them for the moj/opg team
+func Import(ctx context.Context, client *Clients, in *Args) (err error) {
+	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "Import")
+	var list []*github.Repository
+
+	log.Info("starting ...")
+	// fetch all the repos
+	log.Debug("getting repository list ...")
+	list, err = repos.GetList(ctx, client.Teams, &repos.Args{
+		OrgSlug:      in.OrgSlug,
+		ParentSlug:   in.ParentSlug,
+		FilterByName: in.FilterByName,
+	})
+	if err != nil {
+		return
+	}
+
+	if err = handleCodebaseOwners(ctx, client.Repos, list, in); err != nil {
+		return
+	}
+
+	log.Info("complete.")
+	return
+}
+
+// handleCodebaseOwners
+func handleCodebaseOwners(ctx context.Context, client repoClient, repositories []*github.Repository, in *Args) (err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "handleCodebaseOwners")
 	var data []*CodebaseOwner = []*CodebaseOwner{}
 	log.Info("starting codebase owner import ...")
 	// convert to local structs
 	log.Debug("converting to codeowner models ...")
-	data, err = toCodebaseOwners(ctx, client, repositories, in)
+	data, err = generateCodebaseOwners(ctx, client, repositories, in)
 	if err != nil {
+		return
+	}
+	// truncate table first
+	err = dbx.Exec(ctx, truncateStmt, &dbx.ExecArgs{
+		DB:     in.DB,
+		Driver: in.Driver,
+		Params: in.Params,
+	})
+	if err != nil {
+		log.Error("error truncating table", "err", err.Error())
 		return
 	}
 	// now write to db
@@ -80,8 +144,10 @@ func HandleCodebaseOwners(ctx context.Context, client clients.RepoClient, reposi
 	return
 }
 
-// toCodebaseOwners converts the api results into local structs
-func toCodebaseOwners(ctx context.Context, client clients.RepoClient, list []*github.Repository, in *args.Args) (data []*CodebaseOwner, err error) {
+// generateCodebaseOwners converts the repo data and then fetches extra data via api;
+// in this case we pull teams and content of CODEOWNER files to determine all of our
+// codeowner information
+func generateCodebaseOwners(ctx context.Context, client repoClient, list []*github.Repository, in *Args) (data []*CodebaseOwner, err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "toCodebaseOwners")
 
 	data = []*CodebaseOwner{}
@@ -123,7 +189,7 @@ func toCodebaseOwners(ctx context.Context, client clients.RepoClient, list []*gi
 
 // getTeams returns all attached teams for this code repository and deals with pagination
 // of github results
-func getTeams(ctx context.Context, client clients.RepoClient, code *github.Repository, in *args.Args) (teams []*github.Team, err error) {
+func getTeams(ctx context.Context, client repoClient, code *github.Repository, in *Args) (teams []*github.Team, err error) {
 	var (
 		log  *slog.Logger        = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "getTeams")
 		page int                 = 1
@@ -163,7 +229,7 @@ func getTeams(ctx context.Context, client clients.RepoClient, code *github.Repos
 
 // getCodeownersFromFiles tries to fetch CODEOWNER file content from set locations and
 // will process the content into just the team names, removing duplicates.
-func getCodeownersFromFiles(ctx context.Context, client clients.RepoClient, code *github.Repository, in *args.Args) (owners []string, err error) {
+func getCodeownersFromFiles(ctx context.Context, client repoClient, code *github.Repository, in *Args) (owners []string, err error) {
 	var (
 		log           *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "getCodeownersFromFiles")
 		fileLocations []string     = []string{
