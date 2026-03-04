@@ -21,7 +21,7 @@ import (
 // operation.
 func GetWorkflowRuns(ctx context.Context, client actionClient, repo *github.Repository, in *Args, pathToLiveOnly bool) (workflowRuns []*github.WorkflowRun, err error) {
 	var (
-		log            *slog.Logger                    = cntxt.GetLogger(ctx).With("package", "reports", "func", "GetWorkflows", "repo", *repo.Name)
+		log            *slog.Logger                    = cntxt.GetLogger(ctx).With("package", "repos", "func", "GetWorkflows", "repo", *repo.Name)
 		pathToLiveComp string                          = in.FilterByName
 		dateIntervals  []string                        = []string{}
 		opts           *github.ListWorkflowRunsOptions = &github.ListWorkflowRunsOptions{

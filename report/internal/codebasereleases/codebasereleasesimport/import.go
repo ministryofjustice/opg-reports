@@ -149,6 +149,7 @@ func handler(ctx context.Context, clients *Clients, in *Args, repoList []*github
 		if err != nil {
 			return
 		}
+
 	}
 
 	// flattern byMonth to a slice for insert
@@ -190,7 +191,7 @@ func mergedPullRequestReleases(ctx context.Context, client prClient, in *Args, r
 
 // workflowRunReleases fetches workflows that run against main with name of path to live only and counts that as a release
 func workflowRunReleases(ctx context.Context, client actionClient, in *Args, repo *github.Repository, byMonth map[string]*CodebaseMetric) (updated map[string]*CodebaseMetric, found bool, err error) {
-	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasereleasesimport", "func", "workflowRunReleases")
+	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasereleasesimport", "func", "workflowRunReleases", "repo", *repo.Name)
 	var runs []*github.WorkflowRun
 
 	found = false

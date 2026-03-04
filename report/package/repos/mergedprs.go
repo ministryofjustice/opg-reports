@@ -18,7 +18,7 @@ import (
 //
 // Date restrictions are done via custom filtering as the api has no date params
 func GetMergedPRs(ctx context.Context, client prClient, repo *github.Repository, in *Args) (prs []*github.PullRequest, err error) {
-	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "reports", "func", "GetMergedPRs", "repo", *repo.Name)
+	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "repos", "func", "GetMergedPRs", "repo", *repo.Name)
 
 	log.Info("getting merged pull requests ...")
 	prs, err = paginatedMergedPRs(ctx, client, repo, in, &github.PullRequestListOptions{
