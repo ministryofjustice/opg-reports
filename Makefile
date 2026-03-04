@@ -112,10 +112,9 @@ get-db: build-cmds
 		--sse AES256 \
     	s3://${GET_DB_BUCKET}/database/api.db \
     	${API_DB_DIR}/
-	@echo "- migrating & covnerting database "
+	@echo "- migrating database "
 	@env LOG_LEVEL=${LOG_LEVEL} ${MIGRATE_CMD} \
-		--db="${API_DB}" \
-		--convert
+		--db="${API_DB}"
 
 # .PHONY: upload-db
 # upload-db:

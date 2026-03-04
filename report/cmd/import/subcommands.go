@@ -52,15 +52,8 @@ var uptimeCmd = &cobra.Command{
 // codebase import command
 var codebasesCmd = &cobra.Command{
 	Use:   `codebases`,
-	Short: `import codebases`,
+	Short: `import codebases only, use --owners, --metrics or --stats`,
 	RunE:  runCodebaseImport,
-}
-
-// codebase import command
-var codeownersCmd = &cobra.Command{
-	Use:   `codeowners`,
-	Short: `import codeowners`,
-	RunE:  runCodeownersImport,
 }
 
 // runTeamsImport runs the teams
@@ -206,19 +199,26 @@ func runCodebaseImport(cmd *cobra.Command, arglist []string) (err error) {
 	}
 
 	clients := &codebasesimport.Clients{
-		Teams: client.Teams,
-		Repos: client.Repositories,
+		Teams:   client.Teams,
+		Repos:   client.Repositories,
+		Actions: client.Actions,
+		PR:      client.PullRequests,
 	}
 	err = codebasesimport.Import(ctx, clients, &args.Args{
-		DB:                flags.DB,
-		Driver:            flags.Driver,
-		Params:            flags.Params,
-		DateStart:         times.MustFromString(flags.DateStart),
-		DateEnd:           times.MustFromString(flags.DateEnd),
-		OrgSlug:           flags.OrgSlug,
-		ParentSlug:        flags.ParentSlug,
-		IncludeStats:      true,
-		IncludeCodeowners: false,
+		DB:        flags.DB,
+		Driver:    flags.Driver,
+		Params:    flags.Params,
+		DateStart: times.MustFromString(flags.DateStart),
+		DateEnd:   times.MustFromString(flags.DateEnd),
+
+		OrgSlug:    flags.OrgSlug,
+		ParentSlug: flags.ParentSlug,
+
+		FilterByName: flags.Filter,
+
+		IncludeStats:      flags.Stats,
+		IncludeCodeowners: flags.Owners,
+		IncludeMetrics:    flags.Metrics,
 	})
 	return
 }
@@ -247,8 +247,10 @@ func runCodeownersImport(cmd *cobra.Command, arglist []string) (err error) {
 	}
 
 	clients := &codebasesimport.Clients{
-		Teams: client.Teams,
-		Repos: client.Repositories,
+		Teams:   client.Teams,
+		Repos:   client.Repositories,
+		Actions: client.Actions,
+		PR:      client.PullRequests,
 	}
 	err = codebasesimport.Import(ctx, clients, &args.Args{
 		DB:                flags.DB,

@@ -57,7 +57,7 @@ var codeOwnerToTeamName map[string]string = map[string]string{
 }
 
 func HandleCodebaseOwners(ctx context.Context, client clients.RepoClient, repositories []*github.Repository, in *args.Args) (err error) {
-	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "handleCodebaseOwners")
+	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "owners", "func", "handleCodebaseOwners")
 	var data []*CodebaseOwner = []*CodebaseOwner{}
 	log.Info("starting codebase owner import ...")
 	// convert to local structs
@@ -82,7 +82,7 @@ func HandleCodebaseOwners(ctx context.Context, client clients.RepoClient, reposi
 
 // toCodebaseOwners converts the api results into local structs
 func toCodebaseOwners(ctx context.Context, client clients.RepoClient, list []*github.Repository, in *args.Args) (data []*CodebaseOwner, err error) {
-	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "toCodebaseOwners")
+	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "owners", "func", "toCodebaseOwners")
 
 	data = []*CodebaseOwner{}
 	log.Debug("starting ...")
@@ -125,7 +125,7 @@ func toCodebaseOwners(ctx context.Context, client clients.RepoClient, list []*gi
 // of github results
 func getTeams(ctx context.Context, client clients.RepoClient, code *github.Repository, in *args.Args) (teams []*github.Team, err error) {
 	var (
-		log  *slog.Logger        = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "getTeams")
+		log  *slog.Logger        = cntxt.GetLogger(ctx).With("package", "owners", "func", "getTeams")
 		page int                 = 1
 		opts *github.ListOptions = &github.ListOptions{PerPage: 200}
 	)
@@ -165,7 +165,7 @@ func getTeams(ctx context.Context, client clients.RepoClient, code *github.Repos
 // will process the content into just the team names, removing duplicates.
 func getCodeownersFromFiles(ctx context.Context, client clients.RepoClient, code *github.Repository, in *args.Args) (owners []string, err error) {
 	var (
-		log           *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "getCodeownersFromFiles")
+		log           *slog.Logger = cntxt.GetLogger(ctx).With("package", "owners", "func", "getCodeownersFromFiles")
 		fileLocations []string     = []string{
 			"./CODEOWNERS",
 			"./.github/CODEOWNERS",

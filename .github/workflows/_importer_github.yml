@@ -7,6 +7,10 @@ on:
         description: "name of the import sub-command to run"
         type: string
         required: true
+      args:
+        description: "optional arguments to pass to the command"
+        type: string
+        default: ""
       # start date
       date_start:
         description: "Start of date range formatted as YYYY-MM-DD. Example: 2026-01-01"
@@ -91,13 +95,14 @@ jobs:
         env:
           cmd: ${{ env.BUILD_DIR }}/import ${{ inputs.sub_cmd }}
           db: ${{ steps.db_download.outputs.DB }}
+          args: ${{ inputs.args }}
           # setup env vars that the command will load and overwrite --arg values
           GITHUB_TOKEN: ${{ secrets.GH_ORG_ACCESS_TOKEN }}
           DATE_END: "${{ inputs.date_end }}"
           DATE_START_COSTS: "${{ inputs.date_start }}"
           DATE_START: "${{ inputs.date_start }}"
         run: |
-          ${{ env.cmd }} --db="${{ env.db }}"
+          ${{ env.cmd }} --db="${{ env.db }}" ${{ env.args }}
           ls -lhRt ${{ env.BUILD_DIR }}/
       # upload database to dev
       - name: "Upload development database (${{ env.dev_bucket }})"

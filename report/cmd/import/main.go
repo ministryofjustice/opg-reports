@@ -33,7 +33,6 @@ func main() {
 		costsCmd,
 		uptimeCmd,
 		codebasesCmd,
-		codeownersCmd,
 	)
 
 	err = root.ExecuteContext(ctx)
@@ -61,6 +60,10 @@ func getFlags(end time.Time) *global.ImportArgs {
 		SrcFile:        "",
 		OrgSlug:        "ministryofjustice",
 		ParentSlug:     "opg",
+		Filter:         "",
+		Owners:         false,
+		Stats:          false,
+		Metrics:        false,
 	}
 
 }
@@ -79,6 +82,12 @@ func init() {
 	root.PersistentFlags().StringVar(&flags.OrgSlug, "org", flags.OrgSlug, "GitHub organisation")
 	root.PersistentFlags().StringVar(&flags.ParentSlug, "parent", flags.ParentSlug, "GitHub parent team")
 
-	// needs a winder range for cost stability
+	// needs a wider range for cost stability
 	root.PersistentFlags().StringVar(&flags.DateStartCosts, "date-start-costs", flags.DateStartCosts, "Start date for cost data")
+	//
+	root.PersistentFlags().BoolVar(&flags.Owners, "owners", flags.Owners, "fetch code owners.")
+	root.PersistentFlags().BoolVar(&flags.Stats, "stats", flags.Stats, "fetch code base stats.")
+	root.PersistentFlags().BoolVar(&flags.Metrics, "metrics", flags.Metrics, "fetch code base metrics (time based - heavy).")
+	// extra filter
+	root.PersistentFlags().StringVar(&flags.Filter, "filter", flags.Filter, "filter content - not used by everything yet.")
 }

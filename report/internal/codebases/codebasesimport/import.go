@@ -3,6 +3,7 @@ package codebasesimport
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"opg-reports/report/internal/codebases/codebasesimport/args"
 	"opg-reports/report/internal/codebases/codebasesimport/clients"
@@ -20,6 +21,7 @@ type Clients struct {
 	Teams   clients.TeamClient   // *github.TeamsService
 	Repos   clients.RepoClient   // *github.RepositoriesService
 	Actions clients.ActionClient // *github.ActionsService
+	PR      clients.PRClient     // *github.PullRequestService
 }
 
 // Import finds all github repositories and returns them for the moj/opg team
@@ -38,6 +40,7 @@ func Import(ctx context.Context, client *Clients, in *args.Args) (err error) {
 	if err != nil {
 		return
 	}
+	fmt.Println("found repos")
 	// always run the codebase import
 	err = handleCodebases(ctx, list, in)
 	if err != nil {
@@ -50,7 +53,7 @@ func Import(ctx context.Context, client *Clients, in *args.Args) (err error) {
 		}
 	}
 	if in.IncludeMetrics && client.Actions != nil {
-		if err = metrics.HandleCodebaseMetrics(ctx, client.Actions, list, in); err != nil {
+		if err = metrics.HandleCodebaseMetrics(ctx, &metrics.Clients{Actions: client.Actions, PR: client.PR}, list, in); err != nil {
 			return
 		}
 	}
@@ -84,6 +87,8 @@ func getRepositoryList(ctx context.Context, client clients.TeamClient, options *
 		log.With("page", page).Debug("getting page of repositories ...")
 		// fetch data from api
 		list, response, err = client.ListTeamReposBySlug(ctx, options.OrgSlug, options.ParentSlug, opts)
+		fmt.Println(response)
+
 		if err != nil {
 			err = errors.Join(ErrFailedGettingRepositoryPage, err)
 			return

@@ -25,4 +25,9 @@ type RepoClient interface {
 // ActionClient wrapper for *github.ActionsService
 type ActionClient interface {
 	ListRepositoryWorkflowRuns(ctx context.Context, owner, repo string, opts *github.ListWorkflowRunsOptions) (*github.WorkflowRuns, *github.Response, error)
+	GetWorkflowRunUsageByID(ctx context.Context, owner, repo string, runID int64) (*github.WorkflowRunUsage, *github.Response, error)
+}
+
+type PRClient interface {
+	List(ctx context.Context, owner string, repo string, opts *github.PullRequestListOptions) ([]*github.PullRequest, *github.Response, error)
 }

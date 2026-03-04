@@ -126,6 +126,7 @@ func TestCodebasesImportMetricsWithoutMock(t *testing.T) {
 		Teams:   client.Teams,
 		Repos:   client.Repositories,
 		Actions: client.Actions,
+		PR:      client.PullRequests,
 	}
 	// just import a single repo for performance
 	err = Import(ctx, clients, &args.Args{

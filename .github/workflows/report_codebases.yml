@@ -17,20 +17,31 @@ permissions:
 jobs:
   # use the importer workflow to run everything
   run_codebases:
-    name: "Run codebases command"
+    name: "Run codebases with stats import"
     uses: ./.github/workflows/_importer_github.yml
     secrets: inherit
     with:
       sub_cmd: "codebases"
+      args: "--stats"
+      upload_to_prod: false
+  # use the importer workflow to run everything
+  run_codebase_stats:
+    name: "Run codebase stats import"
+    uses: ./.github/workflows/_importer_github.yml
+    secrets: inherit
+    with:
+      sub_cmd: "codebases"
+
       upload_to_prod: false
   run_codeowners:
-    name: "Run codeowners command"
+    name: "Run codebase owners command"
     needs:
       - run_codebases
     uses: ./.github/workflows/_importer_github.yml
     secrets: inherit
     with:
-      sub_cmd: "codeowners"
+      sub_cmd: "codebases"
+      args: "--owners"
       upload_to_prod: false
   # an end step for cleaner workflow
   end:
