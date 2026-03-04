@@ -95,7 +95,7 @@ func processPRs(ctx context.Context, prs []*github.PullRequest, in *Args) (found
 		// we break the loop and stop calling the api
 		if pr.UpdatedAt.Time.Before(dateStart) {
 			err = ErrPROutOfDateRange
-			log.Info("found pr older than start date; breaking loop ...")
+			log.Debug("found pr older than start date; breaking loop ...")
 			return
 		}
 		// if this pr is not merged, then skip it

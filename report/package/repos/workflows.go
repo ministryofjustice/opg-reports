@@ -8,6 +8,7 @@ import (
 	"opg-reports/report/package/times"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/google/go-github/v84/github"
 )
@@ -50,6 +51,7 @@ func GetWorkflowRuns(ctx context.Context, client actionClient, repo *github.Repo
 		// fmt.Printf("[%s] workflow runs for [%s]\n", *repo.Name, date)
 		// get just the releases for this time period
 		wr, err = paginatedWorkflowRuns(ctx, client, repo, in, opts)
+
 		if err != nil {
 			log.Error("error getting workflow runs", "err", err.Error())
 			return
@@ -86,6 +88,14 @@ func paginatedWorkflowRuns(ctx context.Context, client actionClient, repo *githu
 
 		opts.Page = page
 		runs, response, err = client.ListRepositoryWorkflowRuns(ctx, *repo.Owner.Login, *repo.Name, opts)
+
+		// re-try as api seems flakey, so try once and then fail fully
+		if err != nil {
+			log.Warn("error getting workflow runs, retrying in 1 second.", "err", err.Error())
+			time.Sleep(time.Second * 1)
+			runs, response, err = client.ListRepositoryWorkflowRuns(ctx, *repo.Owner.Login, *repo.Name, opts)
+		}
+
 		if err != nil {
 			log.Error("error getting workflow runs", "err", err.Error())
 			return
