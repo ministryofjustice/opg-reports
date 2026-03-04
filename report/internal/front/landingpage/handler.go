@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
-	"opg-reports/report/internal/codebases/codebasesapi/codebaseapiowners"
+	"opg-reports/report/internal/codeowners/codeownersapi"
 	"opg-reports/report/internal/global/frontmodels"
 	"opg-reports/report/internal/headline/headlineapi/headlineapi"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
@@ -83,7 +83,7 @@ func dataCallers(ctx context.Context, args *frontmodels.RegisterArgs, request *h
 	var (
 		team          = request.PathValue("team")
 		headEndpoint  = headlineapi.ENDPOINT_BASE
-		ownerEndpoint = codebaseapiowners.ENDPOINT_TEAM
+		ownerEndpoint = codeownersapi.ENDPOINT_TEAM
 		dateEnd       = times.ResetMonth(times.Today())
 		dateStart     = times.Add(dateEnd, -5, times.MONTH)
 		params        = []*rest.Param{
@@ -95,7 +95,7 @@ func dataCallers(ctx context.Context, args *frontmodels.RegisterArgs, request *h
 	// add team filter values and url
 	if team != "" {
 		headEndpoint = headlineapi.ENDPOINT_TEAM
-		ownerEndpoint = codebaseapiowners.ENDPOINT_TEAM
+		ownerEndpoint = codeownersapi.ENDPOINT_TEAM
 		params = append(params, &rest.Param{Type: rest.PATH, Key: "team", Value: team})
 	}
 
@@ -114,7 +114,7 @@ func dataCallers(ctx context.Context, args *frontmodels.RegisterArgs, request *h
 			if team == "" {
 				params = append(params, &rest.Param{Type: rest.PATH, Key: "team", Value: "none"})
 			}
-			resp, err := rest.FromApi[*codebaseapiowners.Response](ctx, args.ApiHost, ownerEndpoint, request, params...)
+			resp, err := rest.FromApi[*codeownersapi.Response](ctx, args.ApiHost, ownerEndpoint, request, params...)
 			if err == nil {
 				codeowners := []*frontmodels.Codeowner{}
 				cnv.Convert(resp.Data, &codeowners)

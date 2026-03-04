@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"opg-reports/report/internal/codebases/codebasesfront/codebaseowners"
 	"opg-reports/report/internal/codebases/codebasesfront/codebasestats"
+	"opg-reports/report/internal/codeowners/codeownersfront/codeownersbyteam"
 	"opg-reports/report/internal/cost/costfront/costsbyaccounts"
 	"opg-reports/report/internal/cost/costfront/costsbyteam"
 	"opg-reports/report/internal/cost/costfront/costsdetailed"
@@ -94,7 +94,7 @@ func registerEndpoints(ctx context.Context, mux *http.ServeMux, in *cli) {
 	// - grouped by codebase
 	codebasestats.Register(ctx, mux, args)
 	// - codeownership
-	codebaseowners.Register(ctx, mux, args)
+	codeownersbyteam.Register(ctx, mux, args)
 
 }
 

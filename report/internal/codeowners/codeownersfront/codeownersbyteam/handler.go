@@ -1,10 +1,10 @@
-package codebaseowners
+package codeownersbyteam
 
 import (
 	"context"
 	"log/slog"
 	"net/http"
-	"opg-reports/report/internal/codebases/codebasesapi/codebaseapiowners"
+	"opg-reports/report/internal/codeowners/codeownersapi"
 	"opg-reports/report/internal/global/frontmodels"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/package/cntxt"
@@ -31,7 +31,7 @@ func Handler(ctx context.Context, args *frontmodels.RegisterArgs, request *http.
 		templateName string
 		team         string         = request.PathValue("team")
 		wg           sync.WaitGroup = sync.WaitGroup{}
-		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "codebaseowners", "func", "Handler", "url", request.URL.String())
+		log          *slog.Logger   = cntxt.GetLogger(ctx).With("package", "codeownersbyteam", "func", "Handler", "url", request.URL.String())
 	)
 
 	log.Info("starting ...")
@@ -78,13 +78,13 @@ func getPage(team string, in *frontmodels.RegisterArgs, request *http.Request) (
 func dataCallers(ctx context.Context, args *frontmodels.RegisterArgs, request *http.Request) (funcs []dataCallerF) {
 	var (
 		team          = request.PathValue("team")
-		ownerEndpoint = codebaseapiowners.ENDPOINT_BASE
+		ownerEndpoint = codeownersapi.ENDPOINT_BASE
 		params        = []*rest.Param{}
 	)
 
 	// add team filter values and url
 	if team != "" {
-		ownerEndpoint = codebaseapiowners.ENDPOINT_TEAM
+		ownerEndpoint = codeownersapi.ENDPOINT_TEAM
 		params = append(params, &rest.Param{Type: rest.PATH, Key: "team", Value: team})
 	}
 	funcs = []dataCallerF{
@@ -98,7 +98,7 @@ func dataCallers(ctx context.Context, args *frontmodels.RegisterArgs, request *h
 		},
 		// get list of all codebases
 		func(wg *sync.WaitGroup, page *PageContent) {
-			resp, err := rest.FromApi[*codebaseapiowners.Response](ctx, args.ApiHost, ownerEndpoint, request, params...)
+			resp, err := rest.FromApi[*codeownersapi.Response](ctx, args.ApiHost, ownerEndpoint, request, params...)
 			if err == nil {
 				codeowners := []*frontmodels.Codeowner{}
 				cnv.Convert(resp.Data, &codeowners)

@@ -1,4 +1,4 @@
-package codebaseapiowners
+package codeownersapi
 
 import (
 	"context"
@@ -115,7 +115,7 @@ func Responder(ctx context.Context, conf *apimodels.Args, request *http.Request,
 		in       *Request               = &Request{}
 		bindMap  map[string]interface{} = map[string]interface{}{}
 		all      []*Model               = []*Model{}
-		log      *slog.Logger           = cntxt.GetLogger(ctx).With("package", "codebaseapiowners", "func", "Responder")
+		log      *slog.Logger           = cntxt.GetLogger(ctx).With("package", "codeownersapi", "func", "Responder")
 		stmt     string                 = selectStmt // localised constant
 	)
 	log.Info("running http handler ...")
