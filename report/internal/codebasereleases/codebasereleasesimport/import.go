@@ -2,11 +2,9 @@ package codebasereleasesimport
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/dbx"
-	"opg-reports/report/package/dump"
 	"opg-reports/report/package/repos"
 	"opg-reports/report/package/times"
 	"strings"
@@ -190,34 +188,34 @@ func workflowRunReleases(ctx context.Context, client actionClient, in *Args, rep
 		// get stats
 		updated[when].Releases += 1
 		updated[when].ReleasesSecurityish += isSecurityishRun(run)
-		updated[when].Dur += runDuration(ctx, client, repo, run)
+		// updated[when].Dur += runDuration(ctx, client, repo, run)
 	}
 
-	// work out averages
-	for _, v := range updated {
-		var avg = v.Dur / int64(v.Releases)
-		v.ReleasesAverageTime = fmt.Sprintf("%d", avg)
-	}
+	// // work out averages
+	// for _, v := range updated {
+	// 	var avg = v.Dur / int64(v.Releases)
+	// 	v.ReleasesAverageTime = fmt.Sprintf("%d", avg)
+	// }
 
 	// dump out workflow data
-	dump.Now(updated)
+	// dump.Now(updated)
 
 	return
 }
 
-// runDuration returns the total run time of the job in milliseconds (as a time.Duration)
-func runDuration(ctx context.Context, client actionClient, repo *github.Repository, run *github.WorkflowRun) (duration int64) {
-	var err error
-	var usage *github.WorkflowRunUsage
-	usage, _, err = client.GetWorkflowRunUsageByID(ctx, *repo.Owner.Login, *repo.Name, *run.ID)
+// // runDuration returns the total run time of the job in milliseconds (as a time.Duration)
+// func runDuration(ctx context.Context, client actionClient, repo *github.Repository, run *github.WorkflowRun) (duration int64) {
+// 	var err error
+// 	var usage *github.WorkflowRunUsage
+// 	usage, _, err = client.GetWorkflowRunUsageByID(ctx, *repo.Owner.Login, *repo.Name, *run.ID)
 
-	if err != nil {
-		return
-	}
-	duration = *usage.RunDurationMS
-	// dur = time.Millisecond * time.Duration(ms)
-	return
-}
+// 	if err != nil {
+// 		return
+// 	}
+// 	duration = *usage.RunDurationMS
+// 	// dur = time.Millisecond * time.Duration(ms)
+// 	return
+// }
 
 // isSecurityishRun returns a 0 or 1 to say if its likely to be security related
 // workflow.
