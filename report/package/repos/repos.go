@@ -3,59 +3,28 @@ package repos
 import (
 	"context"
 	"errors"
-	"log/slog"
-	"opg-reports/report/package/cntxt"
+	"time"
 
 	"github.com/google/go-github/v84/github"
 )
 
-type Client interface {
+// teamClient wrapper around *github.TeamsService
+type teamClient interface {
 	ListTeamReposBySlug(ctx context.Context, org, slug string, opts *github.ListOptions) ([]*github.Repository, *github.Response, error)
 }
 
+// actionClient wrapper for *github.ActionsService
+type actionClient interface {
+	ListRepositoryWorkflowRuns(ctx context.Context, owner, repo string, opts *github.ListWorkflowRunsOptions) (*github.WorkflowRuns, *github.Response, error)
+	GetWorkflowRunUsageByID(ctx context.Context, owner, repo string, runID int64) (*github.WorkflowRunUsage, *github.Response, error)
+}
+
 type Args struct {
-	OrgSlug      string `json:"org_slug"`       // github org name
-	ParentSlug   string `json:"parent_slug"`    // parent slug
-	FilterByName string `json:"filter_by_name"` // used to limit the repos to those that exactly match this name
+	OrgSlug      string    `json:"org_slug"`       // github org name
+	ParentSlug   string    `json:"parent_slug"`    // parent slug
+	FilterByName string    `json:"filter_by_name"` // used to limit the repos to those that exactly match this name
+	DateStart    time.Time `json:"date_start"`     // start date
+	DateEnd      time.Time `json:"date_end"`       // end date
 }
 
 var ErrFailedGettingRepositoryPage = errors.New("error getting page of repositories")
-
-// GetList iterates over paginated data set from github api and merges all data
-// into one block
-func GetList(ctx context.Context, client Client, options *Args) (repositories []*github.Repository, err error) {
-	var (
-		page int                 = 1
-		opts *github.ListOptions = &github.ListOptions{PerPage: 200}
-		log  *slog.Logger        = cntxt.GetLogger(ctx).With("package", "codebasesimport", "func", "getRepositoryList")
-	)
-	log.Debug("starting ...")
-
-	for page > 0 {
-		var response *github.Response
-		var list []*github.Repository
-		// set the page to request
-		opts.Page = page
-		log.With("page", page).Debug("getting page of repositories ...")
-		// fetch data from api
-		list, response, err = client.ListTeamReposBySlug(ctx, options.OrgSlug, options.ParentSlug, opts)
-		if err != nil {
-			err = errors.Join(ErrFailedGettingRepositoryPage, err)
-			return
-		}
-		// only add non archived repos
-		log.With("page", page, "count", len(list)).Debug("found repositories ...")
-
-		for _, repo := range list {
-			log.With("repo", *repo.FullName).Debug("found repository ...")
-			if options.FilterByName == "" || (options.FilterByName == *repo.Name) {
-				repositories = append(repositories, repo)
-				log.With("repo", *repo.FullName).Debug("added repository ...")
-			}
-		}
-		page = response.NextPage
-	}
-
-	log.With("count", len(repositories)).Debug("complete.")
-	return
-}
