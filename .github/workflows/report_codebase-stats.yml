@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   # use the importer workflow to run everything
-  run_codebases:
+  run:
     name: "Run codebases stats command"
     uses: ./.github/workflows/_importer_github.yml
     secrets: inherit
@@ -29,8 +29,7 @@ jobs:
     name: "End"
     runs-on: ubuntu-24.04
     needs:
-      - run_codebases
-      - run_codeowners
+      - run
     steps:
       - run: |
           echo "done"
