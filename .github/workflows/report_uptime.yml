@@ -32,7 +32,7 @@ jobs:
     uses: ./.github/workflows/_importer_aws.yml
     secrets: inherit
     with:
-      sub_cmd: "costs"
+      sub_cmd: "uptime"
       file: "accounts.aws.uptime.json"
       date_start: ${{ inputs.date_start }}
       date_end: ${{ inputs.date_end }}
