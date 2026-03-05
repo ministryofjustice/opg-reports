@@ -82,7 +82,6 @@ func Import(ctx context.Context, client Client, in *Args) (err error) {
 		return
 	}
 
-	// fmt.Println(dump.Any(costs))
 	// now write to db
 	err = dbx.Insert(ctx, InsertStatement, costs, &dbx.InsertArgs{
 		DB:     in.DB,
@@ -94,7 +93,7 @@ func Import(ctx context.Context, client Client, in *Args) (err error) {
 		return
 	}
 
-	log.Info("complete.")
+	log.With("count", len(costs)).Info("complete.")
 	return
 }
 

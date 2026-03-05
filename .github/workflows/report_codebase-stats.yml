@@ -23,7 +23,7 @@ jobs:
     secrets: inherit
     with:
       sub_cmd: "codebase-stats"
-      upload_to_prod: false
+      upload_to_prod: true
   # an end step for cleaner workflow
   end:
     name: "End"

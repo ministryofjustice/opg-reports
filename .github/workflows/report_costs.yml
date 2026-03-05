@@ -36,7 +36,7 @@ jobs:
       file: "accounts.aws.json"
       date_start: ${{ inputs.date_start }}
       date_end: ${{ inputs.date_end }}
-      upload_to_prod: false
+      upload_to_prod: true
   # an end step for cleaner workflow
   end:
     name: "End"
