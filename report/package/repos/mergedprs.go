@@ -20,7 +20,7 @@ import (
 func GetMergedPRs(ctx context.Context, client prClient, repo *github.Repository, in *Args) (prs []*github.PullRequest, err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "repos", "func", "GetMergedPRs", "repo", *repo.Name)
 
-	log.Info("getting merged pull requests ...")
+	log.Debug("getting merged pull requests ...")
 	prs, err = paginatedMergedPRs(ctx, client, repo, in, &github.PullRequestListOptions{
 		State:     "closed",
 		Sort:      "updated",
@@ -28,7 +28,7 @@ func GetMergedPRs(ctx context.Context, client prClient, repo *github.Repository,
 		Base:      *repo.DefaultBranch,
 	})
 
-	log.With("count", len(prs)).Info("complete.")
+	log.With("count", len(prs)).Debug("complete.")
 	return
 }
 

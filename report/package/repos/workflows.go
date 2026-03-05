@@ -21,7 +21,7 @@ import (
 // operation.
 func GetWorkflowRuns(ctx context.Context, client actionClient, repo *github.Repository, in *Args, pathToLiveOnly bool) (workflowRuns []*github.WorkflowRun, err error) {
 	var (
-		log            *slog.Logger                    = cntxt.GetLogger(ctx).With("package", "repos", "func", "GetWorkflows", "repo", *repo.Name)
+		log            *slog.Logger                    = cntxt.GetLogger(ctx).With("package", "repos", "func", "GetWorkflowRuns", "repo", *repo.Name)
 		pathToLiveComp string                          = in.FilterByName
 		dateIntervals  []string                        = []string{}
 		opts           *github.ListWorkflowRunsOptions = &github.ListWorkflowRunsOptions{
@@ -29,7 +29,7 @@ func GetWorkflowRuns(ctx context.Context, client actionClient, repo *github.Repo
 			Event:               "pull_request",
 		}
 	)
-	log.Info("getting workflow runs ...")
+	log.Debug("getting workflow runs ...", "date_start", times.AsYMDString(in.DateStart), "date_end", times.AsYMDString(in.DateEnd))
 	// filter event to push for path to live
 	if pathToLiveOnly {
 		opts.Branch = *repo.DefaultBranch
@@ -42,13 +42,11 @@ func GetWorkflowRuns(ctx context.Context, client actionClient, repo *github.Repo
 	dateIntervals = intervalChunks(ctx, in)
 	workflowRuns = []*github.WorkflowRun{}
 
-	log.Info("fetching workflow runs ...", "date_start", in.DateStart, "date_end", in.DateEnd)
 	// generate the created string for the data range, doing one call per
 	for _, date := range dateIntervals {
 		var wr = []*github.WorkflowRun{}
 		log.Debug("date range ... ", "range", date)
 		opts.Created = date
-		// fmt.Printf("[%s] workflow runs for [%s]\n", *repo.Name, date)
 		// get just the releases for this time period
 		wr, err = paginatedWorkflowRuns(ctx, client, repo, in, opts)
 
@@ -65,7 +63,7 @@ func GetWorkflowRuns(ctx context.Context, client actionClient, repo *github.Repo
 			}
 		}
 	}
-	log.With("count", len(workflowRuns)).Info("complete.")
+	log.With("count", len(workflowRuns)).Debug("complete.")
 	return
 }
 
