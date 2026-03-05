@@ -6,7 +6,6 @@ package headlineapi
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"opg-reports/report/internal/global/apimodels"
@@ -75,7 +74,6 @@ SELECT
 	COALESCE(SUM(codebase_metrics.releases_securityish),0) as releases_securityish
 FROM codebase_metrics
 LEFT JOIN codebases on codebases.full_name = codebase_metrics.codebase
-LEFT JOIN codebase_owners on codebase_owners.codebase = codebase_metrics.codebase
 WHERE
 	codebases.archived = 0
 	AND codebase_metrics.month IN (:months)
@@ -285,9 +283,8 @@ func releasesSelectRun(ctx context.Context, conf *apimodels.Args, filter *Filter
 
 	if filter.Team != "" {
 		log.Info("optional team filter found ...", "team", filter.Team)
-		stmt = strings.ReplaceAll(stmt, "WHERE", "WHERE codebase_owners.team_name = :team AND")
+		stmt = strings.ReplaceAll(stmt, "WHERE", "WHERE (SELECT team_name from codebase_owners where codebase_owners.codebase = codebases.full_name AND team_name = :team) = :team AND")
 	}
-	fmt.Println(stmt)
 
 	var scan = []any{
 		&res.Releases,

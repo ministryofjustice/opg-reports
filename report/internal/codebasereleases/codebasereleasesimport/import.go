@@ -139,7 +139,7 @@ func handler(ctx context.Context, clients *Clients, in *Args, repoList []*github
 		}
 		// if found runs, then set the data and continue the loop
 		if len(found) > 0 {
-			lg.Info("found workflow runs ... ")
+			lg.Info("found workflow runs ... ", "count", len(found))
 		} else {
 			lg.Info("no workflow runs found, looking for pull requests ... ")
 			// get pull request data if theres no run data (runs will have triggered the break)
@@ -147,6 +147,7 @@ func handler(ctx context.Context, clients *Clients, in *Args, repoList []*github
 			if err != nil {
 				return
 			}
+			lg.Info("found pull requests ... ", "count", len(found))
 		}
 		// append the found data
 		data = append(data, found...)
