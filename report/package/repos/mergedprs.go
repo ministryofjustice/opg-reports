@@ -36,9 +36,10 @@ func GetMergedPRs(ctx context.Context, client prClient, repo *github.Repository,
 // avoiding duplicates by checking the  run id
 func paginatedMergedPRs(ctx context.Context, client prClient, repo *github.Repository, in *Args, opts *github.PullRequestListOptions) (result []*github.PullRequest, err error) {
 	var (
-		page int                           = 1
-		all  map[int64]*github.PullRequest = map[int64]*github.PullRequest{}
-		log  *slog.Logger                  = cntxt.GetLogger(ctx).With("package", "repos", "func", "paginatedMergedPRs")
+		maxRetry int                           = 3
+		page     int                           = 1
+		all      map[int64]*github.PullRequest = map[int64]*github.PullRequest{}
+		log      *slog.Logger                  = cntxt.GetLogger(ctx).With("package", "repos", "func", "paginatedMergedPRs")
 	)
 	result = []*github.PullRequest{}
 	// force the max per page
@@ -48,12 +49,21 @@ func paginatedMergedPRs(ctx context.Context, client prClient, repo *github.Repos
 		var prs []*github.PullRequest
 		var response *github.Response
 		var found map[int64]*github.PullRequest
+		var retry = 0
 		log.Debug("getting page of results ...", "page", page)
 
 		opts.Page = page
 		prs, response, err = client.List(ctx, *repo.Owner.Login, *repo.Name, opts)
+		// simple re-try loop as we get sporadic failures
+		for err != nil && retry < maxRetry {
+			retry += 1
+			log.Warn("error getting pull request data, retrying in 1 second ...", "err", err.Error())
+			time.Sleep(time.Second * 1)
+			prs, response, err = client.List(ctx, *repo.Owner.Login, *repo.Name, opts)
+		}
+
 		if err != nil {
-			log.Error("error getting workflow runs", "err", err.Error())
+			log.Error("error getting pull request data", "err", err.Error())
 			return
 		}
 		// process the prs

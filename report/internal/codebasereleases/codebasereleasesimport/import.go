@@ -126,8 +126,6 @@ func handler(ctx context.Context, clients *Clients, in *Args, repoList []*github
 		var lg = log.With("repo", *repo.Name)
 		var updated = map[string]*CodebaseMetric{}
 		var foundRuns = false
-
-		lg.Info("getting releases ... ")
 		// dont get any release info on archived code bases
 		if *repo.Archived {
 			log.Warn("repository is archived, skipping fetching compliance details.")
@@ -144,6 +142,7 @@ func handler(ctx context.Context, clients *Clients, in *Args, repoList []*github
 			byMonth = updated
 			continue
 		}
+		lg.Info("looking for pull requests ... ")
 		// get pull request data if theres no run data (runs will have triggered the break)
 		updated, err = mergedPullRequestReleases(ctx, clients.PR, in, repo, byMonth)
 		if err != nil {
@@ -159,6 +158,8 @@ func handler(ctx context.Context, clients *Clients, in *Args, repoList []*github
 	return
 }
 
+// mergedPullRequestReleases finds release data based on pull requests merged into the default branch
+// as a proxy measure for the path to live
 func mergedPullRequestReleases(ctx context.Context, client prClient, in *Args, repo *github.Repository, byMonth map[string]*CodebaseMetric) (updated map[string]*CodebaseMetric, err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasereleasesimport", "func", "mergedPullRequestReleases")
 	var prs []*github.PullRequest

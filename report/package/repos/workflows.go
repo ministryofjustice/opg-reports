@@ -73,9 +73,10 @@ func GetWorkflowRuns(ctx context.Context, client actionClient, repo *github.Repo
 // avoiding duplicates by checking the the workflow run id
 func paginatedWorkflowRuns(ctx context.Context, client actionClient, repo *github.Repository, in *Args, opts *github.ListWorkflowRunsOptions) (workflowRuns []*github.WorkflowRun, err error) {
 	var (
-		page    int                           = 1
-		allRuns map[int64]*github.WorkflowRun = map[int64]*github.WorkflowRun{}
-		log     *slog.Logger                  = cntxt.GetLogger(ctx).With("package", "repos", "func", "paginatedWorkflowRuns", "repo", *repo.Name)
+		maxRetry int                           = 3
+		page     int                           = 1
+		allRuns  map[int64]*github.WorkflowRun = map[int64]*github.WorkflowRun{}
+		log      *slog.Logger                  = cntxt.GetLogger(ctx).With("package", "repos", "func", "paginatedWorkflowRuns", "repo", *repo.Name)
 	)
 	workflowRuns = []*github.WorkflowRun{}
 	// force the max per page
@@ -84,12 +85,20 @@ func paginatedWorkflowRuns(ctx context.Context, client actionClient, repo *githu
 	for page > 0 {
 		var runs *github.WorkflowRuns
 		var response *github.Response
+		var retry = 0
 		log.Debug("getting page of results ...", "page", page)
 
 		opts.Page = page
 		runs, response, err = client.ListRepositoryWorkflowRuns(ctx, *repo.Owner.Login, *repo.Name, opts)
 
-		// re-try as api seems flakey, so try once and then fail fully
+		// simple re-try loop as we get sporadic failures
+		for err != nil && retry < maxRetry {
+			retry += 1
+			log.Warn("error getting pull request data, retrying in 1 second ...", "err", err.Error())
+			time.Sleep(time.Second * 1)
+			runs, response, err = client.ListRepositoryWorkflowRuns(ctx, *repo.Owner.Login, *repo.Name, opts)
+		}
+
 		if err != nil {
 			log.Warn("error getting workflow runs, retrying in 1 second.", "err", err.Error())
 			time.Sleep(time.Second * 1)
