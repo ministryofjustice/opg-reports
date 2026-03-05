@@ -13,7 +13,7 @@ inputs:
     default: "./builds"
   tag:
     description: "Semver tag to fetch"
-    default: "v0.1.29"
+    default: "v1.1.0"
 
 outputs:
   matrix:

@@ -254,17 +254,17 @@ func getHeathCheckMetricStatsOptions(list *cloudwatch.ListMetricsOutput, options
 //
 // Don't use any granularity under 60 seconds.
 func getPeriod(start time.Time) (period int32) {
-	var (
-		now       time.Time     = time.Now().UTC()
-		day       time.Duration = (time.Hour * 24)
-		days15    time.Duration = (15 * day)
-		hoursDiff float64       = now.Sub(start).Hours()
-	)
+	// var (
+	// 	now       time.Time     = time.Now().UTC()
+	// 	day       time.Duration = (time.Hour * 24)
+	// 	days15    time.Duration = (15 * day)
+	// 	hoursDiff float64       = now.Sub(start).Hours()
+	// )
 	period = 3600
 
-	if hoursDiff < days15.Hours() {
-		period = 60
-	}
+	// if hoursDiff < days15.Hours() {
+	// 	period = 60
+	// }
 	return
 
 }

@@ -48,6 +48,7 @@ import-codebase-stats: build-cmds
 		LOG_LEVEL=${LOG_LEVEL} \
 		${IMPORT_CMD} codebase-stats \
 		--db="${API_DB}"
+
 #========= IMPORT CODEBASE STATS =========
 .PHONY: import-codebase-releases
 import-codebase-releases: CMD_LIST=import
@@ -59,27 +60,22 @@ import-codebase-releases: build-cmds
 		--db="${API_DB}"
 
 #========= IMPORT UPTIME =========
-UPTIME_PROFILE ?= use-production-operator
 .PHONY: import-uptime
 import-uptime: CMD_LIST=import
-import-uptime: build-cmds
-	@echo "- importing uptime data "
-	@aws-vault exec ${UPTIME_PROFILE} -- \
-		env LOG_LEVEL=${LOG_LEVEL} \
-		${IMPORT_CMD} uptime \
-		--db="${API_DB}"
+import-uptime: build-cmds get-metadata
+	@for profile in $$(cat ${METADATA_EX_DIR}/accounts.aws.uptime.profiles.operator.txt); do \
+		echo " - importing uptime for [$${profile}]" ; \
+		aws-vault exec $${profile} -- env LOG_LEVEL=${LOG_LEVEL} ${IMPORT_CMD} uptime --db="${API_DB}"; \
+	done
 
 #========= IMPORT COSTS =========
-COSTS_PROFILE ?= use-production-operator
 .PHONY: import-costs
 import-costs: CMD_LIST=import
-import-costs: build-cmds
-	@echo "- importing cost data "
-	@aws-vault exec ${COSTS_PROFILE} -- \
-		env LOG_LEVEL=${LOG_LEVEL} \
-		${IMPORT_CMD} costs \
-		--db="${API_DB}"
-
+import-costs: build-cmds get-metadata
+	@for profile in $$(cat ${METADATA_EX_DIR}/accounts.aws.profiles.operator.txt); do \
+		echo " - importing costs for [$${profile}]" ; \
+		aws-vault exec $${profile} -- env LOG_LEVEL=${LOG_LEVEL} ${IMPORT_CMD} costs --db="${API_DB}"; \
+	done
 
 #========= RUN THE API =========
 # api command variables
@@ -151,7 +147,7 @@ get-db: build-cmds
 ##
 ## presumed gh client installed
 METADATA_REPO ?= ministryofjustice/opg-metadata
-METADATA_TAG ?= v0.1.29
+METADATA_TAG ?= v1.1.0
 METADATA_ZIP ?= metadata.zip
 METADATA_EX_DIR ?= ${BUILD_DIR}/metadata-extracted
 .PHONY: get-metadata
