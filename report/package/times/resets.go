@@ -51,6 +51,11 @@ func Reset(t time.Time, interval Interval) (reset time.Time) {
 	return
 }
 
+func EndOfDay(t time.Time) (reset time.Time) {
+	reset = time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 59, time.UTC)
+	return
+}
+
 // FirstDayOfMonth provides the time for the first minute of the first day of the month
 //
 // If `t` is `2022-12-10T09:00:00` then should return `2022-12-01T00:00:00`

@@ -37,6 +37,7 @@ func main() {
 		codebasesCmd,
 		codeownersCmd,
 		codebaseStatsCmd,
+		codebaseReleasesCmd,
 	)
 
 	err = root.ExecuteContext(ctx)

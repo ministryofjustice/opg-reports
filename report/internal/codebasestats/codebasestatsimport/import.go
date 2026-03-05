@@ -183,6 +183,7 @@ func generateCodebasesStats(ctx context.Context, client repoClient, list []*gith
 
 	for _, repo := range list {
 		log.Info("fetching data ... ", "repository", *repo.Name)
+
 		// create a baseline entry with non-empty values for
 		var stats = &CodebaseStats{
 			Codebase:            *repo.FullName,

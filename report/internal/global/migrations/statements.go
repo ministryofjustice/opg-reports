@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS codebase_stats (
 	trivy_locations TEXT,
 	UNIQUE (codebase)
 ) STRICT;
-CREATE INDEX IF NOT EXISTS idx_codebases ON codebases(full_name);
+CREATE INDEX IF NOT EXISTS idx_codebase_stats ON codebase_stats(codebase);
 `
 
 const create_codeowner string = `
@@ -104,4 +104,21 @@ CREATE TABLE IF NOT EXISTS codebase_owners (
 	UNIQUE (owner,codebase,team_name)
 ) STRICT;
 CREATE INDEX IF NOT EXISTS idx_codeowners ON codebase_owners(codebase,team_name);
+`
+
+const create_codebase_metrics string = `
+CREATE TABLE IF NOT EXISTS codebase_metrics (
+	id INTEGER PRIMARY KEY,
+	codebase TEXT NOT NULL,
+	month TEXT NOT NULL,
+	releases INTEGER NOT NULL,
+	releases_securityish INTEGER DEFAULT 0,
+	releases_average_time TEXT DEFAULT "0.0",
+	pr_count INTEGER DEFAULT 0,
+	pr_count_securityish INTEGER DEFAULT 0,
+	pr_average_time TEXT DEFAULT "0.0",
+	UNIQUE (codebase,month)
+) STRICT;
+CREATE INDEX IF NOT EXISTS idx_codebase_metrics_month ON codebase_metrics(codebase,month);
+CREATE INDEX IF NOT EXISTS idx_codebase_metrics ON codebase_metrics(codebase);
 `

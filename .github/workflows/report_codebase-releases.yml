@@ -1,12 +1,12 @@
-name: "[Reports] Codebase Stats"
+name: "[Reports] Releases"
 on:
   # pull_request:
   #   branches:
   #     - main
 
-  # run at 03:30 on Sunday, Tuesday, and Thursday.
+  # run at 04:00 on Monday, Wednesday, and Friday.
   schedule:
-    - cron: '30 3 * * 0,2,4'
+    - cron: '0 4 * * 1,3,5'
 
 # permissions
 permissions:
@@ -22,7 +22,7 @@ jobs:
     uses: ./.github/workflows/_importer_github.yml
     secrets: inherit
     with:
-      sub_cmd: "codebase-stats"
+      sub_cmd: "codebase-releases"
       upload_to_prod: false
   # an end step for cleaner workflow
   end:

@@ -2,6 +2,7 @@ package main
 
 import (
 	"opg-reports/report/internal/account/accountimport"
+	"opg-reports/report/internal/codebasereleases/codebasereleasesimport"
 	"opg-reports/report/internal/codebases/codebasesimport"
 	"opg-reports/report/internal/codebasestats/codebasestatsimport"
 	"opg-reports/report/internal/codeowners/codeownersimport"
@@ -69,6 +70,13 @@ var codebaseStatsCmd = &cobra.Command{
 	Use:   `codebase-stats`,
 	Short: `import codebase stats`,
 	RunE:  runCodebaseStatsImport,
+}
+
+// codebase releases import command
+var codebaseReleasesCmd = &cobra.Command{
+	Use:   `codebase-releases`,
+	Short: `import codebase releases`,
+	RunE:  runCodebaseReleasesImport,
 }
 
 // runTeamsImport runs the teams
@@ -297,6 +305,48 @@ func runCodebaseStatsImport(cmd *cobra.Command, arglist []string) (err error) {
 		Params:       flags.Params,
 		OrgSlug:      flags.OrgSlug,
 		ParentSlug:   flags.ParentSlug,
+		FilterByName: flags.Filter,
+	})
+	return
+}
+
+// runCodebaseReleasesImport
+func runCodebaseReleasesImport(cmd *cobra.Command, arglist []string) (err error) {
+	var client *github.Client
+	var tk = os.Getenv("GITHUB_TOKEN")
+	var ctx = cmd.Context()
+	// overwrite arg flags from env values
+	if e := env.OverwriteStruct(&flags); e != nil {
+		return
+	}
+	client, err = ghclients.New(ctx, tk)
+	if err != nil {
+		return
+	}
+	// run the migrations
+	err = migrations.Migrate(ctx, &migrations.Args{
+		DB:     flags.DB,
+		Driver: flags.Driver,
+		Params: flags.Params,
+	})
+	if err != nil {
+		return
+	}
+
+	clients := &codebasereleasesimport.Clients{
+		Teams:   client.Teams,
+		Actions: client.Actions,
+		PR:      client.PullRequests,
+	}
+
+	err = codebasereleasesimport.Import(ctx, clients, &codebasereleasesimport.Args{
+		DB:           flags.DB,
+		Driver:       flags.Driver,
+		Params:       flags.Params,
+		OrgSlug:      flags.OrgSlug,
+		ParentSlug:   flags.ParentSlug,
+		DateStart:    times.MustFromString(flags.DateStart),
+		DateEnd:      times.MustFromString(flags.DateEnd),
 		FilterByName: flags.Filter,
 	})
 	return

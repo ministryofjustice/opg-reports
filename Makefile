@@ -48,6 +48,15 @@ import-codebase-stats: build-cmds
 		LOG_LEVEL=${LOG_LEVEL} \
 		${IMPORT_CMD} codebase-stats \
 		--db="${API_DB}"
+#========= IMPORT CODEBASE STATS =========
+.PHONY: import-codebase-releases
+import-codebase-releases: CMD_LIST=import
+import-codebase-releases: build-cmds
+	@echo "- importing codebase releases "
+	@env GH_TOKEN="${GITHUBTOKEN}" \
+		LOG_LEVEL=${LOG_LEVEL} \
+		${IMPORT_CMD} codebase-releases \
+		--db="${API_DB}"
 
 #========= IMPORT UPTIME =========
 UPTIME_PROFILE ?= use-production-operator

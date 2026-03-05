@@ -27,3 +27,25 @@ func Days(start time.Time, end time.Time) (days []time.Time) {
 	}
 	return
 }
+
+// provides all days, but with n days intervals
+func DaysN(start time.Time, end time.Time, n int) (days []time.Time) {
+	var current time.Time
+	var last time.Time
+	days = []time.Time{}
+
+	start = ResetDay(start)
+	end = EndOfDay(end)
+
+	current = start
+	for current.Before(end) {
+		last = current
+		days = append(days, current)
+		current = Add(current, n, DAY)
+	}
+	if end.After(last) {
+		days = append(days, ResetDay(end))
+	}
+
+	return
+}
