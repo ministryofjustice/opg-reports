@@ -56,7 +56,7 @@ import-codebase-releases: build-cmds
 	@env GH_TOKEN="${GITHUBTOKEN}" \
 		LOG_LEVEL=${LOG_LEVEL} \
 		${IMPORT_CMD} codebase-releases \
-		--db="${API_DB}" --filter="opg-use-an-lpa"
+		--db="${API_DB}"
 
 #========= IMPORT UPTIME =========
 UPTIME_PROFILE ?= use-production-operator
