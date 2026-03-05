@@ -64,7 +64,7 @@ import-codebase-releases: build-cmds
 import-uptime: CMD_LIST=import
 import-uptime: build-cmds get-metadata
 	@for profile in $$(cat ${METADATA_EX_DIR}/accounts.aws.uptime.profiles.operator.txt); do \
-		echo " - importing costs for [$${profile}]" ; \
+		echo " - importing uptime for [$${profile}]" ; \
 		aws-vault exec $${profile} -- env LOG_LEVEL=${LOG_LEVEL} ${IMPORT_CMD} uptime --db="${API_DB}"; \
 	done
 
