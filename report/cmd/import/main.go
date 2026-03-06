@@ -12,8 +12,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var today = times.Today()
-
 // default values for the args
 var flags *global.ImportArgs
 
@@ -71,6 +69,8 @@ func getFlags(end time.Time) *global.ImportArgs {
 }
 
 func init() {
+	var today = times.Today()
+
 	flags = getFlags(today)
 	root.PersistentFlags().StringVar(&flags.Driver, "driver", flags.Driver, "Database driver")
 	root.PersistentFlags().StringVar(&flags.DB, "db", flags.DB, "Database path")

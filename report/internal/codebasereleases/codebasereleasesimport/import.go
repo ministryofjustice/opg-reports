@@ -20,15 +20,18 @@ INSERT INTO codebase_metrics (
 	codebase,
 	month,
 	releases,
-	releases_securityish
+	releases_securityish,
+	release_type
 ) VALUES (
 	:codebase,
 	:month,
 	:releases,
-	:releases_securityish
+	:releases_securityish,
+	:release_type
 ) ON CONFLICT (codebase,month) DO UPDATE SET
 	releases=excluded.releases,
-	releases_securityish=excluded.releases_securityish
+	releases_securityish=excluded.releases_securityish,
+	release_type=excluded.release_type
 RETURNING id
 ;
 `
@@ -75,6 +78,7 @@ type CodebaseMetric struct {
 	Month               string `json:"month"`                // month as YYYY-MM string
 	Releases            int    `json:"releases"`             // count of releases for this month
 	ReleasesSecurityish int    `json:"releases_securityish"` // count of releases for this month that seem to be security related
+	ReleaseType         string `json:"release_type"`         // pr or workflow
 }
 
 // Import finds all github repositories and returns them for the moj/opg team
@@ -83,7 +87,7 @@ func Import(ctx context.Context, clients *Clients, in *Args) (err error) {
 	var repoList []*github.Repository
 	var data = []*CodebaseMetric{}
 
-	log.Info("starting ...")
+	log.Info("starting ...", "date_start", times.AsYMDString(in.DateStart), "date_end", times.AsYMDString(in.DateEnd))
 	// fetch all the repos
 	log.Debug("getting repository list ...")
 	repoList, err = repos.GetList(ctx, clients.Teams, &repos.Args{
@@ -127,7 +131,7 @@ func handler(ctx context.Context, clients *Clients, in *Args, repoList []*github
 	for i, repo := range repoList {
 		var lg = log.With("repo", *repo.Name)
 		var found = []*CodebaseMetric{}
-		log.Info(fmt.Sprintf("[%d/%d - %s]", i, l, *repo.Name))
+		log.Info(fmt.Sprintf("[%d/%d - %s]", i+1, l, *repo.Name))
 		// dont get any release info on archived code bases
 		if *repo.Archived {
 			log.Warn("repository is archived, skipping fetching compliance details.")
@@ -184,6 +188,7 @@ func mergedPullRequestReleases(ctx context.Context, client prClient, in *Args, r
 		var when = times.AsYMString(pr.MergedAt.Time)
 		if _, ok := byMonth[when]; !ok {
 			byMonth[when] = emptyMetric(repo, when)
+			byMonth[when].ReleaseType = "pr"
 		}
 		byMonth[when].Releases += 1
 		byMonth[when].ReleasesSecurityish += isSecurityishPR(pr)
@@ -222,8 +227,10 @@ func workflowRunReleases(ctx context.Context, client actionClient, in *Args, rep
 	// group workflow data by month
 	for _, run := range runs {
 		var when = times.AsYMString(run.CreatedAt.Time)
+
 		if _, ok := byMonth[when]; !ok {
 			byMonth[when] = emptyMetric(repo, when)
+			byMonth[when].ReleaseType = "workflow"
 		}
 		log.Debug("adding stats for workflow run ...", "when", when)
 		// get stats

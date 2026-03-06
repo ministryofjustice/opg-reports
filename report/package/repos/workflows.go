@@ -19,16 +19,26 @@ import (
 // `pathToLiveOnly` detemines if we are fetching only workflows that ran the main branch called
 // path to live. If its false then pull requests are fetched as well - which is a heavier
 // operation.
+//
+// use a map based on workflow id to avoid duplicates in date ranges
+//
+// note: the workflow run api treats the end date as and up to and including, so we
+// change that to second before (previous day)
 func GetWorkflowRuns(ctx context.Context, client actionClient, repo *github.Repository, in *Args, pathToLiveOnly bool) (workflowRuns []*github.WorkflowRun, err error) {
 	var (
 		log            *slog.Logger                    = cntxt.GetLogger(ctx).With("package", "repos", "func", "GetWorkflowRuns", "repo", *repo.Name)
 		pathToLiveComp string                          = in.FilterByName
 		dateIntervals  []string                        = []string{}
+		byID           map[int64]*github.WorkflowRun   = map[int64]*github.WorkflowRun{}
 		opts           *github.ListWorkflowRunsOptions = &github.ListWorkflowRunsOptions{
 			ExcludePullRequests: pathToLiveOnly,
 			Event:               "pull_request",
 		}
 	)
+	// the workflow run api treats the end date as and up to and including, so we need to change that to the day
+	// before
+	in.DateEnd = times.Add(in.DateEnd, -1, times.SECOND)
+
 	log.Debug("getting workflow runs ...", "date_start", times.AsYMDString(in.DateStart), "date_end", times.AsYMDString(in.DateEnd))
 	// filter event to push for path to live
 	if pathToLiveOnly {
@@ -59,10 +69,15 @@ func GetWorkflowRuns(ctx context.Context, client actionClient, repo *github.Repo
 		for _, r := range wr {
 			name := strings.ToLower(*r.Name)
 			if !pathToLiveOnly || (pathToLiveOnly && strings.Contains(name, pathToLiveComp)) {
-				workflowRuns = append(workflowRuns, r)
+				byID[*r.ID] = r
 			}
 		}
 	}
+	//
+	for _, wr := range byID {
+		workflowRuns = append(workflowRuns, wr)
+	}
+
 	log.With("count", len(workflowRuns)).Debug("complete.")
 	return
 }
@@ -124,17 +139,18 @@ func paginatedWorkflowRuns(ctx context.Context, client actionClient, repo *githu
 // intervalChunks generates smaller chunk of date ranges as the api call is limited
 // to 1k results in one go, so need to make the window small enough to find them.
 //
-// use 3 days as chunk window, should cover the most frequently used repos
+// use 4 days as chunk window, should cover the most frequently used repos
 func intervalChunks(ctx context.Context, in *Args) (dates []string) {
 
-	var chunks = times.DaysN(in.DateStart, in.DateEnd, 3)
+	var chunks = times.DaysN(in.DateStart, in.DateEnd, 4)
 	var l = len(chunks)
 	var list = []string{}
 
 	for i, date := range chunks {
 		var end = date
 		if i+1 < l {
-			end = chunks[i+1]
+			// reduce the end date by 1 as the range is upto & including on the api
+			end = times.Add(chunks[i+1], -1, times.SECOND)
 		}
 		list = append(list, fmt.Sprintf("%s..%s", times.AsYMDString(date), times.AsYMDString(end)))
 	}

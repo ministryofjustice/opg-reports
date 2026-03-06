@@ -113,6 +113,7 @@ CREATE TABLE IF NOT EXISTS codebase_metrics (
 	month TEXT NOT NULL,
 	releases INTEGER NOT NULL,
 	releases_securityish INTEGER DEFAULT 0,
+	release_type TEXT,
 	UNIQUE (codebase,month)
 ) STRICT;
 CREATE INDEX IF NOT EXISTS idx_codebase_metrics_month ON codebase_metrics(codebase,month);

@@ -15,6 +15,7 @@ type teamClient interface {
 
 // actionClient wrapper for *github.ActionsService
 type actionClient interface {
+	// api docs - https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
 	ListRepositoryWorkflowRuns(ctx context.Context, owner, repo string, opts *github.ListWorkflowRunsOptions) (*github.WorkflowRuns, *github.Response, error)
 	GetWorkflowRunUsageByID(ctx context.Context, owner, repo string, runID int64) (*github.WorkflowRunUsage, *github.Response, error)
 }
