@@ -113,19 +113,15 @@ CREATE TABLE IF NOT EXISTS codebase_metrics (
 	month TEXT NOT NULL,
 	releases INTEGER NOT NULL,
 	releases_securityish INTEGER DEFAULT 0,
-	releases_average_time TEXT DEFAULT "0.0",
-	pr_count INTEGER DEFAULT 0,
-	pr_count_securityish INTEGER DEFAULT 0,
-	pr_average_time TEXT DEFAULT "0.0",
 	UNIQUE (codebase,month)
 ) STRICT;
 CREATE INDEX IF NOT EXISTS idx_codebase_metrics_month ON codebase_metrics(codebase,month);
 CREATE INDEX IF NOT EXISTS idx_codebase_metrics ON codebase_metrics(codebase);
 `
 
-const alter_codebase_metrics string = `
-ALTER TABLE codebase_metrics DROP COLUMN IF EXISTS releases_average_time;
-ALTER TABLE codebase_metrics DROP COLUMN IF EXISTS pr_count;
-ALTER TABLE codebase_metrics DROP COLUMN IF EXISTS pr_count_securityish;
-ALTER TABLE codebase_metrics DROP COLUMN IF EXISTS pr_average_time;
-`
+// const alter_codebase_metrics string = `
+// ALTER TABLE codebase_metrics DROP COLUMN IF EXISTS releases_average_time;
+// ALTER TABLE codebase_metrics DROP COLUMN IF EXISTS pr_count;
+// ALTER TABLE codebase_metrics DROP COLUMN IF EXISTS pr_count_securityish;
+// ALTER TABLE codebase_metrics DROP COLUMN IF EXISTS pr_average_time;
+// `
