@@ -4,11 +4,13 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"opg-reports/report/internal/codebasereleases/codebasereleasesapi"
 	"opg-reports/report/internal/cost/costapi/costapiteam"
 	"opg-reports/report/internal/global/frontmodels"
 	"opg-reports/report/internal/team/teamapi/teamapiall"
 	"opg-reports/report/internal/uptime/uptimeapi/uptimeapiteam"
 	"opg-reports/report/package/cntxt"
+	"opg-reports/report/package/cnv"
 	"opg-reports/report/package/htmlpage"
 	"opg-reports/report/package/respond"
 	"opg-reports/report/package/rest"
@@ -20,16 +22,17 @@ import (
 
 type PageContent struct {
 	htmlpage.HTMLPage
-	Team       string
-	CostData   *frontmodels.TableData
-	UptimeData *frontmodels.TableData
-	Dates      *frontmodels.DateRanges
+	Team        string
+	CostData    *frontmodels.TableData
+	UptimeData  *frontmodels.TableData
+	ReleaseData *frontmodels.ReleaseData
+	Dates       *frontmodels.DateRanges
 }
 
 type dataCallerF func(wg *sync.WaitGroup, page *PageContent)
 
 // Handler deals with the / root page of the reporting site
-func Handler(ctx context.Context, args *frontmodels.RegisterArgs, writer http.ResponseWriter, request *http.Request) {
+func Handler(ctx context.Context, args *frontmodels.RegisterArgs, request *http.Request, writer http.ResponseWriter) {
 	var (
 		pageName     string         = "OPG Reports"
 		templateName string         = "portfolio"
@@ -63,7 +66,7 @@ func dataCallers(ctx context.Context, args *frontmodels.RegisterArgs, request *h
 	var (
 		billingDay = 15
 		dateEnd    = times.Add(times.ResetMonth(times.Today()), -1, times.MONTH) // home page uses last complete month
-		dateStart  = times.Add(dateEnd, -4, times.MONTH)                         // show 3 months
+		dateStart  = times.Add(dateEnd, -5, times.MONTH)                         // show 6 months
 		params     = []*rest.Param{
 			{Type: rest.PATH, Key: "date_end", Value: times.AsYMString(dateEnd)},
 			{Type: rest.PATH, Key: "date_start", Value: times.AsYMString(dateStart)},
@@ -81,7 +84,19 @@ func dataCallers(ctx context.Context, args *frontmodels.RegisterArgs, request *h
 		},
 		// get release stats grouped by team
 		func(wg *sync.WaitGroup, page *PageContent) {
-
+			resp, err := rest.FromApi[*codebasereleasesapi.Response](ctx, args.ApiHost, codebasereleasesapi.ENDPOINT_BASE, request, params...)
+			if err == nil {
+				releases := []*frontmodels.Release{}
+				summary := &frontmodels.Release{}
+				// covnert to front end version
+				cnv.Convert(resp.Data, &releases)
+				cnv.Convert(resp.Summary, &summary)
+				page.ReleaseData = &frontmodels.ReleaseData{
+					Releases: releases,
+					Summary:  summary,
+				}
+			}
+			wg.Done()
 		},
 		// get costs - trigger the same end date as others
 		func(wg *sync.WaitGroup, page *PageContent) {

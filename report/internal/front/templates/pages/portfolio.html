@@ -8,9 +8,19 @@
     {{- if .UptimeData -}}
     <section id="uptime">
         <h1 class="govuk-heading-l compact-header">Service uptime</h1>
-        <p class="govuk-body">Our production uptime is tracked for each service via Route53 health checks and updated daily.</p>
+        <p class="govuk-body">Our production uptime is tracked for each service via Route53 health checks and updated regularly.</p>
         <div class="app-content reports-font-m">
             {{ template "uptime-table" .UptimeData }}
+        </div>
+    </section>
+    {{- end -}}
+
+    {{- if .ReleaseData -}}
+    <section id="releases">
+        <h1 class="govuk-heading-l compact-header">Releases</h1>
+        <p class="govuk-body">Our production release data for all of our service teams.</p>
+        <div class="app-content reports-font-m">
+            {{ template "releases-table" .ReleaseData }}
         </div>
     </section>
     {{- end -}}

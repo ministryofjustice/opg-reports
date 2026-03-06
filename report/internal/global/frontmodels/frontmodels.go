@@ -21,6 +21,9 @@ type HeadlineData struct {
 	// codebases
 	CodebaseCount  int     `json:"codebase_count"`  // total number of codebases
 	CodebasePassed float64 `json:"codebase_passed"` // % that have a passing status
+	// Releases
+	Releases            int `json:"releases"`             // count releases
+	ReleasesSecurityish int `json:"releases_securityish"` // count of releases if they likely sec
 }
 
 // TableHeaders
@@ -73,6 +76,7 @@ type Codebase struct {
 
 }
 
+// Codeowner
 type Codeowner struct {
 	FullName string   `json:"full_name,omitempty" ` // full name including the owner
 	Name     string   `json:"name,omitempty"`       // short name of codebase (without owner)
@@ -91,4 +95,16 @@ type CodebaseData struct {
 	Team       string
 	Codebases  []*Codebase
 	CodeOwners []*Codeowner
+}
+
+type ReleaseData struct {
+	Team     string
+	Releases []*Release
+	Summary  *Release
+}
+type Release struct {
+	Month               string  `json:"month"`                 // month as YYYY-MM string
+	Releases            int     `json:"releases"`              // count of releases for this month
+	ReleasesSecurityish int     `json:"releases_securityish"`  // count of releases for this month that seem to be security related
+	ReleasesAverageTime float64 `json:"releases_average_time"` // average time path to live workflow took (in milliseconds)
 }

@@ -49,6 +49,7 @@ func Handler(ctx context.Context, args *frontmodels.RegisterArgs, request *http.
 		go blockF(&wg, page)
 	}
 	wg.Wait()
+
 	page.HeadlineData.Team = team
 	page.CodebaseData.Team = team
 	// respond
@@ -74,6 +75,7 @@ func getPage(team string, in *frontmodels.RegisterArgs, request *http.Request) (
 		HTMLPage:     htmlpage.New(request, args),
 		Team:         team,
 		CodebaseData: &frontmodels.CodebaseData{},
+		HeadlineData: &frontmodels.HeadlineData{},
 	}
 	return
 }
@@ -135,6 +137,8 @@ func dataCallers(ctx context.Context, args *frontmodels.RegisterArgs, request *h
 					OverallUptime:       resp.Data.OverallUptime,
 					CodebaseCount:       resp.Data.CodebaseCount,
 					CodebasePassed:      resp.Data.CodebasePassed,
+					Releases:            resp.Data.Releases,
+					ReleasesSecurityish: resp.Data.ReleasesSecurityish,
 				}
 				// also set date values
 				page.Dates = &frontmodels.DateRanges{

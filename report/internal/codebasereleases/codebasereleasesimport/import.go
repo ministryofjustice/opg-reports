@@ -120,13 +120,14 @@ func Import(ctx context.Context, clients *Clients, in *Args) (err error) {
 func handler(ctx context.Context, clients *Clients, in *Args, repoList []*github.Repository) (data []*CodebaseMetric, err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasereleasesimport", "func", "Import")
 	var byMonth = map[string][]*CodebaseMetric{}
+	var l = len(repoList)
 
 	data = []*CodebaseMetric{}
 	// now loop over each repo to then call helper methods
-	for _, repo := range repoList {
+	for i, repo := range repoList {
 		var lg = log.With("repo", *repo.Name)
 		var found = []*CodebaseMetric{}
-		log.Info(fmt.Sprintf("[%s]", *repo.Name))
+		log.Info(fmt.Sprintf("[%d/%d - %s]", i, l, *repo.Name))
 		// dont get any release info on archived code bases
 		if *repo.Archived {
 			log.Warn("repository is archived, skipping fetching compliance details.")

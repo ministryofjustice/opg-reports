@@ -36,6 +36,22 @@ func Title(s string) string {
 	return s
 }
 
+// Number adds , seperators etc
+func Number(s interface{}) (c string) {
+	var pntr = message.NewPrinter(language.English) // will add 1000s seperator
+	switch s.(any).(type) {
+	case string:
+		if p, e := strconv.ParseFloat(s.(string), 64); e == nil {
+			c = pntr.Sprintf("%.2f", p)
+		}
+	case float64:
+		c = pntr.Sprintf("%g", s.(float64))
+	case int:
+		c = pntr.Sprintf("%d", s.(int))
+	}
+	return
+}
+
 // Currency displays s as a float with 2 decimals and appends the currency symbol to the start
 // Used to display financial values cleanly
 func Currency(s interface{}, symbol string) (c string) {
@@ -49,7 +65,6 @@ func Currency(s interface{}, symbol string) (c string) {
 	case float64:
 		c = pntr.Sprintf("%s%.2f", symbol, s.(float64))
 	}
-
 	return
 }
 
@@ -133,6 +148,7 @@ func TemplateFunctions() (funcs template.FuncMap) {
 		// string -> numbers
 		"Currency":   Currency,
 		"Percentage": Percentage,
+		"Number":     Number,
 		// accessing maps
 		"ValueFromMap": ValueFromMap,
 		//
