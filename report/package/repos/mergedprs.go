@@ -2,7 +2,6 @@ package repos
 
 import (
 	"context"
-	"errors"
 	"log/slog"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/times"
@@ -11,19 +10,14 @@ import (
 	"github.com/google/go-github/v84/github"
 )
 
-// GetMergedPRs fetches prs for the reporsitory between the dates stipulated via
-// `DateStart` & `DateEnd` that target the default branch, are closed and merged.
-//
-// # Used as a back up for workflows as some codebases run in jenkins etc.
-//
-// Date restrictions are done via custom filtering as the api has no date params
+// GetMergedPRs fetches all pull requests for a repository.
 func GetMergedPRs(ctx context.Context, client prClient, repo *github.Repository, in *Args) (prs []*github.PullRequest, err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "repos", "func", "GetMergedPRs", "repo", *repo.Name)
 
 	log.Debug("getting merged pull requests ...")
 	prs, err = paginatedMergedPRs(ctx, client, repo, in, &github.PullRequestListOptions{
 		State:     "closed",
-		Sort:      "updated",
+		Sort:      "created",
 		Direction: "desc",
 		Base:      *repo.DefaultBranch,
 	})
@@ -46,13 +40,15 @@ func paginatedMergedPRs(ctx context.Context, client prClient, repo *github.Repos
 	opts.PerPage = 100
 	log.Debug("starting ....")
 	for page > 0 {
-		var prs []*github.PullRequest
-		var response *github.Response
-		var found map[int64]*github.PullRequest
-		var retry = 0
-		log.Debug("getting page of results ...", "page", page)
+		var (
+			prs      []*github.PullRequest
+			response *github.Response
+			found    map[int64]*github.PullRequest
+			retry    = 0
+		)
 
 		opts.Page = page
+		log.Debug("getting page of results ...", "page", page)
 		prs, response, err = client.List(ctx, *repo.Owner.Login, *repo.Name, opts)
 		// simple re-try loop as we get sporadic failures
 		for err != nil && retry < maxRetry {
@@ -66,17 +62,10 @@ func paginatedMergedPRs(ctx context.Context, client prClient, repo *github.Repos
 			log.Error("error getting pull request data", "err", err.Error())
 			return
 		}
-		// process the prs
-		found, err = processPRs(ctx, prs, in)
-		// if the prs are outside of date range, its not a real error, just break the fetch loop
-		// otherwise return any other errors
-		if err != nil && errors.Is(err, ErrPROutOfDateRange) {
-			page = 0
-			err = nil
-		} else if err != nil {
+		// process all the prs and get next page
+		found, page, err = processPRs(ctx, prs, in, response)
+		if err != nil {
 			return
-		} else {
-			page = response.NextPage
 		}
 		// merge into main set
 		for k, v := range found {
@@ -92,31 +81,39 @@ func paginatedMergedPRs(ctx context.Context, client prClient, repo *github.Repos
 	return
 }
 
-func processPRs(ctx context.Context, prs []*github.PullRequest, in *Args) (found map[int64]*github.PullRequest, err error) {
-	var dateStart time.Time = times.Add(in.DateStart, -1, times.SECOND)
-	var dateEnd time.Time = times.Add(in.DateEnd, 1, times.SECOND)
-	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "repos", "func", "processPRs")
+// processPRs
+// works out next page
+func processPRs(ctx context.Context, prs []*github.PullRequest, in *Args, response *github.Response) (found map[int64]*github.PullRequest, nextPage int, err error) {
+	var (
+		dateStart time.Time    = times.Add(in.DateStart, -1, times.SECOND)
+		dateEnd   time.Time    = times.Add(in.DateEnd, 1, times.SECOND)
+		log       *slog.Logger = cntxt.GetLogger(ctx).With("package", "repos", "func", "processPRs")
+	)
 
+	nextPage = response.NextPage
 	found = map[int64]*github.PullRequest{}
+
 	// all runs should have unique id
 	for _, pr := range prs {
-		var when time.Time = pr.UpdatedAt.Time
-		// prs are sorted latest first, so if we have found an old one,
-		// we break the loop and stop calling the api
-		if pr.UpdatedAt.Time.Before(dateStart) {
-			err = ErrPROutOfDateRange
-			log.Debug("found pr older than start date; breaking loop ...")
-			return
-		}
+		var when time.Time
 		// if this pr is not merged, then skip it
 		if pr.MergeCommitSHA == nil || pr.MergedAt == nil || len(*pr.MergeCommitSHA) <= 0 {
 			log.Debug("merge commit data missing, skipping pr")
 			continue
 		}
-		// as the List api call has no data filtering, we need to add our own...
+		// used created time for date range checking, as this cannot change
+		when = pr.CreatedAt.Time
+		// if its with the date range we want, add to the list
 		if when.After(dateStart) && when.Before(dateEnd) {
 			log.Debug("pr is with date range provided")
 			found[*pr.ID] = pr
+		}
+		// if this was created before the date range, then break the paginatin fetching
+		// by returning a next page of 0
+		if when.Before(dateStart) {
+			log.Debug("pr is outside of date range ...")
+			nextPage = 0
+			return
 		}
 	}
 	return

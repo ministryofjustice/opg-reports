@@ -22,6 +22,7 @@ type actionClient interface {
 
 // PR Client is a wrapper for *github.PullRequestsService
 type prClient interface {
+	// api docs - https://docs.github.com/rest/pulls/pulls#list-pull-requests
 	List(ctx context.Context, owner string, repo string, opts *github.PullRequestListOptions) ([]*github.PullRequest, *github.Response, error)
 }
 
@@ -34,4 +35,3 @@ type Args struct {
 }
 
 var ErrFailedGettingRepositoryPage = errors.New("error getting page of repositories")
-var ErrPROutOfDateRange = errors.New("pr outside of date range")

@@ -1,3 +1,13 @@
+// Package codebasereleasesimport handles calculating releases per repo for a time period.
+//
+// WorkflowRuns are tried first; looking for runs against default branch with a success
+// status. Date end is adjusted to as the github api is upto & including, so we pass
+// along DateEnd - 1 second (so end of the day before).
+//
+// If no workflow runs are found it looks for pull requests. As there is no date range
+// filtering on the api and updated, created and merged dates all differ we base the
+// month on the created date - as this is static and the other can change (and possibly
+// overwrite data in a different month).
 package codebasereleasesimport
 
 import (
@@ -166,7 +176,10 @@ func handler(ctx context.Context, clients *Clients, in *Args, repoList []*github
 }
 
 // mergedPullRequestReleases finds release data based on pull requests merged into the default branch
-// as a proxy measure for the path to live
+// as a proxy measure for the path to live. Uses created date for the month.
+//
+// Use the createdAt time of the pull request as this doesnt change, but updated & merge times can
+// and could be attached to a different month, causing data inaccuracies.
 func mergedPullRequestReleases(ctx context.Context, client prClient, in *Args, repo *github.Repository) (metrics []*CodebaseMetric, err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasereleasesimport", "func", "mergedPullRequestReleases")
 	var prs []*github.PullRequest
@@ -185,7 +198,7 @@ func mergedPullRequestReleases(ctx context.Context, client prClient, in *Args, r
 	}
 
 	for _, pr := range prs {
-		var when = times.AsYMString(pr.MergedAt.Time)
+		var when = times.AsYMString(pr.CreatedAt.Time)
 		if _, ok := byMonth[when]; !ok {
 			byMonth[when] = emptyMetric(repo, when)
 			byMonth[when].ReleaseType = "pr"
