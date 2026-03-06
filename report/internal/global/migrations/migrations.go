@@ -31,6 +31,7 @@ var migrations = []*Migration{
 	{Key: "create_codeowner", Stmt: create_codeowner},
 	{Key: "create_codebase_metrics", Stmt: create_codebase_metrics},
 
+	// {Key: "alter_codebase_metrics", Stmt: alter_codebase_metrics},
 	{Key: "lowercase_team_name", Stmt: lowercase_team_name},
 	{Key: "run_vacuum", Stmt: run_vacuum},
 }

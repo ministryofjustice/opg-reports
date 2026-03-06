@@ -68,6 +68,18 @@ WHERE
 ;
 `
 
+const releasesSelect string = `
+SELECT
+	COALESCE(SUM(codebase_metrics.releases),0) as releases,
+	COALESCE(SUM(codebase_metrics.releases_securityish),0) as releases_securityish
+FROM codebase_metrics
+LEFT JOIN codebases on codebases.full_name = codebase_metrics.codebase
+WHERE
+	codebases.archived = 0
+	AND codebase_metrics.month IN (:months)
+;
+`
+
 // Request contains url path / query values
 type Request struct {
 	DateStart string `json:"date_start"`
@@ -109,6 +121,10 @@ type Result struct {
 	// Codebase standards
 	CodebaseCount  int     `json:"codebase_count"`  // total number of codebases
 	CodebasePassed float64 `json:"codebase_passed"` // % that have a passing status
+	// Releases
+	Releases            int `json:"releases"`             // count releases
+	ReleasesSecurityish int `json:"releases_securityish"` // count of releases if they likely sec
+
 }
 
 // Responder process the incoming request, queries the database and returns the result as json data.
@@ -150,6 +166,8 @@ func Responder(ctx context.Context, conf *apimodels.Args, request *http.Request,
 	uptimeSelectRun(ctx, conf, filter, bindMap, res)
 	// codebase info
 	codebasesSelectRun(ctx, conf, filter, bindMap, res)
+	// release info
+	releasesSelectRun(ctx, conf, filter, bindMap, res)
 
 	response = &Response{
 		Version: conf.Version,
@@ -254,6 +272,37 @@ func codebasesSelectRun(ctx context.Context, conf *apimodels.Args, filter *Filte
 		onePercent := (float64(res.CodebaseCount) / 100)
 		res.CodebasePassed = res.CodebasePassed / onePercent
 	}
+
+	return res
+}
+
+// releasesSelectRun runs the select and fetches the values
+func releasesSelectRun(ctx context.Context, conf *apimodels.Args, filter *Filter, bindMap map[string]interface{}, res *Result) *Result {
+	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "headlineapi", "func", "releasesSelectRun")
+	var stmt string = releasesSelect
+
+	if filter.Team != "" {
+		log.Info("optional team filter found ...", "team", filter.Team)
+		stmt = strings.ReplaceAll(stmt, "WHERE", "WHERE (SELECT team_name from codebase_owners where codebase_owners.codebase = codebases.full_name AND team_name = :team) = :team AND")
+	}
+
+	var scan = []any{
+		&res.Releases,
+		&res.ReleasesSecurityish,
+	}
+	dbx.Select(ctx, stmt, &dbx.SelectArgs{
+		DB:      conf.DB,
+		Driver:  conf.Driver,
+		Params:  conf.Params,
+		BindMap: bindMap,
+		ScanF: func(rows *sql.Rows) error {
+			var err error
+			if err = rows.Scan(scan...); err != nil {
+				log.Error("row scan failed", "err", err.Error())
+			}
+			return err
+		},
+	})
 
 	return res
 }

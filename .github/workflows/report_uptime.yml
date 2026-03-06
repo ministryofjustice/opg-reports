@@ -34,6 +34,7 @@ jobs:
     with:
       sub_cmd: "uptime"
       file: "accounts.aws.uptime.json"
+      oidc: "gh-actions-uptime-metrics"
       date_start: ${{ inputs.date_start }}
       date_end: ${{ inputs.date_end }}
       upload_to_prod: true

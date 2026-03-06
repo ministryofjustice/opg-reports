@@ -1,7 +1,18 @@
+// Package codebasereleasesimport handles calculating releases per repo for a time period.
+//
+// WorkflowRuns are tried first; looking for runs against default branch with a success
+// status. Date end is adjusted to as the github api is upto & including, so we pass
+// along DateEnd - 1 second (so end of the day before).
+//
+// If no workflow runs are found it looks for pull requests. As there is no date range
+// filtering on the api and updated, created and merged dates all differ we base the
+// month on the created date - as this is static and the other can change (and possibly
+// overwrite data in a different month).
 package codebasereleasesimport
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"opg-reports/report/package/cntxt"
 	"opg-reports/report/package/dbx"
@@ -19,15 +30,18 @@ INSERT INTO codebase_metrics (
 	codebase,
 	month,
 	releases,
-	releases_securityish
+	releases_securityish,
+	release_type
 ) VALUES (
 	:codebase,
 	:month,
 	:releases,
-	:releases_securityish
+	:releases_securityish,
+	:release_type
 ) ON CONFLICT (codebase,month) DO UPDATE SET
 	releases=excluded.releases,
-	releases_securityish=excluded.releases_securityish
+	releases_securityish=excluded.releases_securityish,
+	release_type=excluded.release_type
 RETURNING id
 ;
 `
@@ -74,6 +88,7 @@ type CodebaseMetric struct {
 	Month               string `json:"month"`                // month as YYYY-MM string
 	Releases            int    `json:"releases"`             // count of releases for this month
 	ReleasesSecurityish int    `json:"releases_securityish"` // count of releases for this month that seem to be security related
+	ReleaseType         string `json:"release_type"`         // pr or workflow
 }
 
 // Import finds all github repositories and returns them for the moj/opg team
@@ -82,7 +97,7 @@ func Import(ctx context.Context, clients *Clients, in *Args) (err error) {
 	var repoList []*github.Repository
 	var data = []*CodebaseMetric{}
 
-	log.Info("starting ...")
+	log.Info("starting ...", "date_start", times.AsYMDString(in.DateStart), "date_end", times.AsYMDString(in.DateEnd))
 	// fetch all the repos
 	log.Debug("getting repository list ...")
 	repoList, err = repos.GetList(ctx, clients.Teams, &repos.Args{
@@ -118,53 +133,59 @@ func Import(ctx context.Context, clients *Clients, in *Args) (err error) {
 // handler looks at both workflows & pull requests to get release data
 func handler(ctx context.Context, clients *Clients, in *Args, repoList []*github.Repository) (data []*CodebaseMetric, err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasereleasesimport", "func", "Import")
-	var byMonth = map[string]*CodebaseMetric{}
+	var byMonth = map[string][]*CodebaseMetric{}
+	var l = len(repoList)
 
 	data = []*CodebaseMetric{}
 	// now loop over each repo to then call helper methods
-	for _, repo := range repoList {
+	for i, repo := range repoList {
 		var lg = log.With("repo", *repo.Name)
-		var updated = map[string]*CodebaseMetric{}
-		var foundRuns = false
-
-		lg.Info("getting releases ... ")
+		var found = []*CodebaseMetric{}
+		log.Info(fmt.Sprintf("[%d/%d - %s]", i+1, l, *repo.Name))
 		// dont get any release info on archived code bases
 		if *repo.Archived {
 			log.Warn("repository is archived, skipping fetching compliance details.")
 			continue
 		}
-		lg.Info("looking for workflows ... ")
-		updated, foundRuns, err = workflowRunReleases(ctx, clients.Actions, in, repo, byMonth)
+		found, err = workflowRunReleases(ctx, clients.Actions, in, repo)
 		// return on error?
 		if err != nil {
 			return
 		}
 		// if found runs, then set the data and continue the loop
-		if foundRuns {
-			byMonth = updated
-			continue
+		if len(found) > 0 {
+			lg.Info("found workflow runs ... ", "count", len(found))
+		} else {
+			lg.Info("no workflow runs found, looking for pull requests ... ")
+			// get pull request data if theres no run data (runs will have triggered the break)
+			found, err = mergedPullRequestReleases(ctx, clients.PR, in, repo)
+			if err != nil {
+				return
+			}
+			lg.Info("found pull requests ... ", "count", len(found))
 		}
-		// get pull request data if theres no run data (runs will have triggered the break)
-		updated, err = mergedPullRequestReleases(ctx, clients.PR, in, repo, byMonth)
-		if err != nil {
-			return
-		}
-
+		// append the found data
+		data = append(data, found...)
 	}
 
 	// flattern byMonth to a slice for insert
 	for _, v := range byMonth {
-		data = append(data, v)
+		data = append(data, v...)
 	}
 	return
 }
 
-func mergedPullRequestReleases(ctx context.Context, client prClient, in *Args, repo *github.Repository, byMonth map[string]*CodebaseMetric) (updated map[string]*CodebaseMetric, err error) {
+// mergedPullRequestReleases finds release data based on pull requests merged into the default branch
+// as a proxy measure for the path to live. Uses created date for the month.
+//
+// Use the createdAt time of the pull request as this doesnt change, but updated & merge times can
+// and could be attached to a different month, causing data inaccuracies.
+func mergedPullRequestReleases(ctx context.Context, client prClient, in *Args, repo *github.Repository) (metrics []*CodebaseMetric, err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasereleasesimport", "func", "mergedPullRequestReleases")
 	var prs []*github.PullRequest
+	var byMonth = map[string]*CodebaseMetric{}
 
-	updated = byMonth
-
+	metrics = []*CodebaseMetric{}
 	prs, err = repos.GetMergedPRs(ctx, client, repo, &repos.Args{
 		OrgSlug:    in.OrgSlug,
 		ParentSlug: in.ParentSlug,
@@ -177,12 +198,17 @@ func mergedPullRequestReleases(ctx context.Context, client prClient, in *Args, r
 	}
 
 	for _, pr := range prs {
-		var when = times.AsYMString(pr.MergedAt.Time)
-		if _, ok := updated[when]; !ok {
-			updated[when] = emptyMetric(*repo.FullName, when)
+		var when = times.AsYMString(pr.CreatedAt.Time)
+		if _, ok := byMonth[when]; !ok {
+			byMonth[when] = emptyMetric(repo, when)
+			byMonth[when].ReleaseType = "pr"
 		}
-		updated[when].Releases += 1
-		updated[when].ReleasesSecurityish += isSecurityishPR(pr)
+		byMonth[when].Releases += 1
+		byMonth[when].ReleasesSecurityish += isSecurityishPR(pr)
+	}
+
+	for _, v := range byMonth {
+		metrics = append(metrics, v)
 	}
 
 	return
@@ -190,12 +216,12 @@ func mergedPullRequestReleases(ctx context.Context, client prClient, in *Args, r
 }
 
 // workflowRunReleases fetches workflows that run against main with name of path to live only and counts that as a release
-func workflowRunReleases(ctx context.Context, client actionClient, in *Args, repo *github.Repository, byMonth map[string]*CodebaseMetric) (updated map[string]*CodebaseMetric, found bool, err error) {
+func workflowRunReleases(ctx context.Context, client actionClient, in *Args, repo *github.Repository) (metrics []*CodebaseMetric, err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "codebasereleasesimport", "func", "workflowRunReleases", "repo", *repo.Name)
 	var runs []*github.WorkflowRun
+	var byMonth = map[string]*CodebaseMetric{}
 
-	found = false
-	updated = byMonth
+	metrics = []*CodebaseMetric{}
 	// get just the release / path to live workflow runs
 	runs, err = repos.GetWorkflowRuns(ctx, client, repo, &repos.Args{
 		OrgSlug:      in.OrgSlug,
@@ -205,26 +231,29 @@ func workflowRunReleases(ctx context.Context, client actionClient, in *Args, rep
 		FilterByName: "path to live",
 	}, true)
 
-	log.Info("found workflow runs ...", "count", len(runs))
 	if err != nil {
 		log.Error("error getting release workflow runs", "err", err.Error())
 		return
 	} else if len(runs) == 0 {
 		return
 	}
-	// got some workflows
-	found = true
 	// group workflow data by month
 	for _, run := range runs {
 		var when = times.AsYMString(run.CreatedAt.Time)
-		if _, ok := updated[when]; !ok {
-			updated[when] = emptyMetric(*repo.FullName, when)
+
+		if _, ok := byMonth[when]; !ok {
+			byMonth[when] = emptyMetric(repo, when)
+			byMonth[when].ReleaseType = "workflow"
 		}
 		log.Debug("adding stats for workflow run ...", "when", when)
 		// get stats
-		updated[when].Releases += 1
-		updated[when].ReleasesSecurityish += isSecurityishRun(run)
+		byMonth[when].Releases += 1
+		byMonth[when].ReleasesSecurityish += isSecurityishRun(run)
 		// updated[when].Dur += runDuration(ctx, client, repo, run)
+	}
+	// flattern the months
+	for _, v := range byMonth {
+		metrics = append(metrics, v)
 	}
 
 	// // work out averages
@@ -317,9 +346,9 @@ func isSecurityishPR(pr *github.PullRequest) (securityish int) {
 	return
 }
 
-func emptyMetric(codebase string, month string) *CodebaseMetric {
+func emptyMetric(repo *github.Repository, month string) *CodebaseMetric {
 	return &CodebaseMetric{
-		Codebase:            codebase,
+		Codebase:            *repo.FullName,
 		Month:               month,
 		Releases:            0,
 		ReleasesSecurityish: 0,

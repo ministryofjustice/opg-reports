@@ -2,6 +2,7 @@ package tmpl
 
 import (
 	"fmt"
+	"opg-reports/report/package/cnv"
 	"opg-reports/report/package/times"
 	"strconv"
 	"strings"
@@ -28,6 +29,7 @@ func LengthClass(i int) string {
 	return "s"
 }
 
+// Title cleans up string for page title usage
 func Title(s string) string {
 	s = strings.ReplaceAll(s, "/", " ")
 	s = strings.ReplaceAll(s, "_", " ")
@@ -36,35 +38,70 @@ func Title(s string) string {
 	return s
 }
 
+// Number adds , seperators etc
+func Number(s interface{}) (c string) {
+	var pntr = message.NewPrinter(language.English) // will add 1000s seperator
+	switch s.(any).(type) {
+	case string:
+		if p, e := strconv.ParseFloat(s.(string), 64); e == nil {
+			c = pntr.Sprintf("%.2f", p)
+		}
+	case float64:
+		c = pntr.Sprintf("%g", s.(float64))
+	case int:
+		c = pntr.Sprintf("%d", s.(int))
+	}
+	return
+}
+
 // Currency displays s as a float with 2 decimals and appends the currency symbol to the start
 // Used to display financial values cleanly
 func Currency(s interface{}, symbol string) (c string) {
 	var pntr = message.NewPrinter(language.English) // will add 1000s seperator
 
-	switch s.(any).(type) {
-	case string:
-		if p, e := strconv.ParseFloat(s.(string), 64); e == nil {
-			c = pntr.Sprintf("%s%.2f", symbol, p)
-		}
-	case float64:
-		c = pntr.Sprintf("%s%.2f", symbol, s.(float64))
+	fl, err := cnv.ToFloat(s)
+	if err != nil {
+		return ""
 	}
+	c = pntr.Sprintf("%s%.2f", symbol, fl)
 
 	return
 }
 
+// Percentage returns a string formatted as a percentage
 func Percentage(s interface{}, places int) string {
 	var layout = "%." + strconv.Itoa(places) + "f"
 
-	switch s.(any).(type) {
-	case string:
-		if f, e := strconv.ParseFloat(s.(string), 64); e == nil {
-			return fmt.Sprintf(layout, f) + `%`
-		}
-	case float64:
-		return fmt.Sprintf(layout, s) + `%`
+	fl, err := cnv.ToFloat(s)
+	if err != nil {
+		return ""
 	}
-	return ""
+	return fmt.Sprintf(layout, fl) + `%`
+}
+
+// AsPercent works out the percentage from the val and its total and returns
+// as a float
+func AsPercent(val interface{}, total interface{}) (p float64) {
+	var (
+		err error
+		t   float64 = 0
+		v   float64 = 0
+	)
+	p = 0
+	// convert numbers
+	t, err = cnv.ToFloat(total)
+	if err != nil {
+		return
+	}
+	v, err = cnv.ToFloat(val)
+	if err != nil {
+		return
+	}
+	// now work out percentage
+	onePercent := t / 100
+	p = v / onePercent
+
+	return
 }
 
 // ValueFromMap uses the `name` as the key in the map `data` and returns
@@ -133,6 +170,8 @@ func TemplateFunctions() (funcs template.FuncMap) {
 		// string -> numbers
 		"Currency":   Currency,
 		"Percentage": Percentage,
+		"Number":     Number,
+		"AsPercent":  AsPercent,
 		// accessing maps
 		"ValueFromMap": ValueFromMap,
 		//

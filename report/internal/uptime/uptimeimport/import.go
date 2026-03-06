@@ -248,23 +248,10 @@ func getHeathCheckMetricStatsOptions(list *cloudwatch.ListMetricsOutput, options
 	return
 }
 
-// getPeriod works out what period to use based on the api contraints and the start date being requested.
-//
-// If time period is more than 15 days ago, use hourly.
-//
-// Don't use any granularity under 60 seconds.
+// getPeriod currently returns a fixed 3600 value rather than
+// changing based on time frame
 func getPeriod(start time.Time) (period int32) {
-	// var (
-	// 	now       time.Time     = time.Now().UTC()
-	// 	day       time.Duration = (time.Hour * 24)
-	// 	days15    time.Duration = (15 * day)
-	// 	hoursDiff float64       = now.Sub(start).Hours()
-	// )
 	period = 3600
-
-	// if hoursDiff < days15.Hours() {
-	// 	period = 60
-	// }
 	return
 
 }

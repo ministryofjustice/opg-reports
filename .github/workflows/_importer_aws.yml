@@ -7,10 +7,16 @@ on:
         description: "name of the import sub-command to run"
         type: string
         required: true
+      # account data source
       file:
         description: "file to fetch from the extracted zip"
         type: string
         default: "accounts.aws.json"
+      # oidc role to assume
+      oidc:
+        description: "OIDC role t oassume to run report"
+        type: string
+        default: "gh-actions-cost-metrics"
       # start date
       date_start:
         description: "Start of date range formatted as YYYY-MM-DD. Example: 2026-01-01"
@@ -115,7 +121,7 @@ jobs:
       - name: "[${{ matrix.name }}] Configure AWS credentials for report execution"
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         env:
-          role: "arn:aws:iam::${{ matrix.id }}:role/gh-actions-cost-metrics"
+          role: "arn:aws:iam::${{ matrix.id }}:role/${{ inputs.oidc }}"
           sub_cmd: ${{ inputs.sub_cmd }}
         with:
           aws-region: "eu-west-1"

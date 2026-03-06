@@ -18,15 +18,12 @@ import (
 )
 
 // selectStmt is the sql used to fetch data including
+// - 	CAST(COALESCE(AVG(codebase_metrics.releases_average_time), 0) as REAL) as releases_average_time
 const selectStmt string = `
 SELECT
 	codebase_metrics.month,
 	COALESCE(SUM(codebase_metrics.releases),0) as releases,
-	COALESCE(SUM(codebase_metrics.releases_securityish),0) as releases_securityish,
-	CAST(COALESCE(AVG(codebase_metrics.releases_average_time), 0) as REAL) as releases_average_time,
-	COALESCE(SUM(codebase_metrics.pr_count),0) as pr_count,
-	COALESCE(SUM(codebase_metrics.pr_count_securityish),0) as pr_count_securityish,
-	CAST(COALESCE(AVG(codebase_metrics.pr_average_time), 0) as REAL) as pr_average_time
+	COALESCE(SUM(codebase_metrics.releases_securityish),0) as releases_securityish
 FROM codebase_metrics
 LEFT JOIN codebases on codebases.full_name = codebase_metrics.codebase
 WHERE
@@ -60,7 +57,8 @@ type Response struct {
 	Version string   `json:"version"`
 	SHA     string   `json:"sha"`
 	Request *Request `json:"request"`
-	Data    []*Model `json:"data"` // the actual data results
+	Data    []*Model `json:"data"`    // the actual data results
+	Summary *Model   `json:"summary"` // overall totals of each
 }
 
 // Filter is with the sql to replace the named parameters
@@ -71,13 +69,9 @@ type Filter struct {
 
 // Model is the data struct to use when fetching the select
 type Model struct {
-	Month               string  `json:"month"`                 // month as YYYY-MM string
-	Releases            int     `json:"releases"`              // count of releases for this month
-	ReleasesSecurityish int     `json:"releases_securityish"`  // count of releases for this month that seem to be security related
-	ReleasesAverageTime float64 `json:"releases_average_time"` // average time path to live workflow took (in milliseconds)
-	PRCount             int     `json:"pr_count"`              // count of total pull requests in this period
-	PRCountSecurityish  int     `json:"pr_count_securityish"`  // count of pr's for this month that seem to be security related
-	PRAverageTime       float64 `json:"pr_average_time"`       // average time path to live workflow took (in milliseconds)
+	Month               string `json:"month"`                // month as YYYY-MM string
+	Releases            int    `json:"releases"`             // count of releases for this month
+	ReleasesSecurityish int    `json:"releases_securityish"` // count of releases for this month that seem to be security related
 }
 
 // Sequence is used to return the columns in the order they are selected
@@ -86,10 +80,6 @@ func (self *Model) Sequence() []any {
 		&self.Month,
 		&self.Releases,
 		&self.ReleasesSecurityish,
-		&self.ReleasesAverageTime,
-		&self.PRCount,
-		&self.PRCountSecurityish,
-		&self.PRAverageTime,
 	}
 }
 
@@ -141,6 +131,14 @@ func Responder(ctx context.Context, conf *apimodels.Args, request *http.Request,
 			return err
 		},
 	})
+	summary := &Model{
+		Releases:            0,
+		ReleasesSecurityish: 0,
+	}
+	for _, r := range all {
+		summary.Releases += r.Releases
+		summary.ReleasesSecurityish += r.ReleasesSecurityish
+	}
 
 	// setup response object
 	response = &Response{
@@ -148,6 +146,7 @@ func Responder(ctx context.Context, conf *apimodels.Args, request *http.Request,
 		SHA:     conf.SHA,
 		Request: in,
 		Data:    all,
+		Summary: summary,
 	}
 	log.Info("complete.")
 	respond.AsJSON(ctx, request, writer, response)

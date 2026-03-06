@@ -1,9 +1,9 @@
 name: "[Workflow] Path to live"
 
 on:
-  # run at 0700 every day to redeploy with updated database
+  # run at 09:00 every day to redeploy with updated database
   schedule:
-    - cron: '0 7 * * *'
+    - cron: '0 9 * * *'
   # run on push to main
   push:
     branches:
