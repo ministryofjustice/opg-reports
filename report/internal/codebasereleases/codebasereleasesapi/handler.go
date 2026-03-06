@@ -18,12 +18,12 @@ import (
 )
 
 // selectStmt is the sql used to fetch data including
+// - 	CAST(COALESCE(AVG(codebase_metrics.releases_average_time), 0) as REAL) as releases_average_time
 const selectStmt string = `
 SELECT
 	codebase_metrics.month,
 	COALESCE(SUM(codebase_metrics.releases),0) as releases,
-	COALESCE(SUM(codebase_metrics.releases_securityish),0) as releases_securityish,
-	CAST(COALESCE(AVG(codebase_metrics.releases_average_time), 0) as REAL) as releases_average_time
+	COALESCE(SUM(codebase_metrics.releases_securityish),0) as releases_securityish
 FROM codebase_metrics
 LEFT JOIN codebases on codebases.full_name = codebase_metrics.codebase
 WHERE
@@ -69,10 +69,9 @@ type Filter struct {
 
 // Model is the data struct to use when fetching the select
 type Model struct {
-	Month               string  `json:"month"`                 // month as YYYY-MM string
-	Releases            int     `json:"releases"`              // count of releases for this month
-	ReleasesSecurityish int     `json:"releases_securityish"`  // count of releases for this month that seem to be security related
-	ReleasesAverageTime float64 `json:"releases_average_time"` // average time path to live workflow took (in milliseconds)
+	Month               string `json:"month"`                // month as YYYY-MM string
+	Releases            int    `json:"releases"`             // count of releases for this month
+	ReleasesSecurityish int    `json:"releases_securityish"` // count of releases for this month that seem to be security related
 }
 
 // Sequence is used to return the columns in the order they are selected
@@ -81,7 +80,6 @@ func (self *Model) Sequence() []any {
 		&self.Month,
 		&self.Releases,
 		&self.ReleasesSecurityish,
-		&self.ReleasesAverageTime,
 	}
 }
 
@@ -136,12 +134,10 @@ func Responder(ctx context.Context, conf *apimodels.Args, request *http.Request,
 	summary := &Model{
 		Releases:            0,
 		ReleasesSecurityish: 0,
-		ReleasesAverageTime: 0.0,
 	}
 	for _, r := range all {
 		summary.Releases += r.Releases
 		summary.ReleasesSecurityish += r.ReleasesSecurityish
-		summary.ReleasesAverageTime += r.ReleasesAverageTime
 	}
 
 	// setup response object

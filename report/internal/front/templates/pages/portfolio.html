@@ -4,26 +4,29 @@
     {{- template "side-navigation" . -}}
 
     <main id="main-content" class="app-content" role="main">
+    {{- if .ReleaseData -}}
+    <section id="releases">
+        <h1 class="govuk-heading-l compact-header">Releases</h1>
+        <p class="govuk-body">Our production release data for all of our service teams.</p>
+        <p class="govuk-body">Determining if a release is security related is currently a rough approximation and should not be considered completely accurate, but merely an indicator.</p>
+        <div class="app-content reports-font-m">
+            {{ template "releases-table" .ReleaseData }}
+        </div>
+    </section>
+    {{- end -}}
+
 
     {{- if .UptimeData -}}
     <section id="uptime">
         <h1 class="govuk-heading-l compact-header">Service uptime</h1>
-        <p class="govuk-body">Our production uptime is tracked for each service via Route53 health checks and updated regularly.</p>
+        <p class="govuk-body">Our production uptime is tracked for each service via Route53 health checks and are impacted by any outage - including agreed maintainence windows.</p>
+        <p class="govuk-body">Uptime tracking reports are updated multiple times a week.</p>
         <div class="app-content reports-font-m">
             {{ template "uptime-table" .UptimeData }}
         </div>
     </section>
     {{- end -}}
 
-    {{- if .ReleaseData -}}
-    <section id="releases">
-        <h1 class="govuk-heading-l compact-header">Releases</h1>
-        <p class="govuk-body">Our production release data for all of our service teams.</p>
-        <div class="app-content reports-font-m">
-            {{ template "releases-table" .ReleaseData }}
-        </div>
-    </section>
-    {{- end -}}
 
     {{- if .CostData -}}
     <section id="costs">

@@ -6,22 +6,25 @@
     <thead class="govuk-table__head">
       <tr class="govuk-table__row">
         <th scope="col" class="govuk-table__header reports-cell reports-table-heading">Month</th>
-        <th scope="col" class="govuk-table__header reports-cell reports-table-heading">Releases</th>
+        <th scope="col" class="govuk-table__header govuk-table__cell--numeric reports-cell reports-table-heading">Releases</th>
+        <th scope="col" class="govuk-table__header govuk-table__cell--numeric reports-cell reports-table-heading">Security related</th>
       </tr>
     </thead>
     <tbody class="govuk-table__body">
         {{- range $i, $row := $rows -}}
         <tr class="govuk-table__row">
             <th scope="row" class="govuk-table__header reports-cell reports-table-heading">{{ .Month }}</th>
-            <th scope="row" class="govuk-table__header reports-cell reports-table-heading">{{ .Releases }}</th>
+            <th scope="row" class="govuk-table__header govuk-table__cell--numeric reports-cell reports-table-heading">{{ .Releases }}</th>
+            <th scope="row" class="govuk-table__header govuk-table__cell--numeric reports-cell reports-table-heading">{{ .ReleasesSecurityish }} ({{ Percentage (AsPercent .ReleasesSecurityish .Releases) 0 }}) </th>
         </tr>
         {{- end -}}
     </tbody>
     {{- if $footer -}}
     <tfoot class="govuk-table__foot">
       <tr class="govuk-table__row">
-        <th scope="col" class="govuk-table__header" >Total</th>
-        <th scope="col" class="govuk-table__header" >{{ $footer.Releases }}</th>
+        <th scope="col" class="govuk-table__header" >Totals</th>
+        <th scope="col" class="govuk-table__header govuk-table__cell--numeric" >{{ $footer.Releases }}</th>
+        <th scope="col" class="govuk-table__header govuk-table__cell--numeric" >{{ $footer.ReleasesSecurityish }} ({{ Percentage (AsPercent $footer.ReleasesSecurityish $footer.Releases) 0 }})</th>
       </tr>
     </tfoot>
     {{- end -}}

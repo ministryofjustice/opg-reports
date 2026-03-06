@@ -122,3 +122,10 @@ CREATE TABLE IF NOT EXISTS codebase_metrics (
 CREATE INDEX IF NOT EXISTS idx_codebase_metrics_month ON codebase_metrics(codebase,month);
 CREATE INDEX IF NOT EXISTS idx_codebase_metrics ON codebase_metrics(codebase);
 `
+
+const alter_codebase_metrics string = `
+ALTER TABLE codebase_metrics DROP COLUMN releases_average_time;
+ALTER TABLE codebase_metrics DROP COLUMN pr_count;
+ALTER TABLE codebase_metrics DROP COLUMN pr_count_securityish;
+ALTER TABLE codebase_metrics DROP COLUMN pr_average_time;
+`

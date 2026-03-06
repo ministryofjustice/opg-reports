@@ -103,8 +103,7 @@ type ReleaseData struct {
 	Summary  *Release
 }
 type Release struct {
-	Month               string  `json:"month"`                 // month as YYYY-MM string
-	Releases            int     `json:"releases"`              // count of releases for this month
-	ReleasesSecurityish int     `json:"releases_securityish"`  // count of releases for this month that seem to be security related
-	ReleasesAverageTime float64 `json:"releases_average_time"` // average time path to live workflow took (in milliseconds)
+	Month               string `json:"month"`                // month as YYYY-MM string
+	Releases            int    `json:"releases"`             // count of releases for this month
+	ReleasesSecurityish int    `json:"releases_securityish"` // count of releases for this month that seem to be security related
 }
