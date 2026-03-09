@@ -53,19 +53,19 @@ jobs:
       # terraform account version
       - name: "Parse terraform account version"
         id: terraform_account_version
-        uses: ministryofjustice/opg-github-actions/actions/terraform-version@82323da6c533ab565c1652a590230ff2f0acc942 # v4.3.8
+        uses: ministryofjustice/opg-github-actions/actions/terraform-version@b8868247a908f74fafe1905701391580575a6d35 # v4.3.10
         with:
           terraform_directory: ./terraform/account
       # terraform env version
       - name: "Parse terraform environment version"
         id: terraform_environment_version
-        uses: ministryofjustice/opg-github-actions/actions/terraform-version@82323da6c533ab565c1652a590230ff2f0acc942 # v4.3.8
+        uses: ministryofjustice/opg-github-actions/actions/terraform-version@b8868247a908f74fafe1905701391580575a6d35 # v4.3.10
         with:
           terraform_directory: ./terraform/environment
       # SEMVER generation
       - name: "Semver tag"
         id: "semver"
-        uses: ministryofjustice/opg-github-actions/actions/semver@82323da6c533ab565c1652a590230ff2f0acc942 # v4.3.8
+        uses: ministryofjustice/opg-github-actions/actions/semver@b8868247a908f74fafe1905701391580575a6d35 # v4.3.10
         with:
           create_release: "false" # dont create the release at the moment
           prerelease: ${{ env.PRERELEASE }}
@@ -87,7 +87,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       # setup go
       - name: "Setup go"
-        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
         with:
           cache: true
           go-version-file: './go.mod'
@@ -118,7 +118,7 @@ jobs:
           fetch-tags: true
       # setup go
       - name: "[${{ matrix.image }}] Setup go"
-        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
         with:
           cache: false
           go-version-file: './go.mod'
@@ -229,7 +229,7 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
       - name: "Create release [${{ needs.setup.outputs.semver_tag }}]"
-        uses: ministryofjustice/opg-github-actions/actions/release@82323da6c533ab565c1652a590230ff2f0acc942 # v4.3.8
+        uses: ministryofjustice/opg-github-actions/actions/release@b8868247a908f74fafe1905701391580575a6d35 # v4.3.10
         with:
           tag: ${{ needs.setup.outputs.semver_tag }}
           prerelease: ${{ env.PRERELEASE }}
