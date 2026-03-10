@@ -1,7 +1,8 @@
 LOG_LEVEL ?= info
 GITHUBTOKEN ?= ${GH_TOKEN}
-#========= IMPORT TEAMS =========
+#========= IMPORT =========
 IMPORT_CMD ?= ${BUILD_DIR}/import
+#========= IMPORT TEAMS =========
 .PHONY: import-teams
 import-teams: CMD_LIST=import
 import-teams: get-metadata build-cmds
@@ -17,7 +18,7 @@ import-accounts: get-metadata build-cmds
 	@echo "- importing accounts "
 	@env LOG_LEVEL=${LOG_LEVEL} ${IMPORT_CMD} accounts \
 		--db="${API_DB}" \
-		--src-file="${METADATA_EX_DIR}/aws.accounts.json"
+		--src-file="${METADATA_EX_DIR}/accounts.aws.json"
 
 #========= IMPORT CODEBASES =========
 .PHONY: import-codebases
