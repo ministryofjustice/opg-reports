@@ -5,35 +5,31 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"opg-reports/report/packages/times"
+	"net/http/httptest"
 	"strconv"
-	"time"
 )
 
 // Between takes original struct of T and by marshaling and then unmarshaling applied its
 // content to destination R
-func Between[T any, R any](source T, destination R) (err error) {
+func Between[R any](source any, destination R) (err error) {
 	var bytes []byte
-	if bytes, err = json.MarshalIndent(source, "", "  "); err == nil {
-		err = json.Unmarshal(bytes, destination)
+
+	switch any(source).(type) {
+	// convert response in a particular way
+	case *httptest.ResponseRecorder:
+		var resp = source.(*httptest.ResponseRecorder)
+		bytes, err = io.ReadAll(resp.Body)
+	case *http.Response:
+		var resp = source.(*http.Response)
+		defer resp.Body.Close()
+		bytes, err = io.ReadAll(resp.Body)
+	default:
+		bytes, err = json.MarshalIndent(source, "", "  ")
+		if err != nil {
+			return
+		}
 	}
-	return
-}
-
-// Response is a specific helper to handle dealing with
-// http responses and clears buffers etc
-func Response[R any](response *http.Response, destination R) (err error) {
-	var content []byte
-
-	defer response.Body.Close()
-	content, err = io.ReadAll(response.Body)
-
-	if err != nil {
-		fmt.Println("close error...")
-		return
-	}
-	err = json.Unmarshal(content, destination)
-	fmt.Printf("-->%v\n", err)
+	err = json.Unmarshal(bytes, destination)
 	return
 }
 
@@ -44,7 +40,6 @@ func Response[R any](response *http.Response, destination R) (err error) {
 //   - string: as is
 //   - int, int32, int64: uses `strvconv.Itoa`
 //   - float, float32, float64: uses `fmt.Sprintf("%g")`
-//   - time.Time: uses year-month (YYYY-MM) formatted string
 //   - *http.Response: closes buffers and converts bytes to string
 func String(item any) (s string) {
 	s = ""
@@ -56,8 +51,13 @@ func String(item any) (s string) {
 		s = strconv.Itoa(item.(int))
 	case float32, float64:
 		s = fmt.Sprintf("%g", item)
-	case time.Time:
-		s = item.(time.Time).Format(times.YM)
+	// case time.Time:
+	// 	s = item.(time.Time).Format(times.YM)
+	case *httptest.ResponseRecorder:
+		r := item.(*httptest.ResponseRecorder)
+		if content, err := io.ReadAll(r.Body); err == nil {
+			s = string(content)
+		}
 	case *http.Response:
 		r := item.(*http.Response)
 		defer r.Body.Close()
@@ -66,10 +66,4 @@ func String(item any) (s string) {
 		}
 	}
 	return
-}
-
-// Ptr converts an item to the pointer version of itself.
-func Ptr[T any](item T) *T {
-	var ptr = &item
-	return ptr
 }
