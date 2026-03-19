@@ -95,7 +95,7 @@ api: build-cmds
 # api command variables
 FRONT_CMD ?= ${BUILD_DIR}/front
 LOCAL_ASSETS ?= ./web
-TEMPLATE_DIR ?= ./report/internal/front/templates
+TEMPLATE_DIR ?= ./report/internal/templates
 .PHONY: front-assets
 front-assets: get-govuk
 	@echo "- copying templates and local assets"

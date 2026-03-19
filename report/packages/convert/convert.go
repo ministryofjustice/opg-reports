@@ -23,6 +23,8 @@ func Between[R any](source any, destination R) (err error) {
 		var resp = source.(*http.Response)
 		defer resp.Body.Close()
 		bytes, err = io.ReadAll(resp.Body)
+	case []byte:
+		bytes = source.([]byte)
 	default:
 		bytes, err = json.MarshalIndent(source, "", "  ")
 		if err != nil {
@@ -51,6 +53,8 @@ func String(item any) (s string) {
 		s = strconv.Itoa(item.(int))
 	case float32, float64:
 		s = fmt.Sprintf("%g", item)
+	case []byte:
+		s = string(item.([]byte))
 	// case time.Time:
 	// 	s = item.(time.Time).Format(times.YM)
 	case *httptest.ResponseRecorder:

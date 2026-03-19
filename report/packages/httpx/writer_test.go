@@ -1,98 +1,70 @@
 package httpx
 
 import (
-	"fmt"
-	"html/template"
 	"net/http"
 	"net/http/httptest"
 	"opg-reports/report/packages/convert"
-	"opg-reports/report/packages/types"
-	"os"
-	"path/filepath"
 	"testing"
 )
 
 var (
-	w                           = &ResponseWriter{}
-	_ http.ResponseWriter       = w
-	_ types.HttpxResponseWriter = w
+	_ ResponseWriter = &jsonResponse{}
+	_ ResponseWriter = &htmlResponse{}
 )
 
-type testItem struct {
-	Name string `json:"name"`
+type tJSONDataResult struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
 }
 
-type testTmpl struct {
-	name  string
-	files []string
+type tJSONResponseExpected struct {
+	Code int
+	Type string
+	Data *tJSONDataResult
 }
 
-func (self *testTmpl) Name() string {
-	return self.name
-}
-func (self *testTmpl) WithName(n string) types.HttpxTemplater {
-	self.name = n
-	return self
-}
-func (self *testTmpl) Template() (tp *template.Template) {
-	tp, _ = template.New(self.name).Funcs(nil).ParseFiles(self.files...)
-	return
+type tJSONResponseTest struct {
+	SourceData any
+	Expected   *tJSONResponseExpected
 }
 
-func TestHttpxResponseWriterHTML(t *testing.T) {
-	dir := t.TempDir()
-	file := writeTemplate(dir)
+func TestHttpxWriterJSONResponse(t *testing.T) {
 
-	fx := func(ctx types.Contextx, t types.HttpxTemplater, w types.HttpxResponseWriter, r types.HttpxRequest) {
-		var data = map[string]string{
-			"Name":  "Foobar",
-			"Class": "heading",
+	var tests = []*tJSONResponseTest{
+		{
+			SourceData: &tJSONDataResult{Name: "test", Value: "foobar"},
+			Expected: &tJSONResponseExpected{
+				Code: http.StatusOK,
+				Type: jsonContentType,
+				Data: &tJSONDataResult{Name: "test", Value: "foobar"},
+			},
+		},
+	}
+
+	for i, test := range tests {
+		var res = &tJSONDataResult{}
+		var rr = httptest.NewRecorder()
+		var rw = NewJSONResponseWriter(rr)
+
+		actual, _ := rw.Bytes(test.SourceData)
+		// check status code
+		if rw.Status() != test.Expected.Code {
+			t.Errorf("[%d] response code expected to be [%d] but actually [%v]", i, test.Expected.Code, rw.Status())
 		}
-		w.Send(data, t)
-	}
-	tp := &testTmpl{name: "test", files: []string{file}}
-	mux := NewServeMux()
-	mux.HandleFuncx("/foo/{$}", tp, fx)
-	rr := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/foo/", nil)
-	mux.ServeHTTP(rr, req)
-
-	str := convert.String(rr)
-
-	if str != `<h1 class='heading'>Foobar</h1>` {
-		t.Errorf("html not returned correctly:\n%s", str)
-	}
-
-}
-
-func TestHttpxResponseWriterJSON(t *testing.T) {
-	mux := NewServeMux()
-	// add a dummy func that uses send..
-	fx := func(ctx types.Contextx, t types.HttpxTemplater, w types.HttpxResponseWriter, r types.HttpxRequest) {
-		var data = []testItem{}
-		for i := 0; i < 100000; i++ {
-			data = append(data, testItem{Name: fmt.Sprintf("name-%d", 100000+i)})
+		// check content type
+		_, ct := rw.ContentType()
+		if ct != test.Expected.Type {
+			t.Errorf("[%d] content type expected to be [%s] but actually [%v]", i, test.Expected.Type, ct)
 		}
-		w.Send(data, t)
-	}
-	mux.HandleFuncx("/foo/{$}", nil, fx)
+		// check data
+		convert.Between(actual, &res)
+		if res.Name != test.Expected.Data.Name {
+			t.Errorf("[%d] name expected to be [%s] but actually [%v]", i, test.Expected.Data.Name, res.Name)
+		}
+		if res.Value != test.Expected.Data.Value {
+			t.Errorf("[%d] value expected to be [%s] but actually [%v]", i, test.Expected.Data.Value, res.Value)
+		}
 
-	rr := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/foo/", nil)
-	mux.ServeHTTP(rr, req)
-
-	items := []testItem{}
-	convert.Between(rr, &items)
-
-	if len(items) != 100000 {
-		t.Errorf("incorrect number of items returned")
 	}
 
-}
-
-func writeTemplate(dir string) (file string) {
-	var template = `{{- define "test2" -}}Should not be rendered{{- end -}}{{- define "test" -}}<h1 class='{{ .Class }}'>{{ .Name }}</h1>{{- end -}}`
-	file = filepath.Join(dir, "test.html")
-	os.WriteFile(file, []byte(template), os.ModePerm)
-	return
 }

@@ -6,7 +6,6 @@ import (
 	"html/template"
 	"net/http"
 	"opg-reports/report/internal/config"
-	"opg-reports/report/internal/migrations"
 	"opg-reports/report/packages/httpx"
 	"opg-reports/report/packages/slogx"
 	"os"
@@ -15,14 +14,14 @@ import (
 )
 
 var (
-	cfg  *config.Config           // the main api config
+	cfg  *config.Config           // the main config
 	tmpl *template.Template = nil // api has an empty template
 )
 
 // main root command
 var root *cobra.Command = &cobra.Command{
-	Use:   "api",
-	Short: `api starts the main api handler command.`,
+	Use:   "front",
+	Short: `front starts the main api handler command.`,
 	RunE:  runCmd,
 }
 
@@ -34,26 +33,21 @@ func runCmd(cmd *cobra.Command, args []string) (err error) {
 		log    slogx.Logger    = slogx.FromContext(ctx)
 		mux    httpx.Mux       = httpx.NewMux(ctx, cfg, tmpl)
 	)
-	// run migrations
-	err = migrations.Migrate(ctx, cfg)
-	if err != nil {
-		log.Error(ctx, "error running migrations", "err", err.Error())
-	}
 
 	// create the server
 	server = &http.Server{
-		Addr:    cfg.ApiHostname(),
+		Addr:    cfg.FrontHostname(),
 		Handler: mux,
 	}
 
 	// attach endpoints
-	registerEndpoints(ctx, mux)
+	registerEndpoints(ctx, mux, cfg)
 
-	log.Info(ctx, `starting api server ...`,
-		"database", cfg.DBPath,
+	log.Info(ctx, `starting front server ...`,
 		"api host", fmt.Sprintf(`http://%s`, cfg.ApiHostname()),
+		"front host", fmt.Sprintf(`http://%s`, cfg.FrontHostname()),
 	)
-	defer log.Info(ctx, `shutting down api server ...`)
+	defer log.Info(ctx, `shutting down front server ...`)
 
 	// start the server
 	server.ListenAndServe()
@@ -62,8 +56,8 @@ func runCmd(cmd *cobra.Command, args []string) (err error) {
 
 func init() {
 	// setup the config and bind to the command
-	cfg = config.NewApi()
-	cfg.BindApi(root)
+	cfg = config.NewFront()
+	cfg.BindFront(root)
 }
 
 func main() {
