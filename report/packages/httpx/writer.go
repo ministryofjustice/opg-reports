@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"html/template"
 	"net/http"
 )
@@ -128,10 +127,9 @@ func (self *htmlResponse) BytesAndHeaders(sourceData any) (out []byte, err error
 	return
 }
 
-// NewResponseWriter
+// NewResponseWriter creates a new response writer from the w and the template details
 func NewResponseWriter(w http.ResponseWriter, tmpl *template.Template) ResponseWriter {
 	if tmpl != nil {
-		fmt.Println("HTML RESPONSE")
 		return NewHTMLResponseWriter(w, tmpl)
 	}
 	return NewJSONResponseWriter(w)

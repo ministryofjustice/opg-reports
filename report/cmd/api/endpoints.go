@@ -10,25 +10,25 @@ import (
 
 const versionPrefix string = `/v1`
 
-func registerEndpoints(ctx context.Context, mux httpx.Mux) {
+func registerEndpoints(ctx context.Context, mux httpx.MuxServer, cfg httpx.MuxConfigurer) {
 	// Home & ping..
 	// - home
-	mux.Register(`/{$}`, pingapi.Ping)
+	httpx.Register(ctx, mux, cfg, `/{$}`, nil, pingapi.Ping)
 	// - root ping
-	mux.Register(`/ping/{$}`, pingapi.Ping)
+	httpx.Register(ctx, mux, cfg, `/ping/{$}`, nil, pingapi.Ping)
 	// - versioned home
-	mux.Register(versionPrefix+`/{$}`, pingapi.Ping)
+	httpx.Register(ctx, mux, cfg, versionPrefix+`/{$}`, nil, pingapi.Ping)
 	// - versioned ping
-	mux.Register(versionPrefix+`/ping/{$}`, pingapi.Ping)
+	httpx.Register(ctx, mux, cfg, versionPrefix+`/ping/{$}`, nil, pingapi.Ping)
 
 	// Teams
 	// - teams list used for navigation
-	mux.Register(versionPrefix+`/teams/{$}`, teamapi.TeamsForNavigation)
+	httpx.Register(ctx, mux, cfg, versionPrefix+`/teams/{$}`, nil, teamapi.TeamsForNavigation)
 
 	// Accounts
 	// - list all accounts
-	mux.Register(versionPrefix+`/accounts/{$}`, accountapi.Accounts)
+	httpx.Register(ctx, mux, cfg, versionPrefix+`/accounts/{$}`, nil, accountapi.Accounts)
 	// - list all accounts with team filter
-	mux.Register(versionPrefix+`/accounts/team/{team}/{$}`, accountapi.Accounts)
+	httpx.Register(ctx, mux, cfg, versionPrefix+`/accounts/team/{team}/{$}`, nil, accountapi.Accounts)
 
 }

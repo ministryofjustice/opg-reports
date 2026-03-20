@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"html/template"
 	"net/http"
 	"opg-reports/report/internal/config"
 	"opg-reports/report/internal/migrations"
@@ -14,10 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	cfg  *config.Config           // the main api config
-	tmpl *template.Template = nil // api has an empty template
-)
+var cfg *config.Config // the main api config
 
 // main root command
 var root *cobra.Command = &cobra.Command{
@@ -32,7 +28,7 @@ func runCmd(cmd *cobra.Command, args []string) (err error) {
 		server *http.Server
 		ctx    context.Context = cmd.Context()
 		log    slogx.Logger    = slogx.FromContext(ctx)
-		mux    httpx.Mux       = httpx.NewMux(ctx, cfg, tmpl)
+		mux    httpx.MuxServer = httpx.NewMux()
 	)
 	// run migrations
 	err = migrations.Migrate(ctx, cfg)
@@ -47,7 +43,7 @@ func runCmd(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	// attach endpoints
-	registerEndpoints(ctx, mux)
+	registerEndpoints(ctx, mux, cfg)
 
 	log.Info(ctx, `starting api server ...`,
 		"database", cfg.DBPath,

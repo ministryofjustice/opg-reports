@@ -1,8 +1,11 @@
 package api
 
+import "opg-reports/report/packages/httpx"
+
 // Result is wrapper for the api data results
 type Result struct {
-	Accounts []*Account `json:"accounts"` // all accounts
+	httpx.ResponseData
+	Accounts []*Account `json:"data"`
 }
 
 // Account is used in the api result and contain

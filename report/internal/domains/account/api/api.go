@@ -45,7 +45,7 @@ func getSelect(filters *httpx.Filter) (stmt string) {
 
 // Accounts fetches all the account records and optionally filters
 // based on the team name passed along via the request
-func Accounts(ctx context.Context, m httpx.Mux, r httpx.FitleredRequest, cfg httpx.MuxConfig, response *httpx.ResponseContent) {
+func Accounts[T *Result](ctx context.Context, cfg httpx.MuxConfigurer, r httpx.FitleredRequest, response *Result) {
 	var (
 		err        error
 		db         *sql.DB = cfg.Connection()
@@ -60,8 +60,7 @@ func Accounts(ctx context.Context, m httpx.Mux, r httpx.FitleredRequest, cfg htt
 	if err != nil {
 		log.Error(ctx, "error getting data", "err", err.Error())
 	}
-	response.Data[label] = &Result{
-		Accounts: records,
-	}
+	response.Accounts = records
+
 	log.Info(ctx, "data fetch complete.", "label", label, "count", len(records))
 }

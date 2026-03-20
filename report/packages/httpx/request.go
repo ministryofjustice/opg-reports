@@ -1,9 +1,11 @@
 package httpx
 
 import (
+	"fmt"
 	"net/http"
 	"opg-reports/report/packages/convert"
 	"opg-reports/report/packages/ranges"
+	"strings"
 )
 
 var standardFields = []string{
@@ -25,6 +27,20 @@ type RequestData struct {
 	DateA     string        `json:"date_a,omitempty"`     // DateA used in date comparisons
 	DateB     string        `json:"date_b,omitempty"`     // DateB used in date comparisons
 	Team      string        `json:"team,omitempty"`       // Team name filters
+}
+
+// QueryString
+// Used in apiclient.QueryStringer
+func (self *RequestData) QueryString() (s string) {
+	s = ""
+	for k, v := range self.Map() {
+		s += fmt.Sprintf("%s=%s&", k, v)
+	}
+	if len(s) > 0 {
+		s = "?" + s
+	}
+	s = strings.Trim(s, "&")
+	return
 }
 
 // Request returns the original request

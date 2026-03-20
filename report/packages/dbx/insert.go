@@ -34,6 +34,6 @@ func Insert[T Insertable](ctx context.Context, statement string, records []T, db
 		}
 
 	}
-	log.Debug(ctx, "insert sql completed.")
+	log.Debug(ctx, "insert sql complete.")
 	return
 }

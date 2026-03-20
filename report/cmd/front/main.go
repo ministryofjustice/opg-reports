@@ -31,7 +31,7 @@ func runCmd(cmd *cobra.Command, args []string) (err error) {
 		server *http.Server
 		ctx    context.Context = cmd.Context()
 		log    slogx.Logger    = slogx.FromContext(ctx)
-		mux    httpx.Mux       = httpx.NewMux(ctx, cfg, tmpl)
+		mux    httpx.MuxServer = httpx.NewMux()
 	)
 
 	// create the server

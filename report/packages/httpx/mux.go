@@ -6,125 +6,161 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"opg-reports/report/internal/config"
+	"opg-reports/report/packages/instance"
 	"opg-reports/report/packages/slogx"
 )
 
-// Mux is the main interface exposed and used
-type Mux interface {
+// MuxHook is called after all the MuxResponder slice have been; intended to provide
+// a method of fetching same data form the same source for each page.
+//
+// Normally only used by the front / html server to fetch data for components that
+// are on every page - such as the team based navigation.
+type MuxHook func(ctx context.Context, cfg MuxConfigurer, r FitleredRequest, resp MuxResponseType)
+
+// MuxConfigurer exposes configureation methods provided by `config.Config` struct
+// that we want to be able to share within the both the html and json response
+// types
+type MuxConfigurer interface {
+	// Connection returns a database connection that api can use
+	Connection() *sql.DB
+	// Version provides the version signature (semver only)
+	Version() string
+	// GovukVersion returns the govuk version string without the v prefix
+	GovukVersion() string
+	// Directories returns a map of directory paths that the
+	// front end server would use
+	Directories() map[string]string
+	// Provides a template (possibly nil)
+	Template(name string) (*template.Template, error)
+	// ApiHostname
+	ApiHostname() string
+}
+
+// MuxServer is a wrapper around `*http.ServeMux` so we can share some methods
+type MuxServer interface {
 	http.Handler
-	// Handle is the http.ServeMux handler exposed for static asset mapping
+	//
 	Handle(pattern string, handler http.Handler)
 	// HandleFunc is the http.ServeMux handler exposed for static asset mapping
 	HandleFunc(pattern string, handler func(http.ResponseWriter, *http.Request))
-	// Register is how api & front attach url pattern to handler (alternative HandleFunc)
-	Register(pattern string, sources ...MuxResponseDataGetter)
-	// RequestHandler
-	RequestHandler(w http.ResponseWriter, r *http.Request, sources ...MuxResponseDataGetter)
 }
 
-// MuxConfig is used for exposing both connection and version details
-// and a way to get all config details setup
-type MuxConfig interface {
-	Connection() *sql.DB
-	Version() string
-	Conf() *config.Config
+// MuxResponseType is the interface for the response data and methods that the
+// mux would access to update / fetch data
+type MuxResponseType interface {
+	// TemplateName provides the template we want to use
+	// For api / json response this is generally nil
+	TemplateName() string
+	// SetVersion pushes the version string into the response object
+	SetVersion(v string)
+	// SetGovukVersion sets the gov uk version
+	SetGovukVersion(v string)
+	// SetRequestData pushes the processed incoming request data
+	// back on to the response
+	SetRequestData(rd *RequestData)
+	//
+	SetTeams(teams []string)
 }
 
-// MuxResponseDataGetter is a function alias for how a package can process data from
-// an api request
-type MuxResponseDataGetter func(ctx context.Context, m Mux, r FitleredRequest, cfg MuxConfig, response *ResponseContent)
+// MuxResponder is typed version of a function that will deal with the incoming
+// request, run queries etc and set values on the response object
+type MuxResponder[T MuxResponseType] func(ctx context.Context, cfg MuxConfigurer, r FitleredRequest, response T)
 
-// writerF is alias for the `NewResponseWriter` function that we'll use to
-// dynamically work out if this is html or not
-type writerF func(w http.ResponseWriter, tmpl *template.Template) ResponseWriter
-
-// Content is a general struct that is used to attach results for sending back
+// Register is a constrained  type function to register a handler to a url
+// endpoint pattern
 //
-// The `Data` attribute should be added to by each MuxResponseDataGetter within
-// their own scope, with json tags, to allow results to be returned as varying
-// structs
-type ResponseContent struct {
-	Version string            `json:"version"`
-	Request map[string]string `json:"request"`
-	Data    map[string]any    `json:"data"`
-}
-
-// mux is used to wrap around the built-in ServeMux but attaches
-// context and logger
-type mux struct {
-	*http.ServeMux
-	ctx        context.Context    // context
-	log        slogx.Logger       // logger
-	newWriterF writerF            // function to create a new writer
-	cfg        MuxConfig          // the version & db connection - used by api
-	tmpl       *template.Template // the complied tempalte - used by the front end
-
-}
-
-// Register is an extended version of HandleFunc to allow passing along of data sources
+// The typing being at this level allows each http request to return a
+// different type, so the mux can remain the same for each
 //
-// The sources are used within the handler function itself (`Handler`) to pull data
-// from multiple sources and return the appropirate values
-func (self *mux) Register(pattern string, sources ...MuxResponseDataGetter) {
-	var handlerF = self.RequestHandler
+//   - ctx is the active context, passed down from the starting command
+//   - mux is the main mux that we'll call HandleFunc on
+//   - cfg is configuration data used to fetch details that are set
+//     within the environment / cli arguments
+//   - hook is a post data source collection hook function, used to
+//     provide a mechanism for consistent data; such as fetching team
+//     names for the front end navigation thats used on every page
+//   - dataSources are functions to call that will operate on the
+//     repsonse data (T MuxResponseType) and update elements
+//     within themselves
+func Register[T MuxResponseType](
+	ctx context.Context,
+	mux MuxServer, cfg MuxConfigurer,
+	pattern string, hook MuxHook, dataSources ...MuxResponder[T]) {
 
-	self.log.Info(self.ctx, fmt.Sprintf(`registering endpoint [%s] to a handler`, pattern))
-	self.ServeMux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
-		handlerF(w, r, sources...)
+	var log slogx.Logger = slogx.FromContext(ctx)
+
+	log.Info(ctx, fmt.Sprintf(`registering endpoint [%s] to a handler`, pattern))
+	mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
+		RequestHandler(ctx, cfg, w, r, hook, dataSources...)
 	})
+
 }
 
-// Handler uses the data sources with the request data to generate a response.
+// RequestHandler is called from Register to trigger the
+// processing of an incoming request which will then call each
+// for the dataSource functions to process and return the result.
 //
-// Allows for multiple data sources attaching to the same pattern / response
-// so chaining is possible (formatting data to tables etc)
+// It converts the http request to a filter and sets the version
+// and request data on the response, to help reduce repeating
+// chunks of code.
 //
-// DB connection is created once per call and closed within.
-//
-// A new response writer of the configured type (writerF) is created once per
-// call to function
-//
-// Each source should contain any databaes calls / requirements needed
-func (self *mux) RequestHandler(w http.ResponseWriter, r *http.Request, sources ...MuxResponseDataGetter) {
+//   - ctx is the active context, passed down from the starting command
+//   - cfg is configuration data used to fetch details that are set
+//     within the environment / cli arguments
+//   - w & r are the standard http response writer and reader that
+//     are being passed along from the `HandleFunc`
+//   - hook is a post data source collection hook function, used to
+//     provide a mechanism for consistent data; such as fetching team
+//     names for the front end navigation thats used on every page
+//   - dataSources are functions to call that will operate on the
+//     repsonse data (T MuxResponseType) and update elements
+//     within themselves - these can be chained to mutate results
+//     with one function getting data from db and the next changing
+//     it to be structured like a table etc.
+func RequestHandler[T MuxResponseType](
+	ctx context.Context,
+	cfg MuxConfigurer,
+	w http.ResponseWriter, r *http.Request,
+	hook MuxHook,
+	dataSources ...MuxResponder[T]) {
+
 	var (
-		filtered *Filter
-		data     *ResponseContent
-		content  []byte
-		writer   = self.newWriterF(w, self.tmpl) // create a new writer using the attached func
-		count    = len(sources)
+		err         error
+		content     []byte
+		writer      ResponseWriter
+		tmpl        *template.Template
+		data        T            = instance.Of[T]()
+		count       int          = len(dataSources)
+		log         slogx.Logger = slogx.FromContext(ctx)
+		requestData *RequestData = ValuesFromRequest(r)
+		filtered    *Filter      = RequestDataToFilter(requestData)
 	)
 
-	self.log.Info(self.ctx, "handler triggered for request", "request", r.RequestURI)
-	defer self.log.Info(self.ctx, "handler completed.", "request", r.RequestURI)
-	// setup filter & request values from the original request
-	filtered = RequestDataToFilter(ValuesFromRequest(r))
+	data.SetVersion(cfg.Version())
+	data.SetGovukVersion(cfg.GovukVersion())
+	data.SetRequestData(requestData)
 
-	// setup the standard request map
-	data = &ResponseContent{
-		Version: self.cfg.Version(),
-		Request: filtered.RequestData().Map(),
-		Data:    map[string]any{},
+	for i, sourceF := range dataSources {
+		log.Info(ctx, fmt.Sprintf("[%d/%d] getting data source content", i+1, count), "request", r.RequestURI)
+		sourceF(ctx, cfg, filtered, data)
 	}
-	// loop over all the data getter sources and call each one in turn
-	for i, srcF := range sources {
-		self.log.Info(self.ctx, fmt.Sprintf("[%d/%d] getting data source content", i+1, count), "request", r.RequestURI)
-		srcF(self.ctx, self, filtered, self.cfg, data)
+
+	// run hooks
+	if hook != nil {
+		hook(ctx, cfg, filtered, data)
 	}
-	// write the data
+	// get the template
+	tmpl, err = cfg.Template(data.TemplateName())
+	if err != nil {
+		log.Error(ctx, "error getting the template for the request", "err", err.Error())
+	}
+	// write the content out
+	writer = NewResponseWriter(w, tmpl)
 	content, _ = writer.BytesAndHeaders(data)
 	writer.Write(content)
 }
 
-// NewMux create a new instance of mux
-func NewMux(ctx context.Context, cfg MuxConfig, tmpl *template.Template) Mux {
-
-	return &mux{
-		ServeMux:   http.NewServeMux(),
-		ctx:        ctx,
-		log:        slogx.FromContext(ctx),
-		cfg:        cfg,
-		tmpl:       tmpl,
-		newWriterF: NewResponseWriter,
-	}
+func NewMux() MuxServer {
+	var s = http.NewServeMux()
+	return s
 }

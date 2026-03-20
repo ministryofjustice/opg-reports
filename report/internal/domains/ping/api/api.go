@@ -9,7 +9,7 @@ import (
 const label string = `get-ping`
 
 // Ping returns a virtually empty endpoint for simple connection confirmation
-func Ping(ctx context.Context, m httpx.Mux, r httpx.FitleredRequest, cfg httpx.MuxConfig, response *httpx.ResponseContent) {
+func Ping[T httpx.ResponseData](ctx context.Context, cfg httpx.MuxConfigurer, r httpx.FitleredRequest, response *httpx.ResponseData) {
 	var log = slogx.FromContext(ctx)
 	log.Info(ctx, "ping recieved.")
 }

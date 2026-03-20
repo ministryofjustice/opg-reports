@@ -2,49 +2,61 @@ package httpx
 
 import (
 	"context"
-	"html/template"
 	"net/http"
 	"net/http/httptest"
+	"opg-reports/report/internal/config"
 	"opg-reports/report/packages/convert"
+	"opg-reports/report/packages/fmtx"
 	"os"
 	"path/filepath"
 	"testing"
 )
 
 var (
-	_ Mux = &mux{}
+	_ MuxResponder[*testResponse]     = setResponseName
+	_ MuxResponder[*testResponse]     = setResponseValue
+	_ MuxResponder[*testHTMLResponse] = setResponseHTML
 )
 
-type tSimpleStruct struct {
+type testResponse struct {
+	ResponseData
 	Name  string `json:"name"`
 	Value string `json:"value"`
 }
 
-func setName(ctx context.Context, m Mux, r FitleredRequest, cfg MuxConfig, response *ResponseContent) {
-	response.Data["test"] = &tSimpleStruct{Name: "foobar"}
-}
-func setValue(ctx context.Context, m Mux, r FitleredRequest, cfg MuxConfig, response *ResponseContent) {
-	s := response.Data["test"].(*tSimpleStruct)
-	s.Value = "added"
+type testHTMLResponse struct {
+	ResponseData
+	Class string `json:"class"`
+	Title string `json:"title"`
 }
 
-func htmlTest(ctx context.Context, m Mux, r FitleredRequest, cfg MuxConfig, response *ResponseContent) {
-	response.Data["html"] = map[string]string{
-		"class": "test-class-name",
-		"title": "Page Title!",
-	}
+func (self *testHTMLResponse) TemplateName() string {
+	return `test`
 }
 
-func TestHttpxMuxRequestHandlerJSON(t *testing.T) {
+func setResponseName[T *testResponse](ctx context.Context, cfg MuxConfigurer, r FitleredRequest, response *testResponse) {
+	response.Name = "foo"
+}
+func setResponseValue[T *testResponse](ctx context.Context, cfg MuxConfigurer, r FitleredRequest, response *testResponse) {
+	response.Value = "bar"
+}
+func setResponseHTML[T *testHTMLResponse](ctx context.Context, cfg MuxConfigurer, r FitleredRequest, response *testHTMLResponse) {
+	response.Class = `test-class-name`
+	response.Title = `Page Title!`
+}
 
-	// simple test to return a json message object
-	mux := NewMux(t.Context(), nil, nil)
+func TestHttpxMuxRequestHandlerAsJSON(t *testing.T) {
+	// setup the  config & server
+	cfg := config.NewApi()
+	mux := NewMux()
+	// create a test request and recorder to capture it
 	rr := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, `/foo/bar/?date_start=2025-12`, nil)
-	// attach multiple functions to the endpoint
-	mux.Register(`/foo/bar/{$}`, setName, setValue)
+	// register the end point - chain functions to update different parts
+	Register(t.Context(), mux, cfg, `/foo/bar/{$}`, nil, setResponseName, setResponseValue)
+	// process the end point
 	mux.ServeHTTP(rr, req)
-
+	// grab the result
 	resp := rr.Result()
 	// check the result returns correctly
 	if resp.StatusCode != http.StatusOK {
@@ -55,37 +67,37 @@ func TestHttpxMuxRequestHandlerJSON(t *testing.T) {
 		t.Errorf("content type not as expected: [%v]", rr.Header().Get(contentTypeHeader))
 	}
 
-	// now check results..
-	res := &ResponseContent{}
-	tester := &tSimpleStruct{}
+	res := &testResponse{}
 	convert.Between(resp, &res)
-	convert.Between(res.Data["test"], &tester)
 
-	if tester.Name != "foobar" {
+	if res.Name != "foo" {
 		t.Errorf("returned name does not match expected value")
 	}
-	if tester.Value != "added" {
+	if res.Value != "bar" {
 		t.Errorf("returned value does not match expected value")
 	}
 
 }
 
-func TestHttpxMuxRequestHandlerHTML(t *testing.T) {
-
-	tmpl, e := tmpl(writeTemplate(t.TempDir()))
-	if e != nil {
-		t.Errorf("unexpected template error: %s", e.Error())
-		t.FailNow()
-	}
-
-	// simple test to return a json message object
-	mux := NewMux(t.Context(), nil, tmpl)
+func TestHttpxMuxRequestHandlerAsHTML(t *testing.T) {
+	cfg := config.NewFront()
+	// write the template and change the directory path
+	dir := t.TempDir()
+	writeTemplate(dir)
+	cfg.Root = `/`
+	cfg.TemplateAssetPath = dir
+	// create a new mux
+	mux := NewMux()
+	// create a test request and recorder to capture it
 	rr := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, `/html/foo/bar/?date_start=2025-12`, nil)
-	// attach multiple functions to the endpoint
-	mux.Register(`/html/foo/bar/{$}`, htmlTest)
-	mux.ServeHTTP(rr, req)
 
+	fmtx.Dump(cfg)
+	// register the end point
+	Register(t.Context(), mux, cfg, `/html/foo/bar/{$}`, nil, setResponseHTML)
+	// process the end point
+	mux.ServeHTTP(rr, req)
+	// grab the result
 	resp := rr.Result()
 	// check the result returns correctly
 	if resp.StatusCode != http.StatusOK {
@@ -95,50 +107,20 @@ func TestHttpxMuxRequestHandlerHTML(t *testing.T) {
 	if resp.Header.Get(contentTypeHeader) != htmlContentType {
 		t.Errorf("content type not as expected: [%v]", rr.Header().Get(contentTypeHeader))
 	}
-
-	// now check results..
-	// res := &ResponseContent{}
 	res := convert.String(resp)
 	expected := `<h1 class='h-test-class-name'>Page Title!</h1>`
 	if res != expected {
-		t.Errorf("html does not match expected value")
+		t.Errorf("html does not match expected value: [%s]", res)
 	}
-
-}
-
-func tmpl(file string) (*template.Template, error) {
-	return template.New("test").Funcs(tmplFunc()).ParseFiles(file)
-}
-
-func tmplFunc() (funcs template.FuncMap) {
-	funcs = map[string]interface{}{
-		// generic value fetcher from the result struct
-		// "V": func(key string, name string, data map[string]any) any {
-		// 	var v any
-		// 	if segment, ok := data[key]; ok {
-		// 		var seg = segment.(map[string]interface{})
-		// 		if val, ok := seg[name]; ok {
-		// 			v = val
-		// 		}
-		// 	}
-		// 	return v
-		// },
-	}
-
-	return
 }
 
 var htmltemplate = `
 {{- define "test" -}}
-	{{- $pg := index .Data "html" -}}
-	{{- $class := index $pg "class" -}}
-	{{- $title := index $pg "title" -}}
-	<h1 class='h-{{ $class }}'>{{ $title }}</h1>
+	<h1 class='h-{{ .Class }}'>{{ .Title }}</h1>
 {{- end -}}
 `
 
 func writeTemplate(dir string) (file string) {
-
 	file = filepath.Join(dir, "test.html")
 	os.WriteFile(file, []byte(htmltemplate), os.ModePerm)
 	return

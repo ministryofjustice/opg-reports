@@ -1,8 +1,11 @@
 package api
 
+import "opg-reports/report/packages/httpx"
+
 // Result is wrapper for the api data results
 type Result struct {
-	Teams []*Team `json:"teams"` // all teams
+	httpx.ResponseData
+	Teams []string `json:"data"`
 }
 
 // Team is used for the api and import setup to

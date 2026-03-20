@@ -41,18 +41,18 @@ VALUES
 func TestDomainsAccountApiHandler(t *testing.T) {
 	var (
 		ctx    = t.Context()
-		conn   = config.NewApi()
+		cfg    = config.NewApi()
 		dir    = t.TempDir()
 		dbpath = filepath.Join(dir, "test-handler.db")
 	)
 	// setup a small test db
-	conn.DBPath = dbpath
-	testSeed(ctx, conn, t)
+	cfg.DBPath = dbpath
+	testSeed(ctx, cfg, t)
 
 	// create the mux with the db connection, but not template - so json
-	mux := httpx.NewMux(ctx, conn, nil)
+	mux := httpx.NewMux()
 	// register the handler
-	mux.Register(`/accounts/{$}`, Accounts)
+	httpx.Register(ctx, mux, cfg, `/accounts/{$}`, nil, Accounts)
 	// setup the test call with no filters
 	rr := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, `/accounts/?team=test-team-b`, nil)
@@ -60,10 +60,8 @@ func TestDomainsAccountApiHandler(t *testing.T) {
 	mux.ServeHTTP(rr, req)
 	resp := rr.Result()
 
-	response := &httpx.ResponseContent{}
 	result := &Result{}
-	convert.Between(resp, &response)
-	convert.Between(response.Data[label], &result)
+	convert.Between(resp, &result)
 
 	if len(result.Accounts) != 1 {
 		t.Errorf("should only be one account for test-team-b")

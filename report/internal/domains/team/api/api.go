@@ -29,7 +29,7 @@ ORDER BY
 // TeamsForNavigation fetches all the teams that we want to
 // be shown within the front navigation, so it skips the org
 // and legacy values
-func TeamsForNavigation(ctx context.Context, m httpx.Mux, r httpx.FitleredRequest, cfg httpx.MuxConfig, response *httpx.ResponseContent) {
+func TeamsForNavigation[T *Result](ctx context.Context, cfg httpx.MuxConfigurer, r httpx.FitleredRequest, response *Result) {
 	var (
 		err        error
 		db         *sql.DB = cfg.Connection()
@@ -44,8 +44,11 @@ func TeamsForNavigation(ctx context.Context, m httpx.Mux, r httpx.FitleredReques
 	if err != nil {
 		log.Error(ctx, "error getting data", "err", err.Error())
 	}
-	response.Data[label] = &Result{
-		Teams: records,
+	// set the team data
+	response.Teams = []string{}
+	for _, record := range records {
+		response.Teams = append(response.Teams, record.Name)
 	}
+
 	log.Info(ctx, "data fetch complete.", "label", label, "count", len(records))
 }
