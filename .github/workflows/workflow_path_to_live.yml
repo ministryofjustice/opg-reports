@@ -53,19 +53,19 @@ jobs:
       # terraform account version
       - name: "Parse terraform account version"
         id: terraform_account_version
-        uses: ministryofjustice/opg-github-actions/actions/terraform-version@b8868247a908f74fafe1905701391580575a6d35 # v4.3.10
+        uses: ministryofjustice/opg-github-actions/actions/terraform-version@4daa651011e6595c5b9689c4ff634cd15221a206 # v4.3.11
         with:
           terraform_directory: ./terraform/account
       # terraform env version
       - name: "Parse terraform environment version"
         id: terraform_environment_version
-        uses: ministryofjustice/opg-github-actions/actions/terraform-version@b8868247a908f74fafe1905701391580575a6d35 # v4.3.10
+        uses: ministryofjustice/opg-github-actions/actions/terraform-version@4daa651011e6595c5b9689c4ff634cd15221a206 # v4.3.11
         with:
           terraform_directory: ./terraform/environment
       # SEMVER generation
       - name: "Semver tag"
         id: "semver"
-        uses: ministryofjustice/opg-github-actions/actions/semver@b8868247a908f74fafe1905701391580575a6d35 # v4.3.10
+        uses: ministryofjustice/opg-github-actions/actions/semver@4daa651011e6595c5b9689c4ff634cd15221a206 # v4.3.11
         with:
           create_release: "false" # dont create the release at the moment
           prerelease: ${{ env.PRERELEASE }}
@@ -185,7 +185,7 @@ jobs:
       # checkout self
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       # setup ssh keys
-      - uses: webfactory/ssh-agent@a6f90b1f127823b31d4d4a8d96047790581349bd # v0.9.1
+      - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555 # v0.10.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_EXTERNAL_MODULES }}
       # configure the aws role
@@ -230,7 +230,7 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
       - name: "Create release [${{ needs.setup.outputs.semver_tag }}]"
-        uses: ministryofjustice/opg-github-actions/actions/release@b8868247a908f74fafe1905701391580575a6d35 # v4.3.10
+        uses: ministryofjustice/opg-github-actions/actions/release@4daa651011e6595c5b9689c4ff634cd15221a206 # v4.3.11
         with:
           tag: ${{ needs.setup.outputs.semver_tag }}
           prerelease: ${{ env.PRERELEASE }}
