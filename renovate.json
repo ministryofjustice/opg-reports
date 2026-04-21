@@ -23,6 +23,7 @@
     ],
     "branchConcurrentLimit": 0,
     "separateMultipleMajor": true,
+    "minimumReleaseAge": "7 days",
     "lockFileMaintenance": {
         "enabled": false
     },
@@ -43,7 +44,6 @@
             ],
             "prCreation": "immediate",
             "prPriority": 4,
-            "minimumReleaseAge": "5 days",
             "matchPackageNames": [
                 "*"
             ]
@@ -62,7 +62,6 @@
             ],
             "prCreation": "immediate",
             "prPriority": 4,
-            "minimumReleaseAge": "5 days",
             "matchManagers": [
                 "terraform"
             ]
@@ -75,7 +74,6 @@
             "Renovate"
         ],
         "prCreation": "immediate",
-        "minimumReleaseAge": "3 days"
     },
     "vulnerabilityAlerts": {
         "enabled": true
