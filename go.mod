@@ -11,6 +11,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.42.1
 	github.com/gofri/go-github-ratelimit/v2 v2.0.2
 	github.com/google/go-github/v84 v84.0.0
+	github.com/google/go-github/v86 v86.0.0
 	github.com/mattn/go-sqlite3 v1.14.44
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/text v0.36.0
