@@ -2,25 +2,28 @@ package teamrepositories
 
 import (
 	"context"
-	"opg-reports/app/internal/fmtx"
 	"opg-reports/app/internal/ghdata/ghclient"
-	"opg-reports/app/internal/ghdata/ghconfig"
+	"opg-reports/app/internal/ghdata/ghfilters"
 	"testing"
 
 	"github.com/google/go-github/v87/github"
 )
 
-// TestGetDataActual uses real api connection and client
-// to fetch repositories
-func TestGetDataActual(t *testing.T) {
+// TestTeamRepositoriesGetDataActual uses real api connection and client
+// to fetch data
+func TestTeamRepositoriesGetDataActual(t *testing.T) {
 	var (
-		err    error
-		client *github.Client
-		res    []*github.Repository
-		src    *Source[*github.TeamsService, *github.Repository]
-		token  string           = ghclient.Token()
-		ctx    context.Context  = t.Context()
-		cfg    *ghconfig.Config = ghconfig.New("ministryofjustice", "opg")
+		err     error
+		client  *github.Client
+		res     []*github.Repository
+		skipped []any
+		src     *Source[*github.TeamsService, *github.Repository]
+		token   string          = ghclient.Token()
+		ctx     context.Context = t.Context()
+		cfg     *Config         = &Config{
+			OrganisationSlug: "ministryofjustice",
+			TeamSlug:         "opg",
+		}
 	)
 	// if theres no github token, skip this test
 	if token == "" {
@@ -35,9 +38,32 @@ func TestGetDataActual(t *testing.T) {
 
 	// now create the data source
 	src, err = New[*github.TeamsService, *github.Repository](ctx, client.Teams, cfg)
+	if err != nil {
+		t.Errorf("unexpected error creating source: %s", err.Error())
+		t.FailNow()
+	}
+	// test fetching the data
+	res, _, err = src.GetData()
+	if len(res) <= 0 {
+		t.Errorf("failed to find any repositories.")
+	}
 
-	res, err = src.GetData()
-	fmtx.Printj(res)
+	// now test this with a filter removes archived values
+	src, err = New[*github.TeamsService, *github.Repository](ctx, client.Teams, cfg, &ghfilters.ExcludeArchivedRepository{})
+	// test fetching the data
+	res, skipped, err = src.GetData()
+	if len(res) <= 0 {
+		t.Errorf("failed to find any repositories.")
+	}
+	// should have some repos skipped
+	if len(skipped) == 0 {
+		t.Errorf("expected some repositories to be skipped as they are archived..")
+	}
 
-	t.FailNow()
+	// now check that results are not archived
+	for _, r := range res {
+		if *r.Archived {
+			t.Errorf("unexpected archived repo: [%s]", *r.FullName)
+		}
+	}
 }

@@ -9,7 +9,6 @@ package logx
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"os"
 	"strings"
@@ -113,11 +112,9 @@ func get(ctx context.Context) (c context.Context, logger *slog.Logger, existingL
 	existingLogger = false
 
 	if v := c.Value(ctxKey); v != nil {
-		fmt.Println("found logger")
 		logger = v.(*slog.Logger)
 		existingLogger = true
 	} else {
-		fmt.Println("new logger")
 		c, logger = New(c, nil, nil)
 	}
 

@@ -11,7 +11,7 @@ import (
 //
 // Used to create a output friently version of a complext struct
 // which can be viewed in logs / cli
-func Sprintj[T any](item T) (s string) {
+func Sprintj(item any) (s string) {
 	var str = ""
 	bytes, err := json.MarshalIndent(item, "", "  ")
 	if err == nil {
@@ -28,6 +28,8 @@ func Sprintj[T any](item T) (s string) {
 //
 // Intended to be used for debugging / outputting complex
 // structs to see nested values etc
-func Printj(item any) {
-	fmt.Println(Sprintj(item))
+func Printj(items ...any) {
+	for _, item := range items {
+		fmt.Println(Sprintj(item))
+	}
 }
