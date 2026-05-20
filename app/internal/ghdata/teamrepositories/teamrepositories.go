@@ -31,6 +31,7 @@ type Result interface {
 
 // Client is an interface for *github.TeamsService
 type Client interface {
+	// https://docs.github.com/en/rest/teams/teams#list-team-repositories
 	ListTeamReposBySlug(ctx context.Context, orgSlug string, teamSlug string, opts *github.ListOptions) ([]*github.Repository, *github.Response, error)
 }
 

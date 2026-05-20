@@ -41,7 +41,7 @@ type Client interface {
 // github.WorkflowRuns
 // Used to find path to live runs of a workflow for a set of repositories - part of code releases
 type Result interface {
-	*github.Repository | *github.WorkflowRuns | *github.PullRequest
+	*github.Repository | *github.WorkflowRun | *github.PullRequest
 }
 
 // GitHubData interface exposes the main methods used for fetching data

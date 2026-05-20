@@ -116,7 +116,7 @@ func (self *Source[C, R]) allWorkflowRuns() (results []R, skipped []any, err err
 
 	// loop over each repo
 	for i, repo := range self.cfg.Repositories {
-		lg.Info(fmt.Sprintf("[%d/%d] (%s)", i+1, total, *repo.FullName))
+		lg.Debug(fmt.Sprintf("[%d/%d] (%s)", i+1, total, *repo.FullName))
 		// fetch the runs within the date range we've worked out
 		res, e := self.workflowRunsWithinDateRanges(repo, dates)
 		if e != nil {
