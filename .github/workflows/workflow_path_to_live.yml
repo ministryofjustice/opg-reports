@@ -13,6 +13,7 @@ permissions:
   actions: read
   contents: write
   id-token: write
+  security-events: write
 
 env:
   BUILD_DIR: "./builds"
@@ -168,6 +169,7 @@ jobs:
           tag: ${{ needs.setup.outputs.semver_tag }}
           dockerfile: "./docker/${{ matrix.image }}/Dockerfile"
           path_to_live: ${{ env.PATH_TO_LIVE }}
+          snyk_token: ${{ secrets.SNYK_OPG_ORG_TOKEN }}
       # listing
       - name: "[${{ matrix.image }}] List build directory"
         run: ls -lhRt ./builds/
@@ -191,10 +193,9 @@ jobs:
         id: configure_aws_creds
         uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
+          role-to-assume: "arn:aws:iam::631181914621:role/oidc-opg-reports-production"
           aws-region: "eu-west-1"
-          role-session-name: reports-pull-request-github-action-terraform
+          role-session-name: reports-path-to-live-github-action-terraform
       - name: "Account level terraform"
         uses: ./.github/actions/terraform
         with:
@@ -234,11 +235,46 @@ jobs:
           prerelease: ${{ env.PRERELEASE }}
           github_token: ${{ github.token }}
 
+  snyk_iac:
+    name: "Snyk IaC scan"
+    runs-on: ubuntu-24.04
+    needs:
+      - setup
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: "Configure AWS credentials"
+        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
+        with:
+          aws-region: eu-west-1
+          role-to-assume: ${{ env.ecr_role }}
+          role-duration-seconds: 3600
+          role-session-name: reports-snyk-iac
+      - name: "ECR Login"
+        id: login_ecr
+        uses: aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419 # v2.1.5
+        with:
+          mask-password: true
+          registries: ${{ env.ecr_registry }}
+      - name: "Snyk IaC"
+        id: snyk_iac
+        uses: ministryofjustice/opg-github-actions/actions/snyk-iac@9e8b7c2fb29c11e77b12913f74459fa48b11829f # v4.8.2
+        with:
+          iac_test_directory: "./terraform/environment/"
+          sarif_filename: "snyk-iac.sarif"
+          SNYK_TOKEN: ${{ secrets.SNYK_OPG_ORG_TOKEN }}
+      - name: "Upload Snyk IaC scan results to GitHub Security tab"
+        uses: github/codeql-action/upload-sarif@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # v4.35.2
+        if: always()
+        with:
+          category: "Terraform"
+          sarif_file: "test-results/snyk-iac.sarif"
+
   # final step
   end:
     name: "End"
     runs-on: ubuntu-24.04
     needs:
       - release
+      - snyk_iac
     steps:
       - run: echo "End"
