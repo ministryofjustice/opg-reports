@@ -20,7 +20,8 @@ env:
   PATH_TO_LIVE: "false"
   # db
   bucket: "opg-reports-development"
-  bucket_role: "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
+  bucket_role:
+    "arn:aws:iam::679638075911:role/opg-reports-github-actions-s3"
     # images
   image_prefix: "development"
   # ecr
@@ -28,7 +29,6 @@ env:
   ecr_role: "arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
   # terraform
   terraform_workspace: "development"
-
 
 jobs:
   # setup variables we'll use in the steps
@@ -90,7 +90,7 @@ jobs:
         uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
         with:
           cache: true
-          go-version-file: './go.mod'
+          go-version-file: "./go.mod"
       # run tests
       - name: "Run tests"
         run: |
@@ -121,7 +121,7 @@ jobs:
         uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
         with:
           cache: false
-          go-version-file: './go.mod'
+          go-version-file: "./go.mod"
       # build
       - name: "[${{ matrix.image }}] Make - build-cmds"
         run: |
@@ -183,10 +183,10 @@ jobs:
     steps:
       # checkout self
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      # setup ssh keys
-      - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555 # v0.10.0
+      #  setup ssh keys using deploy key composite action
+      - uses: ministryofjustice/opg-github-actions/actions/github-deploy-key@ceeda9d30ec7f6705c819d0b7664b9a79df99a3b # v4.8.7
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_EXTERNAL_MODULES }}
+          deploy_key: ${{ secrets.SSH_PRIVATE_KEY_EXTERNAL_MODULES }}
       # configure the aws role
       - name: "Configure AWS credentials for terraform"
         id: configure_aws_creds
@@ -237,7 +237,7 @@ jobs:
 
   # final step
   end:
-    name: 'End'
+    name: "End"
     runs-on: ubuntu-24.04
     needs:
       - release
