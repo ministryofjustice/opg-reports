@@ -27,6 +27,7 @@ env:
   # ecr
   ecr_registry: "311462405659"
   ecr_role: "arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
+  ecr_pull_role: "arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-pull"
   # terraform
   terraform_workspace: "production"
 
@@ -150,14 +151,6 @@ jobs:
           db: ${{ steps.db_download.outputs.DB }}
         run: |
           ${{ env.BUILD_DIR }}/migrate --db="${{ env.db }}"
-      # Swap AWS creds for ECR usage
-      - name: "[${{ matrix.image }}] Configure AWS credentials for ECR"
-        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
-        with:
-          aws-region: "eu-west-1"
-          role-duration-seconds: 900
-          role-to-assume: ${{ env.ecr_role }}
-          role-session-name: reports-ecr-access
       # build the image
       - name: "[${{ matrix.image }}] Build and push image"
         id: build_image
@@ -170,6 +163,8 @@ jobs:
           dockerfile: "./docker/${{ matrix.image }}/Dockerfile"
           path_to_live: ${{ env.PATH_TO_LIVE }}
           snyk_token: ${{ secrets.SNYK_OPG_ORG_TOKEN }}
+          ecr_pull_role_arn: ${{ env.ecr_pull_role }}
+          ecr_push_role_arn: ${{ env.ecr_role }}
       # listing
       - name: "[${{ matrix.image }}] List build directory"
         run: ls -lhRt ./builds/
@@ -246,7 +241,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
         with:
           aws-region: eu-west-1
-          role-to-assume: ${{ env.ecr_role }}
+          role-to-assume: ${{ env.ecr_pull_role }}
           role-duration-seconds: 3600
           role-session-name: reports-snyk-iac
       - name: "ECR Login"
