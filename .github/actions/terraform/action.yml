@@ -27,6 +27,9 @@ inputs:
   ecr_pull_role_arn:
     description: "IAM role ARN with ECR pull permissions for the Snyk scanner image."
     required: true
+  terraform_role_arn:
+    description: "IAM role ARN to re-assume after Snyk to restore terraform credentials."
+    required: true
 
 
 runs:
@@ -45,36 +48,6 @@ runs:
       if: ${{ inputs.lint == 'true' }}
       run: |
         terraform fmt -check -recursive
-    # run the terraform init
-    - name: "Init"
-      id: init
-      shell: bash
-      working-directory: ${{ inputs.directory }}
-      run: |
-        terraform init -input=false -lock-timeout=300s
-    # run the terraform plan and output that to a file for use in apply
-    - name: "Plan"
-      id: plan
-      shell: bash
-      working-directory: ${{ inputs.directory }}
-      env:
-        TF_WORKSPACE: ${{ inputs.workspace }}
-        PLAN_FILE: ${{ inputs.workspace }}.plan
-      run: |
-        echo -e "workspace:"
-        terraform workspace show
-        terraform plan -lock-timeout=300s -input=false -out=${{ env.PLAN_FILE }} -parallelism=30
-    # run the terraform applt (if true) from the plan file
-    - name: "Apply [apply: ${{ inputs.apply == 'true' }}]"
-      id: apply
-      shell: bash
-      working-directory: ${{ inputs.directory }}
-      if: ${{ inputs.apply == 'true' }}
-      env:
-        TF_WORKSPACE: ${{ inputs.workspace }}
-        PLAN_FILE: ${{ inputs.workspace }}.plan
-      run: |
-        terraform apply -lock-timeout=300s -input=false -auto-approve -parallelism=30 ${{ env.PLAN_FILE }}
     # derive sarif names from the terraform directory
     - name: "Compute Snyk SARIF names"
       id: snyk_names
@@ -113,3 +86,41 @@ runs:
       with:
         category: "${{ steps.snyk_names.outputs.category }}"
         sarif_file: "test-results/${{ steps.snyk_names.outputs.filename }}"
+    # configure terraform credentials before init/plan/apply
+    - name: "Configure AWS credentials (terraform)"
+      uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+      with:
+        aws-region: eu-west-1
+        role-to-assume: ${{ inputs.terraform_role_arn }}
+        role-duration-seconds: 900
+        role-session-name: reports-terraform
+    # run the terraform init
+    - name: "Init"
+      id: init
+      shell: bash
+      working-directory: ${{ inputs.directory }}
+      run: |
+        terraform init -input=false -lock-timeout=300s
+    # run the terraform plan and output that to a file for use in apply
+    - name: "Plan"
+      id: plan
+      shell: bash
+      working-directory: ${{ inputs.directory }}
+      env:
+        TF_WORKSPACE: ${{ inputs.workspace }}
+        PLAN_FILE: ${{ inputs.workspace }}.plan
+      run: |
+        echo -e "workspace:"
+        terraform workspace show
+        terraform plan -lock-timeout=300s -input=false -out=${{ env.PLAN_FILE }} -parallelism=30
+    # run the terraform applt (if true) from the plan file
+    - name: "Apply [apply: ${{ inputs.apply == 'true' }}]"
+      id: apply
+      shell: bash
+      working-directory: ${{ inputs.directory }}
+      if: ${{ inputs.apply == 'true' }}
+      env:
+        TF_WORKSPACE: ${{ inputs.workspace }}
+        PLAN_FILE: ${{ inputs.workspace }}.plan
+      run: |
+        terraform apply -lock-timeout=300s -input=false -auto-approve -parallelism=30 ${{ env.PLAN_FILE }}

@@ -184,14 +184,6 @@ jobs:
       - uses: ministryofjustice/opg-github-actions/actions/github-deploy-key@ceeda9d30ec7f6705c819d0b7664b9a79df99a3b # v4.8.7
         with:
           deploy_key: ${{ secrets.SSH_PRIVATE_KEY_EXTERNAL_MODULES }}
-      # configure the aws role
-      - name: "Configure AWS credentials for terraform"
-        id: configure_aws_creds
-        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
-        with:
-          role-to-assume: "arn:aws:iam::631181914621:role/oidc-opg-reports-development"
-          aws-region: "eu-west-1"
-          role-session-name: reports-pull-request-github-action-terraform
       - name: "Account level terraform"
         uses: ./.github/actions/terraform
         with:
@@ -202,6 +194,7 @@ jobs:
           snyk_token: ${{ secrets.SNYK_OPG_ORG_TOKEN }}
           ecr_registry: ${{ env.ecr_registry }}
           ecr_pull_role_arn: ${{ env.ecr_pull_role }}
+          terraform_role_arn: "arn:aws:iam::631181914621:role/oidc-opg-reports-development"
       - name: "Environment level terraform"
         uses: ./.github/actions/terraform
         env:
@@ -217,6 +210,7 @@ jobs:
           snyk_token: ${{ secrets.SNYK_OPG_ORG_TOKEN }}
           ecr_registry: ${{ env.ecr_registry }}
           ecr_pull_role_arn: ${{ env.ecr_pull_role }}
+          terraform_role_arn: "arn:aws:iam::631181914621:role/oidc-opg-reports-development"
   # release this version
   release:
     name: "Create release"
