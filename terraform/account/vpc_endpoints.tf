@@ -13,8 +13,10 @@ resource "aws_vpc_endpoint" "s3" {
 
 data "aws_iam_policy_document" "s3_vpc_endpoint" {
   statement {
-    sid       = "ReportsS3VpcEndpointPolicy"
-    actions   = ["*"]
+    sid = "ReportsS3VpcEndpointPolicy"
+    actions = [
+      "s3:*"
+    ]
     resources = ["*"]
     principals {
       type        = "*"
