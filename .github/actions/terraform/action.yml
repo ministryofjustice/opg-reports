@@ -18,6 +18,18 @@ inputs:
     description: "When 'true' then the terraform will be applied. Default: false"
     required: true
     default: "false"
+  snyk_token:
+    description: "Snyk token for IaC scanning."
+    required: true
+  ecr_registry:
+    description: "ECR registry ID used to log in before running the Snyk scan."
+    required: true
+  ecr_pull_role_arn:
+    description: "IAM role ARN with ECR pull permissions for the Snyk scanner image."
+    required: true
+  terraform_role_arn:
+    description: "IAM role ARN to re-assume after Snyk to restore terraform credentials."
+    required: true
 
 
 runs:
@@ -36,6 +48,52 @@ runs:
       if: ${{ inputs.lint == 'true' }}
       run: |
         terraform fmt -check -recursive
+    # derive sarif names from the terraform directory
+    - name: "Compute Snyk SARIF names"
+      id: snyk_names
+      shell: bash
+      run: |
+        dirname=$(basename "${{ inputs.directory }}")
+        echo "filename=snyk-iac-${dirname}.sarif" >> $GITHUB_OUTPUT
+        echo "category=Terraform-${dirname}" >> $GITHUB_OUTPUT
+    # switch to ecr pull role so snyk can pull its scanner image
+    - name: "Configure AWS credentials (ECR pull)"
+      uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+      with:
+        aws-region: eu-west-1
+        role-to-assume: ${{ inputs.ecr_pull_role_arn }}
+        role-duration-seconds: 900
+        role-session-name: reports-terraform-snyk-ecr-pull
+    # ecr login so the snyk action can pull its runner image
+    - name: "ECR Login (Snyk)"
+      uses: aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419 # v2.1.5
+      with:
+        mask-password: true
+        registries: ${{ inputs.ecr_registry }}
+    # run snyk iac scan against the terraform directory
+    - name: "Snyk IaC"
+      id: snyk_iac
+      uses: ministryofjustice/opg-github-actions/actions/snyk-iac@9e8b7c2fb29c11e77b12913f74459fa48b11829f # v4.8.2
+      with:
+        iac_test_directory: "${{ inputs.directory }}/"
+        sarif_filename: "${{ steps.snyk_names.outputs.filename }}"
+        SNYK_TOKEN: ${{ inputs.snyk_token }}
+        snyk_test_args: --severity-threshold=high
+    # upload results to github security tab
+    - name: "Upload Snyk IaC scan results to GitHub Security tab"
+      uses: github/codeql-action/upload-sarif@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # v4.35.2
+      if: always()
+      with:
+        category: "${{ steps.snyk_names.outputs.category }}"
+        sarif_file: "test-results/${{ steps.snyk_names.outputs.filename }}"
+    # configure terraform credentials before init/plan/apply
+    - name: "Configure AWS credentials (terraform)"
+      uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+      with:
+        aws-region: eu-west-1
+        role-to-assume: ${{ inputs.terraform_role_arn }}
+        role-duration-seconds: 900
+        role-session-name: reports-terraform
     # run the terraform init
     - name: "Init"
       id: init

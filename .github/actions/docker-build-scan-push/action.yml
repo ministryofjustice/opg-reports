@@ -41,6 +41,18 @@ inputs:
   path_to_live:
     description: "When set to true, pushes images following production conventions."
     default: "false"
+
+  snyk_token:
+    description: "Snyk token for OPG organization"
+    required: true
+
+  ecr_push_role_arn:
+    description: "IAM role ARN for ECR push"
+    required: true
+
+  ecr_pull_role_arn:
+    description: "IAM role ARN for ECR pull (used for cache and snyk scan)"
+    required: true
 # outputs:
 
 
@@ -66,9 +78,16 @@ runs:
       with:
         version: ${{ inputs.buildx_version }}
         platforms: ${{ inputs.buildx_platforms }}
-    # Login to ecr registry
-    - name: "ECR login"
-      id: ecr_login
+    # Login to ecr registry with pull role (for build cache and snyk scan)
+    - name: "Configure AWS credentials for ECR pull"
+      uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+      with:
+        aws-region: eu-west-1
+        role-to-assume: ${{ inputs.ecr_pull_role_arn }}
+        role-duration-seconds: 3600
+        role-session-name: reports-ecr-pull
+    - name: "ECR login (pull)"
+      id: ecr_login_pull
       uses: aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419 # v2.1.5
       with:
         mask-password: true
@@ -86,12 +105,41 @@ runs:
         platforms: ${{ inputs.buildx_platforms }}
         push: false
         load: true
-        cache-from: type=registry,ref=${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:cache-${{ inputs.branch_name }}
+        cache-from: type=registry,ref=${{ steps.ecr_login_pull.outputs.registry }}/${{ inputs.ecr_repository }}:cache-${{ inputs.branch_name }}
         tags: |
           ${{ inputs.ecr_repository }}:${{ inputs.tag }}
         build-args: |
           TAG=${{ env.BUILD_TAG }}
           ${{ env.EXTRA_BUILD_ARGS }}
+
+    # Snyk scan
+    - name: "Snyk scan [${{ inputs.ecr_repository }}]"
+      uses: ministryofjustice/opg-github-actions/actions/snyk-scan@9e8b7c2fb29c11e77b12913f74459fa48b11829f # v4.8.2
+      with:
+        SNYK_TEST_IMAGE: ${{ inputs.ecr_repository }}:${{ inputs.tag }}
+        SNYK_TOKEN: ${{ inputs.snyk_token }}
+        snyk_test_args: --severity-threshold=high
+
+    - name: "Upload Snyk scan results to GitHub Security tab [${{ inputs.ecr_repository }}]"
+      uses: github/codeql-action/upload-sarif@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # v4.35.2
+      if: always()
+      with:
+        sarif_file: "test-results/snyk.sarif"
+
+    # Switch to push role for image push
+    - name: "Configure AWS credentials for ECR push"
+      uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+      with:
+        aws-region: eu-west-1
+        role-to-assume: ${{ inputs.ecr_push_role_arn }}
+        role-duration-seconds: 3600
+        role-session-name: reports-ecr-push
+    - name: "ECR login (push)"
+      id: ecr_login_push
+      uses: aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419 # v2.1.5
+      with:
+        mask-password: true
+        registries: ${{ inputs.ecr_registry_id }}
 
     # Push the image
     # for a PR
@@ -108,11 +156,11 @@ runs:
         builder: ${{ steps.docker_buildx_setup.outputs.name }}
         push: true
         platforms:  ${{ inputs.buildx_platforms }}
-        cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,type=registry,ref=${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:cache-${{ inputs.branch_name }}
+        cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,type=registry,ref=${{ steps.ecr_login_push.outputs.registry }}/${{ inputs.ecr_repository }}:cache-${{ inputs.branch_name }}
         tags: |
-          ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}
-          ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:development-${{ inputs.tag }}
-          ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:development-latest
+          ${{ steps.ecr_login_push.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}
+          ${{ steps.ecr_login_push.outputs.registry }}/${{ inputs.ecr_repository }}:development-${{ inputs.tag }}
+          ${{ steps.ecr_login_push.outputs.registry }}/${{ inputs.ecr_repository }}:development-latest
         build-args: |
           TAG=${{ env.BUILD_TAG }}
           ${{ env.EXTRA_BUILD_ARGS }}
@@ -122,9 +170,9 @@ runs:
       if: ${{ inputs.path_to_live != 'true' }}
       run: |
         echo "tags:"  >> $GITHUB_STEP_SUMMARY
-        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
-        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:development-${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
-        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:development-latest"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login_push.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login_push.outputs.registry }}/${{ inputs.ecr_repository }}:development-${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login_push.outputs.registry }}/${{ inputs.ecr_repository }}:development-latest"  >> $GITHUB_STEP_SUMMARY
 
     # For live
     - name: "Push image to ECR [Path to live]"
@@ -140,11 +188,11 @@ runs:
         builder: ${{ steps.docker_buildx_setup.outputs.name }}
         push: true
         platforms: ${{ inputs.buildx_platforms }}
-        cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,type=registry,ref=${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:cache-${{ inputs.branch_name }}
+        cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,type=registry,ref=${{ steps.ecr_login_push.outputs.registry }}/${{ inputs.ecr_repository }}:cache-${{ inputs.branch_name }}
         tags: |
-          ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}
-          ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:main-${{ inputs.tag }}
-          ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:latest
+          ${{ steps.ecr_login_push.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}
+          ${{ steps.ecr_login_push.outputs.registry }}/${{ inputs.ecr_repository }}:main-${{ inputs.tag }}
+          ${{ steps.ecr_login_push.outputs.registry }}/${{ inputs.ecr_repository }}:latest
         build-args: |
           TAG=${{ env.BUILD_TAG }}
           ${{ env.EXTRA_BUILD_ARGS }}
@@ -154,6 +202,6 @@ runs:
       if: ${{ inputs.path_to_live == 'true' }}
       run: |
         echo "tags:"  >> $GITHUB_STEP_SUMMARY
-        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
-        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:main-${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
-        echo "- ${{ steps.ecr_login.outputs.registry }}/${{ inputs.ecr_repository }}:latest"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login_push.outputs.registry }}/${{ inputs.ecr_repository }}:${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login_push.outputs.registry }}/${{ inputs.ecr_repository }}:main-${{ inputs.tag }}"  >> $GITHUB_STEP_SUMMARY
+        echo "- ${{ steps.ecr_login_push.outputs.registry }}/${{ inputs.ecr_repository }}:latest"  >> $GITHUB_STEP_SUMMARY

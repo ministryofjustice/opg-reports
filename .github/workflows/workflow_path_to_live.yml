@@ -13,6 +13,7 @@ permissions:
   actions: read
   contents: write
   id-token: write
+  security-events: write
 
 env:
   BUILD_DIR: "./builds"
@@ -26,6 +27,7 @@ env:
   # ecr
   ecr_registry: "311462405659"
   ecr_role: "arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-push"
+  ecr_pull_role: "arn:aws:iam::311462405659:role/opg-reports-github-actions-ecr-pull"
   # terraform
   terraform_workspace: "production"
 
@@ -149,14 +151,6 @@ jobs:
           db: ${{ steps.db_download.outputs.DB }}
         run: |
           ${{ env.BUILD_DIR }}/migrate --db="${{ env.db }}"
-      # Swap AWS creds for ECR usage
-      - name: "[${{ matrix.image }}] Configure AWS credentials for ECR"
-        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
-        with:
-          aws-region: "eu-west-1"
-          role-duration-seconds: 900
-          role-to-assume: ${{ env.ecr_role }}
-          role-session-name: reports-ecr-access
       # build the image
       - name: "[${{ matrix.image }}] Build and push image"
         id: build_image
@@ -168,6 +162,9 @@ jobs:
           tag: ${{ needs.setup.outputs.semver_tag }}
           dockerfile: "./docker/${{ matrix.image }}/Dockerfile"
           path_to_live: ${{ env.PATH_TO_LIVE }}
+          snyk_token: ${{ secrets.SNYK_OPG_ORG_TOKEN }}
+          ecr_pull_role_arn: ${{ env.ecr_pull_role }}
+          ecr_push_role_arn: ${{ env.ecr_role }}
       # listing
       - name: "[${{ matrix.image }}] List build directory"
         run: ls -lhRt ./builds/
@@ -186,15 +183,6 @@ jobs:
       - uses: ministryofjustice/opg-github-actions/actions/github-deploy-key@ceeda9d30ec7f6705c819d0b7664b9a79df99a3b # v4.8.7
         with:
           deploy_key: ${{ secrets.SSH_PRIVATE_KEY_EXTERNAL_MODULES }}
-      # configure the aws role
-      - name: "Configure AWS credentials for terraform"
-        id: configure_aws_creds
-        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
-          aws-region: "eu-west-1"
-          role-session-name: reports-pull-request-github-action-terraform
       - name: "Account level terraform"
         uses: ./.github/actions/terraform
         with:
@@ -202,6 +190,10 @@ jobs:
           directory: ./terraform/account
           workspace: ${{ env.terraform_workspace }}
           version: ${{ needs.setup.outputs.terraform_version_account }}
+          snyk_token: ${{ secrets.SNYK_OPG_ORG_TOKEN }}
+          ecr_registry: ${{ env.ecr_registry }}
+          ecr_pull_role_arn: ${{ env.ecr_pull_role }}
+          terraform_role_arn: "arn:aws:iam::631181914621:role/oidc-opg-reports-production"
       - name: "Environment level terraform"
         uses: ./.github/actions/terraform
         env:
@@ -214,6 +206,10 @@ jobs:
           directory: ./terraform/environment
           workspace: ${{ env.terraform_workspace }}
           version: ${{ needs.setup.outputs.terraform_version_environment }}
+          snyk_token: ${{ secrets.SNYK_OPG_ORG_TOKEN }}
+          ecr_registry: ${{ env.ecr_registry }}
+          ecr_pull_role_arn: ${{ env.ecr_pull_role }}
+          terraform_role_arn: "arn:aws:iam::631181914621:role/oidc-opg-reports-production"
   # release this version
   release:
     name: "Create release"
