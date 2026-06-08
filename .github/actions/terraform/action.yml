@@ -73,7 +73,7 @@ runs:
     # run snyk iac scan against the terraform directory
     - name: "Snyk IaC"
       id: snyk_iac
-      uses: ministryofjustice/opg-github-actions/actions/snyk-iac@9e8b7c2fb29c11e77b12913f74459fa48b11829f # v4.8.2
+      uses: ministryofjustice/opg-github-actions/actions/snyk-iac@9e756945a9e2b6ac5dc81473b01f8b38600e6ed6 # v4.8.6
       with:
         iac_test_directory: "${{ inputs.directory }}/"
         sarif_filename: "${{ steps.snyk_names.outputs.filename }}"
@@ -81,7 +81,7 @@ runs:
         snyk_test_args: --severity-threshold=high
     # upload results to github security tab
     - name: "Upload Snyk IaC scan results to GitHub Security tab"
-      uses: github/codeql-action/upload-sarif@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # v4.35.2
+      uses: github/codeql-action/upload-sarif@7211b7c8077ea37d8641b6271f6a365a22a5fbfa # v4.36.0
       if: always()
       with:
         category: "${{ steps.snyk_names.outputs.category }}"
