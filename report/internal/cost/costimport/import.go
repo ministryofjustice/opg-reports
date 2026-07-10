@@ -13,6 +13,9 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// insert
+//   - region is still present, but should now be NoRegion value due to
+//     the ce api issues relating to enterprise discounts and saving plans clashing
 const InsertStatement string = `
 INSERT INTO costs (
 	region,
@@ -100,6 +103,7 @@ func Import(ctx context.Context, client Client, in *Args) (err error) {
 // toModels converts the raw data into a list of models ready to write to the database
 func toModels(ctx context.Context, account string, result *costexplorer.GetCostAndUsageOutput) (costs []*Model, err error) {
 	var log *slog.Logger = cntxt.GetLogger(ctx).With("package", "costimport", "func", "toModels")
+	var region string = "NoRegion" // fix the region due to edp and saving plan clashes
 
 	costs = []*Model{}
 	log.Debug("starting toModels ... ")
@@ -108,14 +112,15 @@ func toModels(ctx context.Context, account string, result *costexplorer.GetCostA
 		var day string = *result.TimePeriod.Start
 		for _, group := range result.Groups {
 			var service string = *&group.Keys[0]
-			var region string = *&group.Keys[1]
+			// disabling region filtering due to ce oddities with cost plans
+			// var region string = *&group.Keys[1]
 			for _, cost := range group.Metrics {
 				var item = &Model{
 					AccountID: account,
 					Month:     times.ToYMString(day),
 					Service:   service,
-					Region:    region,
 					Cost:      *cost.Amount,
+					Region:    region,
 				}
 				costs = append(costs, item)
 			}
@@ -130,10 +135,12 @@ func toModels(ctx context.Context, account string, result *costexplorer.GetCostA
 // for cost data using the start and end date
 //
 // `start` is reset the begining of the month to make sure a full month costs are set
+//
+// Disabled region filtering due to how cost savings and enterprise plans are now applied
 func getCostAndUsageInput(start string, end string) *costexplorer.GetCostAndUsageInput {
 	var (
+		// region  string   = "REGION"
 		service string   = "SERVICE"
-		region  string   = "REGION"
 		metrics []string = []string{"UnblendedCost"}
 	)
 	return &costexplorer.GetCostAndUsageInput{
@@ -145,7 +152,7 @@ func getCostAndUsageInput(start string, end string) *costexplorer.GetCostAndUsag
 		Metrics: metrics,
 		GroupBy: []types.GroupDefinition{
 			{Type: types.GroupDefinitionTypeDimension, Key: &service},
-			{Type: types.GroupDefinitionTypeDimension, Key: &region},
+			// {Type: types.GroupDefinitionTypeDimension, Key: &region},
 		},
 	}
 
