@@ -8,6 +8,13 @@
 //
 // The returned type contains both repository and pull request for later
 // filtering / sorting etc.
+//
+// Normally the Config struct only contains the properties that are directly
+// available on the api call parameters, but in this case we've added date
+// at this level rather than as a filter for performance.
+//
+// The api has not date filtering, so would return all pr's in the repos
+// history which can spen decades, and therefore be extremely slow.
 package ghmergedprs
 
 import (
@@ -32,9 +39,16 @@ var ErrGettingList = errors.New("error getting page of pull requests from api")
 // api call
 var errDefaultLoop = errors.New("dummy error for retry loop logic")
 
-// Result is an alias for MergedPullRequest
+// Result interface
 type Result interface {
-	*MergedPullRequest
+	*ResultData
+}
+
+// ResultData is the result type which contains a combination of the
+// repository and pull request data for other uses
+type ResultData struct {
+	Repository  *github.Repository
+	PullRequest *github.PullRequest
 }
 
 // Client is an interface for *github.PullRequestsService
@@ -51,18 +65,18 @@ type Filter interface {
 }
 
 // Config is used to capture information needed for the api/sdk call
+//
+// Normally the Config struct only contains the properties that are directly
+// available on the api call parameters, but in this case we've added date
+// at this level rather than as a filter for performance.
+//
+// The api has not date filtering, so would return all pr's in the repos
+// history which can spen decades, and therefore be extremely slow.
 type Config struct {
 	Repositories []*github.Repository // list of all repositories we want to fetch workflow runs for
 	DateStart    time.Time            // start of date range to fetch workflow runs for each repo.
 	DateEnd      time.Time            // end of date range to fetch workflow runs for each repo.
 	State        string               // defaults to "closed"
-}
-
-// MergedPullRequest is the result type which contains a combination of the
-// repository and pull request data for other uses
-type MergedPullRequest struct {
-	Repository  *github.Repository
-	PullRequest *github.PullRequest
 }
 
 // Source is the data source to fetch repositories from the
@@ -82,17 +96,17 @@ type Source[C Client, R Result] struct {
 //
 // `skipped` becomes a list of repository structs that have no results for the time period.
 func (self *Source[C, R]) GetData() (results []R, skipped []any, err error) {
-	results, skipped, err = self.allMergedPullRequests()
+	results, skipped, err = self.mergedPullRequests()
 	return
 }
 
-// allMergedPullRequests fetches all pull requests for each repository within the
+// mergedPullRequests fetches all pull requests for each repository within the
 // configured date period
-func (self *Source[C, R]) allMergedPullRequests() (results []R, skipped []any, err error) {
+func (self *Source[C, R]) mergedPullRequests() (results []R, skipped []any, err error) {
 	var (
-		all   map[int64]*MergedPullRequest = map[int64]*MergedPullRequest{}
-		total int                          = len(self.cfg.Repositories)
-		lg    *slog.Logger                 = self.log.With("date_start", self.cfg.DateStart, "date_end", self.cfg.DateEnd) // localised logger with config values added
+		all   map[int64]*ResultData = map[int64]*ResultData{}
+		total int                   = len(self.cfg.Repositories)
+		lg    *slog.Logger          = self.log.With("date_start", self.cfg.DateStart, "date_end", self.cfg.DateEnd) // localised logger with config values added
 	)
 	lg.Debug("getting all pull requests for all repositories ...")
 	results = []R{}
@@ -109,7 +123,7 @@ func (self *Source[C, R]) allMergedPullRequests() (results []R, skipped []any, e
 		}
 		// add results into the main map, ignoring any duplicates
 		for i, pr := range prs {
-			all[i] = &MergedPullRequest{
+			all[i] = &ResultData{
 				Repository:  repo,
 				PullRequest: pr,
 			}
@@ -248,6 +262,8 @@ func (self *Source[C, R]) includePR(lg *slog.Logger, pr *github.PullRequest) (va
 // New creates a source thats capable of fetching workflow runs for each repository.
 //
 // If config.Repositories is empty an error (ErrNoRepositoriesConfigured) will be returned.
+//
+// Filters are currently not used.
 //
 // Notes:
 //   - slog instance is pulled from the context.

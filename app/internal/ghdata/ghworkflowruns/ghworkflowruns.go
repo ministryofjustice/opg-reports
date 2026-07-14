@@ -34,9 +34,17 @@ var ErrNoRepositoriesConfigured = errors.New("no repositories have been set on t
 // api call
 var errDefaultLoop = errors.New("dummy error for retry loop logic")
 
-// Result is an alias for *github.WorkflowRuns
+// Result interface
 type Result interface {
-	*github.WorkflowRun
+	*ResultData
+}
+
+// ResultData is the result type which contains a combination of the
+// repository and workflow run data for other uses (filteringer /
+// sorting etc)
+type ResultData struct {
+	Repository  *github.Repository
+	WorkflowRun *github.WorkflowRun
 }
 
 // Client is an interface for *github.ActionsService
@@ -146,7 +154,7 @@ func (self *Source[C, R]) allWorkflowRuns() (results []R, skipped []any, err err
 		filtered := self.filter(repo, res)
 		// merge filtered set into main results
 		for _, wfr := range filtered {
-			results = append(results, wfr)
+			results = append(results, &ResultData{Repository: repo, WorkflowRun: wfr})
 		}
 		// if there are no workflows found, add the repo to the missing list
 		if len(filtered) <= 0 {

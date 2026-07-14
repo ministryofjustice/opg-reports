@@ -160,8 +160,8 @@ func TestGHWorkflowRunsGetDataMocked(t *testing.T) {
 	var (
 		err          error
 		client       *mockActionService = &mockActionService{}
-		res          []*github.WorkflowRun
-		src          *Source[*mockActionService, *github.WorkflowRun]
+		res          []*ResultData
+		src          *Source[*mockActionService, *ResultData]
 		ctx          context.Context      = t.Context()
 		repositories []*github.Repository = []*github.Repository{repoA, repoB}
 		cfg          *Config              = &Config{
@@ -171,7 +171,7 @@ func TestGHWorkflowRunsGetDataMocked(t *testing.T) {
 		}
 	)
 
-	src, err = New[*mockActionService, *github.WorkflowRun](ctx, client, cfg, &ghfilters.FilterWorkfowRunByPartialName{Name: "path to live"})
+	src, err = New[*mockActionService, *ResultData](ctx, client, cfg, &ghfilters.FilterWorkfowRunByPartialName{Name: "path to live"})
 	if err != nil {
 		t.Errorf("unexpected error creating source: %s", err.Error())
 		t.FailNow()
@@ -197,7 +197,7 @@ func TestGHWorkflowRunsGetDataMocked(t *testing.T) {
 	for _, item := range res {
 		var found = false
 		for _, ex := range expected {
-			if ex == *item.ID {
+			if ex == *item.WorkflowRun.ID {
 				found = true
 			}
 		}
@@ -216,8 +216,8 @@ func TestGHWorkflowRunsGetDataActual(t *testing.T) {
 		// skipped      []any
 		err          error
 		client       *github.Client
-		res          []*github.WorkflowRun
-		src          *Source[*github.ActionsService, *github.WorkflowRun]
+		res          []*ResultData
+		src          *Source[*github.ActionsService, *ResultData]
 		now          time.Time            = time.Now().UTC()
 		ctx          context.Context      = t.Context()
 		token        string               = ghclient.Token()
@@ -243,7 +243,7 @@ func TestGHWorkflowRunsGetDataActual(t *testing.T) {
 		t.FailNow()
 	}
 
-	src, err = New[*github.ActionsService, *github.WorkflowRun](ctx, client.Actions, cfg, &ghfilters.FilterWorkfowRunByPartialName{Name: "path to live"})
+	src, err = New[*github.ActionsService, *ResultData](ctx, client.Actions, cfg, &ghfilters.FilterWorkfowRunByPartialName{Name: "path to live"})
 	if err != nil {
 		t.Errorf("unexpected error creating source: %s", err.Error())
 		t.FailNow()

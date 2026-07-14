@@ -1,20 +1,10 @@
 // Package ghdata
-//
-// direct calls
-// - list of all repositories
-// - list of workflow runs
-// - list of merged pull requests
-//
-// filters
-// - repos
-//   - ignore archived repos
-//   - name matched repo
-//
-// - workflows
-//   - workflow run name
 package ghdata
 
 import (
+	"opg-reports/app/internal/ghdata/ghmergedprs"
+	"opg-reports/app/internal/ghdata/ghworkflowruns"
+
 	"github.com/google/go-github/v87/github"
 )
 
@@ -34,14 +24,8 @@ type Client interface {
 
 // Result is the singular result type of all github data sources that
 // are used.
-//
-// github.Repository
-// Used for listing owned code bases.
-//
-// github.WorkflowRun
-// Used to find path to live runs of a workflow for a set of repositories - part of code releases
 type Result interface {
-	*github.Repository | *github.WorkflowRun | *github.PullRequest
+	*github.Repository | *ghworkflowruns.ResultData | *ghmergedprs.ResultData
 }
 
 // GitHubData interface exposes the main methods used for fetching data

@@ -23,8 +23,8 @@ func TestMergedPrsGetDataActual(t *testing.T) {
 		// skipped      []any
 		err          error
 		client       *github.Client
-		res          []*MergedPullRequest
-		src          *Source[*github.PullRequestsService, *MergedPullRequest]
+		res          []*ResultData
+		src          *Source[*github.PullRequestsService, *ResultData]
 		ctx          context.Context      = t.Context()
 		token        string               = ghclient.Token()
 		repositories []*github.Repository = getRealRepos(t)
@@ -48,7 +48,7 @@ func TestMergedPrsGetDataActual(t *testing.T) {
 		t.FailNow()
 	}
 
-	src, err = New[*github.PullRequestsService, *MergedPullRequest](ctx, client.PullRequests, cfg)
+	src, err = New[*github.PullRequestsService, *ResultData](ctx, client.PullRequests, cfg)
 	if err != nil {
 		t.Errorf("unexpected error creating source: %s", err.Error())
 		t.FailNow()
