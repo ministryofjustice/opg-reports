@@ -1,4 +1,4 @@
-package liveworkflowruns
+package ghworkflowruns
 
 import (
 	"context"

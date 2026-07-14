@@ -1,11 +1,13 @@
-// Package liveworkflowruns provides a struct and method for fetching all workflow runs that
+// Package ghworkflowruns provides a struct and method for fetching all workflow runs that
 // ran against the default branch between two dates based on the configured event &
-// status type (set via *Config)
+// status type (set via *Config).
+//
+// Intention is this data is used to determine the number releases during a given time period.
 //
 // Pagination of the api call is handled within this package.
 //
 // Filtering is done at the repository level, after all workflow runs are pulled.
-package liveworkflowruns
+package ghworkflowruns
 
 import (
 	"context"
@@ -52,11 +54,12 @@ type Filter interface {
 
 // Config is used to capture information needed for the api/sdk call
 type Config struct {
-	Repositories []*github.Repository // list of all repositories we want to fetch workflow runs for
-	Event        string               // the event type to filter against - generally "push".
-	Status       string               // the workflow result status to filter on - generally "success".
-	DateStart    time.Time            // start of date range to fetch workflow runs for each repo.
-	DateEnd      time.Time            // end of date range to fetch workflow runs for each repo.
+	Repositories    []*github.Repository // list of all repositories we want to fetch workflow runs for
+	Event           string               // the event type to filter against - generally "push".
+	Status          string               // the workflow result status to filter on - generally "success".
+	OverwriteBranch string               // if present, will use this instead of the default branch of the repo
+	DateStart       time.Time            // start of date range to fetch workflow runs for each repo.
+	DateEnd         time.Time            // end of date range to fetch workflow runs for each repo.
 }
 
 // Dates converts the start & end date in to a list of strings (each
@@ -236,6 +239,11 @@ func (self *Source[C, R]) paginatedWorkflowRunsForDate(repo *github.Repository, 
 			Event:       self.cfg.Event,
 		}
 	)
+	// if config overwrites the branch name, change the options here
+	if self.cfg.OverwriteBranch != "" {
+		options.Branch = self.cfg.OverwriteBranch
+	}
+
 	lg.Debug("getting workflow runs for repo in date range ...")
 	runs = map[int64]*github.WorkflowRun{} // using id based map as sometimes the date range campture overlaps
 
