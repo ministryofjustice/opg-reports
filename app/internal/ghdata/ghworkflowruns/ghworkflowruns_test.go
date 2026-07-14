@@ -7,7 +7,7 @@ import (
 	"opg-reports/app/internal/convert"
 	"opg-reports/app/internal/ghdata/ghclient"
 	"opg-reports/app/internal/ghdata/ghfilters"
-	"opg-reports/app/internal/ghdata/teamrepositories"
+	"opg-reports/app/internal/ghdata/ghteamrepositories"
 	"opg-reports/app/internal/timex"
 	"testing"
 	"time"
@@ -155,8 +155,8 @@ func (self *mockActionService) ListRepositoryWorkflowRuns(ctx context.Context, o
 	return
 }
 
-// TestWorkflowRunesGetDataMocked
-func TestWorkflowRunsGetDataMocked(t *testing.T) {
+// TestGHWorkflowRunsGetDataMocked
+func TestGHWorkflowRunsGetDataMocked(t *testing.T) {
 	var (
 		err          error
 		client       *mockActionService = &mockActionService{}
@@ -209,9 +209,9 @@ func TestWorkflowRunsGetDataMocked(t *testing.T) {
 	// t.FailNow()
 }
 
-// TestWorkflowRunesGetDataActual uses real api connection and client
+// TestGHWorkflowRunsGetDataActual uses real api connection and client
 // to fetch data
-func TestWorkflowRunsGetDataActual(t *testing.T) {
+func TestGHWorkflowRunsGetDataActual(t *testing.T) {
 	var (
 		// skipped      []any
 		err          error
@@ -221,7 +221,7 @@ func TestWorkflowRunsGetDataActual(t *testing.T) {
 		now          time.Time            = time.Now().UTC()
 		ctx          context.Context      = t.Context()
 		token        string               = ghclient.Token()
-		repositories []*github.Repository = getRealRepo(t)
+		repositories []*github.Repository = getRealRepos(t)
 		cfg          *Config              = &Config{
 			Repositories: repositories,
 			Event:        "push",
@@ -272,14 +272,14 @@ func TestWorkflowRunsGetDataActual(t *testing.T) {
 }
 
 // returns just a sub-set of repos for testing
-func getRealRepo(t *testing.T) (repos []*github.Repository) {
+func getRealRepos(t *testing.T) (repos []*github.Repository) {
 	var (
 		err    error
 		client *github.Client
-		src    *teamrepositories.Source[*github.TeamsService, *github.Repository]
-		token  string                   = ghclient.Token()
-		ctx    context.Context          = context.TODO()
-		cfg    *teamrepositories.Config = &teamrepositories.Config{
+		src    *ghteamrepositories.Source[*github.TeamsService, *github.Repository]
+		token  string                     = ghclient.Token()
+		ctx    context.Context            = context.TODO()
+		cfg    *ghteamrepositories.Config = &ghteamrepositories.Config{
 			OrganisationSlug: "ministryofjustice",
 			TeamSlug:         "opg",
 		}
@@ -295,7 +295,7 @@ func getRealRepo(t *testing.T) (repos []*github.Repository) {
 		t.FailNow()
 	}
 	// now test this with a filter removes archived values
-	src, err = teamrepositories.New[*github.TeamsService, *github.Repository](
+	src, err = ghteamrepositories.New[*github.TeamsService, *github.Repository](
 		ctx,
 		client.Teams,
 		cfg,

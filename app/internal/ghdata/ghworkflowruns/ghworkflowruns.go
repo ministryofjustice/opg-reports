@@ -100,8 +100,8 @@ func (self *Config) Dates() (dates []string) {
 	return
 }
 
-// Source is the data source to fetch repositories from the
-// github api that are owned by the configured team
+// Source is the data source to fetch workflow run data from the api
+// for repositories in the configuration
 type Source[C Client, R Result] struct {
 	client  C               // the *github.TeamsService compatible interface
 	ctx     context.Context // ctx is the context to use
@@ -158,7 +158,8 @@ func (self *Source[C, R]) allWorkflowRuns() (results []R, skipped []any, err err
 	return
 }
 
-// filter handles running the filters
+// filter handles running the filters from the config against this repo &
+// workflow run list
 func (self *Source[C, R]) filter(repo *github.Repository, workflowruns []*github.WorkflowRun) (filtered []*github.WorkflowRun) {
 	var lg *slog.Logger = self.log // localised logger with config values added
 
