@@ -227,8 +227,8 @@ func (self *Source[C, R]) paginatedPullRequests(repo *github.Repository) (prs ma
 func (self *Source[C, R]) includePR(lg *slog.Logger, pr *github.PullRequest) (valid bool, before bool, after bool) {
 	var (
 		created time.Time
-		start   time.Time = self.cfg.DateStart
-		end     time.Time = self.cfg.DateEnd
+		start   time.Time = self.cfg.DateStart.Add(1 * time.Second) // time.Before will be true for a match, so reduce by 1 second
+		end     time.Time = self.cfg.DateEnd.Add(-1 * time.Second)  // time.After is true for an equal time, so add 1 second
 	)
 
 	valid = false
