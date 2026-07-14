@@ -1,3 +1,10 @@
+// Package liveworkflowruns provides a struct and method for fetching all workflow runs that
+// ran against the default branch between two dates based on the configured event &
+// status type (set via *Config)
+//
+// Pagination of the api call is handled within this package.
+//
+// Filtering is done at the repository level, after all workflow runs are pulled.
 package liveworkflowruns
 
 import (
@@ -17,9 +24,13 @@ import (
 // the requested page
 var ErrGettingList = errors.New("error getting page of workflow runes from api")
 
+// ErrNoRepositoriesConfigured is triggered when the Config passed to New does not have any
+// repositories attached
+var ErrNoRepositoriesConfigured = errors.New("no repositories have been set on the configuration struct.")
+
 // errDefaultLoop is a dummy error used to handle the fail & retry loop within the paginated
 // api call
-var errDefaultLoop = errors.New("dummy error for rety loop logic")
+var errDefaultLoop = errors.New("dummy error for retry loop logic")
 
 // Result is an alias for *github.WorkflowRuns
 type Result interface {
@@ -32,6 +43,9 @@ type Client interface {
 }
 
 // Filter iterface is used for running functions against a set of results
+//
+// Generally should be:
+//   - ghfilters.FilterWorkfowRunByPartialName
 type Filter interface {
 	Filter(ctx context.Context, result *github.WorkflowRun) (include bool)
 }
@@ -45,7 +59,7 @@ type Config struct {
 	DateEnd      time.Time            // end of date range to fetch workflow runs for each repo.
 }
 
-// Dates converts the start & end date in to a list of  strings (each
+// Dates converts the start & end date in to a list of strings (each
 // formatted as `YYYY-MM-DD..YYYY-MM-DD`).
 //
 // Required as the api endpoint being called has a hard limit on the number
@@ -95,6 +109,8 @@ type Source[C Client, R Result] struct {
 
 // GetData returns all workflow runs between the start & end date for each repository
 // that is within the configuration list.
+//
+// Filtering is done per repository, executing after all the workflow runs are fetched.
 //
 // `skipped` becomes a list of repository structs that have no results and likely need
 // additional processing (checking for merges)
@@ -149,7 +165,7 @@ func (self *Source[C, R]) filter(repo *github.Repository, workflowruns []*github
 		var include = true
 		// check each filter, break on the first fail
 		for _, f := range self.filters {
-			var include = true
+			// var inc = true
 			lg.Debug(fmt.Sprintf("[%s][%s]:(%d)(%T) checking filter...", *repo.FullName, *workflowrun.Name, *workflowrun.ID, f))
 			// if the filter is ever true, break the loop as we cant include & add to skipped list
 			if include = f.Filter(self.ctx, workflowrun); !include {
@@ -232,12 +248,13 @@ func (self *Source[C, R]) paginatedWorkflowRunsForDate(repo *github.Repository, 
 		var (
 			response *github.Response
 			fetched  *github.WorkflowRuns
-			e        error = errDefaultLoop // give error a default, non nil value for the loop
+			e        error = errDefaultLoop // give error a default, non nil value so the for loop runs
 			retry    int   = 0
 		)
 		// set the page
 		options.Page = page
 		// max of 3 attempts to call the same data set before failing.
+		// 	- e has a default value so will always run at least once
 		for e != nil && retry < maxRetry {
 			// log
 			lg.With("page", page, "try", retry).Debug("getting list of repository workflow runs in range ...")
@@ -266,16 +283,37 @@ func (self *Source[C, R]) paginatedWorkflowRunsForDate(repo *github.Repository, 
 	return
 }
 
-// New creates a source thats capable of fetching workflow runs for each repository
+// New creates a source thats capable of fetching workflow runs for each repository.
+//
+// If config.Repositories is empty an error (ErrNoRepositoriesConfigured) will be returned.
 //
 // Notes:
-// - slog instance is pulled from the context.
-// - client is a *github.ActionService or mock version
-// - config contains parameters for the sdk / api call & repos
-// - filters is optional way of reducing the dataset afterwards (name filters)
+//   - slog instance is pulled from the context.
+//   - client is a *github.ActionService or mock version
+//   - config contains parameters for the sdk / api call & repos
+//   - config.Event will be set to "push" if blank
+//   - config.Status will be set to "success" if blank
+//   - filters is optional way of reducing the dataset afterwards
 func New[C Client, R Result](ctx context.Context, client C, config *Config, filters ...Filter) (source *Source[C, R], err error) {
+	var (
+		defaultEvent  string = "push"
+		defaultStatus string = "success"
+	)
 	// get logger
 	ctx, lg := logx.Get(ctx)
+	// if no repositories, return an error
+	if len(config.Repositories) <= 0 {
+		err = ErrNoRepositoriesConfigured
+		return
+	}
+	// set default values on config event & status
+	if config.Event == "" {
+		config.Event = defaultEvent
+	}
+	if config.Status == "" {
+		config.Status = defaultStatus
+	}
+
 	source = &Source[C, R]{
 		ctx:     ctx,
 		client:  client,

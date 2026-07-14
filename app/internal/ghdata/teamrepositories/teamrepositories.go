@@ -1,8 +1,9 @@
-// teamrepositories provides a struct and method for fetching all repositories owned
+// Package teamrepositories provides a struct and method for fetching all repositories owned
 // by a team within an organisation.
 //
-// Pagination of the api call is handled within the call, but as the github api does
-// not expose any filtering, none is applied
+// Pagination of the api call is handled within this package.
+//
+// Data filtering is done after all pages are fetched.
 package teamrepositories
 
 import (
@@ -20,6 +21,12 @@ import (
 // the requested page
 var ErrGettingList = errors.New("error getting page of repositories from api")
 
+// ErrNoOrgSlug is triggered in New when config struct does not have an OrgansiationSlug present
+var ErrNoOrgSlug = errors.New("no organistion slug has been configured")
+
+// ErrNoTeamSlug is triggered in New when config struct does not have an TeamSlug present
+var ErrNoTeamSlug = errors.New("no team slug has been configured")
+
 // errDefaultLoop is a dummy error used to handle the fail & retry loop within the paginated
 // api call
 var errDefaultLoop = errors.New("dummy error for rety loop logic")
@@ -36,6 +43,10 @@ type Client interface {
 }
 
 // Filter interface to allow filtering of the resulting data set
+//
+// Generally should be one of:
+//   - ghfilters.ExcludeArchivedRepository
+//   - ghfilters.FilterByRepositoryName
 type Filter interface {
 	Filter(ctx context.Context, result *github.Repository) (include bool)
 }
@@ -64,6 +75,8 @@ type Source[C Client, R Result] struct {
 //
 // After all original data is fetched, the results are then filtered against the
 // configured filter functions
+//
+// `skipped` is unused but kept for interface
 func (self *Source[C, R]) GetData() (results []R, skipped []any, err error) {
 	results, skipped, err = self.getPaginatedData()
 	return
@@ -154,6 +167,8 @@ func (self *Source[C, R]) getPaginatedData() (results []R, skipped []any, err er
 
 // New creates a source thats capable of fetching all repositories
 //
+// Will return an error if either the OrgansiationSlug or TeamSlug are empty.
+//
 // Notes:
 // - slog instance is pulled from the context.
 // - client is a *github.TeamsService or mock version
@@ -162,6 +177,18 @@ func (self *Source[C, R]) getPaginatedData() (results []R, skipped []any, err er
 func New[C Client, R Result](ctx context.Context, client C, config *Config, filters ...Filter) (source *Source[C, R], err error) {
 	// get logger
 	ctx, lg := logx.Get(ctx)
+
+	// if no org slug, throw an error
+	if config.OrganisationSlug == "" {
+		err = ErrNoOrgSlug
+		return
+	}
+	// if no team slug, throw an error
+	if config.TeamSlug == "" {
+		err = ErrNoTeamSlug
+		return
+	}
+
 	source = &Source[C, R]{
 		ctx:     ctx,
 		client:  client,

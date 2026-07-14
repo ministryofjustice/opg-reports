@@ -38,7 +38,7 @@ type Client interface {
 // github.Repository
 // Used for listing owned code bases.
 //
-// github.WorkflowRuns
+// github.WorkflowRun
 // Used to find path to live runs of a workflow for a set of repositories - part of code releases
 type Result interface {
 	*github.Repository | *github.WorkflowRun | *github.PullRequest
