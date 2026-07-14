@@ -1,4 +1,4 @@
-// Package ghMergedPullRequests provides a struct and method for fetching all pull requests merged to
+// Package ghmergedprs provides a struct and method for fetching all pull requests merged to
 // the default branch between two dates.
 //
 // Intention is this data is used to determine the number releases during a given time period
@@ -8,7 +8,7 @@
 //
 // The returned type contains both repository and pull request for later
 // filtering / sorting etc.
-package ghMergedPullRequests
+package ghmergedprs
 
 import (
 	"context"
@@ -107,7 +107,6 @@ func (self *Source[C, R]) allMergedPullRequests() (results []R, skipped []any, e
 			err = e
 			return
 		}
-
 		// add results into the main map, ignoring any duplicates
 		for i, pr := range prs {
 			all[i] = &MergedPullRequest{

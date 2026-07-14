@@ -2,7 +2,6 @@ package ghmergedprs
 
 import (
 	"context"
-	"fmt"
 	"opg-reports/app/internal/ghdata/ghclient"
 	"opg-reports/app/internal/ghdata/ghfilters"
 	"opg-reports/app/internal/ghdata/ghteamrepositories"
@@ -24,18 +23,16 @@ func TestMergedPrsGetDataActual(t *testing.T) {
 		// skipped      []any
 		err          error
 		client       *github.Client
-		res          []*MergedPR
-		src          *Source[*github.PullRequestsService, *MergedPR]
+		res          []*MergedPullRequest
+		src          *Source[*github.PullRequestsService, *MergedPullRequest]
 		ctx          context.Context      = t.Context()
 		token        string               = ghclient.Token()
 		repositories []*github.Repository = getRealRepos(t)
-		// now          time.Time            = time.Now().UTC()
-		cfg *Config = &Config{
-			Repositories: repositories,
+		cfg          *Config              = &Config{
+			// 2026-06-01 - 2026-07-01 = should be 2 pr's in that time
 			DateStart:    time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC),
 			DateEnd:      time.Date(2026, 7, 1, 0, 0, 0, 0, time.UTC),
-			// DateStart:    timex.Add(timex.Reset(now, timex.DAY), timex.DAY, -7),
-			// DateEnd:      timex.Reset(now, timex.DAY),
+			Repositories: repositories,
 		}
 	)
 
@@ -51,7 +48,7 @@ func TestMergedPrsGetDataActual(t *testing.T) {
 		t.FailNow()
 	}
 
-	src, err = New[*github.PullRequestsService, *MergedPR](ctx, client.PullRequests, cfg)
+	src, err = New[*github.PullRequestsService, *MergedPullRequest](ctx, client.PullRequests, cfg)
 	if err != nil {
 		t.Errorf("unexpected error creating source: %s", err.Error())
 		t.FailNow()
@@ -63,11 +60,14 @@ func TestMergedPrsGetDataActual(t *testing.T) {
 		t.FailNow()
 	}
 
-	for _, r := range res {
-		fmt.Printf("[%s] - %s\n", *r.Repository.FullName, r.PullRequest.CreatedAt.Time)
+	if len(res) < 2 {
+		t.Errorf("expected more pull requests in time period")
 	}
 
-	t.FailNow()
+	// for _, r := range res {
+	// 	fmt.Printf("[%s] - %s\n", *r.Repository.FullName, r.PullRequest.CreatedAt.Time)
+	// }
+	// t.FailNow()
 
 }
 
