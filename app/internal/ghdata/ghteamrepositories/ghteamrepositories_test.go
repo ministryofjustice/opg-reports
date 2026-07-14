@@ -1,4 +1,4 @@
-package teamrepositories
+package ghteamrepositories
 
 import (
 	"context"
@@ -69,9 +69,9 @@ func (self *mockTeamService) ListTeamReposBySlug(ctx context.Context, orgSlug st
 	return
 }
 
-// TestTeamRepositoriesGetDataMocked uses mocked client to provide
+// TestGHTeamRepositoriesGetDataMocked uses mocked client to provide
 // preset data
-func TestTeamRepositoriesGetDataMocked(t *testing.T) {
+func TestGHTeamRepositoriesGetDataMocked(t *testing.T) {
 	var (
 		err     error
 		client  *mockTeamService
@@ -118,9 +118,9 @@ func TestTeamRepositoriesGetDataMocked(t *testing.T) {
 	}
 }
 
-// TestTeamRepositoriesGetDataActual uses real api connection and client
+// TestGHTeamRepositoriesGetDataActual uses real api connection and client
 // to fetch data
-func TestTeamRepositoriesGetDataActual(t *testing.T) {
+func TestGHTeamRepositoriesGetDataActual(t *testing.T) {
 	var (
 		err     error
 		client  *github.Client

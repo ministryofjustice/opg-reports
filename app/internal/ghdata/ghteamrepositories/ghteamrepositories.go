@@ -1,10 +1,10 @@
-// Package teamrepositories provides a struct and method for fetching all repositories owned
+// Package ghteamrepositories provides a struct and method for fetching all repositories owned
 // by a team within an organisation.
 //
 // Pagination of the api call is handled within this package.
 //
 // Data filtering is done after all pages are fetched.
-package teamrepositories
+package ghteamrepositories
 
 import (
 	"context"
@@ -78,7 +78,7 @@ type Source[C Client, R Result] struct {
 //
 // `skipped` is unused but kept for interface
 func (self *Source[C, R]) GetData() (results []R, skipped []any, err error) {
-	results, skipped, err = self.getPaginatedData()
+	results, skipped, err = self.repositories()
 	return
 }
 
@@ -109,11 +109,11 @@ func (self *Source[C, R]) filter(repositories []*github.Repository) (filtered []
 	return
 }
 
-// getPaginatedData handles the paginated data calls to the github api and merges the results.
+// repositories handles the paginated data calls to the github api and merges the results.
 //
 // The API doesnt handle status or name filtering etc, so we run set of filter functions within
 // the processing here to allow limiting of the data set by archive / name
-func (self *Source[C, R]) getPaginatedData() (results []R, skipped []any, err error) {
+func (self *Source[C, R]) repositories() (results []R, skipped []any, err error) {
 	var (
 		page     int                  = 1                         // first page to fetch data from
 		maxRetry int                  = 3                         // due to api errors we have a catch / retry loop as well
