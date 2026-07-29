@@ -79,8 +79,8 @@ type Config struct {
 	State        string               // defaults to "closed"
 }
 
-// Source is the data source to fetch repositories from the
-// github api that are owned by the configured team
+// Source is the data source to fetch data from the
+// github api
 type Source[C Client, R Result] struct {
 	client  C               // the *github.PullRequestsService compatible interface
 	ctx     context.Context // ctx is the context to use
