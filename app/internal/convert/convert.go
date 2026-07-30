@@ -4,6 +4,8 @@ package convert
 import (
 	"encoding/json"
 	"errors"
+	"log/slog"
+	"opg-reports/app/internal/logx"
 )
 
 var (
@@ -24,8 +26,9 @@ func Ptr[T any](item T) *T {
 // the *D to enforce
 func Convert[S any, D any](source S, destination *D) (err error) {
 	var (
-		e     error  // localised error used when marshaling from source
-		bytes []byte // bytes captures the ouput of the marshal before converting to destination
+		e     error                         // localised error used when marshaling from source
+		bytes []byte                        // bytes captures the ouput of the marshal before converting to destination
+		lg    *slog.Logger = logx.Default() // grab the default logger
 	)
 
 	if bytes, e = json.MarshalIndent(source, "", "  "); e == nil {
@@ -34,9 +37,11 @@ func Convert[S any, D any](source S, destination *D) (err error) {
 	// error handling to try and give more details on which step failed
 	if e != nil {
 		err = errors.Join(ErrMarshaling, e)
+		lg.Error("error marshaling source into byte slice.")
 	}
 	if err != nil {
 		err = errors.Join(ErrUnMarshaling, err)
+		lg.Error("error unmarshaling into the destination.")
 	}
 
 	return

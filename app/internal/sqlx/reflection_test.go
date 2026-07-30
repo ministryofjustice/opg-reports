@@ -79,7 +79,6 @@ func TestSQLxReflectionIsStruct(t *testing.T) {
 
 func TestSQLxReflectionFields(t *testing.T) {
 	var r *reflection
-
 	r = newReflection(&testReflectionNested{})
 	if len(r.Fields()) != 3 {
 		t.Errorf("unexpected number of fields")
@@ -121,5 +120,4 @@ func TestSQLxReflectionRecursiveFields(t *testing.T) {
 	if len(all) > 0 {
 		t.Error("unexpected error - int should not return any fields")
 	}
-
 }

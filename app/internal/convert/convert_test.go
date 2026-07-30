@@ -11,6 +11,7 @@ type testStructA struct {
 }
 
 func TestConvertConvertStructToMap(t *testing.T) {
+
 	model := &testStructA{ID: "1001", Name: "A"}
 	mapped := map[string]string{}
 

@@ -128,6 +128,8 @@ var bindTestScenarios = []*bindTestScenario{
 // TestSQLxBindScenarios runs over a mix of scenarios to check output aligns with
 // what is expected of bind
 func TestSQLxBindScenarios(t *testing.T) {
+	// logx.Set(slog.LevelDebug)
+
 	var ctx = t.Context()
 
 	for i, test := range bindTestScenarios {
@@ -155,7 +157,6 @@ func TestSQLxBindScenarios(t *testing.T) {
 		}
 
 	}
-
 }
 
 type testFilter struct {

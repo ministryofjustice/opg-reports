@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"opg-reports/app/internal/convert"
+	"opg-reports/app/internal/logx"
 	"reflect"
 	"regexp"
 	"strings"
@@ -54,9 +56,9 @@ var (
 // a point to a struct.
 //
 // The `filterModel` fields (and any embedded struct fields) will be
-// checked to ensure they have a json tag (`json:"$name"`) set. This is
+// checked to ensure they have a json tag (`json:"fieldName"`) set. This is
 // used for determining the names and values of the sql placeholders
-// (`:$name`).
+// (`:fieldName`).
 //
 // Validation uses reflection to check all visible fields, but the
 // value replacement utilises json marshaling.
@@ -65,37 +67,47 @@ func Bind(ctx context.Context, sqlStmt string, filterModel any) (sql string, arg
 		reflected   *reflection              // used to inspect the struct for its type and field data
 		mbSql       *modelBoundSql           // used to recursively update the sql and ordered args form the `sqlStmt` and `filterModel`
 		boundValues map[string][]interface{} // the flat map of field names and values
+		lg          *slog.Logger             = logx.Default()
 	)
 	args = []interface{}{}
 	// setup the reflection and the validate the model
 	reflected = newReflection(filterModel)
+	// validate the model
+	lg.Debug("validating the filterModel.")
 	err = validateModel(reflected)
 	if err != nil {
+		lg.Debug("the filterModel was not valid", "err", err.Error())
 		return
 	}
+
 	// get the values from the model into a flat key map
+	lg.Debug("generating filterModel values.")
 	boundValues, err = bindingValues(reflected)
 	if err != nil {
+		lg.Debug("bindingValues failed with an error", "err", err.Error())
 		return
 	}
 
 	// create the modelBoundSql instance which will recursively replace
 	// field placeholders with ? and provide the ordered arguments
+	lg.Debug("creating the bound sql to generate statement & ordered args.")
 	mbSql = newBoundSql(sqlStmt, boundValues)
 	err = mbSql.Parameterise()
 	if err != nil {
+		lg.Debug("Parameterise failed with an error", "err", err.Error())
 		return
 	}
 	// grab the return values
 	sql, args = mbSql.Values()
-
+	lg.Debug("returning the processed sql & ordered arguments.")
 	return
 }
 
 // modelBoundSql is used within the Bind call to parse and update the
-// sql statement, replacing each `:$x` placeholder with correct number
+// sql statement, replacing each `:fieldName` placeholder with correct number
 // of `?` and pushing values into the orderedArgs list
 type modelBoundSql struct {
+	lg          *slog.Logger // default logger
 	Statement   string
 	OrderedArgs []interface{}
 	values      map[string][]interface{}
@@ -106,31 +118,37 @@ type modelBoundSql struct {
 // field placeholder with the correct number of `?` and pushes the values
 // of that field (found in `.values`) into the `OrderedArgs`.
 //
-// Returns an error if the field placeholder (`:$name`) it finds does
+// Returns an error if the field placeholder (`:fieldName`) it finds does
 // not exist in the `.values` slice.
 func (self *modelBoundSql) Parameterise() (err error) {
 	var (
 		key     string
-		stmt    string = self.Statement
-		matches []int  = self.re.FindStringIndex(stmt)
+		stmt    string       = self.Statement
+		matches []int        = self.re.FindStringIndex(stmt)
+		lg      *slog.Logger = self.lg
 	)
 	// no matches, nothing to do
 	if len(matches) < 2 {
+		lg.Debug("no more field placeholders (`:fieldName`) found with the sql statement.")
 		return
 	}
 	// match.. so lets grab the field placeholder ...
 	key = stmt[matches[0]:matches[1]]
+	lg = lg.With("field placeholder", key)
 	// if the key is not in the bound value data then return an error
 	if _, ok := self.values[key]; !ok {
 		err = errors.Join(
 			ErrBindingNoKey,
 			fmt.Errorf("the extra parameter found in the sql statement was [%s]", key))
+		lg.Error("field placeholder does not have a matching struct field", "err", err.Error())
 		return
 	}
 
 	// now replace this segment of the string with current values
+	lg.Debug("replacing field placeholder with ? for db.Query usage.")
 	stmt = self.replaceStmtSegment(stmt, matches, self.values[key])
 	// now add the values to the ordered arguments
+	lg.Debug("adding matching arguments to the ordered args list.")
 	self.OrderedArgs = append(self.OrderedArgs, self.values[key]...)
 	// now recurse....
 	self.Statement = stmt
@@ -141,10 +159,11 @@ func (self *modelBoundSql) Parameterise() (err error) {
 
 // Values is shorthand to fetch the end result sql and ordered arguments
 func (self *modelBoundSql) Values() (sql string, args []interface{}) {
+	self.lg.Debug("fetching end result values for sql & order arguments.")
 	return self.Statement, self.OrderedArgs
 }
 
-// replaceStmtSegment replaces the `:$x` string segment found at loc[0]..loc[1]
+// replaceStmtSegment replaces the `:fieldName` string segment found at loc[0]..loc[1]
 // with the correct number of `?` that should be used for the sql prepared
 // statement to work
 func (self *modelBoundSql) replaceStmtSegment(stmt string, loc []int, values []interface{}) string {
@@ -167,6 +186,7 @@ func newBoundSql(statement string, values map[string][]interface{}) *modelBoundS
 		Statement:   statement,
 		values:      values,
 		re:          regexp.MustCompile(`(?m):[[:alnum:]_-]+`),
+		lg:          logx.Default(),
 	}
 }
 
@@ -211,12 +231,16 @@ func validateModel(ref *reflection) (err error) {
 //		":id": [ 1 ]
 //	}
 func bindingValues(ref *reflection) (paramBindingSlices map[string][]interface{}, err error) {
+	var lg = logx.Default()
 	var jsonified map[string]interface{} = map[string]interface{}{}
 	var paramBindings = map[string]interface{}{}
 	paramBindingSlices = map[string][]interface{}{}
 
+	// json convert trik to get a map of values from multi level structs
+	lg.Debug("converting src model to map via json.")
 	err = convert.Convert(ref.Src, &jsonified)
 	if err != nil {
+		lg.Error("src model conversion failed.", "err", err.Error())
 		return
 	}
 	jsonBindings(jsonified, paramBindings)
@@ -225,6 +249,7 @@ func bindingValues(ref *reflection) (paramBindingSlices map[string][]interface{}
 		paramBindingSlices[k] = asSlice(v)
 	}
 
+	lg.Debug("returning all fieldName & values.", "count", len(paramBindingSlices))
 	return
 }
 
@@ -235,7 +260,8 @@ func bindingValues(ref *reflection) (paramBindingSlices map[string][]interface{}
 // Used within bindings to generate a lookup of field names that will be within the
 // sql statement
 func jsonBindings(jsonified map[string]interface{}, valueMap map[string]interface{}) {
-
+	var lg = logx.Default()
+	lg.Debug("converting the map to add slices to make the order arg expansion consistent (recursive).")
 	for k, v := range jsonified {
 		// handle empty slices etc
 		if v == nil {
@@ -250,6 +276,7 @@ func jsonBindings(jsonified map[string]interface{}, valueMap map[string]interfac
 			valueMap[key] = v
 		}
 	}
+	lg.Debug("converted to map of slices.")
 }
 
 // asSlice uses reflection to expand val into multiples if its a p[slice etc]

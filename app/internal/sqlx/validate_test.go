@@ -1,6 +1,8 @@
 package sqlx
 
-import "testing"
+import (
+	"testing"
+)
 
 type testJSONWith struct {
 	ID        int `json:"id"`
@@ -22,7 +24,7 @@ type testJSONNestedWithout struct {
 	Without testJSONWithout `json:"without"`
 }
 
-func TestSQLxAllFieldsHaveJSONTags(t *testing.T) {
+func TestSQLxValidateAllFieldsHaveJSONTags(t *testing.T) {
 	var valid bool
 	// this struct has all tags - test it as ptr and value
 	valid = allFieldsHaveJSONTags(newReflection(&testJSONWith{}))

@@ -1,6 +1,8 @@
 package sqlx
 
 import (
+	"log/slog"
+	"opg-reports/app/internal/logx"
 	"reflect"
 )
 
@@ -10,6 +12,7 @@ import (
 // which are then used in validation / parsing
 // of sql statements
 type reflection struct {
+	lg        *slog.Logger // default logger
 	Src       any
 	K         reflect.Kind
 	V         reflect.Value
@@ -23,12 +26,15 @@ type reflection struct {
 //
 // Works out sorce based on struct type
 func (self *reflection) Fields() (fields []reflect.StructField) {
+	self.lg.Debug("reflection getting visible fields ...")
+
 	fields = []reflect.StructField{}
 	if self.valStruct {
 		fields = reflect.VisibleFields(self.T)
 	} else if self.ptrStruct {
 		fields = reflect.VisibleFields(self.T.Elem())
 	}
+	self.lg.Debug("returning visible fields.", "count", len(fields))
 	return
 }
 
@@ -39,7 +45,9 @@ func (self *reflection) Fields() (fields []reflect.StructField) {
 // Passing `nil` as the initial fields param will cause the func
 // to use the current `T` fields
 func (self *reflection) RecursiveFields(fields []reflect.StructField) (all []reflect.StructField) {
+	self.lg.Debug("getting all fields, recursively.")
 	if fields == nil {
+		self.lg.Debug("no fields passed, getting default visibles fields.")
 		fields = self.Fields()
 	}
 	all = []reflect.StructField{}
@@ -48,6 +56,7 @@ func (self *reflection) RecursiveFields(fields []reflect.StructField) (all []ref
 	for _, f := range fields {
 		var t = f.Type
 		var sub = []reflect.StructField{}
+		self.lg.Debug("checking field.", "fieldName", f.Name)
 		// add this field
 		all = append(all, f)
 		// now recursively find all other fields
@@ -60,7 +69,7 @@ func (self *reflection) RecursiveFields(fields []reflect.StructField) (all []ref
 			all = append(all, sub...)
 		}
 	}
-
+	self.lg.Debug("found all fields.", "count", len(all))
 	return
 }
 
@@ -76,16 +85,23 @@ func (self *reflection) RecursiveFields(fields []reflect.StructField) (all []ref
 // calculated at this point
 func newReflection(src any) (r *reflection) {
 	var (
-		val reflect.Value = reflect.ValueOf(src)
-		typ reflect.Type  = reflect.TypeOf(src)
+		val       reflect.Value = reflect.ValueOf(src)
+		typ       reflect.Type  = reflect.TypeOf(src)
+		valStruct bool          = byValueStruct(typ)
+		ptrStruct bool          = byPtrStruct(typ)
+		lg        *slog.Logger  = logx.Default().With(slog.Group("reflection",
+			"srcType", typ.String(),
+			"valStruct", valStruct,
+			"ptrStruct", ptrStruct))
 	)
 
 	r = &reflection{
+		lg:        lg,
 		Src:       src,
 		V:         val,
 		T:         typ,
-		valStruct: byValueStruct(typ),
-		ptrStruct: byPtrStruct(typ),
+		valStruct: valStruct,
+		ptrStruct: ptrStruct,
 	}
 	r.IsStruct = (r.valStruct || r.ptrStruct)
 	return

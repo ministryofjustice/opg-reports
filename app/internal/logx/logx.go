@@ -7,19 +7,18 @@ import (
 	"strings"
 )
 
-// Default sets the default logging to be used by all apps.
-// Sets the log level from environment variable (`LOG_LEVEL`)
-// and defaults to info.
+// Default is a wrapper around slog.Default
 //
-// Always uses JSON handler & adds the source details
-func Default() {
-	Set(level())
+// Use this instead so the logx init will have run and
+// therefore pulled in defaults from the env
+func Default() *slog.Logger {
+	return slog.Default()
 }
 
 // Set configures the default slog instance with standard
 // approach (json, source added) and allows configuration
 // of the log level
-func Set(l slog.Leveler) {
+func Set(l slog.Leveler) *slog.Logger {
 	var handler slog.Handler
 	var logger *slog.Logger
 
@@ -33,6 +32,8 @@ func Set(l slog.Leveler) {
 	logger = slog.New(handler)
 
 	slog.SetDefault(logger)
+
+	return slog.Default()
 }
 
 // level grab log level from env
@@ -52,4 +53,8 @@ func level() (l slog.Leveler) {
 	}
 
 	return
+}
+
+func init() {
+	Set(level())
 }
