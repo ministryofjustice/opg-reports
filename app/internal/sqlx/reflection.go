@@ -4,12 +4,12 @@ import (
 	"reflect"
 )
 
-// Reflection used to help identify if item is a
+// reflection used to help identify if item is a
 // struct or not via reflection and also provides
 // helper methods to fetch all attached fields
 // which are then used in validation / parsing
 // of sql statements
-type Reflection struct {
+type reflection struct {
 	Src       any
 	K         reflect.Kind
 	V         reflect.Value
@@ -19,19 +19,10 @@ type Reflection struct {
 	ptrStruct bool
 }
 
-// func (self *Reflection) ElemValue() (el reflect.Value) {
-// 	if self.valStruct {
-// 		el = reflect.ValueOf(&self.Src).Elem()
-// 	} else if self.ptrStruct {
-// 		el = reflect.ValueOf(self.Src).Elem()
-// 	}
-// 	return
-// }
-
 // Fields returns all visible fields for this struct
 //
 // Works out sorce based on struct type
-func (self *Reflection) Fields() (fields []reflect.StructField) {
+func (self *reflection) Fields() (fields []reflect.StructField) {
 	fields = []reflect.StructField{}
 	if self.valStruct {
 		fields = reflect.VisibleFields(self.T)
@@ -47,7 +38,7 @@ func (self *Reflection) Fields() (fields []reflect.StructField) {
 //
 // Passing `nil` as the initial fields param will cause the func
 // to use the current `T` fields
-func (self *Reflection) RecursiveFields(fields []reflect.StructField) (all []reflect.StructField) {
+func (self *reflection) RecursiveFields(fields []reflect.StructField) (all []reflect.StructField) {
 	if fields == nil {
 		fields = self.Fields()
 	}
@@ -60,9 +51,9 @@ func (self *Reflection) RecursiveFields(fields []reflect.StructField) (all []ref
 		// add this field
 		all = append(all, f)
 		// now recursively find all other fields
-		if ByValueStruct(t) {
+		if byValueStruct(t) {
 			sub = self.RecursiveFields(reflect.VisibleFields(t))
-		} else if ByPtrStruct(t) {
+		} else if byPtrStruct(t) {
 			sub = self.RecursiveFields(reflect.VisibleFields(t.Elem()))
 		}
 		if len(sub) > 0 {
@@ -73,34 +64,39 @@ func (self *Reflection) RecursiveFields(fields []reflect.StructField) (all []ref
 	return
 }
 
-// NewReflection creates a reflection struct based on the
+// newReflection creates a reflection struct based on the
 // src passed in.
+//
+// The reflection struct is used to determine if the filterModel
+// passed to `Bind` is actually a struct or not and also to
+// query all fields (recursively) on a struct - generally to
+// checking tag information about each struct field.
 //
 // Types, values and struct type (pointer / value) are
 // calculated at this point
-func NewReflection(src any) (r *Reflection) {
+func newReflection(src any) (r *reflection) {
 	var (
 		val reflect.Value = reflect.ValueOf(src)
 		typ reflect.Type  = reflect.TypeOf(src)
 	)
 
-	r = &Reflection{
+	r = &reflection{
 		Src:       src,
 		V:         val,
 		T:         typ,
-		valStruct: ByValueStruct(typ),
-		ptrStruct: ByPtrStruct(typ),
+		valStruct: byValueStruct(typ),
+		ptrStruct: byPtrStruct(typ),
 	}
 	r.IsStruct = (r.valStruct || r.ptrStruct)
 	return
 }
 
-// ByValueStruct checks for structs passed by value
-func ByValueStruct(t reflect.Type) bool {
+// byValueStruct checks for structs passed by value
+func byValueStruct(t reflect.Type) bool {
 	return (t.Kind() == reflect.Struct)
 }
 
-// ByPtrStruct decides if the type is a struct pointer
-func ByPtrStruct(t reflect.Type) bool {
+// byPtrStruct decides if the type is a struct pointer
+func byPtrStruct(t reflect.Type) bool {
 	return (t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Struct)
 }

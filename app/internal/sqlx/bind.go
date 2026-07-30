@@ -5,40 +5,70 @@ import (
 	"errors"
 	"fmt"
 	"opg-reports/app/internal/convert"
-	"opg-reports/app/internal/fmtx"
 	"reflect"
 	"regexp"
 	"strings"
 )
 
 var (
-	ErrModelNotStruct   error = errors.New("filterModel passed to Bind is not a struct.")
-	ErrModelMissingTags error = errors.New("filterModel is missing json tags on fields.")
+	ErrModelNotStruct   error = errors.New("filterModel passed to Bind is not a struct.") // raised when a non-struct is passed to `Bind`
+	ErrModelMissingTags error = errors.New("filterModel is missing json tags on fields.") // raised when the struct passed to `Bind` has fields without json tags
 )
 
 var (
-	ErrBindingNoKey error = errors.New("error when binding sql statement to filterModel, a parameter (`:x`) was found that has no coresponding value on filterModel.")
+	ErrBindingNoKey error = errors.New("error when binding sql statement to filterModel, a parameter (`:x`) was found that has no coresponding value on filterModel.") // raised when the sql passed to `Bind` contains a placeholder that does not exist on the filterModel.
 )
 
-// Bind finds `:x` placeholders within sql statement and generates a set of values
-// while also updating the sql statement to match the required bound parameters usage.
+// Bind finds the values of json tagged fields on the filterModel struct and
+// uses those to replace matching placeholders within the `sqlStmt` ready to
+// be used in a `db.ExecContext` or `db.QueryContext` call.
 //
-// Validates that the filterModel passed is a struct (or ptr to a struct) and that
-// all of its fields (and sub struct fields) have json tagging set. Will
-// return an error if not
+// The intention is to allow our local code to use prepared sql statements
+// that contain placeholders that map to values on a struct which can then
+// be passed into Bind to then generate sql - avoiding complex logic within
+// the main loop and ant ORM usage.
 //
-// WARNING: Validation uses reflection to check all fields within the model have json
-// tags. However the call to generate binding parameters to replace `:x` values
-// uses json conversion.
-func Bind(ctx context.Context, statement string, filterModel any) (err error) {
+// # Example usage
+//
+//	type filterByMonth struct {
+//	    Months []string `json:"months"`
+//	}
+//	var filter = &filterByMonth{
+//	    Months: []string{"2026-05", "2026-06"}
+//	}
+//	var selectStmt string = "SELECT * FROM costs WHERE month IN(:months);"
+//	sql, args, err := Bind(ctx, selectStmt, filter)
+//	rows, err := db.QueryContext(ctx, sql, args...)
+//
+// Result in `sql` being returned as:
+//
+//	"SELECT * FROM costs WHERE month IN(?,?);"
+//
+// And `args` will then contain the values required in the correct order:
+//
+//	[]interface{"2026-05", "2026-06"}
+//
+// # Validation / errors
+//
+// Bind will validate that the `filterModel` passed is either a struct or
+// a point to a struct.
+//
+// The `filterModel` fields (and any embedded struct fields) will be
+// checked to ensure they have a json tag (`json:"$name"`) set. This is
+// used for determining the names and values of the sql placeholders
+// (`:$name`).
+//
+// Validation uses reflection to check all visible fields, but the
+// value replacement utilises json marshaling.
+func Bind(ctx context.Context, sqlStmt string, filterModel any) (sql string, args []interface{}, err error) {
 	var (
-		reflected   *Reflection
-		boundValues map[string][]interface{}
-		// generatedStmt string = statement
-		// args          []interface{}
+		reflected   *reflection              // used to inspect the struct for its type and field data
+		mbSql       *modelBoundSql           // used to recursively update the sql and ordered args form the `sqlStmt` and `filterModel`
+		boundValues map[string][]interface{} // the flat map of field names and values
 	)
+	args = []interface{}{}
 	// setup the reflection and the validate the model
-	reflected = NewReflection(filterModel)
+	reflected = newReflection(filterModel)
 	err = validateModel(reflected)
 	if err != nil {
 		return
@@ -49,13 +79,22 @@ func Bind(ctx context.Context, statement string, filterModel any) (err error) {
 		return
 	}
 
-	fmtx.Printj(boundValues)
+	// create the modelBoundSql instance which will recursively replace
+	// field placeholders with ? and provide the ordered arguments
+	mbSql = newBoundSql(sqlStmt, boundValues)
+	err = mbSql.Parameterise()
+	if err != nil {
+		return
+	}
+	// grab the return values
+	sql, args = mbSql.Values()
+
 	return
 }
 
 // modelBoundSql is used within the Bind call to parse and update the
-// sql statement, replacing each `:$x` with correct number of `?` and pushing
-// values into the orderedArgs list
+// sql statement, replacing each `:$x` placeholder with correct number
+// of `?` and pushing values into the orderedArgs list
 type modelBoundSql struct {
 	Statement   string
 	OrderedArgs []interface{}
@@ -63,6 +102,12 @@ type modelBoundSql struct {
 	re          *regexp.Regexp
 }
 
+// Parameterise recursively calls itself and replaces the first matching
+// field placeholder with the correct number of `?` and pushes the values
+// of that field (found in `.values`) into the `OrderedArgs`.
+//
+// Returns an error if the field placeholder (`:$name`) it finds does
+// not exist in the `.values` slice.
 func (self *modelBoundSql) Parameterise() (err error) {
 	var (
 		key     string
@@ -73,11 +118,13 @@ func (self *modelBoundSql) Parameterise() (err error) {
 	if len(matches) < 2 {
 		return
 	}
-	// match.. so lets find things...
+	// match.. so lets grab the field placeholder ...
 	key = stmt[matches[0]:matches[1]]
 	// if the key is not in the bound value data then return an error
 	if _, ok := self.values[key]; !ok {
-		err = errors.Join(ErrBindingNoKey, fmt.Errorf("the extra parameter found in the sql statement was [%s]", key))
+		err = errors.Join(
+			ErrBindingNoKey,
+			fmt.Errorf("the extra parameter found in the sql statement was [%s]", key))
 		return
 	}
 
@@ -92,8 +139,14 @@ func (self *modelBoundSql) Parameterise() (err error) {
 	return
 }
 
-// replaceStmtSegment replaces the `:$x` string segment found at loc[0]..loc[1] with the correct
-// number of `?` that should be used for the sql prepared statement to work
+// Values is shorthand to fetch the end result sql and ordered arguments
+func (self *modelBoundSql) Values() (sql string, args []interface{}) {
+	return self.Statement, self.OrderedArgs
+}
+
+// replaceStmtSegment replaces the `:$x` string segment found at loc[0]..loc[1]
+// with the correct number of `?` that should be used for the sql prepared
+// statement to work
 func (self *modelBoundSql) replaceStmtSegment(stmt string, loc []int, values []interface{}) string {
 	var (
 		i int    = loc[0]
@@ -107,6 +160,7 @@ func (self *modelBoundSql) replaceStmtSegment(stmt string, loc []int, values []i
 	return stmt[0:i] + s + stmt[j:]
 }
 
+// newBoundSql generates
 func newBoundSql(statement string, values map[string][]interface{}) *modelBoundSql {
 	return &modelBoundSql{
 		OrderedArgs: []interface{}{},
@@ -118,17 +172,59 @@ func newBoundSql(statement string, values map[string][]interface{}) *modelBoundS
 
 // validateModel is used by bind to confirm the model is
 // a struct and has json tagged attributes.
-func validateModel(ref *Reflection) (err error) {
+func validateModel(ref *reflection) (err error) {
 
 	if !ref.IsStruct {
 		err = ErrModelNotStruct
 		return
 	}
 
-	if !AllFieldsHaveJSONTags(ref) {
+	if !allFieldsHaveJSONTags(ref) {
 		err = ErrModelMissingTags
 		return
 	}
+	return
+}
+
+// bindingValues is used to create a lookup of key/values to allow Bind to find the
+// replacement values quickly, so the paramBindings use `:jsonTagName` as keys.
+//
+// bindings makes every value a slice for consistency within the sql parsing and
+// handling or ordered arguments.
+//
+// # Example
+//
+//	struct{
+//		ID:        1,
+//		Address: "address test line 1",
+//		Emails: []string{
+//				"test@example.com",
+//				"test2@example.com",
+//		},
+//	}
+//
+// Results in:
+//
+//	{
+//		":address": [ "address test line 1" ],
+//		":email": [ "test@example.com", "test2@example.com" ],
+//		":id": [ 1 ]
+//	}
+func bindingValues(ref *reflection) (paramBindingSlices map[string][]interface{}, err error) {
+	var jsonified map[string]interface{} = map[string]interface{}{}
+	var paramBindings = map[string]interface{}{}
+	paramBindingSlices = map[string][]interface{}{}
+
+	err = convert.Convert(ref.Src, &jsonified)
+	if err != nil {
+		return
+	}
+	jsonBindings(jsonified, paramBindings)
+	// convert into slices if they arent
+	for k, v := range paramBindings {
+		paramBindingSlices[k] = asSlice(v)
+	}
+
 	return
 }
 
@@ -154,46 +250,6 @@ func jsonBindings(jsonified map[string]interface{}, valueMap map[string]interfac
 			valueMap[key] = v
 		}
 	}
-}
-
-// bindingValues is used to create a lookup of key/values to allow Bind to find the
-// replacement values quickly, so the paramBindings use `:jsonTagName` as keys
-//
-// bindings makes every value a slice, for consistency within the sql parsing so should
-// always look convert:
-//
-//	struct{
-//		ID:        1,
-//		Address: "address test line 1",
-//		Emails: []string{
-//				"test@example.com",
-//				"test2@example.com",
-//		},
-//	}
-//
-// into:
-//
-//	{
-//		":address": [ "address test line 1" ],
-//		":email": [ "test@example.com", "test2@example.com" ],
-//		":id": [ 1 ]
-//	}
-func bindingValues(ref *Reflection) (paramBindingSlices map[string][]interface{}, err error) {
-	var jsonified map[string]interface{} = map[string]interface{}{}
-	var paramBindings = map[string]interface{}{}
-	paramBindingSlices = map[string][]interface{}{}
-
-	err = convert.Convert(ref.Src, &jsonified)
-	if err != nil {
-		return
-	}
-	jsonBindings(jsonified, paramBindings)
-	// convert into slices if they arent
-	for k, v := range paramBindings {
-		paramBindingSlices[k] = asSlice(v)
-	}
-
-	return
 }
 
 // asSlice uses reflection to expand val into multiples if its a p[slice etc]

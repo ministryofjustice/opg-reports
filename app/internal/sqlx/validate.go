@@ -4,11 +4,11 @@ import (
 	"reflect"
 )
 
-// AllFieldsHaveJSONTags checks all fields via reflection
+// allFieldsHaveJSONTags checks all fields via reflection
 // and looks for the json tag beign present
 //
 // Non-struct reflectiosn will always return false
-func AllFieldsHaveJSONTags(ref *Reflection) bool {
+func allFieldsHaveJSONTags(ref *reflection) bool {
 	var (
 		jsonTag string                = "json"
 		fields  []reflect.StructField = ref.RecursiveFields(nil)
