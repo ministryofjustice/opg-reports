@@ -9,9 +9,6 @@ package ghteamrepositories
 import (
 	"context"
 	"errors"
-	"fmt"
-	"log/slog"
-	"opg-reports/app/internal/logx"
 	"time"
 
 	"github.com/google/go-github/v87/github"
@@ -63,7 +60,6 @@ type Source[C Client, R Result] struct {
 	client  C               // the *github.TeamsService compatible interface
 	ctx     context.Context // ctx is the context to use
 	cfg     *Config         // configuration values to use
-	log     *slog.Logger    // logger
 	filters []Filter        // set of filter functions to run against each result
 }
 
@@ -83,7 +79,7 @@ func (self *Source[C, R]) GetData() (results []R, skipped []any, err error) {
 }
 
 func (self *Source[C, R]) filter(repositories []*github.Repository) (filtered []R, skipped []any) {
-	var lg *slog.Logger = self.log // localised logger with config values added
+	// var lg *slog.Logger = self.log // localised logger with config values added
 
 	filtered = []R{}
 	skipped = []any{}
@@ -92,7 +88,7 @@ func (self *Source[C, R]) filter(repositories []*github.Repository) (filtered []
 		var include bool = true
 		// check each filter, break on the first fail
 		for _, f := range self.filters {
-			lg.Debug(fmt.Sprintf("[%s] [%T] checking filter...", *repo.FullName, f))
+			// lg.Debug(fmt.Sprintf("[%s] [%T] checking filter...", *repo.FullName, f))
 			// if the filter is ever true, break the loop as we cant include & add to skipped list
 			if include = f.Filter(self.ctx, repo); !include {
 				skipped = append(skipped, *repo.FullName)
@@ -100,7 +96,7 @@ func (self *Source[C, R]) filter(repositories []*github.Repository) (filtered []
 			}
 		}
 		// log if the repo should be included or not
-		lg.Debug(fmt.Sprintf("[%s] include repository? [%v]", *repo.FullName, include))
+		// lg.Debug(fmt.Sprintf("[%s] include repository? [%v]", *repo.FullName, include))
 		if include {
 			filtered = append(filtered, repo)
 		}
@@ -120,10 +116,10 @@ func (self *Source[C, R]) repositories() (results []R, skipped []any, err error)
 		org      string               = self.cfg.OrganisationSlug // organisation slug
 		team     string               = self.cfg.TeamSlug         // team slug
 		allRepos []*github.Repository = []*github.Repository{}
-		options  *github.ListOptions  = &github.ListOptions{PerPage: 200}       // set the default options
-		lg       *slog.Logger         = self.log.With("team", team, "org", org) // localised logger with config values added
+		options  *github.ListOptions  = &github.ListOptions{PerPage: 200} // set the default options
+		// lg       *slog.Logger         = self.log.With("team", team, "org", org) // localised logger with config values added
 	)
-	lg.Debug("getting repositories ...")
+	// lg.Debug("getting repositories ...")
 
 	for page > 0 {
 		var (
@@ -138,7 +134,7 @@ func (self *Source[C, R]) repositories() (results []R, skipped []any, err error)
 		// max of 3 attempts to call the same data set before failing.
 		for e != nil && retry < maxRetry {
 			// log
-			lg.With("page", page, "try", retry).Debug("getting list of repositories for team ...")
+			// lg.With("page", page, "try", retry).Debug("getting list of repositories for team ...")
 			// make the api call
 			fetched, response, e = self.client.ListTeamReposBySlug(self.ctx, org, team, options)
 			retry += 1
@@ -149,7 +145,7 @@ func (self *Source[C, R]) repositories() (results []R, skipped []any, err error)
 		}
 		// if the error persits, then return
 		if e != nil {
-			lg.Error("failed to get list of repositories", "err", e.Error())
+			// lg.Error("failed to get list of repositories", "err", e.Error())
 			err = errors.Join(e, ErrGettingList)
 			return
 		}
@@ -161,7 +157,7 @@ func (self *Source[C, R]) repositories() (results []R, skipped []any, err error)
 
 	results, skipped = self.filter(allRepos)
 
-	lg.With("count", len(results)).Debug("getting repositories completed.")
+	// lg.With("count", len(results)).Debug("getting repositories completed.")
 	return
 }
 
@@ -176,7 +172,7 @@ func (self *Source[C, R]) repositories() (results []R, skipped []any, err error)
 // - filters is optional way of reducing the dataset
 func New[C Client, R Result](ctx context.Context, client C, config *Config, filters ...Filter) (source *Source[C, R], err error) {
 	// get logger
-	ctx, lg := logx.Get(ctx)
+	// ctx, lg := logx.Get(ctx)
 
 	// if no org slug, throw an error
 	if config.OrganisationSlug == "" {
@@ -193,7 +189,6 @@ func New[C Client, R Result](ctx context.Context, client C, config *Config, filt
 		ctx:     ctx,
 		client:  client,
 		cfg:     config,
-		log:     lg,
 		filters: filters,
 	}
 

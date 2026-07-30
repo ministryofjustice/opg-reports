@@ -2,8 +2,6 @@ package ghfilters
 
 import (
 	"context"
-	"fmt"
-	"opg-reports/app/internal/logx"
 	"strings"
 
 	"github.com/google/go-github/v87/github"
@@ -19,10 +17,9 @@ type ExcludeArchivedRepository struct{}
 //
 // When `Archived == true`, `include = false`
 func (self *ExcludeArchivedRepository) Filter(ctx context.Context, result *github.Repository) (include bool) {
-	var _, lg = logx.Get(ctx)
 
 	include = !*result.Archived
-	lg.Debug(fmt.Sprintf("[%s] archived: [%v], include = [%v] ", *result.FullName, *result.Archived, include))
+	// lg.Debug(fmt.Sprintf("[%s] archived: [%v], include = [%v] ", *result.FullName, *result.Archived, include))
 
 	return
 }
@@ -40,12 +37,11 @@ type FilterByRepositoryName struct {
 // Sets both to lowercase.
 func (self *FilterByRepositoryName) Filter(ctx context.Context, result *github.Repository) (include bool) {
 	var (
-		_, lg  = logx.Get(ctx)
 		name   = strings.ToLower(*result.Name)
 		target = strings.ToLower(self.Name)
 	)
 
 	include = (name == target)
-	lg.Debug(fmt.Sprintf("[%s] repo name match: ([%s] == [%s]), include = [%v] ", *result.FullName, target, name, include))
+	// lg.Debug(fmt.Sprintf("[%s] repo name match: ([%s] == [%s]), include = [%v] ", *result.FullName, target, name, include))
 	return
 }
