@@ -12,14 +12,13 @@ import (
 // which are then used in validation / parsing
 // of sql statements
 type reflection struct {
-	lg        *slog.Logger // default logger
-	Src       any
-	K         reflect.Kind
-	V         reflect.Value
-	T         reflect.Type
-	IsStruct  bool
-	valStruct bool
-	ptrStruct bool
+	lg        *slog.Logger  // default logger
+	Src       any           // the original item passed to reflect upon
+	V         reflect.Value // the result of `reflect.ValueOf` on Src
+	T         reflect.Type  // the result of `reflect.TypeOf` on Src
+	IsStruct  bool          // shows if the Src is a struct or pointer to a struct
+	valStruct bool          // valStruct is a directly referenced struct (no pointer)
+	ptrStruct bool          // ptrStruct for structs that are pointers
 }
 
 // Fields returns all visible fields for this struct

@@ -2,6 +2,8 @@ package ghfilters
 
 import (
 	"context"
+	"log/slog"
+	"opg-reports/app/internal/logx"
 	"strings"
 
 	"github.com/google/go-github/v87/github"
@@ -21,12 +23,16 @@ type FilterWorkfowRunByPartialName struct {
 // Sets both to lowercase.
 func (self *FilterWorkfowRunByPartialName) Filter(ctx context.Context, result *github.WorkflowRun) (include bool) {
 	var (
-		name   = strings.ToLower(*result.Name)
-		target = strings.ToLower(self.Name)
+		name   string       = strings.ToLower(*result.Name)
+		target string       = strings.ToLower(self.Name)
+		lg     *slog.Logger = logx.Default().With(
+			"name", name,
+			"targetName", target,
+		)
 	)
 	include = strings.Contains(name, target)
 
-	// lg.Debug(fmt.Sprintf("[%d] workflow name match: ([%s] == [%s]), include = [%v] ", *result.ID, target, name, include))
+	lg.Debug("include?", "include", include)
 
 	return
 }

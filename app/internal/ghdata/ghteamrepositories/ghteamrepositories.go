@@ -9,6 +9,9 @@ package ghteamrepositories
 import (
 	"context"
 	"errors"
+	"fmt"
+	"log/slog"
+	"opg-reports/app/internal/logx"
 	"time"
 
 	"github.com/google/go-github/v87/github"
@@ -61,6 +64,7 @@ type Source[C Client, R Result] struct {
 	ctx     context.Context // ctx is the context to use
 	cfg     *Config         // configuration values to use
 	filters []Filter        // set of filter functions to run against each result
+	lg      *slog.Logger    // logger
 }
 
 // GetData calls the github api, iterates over all of the paginated results, fetching
@@ -74,12 +78,17 @@ type Source[C Client, R Result] struct {
 //
 // `skipped` is unused but kept for interface
 func (self *Source[C, R]) GetData() (results []R, skipped []any, err error) {
+	self.lg.Info("getting data.")
 	results, skipped, err = self.repositories()
+
+	self.lg.Info("got data.",
+		"count", len(results),
+		"skipped", len(skipped),
+		"err", err)
 	return
 }
 
 func (self *Source[C, R]) filter(repositories []*github.Repository) (filtered []R, skipped []any) {
-	// var lg *slog.Logger = self.log // localised logger with config values added
 
 	filtered = []R{}
 	skipped = []any{}
@@ -88,7 +97,9 @@ func (self *Source[C, R]) filter(repositories []*github.Repository) (filtered []
 		var include bool = true
 		// check each filter, break on the first fail
 		for _, f := range self.filters {
-			// lg.Debug(fmt.Sprintf("[%s] [%T] checking filter...", *repo.FullName, f))
+			self.lg.Debug("checking filter.",
+				"repository", *repo.FullName,
+				"T", fmt.Sprintf("%T", f))
 			// if the filter is ever true, break the loop as we cant include & add to skipped list
 			if include = f.Filter(self.ctx, repo); !include {
 				skipped = append(skipped, *repo.FullName)
@@ -96,7 +107,10 @@ func (self *Source[C, R]) filter(repositories []*github.Repository) (filtered []
 			}
 		}
 		// log if the repo should be included or not
-		// lg.Debug(fmt.Sprintf("[%s] include repository? [%v]", *repo.FullName, include))
+		self.lg.Debug("include?",
+			"repository", *repo.FullName,
+			"include", include)
+
 		if include {
 			filtered = append(filtered, repo)
 		}
@@ -116,10 +130,10 @@ func (self *Source[C, R]) repositories() (results []R, skipped []any, err error)
 		org      string               = self.cfg.OrganisationSlug // organisation slug
 		team     string               = self.cfg.TeamSlug         // team slug
 		allRepos []*github.Repository = []*github.Repository{}
-		options  *github.ListOptions  = &github.ListOptions{PerPage: 200} // set the default options
-		// lg       *slog.Logger         = self.log.With("team", team, "org", org) // localised logger with config values added
+		options  *github.ListOptions  = &github.ListOptions{PerPage: 200}      // set the default options
+		lg       *slog.Logger         = self.lg.With("team", team, "org", org) // localised logger with config values added
 	)
-	// lg.Debug("getting repositories ...")
+	lg.Debug("getting repositories for team.")
 
 	for page > 0 {
 		var (
@@ -134,18 +148,20 @@ func (self *Source[C, R]) repositories() (results []R, skipped []any, err error)
 		// max of 3 attempts to call the same data set before failing.
 		for e != nil && retry < maxRetry {
 			// log
-			// lg.With("page", page, "try", retry).Debug("getting list of repositories for team ...")
+			lg.Debug("getting list os repositories for team.",
+				"page", page, "try", retry)
 			// make the api call
 			fetched, response, e = self.client.ListTeamReposBySlug(self.ctx, org, team, options)
 			retry += 1
 			// if theres an error pause for a second - as error might be rate limiting
 			if e != nil {
+				self.lg.Warn("error fetching page - sleeping & retrying.", "e", e.Error())
 				time.Sleep(1)
 			}
 		}
 		// if the error persits, then return
 		if e != nil {
-			// lg.Error("failed to get list of repositories", "err", e.Error())
+			self.lg.Error("error after retries.", "e", e.Error())
 			err = errors.Join(e, ErrGettingList)
 			return
 		}
@@ -154,10 +170,14 @@ func (self *Source[C, R]) repositories() (results []R, skipped []any, err error)
 		// increment the page
 		page = response.NextPage
 	}
-
+	// filter repo list
+	self.lg.Debug("filtering repositories.")
 	results, skipped = self.filter(allRepos)
 
-	// lg.With("count", len(results)).Debug("getting repositories completed.")
+	self.lg.Debug("got pull repositories.",
+		"count", len(results),
+		"skipped", len(skipped),
+		"err", err)
 	return
 }
 
@@ -171,8 +191,7 @@ func (self *Source[C, R]) repositories() (results []R, skipped []any, err error)
 // - config contains parameters for the sdk / api call
 // - filters is optional way of reducing the dataset
 func New[C Client, R Result](ctx context.Context, client C, config *Config, filters ...Filter) (source *Source[C, R], err error) {
-	// get logger
-	// ctx, lg := logx.Get(ctx)
+	var lg *slog.Logger = logx.Default()
 
 	// if no org slug, throw an error
 	if config.OrganisationSlug == "" {
@@ -190,6 +209,7 @@ func New[C Client, R Result](ctx context.Context, client C, config *Config, filt
 		client:  client,
 		cfg:     config,
 		filters: filters,
+		lg:      lg,
 	}
 
 	return

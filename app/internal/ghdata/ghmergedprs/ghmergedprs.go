@@ -20,6 +20,8 @@ package ghmergedprs
 import (
 	"context"
 	"errors"
+	"log/slog"
+	"opg-reports/app/internal/logx"
 	"time"
 
 	"github.com/google/go-github/v87/github"
@@ -83,6 +85,7 @@ type Source[C Client, R Result] struct {
 	ctx     context.Context // ctx is the context to use
 	cfg     *Config         // configuration values to use
 	filters []Filter        // set of filter functions to run against results
+	lg      *slog.Logger    // logger
 }
 
 // GetData returns all pull requests between the start & end date for each repository
@@ -92,7 +95,13 @@ type Source[C Client, R Result] struct {
 //
 // `skipped` becomes a list of repository structs that have no results for the time period.
 func (self *Source[C, R]) GetData() (results []R, skipped []any, err error) {
+	self.lg.Info("getting data.")
 	results, skipped, err = self.mergedPullRequests()
+
+	self.lg.Info("got data.",
+		"count", len(results),
+		"skipped", len(skipped),
+		"err", err)
 	return
 }
 
@@ -100,36 +109,45 @@ func (self *Source[C, R]) GetData() (results []R, skipped []any, err error) {
 // configured date period
 func (self *Source[C, R]) mergedPullRequests() (results []R, skipped []any, err error) {
 	var (
-		all map[int64]*ResultData = map[int64]*ResultData{}
-		// total int                   = len(self.cfg.Repositories)
+		all   map[int64]*ResultData = map[int64]*ResultData{}
+		total int                   = len(self.cfg.Repositories)
 	)
-	// lg.Debug("getting all pull requests for all repositories ...")
+	self.lg.Debug("getting all pull requests for all repositories.")
 	results = []R{}
 	skipped = []any{}
 
 	// loop over each repo
-	for _, repo := range self.cfg.Repositories {
-		// lg.Debug(fmt.Sprintf("[%d/%d] (%s)", i+1, total, *repo.FullName))
+	for i, repo := range self.cfg.Repositories {
+		// log
+		self.lg.Debug("getting pull requests for repository.",
+			"i", i, "total", total,
+			"repository", *repo.FullName)
 
 		prs, e := self.paginatedPullRequests(repo)
 		if e != nil {
 			err = e
+			self.lg.Error("error getting paginated pull requests.", "err", err.Error())
 			return
 		}
-		// add results into the main map, ignoring any duplicates
-		for i, pr := range prs {
-			all[i] = &ResultData{
+		// add results into the main map, ignoring any duplicates based on the id
+		self.lg.Debug("adding pull requests to result.",
+			"count", len(prs),
+			"repository", *repo.FullName,
+		)
+		for k, pr := range prs {
+			all[k] = &ResultData{
 				Repository:  repo,
 				PullRequest: pr,
 			}
 		}
 
 	}
-	// flattern for the result
+	// convert map to slice
+	self.lg.Debug("converting map to slice.")
 	for _, pr := range all {
 		results = append(results, pr)
 	}
-
+	self.lg.Debug("got all pull requests.")
 	return
 }
 
@@ -150,6 +168,8 @@ func (self *Source[C, R]) paginatedPullRequests(repo *github.Repository) (prs ma
 			Direction:   "desc",    // fixed ordering for logic to work
 		}
 	)
+	self.lg.Debug("getting paginated pull requests.",
+		"repository", *repo.FullName)
 
 	page = 1
 	prs = map[int64]*github.PullRequest{}
@@ -163,20 +183,26 @@ func (self *Source[C, R]) paginatedPullRequests(repo *github.Repository) (prs ma
 			e        error = errDefaultLoop
 			retry    int   = 0 // retry counter
 		)
+
 		// set the page number
 		options.Page = page
 		// retry loop
 		for e != nil && retry < maxRetry {
+			self.lg.Debug("getting page of pull requests.",
+				"page", page, "try", retry, "repository", *repo.FullName)
+
 			// api call
 			fetched, response, e = self.client.List(self.ctx, *repo.Owner.Login, *repo.Name, options)
 			retry += 1
 			// if theres an error pause for a second - as error might be rate limiting
 			if e != nil {
+				self.lg.Warn("error fetching page - sleeping & retrying.", "e", e.Error())
 				time.Sleep(1)
 			}
 		}
 		// if there is an error, retunr
 		if e != nil {
+			self.lg.Error("error after retries.", "e", e.Error())
 			err = errors.Join(e, ErrGettingList)
 			return
 		}
@@ -186,23 +212,27 @@ func (self *Source[C, R]) paginatedPullRequests(repo *github.Repository) (prs ma
 		page = response.NextPage
 		// otherwise, merge in results
 		for _, pr := range fetched {
-			var valid, before, _ bool = self.includePR(pr)
+			var include, before, _ bool = self.includePR(pr)
+			self.lg.Debug("include pull request?", "include", include)
 			//
-			if valid {
+			if include {
 				prs[*pr.ID] = pr
 			}
 			// if we're outside of the date range, set next page as 0 to
 			// break the outer loop and also break this loop so we
 			// dont include any more pull requests
 			if before {
-				// lg.Debug("pr created before date range, breaking loops ...")
+				self.lg.Debug("pull request was created before the date range, breaking loop.")
 				page = 0
 				break
 			}
 		}
 
 	}
-
+	self.lg.Debug("got pull requests.",
+		"count", len(prs),
+		"err", err,
+		"repository", *repo.FullName)
 	return
 }
 
@@ -215,20 +245,20 @@ func (self *Source[C, R]) paginatedPullRequests(repo *github.Repository) (prs ma
 //   - merge commit SHA & time are present
 //
 // valid, before, after all default to false
-func (self *Source[C, R]) includePR(pr *github.PullRequest) (valid bool, before bool, after bool) {
+func (self *Source[C, R]) includePR(pr *github.PullRequest) (include bool, before bool, after bool) {
 	var (
 		created time.Time
 		start   time.Time = self.cfg.DateStart.Add(1 * time.Second) // time.Before will be true for a match, so reduce by 1 second
 		end     time.Time = self.cfg.DateEnd.Add(-1 * time.Second)  // time.After is true for an equal time, so add 1 second
 	)
 
-	valid = false
+	include = false
 	before = false
 	after = false
 
 	// check the date of pr
 	if pr.CreatedAt == nil {
-		// lg.Warn("pr createdAt is nil ...")
+		self.lg.Debug("pull request createdAt is nil.")
 		return
 	}
 
@@ -238,13 +268,13 @@ func (self *Source[C, R]) includePR(pr *github.PullRequest) (valid bool, before 
 
 	// check merge commit details
 	if pr.MergeCommitSHA == nil || len(*pr.MergeCommitSHA) <= 0 || pr.MergedAt == nil {
-		// lg.Debug("pr merge commit data is missing ...")
+		self.lg.Debug("pull request merge commit data is missing.")
 		return
 	}
 
 	// if pr is within the date range, mark as valid
 	if !before && !after {
-		valid = true
+		include = true
 	}
 
 	return
@@ -263,7 +293,8 @@ func (self *Source[C, R]) includePR(pr *github.PullRequest) (valid bool, before 
 //   - filters is optional way of reducing the dataset afterwards
 func New[C Client, R Result](ctx context.Context, client C, config *Config, filters ...Filter) (source *Source[C, R], err error) {
 	var (
-		defaultState string = "closed"
+		defaultState string       = "closed"
+		lg           *slog.Logger = logx.Default()
 	)
 	// if no repositories, return an error
 	if len(config.Repositories) <= 0 {
@@ -281,6 +312,7 @@ func New[C Client, R Result](ctx context.Context, client C, config *Config, filt
 		client:  client,
 		cfg:     config,
 		filters: filters,
+		lg:      lg,
 	}
 
 	return

@@ -164,7 +164,7 @@ func (self *modelBoundSql) Values() (sql string, args []interface{}) {
 }
 
 // replaceStmtSegment replaces the `:fieldName` string segment found at loc[0]..loc[1]
-// with the correct number of `?` that should be used for the sql prepared
+// with the correct number of `?` that should be used within the sql prepared
 // statement to work
 func (self *modelBoundSql) replaceStmtSegment(stmt string, loc []int, values []interface{}) string {
 	var (

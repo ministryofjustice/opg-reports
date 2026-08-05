@@ -13,8 +13,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
+	"opg-reports/app/internal/logx"
 	"opg-reports/app/internal/timex"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/google/go-github/v87/github"
@@ -113,6 +116,7 @@ type Source[C Client, R Result] struct {
 	ctx     context.Context // ctx is the context to use
 	cfg     *Config         // configuration values to use
 	filters []Filter        // set of filter functions to run against each result
+	lg      *slog.Logger    // logger
 }
 
 // GetData returns all workflow runs between the start & end date for each repository
@@ -123,31 +127,43 @@ type Source[C Client, R Result] struct {
 // `skipped` becomes a list of repository structs that have no results and likely need
 // additional processing (checking for merges)
 func (self *Source[C, R]) GetData() (results []R, skipped []any, err error) {
+	self.lg.Info("getting data.")
+
 	results, skipped, err = self.allWorkflowRuns()
+
+	self.lg.Info("got data.",
+		"count", len(results),
+		"skipped", len(skipped),
+		"err", err)
+
 	return
 }
 
 // allWorkflowRuns
 func (self *Source[C, R]) allWorkflowRuns() (results []R, skipped []any, err error) {
 	var (
-		// total int      = len(self.cfg.Repositories)
+		total int      = len(self.cfg.Repositories)
 		dates []string = self.cfg.Dates()
-		// lg    *slog.Logger = self.log.With("date_start", self.cfg.DateStart, "date_end", self.cfg.DateEnd) // localised logger with config values added
 	)
-	// lg.Debug("getting all workflow runs for all repositories ...")
+	self.lg.Debug("getting all workflow runs.")
 	results = []R{}
 	skipped = []any{}
 
 	// loop over each repo
-	for _, repo := range self.cfg.Repositories {
-		// lg.Debug(fmt.Sprintf("[%d/%d] (%s)", i+1, total, *repo.FullName))
+	for i, repo := range self.cfg.Repositories {
+		self.lg.Debug("getting workflow runs for repository.",
+			"i", i, "total", total,
+			"repository", *repo.FullName)
+
 		// fetch the runs within the date range we've worked out
 		res, e := self.workflowRunsWithinDateRanges(repo, dates)
 		if e != nil {
 			err = e
+			self.lg.Error("error getting workflow runs.", "err", err.Error())
 			return
 		}
 		// run the filters against the found workflows
+		self.lg.Debug("filtering workflow runs.")
 		filtered := self.filter(repo, res)
 		// merge filtered set into main results
 		for _, wfr := range filtered {
@@ -158,15 +174,16 @@ func (self *Source[C, R]) allWorkflowRuns() (results []R, skipped []any, err err
 			skipped = append(skipped, repo)
 		}
 	}
-
-	// lg.With("count", len(results)).Debug("getting workflow runs completed.")
+	self.lg.Debug("got workflow runs.",
+		"count", len(results),
+		"skipped", len(skipped),
+		"err", err)
 	return
 }
 
 // filter handles running the filters from the config against this repo &
 // workflow run list
 func (self *Source[C, R]) filter(repo *github.Repository, workflowruns []*github.WorkflowRun) (filtered []*github.WorkflowRun) {
-	// var lg *slog.Logger = self.log // localised logger with config values added
 
 	filtered = []*github.WorkflowRun{}
 	// now check each workflow against the configured filters
@@ -174,15 +191,18 @@ func (self *Source[C, R]) filter(repo *github.Repository, workflowruns []*github
 		var include = true
 		// check each filter, break on the first fail
 		for _, f := range self.filters {
-			// var inc = true
-			// lg.Debug(fmt.Sprintf("[%s][%s]:(%d)(%T) checking filter...", *repo.FullName, *workflowrun.Name, *workflowrun.ID, f))
-			// if the filter is ever true, break the loop as we cant include & add to skipped list
+
+			self.lg.Debug("checking filter.",
+				"repository", *repo.FullName,
+				"workflowRunName", *workflowrun.Name,
+				"T", fmt.Sprintf("%T", f))
+
+			// if the filter is ever not true, break the loop
 			if include = f.Filter(self.ctx, workflowrun); !include {
 				break
 			}
 		}
-		// log if the run should be included or not
-		// lg.Debug(fmt.Sprintf("[%s][%s]:(%d) include workflow run? [%v]", *repo.FullName, *workflowrun.Name, *workflowrun.ID, include))
+
 		if include {
 			filtered = append(filtered, workflowrun)
 		}
@@ -198,10 +218,11 @@ func (self *Source[C, R]) filter(repo *github.Repository, workflowruns []*github
 func (self *Source[C, R]) workflowRunsWithinDateRanges(repo *github.Repository, dateRanges []string) (results []*github.WorkflowRun, err error) {
 	var (
 		allRuns map[int64]*github.WorkflowRun // using id based map as sometimes the date range campture overlaps
-		// lg      *slog.Logger                  = self.log.With("repo", *repo.FullName) // localised logger with config values added
 	)
+	self.lg.Debug("getting workflow runs witin date ranges.",
+		"repository", *repo.FullName,
+		"dateRanges", strings.Join(dateRanges, ","))
 
-	// lg.Debug("getting workflow runs for repo ...")
 	allRuns = map[int64]*github.WorkflowRun{}
 	results = []*github.WorkflowRun{}
 
@@ -209,6 +230,7 @@ func (self *Source[C, R]) workflowRunsWithinDateRanges(repo *github.Repository, 
 	for _, dateRange := range dateRanges {
 		runs, e := self.paginatedWorkflowRunsForDate(repo, dateRange)
 		if e != nil {
+			self.lg.Error("error getting workflow runs.", "e", e.Error())
 			err = e
 			return
 		}
@@ -217,10 +239,14 @@ func (self *Source[C, R]) workflowRunsWithinDateRanges(repo *github.Repository, 
 			allRuns[i] = r
 		}
 	}
-	// flattern the runs to a slice
+	// map to slice
 	for _, run := range allRuns {
 		results = append(results, run)
 	}
+
+	self.lg.Debug("got workflow runs witin date ranges.",
+		"repository", *repo.FullName,
+		"count", len(results))
 
 	return
 
@@ -235,26 +261,25 @@ func (self *Source[C, R]) workflowRunsWithinDateRanges(repo *github.Repository, 
 func (self *Source[C, R]) paginatedWorkflowRunsForDate(repo *github.Repository, dateRange string) (runs map[int64]*github.WorkflowRun, err error) {
 
 	var (
-		page     int = 1 // first page to fetch data from
-		maxRetry int = 3 // max retry counter
-		// lg       *slog.Logger                    = self.log.With("date_range", dateRange, "repo", *repo.FullName) // localised logger
-		options *github.ListWorkflowRunsOptions = &github.ListWorkflowRunsOptions{
+		page     int                             = 1 // first page to fetch data from
+		maxRetry int                             = 3 // max retry counter
+		options  *github.ListWorkflowRunsOptions = &github.ListWorkflowRunsOptions{
 			ListOptions: github.ListOptions{PerPage: 100},
 			Branch:      *repo.DefaultBranch,
 			Status:      self.cfg.Status,
 			Event:       self.cfg.Event,
 		}
 	)
+	self.lg.Debug("getting workflow runs witin date range.",
+		"repository", *repo.FullName,
+		"dateRange", dateRange)
+	// using id based map as sometimes the date range campture overlaps
+	runs = map[int64]*github.WorkflowRun{}
 	// if config overwrites the branch name, change the options here
 	if self.cfg.OverwriteBranch != "" {
 		options.Branch = self.cfg.OverwriteBranch
 	}
-
-	// lg.Debug("getting workflow runs for repo in date range ...")
-	runs = map[int64]*github.WorkflowRun{} // using id based map as sometimes the date range campture overlaps
-
-	// lg.Debug(fmt.Sprintf("[%s] (%s)", *repo.FullName, dateRange))
-	// now call the paginated help to fetch all workflow runs for this range
+	// now call the paginated api end points to fetch all within the date range
 	page = 1
 	options.Created = dateRange
 	for page > 0 {
@@ -270,19 +295,20 @@ func (self *Source[C, R]) paginatedWorkflowRunsForDate(repo *github.Repository, 
 		// max of 3 attempts to call the same data set before failing.
 		// 	- e has a default value so will always run at least once
 		for e != nil && retry < maxRetry {
-			// log
-			// lg.With("page", page, "try", retry).Debug("getting list of repository workflow runs in range ...")
+			self.lg.Debug("getting page of workflow runs,",
+				"page", page, "try", retry, "repository", *repo.FullName)
 			// make the api call
 			fetched, response, e = self.client.ListRepositoryWorkflowRuns(self.ctx, *repo.Owner.Login, *repo.Name, options)
 			retry += 1
 			// if theres an error pause for a second - as error might be rate limiting
 			if e != nil {
+				self.lg.Warn("error fetching page - sleeping & retrying.", "e", e.Error())
 				time.Sleep(1)
 			}
 		}
 		// if the error persits, then return
 		if e != nil {
-			// lg.Error("failed to get workflow runs", "err", e.Error())
+			self.lg.Error("error after retries.", "e", e.Error())
 			err = errors.Join(e, ErrGettingList)
 			return
 		}
@@ -293,6 +319,11 @@ func (self *Source[C, R]) paginatedWorkflowRunsForDate(repo *github.Repository, 
 		// increment page
 		page = response.NextPage
 	}
+
+	self.lg.Debug("got workflow runs witin date range.",
+		"count", len(runs),
+		"err", err,
+		"repository", *repo.FullName)
 
 	return
 }
@@ -310,11 +341,11 @@ func (self *Source[C, R]) paginatedWorkflowRunsForDate(repo *github.Repository, 
 //   - filters is optional way of reducing the dataset afterwards
 func New[C Client, R Result](ctx context.Context, client C, config *Config, filters ...Filter) (source *Source[C, R], err error) {
 	var (
-		defaultEvent  string = "push"
-		defaultStatus string = "success"
+		defaultEvent  string       = "push"
+		defaultStatus string       = "success"
+		lg            *slog.Logger = logx.Default()
 	)
 	// get logger
-	// ctx, lg := logx.Get(ctx)
 	// if no repositories, return an error
 	if len(config.Repositories) <= 0 {
 		err = ErrNoRepositoriesConfigured
@@ -333,8 +364,7 @@ func New[C Client, R Result](ctx context.Context, client C, config *Config, filt
 		client:  client,
 		cfg:     config,
 		filters: filters,
-		// log:     lg,
-
+		lg:      lg,
 	}
 
 	return

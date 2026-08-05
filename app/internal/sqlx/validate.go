@@ -12,9 +12,9 @@ import (
 // Non-struct reflectiosn will always return false
 func allFieldsHaveJSONTags(ref *reflection) bool {
 	var (
-		jsonTag string                = "json"                   // tag to look for on the field
-		fields  []reflect.StructField = ref.RecursiveFields(nil) // all visible fields
-		lg      *slog.Logger          = logx.Default()           // grab the default logger
+		jsonTag string                = "json"                                   // tag to look for on the field
+		fields  []reflect.StructField = ref.RecursiveFields(nil)                 // all visible fields
+		lg      *slog.Logger          = logx.Default().With("T", ref.T.String()) // grab the default logger
 	)
 	lg.Debug("validating reflection struct fields have json tags.")
 	if !ref.IsStruct {
