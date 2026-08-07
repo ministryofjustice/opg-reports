@@ -13,15 +13,15 @@ import (
 )
 
 var (
-	ErrModelNotStruct   error = errors.New("filterModel passed to Bind is not a struct.") // raised when a non-struct is passed to `Bind`
-	ErrModelMissingTags error = errors.New("filterModel is missing json tags on fields.") // raised when the struct passed to `Bind` has fields without json tags
+	ErrModelNotStruct   error = errors.New("model passed to Bind is not a struct.") // raised when a non-struct is passed to `Bind`
+	ErrModelMissingTags error = errors.New("model is missing json tags on fields.") // raised when the struct passed to `Bind` has fields without json tags
 )
 
 var (
-	ErrBindingNoKey error = errors.New("error when binding sql statement to filterModel, a parameter (`:x`) was found that has no coresponding value on filterModel.") // raised when the sql passed to `Bind` contains a placeholder that does not exist on the filterModel.
+	ErrBindingNoKey error = errors.New("error when binding sql statement to model, a parameter (`:x`) was found that has no coresponding value on model.") // raised when the sql passed to `Bind` contains a placeholder that does not exist on the model.
 )
 
-// Bind finds the values of json tagged fields on the filterModel struct and
+// Bind finds the values of json tagged fields on the model struct and
 // uses those to replace matching placeholders within the `sqlStmt` ready to
 // be used in a `db.ExecContext` or `db.QueryContext` call.
 //
@@ -52,36 +52,36 @@ var (
 //
 // # Validation / errors
 //
-// Bind will validate that the `filterModel` passed is either a struct or
+// Bind will validate that the `model` passed is either a struct or
 // a point to a struct.
 //
-// The `filterModel` fields (and any embedded struct fields) will be
+// The `model` fields (and any embedded struct fields) will be
 // checked to ensure they have a json tag (`json:"fieldName"`) set. This is
 // used for determining the names and values of the sql placeholders
 // (`:fieldName`).
 //
 // Validation uses reflection to check all visible fields, but the
 // value replacement utilises json marshaling.
-func Bind(ctx context.Context, sqlStmt string, filterModel any) (sql string, args []interface{}, err error) {
+func Bind(ctx context.Context, sqlStmt string, model any) (sql string, args []interface{}, err error) {
 	var (
 		reflected   *reflection              // used to inspect the struct for its type and field data
-		mbSql       *modelBoundSql           // used to recursively update the sql and ordered args form the `sqlStmt` and `filterModel`
+		mbSql       *modelBoundSql           // used to recursively update the sql and ordered args form the `sqlStmt` and `model`
 		boundValues map[string][]interface{} // the flat map of field names and values
 		lg          *slog.Logger             = logx.Default()
 	)
 	args = []interface{}{}
 	// setup the reflection and the validate the model
-	reflected = newReflection(filterModel)
+	reflected = newReflection(model)
 	// validate the model
-	lg.Debug("validating the filterModel.")
+	lg.Debug("validating the model.")
 	err = validateModel(reflected)
 	if err != nil {
-		lg.Debug("the filterModel was not valid", "err", err.Error())
+		lg.Debug("the model was not valid", "err", err.Error())
 		return
 	}
 
 	// get the values from the model into a flat key map
-	lg.Debug("generating filterModel values.")
+	lg.Debug("generating model values.")
 	boundValues, err = bindingValues(reflected)
 	if err != nil {
 		lg.Debug("bindingValues failed with an error", "err", err.Error())
