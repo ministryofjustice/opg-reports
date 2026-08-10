@@ -13,7 +13,7 @@ func TestSQLxSqlite(t *testing.T) {
 		dir string = t.TempDir()
 	)
 	// test connecting to the db that works
-	sq = NewSQLite(filepath.Join(dir, "test-connection.sql"))
+	sq = NewSQLite(filepath.Join(dir, "test-connection.sql"), true)
 	_, err = sq.Open()
 
 	if err != nil {

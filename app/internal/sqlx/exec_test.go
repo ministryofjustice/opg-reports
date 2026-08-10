@@ -13,9 +13,8 @@ func TestSQLxExec(t *testing.T) {
 		dir string = t.TempDir()
 	)
 	// test connecting to the db that works
-	sq = NewSQLite(filepath.Join(dir, "test-exec.sql"))
+	sq = NewSQLite(filepath.Join(dir, "test-exec.sql"), false)
 	_, err = sq.Open()
-
 	if err != nil {
 		t.Errorf("unexpected error calling open [%s]", err.Error())
 		t.FailNow()

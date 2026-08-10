@@ -8,22 +8,28 @@
 //
 // `Exec` is an extension of `DB.ExecContext` which uses the `Connector` interface to
 // run more direct sql statements (like CREATE & DELETE) against the DB. No binding.
-//
-// # Interfaces
-//
-// A single interface (`Connector`) is provided by this package with a concreate
-// implementation (Sqlite) to reduce the amount of database paramaters passed
-// within functions and to ensure db connections are opened / closed consistently.
 package sqlx
 
-import "database/sql"
+import (
+	"database/sql"
+	"errors"
+)
+
+var (
+	ErrReadOnlyMode     error = errors.New("connection set as readonly, requires read-write.")
+	ErrModelNotStruct   error = errors.New("model passed to Bind is not a struct.")                                                                            // raised when a non-struct is passed to `Bind`
+	ErrModelMissingTags error = errors.New("model is missing json tags on fields.")                                                                            // raised when the struct passed to `Bind` has fields without json tags
+	ErrBindingNoKey     error = errors.New("error when binding sql statement to model, a parameter (`:x`) was found that has no coresponding value on model.") // raised when the sql passed to `Bind` contains a placeholder that does not exist on the model.
+)
 
 type Connector interface {
 	// Driver provides the string name of the driver to utilise for sql.Open
 	Driver() string
 	// DataSource provides the connection string used by sql.Open
 	DataSource() string
-	// Open provides the sql.DB connection or error details.
+	// Mode returns if this is readonly or readwrite
+	Mode() AccessMode
+	// Open provides the connection or error details.
 	// Returns an existing connection if present, otherwise opens a new one
 	Open() (db *sql.DB, err error)
 	// Close will close the connection and remove the stored pointer so

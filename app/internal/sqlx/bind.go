@@ -12,15 +12,6 @@ import (
 	"strings"
 )
 
-var (
-	ErrModelNotStruct   error = errors.New("model passed to Bind is not a struct.") // raised when a non-struct is passed to `Bind`
-	ErrModelMissingTags error = errors.New("model is missing json tags on fields.") // raised when the struct passed to `Bind` has fields without json tags
-)
-
-var (
-	ErrBindingNoKey error = errors.New("error when binding sql statement to model, a parameter (`:x`) was found that has no coresponding value on model.") // raised when the sql passed to `Bind` contains a placeholder that does not exist on the model.
-)
-
 // Bind finds the values of json tagged fields on the model struct and
 // uses those to replace matching placeholders within the `sqlStmt` ready to
 // be used in a `db.ExecContext` or `db.QueryContext` call.

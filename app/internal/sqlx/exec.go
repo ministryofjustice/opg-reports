@@ -16,6 +16,12 @@ func Exec(ctx context.Context, conn Connector, sqlStmt string, args ...any) (res
 		db *sql.DB
 		lg *slog.Logger = logx.Default()
 	)
+	// check connection
+	if conn.Mode() == READONLY {
+		lg.Error("read-only mode connection.")
+		err = ErrReadOnlyMode
+		return
+	}
 	// open the db connection
 	db, err = conn.Open()
 	if err != nil {
