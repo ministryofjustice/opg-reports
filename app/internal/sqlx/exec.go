@@ -11,6 +11,8 @@ import (
 // is attempted.
 //
 // Generally used to run TABLE creation or DELETE commands within migration etc.
+//
+// Notes: Does not close the connection
 func Exec(ctx context.Context, conn Connector, sqlStmt string, args ...any) (result sql.Result, err error) {
 	var (
 		db *sql.DB
@@ -28,8 +30,6 @@ func Exec(ctx context.Context, conn Connector, sqlStmt string, args ...any) (res
 		lg.Error("failed to open database connection.", "err", err.Error())
 		return
 	}
-	// defer close via the connector, so open will cycle a new connection
-	defer conn.Close()
 
 	result, err = db.ExecContext(ctx, sqlStmt, args...)
 	if err != nil {

@@ -23,7 +23,10 @@ type preparedInsert struct {
 //
 // SQL is then executed via `ExecContext`. Any error from the SQL will stop all others and return.
 //
-// Notes: Currently runs outside of a transaction, so there is no roll-back. Expects db connection to be writable.
+// Notes:
+// Currently runs outside of a transaction, so there is no roll-back.
+// Expects db connection to be writable.
+// Does not close the db connection
 func Insert[T any](ctx context.Context, conn Connector, sqlStmt string, records []T) (results []sql.Result, err error) {
 	var (
 		db      *sql.DB
@@ -43,11 +46,9 @@ func Insert[T any](ctx context.Context, conn Connector, sqlStmt string, records 
 		lg.Error("failed to open database connection.", "err", err.Error())
 		return
 	}
-	// defer close via the connector, so open will cycle a new connection
-	defer conn.Close()
 	// loop over all the records to create the set of prepared statements
 	for _, entry := range records {
-		sql, args, e := Bind(ctx, sqlStmt, entry)
+		sqlStr, args, e := Bind(ctx, sqlStmt, entry)
 		// if bind fails, return an error
 		if e != nil {
 			err = e
@@ -57,7 +58,7 @@ func Insert[T any](ctx context.Context, conn Connector, sqlStmt string, records 
 
 		// add a working sql & arg combination to the list
 		prepped = append(prepped, &preparedInsert{
-			Sql:  sql,
+			Sql:  sqlStr,
 			Args: args,
 		})
 	}
@@ -69,7 +70,6 @@ func Insert[T any](ctx context.Context, conn Connector, sqlStmt string, records 
 			lg.Error("failed to exectute sql.", "sql", cmd.Sql, "err", e.Error())
 			return
 		}
-
 		results = append(results, res)
 	}
 

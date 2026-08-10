@@ -21,7 +21,7 @@ var (
 	tInsertPersonSQLFail    string = `INSERT INTO test_person_table(email, phone) VALUES(:email, :telephone) RETURNING id;`
 )
 
-func TestSQLxInsertWorking(t *testing.T) {
+func TestSQLxInsertSimple(t *testing.T) {
 	var (
 		sq  *Sqlite
 		err error
@@ -29,7 +29,7 @@ func TestSQLxInsertWorking(t *testing.T) {
 		dir string = t.TempDir()
 	)
 	// test connecting to the db that works
-	sq = NewSQLite(filepath.Join(dir, "test-exec.sql"), false)
+	sq = NewSQLite(filepath.Join(dir, "test-insert.db"), false)
 	_, err = sq.Open()
 	if err != nil {
 		t.Errorf("unexpected error calling open [%s]", err.Error())
