@@ -1,5 +1,5 @@
 # setup base docker image building the application
-FROM golang:1.26.3-alpine@sha256:91eda9776261207ea25fd06b5b7fed8d397dd2c0a283e77f2ab6e91bfa71079d AS build
+FROM golang:1.26.6-alpine@sha256:3889b425f035be855a72fb4755265311293b6d414521f0a519d819df32222d83 AS build
 COPY --link go.sum go.mod /app/
 COPY --link report /app/report
 COPY --link builds/database /gobin/app/database
@@ -26,7 +26,7 @@ RUN chmod -Rf 0755 /gobin/
 ENTRYPOINT ["/gobin/app/api"]
 
 # setup production image
-FROM alpine:3.23.4@sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a5019afde11 AS production
+FROM alpine:3.24.1@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS production
 EXPOSE 8081
 # ssl certs
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
