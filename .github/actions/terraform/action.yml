@@ -66,14 +66,14 @@ runs:
         role-session-name: reports-terraform-snyk-ecr-pull
     # ecr login so the snyk action can pull its runner image
     - name: "ECR Login (Snyk)"
-      uses: aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419 # v2.1.5
+      uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2.1.7
       with:
         mask-password: true
         registries: ${{ inputs.ecr_registry }}
     # run snyk iac scan against the terraform directory
     - name: "Snyk IaC"
       id: snyk_iac
-      uses: ministryofjustice/opg-github-actions/actions/snyk-iac@2ad72748485e27f590599a7e9768b9fc0d5b8e03 # v4.8.7
+      uses: ministryofjustice/opg-github-actions/actions/snyk-iac@722a5f955424aaba01e9ca43d68390cd4048d6e1 # v4.10.2
       with:
         iac_test_directory: "${{ inputs.directory }}/"
         sarif_filename: "${{ steps.snyk_names.outputs.filename }}"
@@ -81,7 +81,7 @@ runs:
         snyk_test_args: --severity-threshold=high
     # upload results to github security tab
     - name: "Upload Snyk IaC scan results to GitHub Security tab"
-      uses: github/codeql-action/upload-sarif@87557b9c84dde89fdd9b10e88954ac2f4248e463 # v4.36.1
+      uses: github/codeql-action/upload-sarif@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4.37.8
       if: always()
       with:
         category: "${{ steps.snyk_names.outputs.category }}"
