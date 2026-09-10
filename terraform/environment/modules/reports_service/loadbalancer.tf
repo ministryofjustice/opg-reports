@@ -89,7 +89,7 @@ resource "aws_security_group_rule" "loadbalancer_ingress_http" {
   from_port         = 80
   to_port           = 80
   protocol          = "tcp"
-  cidr_blocks       = module.allow_list.moj_global_protect_vpn
+  cidr_blocks       = concat(module.allow_list.moj_global_protect_vpn, module.allow_list.palo_alto_prisma_access)
   security_group_id = aws_security_group.reports_loadbalancer.id
   description       = "Loadbalancer HTTP inbound from the MoJ VPN"
 }
@@ -99,7 +99,7 @@ resource "aws_security_group_rule" "loadbalancer_ingress_https" {
   from_port         = 443
   to_port           = 443
   protocol          = "tcp"
-  cidr_blocks       = module.allow_list.moj_global_protect_vpn
+  cidr_blocks       = concat(module.allow_list.moj_global_protect_vpn, module.allow_list.palo_alto_prisma_access)
   security_group_id = aws_security_group.reports_loadbalancer.id
   description       = "Loadbalancer HTTPS inbound from the MoJ VPN"
 }
