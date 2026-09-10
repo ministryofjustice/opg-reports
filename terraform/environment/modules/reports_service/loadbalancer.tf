@@ -81,7 +81,7 @@ resource "aws_security_group" "reports_loadbalancer" {
 }
 
 module "allow_list" {
-  source = "git@github.com:ministryofjustice/opg-terraform-aws-moj-ip-allow-list.git?ref=v3.0.2"
+  source = "git@github.com:ministryofjustice/opg-terraform-aws-moj-ip-allow-list.git?ref=v3.5.2"
 }
 
 resource "aws_security_group_rule" "loadbalancer_ingress_http" {
