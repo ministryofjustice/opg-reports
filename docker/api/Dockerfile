@@ -33,8 +33,13 @@ COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 # users & groups
 COPY --from=build /etc/passwd /etc/passwd
 COPY --from=build /etc/group /etc/group
+
+# Patch Vulnerabilities
+RUN apk upgrade --no-cache zlib
+
 # app
 COPY --from=build /gobin/ /gobin
 WORKDIR /gobin/app
 USER user
+
 ENTRYPOINT ["/gobin/app/api"]
