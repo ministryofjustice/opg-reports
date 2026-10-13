@@ -37,4 +37,8 @@ COPY --from=build /etc/group /etc/group
 COPY --from=build /gobin/ /gobin
 WORKDIR /gobin/app
 USER user
+
+# Patch Vulnerabilities
+RUN apk upgrade --no-cache zlib
+
 ENTRYPOINT ["/gobin/app/api"]
