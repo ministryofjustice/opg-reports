@@ -8,7 +8,7 @@ import (
 	"opg-reports/report/package/cntxt"
 
 	"github.com/gofri/go-github-ratelimit/v2/github_ratelimit"
-	"github.com/google/go-github/v84/github"
+	"github.com/google/go-github/v92/github"
 )
 
 var ErrNoToken = errors.New("missing required token.")

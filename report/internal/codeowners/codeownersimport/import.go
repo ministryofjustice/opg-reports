@@ -13,7 +13,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/google/go-github/v84/github"
+	"github.com/google/go-github/v92/github"
 )
 
 // code owner entry

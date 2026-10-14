@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/google/go-github/v84/github"
+	"github.com/google/go-github/v92/github"
 )
 
 // teamClient wrapper around *github.TeamsService

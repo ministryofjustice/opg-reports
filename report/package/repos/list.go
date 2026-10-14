@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"opg-reports/report/package/cntxt"
 
-	"github.com/google/go-github/v84/github"
+	"github.com/google/go-github/v92/github"
 )
 
 // GetList iterates over paginated data set from github api and merges all data
