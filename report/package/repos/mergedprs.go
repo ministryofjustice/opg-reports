@@ -7,7 +7,7 @@ import (
 	"opg-reports/report/package/times"
 	"time"
 
-	"github.com/google/go-github/v84/github"
+	"github.com/google/go-github/v92/github"
 )
 
 // GetMergedPRs fetches all pull requests for a repository.

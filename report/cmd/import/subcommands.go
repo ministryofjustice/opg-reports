@@ -19,7 +19,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
-	"github.com/google/go-github/v84/github"
+	"github.com/google/go-github/v92/github"
 	"github.com/spf13/cobra"
 )
 

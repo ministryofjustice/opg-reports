@@ -21,7 +21,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/go-github/v84/github"
+	"github.com/google/go-github/v92/github"
 )
 
 // insert, but only those parts about releases

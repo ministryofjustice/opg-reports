@@ -1,6 +1,6 @@
 module opg-reports
 
-go 1.26.0
+go 1.26.6
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.41.11
@@ -10,7 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.103.1
 	github.com/aws/aws-sdk-go-v2/service/sts v1.43.1
 	github.com/gofri/go-github-ratelimit/v2 v2.0.2
-	github.com/google/go-github/v84 v84.0.0
+	github.com/google/go-github/v92 v92.0.0
 	github.com/mattn/go-sqlite3 v1.14.44
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/text v0.37.0

@@ -8,7 +8,7 @@ import (
 	"opg-reports/report/package/cntxt"
 
 	"github.com/gofri/go-github-ratelimit/v2/github_ratelimit"
-	"github.com/google/go-github/v84/github"
+	"github.com/google/go-github/v92/github"
 )
 
 var ErrNoToken = errors.New("missing required token.")
@@ -26,7 +26,11 @@ func New(ctx context.Context, token string) (client *github.Client, err error) {
 	}
 
 	limited = github_ratelimit.NewClient(nil)
-	client = github.NewClient(limited).WithAuthToken(token)
+	client, err = github.NewClient(github.WithHTTPClient(limited), github.WithAuthToken(token))
+	if err != nil {
+		log.Error("error creating github client", "err", err.Error())
+		return
+	}
 	log.Debug("complete.")
 	return
 
