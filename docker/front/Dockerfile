@@ -7,6 +7,10 @@ COPY --link builds/web /gobin/app/web/
 COPY --link builds/govuk /gobin/app/govuk/
 RUN update-ca-certificates
 RUN apk --update --no-cache add build-base
+
+# Patch Vulnerabilities
+RUN apk upgrade --no-cache stdlib
+
 RUN mkdir -p /gobin/app
 RUN addgroup -S user && adduser -S -g user user
 WORKDIR /app

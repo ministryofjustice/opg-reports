@@ -6,6 +6,10 @@ COPY --link builds/database /gobin/app/database
 RUN update-ca-certificates
 RUN apk --update --no-cache add build-base
 RUN apk --update --no-cache add "sqlite=>=3.47"
+
+# Patch Vulnerabilities
+RUN apk upgrade --no-cache stdlib
+
 RUN mkdir -p /gobin/app
 RUN addgroup -S user && adduser -S -g user user
 WORKDIR /app
