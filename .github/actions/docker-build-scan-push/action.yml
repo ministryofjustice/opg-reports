@@ -73,7 +73,7 @@ runs:
       uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
     # Setup docker buildx
     - name: "Set up Docker Buildx"
-      uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
+      uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       id: docker_buildx_setup
       with:
         version: ${{ inputs.buildx_version }}
@@ -88,7 +88,7 @@ runs:
         role-session-name: reports-ecr-pull
     - name: "ECR login (pull)"
       id: ecr_login_pull
-      uses: aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419 # v2.1.5
+      uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2.1.7
       with:
         mask-password: true
         registries: ${{ inputs.ecr_registry_id }}
@@ -114,14 +114,14 @@ runs:
 
     # Snyk scan
     - name: "Snyk scan [${{ inputs.ecr_repository }}]"
-      uses: ministryofjustice/opg-github-actions/actions/snyk-scan@2ad72748485e27f590599a7e9768b9fc0d5b8e03 # v4.8.7
+      uses: ministryofjustice/opg-github-actions/actions/snyk-scan@ae37b9b322286123971417e82b665e56e9d6aa3f # v4.10.3
       with:
         SNYK_TEST_IMAGE: ${{ inputs.ecr_repository }}:${{ inputs.tag }}
         SNYK_TOKEN: ${{ inputs.snyk_token }}
         snyk_test_args: --severity-threshold=high
 
     - name: "Upload Snyk scan results to GitHub Security tab [${{ inputs.ecr_repository }}]"
-      uses: github/codeql-action/upload-sarif@87557b9c84dde89fdd9b10e88954ac2f4248e463 # v4.36.1
+      uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
       if: always()
       with:
         sarif_file: "test-results/snyk.sarif"
@@ -136,7 +136,7 @@ runs:
         role-session-name: reports-ecr-push
     - name: "ECR login (push)"
       id: ecr_login_push
-      uses: aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419 # v2.1.5
+      uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2.1.7
       with:
         mask-password: true
         registries: ${{ inputs.ecr_registry_id }}
