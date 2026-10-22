@@ -1,5 +1,5 @@
 # setup base docker image building the application
-FROM golang:1.26.6-alpine@sha256:3889b425f035be855a72fb4755265311293b6d414521f0a519d819df32222d83 AS build
+FROM golang:1.27.2-alpine@sha256:f92b6ef800e499660581efdabdf25d9d817a9d124eaf900924f0504e7e27e12d AS build
 COPY --link go.sum go.mod /app/
 COPY --link report /app/report
 COPY --link builds/templates /gobin/app/templates/
