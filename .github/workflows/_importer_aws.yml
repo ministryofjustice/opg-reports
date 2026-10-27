@@ -58,7 +58,7 @@ jobs:
   # setup variables we'll use in the steps
   setup:
     name: "Setup variables"
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       # json account matrix
       account_matrix: ${{ steps.account_matrix.outputs.matrix }}
@@ -75,7 +75,7 @@ jobs:
   # report runner job
   runner:
     name: "Run report (SYNCHRONUS)"
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs:
       - setup
     strategy:
