@@ -119,7 +119,7 @@ jobs:
           ${{ env.BUILD_DIR }}/migrate --db="${{ env.db }}"
       # change creds
       - name: "[${{ matrix.name }}] Configure AWS credentials for report execution"
-        uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v6.2.0
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         env:
           role: "arn:aws:iam::${{ matrix.id }}:role/${{ inputs.oidc }}"
           sub_cmd: ${{ inputs.sub_cmd }}
