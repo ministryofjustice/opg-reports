@@ -114,7 +114,7 @@ runs:
 
     # Snyk scan
     - name: "Snyk scan [${{ inputs.ecr_repository }}]"
-      uses: ministryofjustice/opg-github-actions/actions/snyk-scan@2ad72748485e27f590599a7e9768b9fc0d5b8e03 # v4.8.7
+      uses: ministryofjustice/opg-github-actions/actions/snyk-scan@e8b6e80d440613671b8d6f87b5e52a5363cc974a # v5.0.0
       with:
         SNYK_TEST_IMAGE: ${{ inputs.ecr_repository }}:${{ inputs.tag }}
         SNYK_TOKEN: ${{ inputs.snyk_token }}
