@@ -31,7 +31,7 @@ locals {
 }
 
 resource "aws_networkfirewall_firewall_policy" "main" {
-  name = "main"
+  name = "opg-reports"
 
   firewall_policy {
     stateless_default_actions          = ["aws:forward_to_sfe"]
@@ -49,7 +49,7 @@ resource "aws_networkfirewall_firewall_policy" "main" {
 
 resource "aws_networkfirewall_rule_group" "rule_file" {
   capacity = 100
-  name     = "main-${replace(filebase64sha256("${path.module}/network_firewall_rules.rules"), "/[^[:alnum:]]/", "")}"
+  name     = "opg-reports-${replace(filebase64sha256("${path.module}/network_firewall_rules.rules"), "/[^[:alnum:]]/", "")}"
   type     = "STATEFUL"
   rules    = templatefile("${path.module}/network_firewall_rules.rules", { action = local.firewall_config.none_matching_traffic_action })
   lifecycle {
