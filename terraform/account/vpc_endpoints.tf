@@ -1,7 +1,7 @@
 resource "aws_vpc_endpoint" "s3" {
   count             = 3
   vpc_id            = module.network.vpc.id
-  service_name      = "com.amazonaws.${data.aws_region.current.name}.s3"
+  service_name      = "com.amazonaws.${data.aws_region.current.region}.s3"
   route_table_ids   = [data.aws_route_tables.public.ids[count.index], data.aws_route_tables.application.ids[count.index]]
   vpc_endpoint_type = "Gateway"
   policy            = data.aws_iam_policy_document.s3_vpc_endpoint.json
@@ -83,7 +83,7 @@ resource "aws_vpc_endpoint" "application" {
   for_each = local.interface_endpoint
 
   vpc_id              = module.network.vpc.id
-  service_name        = "com.amazonaws.${data.aws_region.current.name}.${each.value}"
+  service_name        = "com.amazonaws.${data.aws_region.current.region}.${each.value}"
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
   security_group_ids  = [aws_security_group.vpc_endpoints_access.id]

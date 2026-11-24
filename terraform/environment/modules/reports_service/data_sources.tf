@@ -1,3 +1,5 @@
+data "aws_caller_identity" "current" {}
+
 data "aws_ecr_repository" "reports_api" {
   name     = "opg-reports/api"
   provider = aws.management
@@ -9,7 +11,7 @@ data "aws_ecr_repository" "reports_frontend" {
 }
 
 data "aws_prefix_list" "s3" {
-  name = "com.amazonaws.${data.aws_region.current.name}.s3"
+  name = "com.amazonaws.${data.aws_region.current.region}.s3"
 }
 
 data "aws_region" "current" {}

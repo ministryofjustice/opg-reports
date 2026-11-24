@@ -49,8 +49,44 @@ resource "aws_lb_listener" "https" {
   certificate_arn   = aws_acm_certificate_validation.reports.certificate_arn
 
   default_action {
+    type = "fixed-response"
+
+    fixed_response {
+      content_type = "text/plain"
+      message_body = "OPG Reports ${var.environment_name} ALB"
+      status_code  = "200"
+    }
+  }
+}
+
+resource "aws_lb_listener_rule" "reports" {
+  listener_arn = aws_lb_listener.https.arn
+  priority     = 200
+
+  # action {
+  #   type = "authenticate-oidc"
+
+  #   authenticate_oidc {
+  #     authorization_endpoint = "https://login.microsoftonline.com/${aws_secretsmanager_secret_version.entra_tenant_id.secret_string}/oauth2/v2.0/authorize"
+  #     client_id              = aws_secretsmanager_secret_version.entra_client_id.secret_string
+  #     client_secret          = aws_secretsmanager_secret_version.entra_client_secret.secret_string
+  #     issuer                 = "https://login.microsoftonline.com/${aws_secretsmanager_secret_version.entra_tenant_id.secret_string}/v2.0"
+  #     scope                  = "openid profile email"
+  #     session_cookie_name    = "AWSELBAuthSessionCookie"
+  #     session_timeout        = "21600"
+  #     token_endpoint         = "https://login.microsoftonline.com/${aws_secretsmanager_secret_version.entra_tenant_id.secret_string}/oauth2/v2.0/token"
+  #     user_info_endpoint     = "https://graph.microsoft.com/oidc/userinfo"
+  #   }
+  # }
+
+  action {
     type             = "forward"
     target_group_arn = aws_alb_target_group.reports_frontend.arn
+  }
+  condition {
+    path_pattern {
+      values = ["/*"]
+    }
   }
 }
 
@@ -111,4 +147,14 @@ resource "aws_security_group_rule" "loadbalancer_egress" {
   to_port                  = 8080
   security_group_id        = aws_security_group.reports_loadbalancer.id
   source_security_group_id = aws_security_group.reports_frontend.id
+}
+
+resource "aws_security_group_rule" "alb_global_egress_for_oidc" {
+  description       = "Load Balancer Global Egress for OIDC"
+  type              = "egress"
+  protocol          = "tcp"
+  from_port         = 443
+  to_port           = 443
+  security_group_id = aws_security_group.reports_loadbalancer.id
+  cidr_blocks       = ["0.0.0.0/0"]
 }
