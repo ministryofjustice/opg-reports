@@ -73,8 +73,9 @@ runs:
     # run snyk iac scan against the terraform directory
     - name: "Snyk IaC"
       id: snyk_iac
-      uses: ministryofjustice/opg-github-actions/actions/snyk-iac@2ad72748485e27f590599a7e9768b9fc0d5b8e03 # v4.8.7
+      uses: ministryofjustice/opg-github-actions/actions/snyk-iac@e8b6e80d440613671b8d6f87b5e52a5363cc974a # v5.0.0
       with:
+        snyk_image_tag: main-cli-1.1308.3-v0.3.2
         iac_test_directory: "${{ inputs.directory }}/"
         sarif_filename: "${{ steps.snyk_names.outputs.filename }}"
         SNYK_TOKEN: ${{ inputs.snyk_token }}
