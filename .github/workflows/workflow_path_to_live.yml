@@ -35,7 +35,7 @@ jobs:
   # setup variables we'll use in the steps
   setup:
     name: "Setup variables"
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       # terraform versions - found dynamically
       terraform_version_account: ${{ steps.terraform_account_version.outputs.version }}
@@ -80,7 +80,7 @@ jobs:
   # run go tests
   tests:
     name: "Run tests"
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs:
       - setup
     steps:
@@ -101,7 +101,7 @@ jobs:
   # build and push docker images
   builder:
     name: "Build & push docker images"
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs:
       - tests
       - setup
@@ -172,7 +172,7 @@ jobs:
   # Run the terraform for development workspace
   terraform:
     name: "Terraform"
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs:
       - builder
       - setup
@@ -213,7 +213,7 @@ jobs:
   # release this version
   release:
     name: "Create release"
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs:
       - terraform
       - setup
@@ -233,7 +233,7 @@ jobs:
   # final step
   end:
     name: "End"
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs:
       - release
     steps:
