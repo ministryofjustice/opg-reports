@@ -95,7 +95,7 @@ locals {
       logDriver = "awslogs",
       options = {
         "awslogs-group"         = var.cloudwatch_log_group.name,
-        "awslogs-region"        = data.aws_region.current.name,
+        "awslogs-region"        = data.aws_region.current.region,
         "awslogs-stream-prefix" = "opg-reports-frontend"
       }
     },
