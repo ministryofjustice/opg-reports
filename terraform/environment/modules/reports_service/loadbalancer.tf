@@ -90,22 +90,6 @@ resource "aws_lb_listener_rule" "reports" {
   }
 }
 
-resource "aws_lb_listener" "http" {
-  load_balancer_arn = aws_lb.reports.arn
-  port              = "80"
-  protocol          = "HTTP"
-
-  default_action {
-    type = "redirect"
-
-    redirect {
-      port        = "443"
-      protocol    = "HTTPS"
-      status_code = "HTTP_302"
-    }
-  }
-}
-
 resource "aws_security_group" "reports_loadbalancer" {
   name_prefix = "opg-reports-lb-${var.environment_name}-"
   description = "Allow inbound traffic"
@@ -116,28 +100,14 @@ resource "aws_security_group" "reports_loadbalancer" {
   }
 }
 
-module "allow_list" {
-  source = "git@github.com:ministryofjustice/opg-terraform-aws-moj-ip-allow-list.git?ref=v3.5.2"
-}
-
-resource "aws_security_group_rule" "loadbalancer_ingress_http" {
-  type              = "ingress"
-  from_port         = 80
-  to_port           = 80
-  protocol          = "tcp"
-  cidr_blocks       = concat(module.allow_list.moj_global_protect_vpn, module.allow_list.palo_alto_prisma_access)
-  security_group_id = aws_security_group.reports_loadbalancer.id
-  description       = "Loadbalancer HTTP inbound from the MoJ VPN"
-}
-
 resource "aws_security_group_rule" "loadbalancer_ingress_https" {
   type              = "ingress"
   from_port         = 443
   to_port           = 443
   protocol          = "tcp"
-  cidr_blocks       = concat(module.allow_list.moj_global_protect_vpn, module.allow_list.palo_alto_prisma_access)
+  cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.reports_loadbalancer.id
-  description       = "Loadbalancer HTTPS inbound from the MoJ VPN"
+  description       = "Loadbalancer GLobal Ingress"
 }
 
 resource "aws_security_group_rule" "loadbalancer_egress" {
