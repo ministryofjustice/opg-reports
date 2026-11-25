@@ -181,10 +181,6 @@ jobs:
     steps:
       # checkout self
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      #  setup ssh keys using deploy key composite action
-      - uses: ministryofjustice/opg-github-actions/actions/github-deploy-key@ceeda9d30ec7f6705c819d0b7664b9a79df99a3b # v4.8.7
-        with:
-          deploy_key: ${{ secrets.SSH_PRIVATE_KEY_EXTERNAL_MODULES }}
       - name: "Account level terraform"
         uses: ./.github/actions/terraform
         with:
