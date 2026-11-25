@@ -101,8 +101,7 @@ resource "aws_service_discovery_service" "reports_api" {
       type = "A"
     }
   }
-
-  health_check_custom_config {
-    failure_threshold = 1
+  lifecycle {
+    ignore_changes = [health_check_custom_config]
   }
 }

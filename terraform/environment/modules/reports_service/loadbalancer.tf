@@ -63,21 +63,21 @@ resource "aws_lb_listener_rule" "reports" {
   listener_arn = aws_lb_listener.https.arn
   priority     = 200
 
-  # action {
-  #   type = "authenticate-oidc"
+  action {
+    type = "authenticate-oidc"
 
-  #   authenticate_oidc {
-  #     authorization_endpoint = "https://login.microsoftonline.com/${aws_secretsmanager_secret_version.entra_tenant_id.secret_string}/oauth2/v2.0/authorize"
-  #     client_id              = aws_secretsmanager_secret_version.entra_client_id.secret_string
-  #     client_secret          = aws_secretsmanager_secret_version.entra_client_secret.secret_string
-  #     issuer                 = "https://login.microsoftonline.com/${aws_secretsmanager_secret_version.entra_tenant_id.secret_string}/v2.0"
-  #     scope                  = "openid profile email"
-  #     session_cookie_name    = "AWSELBAuthSessionCookie"
-  #     session_timeout        = "21600"
-  #     token_endpoint         = "https://login.microsoftonline.com/${aws_secretsmanager_secret_version.entra_tenant_id.secret_string}/oauth2/v2.0/token"
-  #     user_info_endpoint     = "https://graph.microsoft.com/oidc/userinfo"
-  #   }
-  # }
+    authenticate_oidc {
+      authorization_endpoint = "https://login.microsoftonline.com/${data.aws_secretsmanager_secret_version.entra_tenant_id.secret_string}/oauth2/v2.0/authorize"
+      client_id              = data.aws_secretsmanager_secret_version.entra_client_id.secret_string
+      client_secret          = data.aws_secretsmanager_secret_version.entra_client_secret.secret_string
+      issuer                 = "https://login.microsoftonline.com/${data.aws_secretsmanager_secret_version.entra_tenant_id.secret_string}/v2.0"
+      scope                  = "openid profile email"
+      session_cookie_name    = "AWSELBAuthSessionCookie"
+      session_timeout        = "21600"
+      token_endpoint         = "https://login.microsoftonline.com/${data.aws_secretsmanager_secret_version.entra_tenant_id.secret_string}/oauth2/v2.0/token"
+      user_info_endpoint     = "https://graph.microsoft.com/oidc/userinfo"
+    }
+  }
 
   action {
     type             = "forward"

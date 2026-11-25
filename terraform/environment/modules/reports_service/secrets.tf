@@ -31,13 +31,15 @@ resource "aws_secretsmanager_secret" "entra_tenant_id" {
   region                         = "eu-west-1"
 }
 
-resource "aws_secretsmanager_secret_version" "entra_tenant_id" {
-  secret_id     = aws_secretsmanager_secret.entra_tenant_id.id
-  secret_string = "NOTAREALSECRET"
+data "aws_secretsmanager_secret_version" "entra_tenant_id" {
+  secret_id = aws_secretsmanager_secret.entra_tenant_id.id
+  region    = "eu-west-1"
+}
+
+removed {
+  from = aws_secretsmanager_secret_version.entra_tenant_id
   lifecycle {
-    ignore_changes = [
-      secret_string
-    ]
+    destroy = false
   }
 }
 
@@ -50,16 +52,17 @@ resource "aws_secretsmanager_secret" "entra_client_id" {
   region                         = "eu-west-1"
 }
 
-resource "aws_secretsmanager_secret_version" "entra_client_id" {
-  secret_id     = aws_secretsmanager_secret.entra_client_id.id
-  secret_string = "NOTAREALSECRET"
-  lifecycle {
-    ignore_changes = [
-      secret_string
-    ]
-  }
+data "aws_secretsmanager_secret_version" "entra_client_id" {
+  secret_id = aws_secretsmanager_secret.entra_client_id.id
+  region    = "eu-west-1"
 }
 
+removed {
+  from = aws_secretsmanager_secret_version.entra_client_id
+  lifecycle {
+    destroy = false
+  }
+}
 
 resource "aws_secretsmanager_secret" "entra_client_secret" {
   name                           = "opg-reports/${var.environment_name}/entra/client-secret"
@@ -70,16 +73,17 @@ resource "aws_secretsmanager_secret" "entra_client_secret" {
   region                         = "eu-west-1"
 }
 
-resource "aws_secretsmanager_secret_version" "entra_client_secret" {
-  secret_id     = aws_secretsmanager_secret.entra_client_secret.id
-  secret_string = "NOTAREALSECRET"
-  lifecycle {
-    ignore_changes = [
-      secret_string
-    ]
-  }
+data "aws_secretsmanager_secret_version" "entra_client_secret" {
+  secret_id = aws_secretsmanager_secret.entra_client_secret.id
+  region    = "eu-west-1"
 }
 
+removed {
+  from = aws_secretsmanager_secret_version.entra_client_secret
+  lifecycle {
+    destroy = false
+  }
+}
 
 data "aws_iam_policy_document" "secrets_manager_access" {
   statement {
