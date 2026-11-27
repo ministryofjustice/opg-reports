@@ -66,7 +66,7 @@ runs:
         role-session-name: reports-terraform-snyk-ecr-pull
     # ecr login so the snyk action can pull its runner image
     - name: "ECR Login (Snyk)"
-      uses: aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419 # v2.1.5
+      uses: aws-actions/amazon-ecr-login@7290e214a610b32bc0eef81748948b6d466a8783 # v2.2.0
       with:
         mask-password: true
         registries: ${{ inputs.ecr_registry }}
@@ -82,7 +82,7 @@ runs:
         snyk_test_args: --severity-threshold=high
     # upload results to github security tab
     - name: "Upload Snyk IaC scan results to GitHub Security tab"
-      uses: github/codeql-action/upload-sarif@87557b9c84dde89fdd9b10e88954ac2f4248e463 # v4.36.1
+      uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
       if: always()
       with:
         category: "${{ steps.snyk_names.outputs.category }}"
